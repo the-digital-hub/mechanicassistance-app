@@ -38,6 +38,7 @@ export interface Appointment {
     acceptedAt?: string;
     startedAt?: string;
     completedAt?: string;
+    updatedAt?: string;
     additionalFunds?: AdditionalFunds[];
     clientReview?: ClientReview;
     isReviewSubmitted?: boolean;
@@ -99,7 +100,7 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                     title: req.title,
                     date: req.date || 'Pending',
                     time: 'Pending',
-                    car: req.car, // Make sure to map car string correctly
+                    car: req.car,
                     address: req.address,
                     notes: req.notes,
                     budget: req.budget,
@@ -107,6 +108,7 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                     userId: req.userId,
                     zip: req.zip,
                     mechanicId: req.mechanicId,
+                    updatedAt: (req as any).updatedAt,
                     photos: (() => {
                         const raw: string[] = typeof req.photos === 'string' ? JSON.parse(req.photos) : req.photos || [];
                         const base = ConfigService.getApiBaseUrl();
@@ -116,7 +118,13 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                     locationLng: req.locationLng
                 }));
 
-            setAppointments([...mappedAssistance, ...data]);
+            // Also map updatedAt from appointments table rows
+            const mappedData = data.map((appt: any) => ({
+                ...appt,
+                updatedAt: appt.updatedAt,
+            }));
+
+            setAppointments([...mappedAssistance, ...mappedData]);
 
             // GLOBAL NOTIFICATION LOGIC REMOVED
             // We will handle the alert in the Appointments screen instead.

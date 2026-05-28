@@ -10,7 +10,7 @@ const MAX_PHOTOS = 3;
 export default function AddDetailsScreen() {
     const router = useRouter();
     const params = useLocalSearchParams();
-    const { type, vehicleId, description, issues } = params;
+    const { type, vehicleId, vehicleName, description, issues } = params;
 
     const [details, setDetails] = useState('');
     const [photos, setPhotos] = useState<string[]>([]);
@@ -39,6 +39,7 @@ export default function AddDetailsScreen() {
             params: {
                 type,
                 vehicleId,
+                vehicleName,
                 description,
                 issues,
                 details,

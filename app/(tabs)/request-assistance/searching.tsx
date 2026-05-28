@@ -84,20 +84,6 @@ export default function SearchingScreen() {
         router.push('/(tabs)');
     };
 
-    const handleSimulateAccept = async () => {
-        // DEV ONLY: Manually set status to accepted to test the flow
-        if (requestId) {
-            try {
-                // Randomly pick a mechanic from the seeded data
-                const mechanicId = Math.random() > 0.5 ? 'mech-1' : 'mech-2';
-                await assistanceDAO.updateStatus(requestId as string, mechanicId, 'offered');
-                alert(`Mechanic (${mechanicId}) offered help! Wait for polling to pick it up...`);
-            } catch (error) {
-                console.error('Failed to simulate accept:', error);
-            }
-        }
-    };
-
     return (
         <View className="flex-1 bg-white">
             <View className="px-6 pt-14 pb-4 border-b border-gray-100 flex-row items-center">

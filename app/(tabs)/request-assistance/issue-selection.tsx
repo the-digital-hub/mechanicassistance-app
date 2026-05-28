@@ -15,7 +15,7 @@ const COMMON_ISSUES = [
 export default function IssueSelectionScreen() {
     const router = useRouter();
     const params = useLocalSearchParams();
-    const { type, vehicleId } = params;
+    const { type, vehicleId, vehicleName } = params;
 
     const [description, setDescription] = useState('');
     const [selectedIssues, setSelectedIssues] = useState<string[]>([]);
@@ -34,6 +34,7 @@ export default function IssueSelectionScreen() {
             params: {
                 type,
                 vehicleId,
+                vehicleName,
                 description,
                 issues: selectedIssues.join(','),
             }

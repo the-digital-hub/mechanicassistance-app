@@ -38,7 +38,8 @@ export default function SelectVehicleScreen() {
             pathname: '/request-assistance/issue-selection',
             params: {
                 type,
-                vehicleId: vehicle.id
+                vehicleId: vehicle.id,
+                vehicleName: `${vehicle.make} ${vehicle.model}`
             }
         });
     };

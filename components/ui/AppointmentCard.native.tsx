@@ -1,8 +1,23 @@
 import { Appointment } from '@/context/AppointmentsContext';
+import { haversineDistanceKm } from '@/lib/utils';
+import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { Calendar, Car, Clock, MapPin, MessageSquare, ShieldCheck, Trash2, Video } from 'lucide-react-native';
+import { useEffect, useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
+
+/** Format an ISO date string to a human-readable "MM/DD/YYYY - hh:mm AM/PM" */
+function formatDate(iso?: string): string {
+    if (!iso) return 'N/A';
+    return new Date(iso).toLocaleString('en-US', {
+        month: '2-digit',
+        day: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+}
 
 interface AppointmentCardProps {
     appointment: Appointment;
@@ -13,6 +28,23 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
     const router = useRouter();
     const isCanceled = appointment.status === 'canceled';
     const isPending = appointment.status === 'pending';
+
+    const [distanceLabel, setDistanceLabel] = useState<string>('Distance: N/A');
+
+    useEffect(() => {
+        if (!appointment.locationLat || !appointment.locationLng) return;
+        Location.getLastKnownPositionAsync().then((pos) => {
+            if (pos) {
+                const km = haversineDistanceKm(
+                    pos.coords.latitude,
+                    pos.coords.longitude,
+                    appointment.locationLat!,
+                    appointment.locationLng!,
+                );
+                setDistanceLabel(`Distance: ${km.toFixed(1)} Km`);
+            }
+        }).catch(() => { /* permission not granted yet — leave N/A */ });
+    }, [appointment.locationLat, appointment.locationLng]);
 
     const getHeaderStyles = () => {
         const isAccepted = appointment.status === 'accepted';
@@ -94,7 +126,7 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                 <View className="bg-red-50 p-3 items-center border-b border-red-100">
                     <Text className="text-red-500 font-outfit-bold text-xs">Status</Text>
                     <Text className="text-red-600 font-outfit-bold text-sm">REQUEST CANCELED</Text>
-                    <Text className="text-red-400 text-[10px]">Posted: 07/07/2025 - 03:15 AM</Text>
+                    <Text className="text-red-400 text-[10px]">Posted: {formatDate(appointment.updatedAt)}</Text>
                     <Text className="text-red-400 text-[10px]">ID:#{appointment.id}</Text>
                 </View>
             )}
@@ -156,7 +188,7 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                 <Text className="text-base font-outfit-medium text-gray-900 mb-1">{appointment.address}</Text>
                 <View className="flex-row items-center mb-4">
                     <MapPin size={12} color="#6B7280" />
-                    <Text className="text-gray-500 text-xs ml-1">Distance: 2.5 Km</Text>
+                    <Text className="text-gray-500 text-xs ml-1">{distanceLabel}</Text>
                 </View>
 
                 {/* Buttons */}
@@ -184,7 +216,7 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
 
                 {isCanceled && (
                     <Text className="text-center text-[10px] text-gray-400 mt-2">
-                        Posted: 07/07/2025 - 03:15 AM
+                        Posted: {formatDate(appointment.updatedAt)}
                         {'\n'}ID:#{appointment.id}
                     </Text>
                 )}

@@ -11,7 +11,7 @@ export default function LocationMapScreen() {
     const router = useRouter();
     const params = useLocalSearchParams();
     const { type, vehicleId, description, issues, details, photos, selectedAddress } = params;
-    const { user, updateUser } = useUser();
+    const { user } = useUser();
 
     // Helper to find address by type from the addresses array
     const homeAddress = user?.addresses?.find(a => a.type === 'home') ?? user?.addresses?.[0];
@@ -143,23 +143,30 @@ export default function LocationMapScreen() {
         });
     };
 
-    const handleSetHome = () => {
-        // Mock HOME location (e.g., user's profile address)
-        // Ideally we Geocode user.address. Since we can't easily, we'll just alert for now or mock.
-        alert("Setting location to Home (Mock: 777 East 77th Street)");
-        // Mock coords for "777 East 77th Street, Brooklyn, NY"
-        const mockHome = { latitude: 40.635, longitude: -73.91 };
-        setRegion({ ...mockHome, latitudeDelta: 0.005, longitudeDelta: 0.005 });
-        setMarker(mockHome);
-        setLocationName("Home: 777 East 77th Street");
-    };
-
-    const handleSetWork = () => {
-        alert("Setting location to Work (Mock: 1343 Worthingham Avenue)");
-        const mockWork = { latitude: 40.65, longitude: -73.88 };
-        setRegion({ ...mockWork, latitudeDelta: 0.005, longitudeDelta: 0.005 });
-        setMarker(mockWork);
-        setLocationName("Work: 1343 Worthingham Avenue");
+    /** Geocode an Address object (street + city + state + zip) and move the map pin there. */
+    const geocodeAndSetAddress = async (address: { street?: string; city?: string; state?: string; zip?: string }, label: string) => {
+        const query = [address.street, address.city, address.state, address.zip]
+            .filter(Boolean)
+            .join(', ');
+        if (!query) {
+            alert('No address details available. Please add an address in your profile.');
+            return;
+        }
+        try {
+            const results = await Location.geocodeAsync(query);
+            if (results && results.length > 0) {
+                const { latitude, longitude } = results[0];
+                setRegion({ latitude, longitude, latitudeDelta: 0.005, longitudeDelta: 0.005 });
+                setMarker({ latitude, longitude });
+                setLocationName(label);
+                setLocationZip(address.zip || '');
+            } else {
+                alert(`Could not find coordinates for "${query}". Please search manually.`);
+            }
+        } catch (e) {
+            console.error('Geocoding failed', e);
+            alert('Could not resolve address. Please search manually.');
+        }
     };
 
     return (
@@ -240,29 +247,19 @@ export default function LocationMapScreen() {
                     <View className="flex-row gap-4 mb-6">
                         <TouchableOpacity
                             onPress={() => {
-                                if (homeAddress?.street) {
-                                    setLocationName(`${homeAddress.street}, ${homeAddress.city || ''}`);
-                                    setLocationZip(homeAddress.zip || '');
+                                if (homeAddress) {
+                                    geocodeAndSetAddress(
+                                        homeAddress,
+                                        `${homeAddress.street || ''}, ${homeAddress.city || ''}`.trim().replace(/^,\s*/, '')
+                                    );
+                                } else {
+                                    alert('No home address saved. Add one in your profile settings.');
                                 }
                             }}
                             className="flex-1 bg-gray-50 p-4 rounded-xl border border-gray-100 relative"
                         >
                             <View className="flex-row justify-between items-start mb-1">
                                 <Text className="text-blue-900 font-outfit-bold">Home</Text>
-                                <TouchableOpacity
-                                    onPress={(e) => {
-                                        e.stopPropagation();
-                                        if (user && updateUser) {
-                                            const parts = locationName.split(',');
-                                            // NOTE: saving as flat address for local-only update
-                                            // A proper implementation would sync to backend via addressDAO
-                                            alert("Home address updated locally!");
-                                        }
-                                    }}
-                                    className="bg-blue-100 px-2 py-1 rounded"
-                                >
-                                    <Text className="text-[10px] text-blue-700 font-outfit-bold">Set Home</Text>
-                                </TouchableOpacity>
                             </View>
                             <Text numberOfLines={1} className="text-gray-500 text-xs">
                                 {homeAddress ? `${homeAddress.street || ''}, ${homeAddress.city || ''}` : 'Not set'}
@@ -271,26 +268,19 @@ export default function LocationMapScreen() {
 
                         <TouchableOpacity
                             onPress={() => {
-                                if (workAddress?.street) {
-                                    setLocationName(`${workAddress.street}, ${workAddress.city || ''}`);
-                                    setLocationZip(workAddress.zip || '');
+                                if (workAddress) {
+                                    geocodeAndSetAddress(
+                                        workAddress,
+                                        `${workAddress.street || ''}, ${workAddress.city || ''}`.trim().replace(/^,\s*/, '')
+                                    );
+                                } else {
+                                    alert('No work address saved. Add one in your profile settings.');
                                 }
                             }}
                             className="flex-1 bg-gray-50 p-4 rounded-xl border border-gray-100 relative"
                         >
                             <View className="flex-row justify-between items-start mb-1">
                                 <Text className="text-blue-900 font-outfit-bold">Work</Text>
-                                <TouchableOpacity
-                                    onPress={(e) => {
-                                        e.stopPropagation();
-                                        if (user && updateUser) {
-                                            alert("Work address updated locally!");
-                                        }
-                                    }}
-                                    className="bg-blue-100 px-2 py-1 rounded"
-                                >
-                                    <Text className="text-[10px] text-blue-700 font-outfit-bold">Set Work</Text>
-                                </TouchableOpacity>
                             </View>
                             <Text numberOfLines={1} className="text-gray-500 text-xs">
                                 {workAddress ? `${workAddress.street || ''}, ${workAddress.city || ''}` : 'Not set'}

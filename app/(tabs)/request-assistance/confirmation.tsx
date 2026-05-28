@@ -10,10 +10,11 @@ export default function ConfirmationScreen() {
     const router = useRouter();
     const { user } = useUser();
     const params = useLocalSearchParams();
-    // latitude, longitude, addressLabel, finalAddress, type, vehicleId, description, issues, details, photos
+    // latitude, longitude, addressLabel, finalAddress, type, vehicleId, vehicleName, description, issues, details, photos
     const {
         type,
         vehicleId,
+        vehicleName,
         description,
         issues,
         details,
@@ -26,16 +27,9 @@ export default function ConfirmationScreen() {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [uploadProgress, setUploadProgress] = useState('');
-    const [vehicleStr, setVehicleStr] = useState('Loading...');
 
-    useEffect(() => {
-        if (vehicleId) {
-            // Ideally we pass vehicle details, but fetching is safe/fast enough usually
-            // For now just placeholder text or fetch
-            // Let's assume passed ID is correct.
-            setVehicleStr(` Vehicle ID: ${vehicleId}`); // In real app, fetch name
-        }
-    }, [vehicleId]);
+    // vehicleName is passed through the wizard from select-vehicle screen
+    const vehicleStr = (vehicleName as string) || `Vehicle ID: ${vehicleId}`;
 
     const handleConfirm = async () => {
         setIsSubmitting(true);

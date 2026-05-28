@@ -87,9 +87,10 @@ export default function MechanicFoundScreen() {
                 'calendar-outline';
 
     const typeSubtitle =
-        assistanceRequest?.type === 'immediate' ? 'Available now · ETA: 2hs' :
-            assistanceRequest?.type === 'video' ? 'Available now · Start Call' :
-                `Available ${assistanceRequest?.date || ''} ${assistanceRequest?.time || ''}`.trim();
+        assistanceRequest?.type === 'immediate'
+            ? `Available now · ETA: ${assistanceRequest?.eta || '2hs'}`
+            : assistanceRequest?.type === 'video' ? 'Available now · Start Call'
+                : `Available ${assistanceRequest?.date || ''} ${assistanceRequest?.time || ''}`.trim();
 
     if (isLoading) {
         return (
@@ -143,13 +144,17 @@ export default function MechanicFoundScreen() {
                         </View>
                     </View>
 
-                    {/* Cost */}
+                    {/* Cost — prefers mechanic's proposed price, falls back to budget */}
                     <View className="mb-4">
                         <Text className="font-outfit-bold text-[#0F172A] text-base">
                             Cost per this service assistance:
                         </Text>
                         <Text className="font-outfit-bold text-blue-600 text-2xl">
-                            ${assistanceRequest?.budget || 'TBD'}
+                            {assistanceRequest?.price
+                                ? `$${assistanceRequest.price}`
+                                : assistanceRequest?.budget
+                                    ? `$${assistanceRequest.budget}`
+                                    : 'TBD'}
                         </Text>
                     </View>
 

@@ -32,6 +32,8 @@ export default function VideoLobbyScreen() {
     const appointmentId = Array.isArray(id) ? id[0] : id || '';
     const appointment = getAppointmentById(appointmentId);
     const isUserRole = user?.role === 'user';
+    const participantName = user ? `${user.name} ${user.surname}`.trim() : 'Participant';
+    const participantRole: 'user' | 'mechanic' = isUserRole ? 'user' : 'mechanic';
 
     const [isCreatingRoom, setIsCreatingRoom] = useState(false);
     const [roomUrl, setRoomUrl] = useState<string | null>(null);
@@ -125,17 +127,16 @@ export default function VideoLobbyScreen() {
     const handleStartCall = useCallback(async () => {
         setIsCreatingRoom(true);
         try {
-            const data = await apiClient.post<{ roomUrl: string; roomName: string; expiry: number }>(
+            const data = await apiClient.post<{ roomUrl: string; roomName: string; expiry: number; token: string }>(
                 '/api/video-room',
-                { appointmentId }
+                { appointmentId, participantName, role: participantRole }
             );
             setRoomUrl(data.roomUrl);
             setRoomExpiry(data.expiry);
 
-            // Navigate to the video call screen
             router.push({
                 pathname: '/video-call/[id]' as any,
-                params: { id: appointmentId, roomUrl: data.roomUrl }
+                params: { id: appointmentId, roomUrl: data.roomUrl, token: data.token }
             });
         } catch (error) {
             console.error('Failed to create video room:', error);
@@ -143,16 +144,27 @@ export default function VideoLobbyScreen() {
         } finally {
             setIsCreatingRoom(false);
         }
-    }, [appointmentId, router]);
+    }, [appointmentId, router, participantName, participantRole]);
 
-    const handleJoinCall = useCallback(() => {
-        if (roomUrl) {
+    const handleJoinCall = useCallback(async () => {
+        if (!roomUrl) return;
+        try {
+            const data = await apiClient.get<{ roomUrl: string; token: string | null }>(
+                `/api/video-room/${appointmentId}?participantName=${encodeURIComponent(participantName)}&role=${participantRole}`
+            );
+            if (!data.token) {
+                Alert.alert('Error', 'The video room has expired. Please ask the user to start a new call.');
+                return;
+            }
             router.push({
                 pathname: '/video-call/[id]' as any,
-                params: { id: appointmentId, roomUrl }
+                params: { id: appointmentId, roomUrl: data.roomUrl, token: data.token }
             });
+        } catch (error) {
+            console.error('Failed to join video call:', error);
+            Alert.alert('Error', 'Failed to join video call. Please try again.');
         }
-    }, [roomUrl, appointmentId, router]);
+    }, [roomUrl, appointmentId, router, participantName, participantRole]);
 
     if (!appointment) {
         return (

@@ -58,6 +58,13 @@
       "@react-native-firebase/app",
       "@react-native-firebase/auth",
       [
+        "@config-plugins/react-native-webrtc",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera for video calls.",
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone for video calls."
+        }
+      ],
+      [
         "expo-build-properties",
         {
           "ios": {

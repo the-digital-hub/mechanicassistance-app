@@ -20,6 +20,12 @@ export interface AssistanceRequest {
     vehicleId?: string;
     description?: string;
     zip?: string;
+    /** Mechanic's proposed price for this service (set when mechanic makes an offer) */
+    price?: string;
+    /** Mechanic's estimated arrival time, e.g. "20 min" */
+    eta?: string;
+    /** ISO date string of the last update (used e.g. as cancellation date) */
+    updatedAt?: string;
 }
 
 export interface Address {
