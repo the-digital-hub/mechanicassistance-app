@@ -5,23 +5,6 @@ import {
 } from "@expo-google-fonts/outfit";
 import { LogBox } from "react-native";
 
-// Suppress warnings from dependencies that aren't yet updated for React 19
-LogBox.ignoreLogs([
-  "props.pointerEvents is deprecated",
-  "Accessing element.ref was removed in React 19",
-  "Blocked aria-hidden on an element",
-  /Blocked aria-hidden on an element/,
-  // RNFirebase namespaced API — intentionally kept (see FIREBASE_PHONE_AUTH.md)
-  "This method is deprecated (as well as all React Native Firebase namespaced API)",
-  // SafeAreaView from RN core — use react-native-safe-area-context (already done)
-  "SafeAreaView has been deprecated",
-  // ConfigService bootstrap fetch fails in dev/offline — fallback handles it
-  "[ConfigService] Could not fetch remote bootstrap config",
-  // Firebase Auth internal console warnings
-  "[FirebaseAuth]",
-  /\[FirebaseAuth\]/,
-]);
-
 import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
@@ -38,6 +21,23 @@ import { UserProvider, useUser } from "@/context/UserContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { ConfigService } from "@/lib/config/ConfigService";
 import "../global.css";
+
+// Suppress warnings from dependencies that aren't yet updated for React 19
+LogBox.ignoreLogs([
+  "props.pointerEvents is deprecated",
+  "Accessing element.ref was removed in React 19",
+  "Blocked aria-hidden on an element",
+  /Blocked aria-hidden on an element/,
+  // RNFirebase namespaced API — intentionally kept (see FIREBASE_PHONE_AUTH.md)
+  "This method is deprecated (as well as all React Native Firebase namespaced API)",
+  // SafeAreaView from RN core — use react-native-safe-area-context (already done)
+  "SafeAreaView has been deprecated",
+  // ConfigService bootstrap fetch fails in dev/offline — fallback handles it
+  "[ConfigService] Could not fetch remote bootstrap config",
+  // Firebase Auth internal console warnings
+  "[FirebaseAuth]",
+  /\[FirebaseAuth\]/,
+]);
 
 // Inner component — lives inside UserProvider so it can read auth loading state.
 // Keeps the splash screen visible until both fonts and the Firebase session check resolve.
