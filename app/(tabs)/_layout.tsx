@@ -107,6 +107,12 @@ export default function TabLayout() {
           headerLeft: () => null,
           headerRight: () => <NotificationHeaderRight />,
         }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.navigate('request-assistance', { screen: 'index' });
+          },
+        })}
       />
       <Tabs.Screen
         name="appointments"

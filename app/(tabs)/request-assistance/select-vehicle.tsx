@@ -5,6 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Car, ChevronLeft, Plus } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function SelectVehicleScreen() {
     const router = useRouter();
@@ -57,25 +58,29 @@ export default function SelectVehicleScreen() {
     return (
         <View className="flex-1 bg-white">
             {/* Custom Header */}
-            <View className="px-6 pt-14 pb-4 border-b border-gray-100 flex-row items-center">
-                <TouchableOpacity onPress={() => router.back()} className="mr-4">
-                    <ChevronLeft size={24} color="#0F172A" />
+            <View className="px-6 pt-20 pb-2 flex-row items-center justify-between" style={{ backgroundColor: '#F4F5FA', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 3, elevation: 3, borderBottomWidth: 0.5, borderBottomColor: '#D1D5DB' }}>
+                <TouchableOpacity onPress={() => router.back()}>
+                    <View className="w-10 h-10 rounded-full justify-center items-center" style={{ backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }}>
+                        <ChevronLeft size={20} color="#0047AB" />
+                    </View>
                 </TouchableOpacity>
-                <Text className="text-xl font-outfit-bold text-[#0F172A] flex-1 text-center">
+                <Text style={{ fontFamily: 'Outfit_500Medium', fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>
                     {getTitle()}
                 </Text>
-                <TouchableOpacity onPress={() => router.replace('/(tabs)/assist')} className="ml-4">
-                    <Text className="text-red-500 font-outfit-medium text-xs">Cancel</Text>
-                </TouchableOpacity>
+                <View className="w-6" />
             </View>
 
             <ScrollView className="flex-1 px-6 pt-6">
-                <Text className="text-blue-600 font-outfit-bold text-lg mb-1">Select your vehicle</Text>
-
-                <View className="mb-6">
-                    <Text className="font-outfit-bold text-[#0F172A] text-base mb-1">Vehicle</Text>
-                    <Text className="text-gray-500 font-outfit-regular text-sm">Which vehicle has the issue?</Text>
+                <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+                    <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+                    <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">SELECT YOUR VEHICLE</Text>
                 </View>
+
+                <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">Vehicles</Text>
+
+                <Text className="text-gray-500 font-outfit-regular text-base mb-8">
+                    Which vehicle has the issue?
+                </Text>
 
                 {isLoading ? (
                     <ActivityIndicator size="large" color="#0047AB" className="mt-8" />
@@ -107,10 +112,25 @@ export default function SelectVehicleScreen() {
 
                         <TouchableOpacity
                             onPress={() => router.push('/(tabs)/vehicles')}
-                            className="flex-row items-center justify-center py-4 mt-2"
+                            activeOpacity={0.8}
                         >
-                            <Plus size={20} color="#0047AB" />
-                            <Text className="font-outfit-bold text-[#0047AB] ml-2">Add a vehicle</Text>
+                            <LinearGradient
+                                colors={['#2B66F8', '#081E72']}
+                                start={{ x: 0, y: 1 }}
+                                end={{ x: 1, y: 0 }}
+                                style={{
+                                    borderRadius: 24,
+                                    paddingVertical: 16,
+                                    paddingHorizontal: 16,
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    marginTop: 32
+                                }}
+                            >
+                                <Plus size={20} color="#FFFFFF" />
+                                <Text className="font-outfit-bold text-white ml-2">Add a vehicle</Text>
+                            </LinearGradient>
                         </TouchableOpacity>
                     </View>
                 )}
