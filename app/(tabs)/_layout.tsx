@@ -69,9 +69,13 @@ export default function TabLayout() {
         headerShown: true,
         headerTitleAlign: "center",
         headerTintColor: "#0047AB",
+        headerStyle: {
+          backgroundColor: "#F4F5FA",
+        },
         headerTitleStyle: {
-          fontFamily: "Outfit_700Bold",
+          fontFamily: "Outfit_500Medium",
           fontSize: 18,
+          color: "#1A1A1A",
         },
         headerLeft: () => (
           <TouchableOpacity
