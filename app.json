@@ -7,6 +7,7 @@
     "icon": "./assets/images/mechanic-icon.png",
     "scheme": "mechanic",
     "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.pixel.mechanic",
