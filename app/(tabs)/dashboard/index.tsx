@@ -125,10 +125,26 @@ export default function AssistFeedScreen() {
     );
 
     return (
-        <View className="flex-1 bg-white px-4 pt-4">
+        <View className="flex-1 bg-white px-6 pt-4">
             <FlatList
                 ListHeaderComponent={
                     <View className="mb-4">
+                        {/* Section Badge */}
+                        <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+                            <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+                            <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+                                {user?.role?.toLowerCase() === 'mechanic' ? 'FIND JOBS' : 'NEED HELP'}
+                            </Text>
+                        </View>
+
+                        {/* Title */}
+                        <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">Welcome back</Text>
+
+                        {/* Subtitle */}
+                        <Text className="text-gray-500 font-outfit-regular text-base mb-8">
+                            What kind of assistance do you need today?
+                        </Text>
+
                         {/* Filter Icons */}
                         <View className="flex-row justify-between px-2 mb-6">
                             <FilterIcon type="immediate" icon={Clock} label="Immediate" color="#1D4ED8" />
