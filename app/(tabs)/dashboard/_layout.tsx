@@ -2,7 +2,7 @@ import { Stack, useRouter } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import { TouchableOpacity } from "react-native";
 
-export default function AssistLayout() {
+export default function DashboardLayout() {
   const router = useRouter();
 
   return (
@@ -28,7 +28,7 @@ export default function AssistLayout() {
           title: "Assist",
           headerLeft: () => (
             <TouchableOpacity
-              onPress={() => router.navigate("/assist")}
+              onPress={() => router.navigate("/dashboard")}
               style={{ marginLeft: 0 }}
             >
               <ChevronLeft size={24} color="#0047AB" />
@@ -43,7 +43,7 @@ export default function AssistLayout() {
           title: "Filter results",
           headerLeft: () => (
             <TouchableOpacity
-              onPress={() => router.navigate("/assist")}
+              onPress={() => router.navigate("/dashboard")}
               style={{ marginLeft: 0 }}
             >
               <ChevronLeft size={24} color="#0047AB" />

@@ -155,7 +155,7 @@ export default function AssistFeedScreen() {
                         {/* Filter Header */}
                         <View className="flex-row justify-between items-center mb-2">
                             <Text className="text-lg font-outfit-bold text-blue-900">Last minute Opportunities!</Text>
-                            <TouchableOpacity onPress={() => router.push('/assist/filter')}>
+                            <TouchableOpacity onPress={() => router.push('/dashboard/filter')}>
                                 <SlidersHorizontal size={20} color="#0047AB" />
                             </TouchableOpacity>
                         </View>
@@ -177,7 +177,7 @@ export default function AssistFeedScreen() {
                             distance={item.distance}
                             budget={item.budget}
                             onAccept={() => !isAccepted && router.push({
-                                pathname: `/assist/${item.id}` as any,
+                                pathname: `/dashboard/${item.id}` as any,
                                 params: {
                                     type: item.type,
                                     assistanceType: item.assistanceType || '',

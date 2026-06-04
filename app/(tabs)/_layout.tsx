@@ -89,7 +89,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="assist"
+        name="dashboard"
         options={{
           title: "Dashboard",
           tabBarIcon: ({ color }) => <LifeBuoy size={24} color={color} />,

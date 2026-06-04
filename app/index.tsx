@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 /**
  * App entry point — determines where to redirect the user:
  *
- * 1. Logged in           → /(tabs)/assist (main app)
+ * 1. Logged in           → /(tabs)/dashboard (main app)
  * 2. Incomplete setup    → resume at the correct setup screen
  * 3. No session/progress → /onboarding
  */
@@ -38,7 +38,7 @@ export default function Index() {
     }, [isLoading, user]);
 
     if (isLoading || !checked) return null;
-    if (user) return <Redirect href="/(tabs)/assist" />;
+    if (user) return <Redirect href="/(tabs)/dashboard" />;
     if (resumeRoute) return <Redirect href={resumeRoute as any} />;
     return <Redirect href="/setup" />;
 }

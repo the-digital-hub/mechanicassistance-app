@@ -170,7 +170,7 @@ export default function LoginScreen() {
       if (success) {
         const cleaned = fullPhoneRef.current.replace(/\D/g, "").slice(-10);
         await saveLastPhone(cleaned);
-        router.replace("/(tabs)/assist");
+        router.replace("/(tabs)/dashboard");
       } else {
         showError(
           "Account Not Found",
@@ -214,7 +214,7 @@ export default function LoginScreen() {
 
       const success = await login(idToken);
       if (success) {
-        router.replace("/(tabs)/assist");
+        router.replace("/(tabs)/dashboard");
       } else {
         showError(
           "Account Not Found",

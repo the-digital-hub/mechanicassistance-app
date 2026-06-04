@@ -57,7 +57,7 @@ export default function NotificationsScreen() {
             <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
                 <View className="px-6 py-6">
                     <Text className="text-blue-900 font-outfit-bold text-2xl">Notification center</Text>
-                    <TouchableOpacity onPress={() => router.navigate('/(tabs)/assist')}>
+                    <TouchableOpacity onPress={() => router.navigate('/(tabs)/dashboard')}>
                         <Text className="text-blue-500 font-outfit-medium text-sm mt-1">Dashboard</Text>
                     </TouchableOpacity>
                 </View>
