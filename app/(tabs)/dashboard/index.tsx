@@ -4,9 +4,10 @@ import { useUser } from '@/context/UserContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { AssistanceRequest } from '@/lib/dao/interfaces';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Calendar, Clock, ShieldCheck, SlidersHorizontal, Video } from 'lucide-react-native';
+import { Calendar, Clock, SlidersHorizontal, Video, Zap, ChevronRight } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function AssistFeedScreen() {
     const router = useRouter();
@@ -104,26 +105,6 @@ export default function AssistFeedScreen() {
         return true;
     });
 
-    const FilterIcon = ({ type, icon: Icon, label, color }: { type: AssistanceType, icon: any, label: string, color: string }) => (
-        <TouchableOpacity
-            onPress={() => {
-                if (user?.role === 'user') {
-                    router.push('/request-assistance');
-                } else {
-                    setFilter(filter === type ? null : type);
-                }
-            }}
-            className="items-center w-[22%]"
-        >
-            <View className={`w-14 h-14 rounded-full justify-center items-center mb-1 bg-gray-100 ${filter === type ? 'border-2 border-blue-500' : ''}`}>
-                <Icon size={24} color={color} />
-            </View>
-            <Text className={`text-[10px] font-outfit-medium text-center ${filter === type ? 'text-blue-600' : 'text-gray-600'}`}>
-                {label}
-            </Text>
-        </TouchableOpacity>
-    );
-
     return (
         <View className="flex-1 bg-white px-6 pt-4">
             <FlatList
@@ -145,12 +126,88 @@ export default function AssistFeedScreen() {
                             What kind of assistance do you need today?
                         </Text>
 
-                        {/* Filter Icons */}
-                        <View className="flex-row justify-between px-2 mb-6">
-                            <FilterIcon type="immediate" icon={Clock} label="Immediate" color="#1D4ED8" />
-                            <FilterIcon type="witness" icon={ShieldCheck} label="Accident" color="#1D4ED8" />
-                            <FilterIcon type="scheduled" icon={Calendar} label="Scheduled" color="#3B82F6" />
-                            <FilterIcon type="videocall" icon={Video} label="Video Call" color="#06caf0" />
+                        {/* Assistance Type Cards */}
+                        <View className="gap-3 mb-6">
+                            {/* Immediate Assistance - Featured Card */}
+                            <TouchableOpacity
+                                onPress={() => setFilter(filter === 'immediate' ? null : 'immediate')}
+                                className="rounded-3xl overflow-hidden"
+                                activeOpacity={0.8}
+                            >
+                                <LinearGradient
+                                    colors={['#2B66F8', '#081E72']}
+                                    start={{ x: 0, y: 1 }}
+                                    end={{ x: 1, y: 0 }}
+                                    style={{
+                                        borderRadius: 24,
+                                        padding: 16,
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
+                                    }}
+                                >
+                                    {/* Icon */}
+                                    <View className="w-16 h-16 rounded-2xl justify-center items-center mr-4" style={{ backgroundColor: '#4D77EF', borderWidth: 1, borderColor: '#6789F1' }}>
+                                        <Zap size={32} color="white" strokeWidth={2} />
+                                    </View>
+
+                                    {/* Content */}
+                                    <View className="flex-1">
+                                        <Text className="text-white font-outfit-bold text-lg">Immediate</Text>
+                                        <Text className="text-blue-100 font-outfit-regular text-sm mt-1">
+                                            Assist
+                                        </Text>
+                                    </View>
+
+                                    {/* Arrow */}
+                                    <View className="w-10 h-10 bg-white rounded-full justify-center items-center ml-3">
+                                        <ChevronRight size={20} color="#1D4ED8" strokeWidth={3} />
+                                    </View>
+                                </LinearGradient>
+                            </TouchableOpacity>
+
+                            {/* Scheduled Assistance */}
+                            <TouchableOpacity
+                                onPress={() => setFilter(filter === 'scheduled' ? null : 'scheduled')}
+                                className="rounded-3xl overflow-hidden"
+                                activeOpacity={0.8}
+                            >
+                                <View className="bg-white rounded-3xl px-4 py-4 flex-row items-center" style={{ borderWidth: 1.5, borderColor: '#EEF2FA' }}>
+                                    <View className="w-16 h-16 rounded-2xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
+                                        <Calendar size={28} color="#1E56E3" />
+                                    </View>
+                                    <View className="flex-1">
+                                        <Text className="text-gray-900 font-outfit-bold text-lg">Scheduled</Text>
+                                        <Text className="text-gray-600 font-outfit-regular text-sm mt-1">
+                                            Assist
+                                        </Text>
+                                    </View>
+                                    <View className="w-10 h-10 rounded-full justify-center items-center" style={{ backgroundColor: '#F4F8FF' }}>
+                                        <ChevronRight size={20} color="#6B7280" />
+                                    </View>
+                                </View>
+                            </TouchableOpacity>
+
+                            {/* Video Call Assistance */}
+                            <TouchableOpacity
+                                onPress={() => setFilter(filter === 'videocall' ? null : 'videocall')}
+                                className="rounded-3xl overflow-hidden"
+                                activeOpacity={0.8}
+                            >
+                                <View className="bg-white rounded-3xl p-4 flex-row items-center" style={{ borderWidth: 1.5, borderColor: '#EEF2FA' }}>
+                                    <View className="w-16 h-16 rounded-2xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
+                                        <Video size={28} color="#1E56E3" />
+                                    </View>
+                                    <View className="flex-1">
+                                        <Text className="text-gray-900 font-outfit-bold text-lg">Video Call</Text>
+                                        <Text className="text-gray-600 font-outfit-regular text-sm mt-1">
+                                            DIY
+                                        </Text>
+                                    </View>
+                                    <View className="w-10 h-10 rounded-full justify-center items-center" style={{ backgroundColor: '#F4F8FF' }}>
+                                        <ChevronRight size={20} color="#6B7280" />
+                                    </View>
+                                </View>
+                            </TouchableOpacity>
                         </View>
 
                         {/* Promo Banner - Only for Mechanics */}
