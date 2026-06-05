@@ -3,6 +3,7 @@ import { useUser } from '@/context/UserContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { ChevronLeft } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
@@ -30,6 +31,36 @@ export default function ConfirmationScreen() {
 
     // vehicleName is passed through the wizard from select-vehicle screen
     const vehicleStr = (vehicleName as string) || `Vehicle ID: ${vehicleId}`;
+
+    const getTitle = () => {
+        switch (type) {
+            case 'immediate': return 'Immediate Assistance';
+            case 'scheduled': return 'Scheduled Assistance';
+            case 'videocall': return 'Video Call Assistance';
+            case 'witness': return 'Accident Assistance';
+            default: return 'Assistance';
+        }
+    };
+
+    const getBadgeText = () => {
+        switch (type) {
+            case 'immediate': return 'IMMEDIATE ASSISTANCE';
+            case 'scheduled': return 'SCHEDULED ASSISTANCE';
+            case 'videocall': return 'VIDEO CALL ASSISTANCE';
+            case 'witness': return 'ACCIDENT ASSISTANCE';
+            default: return 'ASSISTANCE';
+        }
+    };
+
+    const getTypeLabel = () => {
+        switch (type) {
+            case 'immediate': return 'Immediate Assistance';
+            case 'scheduled': return 'Scheduled Assistance';
+            case 'videocall': return 'Video Call';
+            case 'witness': return 'Accident Assistance';
+            default: return 'Assistance';
+        }
+    };
 
     const handleConfirm = async () => {
         setIsSubmitting(true);
@@ -73,7 +104,7 @@ export default function ConfirmationScreen() {
 
             router.replace({
                 pathname: '/request-assistance/searching',
-                params: { requestId: response.id }
+                params: { requestId: response.id, type }
             });
         } catch (error) {
             console.error(error);
@@ -84,34 +115,34 @@ export default function ConfirmationScreen() {
         }
     };
 
-    const getTypeLabel = () => {
-        switch (type) {
-            case 'immediate': return 'Immediate Assistance';
-            case 'scheduled': return 'Scheduled Assistance';
-            case 'videocall': return 'Video Call';
-            case 'witness': return 'Accident Assistance';
-            default: return 'Assistance';
-        }
-    };
-
     return (
         <View className="flex-1 bg-white">
-            {/* Header */}
-            <View className="px-6 pt-14 pb-4 border-b border-gray-100 flex-row items-center">
-                <TouchableOpacity onPress={() => router.back()} className="mr-4">
-                    <Ionicons name="chevron-back" size={24} color="#0F172A" />
+            {/* Custom Header */}
+            <View className="px-6 pt-20 pb-2 flex-row items-center justify-between" style={{ backgroundColor: '#F4F5FA', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 3, elevation: 3, borderBottomWidth: 0.5, borderBottomColor: '#D1D5DB' }}>
+                <TouchableOpacity onPress={() => router.back()}>
+                    <View className="w-10 h-10 rounded-full justify-center items-center" style={{ backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }}>
+                        <ChevronLeft size={20} color="#0047AB" />
+                    </View>
                 </TouchableOpacity>
-                <Text className="text-xl font-outfit-bold text-[#0F172A] flex-1 text-center">
-                    Assistance
+                <Text style={{ fontFamily: 'Outfit_500Medium', fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>
+                    {getTitle()}
                 </Text>
-                <TouchableOpacity onPress={() => router.replace('/(tabs)/assist')} className="ml-4">
-                    <Text className="text-red-500 font-outfit-medium text-xs">Cancel</Text>
-                </TouchableOpacity>
+                <View className="w-6" />
             </View>
 
             <ScrollView className="flex-1 px-6 pt-6">
-                <Text className="text-blue-600 font-outfit-bold text-lg mb-1">Request a mechanic</Text>
-                <Text className="text-gray-900 font-outfit-bold text-sm mb-6">Confirm assistance request</Text>
+                <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+                    <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+                    <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+                        {getBadgeText()}
+                    </Text>
+                </View>
+
+                <Text className="text-gray-900 font-outfit-medium text-3xl mb-2">Confirm your request</Text>
+
+                <Text className="text-gray-500 font-outfit-regular text-base mb-6">
+                    Review and confirm your assistance request details
+                </Text>
 
                 <View className="bg-gray-50 rounded-2xl p-6 mb-6">
                     {/* Header Banner */}

@@ -5,7 +5,7 @@ import * as Location from 'expo-location';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft, Search } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Platform, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 export default function LocationMapScreen() {
     const router = useRouter();
@@ -23,6 +23,26 @@ export default function LocationMapScreen() {
     const [locationZip, setLocationZip] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [isResolving, setIsResolving] = useState(false);
+
+    const getTitle = () => {
+        switch (type) {
+            case 'immediate': return 'Immediate Assistance';
+            case 'scheduled': return 'Scheduled Assistance';
+            case 'videocall': return 'Video Call Assistance';
+            case 'witness': return 'Accident Assistance';
+            default: return 'Assistance';
+        }
+    };
+
+    const getBadgeText = () => {
+        switch (type) {
+            case 'immediate': return 'IMMEDIATE ASSISTANCE';
+            case 'scheduled': return 'SCHEDULED ASSISTANCE';
+            case 'videocall': return 'VIDEO CALL ASSISTANCE';
+            case 'witness': return 'ACCIDENT ASSISTANCE';
+            default: return 'ASSISTANCE';
+        }
+    };
 
     const updateRegionFromLocation = async (location: Location.LocationObject) => {
         const newRegion = {
@@ -171,79 +191,76 @@ export default function LocationMapScreen() {
 
     return (
         <View className="flex-1 bg-white">
-            {/* Header */}
-            <View className="px-6 pt-14 pb-4 border-b border-gray-100 flex-row items-center z-10 bg-white">
-                <TouchableOpacity onPress={() => router.back()} className="mr-4">
-                    <ChevronLeft size={24} color="#0F172A" />
+            {/* Custom Header */}
+            <View className="px-6 pt-20 pb-2 flex-row items-center justify-between z-10" style={{ backgroundColor: '#F4F5FA', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 3, elevation: 3, borderBottomWidth: 0.5, borderBottomColor: '#D1D5DB' }}>
+                <TouchableOpacity onPress={() => router.back()}>
+                    <View className="w-10 h-10 rounded-full justify-center items-center" style={{ backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }}>
+                        <ChevronLeft size={20} color="#0047AB" />
+                    </View>
                 </TouchableOpacity>
-                <Text className="text-xl font-outfit-bold text-[#0F172A] flex-1 text-center">
-                    Assistance
+                <Text style={{ fontFamily: 'Outfit_500Medium', fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>
+                    {getTitle()}
                 </Text>
-                <TouchableOpacity onPress={() => router.replace('/(tabs)/assist')} className="ml-4">
-                    <Text className="text-red-500 font-outfit-medium text-xs">Cancel</Text>
-                </TouchableOpacity>
-            </View>
-            <View className="px-6 pb-2 pb-4">
-                <Text className="text-blue-600 font-outfit-bold text-lg text-center">
-                    Request a mechanic
-                </Text>
-                <Text className="text-gray-900 text-sm font-outfit-bold text-center mb-4">
-                    Indicate your location
-                </Text>
-
-                <TouchableOpacity
-                    onPress={() => router.push({
-                        pathname: '/request-assistance/location-address',
-                        params: params // Pass through existing params
-                    })}
-                    className="bg-white rounded-xl p-3 flex-row items-center shadow-sm border border-gray-200"
-                >
-                    <Search size={20} color="#9CA3AF" className="mr-2" />
-                    <Text className="text-gray-400 font-outfit-regular">Search Address</Text>
-                </TouchableOpacity>
+                <View className="w-6" />
             </View>
 
-            <View className="flex-1 relative">
+            <ScrollView className="flex-1">
+                <View className="px-6 pt-6">
+                    <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+                        <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+                        <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+                            {getBadgeText()}
+                        </Text>
+                    </View>
+
+                    <Text className="text-gray-900 font-outfit-medium text-3xl mb-2">Indicate your location</Text>
+
+                    <Text className="text-gray-500 font-outfit-regular text-base mb-6">
+                        Tap the map or search to set your location
+                    </Text>
+
+                    <TouchableOpacity
+                        onPress={() => router.push({
+                            pathname: '/request-assistance/location-address',
+                            params: params // Pass through existing params
+                        })}
+                        className="bg-white rounded-xl p-3 flex-row items-center shadow-sm border border-gray-200 mb-6"
+                    >
+                        <Search size={20} color="#9CA3AF" className="mr-2" />
+                        <Text className="text-gray-400 font-outfit-regular">Search Address</Text>
+                    </TouchableOpacity>
+                </View>
+
                 {isLoading || !region ? (
-                    <View className="flex-1 justify-center items-center">
+                    <View className="h-64 justify-center items-center">
                         <ActivityIndicator size="large" color="#0047AB" />
                     </View>
                 ) : (
-                    <MapView
-                        style={{ flex: 1 }}
-                        initialRegion={region}
-                        region={region}
-                        onRegionChangeComplete={(r) => {
-                            setRegion(r);
-                            setMarker({ latitude: r.latitude, longitude: r.longitude });
-                            // Ideally reverse geocode here to update text, but skipping for perf/api limits
-                        }}
-                    >
-                        {/* We put a fixed marker in center or let it move with map? 
-                             The prompt says "draggable pin". Usually this means pin stays center and map moves, OR pin is draggable.
-                             react-native-maps Marker has `draggable`.
-                         */}
-                        <Marker
-                            coordinate={marker!}
-                            draggable
-                            onDragEnd={(e) => {
-                                const coords = e.nativeEvent.coordinate;
-                                setMarker(coords);
-                                resolveLocation(coords);
+                    <View className="h-80 mb-6 mx-6 rounded-xl overflow-hidden">
+                        <MapView
+                            style={{ flex: 1 }}
+                            initialRegion={region}
+                            region={region}
+                            onRegionChangeComplete={(r) => {
+                                setRegion(r);
+                                setMarker({ latitude: r.latitude, longitude: r.longitude });
+                                // Ideally reverse geocode here to update text, but skipping for perf/api limits
                             }}
-                        />
-                    </MapView>
+                        >
+                            <Marker
+                                coordinate={marker!}
+                                draggable
+                                onDragEnd={(e) => {
+                                    const coords = e.nativeEvent.coordinate;
+                                    setMarker(coords);
+                                    resolveLocation(coords);
+                                }}
+                            />
+                        </MapView>
+                    </View>
                 )}
 
-                {/* Overlays */}
-
-
-                {/* Bottom Panel */}
-                <View className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 shadow-lg">
-                    <View className="items-center mb-4">
-                        <View className="bg-gray-200 w-12 h-1 rounded-full" />
-                    </View>
-
+                <View className="px-6 pb-6">
                     <View className="flex-row gap-4 mb-6">
                         <TouchableOpacity
                             onPress={() => {
@@ -288,25 +305,18 @@ export default function LocationMapScreen() {
                         </TouchableOpacity>
                     </View>
 
-                    <View className="mb-6">
-                        <Text className="text-blue-600 font-outfit-bold text-xs text-center mb-2 uppercase tracking-wider">
-                            Your location
-                        </Text>
-                        <Text className="text-xl font-outfit-bold text-center text-gray-900">
-                            {locationName}
-                        </Text>
-                        {locationZip ? (
-                            <Text className="text-sm font-outfit-regular text-center text-gray-500 mt-1">
-                                Zip Code: {locationZip}
-                            </Text>
-                        ) : null}
-                    </View>
+                    <Text className="text-gray-600 font-outfit-medium text-sm mb-2">Selected Location</Text>
+                    <Text className="text-gray-900 font-outfit-bold text-base mb-6">{locationName}</Text>
 
-                    <Button onPress={handleConfirm} className="bg-blue-700 rounded-xl">
+                    <Button
+                        onPress={handleConfirm}
+                        disabled={!marker}
+                        className="bg-blue-700 rounded-xl"
+                    >
                         Confirm Location
                     </Button>
                 </View>
-            </View>
+            </ScrollView>
         </View>
     );
 }

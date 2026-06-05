@@ -201,6 +201,15 @@ Mobile: **NativeWind** (Tailwind classes on RN components). Base components in `
 - **Files to ignore** — `._*` (Apple resource forks), `node_modules/`, `.expo/`, build artifacts.
 - **Minimal diffs** — prefer small targeted changes; do not refactor surrounding code.
 
+### Styling Rules
+
+**View Titles (Screen Headers)**
+- **Font size**: `text-3xl` (30px)
+- **Color**: `text-gray-900` (#111827)
+- **Font weight**: `font-outfit-medium`
+- Example: Welcome back title in `app/(tabs)/dashboard/index.tsx`
+- Use this standard for all primary screen titles unless explicitly overridden by design specs
+
 ---
 
 ## "Where to look" by task
