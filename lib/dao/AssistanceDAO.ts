@@ -3,7 +3,7 @@ import { ConfigService } from '../config/ConfigService';
 import { AssistanceRequest, IAssistanceDAO } from './interfaces';
 
 export class AssistanceDAO implements IAssistanceDAO {
-    async getAll(filters?: { userId?: string; mechanicId?: string; status?: string }): Promise<AssistanceRequest[]> {
+    async getAll(filters?: { userId?: string; mechanicId?: string; status?: string; zip?: string; lat?: number; lng?: number; radiusKm?: number }): Promise<AssistanceRequest[]> {
         let url = '/api/assistance';
         if (filters) {
             const params = new URLSearchParams(filters as any);

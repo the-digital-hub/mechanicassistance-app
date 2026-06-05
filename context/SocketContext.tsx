@@ -2,6 +2,7 @@ import { useUser } from '@/context/UserContext';
 import { ConfigService } from '@/lib/config/ConfigService';
 import React, { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
+import { io, Socket } from 'socket.io-client';
 
 export interface ChatMessage {
     id: string;
@@ -12,7 +13,7 @@ export interface ChatMessage {
 }
 
 interface SocketContextType {
-    socket: WebSocket | null;
+    socket: Socket | null;
     isConnected: boolean;
     lastMessage: any;
     sendMessage: (type: string, payload: any) => void;
@@ -22,25 +23,24 @@ interface SocketContextType {
 
 const SocketContext = createContext<SocketContextType | undefined>(undefined);
 
+// socket.io-client wants an http(s) origin; map ws/wss to http/https.
+function toIoUrl(wsUrl: string): string {
+    return wsUrl.replace(/^ws:/, 'http:').replace(/^wss:/, 'https:');
+}
+
+// Server-driven domain events the app reacts to (besides chat).
+const SERVER_EVENTS = ['assistance_update', 'appointment_update', 'video_room_ready', 'new_request'];
+
 export function SocketProvider({ children }: { children: ReactNode }) {
     const { user } = useUser();
-    const [socket, setSocket] = useState<WebSocket | null>(null);
+    const [socket, setSocket] = useState<Socket | null>(null);
     const [isConnected, setIsConnected] = useState(false);
     const [lastMessage, setLastMessage] = useState<any>(null);
     const [chatHistory, setChatHistory] = useState<Record<string, ChatMessage[]>>({});
 
-    // Keep reference to the latest WS instance so listener can close it and reconnect
-    const currentSocket = useRef<WebSocket | null>(null);
-    const reconnectTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
+    const currentSocket = useRef<Socket | null>(null);
     const userIdRef = useRef<string | undefined>(undefined);
-
-    // Send unregister so server marks user offline immediately
-    const sendUnregister = () => {
-        const ws = currentSocket.current;
-        if (ws && ws.readyState === WebSocket.OPEN && userIdRef.current) {
-            ws.send(JSON.stringify({ type: 'unregister', userId: userIdRef.current }));
-        }
-    };
+    const roleRef = useRef<string | undefined>(undefined);
 
     const clearChatHistory = (conversationId: string) => {
         setChatHistory(prev => {
@@ -51,144 +51,130 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     };
 
     const sendMessage = (type: string, payload: any) => {
-        if (currentSocket.current && currentSocket.current.readyState === WebSocket.OPEN) {
-            currentSocket.current.send(JSON.stringify({ type, ...payload }));
+        const s = currentSocket.current;
+        if (!s || !s.connected) return;
+        s.emit(type, payload);
 
-            // If it's a chat message, also store it locally in history
-            if (type === 'chat_message' && payload.conversationId) {
-                const myMsg: ChatMessage = {
-                    id: Date.now().toString(),
-                    text: payload.text,
-                    senderId: payload.senderId,
-                    timestamp: new Date().toISOString(),
-                    conversationId: payload.conversationId
-                };
-                setChatHistory(prev => ({
-                    ...prev,
-                    [payload.conversationId]: [...(prev[payload.conversationId] || []), myMsg]
-                }));
-            }
+        // If it's a chat message, also store it locally in history (optimistic).
+        if (type === 'chat_message' && payload.conversationId) {
+            const myMsg: ChatMessage = {
+                id: Date.now().toString(),
+                text: payload.text,
+                senderId: payload.senderId,
+                timestamp: new Date().toISOString(),
+                conversationId: payload.conversationId,
+            };
+            setChatHistory(prev => ({
+                ...prev,
+                [payload.conversationId]: [...(prev[payload.conversationId] || []), myMsg],
+            }));
         }
     };
 
-    // Initial connection logic & listener
+    // Initial connection logic & listeners
     useEffect(() => {
         userIdRef.current = user?.id;
-
+        roleRef.current = user?.role;
         if (!user?.id) return;
 
         // Reconnect if config changes while we are authenticated
         const handleConfigChange = () => {
             console.log('[Socket] Config changed, reconnecting...');
-            if (currentSocket.current) {
-                currentSocket.current.onclose = null;
-                currentSocket.current.close();
-            }
-            if (reconnectTimeout.current) clearTimeout(reconnectTimeout.current);
             connect();
         };
-
         ConfigService.addListener(handleConfigChange);
 
-        // Mark offline when app goes to background, online when it returns
+        // Mark offline/online as the app backgrounds/foregrounds
         const handleAppState = (nextState: AppStateStatus) => {
+            const s = currentSocket.current;
+            if (!s) return;
             if (nextState === 'background' || nextState === 'inactive') {
-                sendUnregister();
+                if (userIdRef.current) s.emit('unregister', { userId: userIdRef.current });
             } else if (nextState === 'active') {
-                // Re-register so server marks us online again
-                const ws = currentSocket.current;
-                if (ws && ws.readyState === WebSocket.OPEN && userIdRef.current) {
-                    ws.send(JSON.stringify({ type: 'register', userId: userIdRef.current }));
-                }
+                if (userIdRef.current) s.emit('register', { userId: userIdRef.current, role: roleRef.current });
             }
         };
         const appStateSub = AppState.addEventListener('change', handleAppState);
 
-        ConfigService.init().then(() => {
-            connect();
-        });
+        ConfigService.init().then(() => connect());
 
         return () => {
             ConfigService.removeListener(handleConfigChange);
             appStateSub.remove();
-            // Notify server before closing (logout path)
-            sendUnregister();
-            if (currentSocket.current) {
-                currentSocket.current.onclose = null;
-                currentSocket.current.close();
-            }
-            if (reconnectTimeout.current) {
-                clearTimeout(reconnectTimeout.current);
+            const s = currentSocket.current;
+            if (s) {
+                if (userIdRef.current) s.emit('unregister', { userId: userIdRef.current });
+                s.removeAllListeners();
+                s.disconnect();
             }
         };
     }, [user?.id]);
 
     const connect = () => {
-        const WS_URL = ConfigService.getWsUrl();
+        const url = toIoUrl(ConfigService.getWsUrl());
+        console.log('[Socket] Connecting to', url);
 
-        console.log('[Socket] Connecting to', WS_URL);
-        const ws = new WebSocket(WS_URL);
-        currentSocket.current = ws;
+        // Tear down any prior socket before creating a new one.
+        if (currentSocket.current) {
+            currentSocket.current.removeAllListeners();
+            currentSocket.current.disconnect();
+        }
 
-        ws.onopen = () => {
+        const s = io(url, {
+            transports: ['websocket'],
+            reconnection: true,
+            reconnectionDelay: 2000,
+        });
+        currentSocket.current = s;
+        setSocket(s);
+
+        s.on('connect', () => {
             console.log('[Socket] Connected');
             setIsConnected(true);
+            if (user?.id) s.emit('register', { userId: user.id, role: user.role });
+            // Surface a connect tick so consumers can refetch anything missed
+            // while the socket was down (events are ephemeral, not replayed).
+            setLastMessage({ type: 'socket_connect', ts: Date.now() });
+        });
 
-            // Register user
-            if (user?.id) {
-                ws.send(JSON.stringify({ type: 'register', userId: user.id }));
-            }
-        };
-
-        ws.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data);
-                setLastMessage(data);
-
-                // Handle incoming chat messages for history
-                if (data.type === 'chat_message' && data.payload) {
-                    const { text, senderId, timestamp, conversationId } = data.payload;
-                    if (conversationId) {
-                        const newMsg: ChatMessage = {
-                            id: Date.now().toString(),
-                            text,
-                            senderId,
-                            timestamp,
-                            conversationId
-                        };
-                        setChatHistory(prev => ({
-                            ...prev,
-                            [conversationId]: [...(prev[conversationId] || []), newMsg]
-                        }));
-                    }
-                }
-
-                // Handle cancellation to clear history
-                if (data.type === 'assistance_update' && data.payload?.status === 'canceled') {
-                    if (data.payload.requestId) {
-                        console.log(`[Socket] Clearing chat history for cancelled request: ${data.payload.requestId}`);
-                        clearChatHistory(data.payload.requestId);
-                    }
-                }
-            } catch (e) {
-                console.error('[Socket] Failed to parse message', e);
-            }
-        };
-
-        ws.onclose = () => {
+        s.on('disconnect', () => {
             console.log('[Socket] Disconnected');
             setIsConnected(false);
-            setSocket(null);
+        });
 
-            // Attempt reconnect in 5s
-            reconnectTimeout.current = setTimeout(connect, 5000) as any;
-        };
+        s.on('connect_error', (err: Error) => {
+            console.warn('[Socket] connect_error:', err?.message);
+        });
 
-        ws.onerror = () => {
-            console.warn('[Socket] Could not connect to', WS_URL, '— server may be offline');
-        };
+        // Chat relay — the emitted arg is the flat message body.
+        s.on('chat_message', (payload: any) => {
+            setLastMessage({ type: 'chat_message', payload });
+            const conversationId = payload?.conversationId;
+            if (conversationId) {
+                const newMsg: ChatMessage = {
+                    id: Date.now().toString(),
+                    text: payload.text,
+                    senderId: payload.senderId,
+                    timestamp: payload.timestamp || new Date().toISOString(),
+                    conversationId,
+                };
+                setChatHistory(prev => ({
+                    ...prev,
+                    [conversationId]: [...(prev[conversationId] || []), newMsg],
+                }));
+            }
+        });
 
-        setSocket(ws);
+        // Server-driven domain events.
+        SERVER_EVENTS.forEach((evt) => {
+            s.on(evt, (payload: any) => {
+                setLastMessage({ type: evt, payload });
+                if (evt === 'assistance_update' && payload?.status === 'canceled') {
+                    const reqId = payload.requestId || payload.id;
+                    if (reqId) clearChatHistory(reqId);
+                }
+            });
+        });
     };
 
     return (

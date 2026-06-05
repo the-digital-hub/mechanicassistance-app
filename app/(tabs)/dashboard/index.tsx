@@ -1,13 +1,30 @@
 import { AssistanceCard, AssistanceType } from '@/components/ui/AssistanceCard';
 import { useAppointments } from '@/context/AppointmentsContext';
+import { useSocket } from '@/context/SocketContext';
 import { useUser } from '@/context/UserContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { AssistanceRequest } from '@/lib/dao/interfaces';
+import * as Location from 'expo-location';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Calendar, Clock, SlidersHorizontal, Video, Zap, ChevronRight } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+
+// Mechanics see requests within this radius of their current location.
+const MECHANIC_RADIUS_KM = 1000;
+
+/** Best-effort current GPS coords; null if permission denied or lookup fails. */
+async function getCurrentCoords(): Promise<{ latitude: number; longitude: number } | null> {
+    try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') return null;
+        const loc = await Location.getCurrentPositionAsync({});
+        return { latitude: loc.coords.latitude, longitude: loc.coords.longitude };
+    } catch {
+        return null;
+    }
+}
 
 export default function AssistFeedScreen() {
     const router = useRouter();
@@ -16,6 +33,7 @@ export default function AssistFeedScreen() {
     const [isLoadingRequests, setIsLoadingRequests] = useState(true);
     const { user, isLoading: isUserLoading } = useUser();
     const { appointments } = useAppointments();
+    const { lastMessage } = useSocket();
 
     const loadRequests = async () => {
         if (!user?.id) {
@@ -26,11 +44,16 @@ export default function AssistFeedScreen() {
         try {
             const filters: any = {};
             if (user?.role === 'mechanic') {
-                // Localized filtering: show only requests in the same ZIP code
-                if (user?.addresses?.[0]?.zip) {
-                    filters.zip = user.addresses[0].zip;
-                }
                 filters.status = 'pending';
+                // Localized filtering: show only requests within MECHANIC_RADIUS_KM
+                // of the mechanic's *current* location (they may be away from home).
+                // Falls back to no geo filter if location permission is denied.
+                const coords = await getCurrentCoords();
+                if (coords) {
+                    filters.lat = coords.latitude;
+                    filters.lng = coords.longitude;
+                    filters.radiusKm = MECHANIC_RADIUS_KM;
+                }
             } else if (user?.role === 'user') {
                 filters.userId = user.id;
                 filters.status = 'pending';
@@ -56,6 +79,16 @@ export default function AssistFeedScreen() {
             }
         }, [filter, user?.id, user?.addresses])
     );
+
+    // Live updates: a new request broadcast to mechanics, or any status change,
+    // triggers a refetch so the feed stays current without leaving the screen.
+    useEffect(() => {
+        if (!lastMessage || !user?.id) return;
+        if (lastMessage.type === 'new_request' || lastMessage.type === 'assistance_update') {
+            loadRequests();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [lastMessage]);
 
     useEffect(() => {
         if (!isUserLoading && !user) {

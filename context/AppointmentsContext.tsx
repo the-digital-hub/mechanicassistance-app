@@ -99,7 +99,7 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                     assistanceType: req.assistanceType,
                     title: req.title,
                     date: req.date || 'Pending',
-                    time: 'Pending',
+                    time: req.eta || 'Pending',
                     car: req.car,
                     address: req.address,
                     notes: req.notes,
@@ -133,29 +133,20 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
         }
     };
 
-    // Real-time updates via Socket
+    // Real-time updates via Socket. Reload on any relevant domain event, and
+    // also on (re)connect to catch events missed while the socket was down
+    // (events are ephemeral / not replayed). No polling.
     useEffect(() => {
-        if (lastMessage && lastMessage.type === 'assistance_update') {
-            console.log('[AppointmentsContext] Received assistance update, refreshing...');
+        if (!lastMessage) return;
+        if (
+            lastMessage.type === 'assistance_update' ||
+            lastMessage.type === 'appointment_update' ||
+            lastMessage.type === 'socket_connect'
+        ) {
+            console.log(`[AppointmentsContext] ${lastMessage.type} -> refreshing`);
             loadAppointments();
         }
     }, [lastMessage]);
-
-    // Removed polling interval
-    // useEffect(() => { ... }, [user?.id, user?.role]);
-
-    // Effect to trigger alert when an offered request is found in state
-    useEffect(() => {
-        if (user?.role !== 'user') return;
-
-        const offeredRequest = appointments.find(a => a.status === 'accepted' || (a as any).status === 'offered');
-        // Note: appointment status type needs 'offered' too if we map it. 
-        // In loadAppointments, we map it.
-        // Let's filter specifically for what we want.
-
-        // Actually, mappedAssistance casts status to AppointmentStatus. 
-        // We need to update AppointmentStatus type in this file too.
-    }, [appointments]);
 
     const addAppointment = async (appointment: Appointment): Promise<boolean> => {
         try {

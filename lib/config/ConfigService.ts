@@ -16,11 +16,15 @@ const DEFAULT_FALLBACK_CONFIG: BootstrapConfig = {
     envs: {
         prod: {
             apiBaseUrl: 'https://t9smggmz3a.us-east-1.awsapprunner.com/',
-            wsUrl: 'https://t9smggmz3a.us-east-1.awsapprunner.com/',
+            // WebSocket now lives on the dedicated realtime-gateway (ALB), NOT App
+            // Runner (which cannot serve WS). Replace with the ALB DNS after the
+            // infra/realtime-gateway.yaml stack is deployed: wss://<AlbDnsName>
+            wsUrl: 'wss://REALTIME_ALB_DNS_PLACEHOLDER',
         },
         dev: {
-            apiBaseUrl: 'http://192.168.0.19:3000',
-            wsUrl: 'ws://192.168.0.19:3000',
+            apiBaseUrl: 'http://localhost:3000',
+            // Local realtime-gateway (npm run start:dev in realtime-gateway/, port 3010)
+            wsUrl: 'ws://localhost:3010',
         },
     },
 };
