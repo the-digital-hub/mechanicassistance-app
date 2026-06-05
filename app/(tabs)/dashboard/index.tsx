@@ -84,7 +84,7 @@ export default function AssistFeedScreen() {
     // triggers a refetch so the feed stays current without leaving the screen.
     useEffect(() => {
         if (!lastMessage || !user?.id) return;
-        if (lastMessage.type === 'new_request' || lastMessage.type === 'assistance_update') {
+        if (lastMessage.type === 'new_request' || lastMessage.type === 'assistance_update' || lastMessage.type === 'appointment_update') {
             loadRequests();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps

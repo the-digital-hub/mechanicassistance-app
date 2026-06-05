@@ -23,6 +23,9 @@ export default function LocationMapScreen() {
     const [locationZip, setLocationZip] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [isResolving, setIsResolving] = useState(false);
+    // Block map-pan handler briefly after pin drag to avoid overwriting the dropped position.
+    const dragJustEndedRef = React.useRef(false);
+    const dragCooldownRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const getTitle = () => {
         switch (type) {
@@ -242,9 +245,10 @@ export default function LocationMapScreen() {
                             initialRegion={region}
                             region={region}
                             onRegionChangeComplete={(r) => {
+                                if (dragJustEndedRef.current) return;
                                 setRegion(r);
                                 setMarker({ latitude: r.latitude, longitude: r.longitude });
-                                // Ideally reverse geocode here to update text, but skipping for perf/api limits
+                                resolveLocation({ latitude: r.latitude, longitude: r.longitude });
                             }}
                         >
                             <Marker
@@ -254,6 +258,13 @@ export default function LocationMapScreen() {
                                     const coords = e.nativeEvent.coordinate;
                                     setMarker(coords);
                                     resolveLocation(coords);
+                                    // Lock out the pan handler briefly so it doesn't
+                                    // snap the marker back to the map centre.
+                                    dragJustEndedRef.current = true;
+                                    if (dragCooldownRef.current) clearTimeout(dragCooldownRef.current);
+                                    dragCooldownRef.current = setTimeout(() => {
+                                        dragJustEndedRef.current = false;
+                                    }, 600);
                                 }}
                             />
                         </MapView>
