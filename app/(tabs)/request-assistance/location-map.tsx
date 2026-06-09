@@ -3,7 +3,8 @@ import MapView, { Marker, Region } from '@/components/ui/Map';
 import { useUser } from '@/context/UserContext';
 import * as Location from 'expo-location';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ChevronLeft, Search } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { ChevronLeft, ChevronRight, Search } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
@@ -319,13 +320,34 @@ export default function LocationMapScreen() {
                     <Text className="text-gray-600 font-outfit-medium text-sm mb-2">Selected Location</Text>
                     <Text className="text-gray-900 font-outfit-bold text-base mb-6">{locationName}</Text>
 
-                    <Button
+                    <TouchableOpacity
                         onPress={handleConfirm}
                         disabled={!marker}
-                        className="bg-blue-700 rounded-xl"
+                        activeOpacity={0.8}
                     >
-                        Confirm Location
-                    </Button>
+                        {!marker ? (
+                            <View className="bg-slate-200 rounded-lg p-4 items-center justify-center">
+                                <Text className="text-gray-500 font-outfit-bold text-center">Confirm Location</Text>
+                            </View>
+                        ) : (
+                            <LinearGradient
+                                colors={['#2B66F8', '#081E72']}
+                                start={{ x: 0, y: 1 }}
+                                end={{ x: 1, y: 0 }}
+                                style={{
+                                    borderRadius: 10,
+                                    paddingVertical: 16,
+                                    paddingHorizontal: 16,
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                }}
+                            >
+                                <Text className="text-white font-outfit-bold text-center mr-2">Confirm Location</Text>
+                                <ChevronRight size={20} color="white" />
+                            </LinearGradient>
+                        )}
+                    </TouchableOpacity>
                 </View>
             </ScrollView>
         </View>

@@ -1,8 +1,9 @@
 import { Button } from '@/components/ui/Button';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ChevronLeft, Plus, Upload } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, Plus, Upload } from 'lucide-react-native';
 import React, { useState } from 'react';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Alert, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const MAX_PHOTOS = 3;
@@ -153,9 +154,28 @@ export default function AddDetailsScreen() {
                     </Text>
                 </TouchableOpacity>
 
-                <Button onPress={handleConfirm} className="bg-blue-700 rounded-xl mb-8">
-                    Confirm Issue
-                </Button>
+                <TouchableOpacity
+                    onPress={handleConfirm}
+                    activeOpacity={0.8}
+                >
+                    <LinearGradient
+                        colors={['#2B66F8', '#081E72']}
+                        start={{ x: 0, y: 1 }}
+                        end={{ x: 1, y: 0 }}
+                        style={{
+                            borderRadius: 10,
+                            paddingVertical: 16,
+                            paddingHorizontal: 16,
+                            marginBottom: 32,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}
+                    >
+                        <Text className="text-white font-outfit-bold text-center mr-2">Confirm Issue</Text>
+                        <ChevronRight size={20} color="white" />
+                    </LinearGradient>
+                </TouchableOpacity>
             </ScrollView>
         </View>
     );

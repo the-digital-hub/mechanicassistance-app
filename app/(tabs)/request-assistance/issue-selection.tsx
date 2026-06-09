@@ -1,7 +1,8 @@
 import { Button } from '@/components/ui/Button';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { AlertTriangle, Battery, ChevronLeft, HelpCircle, Wrench, Zap } from 'lucide-react-native';
+import { AlertTriangle, Battery, ChevronLeft, ChevronRight, HelpCircle, Wrench, Zap } from 'lucide-react-native';
 import React, { useState } from 'react';
+import { LinearGradient } from 'expo-linear-gradient';
 import { ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const COMMON_ISSUES = [
@@ -124,13 +125,35 @@ export default function IssueSelectionScreen() {
                     </View>
                 </View>
 
-                <Button
+                <TouchableOpacity
                     onPress={handleContinue}
-                    className={`rounded-xl mb-8 ${selectedIssues.length === 0 ? 'bg-slate-200' : 'bg-blue-700'}`}
                     disabled={selectedIssues.length === 0}
+                    activeOpacity={0.8}
                 >
-                    Continue
-                </Button>
+                    {selectedIssues.length === 0 ? (
+                        <View className="bg-slate-200 rounded-lg p-4 mb-8 items-center justify-center">
+                            <Text className="text-gray-500 font-outfit-bold text-center">Continue</Text>
+                        </View>
+                    ) : (
+                        <LinearGradient
+                            colors={['#2B66F8', '#081E72']}
+                            start={{ x: 0, y: 1 }}
+                            end={{ x: 1, y: 0 }}
+                            style={{
+                                borderRadius: 10,
+                                paddingVertical: 16,
+                                paddingHorizontal: 16,
+                                marginBottom: 32,
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                            }}
+                        >
+                            <Text className="text-white font-outfit-bold text-center mr-2">Continue</Text>
+                            <ChevronRight size={20} color="white" />
+                        </LinearGradient>
+                    )}
+                </TouchableOpacity>
             </ScrollView>
         </View>
     );

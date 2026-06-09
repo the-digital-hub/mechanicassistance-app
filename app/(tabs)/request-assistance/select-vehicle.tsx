@@ -119,7 +119,7 @@ export default function SelectVehicleScreen() {
                                 start={{ x: 0, y: 1 }}
                                 end={{ x: 1, y: 0 }}
                                 style={{
-                                    borderRadius: 24,
+                                    borderRadius: 10,
                                     paddingVertical: 16,
                                     paddingHorizontal: 16,
                                     flexDirection: 'row',

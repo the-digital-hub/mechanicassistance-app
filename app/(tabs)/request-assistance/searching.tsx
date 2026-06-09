@@ -5,6 +5,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { Animated, Easing, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faWrench } from '@fortawesome/free-solid-svg-icons';
 
 export default function SearchingScreen() {
     const router = useRouter();
@@ -13,6 +15,7 @@ export default function SearchingScreen() {
     const { lastMessage, clearChatHistory } = useSocket();
 
     const [spinValue] = useState(new Animated.Value(0));
+    const [pulseValue] = useState(new Animated.Value(0));
 
     const getTitle = () => {
         switch (type) {
@@ -40,6 +43,15 @@ export default function SearchingScreen() {
                 toValue: 1,
                 duration: 3000,
                 easing: Easing.linear,
+                useNativeDriver: true,
+            })
+        ).start();
+
+        Animated.loop(
+            Animated.timing(pulseValue, {
+                toValue: 1,
+                duration: 2000,
+                easing: Easing.inOut(Easing.ease),
                 useNativeDriver: true,
             })
         ).start();
@@ -84,6 +96,16 @@ export default function SearchingScreen() {
     const spin = spinValue.interpolate({
         inputRange: [0, 1],
         outputRange: ['0deg', '360deg'],
+    });
+
+    const pulseScale = pulseValue.interpolate({
+        inputRange: [0, 0.5, 1],
+        outputRange: [1, 1.3, 1],
+    });
+
+    const pulseOpacity = pulseValue.interpolate({
+        inputRange: [0, 0.5, 1],
+        outputRange: [0.3, 1, 0.3],
     });
 
     const handleCancel = async () => {
@@ -135,20 +157,236 @@ export default function SearchingScreen() {
                 </Text>
 
                 <View className="items-center mb-6">
-                    <View className="bg-white rounded-3xl p-4 flex-row items-center gap-4 mb-6" style={{ width: '100%' }}>
+                    <View className="bg-white p-4 flex-row items-center gap-4 mb-12" style={{ width: '100%', borderRadius: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 }}>
                         <View className="flex-1">
-                            <Text className="text-gray-600 font-outfit-medium text-base mb-2">Mechanics in your area</Text>
-                            <Text className="text-blue-600 font-outfit-bold" style={{ fontSize: 48 }}>28+</Text>
+                            <Text className="text-gray-600 font-outfit-medium text-base mb-1">Mechanics in your area</Text>
+                            <Text className="text-blue-600 font-outfit-bold" style={{ fontSize: 44 }}>28+</Text>
                         </View>
                         <View className="w-20 h-20 rounded-2xl justify-center items-center" style={{ backgroundColor: '#E9F1FF' }}>
-                            <Ionicons name="search" size={32} color="#0047AB" />
+                            <Ionicons name="search" size={28} color="#0047AB" />
                         </View>
                     </View>
 
-                    <View className="w-48 h-48 relative justify-center items-center mb-8">
-                        <Animated.View style={{ transform: [{ rotate: spin }] }}>
-                            <Ionicons name="search" size={120} color="#0047AB" />
+                    <View className="w-56 h-56 relative justify-center items-center mb-8">
+                        {/* Radar sweep - rotating line with trail */}
+                        <Animated.View
+                            style={{
+                                position: 'absolute',
+                                width: 200,
+                                height: 200,
+                                transform: [{ rotate: spin }],
+                            }}
+                        >
+                            {/* Trail line 1 - fading */}
+                            <View
+                                style={{
+                                    position: 'absolute',
+                                    width: 3,
+                                    height: 100,
+                                    backgroundColor: '#2B66F8',
+                                    left: 98.5,
+                                    top: 0,
+                                    opacity: 0.2,
+                                    shadowColor: '#2B66F8',
+                                    shadowOffset: { width: 0, height: 0 },
+                                    shadowOpacity: 0.3,
+                                    shadowRadius: 6,
+                                    elevation: 3,
+                                }}
+                            />
+
+                            {/* Trail line 2 - more fading */}
+                            <View
+                                style={{
+                                    position: 'absolute',
+                                    width: 3,
+                                    height: 100,
+                                    backgroundColor: '#4D77EF',
+                                    left: 98.5,
+                                    top: 0,
+                                    opacity: 0.4,
+                                    shadowColor: '#4D77EF',
+                                    shadowOffset: { width: 0, height: 0 },
+                                    shadowOpacity: 0.5,
+                                    shadowRadius: 7,
+                                    elevation: 6,
+                                }}
+                            />
+
+                            {/* Main sweep line - bright and visible */}
+                            <View
+                                style={{
+                                    position: 'absolute',
+                                    width: 3,
+                                    height: 100,
+                                    backgroundColor: '#0047AB',
+                                    left: 98.5,
+                                    top: 0,
+                                    shadowColor: '#0047AB',
+                                    shadowOffset: { width: 0, height: 0 },
+                                    shadowOpacity: 1,
+                                    shadowRadius: 8,
+                                    elevation: 10,
+                                }}
+                            />
                         </Animated.View>
+
+                        {/* Glow halo - wider effect */}
+                        <Animated.View
+                            style={{
+                                position: 'absolute',
+                                width: 200,
+                                height: 200,
+                                transform: [{ rotate: spin }],
+                                opacity: 0.5,
+                            }}
+                        >
+                            <View
+                                style={{
+                                    position: 'absolute',
+                                    width: 20,
+                                    height: 100,
+                                    backgroundColor: '#2B66F8',
+                                    left: 90,
+                                    top: 0,
+                                    borderRadius: 10,
+                                    opacity: 0.4,
+                                }}
+                            />
+                        </Animated.View>
+
+                        {/* Outer circle */}
+                        <Animated.View
+                            style={{
+                                position: 'absolute',
+                                width: 200,
+                                height: 200,
+                                borderRadius: 100,
+                                borderWidth: 1,
+                                borderColor: '#E0E7FF',
+                                transform: [{ scale: pulseScale }],
+                                opacity: 0.4,
+                            }}
+                        />
+
+                        {/* Middle circle */}
+                        <Animated.View
+                            style={{
+                                position: 'absolute',
+                                width: 140,
+                                height: 140,
+                                borderRadius: 70,
+                                borderWidth: 1,
+                                borderColor: '#C7D2FE',
+                                opacity: 0.6,
+                            }}
+                        />
+
+                        {/* Inner circle */}
+                        <View
+                            style={{
+                                position: 'absolute',
+                                width: 80,
+                                height: 80,
+                                borderRadius: 40,
+                                borderWidth: 1,
+                                borderColor: '#A5B4FC',
+                                opacity: 0.8,
+                            }}
+                        />
+
+                        {/* Center circle with icon */}
+                        <View
+                            style={{
+                                width: 100,
+                                height: 100,
+                                borderRadius: 50,
+                                backgroundColor: '#0047AB',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                zIndex: 10,
+                                shadowColor: '#000',
+                                shadowOffset: { width: 0, height: 4 },
+                                shadowOpacity: 0.3,
+                                shadowRadius: 8,
+                                elevation: 8,
+                            }}
+                        >
+                            <FontAwesomeIcon icon={faWrench} size={40} color="white" />
+                        </View>
+
+                        {/* Radar points - FIXED positions (4 points - irregular) */}
+                        {/* Point 1 - Top Right area */}
+                        <View
+                            style={{
+                                position: 'absolute',
+                                width: 10,
+                                height: 10,
+                                borderRadius: 5,
+                                backgroundColor: '#A5B4FC',
+                                top: 20,
+                                right: 35,
+                                shadowColor: '#0047AB',
+                                shadowOffset: { width: 0, height: 0 },
+                                shadowOpacity: 0.6,
+                                shadowRadius: 3,
+                                elevation: 3,
+                            }}
+                        />
+
+                        {/* Point 2 - Right Bottom area */}
+                        <View
+                            style={{
+                                position: 'absolute',
+                                width: 10,
+                                height: 10,
+                                borderRadius: 5,
+                                backgroundColor: '#A5B4FC',
+                                bottom: 15,
+                                right: 15,
+                                shadowColor: '#0047AB',
+                                shadowOffset: { width: 0, height: 0 },
+                                shadowOpacity: 0.6,
+                                shadowRadius: 3,
+                                elevation: 3,
+                            }}
+                        />
+
+                        {/* Point 3 - Bottom Left area */}
+                        <View
+                            style={{
+                                position: 'absolute',
+                                width: 10,
+                                height: 10,
+                                borderRadius: 5,
+                                backgroundColor: '#A5B4FC',
+                                bottom: 35,
+                                left: 20,
+                                shadowColor: '#0047AB',
+                                shadowOffset: { width: 0, height: 0 },
+                                shadowOpacity: 0.6,
+                                shadowRadius: 3,
+                                elevation: 3,
+                            }}
+                        />
+
+                        {/* Point 4 - Top Left area */}
+                        <View
+                            style={{
+                                position: 'absolute',
+                                width: 10,
+                                height: 10,
+                                borderRadius: 5,
+                                backgroundColor: '#A5B4FC',
+                                top: 35,
+                                left: 15,
+                                shadowColor: '#0047AB',
+                                shadowOffset: { width: 0, height: 0 },
+                                shadowOpacity: 0.6,
+                                shadowRadius: 3,
+                                elevation: 3,
+                            }}
+                        />
                     </View>
 
                     <Text className="text-blue-600 font-outfit-bold text-4xl tracking-widest mb-4">
@@ -157,17 +395,9 @@ export default function SearchingScreen() {
                 </View>
 
                 <TouchableOpacity
-                    onPress={handleBackToMenu}
-                    className="bg-blue-600 w-full py-4 rounded-full mb-4 flex-row items-center justify-center"
-                >
-                    <Ionicons name="home" size={18} color="white" style={{ marginRight: 8 }} />
-                    <Text className="text-white font-outfit-bold text-center text-lg">Back to Main Menu</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
                     onPress={handleCancel}
-                    className="w-full py-4 rounded-full mb-8 flex-row items-center justify-center border-2"
-                    style={{ borderColor: '#FCA5A5' }}
+                    className="w-full py-4 mb-8 flex-row items-center justify-center border-2"
+                    style={{ borderColor: '#FCA5A5', borderRadius: 10, backgroundColor: '#FEF0F0' }}
                 >
                     <Ionicons name="trash" size={18} color="#EF4444" style={{ marginRight: 8 }} />
                     <Text className="text-red-500 font-outfit-bold text-lg">Cancel Request</Text>

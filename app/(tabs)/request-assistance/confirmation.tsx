@@ -3,8 +3,9 @@ import { useUser } from '@/context/UserContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ChevronLeft } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
+import { LinearGradient } from 'expo-linear-gradient';
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 export default function ConfirmationScreen() {
@@ -116,7 +117,7 @@ export default function ConfirmationScreen() {
     };
 
     return (
-        <View className="flex-1 bg-white">
+        <View className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
             {/* Custom Header */}
             <View className="px-6 pt-20 pb-2 flex-row items-center justify-between" style={{ backgroundColor: '#F4F5FA', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 3, elevation: 3, borderBottomWidth: 0.5, borderBottomColor: '#D1D5DB' }}>
                 <TouchableOpacity onPress={() => router.back()}>
@@ -144,45 +145,60 @@ export default function ConfirmationScreen() {
                     Review and confirm your assistance request details
                 </Text>
 
-                <View className="bg-gray-50 rounded-2xl p-6 mb-6">
+                <View className="bg-white overflow-hidden mb-6" style={{ borderRadius: 10 }}>
                     {/* Header Banner */}
-                    <View className="bg-blue-600 -mx-6 -mt-6 rounded-t-2xl p-4 flex-row items-center mb-6">
+                    <LinearGradient
+                        colors={['#2B66F8', '#081E72']}
+                        start={{ x: 0, y: 1 }}
+                        end={{ x: 1, y: 0 }}
+                        style={{
+                            paddingHorizontal: 24,
+                            paddingVertical: 16,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                        }}
+                    >
                         <Ionicons name="construct" size={24} color="white" />
-                        <Text className="text-white font-outfit-bold text-lg ml-2">{getTypeLabel()}</Text>
-                    </View>
+                        <Text className="text-white font-outfit-bold text-xl ml-3">{getTypeLabel()}</Text>
+                    </LinearGradient>
 
-                    <View className="space-y-4">
-                        <View>
-                            <Text className="font-outfit-bold text-gray-900 text-base">Assistance needed:</Text>
-                            <Text className="font-outfit-regular text-gray-700">{description || 'No description provided'}</Text>
+                    {/* Content */}
+                    <View className="px-6 py-4">
+                        <View className="mb-4">
+                            <Text className="text-gray-400 font-outfit-medium text-sm uppercase tracking-wide mb-1">Assistance needed</Text>
+                            <Text className="text-gray-900 font-outfit-semibold text-lg">{description || 'No description provided'}</Text>
                         </View>
 
-                        <View>
-                            <Text className="font-outfit-bold text-gray-900 text-base">Timeframe:</Text>
-                            <Text className="font-outfit-regular text-gray-700">
-                                {type === 'immediate' || type === 'witness' ? '4 Hs' : type === 'scheduled' ? '7 Days' : 'On Demand'}
+                        <View className="border-t border-gray-200 pt-4 mb-4">
+                            <Text className="text-gray-400 font-outfit-medium text-sm uppercase tracking-wide mb-1">Timeframe</Text>
+                            <Text className="text-gray-900 font-outfit-semibold text-lg">
+                                {type === 'immediate' || type === 'witness' ? '4 Hours' : type === 'scheduled' ? '7 Days' : 'On Demand'}
                             </Text>
                         </View>
 
-                        <View>
-                            <Text className="font-outfit-bold text-gray-900 text-base">Car:</Text>
-                            <Text className="font-outfit-regular text-gray-700">{vehicleStr}</Text>
+                        <View className="border-t border-gray-200 pt-4 mb-4">
+                            <Text className="text-gray-400 font-outfit-medium text-sm uppercase tracking-wide mb-1">Car</Text>
+                            <Text className="text-gray-900 font-outfit-semibold text-lg">{vehicleStr}</Text>
                         </View>
 
-                        <View>
-                            <Text className="font-outfit-bold text-gray-900 text-base">Address:</Text>
-                            <Text className="font-outfit-regular text-gray-700">{finalAddress || addressLabel}</Text>
+                        <View className="border-t border-gray-200 pt-4 mb-4">
+                            <Text className="text-gray-400 font-outfit-medium text-sm uppercase tracking-wide mb-1">Address</Text>
+                            <Text className="text-gray-900 font-outfit-semibold text-lg">{finalAddress || addressLabel}</Text>
                         </View>
 
-                        <View>
-                            <Text className="font-outfit-bold text-gray-900 text-base">Notes:</Text>
-                            <Text className="font-outfit-regular text-gray-700">{details || 'None'}</Text>
+                        <View className="border-t border-gray-200 pt-4">
+                            <Text className="text-gray-400 font-outfit-medium text-sm uppercase tracking-wide mb-1">Notes</Text>
+                            <Text className="text-gray-900 font-outfit-semibold text-lg">{details || 'None'}</Text>
                         </View>
                     </View>
 
-                    <Text className="text-[10px] text-blue-500 mt-6 text-center">
-                        No FEES will be charged to your account until work is done and approved.
-                    </Text>
+                    {/* Fees Info */}
+                    <View className="mx-6 mb-6 p-4 rounded-2xl items-center" style={{ backgroundColor: '#EFF6FF' }}>
+                        <Ionicons name="information-circle" size={24} color="#0047AB" style={{ marginBottom: 8 }} />
+                        <Text className="text-blue-600 font-outfit-semibold text-center">
+                            No FEES will be charged to your account until work is done and approved.
+                        </Text>
+                    </View>
                 </View>
 
                 {isSubmitting ? (
@@ -193,9 +209,28 @@ export default function ConfirmationScreen() {
                         ) : null}
                     </View>
                 ) : (
-                    <Button onPress={handleConfirm} className="bg-blue-700 rounded-xl mb-8">
-                        Confirm and Request
-                    </Button>
+                    <TouchableOpacity
+                        onPress={handleConfirm}
+                        activeOpacity={0.8}
+                    >
+                        <LinearGradient
+                            colors={['#2B66F8', '#081E72']}
+                            start={{ x: 0, y: 1 }}
+                            end={{ x: 1, y: 0 }}
+                            style={{
+                                borderRadius: 10,
+                                paddingVertical: 16,
+                                paddingHorizontal: 16,
+                                marginBottom: 32,
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                            }}
+                        >
+                            <Text className="text-white font-outfit-bold text-center mr-2">Confirm and Request</Text>
+                            <ChevronRight size={20} color="white" />
+                        </LinearGradient>
+                    </TouchableOpacity>
                 )}
             </ScrollView>
         </View>
