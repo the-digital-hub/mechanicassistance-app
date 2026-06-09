@@ -4,7 +4,7 @@ import { useUser } from '@/context/UserContext';
 import { mediaDAO } from '@/lib/dao/MediaDAO';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import { Award, Camera, Car, ChevronRight, CreditCard, Heart, HelpCircle, Lock, LogOut, PlugZap, Settings, User } from 'lucide-react-native';
+import { Award, Camera, Car, ChevronLeft, ChevronRight, CreditCard, Heart, HelpCircle, Lock, LogOut, PlugZap, Settings, User } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
@@ -118,39 +118,68 @@ export default function ProfileScreen() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-white">
-      {/* User Info Section */}
-      <View className="items-center mt-6 mb-6">
-        <TouchableOpacity onPress={pickImage} disabled={isUploadingPhoto} className="relative">
-          <View className="w-24 h-24 bg-gray-100 rounded-full justify-center items-center border border-gray-200 overflow-hidden">
-            {localProfileUri ? (
-              <Image source={{ uri: localProfileUri }} className="w-full h-full" />
-            ) : user.profileImage ? (
-              <Image source={{ uri: user.profileImage }} className="w-full h-full" />
-            ) : (
-              <Camera size={32} color="#D1D5DB" />
-            )}
-            {isUploadingPhoto && (
-              <View className="absolute inset-0 bg-black/40 items-center justify-center">
-                <ActivityIndicator color="#fff" />
+    <View className="flex-1 px-6 pt-4" style={{ backgroundColor: '#F6F8FC' }}>
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        {/* Section Badge */}
+        <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+          <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+          <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+            MY PROFILE
+          </Text>
+        </View>
+
+        {/* Title */}
+        <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">Your account, your preferences</Text>
+
+        {/* Subtitle */}
+        <Text className="text-gray-500 font-outfit-regular text-base mb-8">
+          Manage your personal info, vehicles and app settings.
+        </Text>
+
+        {/* User Info Card */}
+        <View className="bg-white rounded-3xl p-8 mb-8 items-center" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 10, elevation: 5 }}>
+          {/* User Info Section */}
+          <TouchableOpacity onPress={pickImage} disabled={isUploadingPhoto} className="relative">
+            {/* Avatar Circle with Initials or Image */}
+            <View className="w-28 h-28 rounded-full justify-center items-center overflow-hidden" style={{ backgroundColor: '#0047AB', shadowColor: '#0047AB', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 8 }}>
+              {localProfileUri ? (
+                <Image source={{ uri: localProfileUri }} className="w-full h-full" />
+              ) : user.profileImage ? (
+                <Image source={{ uri: user.profileImage }} className="w-full h-full" />
+              ) : (
+                <Text className="text-5xl font-outfit-bold text-white">
+                  {user.name && user.surname ? (user.name[0] + user.surname[0]).toUpperCase() : 'U'}
+                </Text>
+              )}
+              {isUploadingPhoto && (
+                <View className="absolute inset-0 bg-black/40 items-center justify-center">
+                  <ActivityIndicator color="#fff" />
+                </View>
+              )}
+            </View>
+            {!isUploadingPhoto && (
+              <View className="absolute bottom-0 right-0 bg-white w-10 h-10 rounded-full justify-center items-center border-4 border-white" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 4, elevation: 4 }}>
+                <Camera size={18} color="#F59E0B" />
               </View>
             )}
-          </View>
-          {!isUploadingPhoto && (
-            <View className="absolute bottom-0 right-0 bg-blue-100 p-1.5 rounded-full border border-white">
-              <Text className="text-xs">✏️</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-        <Text className="text-xl font-outfit-bold text-blue-900 mt-3">{user.name} {user.surname}</Text>
-        <View className="bg-blue-50 px-3 py-1 rounded-full mt-1">
-          <Text className="text-blue-600 font-outfit-medium text-xs capitalize">{user.role}</Text>
-        </View>
-      </View>
+          </TouchableOpacity>
 
-      {/* Status Toggle - Only for Mechanics */}
-      {user.role === 'mechanic' && (
-        <View className="px-6 mb-8">
+          {/* Name */}
+          <Text className="text-3xl font-outfit-bold mt-4 mb-2" style={{ color: '#2B66F8' }}>
+            {user.name} {user.surname}
+          </Text>
+
+          {/* Role Badge */}
+          <View className="px-4 py-2 rounded-full" style={{ backgroundColor: '#E9F1FF' }}>
+            <Text className="text-blue-600 font-outfit-semibold text-sm capitalize">
+              {user.role === 'mechanic' ? 'Mechanic' : 'Vehicle Owner'}
+            </Text>
+          </View>
+        </View>
+
+        {/* Status Toggle - Only for Mechanics */}
+        {user.role === 'mechanic' && (
+        <View className="mb-8">
           <Text className="text-gray-900 font-outfit-medium mb-3">Available to provide services</Text>
           <View className="flex-row bg-gray-50 p-1 rounded-xl border border-gray-200">
             <TouchableOpacity
@@ -169,45 +198,56 @@ export default function ProfileScreen() {
         </View>
       )}
 
-      {/* Menu Items */}
-      <View className="px-4 mb-8">
-        {menuItems.map((item, index) => (
-          <TouchableOpacity
-            key={index}
-            className="flex-row items-center py-4 border-b border-gray-100"
-            onPress={item.action ? item.action : () => {
-              if (item.route) router.push(item.route as any);
-            }}
-          >
-            <View className={`w-10 h-10 rounded-full ${item.color ? 'bg-red-50' : 'bg-blue-50'} justify-center items-center mr-4`}>
-              <item.icon size={20} color={item.color || '#0047AB'} />
-            </View>
-            <Text className={`flex-1 font-outfit-medium text-base ${item.color ? 'text-red-500' : 'text-gray-800'}`}>
-              {item.label}
-            </Text>
-            <ChevronRight size={20} color="#9CA3AF" />
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {/* Language Selector */}
-      <View className="px-6 mb-12">
-        <Text className="text-blue-500 font-outfit-medium mb-3">Select Language</Text>
-        <View className="flex-row gap-3">
-          <TouchableOpacity
-            onPress={() => setLanguage('en')}
-            className={`px-6 py-2 rounded-lg border ${language === 'en' ? 'bg-white border-blue-600' : 'bg-gray-50 border-gray-200'}`}
-          >
-            <Text className={`font-outfit-medium ${language === 'en' ? 'text-blue-600' : 'text-gray-500'}`}>English</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setLanguage('es')}
-            className={`px-6 py-2 rounded-lg border ${language === 'es' ? 'bg-white border-blue-600' : 'bg-gray-50 border-gray-200'}`}
-          >
-            <Text className={`font-outfit-medium ${language === 'es' ? 'text-blue-600' : 'text-gray-500'}`}>Spanish</Text>
-          </TouchableOpacity>
+        {/* Menu Items Card */}
+        <View className="mb-6" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 10, elevation: 5 }}>
+          <View className="bg-white rounded-3xl overflow-hidden">
+            {menuItems.map((item, index) => (
+            <TouchableOpacity
+              key={index}
+              className="flex-row items-center px-6 py-4"
+              style={{ borderBottomWidth: index < menuItems.length - 1 ? 1 : 0, borderBottomColor: '#F3F4F6' }}
+              onPress={item.action ? item.action : () => {
+                if (item.route) router.push(item.route as any);
+              }}
+            >
+              <View className={`w-12 h-12 rounded-full ${item.color ? 'bg-red-50' : 'bg-blue-50'} justify-center items-center mr-4`}>
+                <item.icon size={24} color={item.color || '#0047AB'} />
+              </View>
+              <Text className={`flex-1 font-outfit-semibold text-base ${item.color ? 'text-red-500' : 'text-gray-900'}`}>
+                {item.label}
+              </Text>
+              <ChevronRight size={24} color={item.color ? '#EF4444' : '#0047AB'} />
+            </TouchableOpacity>
+            ))}
+          </View>
         </View>
-      </View>
+
+        {/* Language Selector Card */}
+        <View className="bg-white rounded-3xl p-6" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 10, elevation: 5 }}>
+          <Text className="font-outfit-semibold text-base mb-4" style={{ color: '#2B66F8' }}>Select Language</Text>
+          <View className="flex-row gap-3">
+            <TouchableOpacity
+              onPress={() => setLanguage('en')}
+              className="flex-1 py-3 rounded-2xl border-2 items-center justify-center"
+              style={{
+                borderColor: language === 'en' ? '#2B66F8' : '#E5E7EB',
+                backgroundColor: language === 'en' ? '#E9F1FF' : '#FFFFFF'
+              }}
+            >
+              <Text className="font-outfit-semibold text-base" style={{ color: language === 'en' ? '#2B66F8' : '#9CA3AF' }}>English</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setLanguage('es')}
+              className="flex-1 py-3 rounded-2xl border-2 items-center justify-center"
+              style={{
+                borderColor: language === 'es' ? '#2B66F8' : '#E5E7EB',
+                backgroundColor: language === 'es' ? '#E9F1FF' : '#FFFFFF'
+              }}
+            >
+              <Text className="font-outfit-semibold text-base" style={{ color: language === 'es' ? '#2B66F8' : '#9CA3AF' }}>Spanish</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
 
       {/* Online Confirmation Modal */}
       <Modal transparent visible={showOnlineModal} animationType="fade">
@@ -278,6 +318,7 @@ export default function ProfileScreen() {
         confirmText="Yes"
         cancelText="No"
       />
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }

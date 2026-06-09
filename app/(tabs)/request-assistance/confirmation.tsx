@@ -164,29 +164,29 @@ export default function ConfirmationScreen() {
 
                     {/* Content */}
                     <View className="px-6 py-4">
-                        <View className="mb-4">
+                        <View className="mb-3">
                             <Text className="text-gray-400 font-outfit-medium text-sm uppercase tracking-wide mb-1">Assistance needed</Text>
                             <Text className="text-gray-900 font-outfit-semibold text-lg">{description || 'No description provided'}</Text>
                         </View>
 
-                        <View className="border-t border-gray-200 pt-4 mb-4">
+                        <View className="border-t border-gray-200 pt-3 mb-3">
                             <Text className="text-gray-400 font-outfit-medium text-sm uppercase tracking-wide mb-1">Timeframe</Text>
                             <Text className="text-gray-900 font-outfit-semibold text-lg">
                                 {type === 'immediate' || type === 'witness' ? '4 Hours' : type === 'scheduled' ? '7 Days' : 'On Demand'}
                             </Text>
                         </View>
 
-                        <View className="border-t border-gray-200 pt-4 mb-4">
+                        <View className="border-t border-gray-200 pt-3 mb-3">
                             <Text className="text-gray-400 font-outfit-medium text-sm uppercase tracking-wide mb-1">Car</Text>
                             <Text className="text-gray-900 font-outfit-semibold text-lg">{vehicleStr}</Text>
                         </View>
 
-                        <View className="border-t border-gray-200 pt-4 mb-4">
+                        <View className="border-t border-gray-200 pt-3 mb-3">
                             <Text className="text-gray-400 font-outfit-medium text-sm uppercase tracking-wide mb-1">Address</Text>
                             <Text className="text-gray-900 font-outfit-semibold text-lg">{finalAddress || addressLabel}</Text>
                         </View>
 
-                        <View className="border-t border-gray-200 pt-4">
+                        <View className="border-t border-gray-200 pt-3">
                             <Text className="text-gray-400 font-outfit-medium text-sm uppercase tracking-wide mb-1">Notes</Text>
                             <Text className="text-gray-900 font-outfit-semibold text-lg">{details || 'None'}</Text>
                         </View>
@@ -194,7 +194,6 @@ export default function ConfirmationScreen() {
 
                     {/* Fees Info */}
                     <View className="mx-6 mb-6 p-4 rounded-2xl items-center" style={{ backgroundColor: '#EFF6FF' }}>
-                        <Ionicons name="information-circle" size={24} color="#0047AB" style={{ marginBottom: 8 }} />
                         <Text className="text-blue-600 font-outfit-semibold text-center">
                             No FEES will be charged to your account until work is done and approved.
                         </Text>

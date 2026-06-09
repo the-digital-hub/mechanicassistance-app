@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { Bell, ChevronRight, Key, UserX } from 'lucide-react-native';
+import { Bell, ChevronLeft, ChevronRight, Key, UserX } from 'lucide-react-native';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 export default function SettingsScreen() {
@@ -27,29 +27,56 @@ export default function SettingsScreen() {
     ];
 
     return (
-        <ScrollView className="flex-1 bg-white px-6 pt-6">
-            <View className="mb-8">
-                <Text className="text-xl font-outfit-bold text-blue-900 mb-1">Settings</Text>
-                <Text className="text-blue-500 font-outfit-regular">Set up your preferences</Text>
+        <View className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
+            {/* Custom Header */}
+            <View className="px-6 pt-20 pb-2 flex-row items-center justify-between" style={{ backgroundColor: '#F4F5FA', borderBottomWidth: 0.5, borderBottomColor: '#D1D5DB' }}>
+                <TouchableOpacity onPress={() => router.replace('/')}>
+                    <View className="w-10 h-10 rounded-full justify-center items-center" style={{ backgroundColor: '#FFFFFF' }}>
+                        <ChevronLeft size={20} color="#0047AB" />
+                    </View>
+                </TouchableOpacity>
+                <Text style={{ fontFamily: 'Outfit_500Medium', fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>
+                    Settings
+                </Text>
+                <View className="w-6" />
             </View>
 
-            <View className="gap-2">
+        <ScrollView className="flex-1 px-6 pt-6">
+            {/* Section Badge */}
+            <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+              <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+              <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+                ACCOUNT SETTINGS
+              </Text>
+            </View>
+
+            {/* Title */}
+            <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">Settings</Text>
+
+            {/* Subtitle */}
+            <Text className="text-gray-500 font-outfit-regular text-base mb-8">
+              Manage your account preferences and security
+            </Text>
+
+            <View className="bg-white rounded-3xl overflow-hidden" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 10, elevation: 5 }}>
                 {menuItems.map((item, index) => (
                     <TouchableOpacity
                         key={index}
-                        className="flex-row items-center py-4 border-b border-gray-100"
+                        className="flex-row items-center px-6 py-4"
+                        style={{ borderBottomWidth: index < menuItems.length - 1 ? 1 : 0, borderBottomColor: '#F3F4F6' }}
                         onPress={() => router.push(item.route)}
                     >
                         <View className="w-12 h-12 bg-blue-50 rounded-full justify-center items-center mr-4">
                             <item.icon size={24} color="#0047AB" />
                         </View>
-                        <View className="flex-1">
-                            <Text className="font-outfit-bold text-gray-900 text-lg">{item.label}</Text>
+                        <View className="flex-1 justify-center">
+                            <Text className="font-outfit-semibold text-base text-gray-900">{item.label}</Text>
                         </View>
                         <ChevronRight size={24} color="#0047AB" />
                     </TouchableOpacity>
                 ))}
             </View>
         </ScrollView>
+        </View>
     );
 }

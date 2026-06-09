@@ -30,13 +30,23 @@ export default function HelpScreen() {
     ];
 
     return (
-        <ScrollView className="flex-1 bg-white px-6 pt-6">
-            <View className="mb-6">
-                <Text className="text-xl font-outfit-bold text-blue-900 mb-1">Help center</Text>
-                <Text className="text-blue-500 font-outfit-regular leading-5">
-                    We're here to guide you, check out our{'\n'}Frequently asked questions or contact{'\n'}us directly
-                </Text>
+        <View className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
+        <ScrollView className="flex-1 px-6 pt-6">
+            {/* Section Badge */}
+            <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+              <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+              <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+                HELP & SUPPORT
+              </Text>
             </View>
+
+            {/* Title */}
+            <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">Help center</Text>
+
+            {/* Subtitle */}
+            <Text className="text-gray-500 font-outfit-regular text-base mb-8">
+                We're here to guide you, check out our frequently asked questions or contact us directly
+            </Text>
 
             {/* Action Buttons */}
             <View className="flex-row flex-wrap gap-3 mb-8">
@@ -84,5 +94,6 @@ export default function HelpScreen() {
                 })}
             </View>
         </ScrollView>
+        </View>
     );
 }

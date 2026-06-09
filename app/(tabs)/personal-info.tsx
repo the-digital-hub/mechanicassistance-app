@@ -8,6 +8,7 @@ import { useRouter } from 'expo-router';
 import { Camera, CheckCircle2 } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Image, KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function PersonalInfoScreen() {
     const router = useRouter();
@@ -224,14 +225,26 @@ export default function PersonalInfoScreen() {
         >
             <ScrollView
                 ref={scrollViewRef}
-                className="flex-1 bg-white px-6 pt-6"
+                className="flex-1 px-6 pt-4"
+                style={{ backgroundColor: '#F6F8FC' }}
                 keyboardShouldPersistTaps="handled"
                 contentContainerStyle={{ paddingBottom: 40 }}
             >
-                <View className="mb-6">
-                    <Text className="text-xl font-outfit-bold text-blue-900 mb-1">Personal information</Text>
-                    <Text className="text-blue-500 font-outfit-regular">Complete your information</Text>
+                {/* Section Badge */}
+                <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+                  <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+                  <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+                    YOUR ACCOUNT
+                  </Text>
                 </View>
+
+                {/* Title */}
+                <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">Personal information</Text>
+
+                {/* Subtitle */}
+                <Text className="text-gray-500 font-outfit-regular text-base mb-8">
+                  Keep your profile up to date to ensure the best service experience
+                </Text>
 
                 {/* Profile Image Section */}
                 <View className="items-center mb-8">
@@ -264,8 +277,8 @@ export default function PersonalInfoScreen() {
                         <Text className="font-outfit-medium mb-2 text-gray-900">Name</Text>
                         <Input
                             value={formData.name}
-                            onChangeText={(t) => setFormData({ ...formData, name: t })}
-                            containerClassName="bg-blue-50/50 border-blue-100"
+                            editable={false}
+                            containerClassName="bg-gray-100 border border-gray-300 rounded-2xl text-gray-500"
                         />
                     </View>
 
@@ -273,17 +286,17 @@ export default function PersonalInfoScreen() {
                         <Text className="font-outfit-medium mb-2 text-gray-900">Surname</Text>
                         <Input
                             value={formData.surname}
-                            onChangeText={(t) => setFormData({ ...formData, surname: t })}
-                            containerClassName="bg-blue-50/50 border-blue-100"
+                            editable={false}
+                            containerClassName="bg-gray-100 border border-gray-300 rounded-2xl text-gray-500"
                         />
                     </View>
 
                     <View>
-                        <Text className="font-outfit-medium mb-2 text-gray-900">email</Text>
+                        <Text className="font-outfit-medium mb-2 text-gray-900">Email</Text>
                         <Input
                             value={formData.email}
                             onChangeText={(t) => setFormData({ ...formData, email: t })}
-                            containerClassName="bg-blue-50/50 border-blue-100"
+                            containerClassName="bg-white border border-gray-300 rounded-2xl"
                             keyboardType="email-address"
                         />
                     </View>
@@ -293,7 +306,7 @@ export default function PersonalInfoScreen() {
                         <Input
                             value={formData.phone}
                             editable={false}
-                            containerClassName="bg-gray-100 border-gray-200 text-gray-500"
+                            containerClassName="bg-gray-100 border border-gray-300 rounded-2xl text-gray-500"
                         />
                     </View>
 
@@ -302,7 +315,7 @@ export default function PersonalInfoScreen() {
                         <Input
                             value={formData.dob}
                             onChangeText={(t) => setFormData({ ...formData, dob: t })}
-                            containerClassName="bg-blue-50/50 border-blue-100"
+                            containerClassName="bg-white border border-gray-300 rounded-2xl"
                             keyboardType="number-pad"
                         />
                     </View>
@@ -320,7 +333,7 @@ export default function PersonalInfoScreen() {
                                     searchAddress(t);
                                 }}
                                 onFocus={() => scrollToField(streetContainerRef)}
-                                containerClassName="bg-blue-50/50 border-blue-100"
+                                containerClassName="bg-white border border-gray-300 rounded-2xl"
                                 placeholder="Enter street address"
                             />
                             {isSearching && (
@@ -350,7 +363,7 @@ export default function PersonalInfoScreen() {
                                 value={formData.address.apartment}
                                 onChangeText={(t) => setFormData({ ...formData, address: { ...formData.address, apartment: t } })}
                                 onFocus={() => scrollToField(apartmentContainerRef)}
-                                containerClassName="bg-blue-50/50 border-blue-100"
+                                containerClassName="bg-white border border-gray-300 rounded-2xl"
                             />
                         </View>
 
@@ -361,14 +374,14 @@ export default function PersonalInfoScreen() {
                                     value={formData.address.city}
                                     onChangeText={(t) => setFormData({ ...formData, address: { ...formData.address, city: t } })}
                                     onFocus={() => scrollToField(cityContainerRef)}
-                                    containerClassName="bg-blue-50/50 border-blue-100"
+                                    containerClassName="bg-white border border-gray-300 rounded-2xl"
                                 />
                             </View>
                             <View className="flex-1">
                                 <Text className="font-outfit-medium mb-2 text-gray-900">State</Text>
                                 <TouchableOpacity
                                     onPress={() => setShowStateModal(true)}
-                                    className="bg-blue-50/50 border border-blue-100 rounded-xl h-[52px] justify-center px-4"
+                                    className="bg-white border border-gray-300 rounded-2xl h-[52px] justify-center px-4"
                                 >
                                     <Text className={`font-outfit-medium ${formData.address.state ? 'text-gray-900' : 'text-gray-400'}`}>
                                         {formData.address.state || 'FL'}
@@ -386,7 +399,7 @@ export default function PersonalInfoScreen() {
                                     setFormData({ ...formData, address: { ...formData.address, zip: cleaned } });
                                 }}
                                 onFocus={() => scrollToField(zipContainerRef)}
-                                containerClassName="bg-blue-50/50 border-blue-100"
+                                containerClassName="bg-white border border-gray-300 rounded-2xl"
                                 keyboardType="number-pad"
                                 maxLength={5}
                                 placeholder="33139"
@@ -395,9 +408,26 @@ export default function PersonalInfoScreen() {
                     </View>
                 </View>
 
-                <Button size="lg" className="mb-10" onPress={handleUpdate}>
-                    Update Profile
-                </Button>
+                <TouchableOpacity
+                    onPress={handleUpdate}
+                    activeOpacity={0.8}
+                    className="mb-10"
+                >
+                    <LinearGradient
+                        colors={['#2B66F8', '#081E72']}
+                        start={{ x: 0, y: 1 }}
+                        end={{ x: 1, y: 0 }}
+                        style={{
+                            borderRadius: 10,
+                            paddingVertical: 16,
+                            paddingHorizontal: 16,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}
+                    >
+                        <Text className="text-white font-outfit-bold text-center">Update Profile</Text>
+                    </LinearGradient>
+                </TouchableOpacity>
 
                 {/* State Selection Modal */}
                 <Modal
@@ -455,9 +485,23 @@ export default function PersonalInfoScreen() {
                             </Text>
                             <TouchableOpacity
                                 onPress={() => setShowSuccessModal(false)}
-                                className="bg-blue-700 w-full py-4 rounded-xl items-center"
+                                activeOpacity={0.8}
+                                className="w-full"
                             >
-                                <Text className="text-white font-outfit-bold text-lg">Close</Text>
+                                <LinearGradient
+                                    colors={['#2B66F8', '#081E72']}
+                                    start={{ x: 0, y: 1 }}
+                                    end={{ x: 1, y: 0 }}
+                                    style={{
+                                        borderRadius: 10,
+                                        paddingVertical: 16,
+                                        paddingHorizontal: 16,
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                    }}
+                                >
+                                    <Text className="text-white font-outfit-bold text-center">Close</Text>
+                                </LinearGradient>
                             </TouchableOpacity>
                         </View>
                     </View>

@@ -50,8 +50,8 @@ export default function SearchingScreen() {
         Animated.loop(
             Animated.timing(pulseValue, {
                 toValue: 1,
-                duration: 2000,
-                easing: Easing.inOut(Easing.ease),
+                duration: 2500,
+                easing: Easing.linear,
                 useNativeDriver: true,
             })
         ).start();
@@ -98,14 +98,15 @@ export default function SearchingScreen() {
         outputRange: ['0deg', '360deg'],
     });
 
-    const pulseScale = pulseValue.interpolate({
-        inputRange: [0, 0.5, 1],
-        outputRange: [1, 1.3, 1],
+    // Ripple/expansion effect: scales up significantly and fades out continuously
+    const rippleScale = pulseValue.interpolate({
+        inputRange: [0, 1],
+        outputRange: [1, 2.8],
     });
 
-    const pulseOpacity = pulseValue.interpolate({
-        inputRange: [0, 0.5, 1],
-        outputRange: [0.3, 1, 0.3],
+    const rippleOpacity = pulseValue.interpolate({
+        inputRange: [0, 1],
+        outputRange: [1, 0],
     });
 
     const handleCancel = async () => {
@@ -157,17 +158,17 @@ export default function SearchingScreen() {
                 </Text>
 
                 <View className="items-center mb-6">
-                    <View className="bg-white p-4 flex-row items-center gap-4 mb-12" style={{ width: '100%', borderRadius: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 }}>
+                    <View className="bg-white p-4 flex-row items-center gap-4 mb-0" style={{ width: '100%', borderRadius: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2, zIndex: 10 }}>
                         <View className="flex-1">
-                            <Text className="text-gray-600 font-outfit-medium text-base mb-1">Mechanics in your area</Text>
+                            <Text className="text-gray-600 font-outfit-medium text-lg mb-1">Mechanics in your area</Text>
                             <Text className="text-blue-600 font-outfit-bold" style={{ fontSize: 44 }}>28+</Text>
                         </View>
-                        <View className="w-20 h-20 rounded-2xl justify-center items-center" style={{ backgroundColor: '#E9F1FF' }}>
-                            <Ionicons name="search" size={28} color="#0047AB" />
+                        <View className="w-16 h-16 rounded-2xl justify-center items-center" style={{ backgroundColor: '#E9F1FF' }}>
+                            <Ionicons name="search" size={20} color="#0047AB" />
                         </View>
                     </View>
 
-                    <View className="w-56 h-56 relative justify-center items-center mb-8">
+                    <View className="w-56 h-56 relative justify-center items-center mb-16 mt-16">
                         {/* Radar sweep - rotating line with trail */}
                         <Animated.View
                             style={{
@@ -182,11 +183,12 @@ export default function SearchingScreen() {
                                 style={{
                                     position: 'absolute',
                                     width: 3,
-                                    height: 100,
+                                    height: 120,
                                     backgroundColor: '#2B66F8',
                                     left: 98.5,
                                     top: 0,
                                     opacity: 0.2,
+                                    borderRadius: 1.5,
                                     shadowColor: '#2B66F8',
                                     shadowOffset: { width: 0, height: 0 },
                                     shadowOpacity: 0.3,
@@ -200,11 +202,12 @@ export default function SearchingScreen() {
                                 style={{
                                     position: 'absolute',
                                     width: 3,
-                                    height: 100,
+                                    height: 120,
                                     backgroundColor: '#4D77EF',
                                     left: 98.5,
                                     top: 0,
                                     opacity: 0.4,
+                                    borderRadius: 1.5,
                                     shadowColor: '#4D77EF',
                                     shadowOffset: { width: 0, height: 0 },
                                     shadowOpacity: 0.5,
@@ -218,15 +221,34 @@ export default function SearchingScreen() {
                                 style={{
                                     position: 'absolute',
                                     width: 3,
-                                    height: 100,
+                                    height: 120,
                                     backgroundColor: '#0047AB',
                                     left: 98.5,
                                     top: 0,
+                                    borderRadius: 1.5,
                                     shadowColor: '#0047AB',
                                     shadowOffset: { width: 0, height: 0 },
                                     shadowOpacity: 1,
                                     shadowRadius: 8,
                                     elevation: 10,
+                                }}
+                            />
+
+                            {/* Bright tip - intensified glow at the sweep front */}
+                            <View
+                                style={{
+                                    position: 'absolute',
+                                    width: 8,
+                                    height: 8,
+                                    borderRadius: 4,
+                                    backgroundColor: '#FFFFFF',
+                                    left: 96,
+                                    top: 0,
+                                    shadowColor: '#0047AB',
+                                    shadowOffset: { width: 0, height: 0 },
+                                    shadowOpacity: 1,
+                                    shadowRadius: 12,
+                                    elevation: 12,
                                 }}
                             />
                         </Animated.View>
@@ -255,7 +277,21 @@ export default function SearchingScreen() {
                             />
                         </Animated.View>
 
-                        {/* Outer circle */}
+                        {/* Outer circle - ripple effect */}
+                        <Animated.View
+                            style={{
+                                position: 'absolute',
+                                width: 200,
+                                height: 200,
+                                borderRadius: 100,
+                                borderWidth: 2,
+                                borderColor: '#2B66F8',
+                                transform: [{ scale: rippleScale }],
+                                opacity: rippleOpacity,
+                            }}
+                        />
+
+                        {/* Secondary ripple halo - delayed effect */}
                         <Animated.View
                             style={{
                                 position: 'absolute',
@@ -263,35 +299,44 @@ export default function SearchingScreen() {
                                 height: 200,
                                 borderRadius: 100,
                                 borderWidth: 1,
-                                borderColor: '#E0E7FF',
-                                transform: [{ scale: pulseScale }],
-                                opacity: 0.4,
+                                borderColor: '#4D77EF',
+                                transform: [{ scale: rippleScale }],
+                                opacity: rippleOpacity.interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: [0.6, 0],
+                                }),
                             }}
                         />
 
-                        {/* Middle circle */}
+                        {/* Middle circle - subtle pulsation */}
                         <Animated.View
                             style={{
                                 position: 'absolute',
                                 width: 140,
                                 height: 140,
                                 borderRadius: 70,
-                                borderWidth: 1,
-                                borderColor: '#C7D2FE',
-                                opacity: 0.6,
+                                borderWidth: 1.5,
+                                borderColor: '#A5B4FC',
+                                opacity: pulseValue.interpolate({
+                                    inputRange: [0, 0.5, 1],
+                                    outputRange: [0.4, 0.8, 0.4],
+                                }),
                             }}
                         />
 
-                        {/* Inner circle */}
-                        <View
+                        {/* Inner circle - subtle glow pulsation */}
+                        <Animated.View
                             style={{
                                 position: 'absolute',
                                 width: 80,
                                 height: 80,
                                 borderRadius: 40,
-                                borderWidth: 1,
-                                borderColor: '#A5B4FC',
-                                opacity: 0.8,
+                                borderWidth: 1.5,
+                                borderColor: '#818CF8',
+                                opacity: pulseValue.interpolate({
+                                    inputRange: [0, 0.5, 1],
+                                    outputRange: [0.5, 1, 0.5],
+                                }),
                             }}
                         />
 
@@ -312,65 +357,11 @@ export default function SearchingScreen() {
                                 elevation: 8,
                             }}
                         >
-                            <FontAwesomeIcon icon={faWrench} size={40} color="white" />
+                            <FontAwesomeIcon icon={faWrench} size={35} color="white" />
                         </View>
 
-                        {/* Radar points - FIXED positions (4 points - irregular) */}
-                        {/* Point 1 - Top Right area */}
-                        <View
-                            style={{
-                                position: 'absolute',
-                                width: 10,
-                                height: 10,
-                                borderRadius: 5,
-                                backgroundColor: '#A5B4FC',
-                                top: 20,
-                                right: 35,
-                                shadowColor: '#0047AB',
-                                shadowOffset: { width: 0, height: 0 },
-                                shadowOpacity: 0.6,
-                                shadowRadius: 3,
-                                elevation: 3,
-                            }}
-                        />
-
-                        {/* Point 2 - Right Bottom area */}
-                        <View
-                            style={{
-                                position: 'absolute',
-                                width: 10,
-                                height: 10,
-                                borderRadius: 5,
-                                backgroundColor: '#A5B4FC',
-                                bottom: 15,
-                                right: 15,
-                                shadowColor: '#0047AB',
-                                shadowOffset: { width: 0, height: 0 },
-                                shadowOpacity: 0.6,
-                                shadowRadius: 3,
-                                elevation: 3,
-                            }}
-                        />
-
-                        {/* Point 3 - Bottom Left area */}
-                        <View
-                            style={{
-                                position: 'absolute',
-                                width: 10,
-                                height: 10,
-                                borderRadius: 5,
-                                backgroundColor: '#A5B4FC',
-                                bottom: 35,
-                                left: 20,
-                                shadowColor: '#0047AB',
-                                shadowOffset: { width: 0, height: 0 },
-                                shadowOpacity: 0.6,
-                                shadowRadius: 3,
-                                elevation: 3,
-                            }}
-                        />
-
-                        {/* Point 4 - Top Left area */}
+                        {/* Radar points - FIXED positions at DIFFERENT distances from center */}
+                        {/* Point 1 - Very close (near center) - Top Right */}
                         <View
                             style={{
                                 position: 'absolute',
@@ -379,7 +370,61 @@ export default function SearchingScreen() {
                                 borderRadius: 5,
                                 backgroundColor: '#A5B4FC',
                                 top: 35,
-                                left: 15,
+                                right: 80,
+                                shadowColor: '#0047AB',
+                                shadowOffset: { width: 0, height: 0 },
+                                shadowOpacity: 0.6,
+                                shadowRadius: 3,
+                                elevation: 3,
+                            }}
+                        />
+
+                        {/* Point 2 - Medium distance - Bottom Right */}
+                        <View
+                            style={{
+                                position: 'absolute',
+                                width: 10,
+                                height: 10,
+                                borderRadius: 5,
+                                backgroundColor: '#A5B4FC',
+                                bottom: 40,
+                                right: 30,
+                                shadowColor: '#0047AB',
+                                shadowOffset: { width: 0, height: 0 },
+                                shadowOpacity: 0.6,
+                                shadowRadius: 3,
+                                elevation: 3,
+                            }}
+                        />
+
+                        {/* Point 3 - Medium-far distance - Bottom Left */}
+                        <View
+                            style={{
+                                position: 'absolute',
+                                width: 10,
+                                height: 10,
+                                borderRadius: 5,
+                                backgroundColor: '#A5B4FC',
+                                bottom: 15,
+                                left: 50,
+                                shadowColor: '#0047AB',
+                                shadowOffset: { width: 0, height: 0 },
+                                shadowOpacity: 0.6,
+                                shadowRadius: 3,
+                                elevation: 3,
+                            }}
+                        />
+
+                        {/* Point 4 - Far distance - Top Left */}
+                        <View
+                            style={{
+                                position: 'absolute',
+                                width: 10,
+                                height: 10,
+                                borderRadius: 5,
+                                backgroundColor: '#A5B4FC',
+                                top: 10,
+                                left: 60,
                                 shadowColor: '#0047AB',
                                 shadowOffset: { width: 0, height: 0 },
                                 shadowOpacity: 0.6,

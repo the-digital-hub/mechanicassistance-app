@@ -1,9 +1,10 @@
 import { Button } from '@/components/ui/Button';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
-import { Stack, useRouter } from 'expo-router';
-import { UserX } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
+import { ChevronLeft, ChevronRight, UserX } from 'lucide-react-native';
 import { useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 export default function DeleteAccountScreen() {
     const router = useRouter();
@@ -17,12 +18,36 @@ export default function DeleteAccountScreen() {
     };
 
     return (
-        <ScrollView className="flex-1 bg-white px-6 pt-6">
-            <Stack.Screen options={{ title: 'Profile', headerBackTitle: 'Back' }} />
-
-            <View className="mb-6">
-                <Text className="text-xl font-outfit-bold text-blue-900 mb-1">Delete Account</Text>
+        <View className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
+            {/* Custom Header */}
+            <View className="px-6 pt-20 pb-2 flex-row items-center justify-between" style={{ backgroundColor: '#F4F5FA', borderBottomWidth: 0.5, borderBottomColor: '#D1D5DB' }}>
+                <TouchableOpacity onPress={() => router.back()}>
+                    <View className="w-10 h-10 rounded-full justify-center items-center" style={{ backgroundColor: '#FFFFFF' }}>
+                        <ChevronLeft size={20} color="#0047AB" />
+                    </View>
+                </TouchableOpacity>
+                <Text style={{ fontFamily: 'Outfit_500Medium', fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>
+                    Profile
+                </Text>
+                <View className="w-6" />
             </View>
+
+        <ScrollView className="flex-1 px-6 pt-6">
+            {/* Section Badge */}
+            <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+              <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+              <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+                ACCOUNT SETTINGS
+              </Text>
+            </View>
+
+            {/* Title */}
+            <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">Delete Account</Text>
+
+            {/* Subtitle */}
+            <Text className="text-gray-500 font-outfit-regular text-base mb-8">
+              Permanently remove your account and all associated data
+            </Text>
 
             <Text className="font-outfit-medium text-gray-900 text-lg mb-4">We're sorry to see you go.</Text>
 
@@ -34,13 +59,28 @@ export default function DeleteAccountScreen() {
                 Are you sure you want to continue?
             </Text>
 
-            <Button
+            <TouchableOpacity
                 onPress={() => setShowModal(true)}
-                size="lg"
-                className="bg-blue-700" // Vibrant blue as per design, not red
+                activeOpacity={0.8}
+                style={{ marginBottom: 40 }}
             >
-                Delete Account
-            </Button>
+                <LinearGradient
+                    colors={['#2B66F8', '#081E72']}
+                    start={{ x: 0, y: 1 }}
+                    end={{ x: 1, y: 0 }}
+                    style={{
+                        borderRadius: 10,
+                        paddingVertical: 16,
+                        paddingHorizontal: 16,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}
+                >
+                    <Text className="text-white font-outfit-bold text-center mr-2">Delete Account</Text>
+                    <ChevronRight size={20} color="white" />
+                </LinearGradient>
+            </TouchableOpacity>
 
             <ConfirmationModal
                 visible={showModal}
@@ -55,5 +95,6 @@ export default function DeleteAccountScreen() {
                 cancelText="No"
             />
         </ScrollView>
+        </View>
     );
 }

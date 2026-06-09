@@ -103,9 +103,10 @@ export default function AddDetailsScreen() {
                         multiline
                         numberOfLines={4}
                         placeholder="Type here..."
+                        placeholderTextColor="#D1D5DB"
                         value={details}
                         onChangeText={setDetails}
-                        className="bg-gray-50/50 border border-gray-100 rounded-xl p-4 font-outfit-regular text-[#0F172A] text-base h-32"
+                        className="bg-white border border-gray-300 rounded-2xl p-4 font-outfit-regular text-[#0F172A] text-base h-32"
                         style={{ textAlignVertical: 'top' }}
                     />
                 </View>

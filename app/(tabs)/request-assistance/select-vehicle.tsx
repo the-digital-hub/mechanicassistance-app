@@ -2,7 +2,7 @@ import { useUser } from '@/context/UserContext';
 import { vehicleDAO } from '@/lib/dao/VehicleDAO';
 import { Vehicle } from '@/lib/dao/interfaces';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Car, ChevronLeft, Plus } from 'lucide-react-native';
+import { Car, ChevronLeft, ChevronRight, Plus } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -93,19 +93,22 @@ export default function SelectVehicleScreen() {
                                 <TouchableOpacity
                                     key={vehicle.id}
                                     onPress={() => handleSelectVehicle(vehicle)}
-                                    className="bg-white border border-gray-200 rounded-xl p-4 mb-4 flex-row items-center shadow-sm active:bg-blue-50"
+                                    className="bg-white border border-gray-200 rounded-xl p-4 mb-4 flex-row items-center justify-between shadow-sm active:bg-blue-50"
                                 >
-                                    <View className="w-10 h-10 bg-blue-50 rounded-full justify-center items-center mr-4">
-                                        <Car size={20} color="#0047AB" />
+                                    <View className="flex-row items-center flex-1">
+                                        <View className="w-10 h-10 bg-blue-50 rounded-full justify-center items-center mr-4">
+                                            <Car size={20} color="#0047AB" />
+                                        </View>
+                                        <View>
+                                            <Text className="font-outfit-bold text-[#0F172A] text-base uppercase">
+                                                {vehicle.make} {vehicle.model}
+                                            </Text>
+                                            <Text className="font-outfit-medium text-blue-500 text-xs tracking-widest uppercase">
+                                                {vehicle.plate || 'NO PLATE'}
+                                            </Text>
+                                        </View>
                                     </View>
-                                    <View>
-                                        <Text className="font-outfit-bold text-[#0F172A] text-base uppercase">
-                                            {vehicle.make} {vehicle.model}
-                                        </Text>
-                                        <Text className="font-outfit-medium text-blue-500 text-xs tracking-widest uppercase">
-                                            {vehicle.plate || 'NO PLATE'}
-                                        </Text>
-                                    </View>
+                                    <ChevronRight size={20} color="#0047AB" />
                                 </TouchableOpacity>
                             ))
                         )}

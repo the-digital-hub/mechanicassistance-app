@@ -96,9 +96,10 @@ export default function IssueSelectionScreen() {
                         multiline
                         numberOfLines={4}
                         placeholder="Describe what's happening with your vehicle"
+                        placeholderTextColor="#D1D5DB"
                         value={description}
                         onChangeText={setDescription}
-                        className="bg-white border border-gray-200 rounded-xl p-4 font-outfit-regular text-[#0F172A] text-base h-32"
+                        className="bg-white border border-gray-300 rounded-2xl p-4 font-outfit-regular text-[#0F172A] text-base h-32"
                         style={{ textAlignVertical: 'top' }}
                     />
                 </View>
@@ -131,8 +132,9 @@ export default function IssueSelectionScreen() {
                     activeOpacity={0.8}
                 >
                     {selectedIssues.length === 0 ? (
-                        <View className="bg-slate-200 rounded-lg p-4 mb-8 items-center justify-center">
-                            <Text className="text-gray-500 font-outfit-bold text-center">Continue</Text>
+                        <View className="bg-slate-200 rounded-lg p-4 mb-8 items-center justify-center flex-row">
+                            <Text className="text-gray-500 font-outfit-bold text-center mr-2">Continue</Text>
+                            <ChevronRight size={20} color="#9CA3AF" />
                         </View>
                     ) : (
                         <LinearGradient
