@@ -177,9 +177,10 @@ export function DatePicker({
       <TouchableOpacity
         onPress={() => setVisible(true)}
         className={cn(
-          "flex-row items-center bg-blue-50/50 rounded-xl px-4 h-12",
+          "flex-row items-center px-4 rounded-xl",
           containerClassName,
         )}
+        style={{ height: 52 }}
         activeOpacity={0.7}
       >
         <Text

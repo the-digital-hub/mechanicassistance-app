@@ -315,96 +315,10 @@ export default function PersonalInfoScreen() {
                         <Input
                             value={formData.dob}
                             onChangeText={(t) => setFormData({ ...formData, dob: t })}
-                            containerClassName="bg-white border border-gray-300 rounded-2xl"
+                            containerClassName="bg-gray-100 border border-gray-300 rounded-2xl text-gray-500"
                             keyboardType="number-pad"
+                            editable={false}
                         />
-                    </View>
-
-                    {/* Address Section */}
-                    <View className="mt-4">
-                        <Text className="text-lg font-outfit-bold text-blue-900 mb-4">Address Information</Text>
-
-                        <View ref={streetContainerRef} className="mb-4 relative z-50">
-                            <Text className="font-outfit-medium mb-2 text-gray-900">Street</Text>
-                            <Input
-                                value={formData.address.street}
-                                onChangeText={(t) => {
-                                    setFormData({ ...formData, address: { ...formData.address, street: t } });
-                                    searchAddress(t);
-                                }}
-                                onFocus={() => scrollToField(streetContainerRef)}
-                                containerClassName="bg-white border border-gray-300 rounded-2xl"
-                                placeholder="Enter street address"
-                            />
-                            {isSearching && (
-                                <ActivityIndicator size="small" color="#0047AB" className="absolute right-4 top-10" />
-                            )}
-
-                            {searchSuggestions.length > 0 && (
-                                <View className="absolute top-[80px] left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
-                                    {searchSuggestions.map((suggestion, index) => (
-                                        <TouchableOpacity
-                                            key={index}
-                                            className="px-4 py-3 border-b border-gray-50 flex-col"
-                                            onPress={() => handleSelectAddress(suggestion)}
-                                        >
-                                            <Text className="font-outfit-medium text-gray-900 text-sm" numberOfLines={1}>
-                                                {getFormattedAddress(suggestion)}
-                                            </Text>
-                                        </TouchableOpacity>
-                                    ))}
-                                </View>
-                            )}
-                        </View>
-
-                        <View ref={apartmentContainerRef} className="mb-4">
-                            <Text className="font-outfit-medium mb-2 text-gray-900">Apartment / Suite</Text>
-                            <Input
-                                value={formData.address.apartment}
-                                onChangeText={(t) => setFormData({ ...formData, address: { ...formData.address, apartment: t } })}
-                                onFocus={() => scrollToField(apartmentContainerRef)}
-                                containerClassName="bg-white border border-gray-300 rounded-2xl"
-                            />
-                        </View>
-
-                        <View ref={cityContainerRef} className="flex-row gap-4 mb-4">
-                            <View className="flex-1">
-                                <Text className="font-outfit-medium mb-2 text-gray-900">City</Text>
-                                <Input
-                                    value={formData.address.city}
-                                    onChangeText={(t) => setFormData({ ...formData, address: { ...formData.address, city: t } })}
-                                    onFocus={() => scrollToField(cityContainerRef)}
-                                    containerClassName="bg-white border border-gray-300 rounded-2xl"
-                                />
-                            </View>
-                            <View className="flex-1">
-                                <Text className="font-outfit-medium mb-2 text-gray-900">State</Text>
-                                <TouchableOpacity
-                                    onPress={() => setShowStateModal(true)}
-                                    className="bg-white border border-gray-300 rounded-2xl h-[52px] justify-center px-4"
-                                >
-                                    <Text className={`font-outfit-medium ${formData.address.state ? 'text-gray-900' : 'text-gray-400'}`}>
-                                        {formData.address.state || 'FL'}
-                                    </Text>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-
-                        <View ref={zipContainerRef}>
-                            <Text className="font-outfit-medium mb-2 text-gray-900">Zip Code</Text>
-                            <Input
-                                value={formData.address.zip}
-                                onChangeText={(t) => {
-                                    const cleaned = t.replace(/\D/g, '').slice(0, 5);
-                                    setFormData({ ...formData, address: { ...formData.address, zip: cleaned } });
-                                }}
-                                onFocus={() => scrollToField(zipContainerRef)}
-                                containerClassName="bg-white border border-gray-300 rounded-2xl"
-                                keyboardType="number-pad"
-                                maxLength={5}
-                                placeholder="33139"
-                            />
-                        </View>
                     </View>
                 </View>
 

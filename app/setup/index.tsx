@@ -3,6 +3,7 @@ import { sendOTP } from "@/lib/firebase/auth";
 import { saveSetupProgress } from "@/lib/storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { ChevronRight } from "lucide-react-native";
 import { useRef, useState } from "react";
 import {
     ActivityIndicator,
@@ -10,12 +11,14 @@ import {
     KeyboardAvoidingView,
     Modal,
     Platform,
+    ScrollView,
     Text,
     TextInput,
     TouchableOpacity,
     TouchableWithoutFeedback,
     View,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 
 export default function PhoneNumberScreen() {
   const router = useRouter();
@@ -90,15 +93,27 @@ export default function PhoneNumberScreen() {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <KeyboardAvoidingView
-        className="flex-1 bg-white"
+        className="flex-1"
+        style={{ backgroundColor: '#F6F8FC' }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <View className="px-8 pt-8 flex-1">
-          <Text className="text-xl font-outfit-bold text-[#0F172A] mb-2">
+        <ScrollView className="flex-1 px-6 pt-4">
+          {/* Section Badge */}
+          <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+            <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+            <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+              GET STARTED
+            </Text>
+          </View>
+
+          {/* Title */}
+          <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
             What's your number?
           </Text>
-          <Text className="text-base font-outfit-medium text-[#0047AB] mb-12">
-            We'll send you an SMS to verify your phone.
+
+          {/* Subtitle */}
+          <Text className="text-gray-500 font-outfit-regular text-base mb-8">
+            We'll send you an SMS to verify your phone number.
           </Text>
 
           {/* Phone input row */}
@@ -143,20 +158,34 @@ export default function PhoneNumberScreen() {
           {/* Continue button */}
           <TouchableOpacity
             onPress={handleSubmit}
+            activeOpacity={0.8}
             disabled={phoneNumber.length < 10 || isChecking}
-            className={`w-full py-4 rounded-xl mb-8 items-center ${
-              phoneNumber.length === 10 ? "bg-blue-700" : "bg-blue-200"
-            }`}
+            className="mb-8 mt-auto"
           >
-            {isChecking ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text className="text-white font-outfit-bold text-lg">
-                Continue
-              </Text>
-            )}
+            <LinearGradient
+              colors={phoneNumber.length === 10 ? ['#2B66F8', '#081E72'] : ['#B0C4FF', '#B0C4FF']}
+              start={{ x: 0, y: 1 }}
+              end={{ x: 1, y: 0 }}
+              style={{
+                borderRadius: 10,
+                paddingVertical: 16,
+                paddingHorizontal: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              {isChecking ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <>
+                  <Text className="text-white font-outfit-bold text-center mr-2">Continue</Text>
+                  <ChevronRight size={20} color="white" />
+                </>
+              )}
+            </LinearGradient>
           </TouchableOpacity>
-        </View>
+        </ScrollView>
 
         {/* Error Modal */}
         <Modal

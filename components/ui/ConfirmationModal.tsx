@@ -8,6 +8,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import Animated, {
     runOnJS,
     useAnimatedStyle,
@@ -102,12 +103,17 @@ export function ConfirmationModal({
 
             <TouchableOpacity
               onPress={onConfirm}
-              style={[
-                styles.confirmButton,
-                { backgroundColor: confirmButtonColor },
-              ]}
+              activeOpacity={0.8}
+              style={styles.confirmButtonTouchable}
             >
-              <Text style={styles.confirmButtonText}>{confirmText}</Text>
+              <LinearGradient
+                colors={['#2B66F8', '#081E72']}
+                start={{ x: 0, y: 1 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.confirmButton}
+              >
+                <Text style={styles.confirmButtonText}>{confirmText}</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
         </Animated.View>
@@ -172,11 +178,17 @@ const styles = StyleSheet.create({
     borderColor: "#E5E7EB",
     alignItems: "center",
   },
+  confirmButtonTouchable: {
+    flex: 1,
+    borderRadius: 12,
+    overflow: "hidden",
+  },
   confirmButton: {
     flex: 1,
     paddingVertical: 12,
     borderRadius: 12,
     alignItems: "center",
+    justifyContent: "center",
   },
   cancelButtonText: {
     fontFamily: "Outfit_700Bold",

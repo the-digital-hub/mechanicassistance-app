@@ -483,7 +483,7 @@ export default function LoginScreen() {
                     leftIcon={
                       <Image
                         source={require("@/assets/brands/google.png")}
-                        style={{ width: 32, height: 32 }}
+                        style={{ width: 16, height: 16 }}
                         resizeMode="contain"
                       />
                     }

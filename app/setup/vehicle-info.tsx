@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { saveSetupProgress } from "@/lib/storage";
 import {
@@ -10,6 +9,8 @@ import {
 } from "@/lib/vehicle";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { ChevronRight } from "lucide-react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -237,18 +238,27 @@ export default function VehicleInfoScreen() {
     >
       <ScrollView
         ref={scrollViewRef}
-        className="flex-1 bg-white"
-        contentContainerStyle={{ padding: 32, paddingBottom: 40 }}
+        style={{ backgroundColor: '#F6F8FC' }}
+        contentContainerStyle={{ padding: 24, paddingBottom: 40 }}
         keyboardShouldPersistTaps="handled"
       >
-        <View className="mb-10">
-          <Text className="text-2xl font-outfit-bold text-[#0F172A] mb-2">
-            Vehicle Info
-          </Text>
-          <Text className="text-base font-outfit-medium text-[#0047AB]">
-            Help us recognize you faster.
+        {/* Section Badge */}
+        <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+          <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+          <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+            VEHICLE INFORMATION
           </Text>
         </View>
+
+        {/* Title */}
+        <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
+          Vehicle Info
+        </Text>
+
+        {/* Subtitle */}
+        <Text className="text-gray-500 font-outfit-regular text-base mb-8">
+          Help us recognize you faster.
+        </Text>
 
         <View className="space-y-6 gap-5">
           {/* VIN FIRST per user request */}
@@ -269,7 +279,7 @@ export default function VehicleInfoScreen() {
                     }
                   }}
                   onFocus={() => scrollToField(vinContainerRef)}
-                  containerClassName="bg-blue-50/50 border-0 h-12"
+                  containerClassName="bg-white border border-gray-300 rounded-2xl h-12"
                   maxLength={17}
                   autoCapitalize="characters"
                   placeholder="Enter 17-character VIN"

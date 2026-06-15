@@ -2,9 +2,10 @@ import { Appointment } from '@/context/AppointmentsContext';
 import { haversineDistanceKm } from '@/lib/utils';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
-import { Calendar, Car, Clock, MapPin, MessageSquare, ShieldCheck, Trash2, Video } from 'lucide-react-native';
+import { Calendar, Car, ChevronRight, Clock, MapPin, MessageSquare, ShieldCheck, Trash2, Video } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import MapView, { Marker } from 'react-native-maps';
 
 /** Format an ISO date string to a human-readable "MM/DD/YYYY - hh:mm AM/PM" */
@@ -91,23 +92,26 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
 
     return (
         <TouchableOpacity
-            className="bg-white rounded-xl overflow-hidden mb-4 shadow-sm border border-gray-100"
+            className="bg-white rounded-xl overflow-hidden mb-4"
+            style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 3 }}
             onPress={() => router.navigate(`/appointments/${appointment.id}`)}
             activeOpacity={0.7}
         >
             {/* Pending Banner */}
             {isPending && (
                 <View className="bg-orange-50 p-3 items-center border-b border-orange-100">
-                    <Text className="text-orange-500 font-outfit-bold text-xs">Status</Text>
-                    <Text className="text-orange-600 font-outfit-bold text-sm uppercase">Waiting for Mechanic</Text>
+                    <View className="w-1 h-1 rounded-full mb-1" style={{ backgroundColor: '#F97316' }} />
+                    <Text className="text-orange-500 font-outfit-medium text-xs">STATUS</Text>
+                    <Text className="text-orange-600 font-outfit-bold text-base uppercase">Waiting for Mechanic</Text>
                 </View>
             )}
 
             {/* Offered Banner */}
             {appointment.status === 'offered' && (
                 <View className="bg-blue-50 p-3 items-center border-b border-blue-100">
-                    <Text className="text-blue-500 font-outfit-bold text-xs">Status</Text>
-                    <Text className="text-blue-600 font-outfit-bold text-sm uppercase">Mechanic Offered</Text>
+                    <View className="w-1 h-1 rounded-full mb-1" style={{ backgroundColor: '#3B82F6' }} />
+                    <Text className="text-blue-500 font-outfit-medium text-xs">STATUS</Text>
+                    <Text className="text-blue-600 font-outfit-bold text-base uppercase">Mechanic Offered</Text>
                     <Text className="text-blue-400 text-[10px]">Tap to view offer</Text>
                 </View>
             )}
@@ -115,8 +119,9 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
             {/* Accepted Banner */}
             {appointment.status === 'accepted' && (
                 <View className="bg-emerald-50 p-3 items-center border-b border-emerald-100">
-                    <Text className="text-emerald-500 font-outfit-bold text-xs">Status</Text>
-                    <Text className="text-emerald-600 font-outfit-bold text-sm uppercase">Service Accepted</Text>
+                    <View className="w-1 h-1 rounded-full mb-1" style={{ backgroundColor: '#10B981' }} />
+                    <Text className="text-emerald-500 font-outfit-medium text-xs">STATUS</Text>
+                    <Text className="text-emerald-600 font-outfit-bold text-base uppercase">Service Accepted</Text>
                     <Text className="text-emerald-400 text-[10px]">Mechanic is on the way</Text>
                 </View>
             )}
@@ -124,10 +129,8 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
             {/* Canceled Banner */}
             {isCanceled && (
                 <View className="bg-red-50 p-3 items-center border-b border-red-100">
-                    <Text className="text-red-500 font-outfit-bold text-xs">Status</Text>
-                    <Text className="text-red-600 font-outfit-bold text-sm">REQUEST CANCELED</Text>
-                    <Text className="text-red-400 text-[10px]">Posted: {formatDate(appointment.updatedAt)}</Text>
-                    <Text className="text-red-400 text-[10px]">ID:#{appointment.id}</Text>
+                    <Text className="text-red-500 font-outfit-medium text-xs">STATUS</Text>
+                    <Text className="text-red-600 font-outfit-bold text-base">REQUEST CANCELED</Text>
                 </View>
             )}
 
@@ -139,18 +142,20 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                 <Text className="text-white/80 font-outfit-medium text-[10px]">#{appointment.id.slice(0, 8)}...</Text>
             </View>
 
-            <View className="p-4">
-                <Text className="text-lg font-outfit-bold text-gray-900 mb-1">
-                    {appointment.date} - {appointment.time}
-                </Text>
-                <Text className="text-base font-outfit-bold text-gray-800 mb-2">{appointment.title}</Text>
+            <View className="px-4 py-2">
+                {!isCanceled && (
+                    <Text className="text-lg font-outfit-bold text-gray-900 mb-0.5">
+                        {appointment.date} - {appointment.time}
+                    </Text>
+                )}
+                <Text className="text-base font-outfit-bold text-gray-800 mb-0.5">{appointment.title}</Text>
 
                 <View className="flex-row items-center mb-1">
                     <Car size={14} color="#4B5563" />
                     <Text className="text-gray-700 text-sm font-outfit-regular ml-2">{appointment.car}</Text>
                 </View>
 
-                <Text className="text-gray-600 text-sm font-outfit-regular mb-4 pl-6">
+                <Text className="text-gray-600 text-sm font-outfit-regular mb-2 pl-6">
                     {appointment.notes}
                 </Text>
 
@@ -186,26 +191,49 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                 </View>
 
                 <Text className="text-base font-outfit-medium text-gray-900 mb-1">{appointment.address}</Text>
-                <View className="flex-row items-center mb-4">
-                    <MapPin size={12} color="#6B7280" />
-                    <Text className="text-gray-500 text-xs ml-1">{distanceLabel}</Text>
-                </View>
+                {!isCanceled && (
+                    <View className="flex-row items-center mb-4">
+                        <MapPin size={12} color="#6B7280" />
+                        <Text className="text-gray-500 text-xs ml-1">{distanceLabel}</Text>
+                    </View>
+                )}
 
                 {/* Buttons */}
-                <View className="flex-row gap-3">
-                    <View className="w-1/3 bg-white border border-gray-200 rounded-lg py-2 items-center justify-center">
-                        <Text className="text-blue-900 font-outfit-bold text-sm">Budget: {appointment.budget}</Text>
-                    </View>
+                {!isCanceled && (
+                    <View className="flex-row gap-3">
+                        <TouchableOpacity
+                            className="w-1/3 rounded-[10px] py-3 items-center justify-center"
+                            style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E5E7EB' }}
+                        >
+                            <Text className="text-gray-900 font-outfit-bold text-sm">Budget: {appointment.budget}</Text>
+                        </TouchableOpacity>
 
-                    <TouchableOpacity
-                        onPress={() => !isPending && router.push(`/chat/${appointment.id}`)}
-                        className={`flex-1 rounded-lg py-2 flex-row items-center justify-center gap-2 ${isPending ? 'bg-gray-300' : 'bg-blue-700'}`}
-                        disabled={isPending}
-                    >
-                        <MessageSquare size={16} color="white" />
-                        <Text className="text-white font-outfit-bold text-sm">Message</Text>
-                    </TouchableOpacity>
-                </View>
+                        <TouchableOpacity
+                            onPress={() => !isPending && router.push(`/chat/${appointment.id}`)}
+                            activeOpacity={0.8}
+                            disabled={isPending}
+                            className="flex-1"
+                        >
+                            <LinearGradient
+                                colors={isPending ? ['#D1D5DB', '#D1D5DB'] : ['#2B66F8', '#081E72']}
+                                start={{ x: 0, y: 1 }}
+                                end={{ x: 1, y: 0 }}
+                                style={{
+                                    borderRadius: 10,
+                                    paddingVertical: 12,
+                                    paddingHorizontal: 12,
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                }}
+                            >
+                                <MessageSquare size={16} color={isPending ? '#9CA3AF' : 'white'} />
+                                <Text className={`font-outfit-bold text-sm ml-2`} style={{ color: isPending ? '#9CA3AF' : 'white' }}>Message</Text>
+                                <ChevronRight size={16} color={isPending ? '#9CA3AF' : 'white'} />
+                            </LinearGradient>
+                        </TouchableOpacity>
+                    </View>
+                )}
 
                 {!isCanceled && (
                     <TouchableOpacity onPress={() => onCancel(appointment.id)} className="mt-4 items-center flex-row justify-center">

@@ -1,9 +1,10 @@
-import { Button } from '@/components/ui/Button';
 import { saveSetupProgress } from '@/lib/storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { ChevronRight } from 'lucide-react-native';
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function RoleSelectionScreen() {
     const router = useRouter();
@@ -21,17 +22,27 @@ export default function RoleSelectionScreen() {
     };
 
     return (
-        <View className="flex-1 bg-white px-8 py-12">
-            <View className="mb-12">
-                <Text className="text-2xl font-outfit-bold text-[#0F172A] mb-2 text-center">
+        <View className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
+            <ScrollView className="flex-1 px-6 pt-4">
+                {/* Section Badge */}
+                <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+                    <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+                    <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+                        CHOOSE YOUR ROLE
+                    </Text>
+                </View>
+
+                {/* Title */}
+                <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
                     Choose Your Path
                 </Text>
-                <Text className="text-base font-outfit-medium text-[#0047AB] text-center">
+
+                {/* Subtitle */}
+                <Text className="text-gray-500 font-outfit-regular text-base mb-8">
                     Tell us how you'll be using the app
                 </Text>
-            </View>
 
-            <View className="flex-1 justify-center gap-6">
+                <View className="gap-6">
                 {/* Mechanic Option */}
                 <Pressable
                     onPress={() => setSelectedRole('mechanic')}
@@ -73,18 +84,33 @@ export default function RoleSelectionScreen() {
                         I need mechanical assistance for my vehicle
                     </Text>
                 </Pressable>
-            </View>
+                </View>
 
-            <View className="mt-8">
-                <Button
+                {/* Continue button */}
+                <TouchableOpacity
                     onPress={handleContinue}
+                    activeOpacity={0.8}
                     disabled={!selectedRole}
-                    size="lg"
-                    className={`rounded-2xl ${selectedRole ? 'bg-blue-700' : 'bg-slate-200'}`}
+                    className="mt-8 mb-8"
                 >
-                    Continue
-                </Button>
-            </View>
+                    <LinearGradient
+                        colors={selectedRole ? ['#2B66F8', '#081E72'] : ['#B0C4FF', '#B0C4FF']}
+                        start={{ x: 0, y: 1 }}
+                        end={{ x: 1, y: 0 }}
+                        style={{
+                            borderRadius: 10,
+                            paddingVertical: 16,
+                            paddingHorizontal: 16,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}
+                    >
+                        <Text className="text-white font-outfit-bold text-center mr-2">Continue</Text>
+                        <ChevronRight size={20} color="white" />
+                    </LinearGradient>
+                </TouchableOpacity>
+            </ScrollView>
         </View>
     );
 }

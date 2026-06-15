@@ -1,11 +1,12 @@
-import { Button } from '@/components/ui/Button';
 import { NumericKeypad } from '@/components/ui/Keypad';
 import { sendOTP, verifyOTP } from '@/lib/firebase/auth';
 import { getSetupProgress, saveSetupProgress } from '@/lib/storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { ChevronRight } from 'lucide-react-native';
+import { ActivityIndicator, Keyboard, Modal, Platform, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
-import { Keyboard, Modal, Platform, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 
 export default function OTPScreen() {
     const router = useRouter();
@@ -104,12 +105,23 @@ export default function OTPScreen() {
     return (
         <>
             <TouchableWithoutFeedback onPress={() => { Keyboard.dismiss(); setShowKeypad(false); }} accessible={false}>
-                <View className="flex-1 bg-white justify-between">
-                    <View className="px-8 pt-8 flex-1">
-                        <Text className="text-xl font-outfit-bold text-[#0F172A] mb-2">
+                <View className="flex-1 justify-between" style={{ backgroundColor: '#F6F8FC' }}>
+                    <View className="px-6 pt-6 flex-1">
+                        {/* Section Badge */}
+                        <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+                            <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+                            <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+                                VERIFY CODE
+                            </Text>
+                        </View>
+
+                        {/* Title */}
+                        <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
                             What's The Code?
                         </Text>
-                        <Text className="text-base font-outfit-medium text-[#0047AB] mb-12">
+
+                        {/* Subtitle */}
+                        <Text className="text-gray-500 font-outfit-regular text-base mb-8">
                             Enter the code sent to {phoneNumber || 'your phone'}
                         </Text>
 
@@ -151,14 +163,35 @@ export default function OTPScreen() {
                         </TouchableOpacity>
 
                         <View className="mb-4">
-                            <Button
-                                className="bg-blue-700 rounded-xl mb-6"
-                                size="lg"
+                            <TouchableOpacity
                                 onPress={() => { Keyboard.dismiss(); handleSubmit(); }}
-                                isLoading={isVerifying}
+                                activeOpacity={0.8}
+                                disabled={isVerifying}
+                                className="mb-6"
                             >
-                                Verify
-                            </Button>
+                                <LinearGradient
+                                    colors={['#2B66F8', '#081E72']}
+                                    start={{ x: 0, y: 1 }}
+                                    end={{ x: 1, y: 0 }}
+                                    style={{
+                                        borderRadius: 10,
+                                        paddingVertical: 16,
+                                        paddingHorizontal: 16,
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                    }}
+                                >
+                                    {isVerifying ? (
+                                        <ActivityIndicator color="white" />
+                                    ) : (
+                                        <>
+                                            <Text className="text-white font-outfit-bold text-center mr-2">Verify</Text>
+                                            <ChevronRight size={20} color="white" />
+                                        </>
+                                    )}
+                                </LinearGradient>
+                            </TouchableOpacity>
                             <TouchableOpacity className="mb-6" onPress={handleResend} disabled={isResending}>
                                 <Text className="text-[#0047AB] text-center font-outfit-medium">
                                     {isResending ? 'Sending…' : 'Resend code'}

@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/Button";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { Input } from "@/components/ui/Input";
 import { useEmailAvailability } from "@/hooks/useEmailAvailability";
@@ -7,6 +6,8 @@ import { saveSetupProgress } from "@/lib/storage";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
+import { ChevronRight } from "lucide-react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -138,18 +139,27 @@ export default function BasicInfoScreen() {
     >
       <ScrollView
         ref={scrollViewRef}
-        className="flex-1 bg-white"
+        style={{ backgroundColor: '#F6F8FC' }}
         contentContainerStyle={{ padding: 24, paddingBottom: 40 }}
         keyboardShouldPersistTaps="handled"
       >
-        <View className="mb-6">
-          <Text className="text-xl font-outfit-bold text-[#0F172A] mb-1">
-            Basic Info
-          </Text>
-          <Text className="text-[#0047AB] font-outfit-medium text-base">
-            Please enter your information
+        {/* Section Badge */}
+        <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+          <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+          <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+            BASIC INFORMATION
           </Text>
         </View>
+
+        {/* Title */}
+        <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
+          Basic Info
+        </Text>
+
+        {/* Subtitle */}
+        <Text className="text-gray-500 font-outfit-regular text-base mb-8">
+          Please enter your information
+        </Text>
 
         {/* Profile Photo */}
         <View className="flex-row items-center mb-8">
@@ -195,7 +205,7 @@ export default function BasicInfoScreen() {
               onChangeText={(text) =>
                 setFormData((p) => ({ ...p, name: text }))
               }
-              containerClassName="bg-blue-50/50 border-0 h-12"
+              containerClassName="bg-white border border-gray-300 rounded-2xl"
             />
           </View>
 
@@ -208,7 +218,7 @@ export default function BasicInfoScreen() {
               onChangeText={(text) =>
                 setFormData((p) => ({ ...p, surname: text }))
               }
-              containerClassName="bg-blue-50/50 border-0 h-12"
+              containerClassName="bg-white border border-gray-300 rounded-2xl"
             />
           </View>
 
@@ -221,7 +231,7 @@ export default function BasicInfoScreen() {
               onChangeText={(text) =>
                 setFormData((p) => ({ ...p, email: text }))
               }
-              containerClassName="bg-blue-50/50 border-0 h-12"
+              containerClassName="bg-white border border-gray-300 rounded-2xl"
               keyboardType="email-address"
               autoCapitalize="none"
             />
@@ -240,13 +250,14 @@ export default function BasicInfoScreen() {
           </View>
 
           <View>
-            <Text className="font-outfit-medium text-[#0F172A] mb-2 capitalize">
+            <Text className="font-outfit-medium text-[#0F172A] mb-2">
               Date of birth
             </Text>
             <DatePicker
               value={formData.dob}
               onChange={(date) => setFormData((p) => ({ ...p, dob: date }))}
               placeholder="MM / DD / YYYY"
+              containerClassName="bg-white border border-gray-300 rounded-2xl"
             />
           </View>
 
@@ -261,7 +272,7 @@ export default function BasicInfoScreen() {
                   setFormData((p) => ({ ...p, password: text }))
                 }
                 onFocus={() => scrollToField(passwordContainerRef)}
-                containerClassName="bg-blue-50/50 border-0 h-12"
+                containerClassName="bg-white border border-gray-300 rounded-2xl"
                 isPassword={true}
               />
             </View>
@@ -277,7 +288,7 @@ export default function BasicInfoScreen() {
                 setFormData((p) => ({ ...p, confirmPassword: text }))
               }
               onFocus={() => scrollToField(confirmPasswordContainerRef)}
-              containerClassName="bg-blue-50/50 border-0 h-12"
+              containerClassName="bg-white border border-gray-300 rounded-2xl"
               isPassword={true}
             />
           </View>
@@ -315,14 +326,34 @@ export default function BasicInfoScreen() {
           </Text>
         </View>
 
-        <Button
+        <TouchableOpacity
           onPress={handleContinue}
+          activeOpacity={0.8}
           disabled={isUploadingPhoto}
-          size="lg"
-          className="bg-blue-700 rounded-xl"
         >
-          Continue
-        </Button>
+          <LinearGradient
+            colors={['#2B66F8', '#081E72']}
+            start={{ x: 0, y: 1 }}
+            end={{ x: 1, y: 0 }}
+            style={{
+              borderRadius: 10,
+              paddingVertical: 16,
+              paddingHorizontal: 16,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {isUploadingPhoto ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <>
+                <Text className="text-white font-outfit-bold text-center mr-2">Continue</Text>
+                <ChevronRight size={20} color="white" />
+              </>
+            )}
+          </LinearGradient>
+        </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
   );

@@ -53,13 +53,24 @@ export default function NotificationsScreen() {
     };
 
     return (
-        <View className="flex-1 bg-white">
+        <View className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
             <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-                <View className="px-6 py-6">
-                    <Text className="text-blue-900 font-outfit-bold text-2xl">Notification center</Text>
-                    <TouchableOpacity onPress={() => router.navigate('/(tabs)/dashboard')}>
-                        <Text className="text-blue-500 font-outfit-medium text-sm mt-1">Dashboard</Text>
-                    </TouchableOpacity>
+                <View className="px-6 pt-4 pb-4">
+                    {/* Section Badge */}
+                    <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+                        <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+                        <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+                            YOUR NOTIFICATIONS
+                        </Text>
+                    </View>
+
+                    {/* Title */}
+                    <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">Notification center</Text>
+
+                    {/* Subtitle */}
+                    <Text className="text-gray-500 font-outfit-regular text-base mb-6">
+                        Stay updated with the latest activity on your requests and messages
+                    </Text>
                 </View>
 
                 {/* Tabs */}

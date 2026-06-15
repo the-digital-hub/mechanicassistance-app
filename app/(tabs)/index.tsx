@@ -4,7 +4,7 @@ import { useUser } from '@/context/UserContext';
 import { mediaDAO } from '@/lib/dao/MediaDAO';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import { Award, Camera, Car, ChevronLeft, ChevronRight, CreditCard, Heart, HelpCircle, Lock, LogOut, PlugZap, Settings, User } from 'lucide-react-native';
+import { Award, Camera, Car, ChevronLeft, ChevronRight, CreditCard, Heart, HelpCircle, Lock, LogOut, MapPin, PlugZap, Settings, User } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
@@ -62,6 +62,7 @@ export default function ProfileScreen() {
   // Menu Items Configuration - Safe to access user.role here
   const menuItems = [
     { icon: User, label: 'Personal information', route: '/personal-info' },
+    { icon: MapPin, label: 'My Addresses', route: '/addresses' },
     ...(user.role?.toLowerCase().trim() !== 'mechanic' ? [
       { icon: Car || User, label: 'My Vehicles', route: '/vehicles' },
     ] : []),
@@ -139,7 +140,7 @@ export default function ProfileScreen() {
         {/* User Info Card */}
         <View className="bg-white rounded-3xl p-8 mb-8 items-center" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 10, elevation: 5 }}>
           {/* User Info Section */}
-          <TouchableOpacity onPress={pickImage} disabled={isUploadingPhoto} className="relative">
+          <View className="relative">
             {/* Avatar Circle with Initials or Image */}
             <View className="w-28 h-28 rounded-full justify-center items-center overflow-hidden" style={{ backgroundColor: '#0047AB', shadowColor: '#0047AB', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 8 }}>
               {localProfileUri ? (
@@ -157,12 +158,7 @@ export default function ProfileScreen() {
                 </View>
               )}
             </View>
-            {!isUploadingPhoto && (
-              <View className="absolute bottom-0 right-0 bg-white w-10 h-10 rounded-full justify-center items-center border-4 border-white" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 4, elevation: 4 }}>
-                <Camera size={18} color="#F59E0B" />
-              </View>
-            )}
-          </TouchableOpacity>
+          </View>
 
           {/* Name */}
           <Text className="text-3xl font-outfit-bold mt-4 mb-2" style={{ color: '#2B66F8' }}>

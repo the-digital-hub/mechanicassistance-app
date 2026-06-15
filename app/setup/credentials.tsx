@@ -1,9 +1,10 @@
-import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { saveSetupProgress } from '@/lib/storage';
 import { useRouter } from 'expo-router';
+import { ChevronRight } from 'lucide-react-native';
 import { useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function CredentialsScreen() {
     const router = useRouter();
@@ -22,13 +23,24 @@ export default function CredentialsScreen() {
     };
 
     return (
-        <ScrollView className="flex-1 bg-white" contentContainerStyle={{ padding: 24, paddingBottom: 40 }}>
-            <View className="mb-6">
-                <Text className="text-xl font-outfit-bold text-[#0F172A] mb-1">ASE Certifications</Text>
-                <Text className="text-[#0047AB] font-outfit-medium text-base">
-                    {isValidated ? 'Your validated certifications from ASE' : 'Your certifications'}
-                </Text>
+        <ScrollView style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ padding: 24, paddingBottom: 40 }}>
+            {/* Section Badge */}
+            <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+              <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+              <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+                ASE CERTIFICATIONS
+              </Text>
             </View>
+
+            {/* Title */}
+            <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
+              ASE Certifications
+            </Text>
+
+            {/* Subtitle */}
+            <Text className="text-gray-500 font-outfit-regular text-base mb-8">
+              Validate your ASE Member ID to showcase your certifications
+            </Text>
 
             {/* ASE Logo Area */}
             <View className="mb-6">
@@ -55,11 +67,29 @@ export default function CredentialsScreen() {
                         placeholder="ASE - XXXX-XXXX"
                         value={aseId}
                         onChangeText={setAseId}
-                        containerClassName="bg-blue-50/50 border-0 h-12 mb-8"
+                        containerClassName="bg-white border border-gray-300 rounded-2xl mb-8"
                     />
-                    <Button onPress={handleSearch} size="lg" className="bg-blue-700 rounded-xl">
-                        Search ASE records
-                    </Button>
+                    <TouchableOpacity
+                        onPress={handleSearch}
+                        activeOpacity={0.8}
+                    >
+                        <LinearGradient
+                            colors={['#2B66F8', '#081E72']}
+                            start={{ x: 0, y: 1 }}
+                            end={{ x: 1, y: 0 }}
+                            style={{
+                                borderRadius: 10,
+                                paddingVertical: 16,
+                                paddingHorizontal: 16,
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                            }}
+                        >
+                            <Text className="text-white font-outfit-bold text-center mr-2">Search ASE records</Text>
+                            <ChevronRight size={20} color="white" />
+                        </LinearGradient>
+                    </TouchableOpacity>
                 </View>
             ) : (
                 <View>
@@ -76,9 +106,27 @@ export default function CredentialsScreen() {
                         ))}
                     </View>
 
-                    <Button onPress={handleContinue} size="lg" className="bg-blue-700 rounded-xl">
-                        Validate Certifications
-                    </Button>
+                    <TouchableOpacity
+                        onPress={handleContinue}
+                        activeOpacity={0.8}
+                    >
+                        <LinearGradient
+                            colors={['#2B66F8', '#081E72']}
+                            start={{ x: 0, y: 1 }}
+                            end={{ x: 1, y: 0 }}
+                            style={{
+                                borderRadius: 10,
+                                paddingVertical: 16,
+                                paddingHorizontal: 16,
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                            }}
+                        >
+                            <Text className="text-white font-outfit-bold text-center mr-2">Validate Certifications</Text>
+                            <ChevronRight size={20} color="white" />
+                        </LinearGradient>
+                    </TouchableOpacity>
                 </View>
             )}
         </ScrollView>
