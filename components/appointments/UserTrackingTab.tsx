@@ -1,6 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { ActivityIndicator, Image, Text, TouchableOpacity, View } from 'react-native';
+import { useSocket } from '@/context/SocketContext';
+import { apiClient } from '@/lib/api/apiClient';
 
 interface UserTrackingTabProps {
     onCancel: () => void;
@@ -8,6 +10,11 @@ interface UserTrackingTabProps {
     mechanic?: any;
     appointmentType?: string;
     appointment?: any;
+}
+
+function formatEtaTime(isoString: string): string {
+    const d = new Date(isoString);
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
 function getTypeLabel(type?: string, assistanceType?: string) {
@@ -18,6 +25,53 @@ function getTypeLabel(type?: string, assistanceType?: string) {
 }
 
 export function UserTrackingTab({ onCancel, onMessage, mechanic, appointmentType, appointment }: UserTrackingTabProps) {
+    const { socket } = useSocket();
+
+    const [etaData, setEtaData] = React.useState<{
+        minutesAway: number | null;
+        distanceKm: number | null;
+        etaTime: string | null;
+    }>({ minutesAway: null, distanceKm: null, etaTime: null });
+    const [etaLoading, setEtaLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        if (!appointment?.id) return;
+        if (appointment?.status !== 'started' && appointment?.status !== 'accepted') {
+            setEtaLoading(false);
+            return;
+        }
+
+        apiClient.get(`/api/appointments/${appointment.id}/eta`)
+            .then((data: any) => {
+                if (data?.available) {
+                    setEtaData({
+                        minutesAway: data.minutesAway,
+                        distanceKm: data.distanceKm,
+                        etaTime: data.etaTime,
+                    });
+                }
+            })
+            .catch(() => {/* silent fail */})
+            .finally(() => setEtaLoading(false));
+    }, [appointment?.id, appointment?.status]);
+
+    React.useEffect(() => {
+        if (!socket || !appointment?.id) return;
+
+        const handler = (payload: any) => {
+            if (payload?.appointmentId !== appointment.id) return;
+            setEtaData({
+                minutesAway: payload.minutesAway ?? null,
+                distanceKm: payload.distanceKm ?? null,
+                etaTime: payload.etaTime ?? null,
+            });
+            setEtaLoading(false);
+        };
+
+        socket.on('eta_update', handler);
+        return () => { socket.off('eta_update', handler); };
+    }, [socket, appointment?.id]);
+
     return (
         <View style={{ gap: 20 }}>
 
@@ -76,14 +130,14 @@ export function UserTrackingTab({ onCancel, onMessage, mechanic, appointmentType
                     </View>
                 </View>
 
-                {/* 3 Minutes Away */}
+                {/* Minutes Away */}
                 <Text style={{ color: '#1e3a8a', fontFamily: 'Outfit_700Bold', fontSize: 20, marginBottom: 4 }}>
-                    3 Minutes Away
+                    {etaLoading ? 'Calculating...' : etaData.minutesAway !== null ? `${etaData.minutesAway} min away` : 'On the way'}
                 </Text>
 
                 {/* ETA — large blue */}
                 <Text style={{ color: '#2563EB', fontFamily: 'Outfit_700Bold', fontSize: 22, marginBottom: 20 }}>
-                    ETA: 2:45PM
+                    {etaData.etaTime ? `ETA: ${formatEtaTime(etaData.etaTime)}` : etaLoading ? '' : 'ETA: --'}
                 </Text>
 
                 {/* Cancel Request */}

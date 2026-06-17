@@ -19,7 +19,7 @@ const DEFAULT_FALLBACK_CONFIG: BootstrapConfig = {
             // WebSocket now lives on the dedicated realtime-gateway (ALB), NOT App
             // Runner (which cannot serve WS). Replace with the ALB DNS after the
             // infra/realtime-gateway.yaml stack is deployed: wss://<AlbDnsName>
-            wsUrl: 'wss://t9smggmz3a.us-east-1.awsapprunner.com/',
+            wsUrl: 'wss://ws.mechanicassistance.com',
         },
         dev: {
             apiBaseUrl: 'http://localhost:3000',

@@ -379,7 +379,9 @@ export default function AssistFeedScreen() {
                                     budget: item.budget,
                                     distance: item.distance || '',
                                     userId: item.userId || '',
-                                    zip: item.zip || ''
+                                    zip: item.zip || '',
+                                    locationLat: item.locationLat ?? '',
+                                    locationLng: item.locationLng ?? '',
                                 }
                             })}
                             isAccepted={isAccepted}

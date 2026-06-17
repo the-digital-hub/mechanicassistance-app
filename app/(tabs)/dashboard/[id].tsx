@@ -1,23 +1,42 @@
 import { useAppointments } from '@/context/AppointmentsContext';
 import { useUser } from '@/context/UserContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
+import * as Location from 'expo-location';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Calendar, Clock } from 'lucide-react-native';
-import { useState } from 'react';
+import { Calendar, Clock, Navigation } from 'lucide-react-native';
+import { useEffect, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6371;
+    const toRad = (d: number) => (d * Math.PI) / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLng = toRad(lng2 - lng1);
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function formatEta(minutes: number): string {
+    if (minutes < 1) return '1 min';
+    if (minutes < 60) return `${Math.round(minutes)} min`;
+    const h = Math.floor(minutes / 60);
+    const m = Math.round(minutes % 60);
+    return m > 0 ? `${h} hr ${m} min` : `${h} hr`;
+}
+
 export default function AssistDetailScreen() {
-    const { id, type, assistanceType, title, car, address, zip, budget, distance, userId } = useLocalSearchParams();
+    const { id, type, assistanceType, title, car, address, zip, budget, userId, locationLat, locationLng } = useLocalSearchParams();
     const router = useRouter();
     const navigation = useNavigation();
     const { user } = useUser();
-    const { appointments, addAppointment } = useAppointments();
+    const { appointments } = useAppointments();
 
     const isImmediate = type === 'immediate' || type === 'videocall' || type === 'witness' || assistanceType === 'witness';
     const isVideo = type === 'videocall';
 
     const [showNotification, setShowNotification] = useState(false);
+    const [etaText, setEtaText] = useState<string | null>(null);
 
     // Selection States
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -29,6 +48,29 @@ export default function AssistDetailScreen() {
     const DATES = ['Monday, July 14', 'Tuesday, July 15', 'Wednesday, July 16'];
     const TIMES = ['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '04:00 PM'];
 
+    // Calculate ETA from mechanic's current location to the request location.
+    // Uses 40 km/h average city speed as a rough estimate.
+    useEffect(() => {
+        const reqLat = parseFloat(locationLat as string);
+        const reqLng = parseFloat(locationLng as string);
+        if (isNaN(reqLat) || isNaN(reqLng)) return;
+
+        (async () => {
+            try {
+                const { status } = await Location.requestForegroundPermissionsAsync();
+                if (status !== 'granted') return;
+                const loc = await Location.getCurrentPositionAsync({});
+                const distKm = haversineKm(loc.coords.latitude, loc.coords.longitude, reqLat, reqLng);
+                // 1.3 road-factor converts straight-line to driven distance;
+                // 25 km/h avg city speed accounts for traffic lights and turns.
+                const minutes = (distKm * 1.3 / 25) * 60;
+                setEtaText(formatEta(minutes));
+            } catch {
+                // no-op: ETA stays null, not shown
+            }
+        })();
+    }, [locationLat, locationLng]);
+
     const handleAccept = async () => {
         if (!isImmediate && (!selectedDate || !selectedTime)) {
             alert('Please select a date and time.');
@@ -37,28 +79,9 @@ export default function AssistDetailScreen() {
 
         const appointmentId = Array.isArray(id) ? id[0] : id || '';
 
-        // Find if it was previously accepted/canceled
-        const existingAppt = appointments.find(a => a.id === appointmentId);
-
-        const newAppointment = {
-            id: appointmentId,
-            type: (type as any) || 'scheduled',
-            title: (title as string) || 'Assistance',
-            date: isImmediate ? 'Today' : selectedDate!,
-            time: isImmediate ? 'Now' : selectedTime!,
-            car: (car as string) || '',
-            address: (address as string) || '',
-            zip: (zip as string) || '',
-            notes: existingAppt ? `Re-accepted after cancellation. ${existingAppt.notes || ''}` : 'Request accepted.',
-            budget: (budget as string) || '$0',
-            status: 'accepted' as const,
-            userId: (userId as string) || '',
-            mechanicId: user?.id || '',
-        };
-
         try {
             if (user?.role === 'mechanic' && user?.id) {
-                await assistanceDAO.updateStatus(appointmentId, user.id, 'offered');
+                await assistanceDAO.updateStatus(appointmentId, user.id, 'offered', etaText ? { eta: etaText } : undefined);
             }
             setShowNotification(true);
             setTimeout(() => {
@@ -109,6 +132,13 @@ export default function AssistDetailScreen() {
                             <Text className="font-outfit-bold text-gray-900 mb-1">Assistance Budget:</Text>
                             <Text className="font-outfit-bold text-blue-600 text-lg">{budget}</Text>
                         </View>
+                        {etaText && (
+                            <View className="flex-row items-center gap-2 bg-blue-50 rounded-xl px-4 py-3">
+                                <Navigation size={16} color="#0047AB" />
+                                <Text className="font-outfit-bold text-blue-900">ETA: {etaText}</Text>
+                                <Text className="font-outfit-regular text-gray-400 text-xs">(estimated drive time)</Text>
+                            </View>
+                        )}
                     </View>
 
                     {/* Date Selector (Only if scheduled) */}

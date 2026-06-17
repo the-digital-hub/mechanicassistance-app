@@ -8,32 +8,30 @@ import { VideoTile } from '@/components/video/VideoTile';
 import { useDailyCall } from '@/lib/video/useDailyCall';
 
 export default function VideoCallScreen() {
-  const { roomUrl, token } = useGlobalSearchParams();
+  const { roomUrl, token, expiry } = useGlobalSearchParams();
   const router = useRouter();
   const urlStr = Array.isArray(roomUrl) ? roomUrl[0] : roomUrl || '';
   const tokenStr = Array.isArray(token) ? token[0] : token || '';
+  const expiryTs = Number(Array.isArray(expiry) ? expiry[0] : expiry || 0);
 
   const {
     callState, localParticipant, remoteParticipant, isAudioMuted, isCameraOff, errorMessage,
     join, leave, toggleAudio, toggleCamera, switchCamera,
   } = useDailyCall();
 
-  const [timeLeft, setTimeLeft] = useState<number>(5 * 60);
+  const calcTimeLeft = (ts: number) =>
+    ts > 0 ? Math.max(0, ts - Math.floor(Date.now() / 1000)) : 5 * 60;
+
+  const [timeLeft, setTimeLeft] = useState<number>(() => calcTimeLeft(expiryTs));
 
   useEffect(() => {
     if (urlStr) join(urlStr, tokenStr);
   }, [urlStr, tokenStr, join]);
 
   useEffect(() => {
-    const start = Date.now();
-    const duration = 5 * 60 * 1000;
-    const interval = setInterval(() => {
-      const remaining = Math.max(0, duration - (Date.now() - start));
-      setTimeLeft(Math.ceil(remaining / 1000));
-      if (remaining <= 0) clearInterval(interval);
-    }, 1000);
+    const interval = setInterval(() => setTimeLeft(calcTimeLeft(expiryTs)), 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [expiryTs]);
 
   const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
 

@@ -118,11 +118,21 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                     locationLng: req.locationLng
                 }));
 
-            // Also map updatedAt from appointments table rows
-            const mappedData = data.map((appt: any) => ({
-                ...appt,
-                updatedAt: appt.updatedAt,
-            }));
+            // Build a lookup of assistance_requests by id so we can back-fill
+            // locationLat/locationLng/eta for appointment rows that were created
+            // before the self-heal copied those fields.
+            const arById = new Map(assistanceRequests.map((r: AssistanceRequest) => [r.id, r]));
+
+            const mappedData = data.map((appt: any) => {
+                const ar = arById.get(appt.id);
+                return {
+                    ...appt,
+                    updatedAt: appt.updatedAt,
+                    locationLat: appt.locationLat ?? ar?.locationLat,
+                    locationLng: appt.locationLng ?? ar?.locationLng,
+                    time: appt.time || ar?.eta || 'Pending',
+                };
+            });
 
             setAppointments([...mappedAssistance, ...mappedData]);
 

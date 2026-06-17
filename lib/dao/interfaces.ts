@@ -112,7 +112,7 @@ export interface IUserDAO {
 export interface IAssistanceDAO {
     getAll(filters?: { userId?: string; mechanicId?: string; status?: string; zip?: string; lat?: number; lng?: number; radiusKm?: number }): Promise<AssistanceRequest[]>;
     getById(id: string): Promise<AssistanceRequest | null>;
-    updateStatus(id: string, mechanicId: string, status: string): Promise<void>;
+    updateStatus(id: string, mechanicId: string, status: string, extra?: { eta?: string; price?: string }): Promise<void>;
     create(request: Partial<AssistanceRequest>): Promise<AssistanceRequest>;
 }
 

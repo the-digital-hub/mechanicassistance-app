@@ -9,6 +9,7 @@ import { UserStatusTab } from '@/components/appointments/UserStatusTab';
 import { UserTrackingTab } from '@/components/appointments/UserTrackingTab';
 import { useAppointments } from '@/context/AppointmentsContext';
 import { useUser } from '@/context/UserContext';
+import { useMechanicLocationBroadcast } from '@/hooks/useMechanicLocationBroadcast';
 import { userDAO } from '@/lib/dao/UserDAO';
 import { Ionicons } from '@expo/vector-icons';
 import { useGlobalSearchParams, useRouter } from 'expo-router';
@@ -37,6 +38,11 @@ export default function AppointmentDetailScreen() {
 
     const { user } = useUser();
     const isUserRole = user?.role === 'user';
+    useMechanicLocationBroadcast({
+        appointmentId: appointment?.id ?? '',
+        status: appointment?.status ?? 'pending',
+        role: user?.role,
+    });
     const [mechanic, setMechanic] = React.useState<any>(null); // State for mechanic details
 
     const [activeTab, setActiveTab] = React.useState<TabType>('info');

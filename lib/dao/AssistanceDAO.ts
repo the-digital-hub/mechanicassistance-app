@@ -16,8 +16,8 @@ export class AssistanceDAO implements IAssistanceDAO {
         return apiClient.get(`/api/assistance/${id}`);
     }
 
-    async updateStatus(id: string, mechanicId: string, status: string): Promise<void> {
-        return apiClient.patch(`/api/assistance/${id}`, { mechanicId, status });
+    async updateStatus(id: string, mechanicId: string, status: string, extra?: { eta?: string; price?: string }): Promise<void> {
+        return apiClient.patch(`/api/assistance/${id}`, { mechanicId, status, ...extra });
     }
 
     async create(request: Partial<AssistanceRequest>): Promise<AssistanceRequest> {

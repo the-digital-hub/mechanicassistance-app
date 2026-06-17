@@ -136,7 +136,7 @@ export default function VideoLobbyScreen() {
 
             router.push({
                 pathname: '/video-call/[id]' as any,
-                params: { id: appointmentId, roomUrl: data.roomUrl, token: data.token }
+                params: { id: appointmentId, roomUrl: data.roomUrl, token: data.token, expiry: data.expiry }
             });
         } catch (error) {
             console.error('Failed to create video room:', error);
@@ -149,7 +149,7 @@ export default function VideoLobbyScreen() {
     const handleJoinCall = useCallback(async () => {
         if (!roomUrl) return;
         try {
-            const data = await apiClient.get<{ roomUrl: string; token: string | null }>(
+            const data = await apiClient.get<{ roomUrl: string; token: string | null; expiry: number }>(
                 `/api/video-room/${appointmentId}?participantName=${encodeURIComponent(participantName)}&role=${participantRole}`
             );
             if (!data.token) {
@@ -158,7 +158,7 @@ export default function VideoLobbyScreen() {
             }
             router.push({
                 pathname: '/video-call/[id]' as any,
-                params: { id: appointmentId, roomUrl: data.roomUrl, token: data.token }
+                params: { id: appointmentId, roomUrl: data.roomUrl, token: data.token, expiry: data.expiry }
             });
         } catch (error) {
             console.error('Failed to join video call:', error);
