@@ -21,7 +21,10 @@ export default function MechanicFoundScreen() {
     // Fetch the assistance request details
     useEffect(() => {
         const fetchRequest = async () => {
-            if (!requestId) return;
+            if (!requestId) {
+                setIsLoading(false);
+                return;
+            }
             try {
                 const data = await assistanceDAO.getById(requestId as string);
                 setAssistanceRequest(data);

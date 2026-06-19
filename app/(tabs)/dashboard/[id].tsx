@@ -7,6 +7,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Calendar, Clock, Navigation } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import MapView, { Marker } from 'react-native-maps';
 
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
     const R = 6371;
@@ -35,8 +36,13 @@ export default function AssistDetailScreen() {
     const isImmediate = type === 'immediate' || type === 'videocall' || type === 'witness' || assistanceType === 'witness';
     const isVideo = type === 'videocall';
 
+    const reqLat = parseFloat(locationLat as string);
+    const reqLng = parseFloat(locationLng as string);
+    const hasLocation = !isNaN(reqLat) && !isNaN(reqLng);
+
     const [showNotification, setShowNotification] = useState(false);
     const [etaText, setEtaText] = useState<string | null>(null);
+    const [distKm, setDistKm] = useState<number | null>(null);
 
     // Selection States
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -48,25 +54,23 @@ export default function AssistDetailScreen() {
     const DATES = ['Monday, July 14', 'Tuesday, July 15', 'Wednesday, July 16'];
     const TIMES = ['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '04:00 PM'];
 
-    // Calculate ETA from mechanic's current location to the request location.
-    // Uses 40 km/h average city speed as a rough estimate.
+    // Calculate distance + ETA from mechanic's current location to the request location.
     useEffect(() => {
-        const reqLat = parseFloat(locationLat as string);
-        const reqLng = parseFloat(locationLng as string);
-        if (isNaN(reqLat) || isNaN(reqLng)) return;
+        if (!hasLocation) return;
 
         (async () => {
             try {
                 const { status } = await Location.requestForegroundPermissionsAsync();
                 if (status !== 'granted') return;
                 const loc = await Location.getCurrentPositionAsync({});
-                const distKm = haversineKm(loc.coords.latitude, loc.coords.longitude, reqLat, reqLng);
+                const km = haversineKm(loc.coords.latitude, loc.coords.longitude, reqLat, reqLng);
+                setDistKm(km);
                 // 1.3 road-factor converts straight-line to driven distance;
                 // 25 km/h avg city speed accounts for traffic lights and turns.
-                const minutes = (distKm * 1.3 / 25) * 60;
+                const minutes = (km * 1.3 / 25) * 60;
                 setEtaText(formatEta(minutes));
             } catch {
-                // no-op: ETA stays null, not shown
+                // no-op: ETA and distance stay null
             }
         })();
     }, [locationLat, locationLng]);
@@ -132,14 +136,42 @@ export default function AssistDetailScreen() {
                             <Text className="font-outfit-bold text-gray-900 mb-1">Assistance Budget:</Text>
                             <Text className="font-outfit-bold text-blue-600 text-lg">{budget}</Text>
                         </View>
-                        {etaText && (
+                        {(etaText || distKm !== null) && (
                             <View className="flex-row items-center gap-2 bg-blue-50 rounded-xl px-4 py-3">
                                 <Navigation size={16} color="#0047AB" />
-                                <Text className="font-outfit-bold text-blue-900">ETA: {etaText}</Text>
-                                <Text className="font-outfit-regular text-gray-400 text-xs">(estimated drive time)</Text>
+                                {distKm !== null && (
+                                    <Text className="font-outfit-bold text-blue-900">{distKm.toFixed(1)} km</Text>
+                                )}
+                                {etaText && (
+                                    <Text className="font-outfit-bold text-blue-900">· ETA: {etaText}</Text>
+                                )}
                             </View>
                         )}
                     </View>
+
+                    {/* Client location map */}
+                    {hasLocation && (
+                        <View className="mb-6 rounded-xl overflow-hidden" style={{ height: 180 }}>
+                            <MapView
+                                style={{ flex: 1 }}
+                                initialRegion={{
+                                    latitude: reqLat,
+                                    longitude: reqLng,
+                                    latitudeDelta: 0.01,
+                                    longitudeDelta: 0.01,
+                                }}
+                                scrollEnabled={false}
+                                zoomEnabled={false}
+                                pitchEnabled={false}
+                                rotateEnabled={false}
+                            >
+                                <Marker
+                                    coordinate={{ latitude: reqLat, longitude: reqLng }}
+                                    title="Client location"
+                                />
+                            </MapView>
+                        </View>
+                    )}
 
                     {/* Date Selector (Only if scheduled) */}
                     {!isImmediate && (

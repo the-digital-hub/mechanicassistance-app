@@ -83,7 +83,7 @@ export default function SearchingScreen() {
         if (lastMessage && lastMessage.type === 'assistance_update') {
             const payload = lastMessage.payload;
             // Check if this update is for our current request
-            if (payload.requestId === requestId && payload.status === 'offered') {
+            if ((payload.id === requestId || payload.requestId === requestId) && payload.status === 'offered') {
                 console.log('[SearchingScreen] Received offer via socket!');
                 router.replace({
                     pathname: '/request-assistance/mechanic-found',
