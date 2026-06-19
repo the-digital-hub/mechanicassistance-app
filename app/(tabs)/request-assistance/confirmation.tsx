@@ -64,6 +64,15 @@ export default function ConfirmationScreen() {
     };
 
     const handleConfirm = async () => {
+        // A request cannot exist without coordinates — the mechanic's map needs
+        // the destination pin. Guard against missing/NaN coords before creating.
+        const lat = Number(latitude);
+        const lng = Number(longitude);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+            Alert.alert('Location required', 'Please go back and set the assistance location on the map.');
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             // Upload photos to S3, then create the assistance request with permanent URLs
@@ -94,8 +103,8 @@ export default function ConfirmationScreen() {
                 vehicleId: vehicleId as string,
                 car: vehicleStr,
                 address: addr as string,
-                locationLat: Number(latitude),
-                locationLng: Number(longitude),
+                locationLat: lat,
+                locationLng: lng,
                 status: 'pending',
                 photos: uploadedUrls,
                 budget: 'TBD',

@@ -50,6 +50,10 @@ export interface Appointment {
     zip?: string;
     locationLat?: number;
     locationLng?: number;
+    /** Mechanic's estimated arrival duration, e.g. "12 min" */
+    eta?: string;
+    /** ISO timestamp of estimated arrival (the arrival hour) */
+    etaTime?: string;
 }
 
 interface AppointmentsContextType {
