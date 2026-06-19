@@ -24,7 +24,8 @@ export function GlobalNotificationListener() {
         if (lastMessage.type !== 'assistance_update') return;
 
         const payload = lastMessage.payload;
-        const { requestId, status } = payload;
+        const requestId = payload.id || payload.requestId;
+        const { status } = payload;
 
         // Prevent duplicate notifications for the same event
         const notificationKey = `${requestId}-${status}`;
@@ -96,6 +97,7 @@ export function GlobalNotificationListener() {
                 body: 'The user has canceled this request.',
                 action: () => {
                     setNotification(null);
+                    router.replace('/(tabs)/appointments');
                 }
             });
         }

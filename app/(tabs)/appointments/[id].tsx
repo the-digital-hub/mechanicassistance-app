@@ -84,6 +84,13 @@ export default function AppointmentDetailScreen() {
         };
     }, []);
 
+    // Mechanic: navigate to appointments list when client cancels
+    React.useEffect(() => {
+        if (!isUserRole && appointment?.status === 'canceled') {
+            router.replace('/(tabs)/appointments');
+        }
+    }, [appointment?.status, isUserRole]);
+
     // Sync client review state to context for persistence
     React.useEffect(() => {
         if (appointment && !isReviewSubmitted && !isUserRole) {
