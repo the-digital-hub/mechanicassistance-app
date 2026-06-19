@@ -2,10 +2,32 @@ import { Ionicons } from '@expo/vector-icons';
 import { ConfigService } from '@/lib/config/ConfigService';
 import React from 'react';
 import { Image, ScrollView, Text, View } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, Polyline } from 'react-native-maps';
 
-export function UserStatusTab({ appointment }: { appointment: any }) {
+function decodePolyline(encoded: string): { latitude: number; longitude: number }[] {
+    const points: { latitude: number; longitude: number }[] = [];
+    let index = 0;
+    let lat = 0;
+    let lng = 0;
+    while (index < encoded.length) {
+        let b: number;
+        let shift = 0;
+        let result = 0;
+        do { b = encoded.charCodeAt(index++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+        lat += result & 1 ? ~(result >> 1) : result >> 1;
+        shift = 0; result = 0;
+        do { b = encoded.charCodeAt(index++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+        lng += result & 1 ? ~(result >> 1) : result >> 1;
+        points.push({ latitude: lat / 1e5, longitude: lng / 1e5 });
+    }
+    return points;
+}
+
+
+export function UserStatusTab({ appointment, mechanicCoords, routePolyline }: { appointment: any; mechanicCoords?: { latitude: number; longitude: number } | null; routePolyline?: string | null }) {
     if (!appointment) return null;
+
+    const mapRef = React.useRef<MapView | null>(null);
 
     const photos: string[] = Array.isArray(appointment.photos)
         ? appointment.photos
@@ -18,7 +40,26 @@ export function UserStatusTab({ appointment }: { appointment: any }) {
     const isArrived = currentStatus.toLowerCase().includes('arrived');
     const statusColor = isArrived ? '#059669' : isEnRoute ? '#2563EB' : '#6B7280';
 
-    const hasCoords = appointment.locationLat && appointment.locationLng;
+    const clientCoords =
+        appointment.locationLat && appointment.locationLng
+            ? { latitude: appointment.locationLat, longitude: appointment.locationLng }
+            : null;
+
+    const hasCoords = !!clientCoords;
+
+    const fitMarkers = React.useCallback(() => {
+        const coords = [clientCoords, mechanicCoords].filter(Boolean) as { latitude: number; longitude: number }[];
+        if (coords.length >= 2) {
+            mapRef.current?.fitToCoordinates(coords, {
+                edgePadding: { top: 80, right: 80, bottom: 80, left: 80 },
+                animated: true,
+            });
+        }
+    }, [clientCoords?.latitude, clientCoords?.longitude, mechanicCoords?.latitude, mechanicCoords?.longitude]);
+
+    React.useEffect(() => {
+        fitMarkers();
+    }, [fitMarkers]);
 
     return (
         <View className="gap-6" testID="user-status-tab">
@@ -38,25 +79,41 @@ export function UserStatusTab({ appointment }: { appointment: any }) {
                 <View>
                     <Text className="font-outfit-bold text-blue-900">Address:</Text>
                     <Text className="text-gray-600 font-outfit-regular">{appointment.address || '—'}</Text>
-                    {/* Map */}
-                    <View style={{ height: 200, borderRadius: 12, overflow: 'hidden', marginTop: 8, backgroundColor: '#E5E7EB' }}>
+                    {/* Map — client pin (red) + mechanic live pin (blue) */}
+                    <View style={{ height: 220, borderRadius: 12, overflow: 'hidden', marginTop: 8, backgroundColor: '#E5E7EB' }}>
                         {hasCoords ? (
                             <MapView
+                                ref={mapRef}
                                 style={{ width: '100%', height: '100%' }}
+                                onMapReady={fitMarkers}
                                 initialRegion={{
-                                    latitude: appointment.locationLat,
-                                    longitude: appointment.locationLng,
-                                    latitudeDelta: 0.01,
-                                    longitudeDelta: 0.01,
+                                    latitude: clientCoords!.latitude,
+                                    longitude: clientCoords!.longitude,
+                                    latitudeDelta: 0.05,
+                                    longitudeDelta: 0.05,
                                 }}
                             >
                                 <Marker
-                                    coordinate={{
-                                        latitude: appointment.locationLat,
-                                        longitude: appointment.locationLng,
-                                    }}
-                                    title={appointment.address}
+                                    coordinate={clientCoords!}
+                                    title={appointment.address || 'Your location'}
+                                    description="Your location"
+                                    pinColor="red"
                                 />
+                                {mechanicCoords && (
+                                    <Marker
+                                        coordinate={mechanicCoords}
+                                        title="Mechanic"
+                                        description="Mechanic's location"
+                                        pinColor="blue"
+                                    />
+                                )}
+                                {routePolyline && (
+                                    <Polyline
+                                        coordinates={decodePolyline(routePolyline)}
+                                        strokeColor="#2563EB"
+                                        strokeWidth={4}
+                                    />
+                                )}
                             </MapView>
                         ) : (
                             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>

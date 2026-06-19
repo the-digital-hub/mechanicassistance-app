@@ -7,6 +7,8 @@ export interface AppointmentEta {
     distanceKm: number | null;
     etaTime: string | null;
     loading: boolean;
+    mechanicCoords: { latitude: number; longitude: number } | null;
+    polyline: string | null;
 }
 
 /**
@@ -31,7 +33,9 @@ export function useAppointmentEta(
         minutesAway: number | null;
         distanceKm: number | null;
         etaTime: string | null;
-    }>({ minutesAway: null, distanceKm: null, etaTime: null });
+        mechanicCoords: { latitude: number; longitude: number } | null;
+        polyline: string | null;
+    }>({ minutesAway: null, distanceKm: null, etaTime: null, mechanicCoords: null, polyline: null });
     const [loading, setLoading] = React.useState(true);
 
     React.useEffect(() => {
@@ -65,6 +69,11 @@ export function useAppointmentEta(
                 minutesAway: payload.minutesAway ?? null,
                 distanceKm: payload.distanceKm ?? null,
                 etaTime: payload.etaTime ?? null,
+                mechanicCoords:
+                    payload.mechanicLat != null && payload.mechanicLng != null
+                        ? { latitude: payload.mechanicLat, longitude: payload.mechanicLng }
+                        : null,
+                polyline: payload.polyline ?? null,
             });
             setLoading(false);
         };

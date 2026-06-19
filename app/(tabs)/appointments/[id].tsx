@@ -46,7 +46,7 @@ export default function AppointmentDetailScreen() {
     });
 
     // Lifted here so the socket listener stays alive regardless of active tab.
-    const { minutesAway, etaTime, loading: etaLoading } = useAppointmentEta(
+    const { minutesAway, etaTime, loading: etaLoading, mechanicCoords, polyline } = useAppointmentEta(
         isUserRole ? appointment?.id : undefined,
         isUserRole ? appointment?.status : undefined,
     );
@@ -203,7 +203,7 @@ export default function AppointmentDetailScreen() {
                 case 'client':
                     return <UserMechanicInfoTab mechanic={mechanic} />;
                 case 'status':
-                    return <UserStatusTab appointment={appointment} />;
+                    return <UserStatusTab appointment={appointment} mechanicCoords={mechanicCoords} routePolyline={polyline} />;
                 case 'budget':
                     return <UserBudgetTab appointment={appointment} />;
                 default:

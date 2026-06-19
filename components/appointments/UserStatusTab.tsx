@@ -2,7 +2,7 @@ import { ConfigService } from '@/lib/config/ConfigService';
 import React from 'react';
 import { Image, ScrollView, Text, View } from 'react-native';
 
-export function UserStatusTab({ appointment }: { appointment: any }) {
+export function UserStatusTab({ appointment }: { appointment: any; mechanicCoords?: { latitude: number; longitude: number } | null; routePolyline?: string | null }) {
     if (!appointment) return null;
 
     const photos: string[] = Array.isArray(appointment.photos)
