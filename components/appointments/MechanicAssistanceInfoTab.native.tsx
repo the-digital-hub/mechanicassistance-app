@@ -27,25 +27,34 @@ export function MechanicAssistanceInfoTab({ appointment, onScan }: MechanicAssis
         appointment?.status,
     );
 
-    // Always position the mechanic with their own current location.
+    // Track mechanic's live position — watch continuously so the marker moves as they drive.
     React.useEffect(() => {
+        let sub: Location.LocationSubscription | null = null;
         let cancelled = false;
         (async () => {
             try {
                 const { status } = await Location.requestForegroundPermissionsAsync();
                 if (status !== 'granted') return;
-                const loc = await Location.getCurrentPositionAsync({});
-                if (!cancelled) {
-                    setMechanicCoords({
-                        latitude: loc.coords.latitude,
-                        longitude: loc.coords.longitude,
-                    });
-                }
+                if (cancelled) return;
+                sub = await Location.watchPositionAsync(
+                    { timeInterval: 4_000, distanceInterval: 5 },
+                    (loc) => {
+                        if (!cancelled) {
+                            setMechanicCoords({
+                                latitude: loc.coords.latitude,
+                                longitude: loc.coords.longitude,
+                            });
+                        }
+                    },
+                );
             } catch {
                 // no-op: mechanic marker simply won't render
             }
         })();
-        return () => { cancelled = true; };
+        return () => {
+            cancelled = true;
+            sub?.remove();
+        };
     }, []);
 
     // Frame both pins (mechanic + request) once we have them.
