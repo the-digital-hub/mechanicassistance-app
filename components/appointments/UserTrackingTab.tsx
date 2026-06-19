@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { ActivityIndicator, Image, Text, TouchableOpacity, View } from 'react-native';
-import { formatEtaTime, useAppointmentEta } from '@/hooks/useAppointmentEta';
+import { formatEtaTime } from '@/hooks/useAppointmentEta';
 
 interface UserTrackingTabProps {
     onCancel: () => void;
@@ -9,6 +9,9 @@ interface UserTrackingTabProps {
     mechanic?: any;
     appointmentType?: string;
     appointment?: any;
+    minutesAway?: number | null;
+    etaTime?: string | null;
+    etaLoading?: boolean;
 }
 
 function getTypeLabel(type?: string, assistanceType?: string) {
@@ -18,11 +21,7 @@ function getTypeLabel(type?: string, assistanceType?: string) {
     return 'Scheduled Assistance';
 }
 
-export function UserTrackingTab({ onCancel, onMessage, mechanic, appointmentType, appointment }: UserTrackingTabProps) {
-    const { minutesAway, etaTime, loading: etaLoading } = useAppointmentEta(
-        appointment?.id,
-        appointment?.status,
-    );
+export function UserTrackingTab({ onCancel, onMessage, mechanic, appointmentType, appointment, minutesAway = null, etaTime = null, etaLoading = false }: UserTrackingTabProps) {
 
     return (
         <View style={{ gap: 20 }}>

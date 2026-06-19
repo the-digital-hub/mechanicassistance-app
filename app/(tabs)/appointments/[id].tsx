@@ -9,6 +9,7 @@ import { UserStatusTab } from '@/components/appointments/UserStatusTab';
 import { UserTrackingTab } from '@/components/appointments/UserTrackingTab';
 import { useAppointments } from '@/context/AppointmentsContext';
 import { useUser } from '@/context/UserContext';
+import { useAppointmentEta } from '@/hooks/useAppointmentEta';
 import { useMechanicLocationBroadcast } from '@/hooks/useMechanicLocationBroadcast';
 import { userDAO } from '@/lib/dao/UserDAO';
 import { Ionicons } from '@expo/vector-icons';
@@ -43,6 +44,12 @@ export default function AppointmentDetailScreen() {
         status: appointment?.status ?? 'pending',
         role: user?.role,
     });
+
+    // Lifted here so the socket listener stays alive regardless of active tab.
+    const { minutesAway, etaTime, loading: etaLoading } = useAppointmentEta(
+        isUserRole ? appointment?.id : undefined,
+        isUserRole ? appointment?.status : undefined,
+    );
     const [mechanic, setMechanic] = React.useState<any>(null); // State for mechanic details
 
     const [activeTab, setActiveTab] = React.useState<TabType>('info');
@@ -188,6 +195,9 @@ export default function AppointmentDetailScreen() {
                             mechanic={mechanic}
                             appointmentType={appointment.type}
                             appointment={appointment}
+                            minutesAway={minutesAway}
+                            etaTime={etaTime}
+                            etaLoading={etaLoading}
                         />
                     );
                 case 'client':
