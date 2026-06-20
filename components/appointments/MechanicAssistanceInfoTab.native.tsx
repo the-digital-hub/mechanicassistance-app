@@ -4,6 +4,7 @@ import React from 'react';
 import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import { formatEtaTime, useAppointmentEta } from '@/hooks/useAppointmentEta';
+import { useSocket } from '@/context/SocketContext';
 
 function decodePolyline(encoded: string): { latitude: number; longitude: number }[] {
     const points: { latitude: number; longitude: number }[] = [];
@@ -32,6 +33,7 @@ interface MechanicAssistanceInfoTabProps {
 export function MechanicAssistanceInfoTab({ appointment, onScan }: MechanicAssistanceInfoTabProps) {
     const mapRef = React.useRef<MapView | null>(null);
     const [mechanicCoords, setMechanicCoords] = React.useState<{ latitude: number; longitude: number } | null>(null);
+    const { sendMessage } = useSocket();
 
     // Request location coords are the client's chosen point (default address or
     // the spot they dropped on the map) — always the destination reference.
@@ -58,10 +60,14 @@ export function MechanicAssistanceInfoTab({ appointment, onScan }: MechanicAssis
                 sub = await Location.watchPositionAsync(
                     { timeInterval: 4_000, distanceInterval: 5 },
                     (loc) => {
-                        if (!cancelled) {
-                            setMechanicCoords({
-                                latitude: loc.coords.latitude,
-                                longitude: loc.coords.longitude,
+                        if (cancelled) return;
+                        const { latitude, longitude } = loc.coords;
+                        setMechanicCoords({ latitude, longitude });
+                        if (appointment?.id) {
+                            sendMessage('mechanic_location_update', {
+                                appointmentId: appointment.id,
+                                lat: latitude,
+                                lng: longitude,
                             });
                         }
                     },

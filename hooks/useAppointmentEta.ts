@@ -53,6 +53,11 @@ export function useAppointmentEta(
                         minutesAway: data.minutesAway ?? null,
                         distanceKm: data.distanceKm ?? null,
                         etaTime: data.etaTime ?? null,
+                        mechanicCoords:
+                            data.mechanicLat != null && data.mechanicLng != null
+                                ? { latitude: data.mechanicLat, longitude: data.mechanicLng }
+                                : null,
+                        polyline: data.polyline ?? null,
                     });
                 }
             })
