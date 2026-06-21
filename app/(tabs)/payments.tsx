@@ -1,18 +1,31 @@
-import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Building2 } from 'lucide-react-native';
+import { Building2, ChevronRight } from 'lucide-react-native';
 import { useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function PaymentsScreen() {
     const [method, setMethod] = useState<'bank' | 'paypal' | 'gpay' | 'apple'>('bank');
 
     return (
-        <ScrollView className="flex-1 bg-white px-6 pt-6">
-            <View className="mb-6">
-                <Text className="text-xl font-outfit-bold text-blue-900 mb-1">Bank account / payments</Text>
-                <Text className="text-blue-500 font-outfit-regular">Account to receive payments, Select preferred payment method</Text>
+        <ScrollView style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ padding: 24, paddingBottom: 40 }}>
+            {/* Section Badge */}
+            <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+              <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+              <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+                BANK ACCOUNT
+              </Text>
             </View>
+
+            {/* Title */}
+            <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
+              Bank account
+            </Text>
+
+            {/* Subtitle */}
+            <Text className="text-gray-500 font-outfit-regular text-base mb-8">
+              Add your bank account to receive payments
+            </Text>
 
             <Text className="font-outfit-medium mb-3 text-gray-900">Collection method</Text>
 
@@ -52,14 +65,14 @@ export default function PaymentsScreen() {
                 <View>
                     <Text className="font-outfit-medium mb-2 text-gray-900">Account name</Text>
                     <Input
-                        containerClassName="bg-blue-50/50 border-blue-100"
+                        containerClassName="bg-white border border-gray-300 rounded-2xl"
                     />
                 </View>
 
                 <View>
                     <Text className="font-outfit-medium mb-2 text-gray-900">Account number</Text>
                     <Input
-                        containerClassName="bg-blue-50/50 border-blue-100"
+                        containerClassName="bg-white border border-gray-300 rounded-2xl"
                         keyboardType="numeric"
                     />
                 </View>
@@ -67,7 +80,7 @@ export default function PaymentsScreen() {
                 <View>
                     <Text className="font-outfit-medium mb-2 text-gray-900">Routing #</Text>
                     <Input
-                        containerClassName="bg-blue-50/50 border-blue-100"
+                        containerClassName="bg-white border border-gray-300 rounded-2xl"
                         keyboardType="numeric"
                     />
                 </View>
@@ -75,14 +88,31 @@ export default function PaymentsScreen() {
                 <View>
                     <Text className="font-outfit-medium mb-2 text-gray-900">Checking acc.</Text>
                     <Input
-                        containerClassName="bg-blue-50/50 border-blue-100"
+                        containerClassName="bg-white border border-gray-300 rounded-2xl"
                     />
                 </View>
             </View>
 
-            <Button size="lg" className="mb-10">
-                Save
-            </Button>
+            <TouchableOpacity
+                activeOpacity={0.8}
+            >
+                <LinearGradient
+                    colors={['#2B66F8', '#081E72']}
+                    start={{ x: 0, y: 1 }}
+                    end={{ x: 1, y: 0 }}
+                    style={{
+                        borderRadius: 10,
+                        paddingVertical: 16,
+                        paddingHorizontal: 16,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}
+                >
+                    <Text className="text-white font-outfit-bold text-center mr-2">Save</Text>
+                    <ChevronRight size={20} color="white" />
+                </LinearGradient>
+            </TouchableOpacity>
         </ScrollView>
     );
 }

@@ -3,16 +3,57 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+
+interface RoleConfig {
+    title: string;
+    description: string;
+    icon: string;
+    badge: string;
+    highlights: string[];
+    stats: { value: string; label: string }[];
+    buttonText: string;
+    gradientColors: [string, string];
+}
+
+const roleConfigs: Record<'mechanic' | 'user', RoleConfig> = {
+    mechanic: {
+        title: 'Turn your skills into income.',
+        description: 'Pick up nearby jobs, set your rates, and build a reputation drivers trust.',
+        icon: 'settings',
+        badge: 'JOIN 2,800+ VERIFIED PROS',
+        highlights: ['Flexible hours', 'Fast payouts', 'Your rates'],
+        stats: [
+            { value: '$840', label: 'AVG WEEKLY' },
+            { value: '4.9★', label: 'PRO RATING' },
+            { value: '12 mi', label: 'RADIUS' },
+        ],
+        buttonText: 'Continue as Technician',
+        gradientColors: ['#2B66F8', '#081E72'],
+    },
+    user: {
+        title: 'Roadside help, on demand.',
+        description: 'Connect with certified technicians around you, compare offers and get back on the road.',
+        icon: 'car',
+        badge: 'HELP IS 8 MIN AWAY ON AVERAGE',
+        highlights: ['Live tracking', 'Up-front pricing', 'Verified pros'],
+        stats: [
+            { value: '8 min', label: 'AVG RESPONSE' },
+            { value: '24/7', label: 'COVERAGE' },
+            { value: '2.5km', label: 'NEAREST HELP' },
+        ],
+        buttonText: 'Continue as Vehicle Owner',
+        gradientColors: ['#4B7BA7', '#2D4F6F'],
+    },
+};
 
 export default function RoleSelectionScreen() {
     const router = useRouter();
-    // const router = { push: (path: string) => console.log('Mock push:', path) };
-    const [selectedRole, setSelectedRole] = useState<'mechanic' | 'user' | null>(null);
+    const [selectedRole, setSelectedRole] = useState<'mechanic' | 'user'>('mechanic');
+    const config = roleConfigs[selectedRole];
 
     const handleContinue = async () => {
-        if (!selectedRole) return;
         try {
             await saveSetupProgress('role', { role: selectedRole });
             router.push('/setup/basic-info');
@@ -23,78 +64,159 @@ export default function RoleSelectionScreen() {
 
     return (
         <View className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
-            <ScrollView className="flex-1 px-6 pt-4">
-                {/* Section Badge */}
-                <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
-                    <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
-                    <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                        CHOOSE YOUR ROLE
+            <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+                {/* Header Section */}
+                <View className="px-6 pt-6 pb-8">
+                    {/* Section Badge */}
+                    <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+                        <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+                        <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+                            CHOOSE YOUR ROLE
+                        </Text>
+                    </View>
+
+                    {/* Title */}
+                    <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
+                        Choose Your Path
+                    </Text>
+
+                    {/* Subtitle */}
+                    <Text className="text-gray-500 font-outfit-regular text-base mb-0">
+                        Tell us how you'll be using the app
                     </Text>
                 </View>
 
-                {/* Title */}
-                <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
-                    Choose Your Path
-                </Text>
+                {/* Role Toggle */}
+                <View className="px-6 pb-6">
+                    <View className="flex-row gap-3 p-1.5 rounded-2xl" style={{ backgroundColor: '#E5E7EB' }}>
+                        <TouchableOpacity
+                            onPress={() => setSelectedRole('mechanic')}
+                            activeOpacity={0.8}
+                            className="flex-1"
+                        >
+                            <LinearGradient
+                                colors={selectedRole === 'mechanic' ? ['#2B66F8', '#081E72'] : ['transparent', 'transparent']}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 1 }}
+                                style={{
+                                    paddingVertical: 12,
+                                    paddingHorizontal: 16,
+                                    borderRadius: 10,
+                                }}
+                            >
+                                <Text className={`text-center font-outfit-semibold ${selectedRole === 'mechanic' ? 'text-white' : 'text-slate-600'}`}>
+                                    Technician
+                                </Text>
+                            </LinearGradient>
+                        </TouchableOpacity>
 
-                {/* Subtitle */}
-                <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-                    Tell us how you'll be using the app
-                </Text>
-
-                <View className="gap-6">
-                {/* Mechanic Option */}
-                <Pressable
-                    onPress={() => setSelectedRole('mechanic')}
-                    className="p-8 rounded-3xl border-2 items-center justify-center"
-                    style={{
-                        backgroundColor: selectedRole === 'mechanic' ? '#EFF6FF' : '#F8FAFC', // blue-50 : slate-50
-                        borderColor: selectedRole === 'mechanic' ? '#2563EB' : '#F1F5F9', // blue-600 : slate-100
-                        opacity: selectedRole === 'mechanic' ? 1 : 0.6
-                    }}
-                >
-                    <View className={`w-16 h-16 rounded-full items-center justify-center mb-4 ${selectedRole === 'mechanic' ? 'bg-blue-600' : 'bg-slate-200'}`}>
-                        <Ionicons name="construct" size={32} color={selectedRole === 'mechanic' ? 'white' : '#64748B'} />
+                        <TouchableOpacity
+                            onPress={() => setSelectedRole('user')}
+                            activeOpacity={0.8}
+                            className="flex-1"
+                        >
+                            <LinearGradient
+                                colors={selectedRole === 'user' ? ['#4B7BA7', '#2D4F6F'] : ['transparent', 'transparent']}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 1 }}
+                                style={{
+                                    paddingVertical: 12,
+                                    paddingHorizontal: 16,
+                                    borderRadius: 10,
+                                }}
+                            >
+                                <Text className={`text-center font-outfit-semibold ${selectedRole === 'user' ? 'text-white' : 'text-slate-600'}`}>
+                                    Vehicle Owner
+                                </Text>
+                            </LinearGradient>
+                        </TouchableOpacity>
                     </View>
-                    <Text className={`text-xl font-outfit-bold ${selectedRole === 'mechanic' ? 'text-blue-900' : 'text-slate-500'}`}>
-                        I'm a Mechanic
-                    </Text>
-                    <Text className={`text-sm font-outfit-regular text-center mt-2 ${selectedRole === 'mechanic' ? 'text-blue-700' : 'text-slate-400'}`}>
-                        I want to offer my services and help people with their cars
-                    </Text>
-                </Pressable>
-
-                {/* User Option */}
-                <Pressable
-                    onPress={() => setSelectedRole('user')}
-                    className="p-8 rounded-3xl border-2 items-center justify-center"
-                    style={{
-                        backgroundColor: selectedRole === 'user' ? '#EFF6FF' : '#F8FAFC',
-                        borderColor: selectedRole === 'user' ? '#2563EB' : '#F1F5F9',
-                        opacity: selectedRole === 'user' ? 1 : 0.6
-                    }}
-                >
-                    <View className={`w-16 h-16 rounded-full items-center justify-center mb-4 ${selectedRole === 'user' ? 'bg-blue-600' : 'bg-slate-200'}`}>
-                        <Ionicons name="person" size={32} color={selectedRole === 'user' ? 'white' : '#64748B'} />
-                    </View>
-                    <Text className={`text-xl font-outfit-bold ${selectedRole === 'user' ? 'text-blue-900' : 'text-slate-500'}`}>
-                        I'm a User
-                    </Text>
-                    <Text className={`text-sm font-outfit-regular text-center mt-2 ${selectedRole === 'user' ? 'text-blue-700' : 'text-slate-400'}`}>
-                        I need mechanical assistance for my vehicle
-                    </Text>
-                </Pressable>
                 </View>
 
-                {/* Continue button */}
+                {/* Main Card */}
+                <View className="px-6">
+                    <LinearGradient
+                        colors={config.gradientColors}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={{
+                            borderRadius: 16,
+                            padding: 24,
+                            marginBottom: 24,
+                        }}
+                    >
+                        {/* Top Section: Badge and Download Arrow */}
+                        <View className="flex-row items-center justify-between mb-6">
+                            <View className="flex-row items-center gap-2 px-3 py-2 rounded-full" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
+                                <View className="w-2 h-2 rounded-full bg-green-400" />
+                                <Text className="text-white font-outfit-semibold text-xs tracking-widest">
+                                    {config.badge}
+                                </Text>
+                            </View>
+                            <TouchableOpacity className="w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
+                                <Ionicons name="chevron-down" size={20} color="white" />
+                            </TouchableOpacity>
+                        </View>
+
+                        {/* Icon */}
+                        <View className="w-20 h-20 rounded-2xl items-center justify-center mb-6" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.3)' }}>
+                            <Ionicons name={config.icon} size={40} color="white" />
+                        </View>
+
+                        {/* Title */}
+                        <Text className="text-white font-outfit-bold text-3xl mb-4 leading-tight">
+                            {config.title}
+                        </Text>
+
+                        {/* Description */}
+                        <Text className="text-white font-outfit-regular text-base mb-8 leading-relaxed opacity-90">
+                            {config.description}
+                        </Text>
+
+                        {/* Highlights */}
+                        <View className="flex-row flex-wrap gap-2 mb-8">
+                            {config.highlights.map((highlight, idx) => (
+                                <View key={idx} className="px-3 py-2 rounded-full" style={{ backgroundColor: 'rgba(255, 255, 255, 0.15)', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.3)' }}>
+                                    <View className="flex-row items-center gap-1.5">
+                                        <Ionicons name="checkmark" size={14} color="white" />
+                                        <Text className="text-white font-outfit-medium text-xs">
+                                            {highlight}
+                                        </Text>
+                                    </View>
+                                </View>
+                            ))}
+                        </View>
+
+                        {/* Divider */}
+                        <View className="h-px bg-white/20 mb-6" />
+
+                        {/* Stats */}
+                        <View className="flex-row justify-between">
+                            {config.stats.map((stat, idx) => (
+                                <View key={idx} className="flex-1 items-center">
+                                    <Text className="text-white font-outfit-bold text-xl mb-1">
+                                        {stat.value}
+                                    </Text>
+                                    <Text className="text-white/70 font-outfit-regular text-xs tracking-widest">
+                                        {stat.label}
+                                    </Text>
+                                    {idx < config.stats.length - 1 && (
+                                        <View className="absolute right-0 w-px h-8 bg-white/20" />
+                                    )}
+                                </View>
+                            ))}
+                        </View>
+                    </LinearGradient>
+                </View>
+
+                {/* Continue Button */}
                 <TouchableOpacity
                     onPress={handleContinue}
                     activeOpacity={0.8}
-                    disabled={!selectedRole}
-                    className="mt-8 mb-8"
+                    className="px-6"
                 >
                     <LinearGradient
-                        colors={selectedRole ? ['#2B66F8', '#081E72'] : ['#B0C4FF', '#B0C4FF']}
+                        colors={config.gradientColors}
                         start={{ x: 0, y: 1 }}
                         end={{ x: 1, y: 0 }}
                         style={{
@@ -106,7 +228,9 @@ export default function RoleSelectionScreen() {
                             justifyContent: 'center',
                         }}
                     >
-                        <Text className="text-white font-outfit-bold text-center mr-2">Continue</Text>
+                        <Text className="text-white font-outfit-bold text-center mr-2">
+                            {config.buttonText}
+                        </Text>
                         <ChevronRight size={20} color="white" />
                     </LinearGradient>
                 </TouchableOpacity>

@@ -1,8 +1,9 @@
-import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { US_STATES, getFormattedAddress, normalizeStreet } from "@/lib/address";
 import { getSetupProgress, saveSetupProgress } from "@/lib/storage";
 import { useRouter } from "expo-router";
+import { ChevronRight } from "lucide-react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -173,20 +174,27 @@ export default function AddressScreen() {
     >
       <ScrollView
         ref={scrollViewRef}
-        className="flex-1 bg-white"
+        style={{ backgroundColor: '#F6F8FC' }}
         contentContainerStyle={{ padding: 24, paddingBottom: 40 }}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Header Skip Action (Placeholder - if layout allows custom header actions here, otherwise standard header) */}
-
-        <View className="mb-6">
-          <Text className="text-xl font-outfit-bold text-[#0F172A] mb-1">
-            Your address
-          </Text>
-          <Text className="text-[#0047AB] font-outfit-medium text-base">
-            Set your address now to receive quicker assistance later.
+        {/* Section Badge */}
+        <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+          <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+          <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+            YOUR ADDRESS
           </Text>
         </View>
+
+        {/* Title */}
+        <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
+          Your address
+        </Text>
+
+        {/* Subtitle */}
+        <Text className="text-gray-500 font-outfit-regular text-base mb-8">
+          Set your address now to receive quicker assistance later.
+        </Text>
 
         {/* Toggle */}
         <View className="flex-row mb-8">
@@ -223,7 +231,7 @@ export default function AddressScreen() {
                 handleChange("street", text);
                 searchAddress(text);
               }}
-              containerClassName="bg-blue-50/50 border-0 h-12"
+              containerClassName="bg-white border border-gray-300 rounded-2xl"
               placeholder="Enter street address"
             />
             {isSearching && (
@@ -261,7 +269,7 @@ export default function AddressScreen() {
             <Input
               value={formData.apartment}
               onChangeText={(text) => handleChange("apartment", text)}
-              containerClassName="bg-blue-50/50 border-0 h-12"
+              containerClassName="bg-white border border-gray-300 rounded-2xl"
             />
           </View>
 
@@ -273,7 +281,7 @@ export default function AddressScreen() {
               <Input
                 value={formData.city}
                 onChangeText={(text) => handleChange("city", text)}
-                containerClassName="bg-blue-50/50 border-0 h-12"
+                containerClassName="bg-white border border-gray-300 rounded-2xl"
               />
             </View>
 
@@ -283,8 +291,8 @@ export default function AddressScreen() {
               </Text>
               <TouchableOpacity
                 onPress={() => setShowStateModal(true)}
-                className="bg-blue-50/50 rounded-xl h-12 justify-center px-4 py-7"
-                style={{ height: 52,justifyContent: "center" }}
+                className="bg-white border border-gray-300 rounded-2xl justify-center px-4"
+                style={{ height: 52 }}
               >
                 <Text
                   className={`font-outfit-medium ${formData.state ? "text-[#0F172A]" : "text-gray-400"}`}
@@ -305,20 +313,35 @@ export default function AddressScreen() {
                 handleChange("zip", cleaned);
               }}
               onFocus={() => scrollToField(zipContainerRef)}
-              containerClassName="bg-blue-50/50 border-0 h-12"
+              containerClassName="bg-white border border-gray-300 rounded-2xl"
               keyboardType="number-pad"
               maxLength={5}
             />
           </View>
         </View>
 
-        <Button
+        <TouchableOpacity
           onPress={handleContinue}
-          size="lg"
-          className="bg-blue-700 rounded-xl mt-4 mb-10"
+          activeOpacity={0.8}
+          className="mt-4 mb-10"
         >
-          Continue
-        </Button>
+          <LinearGradient
+            colors={['#2B66F8', '#081E72']}
+            start={{ x: 0, y: 1 }}
+            end={{ x: 1, y: 0 }}
+            style={{
+              borderRadius: 10,
+              paddingVertical: 16,
+              paddingHorizontal: 16,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Text className="text-white font-outfit-bold text-center mr-2">Continue</Text>
+            <ChevronRight size={20} color="white" />
+          </LinearGradient>
+        </TouchableOpacity>
 
         {/* State Selection Modal */}
         <Modal

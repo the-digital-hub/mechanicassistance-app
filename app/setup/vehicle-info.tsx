@@ -1,5 +1,5 @@
-import { Input } from "@/components/ui/Input";
 import { saveSetupProgress } from "@/lib/storage";
+import { Input } from "@/components/ui/Input";
 import {
   decodeVin,
   fetchMakes,
@@ -173,17 +173,26 @@ export default function VehicleInfoScreen() {
 
   if (!isAdding && vehicles.length > 0) {
     return (
-      <View className="flex-1 bg-white px-8 py-12">
-        <View className="mb-12">
-          <Text className="text-2xl font-outfit-bold text-[#0F172A] mb-2">
+      <View className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
+        <ScrollView contentContainerStyle={{ padding: 24, paddingBottom: 40 }}>
+          {/* Section Badge */}
+          <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+            <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+            <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+              YOUR VEHICLES
+            </Text>
+          </View>
+
+          {/* Title */}
+          <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
             Vehicle Info
           </Text>
-          <Text className="text-base font-outfit-medium text-[#0047AB]">
+
+          {/* Subtitle */}
+          <Text className="text-gray-500 font-outfit-regular text-base mb-8">
             Help us recognize you faster.
           </Text>
-        </View>
 
-        <ScrollView className="flex-1">
           {vehicles.map((v, index) => (
             <View
               key={v.id}
@@ -209,23 +218,50 @@ export default function VehicleInfoScreen() {
 
           <TouchableOpacity
             onPress={() => setIsAdding(true)}
-            className="bg-blue-600 h-14 rounded-2xl flex-row items-center justify-center mt-4"
+            activeOpacity={0.8}
+            className="mt-4"
           >
-            <Text className="text-white font-outfit-bold text-lg">
-              Add vehicle
-            </Text>
+            <LinearGradient
+              colors={['#2B66F8', '#081E72']}
+              start={{ x: 0, y: 1 }}
+              end={{ x: 1, y: 0 }}
+              style={{
+                borderRadius: 10,
+                paddingVertical: 16,
+                paddingHorizontal: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text className="text-white font-outfit-bold text-center mr-2">Add vehicle</Text>
+              <ChevronRight size={20} color="white" />
+            </LinearGradient>
           </TouchableOpacity>
-        </ScrollView>
 
-        <View className="mt-8">
-          <Button
-            onPress={handleContinue}
-            size="lg"
-            className="bg-blue-700 rounded-2xl"
+        <TouchableOpacity
+          onPress={handleContinue}
+          activeOpacity={0.8}
+        >
+          <LinearGradient
+            colors={['#2B66F8', '#081E72']}
+            start={{ x: 0, y: 1 }}
+            end={{ x: 1, y: 0 }}
+            style={{
+              borderRadius: 10,
+              paddingVertical: 16,
+              paddingHorizontal: 16,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginTop: 32,
+            }}
           >
-            Continue
-          </Button>
-        </View>
+            <Text className="text-white font-outfit-bold text-center mr-2">Continue</Text>
+            <ChevronRight size={20} color="white" />
+          </LinearGradient>
+        </TouchableOpacity>
+        </ScrollView>
       </View>
     );
   }
@@ -316,7 +352,8 @@ export default function VehicleInfoScreen() {
             </Text>
             <TouchableOpacity
               onPress={() => setActiveModal("make")}
-              className="bg-blue-50/50 h-12 flex-row items-center justify-between px-4 rounded-xl"
+              className="bg-white border border-gray-300 rounded-2xl flex-row items-center justify-between px-4"
+              style={{ height: 52 }}
             >
               <View className="flex-row items-center gap-2">
                 {/* {formData.make !== "Select" && (
@@ -347,7 +384,8 @@ export default function VehicleInfoScreen() {
                 formData.make !== "Select" && setActiveModal("model")
               }
               disabled={formData.make === "Select"}
-              className={`bg-blue-50/50 h-12 flex-row items-center justify-between px-4 rounded-xl ${formData.make === "Select" ? "opacity-50" : ""}`}
+              className={`bg-white border border-gray-300 rounded-2xl flex-row items-center justify-between px-4 ${formData.make === "Select" ? "opacity-50" : ""}`}
+              style={{ height: 52 }}
             >
               <Text className="text-[#0F172A] font-outfit-regular">
                 {formData.model}
@@ -417,7 +455,7 @@ export default function VehicleInfoScreen() {
               onChangeText={(text) =>
                 setFormData((p) => ({ ...p, plate: text }))
               }
-              containerClassName="bg-blue-50/50 border-0 h-12"
+              containerClassName="bg-white border border-gray-300 rounded-2xl"
             />
           </View>
 
@@ -434,21 +472,36 @@ export default function VehicleInfoScreen() {
                 setFormData((p) => ({ ...p, details: text }))
               }
               onFocus={() => scrollToField(detailsContainerRef)}
-              className="bg-blue-50/50 rounded-xl p-4 font-outfit-regular text-[#0F172A] text-base h-32"
-              style={{ textAlignVertical: "top" }}
+              className="bg-white border border-gray-300 rounded-2xl p-4 font-outfit-regular text-[#0F172A] text-base"
+              style={{ textAlignVertical: "top", height: 120 }}
             />
           </View>
         </View>
 
-        <View className="mt-12">
-          <Button
+        <View className="mt-12 px-6">
+          <TouchableOpacity
             onPress={handleAddVehicle}
-            size="lg"
+            activeOpacity={0.8}
             disabled={formData.make === "Select" || formData.model === "Select"}
-            className={`rounded-2xl ${formData.make !== "Select" && formData.model !== "Select" ? "bg-blue-700" : "bg-slate-200"}`}
           >
-            Continue
-          </Button>
+            <LinearGradient
+              colors={formData.make !== "Select" && formData.model !== "Select" ? ['#2B66F8', '#081E72'] : ['#B0C4FF', '#B0C4FF']}
+              start={{ x: 0, y: 1 }}
+              end={{ x: 1, y: 0 }}
+              style={{
+                borderRadius: 10,
+                paddingVertical: 16,
+                paddingHorizontal: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: formData.make === "Select" || formData.model === "Select" ? 0.6 : 1,
+              }}
+            >
+              <Text className="text-white font-outfit-bold text-center mr-2">Continue</Text>
+              <ChevronRight size={20} color="white" />
+            </LinearGradient>
+          </TouchableOpacity>
         </View>
 
         {/* Selection Modal */}

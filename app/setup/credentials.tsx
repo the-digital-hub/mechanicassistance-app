@@ -1,5 +1,5 @@
 import { Input } from '@/components/ui/Input';
-import { saveSetupProgress } from '@/lib/storage';
+import { getSetupProgress, saveSetupProgress } from '@/lib/storage';
 import { useRouter } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
 import { useState } from 'react';
@@ -19,7 +19,14 @@ export default function CredentialsScreen() {
 
     const handleContinue = async () => {
         await saveSetupProgress('credentials', { aseId, validated: isValidated });
-        router.push('/setup/dealer-info');
+        const progress = await getSetupProgress();
+        const role = (progress.role as Record<string, unknown>)?.role;
+
+        if (role === 'mechanic') {
+            router.push('/setup/availability');
+        } else {
+            router.push('/setup/vehicle-info');
+        }
     };
 
     return (

@@ -6,11 +6,24 @@ export default function PromotionsScreen() {
     const promoCode = 'Code:MA08-124578-28-06062025';
 
     return (
-        <ScrollView className="flex-1 bg-white px-6 pt-6">
-            <View className="mb-6">
-                <Text className="text-xl font-outfit-bold text-blue-900 mb-1">Promotions</Text>
-                <Text className="text-blue-500 font-outfit-regular">Get access to exclusive discounts</Text>
+        <ScrollView style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ padding: 24, paddingBottom: 40 }}>
+            {/* Section Badge */}
+            <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+              <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+              <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+                PROMOTIONS
+              </Text>
             </View>
+
+            {/* Title */}
+            <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
+              Promotions
+            </Text>
+
+            {/* Subtitle */}
+            <Text className="text-gray-500 font-outfit-regular text-base mb-8">
+              Get access to exclusive discounts and special offers
+            </Text>
 
             {/* Promotion Card */}
             <View className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm mb-6">

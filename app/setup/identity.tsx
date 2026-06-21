@@ -244,11 +244,21 @@ export default function IdentityScreen() {
       <TouchableOpacity
         onPress={() => handlePickImage(side)}
         disabled={isUploading === side}
-        className="h-11 rounded-xl bg-[#00afcc] items-center justify-center flex-row gap-2"
-        activeOpacity={0.85}
+        activeOpacity={0.8}
+        style={{
+          borderRadius: 10,
+          backgroundColor: '#00afcc',
+          paddingVertical: 16,
+          paddingHorizontal: 16,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+          opacity: isUploading === side ? 0.6 : 1,
+        }}
       >
-        <Ionicons name={image ? "refresh" : "camera"} size={16} color="#fff" />
-        <Text className="text-white font-outfit-bold text-sm ml-1">
+        <Ionicons name={image ? "refresh" : "camera"} size={16} color="white" />
+        <Text className="text-white font-outfit-bold text-sm">
           {image ? "Retake photo" : "Take photo"}
         </Text>
       </TouchableOpacity>
@@ -310,7 +320,8 @@ export default function IdentityScreen() {
       </Text>
       <TouchableOpacity
         onPress={handleDocTypePicker}
-        className="bg-blue-50/50 h-12 flex-row items-center justify-between px-4 rounded-xl mb-8"
+        className="bg-white border border-gray-300 rounded-2xl flex-row items-center justify-between px-4 mb-8"
+        style={{ height: 52 }}
         activeOpacity={0.7}
       >
         <Text

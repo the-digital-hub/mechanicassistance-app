@@ -4,6 +4,7 @@ import { useUser } from '@/context/UserContext';
 import { mediaDAO } from '@/lib/dao/MediaDAO';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Award, Camera, Car, ChevronLeft, ChevronRight, CreditCard, Heart, HelpCircle, Lock, LogOut, MapPin, PlugZap, Settings, User } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -255,18 +256,32 @@ export default function ProfileScreen() {
             <Text className="text-lg font-outfit-bold text-center text-gray-900 mb-6">
               Confirm you want to be On-Line providing your services?
             </Text>
-            <View className="flex-row gap-4 w-full">
+            <View className="flex-row gap-3 w-full">
               <TouchableOpacity
-                className="flex-1 py-3 rounded-lg border border-gray-200"
+                className="flex-1 py-3 rounded-lg border border-gray-300 bg-white"
                 onPress={() => setShowOnlineModal(false)}
               >
                 <Text className="text-center font-outfit-bold text-gray-900">No</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                className="flex-1 py-3 rounded-lg bg-blue-700"
+                className="flex-1"
                 onPress={confirmOnline}
+                activeOpacity={0.8}
               >
-                <Text className="text-center font-outfit-bold text-white">Yes</Text>
+                <LinearGradient
+                  colors={['#2B66F8', '#081E72']}
+                  start={{ x: 0, y: 1 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{
+                    borderRadius: 8,
+                    paddingVertical: 12,
+                    paddingHorizontal: 16,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Text className="text-center font-outfit-bold text-white">Yes</Text>
+                </LinearGradient>
               </TouchableOpacity>
             </View>
           </View>
@@ -283,18 +298,32 @@ export default function ProfileScreen() {
             <Text className="text-lg font-outfit-bold text-center text-gray-900 mb-6">
               Are you sure you want to be Off-Line providing your services?
             </Text>
-            <View className="flex-row gap-4 w-full">
+            <View className="flex-row gap-3 w-full">
               <TouchableOpacity
-                className="flex-1 py-3 rounded-lg border border-gray-200"
+                className="flex-1 py-3 rounded-lg border border-gray-300 bg-white"
                 onPress={() => setShowOfflineModal(false)}
               >
                 <Text className="text-center font-outfit-bold text-gray-900">No</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                className="flex-1 py-3 rounded-lg bg-blue-700"
+                className="flex-1"
                 onPress={confirmOffline}
+                activeOpacity={0.8}
               >
-                <Text className="text-center font-outfit-bold text-white">Yes</Text>
+                <LinearGradient
+                  colors={['#2B66F8', '#081E72']}
+                  start={{ x: 0, y: 1 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{
+                    borderRadius: 8,
+                    paddingVertical: 12,
+                    paddingHorizontal: 16,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Text className="text-center font-outfit-bold text-white">Yes</Text>
+                </LinearGradient>
               </TouchableOpacity>
             </View>
           </View>
