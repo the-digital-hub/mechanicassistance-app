@@ -4,6 +4,7 @@ import {
   Bell,
   Calendar,
   ChevronLeft,
+  FileText,
   LifeBuoy,
   User as UserIcon,
   Wrench,
@@ -98,10 +99,20 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="assist"
+        options={{
+          href: user?.role === "mechanic" ? undefined : null,
+          title: "Requests",
+          tabBarIcon: ({ color }) => <FileText size={24} color={color} />,
+          headerLeft: () => null,
+          headerRight: () => <NotificationHeaderRight />,
+        }}
+      />
+      <Tabs.Screen
         name="request-assistance"
         options={{
           href: user?.role === "mechanic" ? null : undefined,
-          title: "Assistance",
+          title: "Requests",
           tabBarIcon: ({ color }) => <Wrench size={24} color={color} />,
           headerShown: isRequestAssistanceRoot,
           headerLeft: () => null,

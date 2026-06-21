@@ -6,9 +6,9 @@ import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { AssistanceRequest } from '@/lib/dao/interfaces';
 import * as Location from 'expo-location';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Calendar, Clock, SlidersHorizontal, Video, Zap, ChevronRight } from 'lucide-react-native';
+import { Calendar, Clock, SlidersHorizontal, Video, Zap, ChevronRight, Circle, MapPin } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 // Mechanics see requests within this radius of their current location.
@@ -26,12 +26,19 @@ async function getCurrentCoords(): Promise<{ latitude: number; longitude: number
     }
 }
 
-export default function AssistFeedScreen() {
+const getTimeGreeting = (): string => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return 'GOOD MORNING';
+    if (hour >= 12 && hour < 18) return 'GOOD AFTERNOON';
+    return 'GOOD NIGHT';
+};
+
+export default function DashboardScreen() {
     const router = useRouter();
+    const { user, isLoading: isUserLoading } = useUser();
     const [filter, setFilter] = useState<AssistanceType | null>(null);
     const [requests, setRequests] = useState<AssistanceRequest[]>([]);
     const [isLoadingRequests, setIsLoadingRequests] = useState(true);
-    const { user, isLoading: isUserLoading } = useUser();
     const { appointments } = useAppointments();
     const { lastMessage } = useSocket();
 
@@ -96,7 +103,302 @@ export default function AssistFeedScreen() {
         }
     }, [isUserLoading, user]);
 
-    if (isUserLoading || (isLoadingRequests && requests.length === 0)) {
+    if (isUserLoading) {
+        return (
+            <View className="flex-1 bg-white justify-center items-center">
+                <ActivityIndicator size="large" color="#0047AB" />
+            </View>
+        );
+    }
+
+    // Dashboard for mechanics
+    if (user?.role === 'mechanic') {
+        const [mechanicStatus, setMechanicStatus] = useState<'available' | 'busy' | 'offline'>('available');
+        const [mechanicRequests, setMechanicRequests] = useState<any[]>([]);
+        const [isLoadingMechanicRequests, setIsLoadingMechanicRequests] = useState(true);
+
+        const loadMechanicRequests = useCallback(async () => {
+            setIsLoadingMechanicRequests(true);
+            try {
+                const exampleRequests = [
+                    {
+                        id: '1',
+                        serviceType: 'Video Call Assistance',
+                        location: 'Hollywood, FL',
+                        distance: '1.3',
+                        timeAgo: '32 min ago',
+                        price: '$45',
+                        vehicle: 'Ford F-150 2019',
+                        issue: 'Dashboard warning light',
+                        status: 'pending',
+                        iconType: 'video',
+                        badge: null,
+                    },
+                    {
+                        id: '2',
+                        serviceType: 'Immediate Assistance',
+                        location: 'Weston, FL',
+                        distance: '2.2',
+                        timeAgo: '3 min ago',
+                        price: '$150',
+                        vehicle: 'Honda Accord 2022',
+                        issue: "Won't start",
+                        status: 'offered',
+                        iconType: 'urgent',
+                        badge: 'URGENT',
+                    },
+                    {
+                        id: '3',
+                        serviceType: 'Immediate Assistance',
+                        location: 'Pembroke Pines, FL',
+                        distance: '3.4',
+                        timeAgo: '52 min ago',
+                        price: '$180',
+                        vehicle: 'Nissan Altima 2018',
+                        issue: 'Flat tire',
+                        status: 'pending',
+                        iconType: 'urgent',
+                        badge: 'URGENT',
+                    },
+                ];
+                setMechanicRequests(exampleRequests);
+            } catch (error) {
+                console.error('Failed to load mechanic requests', error);
+            } finally {
+                setIsLoadingMechanicRequests(false);
+            }
+        }, []);
+
+        useEffect(() => {
+            loadMechanicRequests();
+        }, [loadMechanicRequests]);
+
+        const getStatusColor = (status: 'available' | 'busy' | 'offline') => {
+            if (status === 'available') return '#10B981';
+            if (status === 'busy') return '#F97316';
+            return '#9CA3AF';
+        };
+
+        const statusOptions = [
+            { id: 'available', label: 'Available', color: '#10B981' },
+            { id: 'busy', label: 'Busy', color: '#F97316' },
+            { id: 'offline', label: 'Offline', color: '#9CA3AF' },
+        ];
+
+        return (
+            <ScrollView className="flex-1" style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ paddingBottom: 40 }}>
+                <View className="px-6 pt-4">
+                    {/* Section Badge */}
+                    <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+                        <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+                        <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+                            {getTimeGreeting()}
+                        </Text>
+                    </View>
+
+                    {/* Title */}
+                    <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
+                        Ready to work{user?.name ? `, ${user.name.split(' ')[0]}` : ''}
+                    </Text>
+
+                    {/* Subtitle */}
+                    <Text className="text-gray-500 font-outfit-regular text-base mb-8">
+                        Set your status and review new requests in your area
+                    </Text>
+
+                    {/* Status Card */}
+                    <View className="bg-white rounded-3xl p-6 mb-8" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 8, elevation: 6 }}>
+                        {/* Header with Live Badge */}
+                        <View className="flex-row items-center justify-between mb-6">
+                            <Text className="text-gray-900 font-outfit-bold text-xl">
+                                Available to provide services
+                            </Text>
+                            <View className="flex-row items-center gap-2 px-3 py-1.5 rounded-full" style={{ backgroundColor: '#D1FAE5' }}>
+                                <Circle size={8} color="#10B981" fill="#10B981" />
+                                <Text className="text-emerald-600 font-outfit-semibold text-xs">
+                                    LIVE
+                                </Text>
+                            </View>
+                        </View>
+
+                        {/* Status Selector */}
+                        <View className="flex-row gap-2 mb-6 bg-gray-100 p-1.5 rounded-2xl">
+                            {statusOptions.map((option) => (
+                                <TouchableOpacity
+                                    key={option.id}
+                                    onPress={() => setMechanicStatus(option.id as 'available' | 'busy' | 'offline')}
+                                    className="flex-1 py-2.5 rounded-xl flex-row items-center justify-center gap-2"
+                                    style={{
+                                        backgroundColor: mechanicStatus === option.id ? 'white' : 'transparent',
+                                    }}
+                                >
+                                    <View
+                                        className="w-2 h-2 rounded-full"
+                                        style={{ backgroundColor: option.color }}
+                                    />
+                                    <Text
+                                        className="font-outfit-semibold text-sm"
+                                        style={{
+                                            color: mechanicStatus === option.id ? '#1F2937' : '#6B7280',
+                                        }}
+                                    >
+                                        {option.label}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+
+                        {/* Description Text */}
+                        <Text className="text-gray-600 font-outfit-regular text-sm">
+                            {mechanicStatus === 'available' && 'You are visible to nearby owners and can receive new requests.'}
+                            {mechanicStatus === 'busy' && 'You are visible to nearby owners but won\'t receive new requests.'}
+                            {mechanicStatus === 'offline' && 'You are not visible to nearby owners and won\'t receive requests.'}
+                        </Text>
+                    </View>
+
+                    {mechanicStatus !== 'offline' && (
+                        <>
+                            {/* New Requests Title */}
+                            <Text className="text-gray-900 font-outfit-bold text-lg mt-2 mb-4">
+                                New requests in your area
+                            </Text>
+
+                            {/* Requests List */}
+                            {isLoadingMechanicRequests ? (
+                                <View className="items-center justify-center py-8">
+                                    <ActivityIndicator size="large" color="#0047AB" />
+                                </View>
+                            ) : (
+                        <View className="gap-4">
+                            {mechanicRequests.map((request) => {
+                                const iconBgColor = request.iconType === 'urgent' ? '#FEE2E2' : '#DBEAFE';
+                                const iconColor = request.iconType === 'urgent' ? '#DC2626' : '#0047AB';
+
+                                return (
+                                    <View
+                                        key={request.id}
+                                        style={{
+                                            shadowColor: '#000',
+                                            shadowOffset: { width: 0, height: 4 },
+                                            shadowOpacity: 0.12,
+                                            shadowRadius: 8,
+                                            elevation: 6,
+                                            marginBottom: 4,
+                                        }}
+                                    >
+                                        <View className="bg-white rounded-3xl">
+                                            {/* Top Section */}
+                                            <View className="p-6 pb-4">
+                                                <View className="flex-row gap-4">
+                                                    {/* Icon */}
+                                                    <View
+                                                        className="w-16 h-16 rounded-2xl items-center justify-center"
+                                                        style={{ backgroundColor: iconBgColor }}
+                                                    >
+                                                        {request.iconType === 'video' ? (
+                                                            <Video size={32} color={iconColor} />
+                                                        ) : (
+                                                            <Zap size={32} color={iconColor} />
+                                                        )}
+                                                    </View>
+
+                                                    {/* Content */}
+                                                    <View className="flex-1">
+                                                        {/* First Row: Service Type and Time */}
+                                                        <View className="flex-row items-center justify-between mb-2">
+                                                            <View className="flex-1 pr-2">
+                                                                <Text className="text-gray-900 font-outfit-bold text-base">
+                                                                    {request.serviceType}
+                                                                </Text>
+                                                                {request.badge && (
+                                                                    <Text className="text-red-600 font-outfit-bold text-xs tracking-widest">
+                                                                        {request.badge}
+                                                                    </Text>
+                                                                )}
+                                                            </View>
+                                                            <Text className="text-gray-400 font-outfit-regular text-xs">
+                                                                {request.timeAgo}
+                                                            </Text>
+                                                        </View>
+
+                                                        {/* Second Row: Location and Price */}
+                                                        <View className="flex-row items-center justify-between">
+                                                            <View className="flex-row items-center gap-1 flex-1">
+                                                                <MapPin size={14} color="#9CA3AF" />
+                                                                <Text className="text-gray-600 font-outfit-regular text-xs">
+                                                                    {request.location} · {request.distance} Km
+                                                                </Text>
+                                                            </View>
+                                                            <Text className="text-gray-900 font-outfit-bold text-lg ml-2">
+                                                                {request.price}
+                                                            </Text>
+                                                        </View>
+                                                    </View>
+                                                </View>
+
+                                                {/* Vehicle Badge */}
+                                                <View className="mt-5 mb-2 p-3 rounded-xl" style={{ backgroundColor: '#F4F8FF' }}>
+                                                    <Text className="text-gray-900 font-outfit-semibold text-sm">
+                                                        {request.vehicle}
+                                                    </Text>
+                                                </View>
+
+                                                {/* Issue */}
+                                                <View>
+                                                    <Text className="text-gray-500 font-outfit-regular text-sm">
+                                                        · {request.issue}
+                                                    </Text>
+                                                </View>
+                                            </View>
+
+                                            {/* Buttons Section */}
+                                            <View className="flex-row px-6 pb-6 gap-3">
+                                                <TouchableOpacity
+                                                    style={{ flex: 0.35 }}
+                                                    className="py-3 rounded-2xl border border-gray-300 items-center"
+                                                    activeOpacity={0.8}
+                                                >
+                                                    <Text className="text-gray-600 font-outfit-semibold text-lg">
+                                                        Decline
+                                                    </Text>
+                                                </TouchableOpacity>
+                                                <TouchableOpacity
+                                                    style={{ flex: 0.65 }}
+                                                    onPress={() => router.push(`/dashboard/${request.id}`)}
+                                                    activeOpacity={0.8}
+                                                >
+                                                    <LinearGradient
+                                                        colors={['#2B66F8', '#081E72']}
+                                                        start={{ x: 0, y: 1 }}
+                                                        end={{ x: 1, y: 0 }}
+                                                        style={{
+                                                            borderRadius: 16,
+                                                            paddingVertical: 12,
+                                                            paddingHorizontal: 16,
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                        }}
+                                                    >
+                                                        <Text className="text-white font-outfit-semibold text-lg">
+                                                            Accept request
+                                                        </Text>
+                                                    </LinearGradient>
+                                                </TouchableOpacity>
+                                            </View>
+                                        </View>
+                                    </View>
+                                );
+                            })}
+                            </View>
+                        )}
+                        </>
+                    )}
+                </View>
+            </ScrollView>
+        );
+    }
+
+    if (isLoadingRequests && requests.length === 0) {
         return (
             <View className="flex-1 bg-white justify-center items-center">
                 <ActivityIndicator size="large" color="#0047AB" />
