@@ -83,13 +83,23 @@ export default function AssistanceRequestsScreen() {
   }, [requests]);
 
   const filteredRequests = useMemo(() => {
-    return requests.filter((req) =>
-      req.serviceType.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      req.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      req.vehicle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      req.issue.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [requests, searchQuery]);
+    return requests.filter((req) => {
+      // Filter by search query
+      const matchesSearch =
+        req.serviceType.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        req.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        req.vehicle.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        req.issue.toLowerCase().includes(searchQuery.toLowerCase());
+
+      // Filter by selected service type
+      if (selectedFilter !== 'all') {
+        const matchesFilter = req.serviceType.toLowerCase().replace(/\s+/g, '-') === selectedFilter;
+        return matchesSearch && matchesFilter;
+      }
+
+      return matchesSearch;
+    });
+  }, [requests, searchQuery, selectedFilter]);
 
   if (userLoading || appointmentsLoading) {
     return (

@@ -22,6 +22,7 @@ export default function ProfileScreen() {
   const [language, setLanguage] = useState<'en' | 'es'>('en');
   const [localProfileUri, setLocalProfileUri] = useState<string | null>(null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [mechanicStatus, setMechanicStatus] = useState<'available' | 'busy' | 'offline'>(isOnline ? 'available' : 'offline');
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -178,19 +179,41 @@ export default function ProfileScreen() {
         {user.role === 'mechanic' && (
         <View className="mb-8">
           <Text className="text-gray-900 font-outfit-medium mb-3">Available to provide services</Text>
-          <View className="flex-row bg-gray-50 p-1 rounded-xl border border-gray-200">
-            <TouchableOpacity
-              className={`flex-1 py-3 rounded-lg items-center ${isOnline ? 'bg-green-500' : 'bg-transparent'}`}
-              onPress={() => !isOnline && handleStatusToggle(true)}
-            >
-              <Text className={`font-outfit-bold ${isOnline ? 'text-white' : 'text-gray-500'}`}>On-Line</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              className={`flex-1 py-3 rounded-lg items-center ${!isOnline ? 'bg-white shadow-sm' : 'bg-transparent'}`}
-              onPress={() => isOnline && handleStatusToggle(false)}
-            >
-              <Text className={`font-outfit-bold ${!isOnline ? 'text-gray-900' : 'text-gray-500'}`}>Off-Line</Text>
-            </TouchableOpacity>
+          <View className="flex-row gap-2 bg-gray-100 p-1.5 rounded-2xl">
+            {[
+              { id: 'available', label: 'Available', color: '#10B981' },
+              { id: 'busy', label: 'Busy', color: '#F97316' },
+              { id: 'offline', label: 'Offline', color: '#9CA3AF' },
+            ].map((option) => (
+              <TouchableOpacity
+                key={option.id}
+                onPress={() => {
+                  setMechanicStatus(option.id as 'available' | 'busy' | 'offline');
+                  if (option.id === 'available' && !isOnline) {
+                    handleStatusToggle(true);
+                  } else if (option.id === 'offline' && isOnline) {
+                    handleStatusToggle(false);
+                  }
+                }}
+                className="flex-1 py-2.5 rounded-xl flex-row items-center justify-center gap-2"
+                style={{
+                  backgroundColor: mechanicStatus === option.id ? 'white' : 'transparent',
+                }}
+              >
+                <View
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: option.color }}
+                />
+                <Text
+                  className="font-outfit-semibold text-sm"
+                  style={{
+                    color: mechanicStatus === option.id ? '#1F2937' : '#6B7280',
+                  }}
+                >
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
       )}
@@ -210,7 +233,7 @@ export default function ProfileScreen() {
               <View className={`w-12 h-12 rounded-full ${item.color ? 'bg-red-50' : 'bg-blue-50'} justify-center items-center mr-4`}>
                 <item.icon size={24} color={item.color || '#0047AB'} />
               </View>
-              <Text className={`flex-1 font-outfit-semibold text-base ${item.color ? 'text-red-500' : 'text-gray-900'}`}>
+              <Text className={`flex-1 font-outfit-semibold text-lg ${item.color ? 'text-red-500' : 'text-gray-900'}`}>
                 {item.label}
               </Text>
               <ChevronRight size={24} color={item.color ? '#EF4444' : '#0047AB'} />

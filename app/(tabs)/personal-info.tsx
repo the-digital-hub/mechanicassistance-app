@@ -339,7 +339,7 @@ export default function PersonalInfoScreen() {
                             justifyContent: 'center',
                         }}
                     >
-                        <Text className="text-white font-outfit-bold text-center">Update Profile</Text>
+                        <Text className="text-white font-outfit-semibold text-lg text-center">Update Profile</Text>
                     </LinearGradient>
                 </TouchableOpacity>
 

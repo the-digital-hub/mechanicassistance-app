@@ -162,8 +162,7 @@ export default function EditAddressScreen() {
                             <ActivityIndicator color="white" />
                         ) : (
                             <>
-                                <Text className="text-white font-outfit-bold text-center mr-2">Save Address</Text>
-                                <ChevronRight size={20} color="white" />
+                                <Text className="text-white font-outfit-semibold text-lg text-center">Save Address</Text>
                             </>
                         )}
                     </LinearGradient>

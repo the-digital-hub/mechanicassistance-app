@@ -109,8 +109,7 @@ export default function PaymentsScreen() {
                         justifyContent: 'center',
                     }}
                 >
-                    <Text className="text-white font-outfit-bold text-center mr-2">Save</Text>
-                    <ChevronRight size={20} color="white" />
+                    <Text className="text-white font-outfit-semibold text-lg text-center">Save</Text>
                 </LinearGradient>
             </TouchableOpacity>
         </ScrollView>

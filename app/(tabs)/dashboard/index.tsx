@@ -41,6 +41,9 @@ export default function DashboardScreen() {
     const [isLoadingRequests, setIsLoadingRequests] = useState(true);
     const { appointments } = useAppointments();
     const { lastMessage } = useSocket();
+    const [mechanicStatus, setMechanicStatus] = useState<'available' | 'busy' | 'offline'>('available');
+    const [mechanicRequests, setMechanicRequests] = useState<any[]>([]);
+    const [isLoadingMechanicRequests, setIsLoadingMechanicRequests] = useState(true);
 
     const loadRequests = async () => {
         if (!user?.id) {
@@ -113,10 +116,6 @@ export default function DashboardScreen() {
 
     // Dashboard for mechanics
     if (user?.role === 'mechanic') {
-        const [mechanicStatus, setMechanicStatus] = useState<'available' | 'busy' | 'offline'>('available');
-        const [mechanicRequests, setMechanicRequests] = useState<any[]>([]);
-        const [isLoadingMechanicRequests, setIsLoadingMechanicRequests] = useState(true);
-
         const loadMechanicRequests = useCallback(async () => {
             setIsLoadingMechanicRequests(true);
             try {
@@ -208,17 +207,11 @@ export default function DashboardScreen() {
 
                     {/* Status Card */}
                     <View className="bg-white rounded-3xl p-6 mb-8" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 8, elevation: 6 }}>
-                        {/* Header with Live Badge */}
-                        <View className="flex-row items-center justify-between mb-6">
+                        {/* Header */}
+                        <View className="mb-6">
                             <Text className="text-gray-900 font-outfit-bold text-xl">
                                 Available to provide services
                             </Text>
-                            <View className="flex-row items-center gap-2 px-3 py-1.5 rounded-full" style={{ backgroundColor: '#D1FAE5' }}>
-                                <Circle size={8} color="#10B981" fill="#10B981" />
-                                <Text className="text-emerald-600 font-outfit-semibold text-xs">
-                                    LIVE
-                                </Text>
-                            </View>
                         </View>
 
                         {/* Status Selector */}

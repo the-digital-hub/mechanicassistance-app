@@ -85,8 +85,7 @@ export default function PrivacyScreen() {
                             <ActivityIndicator color="white" />
                         ) : (
                             <>
-                                <Text className="text-white font-outfit-bold text-center mr-2">Accept</Text>
-                                <ChevronRight size={20} color="white" />
+                                <Text className="text-white font-outfit-semibold text-lg text-center">Accept</Text>
                             </>
                         )}
                     </LinearGradient>

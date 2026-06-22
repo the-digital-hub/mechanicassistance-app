@@ -99,8 +99,7 @@ export default function AddressesScreen() {
                                 }}
                             >
                                 <Plus size={20} color="white" />
-                                <Text className="text-white font-outfit-bold text-center ml-2">Add New Address</Text>
-                                <ChevronRight size={20} color="white" />
+                                <Text className="text-white font-outfit-semibold text-lg text-center ml-2">Add New Address</Text>
                             </LinearGradient>
                         </TouchableOpacity>
                     </>
@@ -134,8 +133,7 @@ export default function AddressesScreen() {
                                 }}
                             >
                                 <Plus size={20} color="white" />
-                                <Text className="text-white font-outfit-bold text-center ml-2">Add New Address</Text>
-                                <ChevronRight size={20} color="white" />
+                                <Text className="text-white font-outfit-semibold text-lg text-center ml-2">Add New Address</Text>
                             </LinearGradient>
                         </TouchableOpacity>
                     </>
