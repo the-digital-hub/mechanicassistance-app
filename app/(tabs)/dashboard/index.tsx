@@ -100,11 +100,69 @@ export default function DashboardScreen() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastMessage]);
 
+    const loadMechanicRequests = useCallback(async () => {
+        setIsLoadingMechanicRequests(true);
+        try {
+            const exampleRequests = [
+                {
+                    id: '1',
+                    serviceType: 'Video Call Assistance',
+                    location: 'Hollywood, FL',
+                    distance: '1.3',
+                    timeAgo: '32 min ago',
+                    price: '$45',
+                    vehicle: 'Ford F-150 2019',
+                    issue: 'Dashboard warning light',
+                    status: 'pending',
+                    iconType: 'video',
+                    badge: null,
+                },
+                {
+                    id: '2',
+                    serviceType: 'Immediate Assistance',
+                    location: 'Weston, FL',
+                    distance: '2.2',
+                    timeAgo: '3 min ago',
+                    price: '$150',
+                    vehicle: 'Honda Accord 2022',
+                    issue: "Won't start",
+                    status: 'offered',
+                    iconType: 'urgent',
+                    badge: 'URGENT',
+                },
+                {
+                    id: '3',
+                    serviceType: 'Immediate Assistance',
+                    location: 'Pembroke Pines, FL',
+                    distance: '3.4',
+                    timeAgo: '52 min ago',
+                    price: '$180',
+                    vehicle: 'Nissan Altima 2018',
+                    issue: 'Flat tire',
+                    status: 'pending',
+                    iconType: 'urgent',
+                    badge: 'URGENT',
+                },
+            ];
+            setMechanicRequests(exampleRequests);
+        } catch (error) {
+            console.error('Failed to load mechanic requests', error);
+        } finally {
+            setIsLoadingMechanicRequests(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (user?.role === 'mechanic') {
+            loadMechanicRequests();
+        }
+    }, [loadMechanicRequests, user?.role]);
+
     useEffect(() => {
         if (!isUserLoading && !user) {
             router.replace('/login');
         }
-    }, [isUserLoading, user]);
+    }, [isUserLoading, user, router]);
 
     if (isUserLoading) {
         return (
@@ -116,62 +174,6 @@ export default function DashboardScreen() {
 
     // Dashboard for mechanics
     if (user?.role === 'mechanic') {
-        const loadMechanicRequests = useCallback(async () => {
-            setIsLoadingMechanicRequests(true);
-            try {
-                const exampleRequests = [
-                    {
-                        id: '1',
-                        serviceType: 'Video Call Assistance',
-                        location: 'Hollywood, FL',
-                        distance: '1.3',
-                        timeAgo: '32 min ago',
-                        price: '$45',
-                        vehicle: 'Ford F-150 2019',
-                        issue: 'Dashboard warning light',
-                        status: 'pending',
-                        iconType: 'video',
-                        badge: null,
-                    },
-                    {
-                        id: '2',
-                        serviceType: 'Immediate Assistance',
-                        location: 'Weston, FL',
-                        distance: '2.2',
-                        timeAgo: '3 min ago',
-                        price: '$150',
-                        vehicle: 'Honda Accord 2022',
-                        issue: "Won't start",
-                        status: 'offered',
-                        iconType: 'urgent',
-                        badge: 'URGENT',
-                    },
-                    {
-                        id: '3',
-                        serviceType: 'Immediate Assistance',
-                        location: 'Pembroke Pines, FL',
-                        distance: '3.4',
-                        timeAgo: '52 min ago',
-                        price: '$180',
-                        vehicle: 'Nissan Altima 2018',
-                        issue: 'Flat tire',
-                        status: 'pending',
-                        iconType: 'urgent',
-                        badge: 'URGENT',
-                    },
-                ];
-                setMechanicRequests(exampleRequests);
-            } catch (error) {
-                console.error('Failed to load mechanic requests', error);
-            } finally {
-                setIsLoadingMechanicRequests(false);
-            }
-        }, []);
-
-        useEffect(() => {
-            loadMechanicRequests();
-        }, [loadMechanicRequests]);
-
         const getStatusColor = (status: 'available' | 'busy' | 'offline') => {
             if (status === 'available') return '#10B981';
             if (status === 'busy') return '#F97316';

@@ -51,33 +51,7 @@ export default function ProfileScreen() {
     if (!isLoading && !user) {
       router.replace('/login');
     }
-  }, [isLoading, user]);
-
-  if (isLoading || !user) {
-    return (
-      <View className="flex-1 bg-white justify-center items-center">
-        <ActivityIndicator size="large" color="#0047AB" />
-      </View>
-    );
-  }
-
-  // Menu Items Configuration - Safe to access user.role here
-  const menuItems = [
-    { icon: User, label: 'Personal information', route: '/personal-info' },
-    { icon: MapPin, label: 'My Addresses', route: '/addresses' },
-    ...(user.role?.toLowerCase().trim() !== 'mechanic' ? [
-      { icon: Car || User, label: 'My Vehicles', route: '/vehicles' },
-    ] : []),
-    ...(user.role === 'mechanic' ? [
-      { icon: Award, label: 'ASE Certifications', route: '/ase' },
-      { icon: CreditCard, label: 'Bank Account / payments', route: '/payments' },
-      { icon: Heart, label: 'Promotions', route: '/promotions' },
-    ] : []),
-    { icon: HelpCircle, label: 'Help Center', route: '/help' },
-    { icon: Lock, label: 'Privacy Policy', route: '/privacy' },
-    { icon: Settings, label: 'Settings', route: '/settings' },
-    { icon: LogOut, label: 'Log out', action: () => setShowLogoutModal(true), color: '#EF4444' }, // Red color for logout
-  ];
+  }, [isLoading, user, router]);
 
   const handleStatusToggle = (targetStatus: boolean) => {
     if (targetStatus) {
@@ -122,6 +96,11 @@ export default function ProfileScreen() {
 
   return (
     <View className="flex-1 px-6 pt-4" style={{ backgroundColor: '#F6F8FC' }}>
+      {isLoading || !user ? (
+        <View className="flex-1 justify-center items-center">
+          <ActivityIndicator size="large" color="#0047AB" />
+        </View>
+      ) : (
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Section Badge */}
         <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
@@ -219,6 +198,24 @@ export default function ProfileScreen() {
       )}
 
         {/* Menu Items Card */}
+        {(() => {
+          const menuItems = [
+            { icon: User, label: 'Personal information', route: '/personal-info' },
+            { icon: MapPin, label: 'My Addresses', route: '/addresses' },
+            ...(user.role?.toLowerCase().trim() !== 'mechanic' ? [
+              { icon: Car || User, label: 'My Vehicles', route: '/vehicles' },
+            ] : []),
+            ...(user.role === 'mechanic' ? [
+              { icon: Award, label: 'ASE Certifications', route: '/ase' },
+              { icon: CreditCard, label: 'Bank Account / payments', route: '/payments' },
+              { icon: Heart, label: 'Promotions', route: '/promotions' },
+            ] : []),
+            { icon: HelpCircle, label: 'Help Center', route: '/help' },
+            { icon: Lock, label: 'Privacy Policy', route: '/privacy' },
+            { icon: Settings, label: 'Settings', route: '/settings' },
+            { icon: LogOut, label: 'Log out', action: () => setShowLogoutModal(true), color: '#EF4444' },
+          ];
+          return (
         <View className="mb-6" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 10, elevation: 5 }}>
           <View className="bg-white rounded-3xl overflow-hidden">
             {menuItems.map((item, index) => (
@@ -241,6 +238,8 @@ export default function ProfileScreen() {
             ))}
           </View>
         </View>
+          );
+        })()}
 
         {/* Language Selector Card */}
         <View className="bg-white rounded-3xl p-6" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 10, elevation: 5 }}>
@@ -367,6 +366,7 @@ export default function ProfileScreen() {
         cancelText="No"
       />
       </ScrollView>
+      )}
     </View>
   );
 }
