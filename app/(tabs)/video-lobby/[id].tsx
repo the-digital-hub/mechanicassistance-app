@@ -274,7 +274,7 @@ export default function VideoLobbyScreen() {
             {/* Room will expire notice */}
             <View style={styles.footer}>
                 <Text style={styles.footerText}>
-                    Video calls are limited to 5 minutes for testing purposes.
+                    Video calls are available for up to 30 minutes.
                 </Text>
             </View>
         </View>
