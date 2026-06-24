@@ -5,9 +5,25 @@ import * as Location from 'expo-location';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Calendar, Clock, Navigation } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, Polyline } from 'react-native-maps';
+import { apiClient } from '@/lib/api/apiClient';
+
+function decodePolyline(encoded: string): { latitude: number; longitude: number }[] {
+    const points: { latitude: number; longitude: number }[] = [];
+    let index = 0, lat = 0, lng = 0;
+    while (index < encoded.length) {
+        let b: number, shift = 0, result = 0;
+        do { b = encoded.charCodeAt(index++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+        lat += result & 1 ? ~(result >> 1) : result >> 1;
+        shift = 0; result = 0;
+        do { b = encoded.charCodeAt(index++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+        lng += result & 1 ? ~(result >> 1) : result >> 1;
+        points.push({ latitude: lat / 1e5, longitude: lng / 1e5 });
+    }
+    return points;
+}
 
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
     const R = 6371;
@@ -43,6 +59,9 @@ export default function AssistDetailScreen() {
     const [showNotification, setShowNotification] = useState(false);
     const [etaText, setEtaText] = useState<string | null>(null);
     const [distKm, setDistKm] = useState<number | null>(null);
+    const [mechanicCoords, setMechanicCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+    const [routePolyline, setRoutePolyline] = useState<string | null>(null);
+    const mapRef = useRef<MapView | null>(null);
 
     // Selection States
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -54,7 +73,17 @@ export default function AssistDetailScreen() {
     const DATES = ['Monday, July 14', 'Tuesday, July 15', 'Wednesday, July 16'];
     const TIMES = ['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '04:00 PM'];
 
-    // Calculate distance + ETA from mechanic's current location to the request location.
+    // Re-fit map when mechanic coords become available (async after location fetch).
+    useEffect(() => {
+        if (!mechanicCoords || !hasLocation) return;
+        mapRef.current?.fitToCoordinates(
+            [{ latitude: reqLat, longitude: reqLng }, mechanicCoords],
+            { edgePadding: { top: 60, right: 60, bottom: 60, left: 60 }, animated: true },
+        );
+    }, [mechanicCoords]);
+
+    // Calculate distance + ETA from mechanic's current location to the request location,
+    // then fetch the Google Directions route polyline for the map.
     useEffect(() => {
         if (!hasLocation) return;
 
@@ -63,12 +92,21 @@ export default function AssistDetailScreen() {
                 const { status } = await Location.requestForegroundPermissionsAsync();
                 if (status !== 'granted') return;
                 const loc = await Location.getCurrentPositionAsync({});
-                const km = haversineKm(loc.coords.latitude, loc.coords.longitude, reqLat, reqLng);
+                const { latitude, longitude } = loc.coords;
+
+                const km = haversineKm(latitude, longitude, reqLat, reqLng);
                 setDistKm(km);
-                // 1.3 road-factor converts straight-line to driven distance;
-                // 25 km/h avg city speed accounts for traffic lights and turns.
                 const minutes = (km * 1.3 / 25) * 60;
                 setEtaText(formatEta(minutes));
+                setMechanicCoords({ latitude, longitude });
+
+                // Fetch route polyline from backend (Google Directions API).
+                const route: any = await apiClient.get(
+                    `/api/appointments/route?fromLat=${latitude}&fromLng=${longitude}&toLat=${reqLat}&toLng=${reqLng}`
+                ).catch(() => null);
+                if (route?.available && route?.polyline) {
+                    setRoutePolyline(route.polyline);
+                }
             } catch {
                 // no-op: ETA and distance stay null
             }
@@ -149,26 +187,50 @@ export default function AssistDetailScreen() {
                         )}
                     </View>
 
-                    {/* Client location map */}
+                    {/* Route map: client pin (red) + mechanic pin (blue) + polyline */}
                     {hasLocation && (
-                        <View className="mb-6 rounded-xl overflow-hidden" style={{ height: 180 }}>
+                        <View className="mb-6 rounded-xl overflow-hidden" style={{ height: 200 }}>
                             <MapView
+                                ref={mapRef}
                                 style={{ flex: 1 }}
                                 initialRegion={{
                                     latitude: reqLat,
                                     longitude: reqLng,
-                                    latitudeDelta: 0.01,
-                                    longitudeDelta: 0.01,
+                                    latitudeDelta: 0.05,
+                                    longitudeDelta: 0.05,
                                 }}
-                                scrollEnabled={false}
-                                zoomEnabled={false}
-                                pitchEnabled={false}
-                                rotateEnabled={false}
+                                onMapReady={() => {
+                                    const coords = [
+                                        { latitude: reqLat, longitude: reqLng },
+                                        ...(mechanicCoords ? [mechanicCoords] : []),
+                                    ];
+                                    if (coords.length >= 2) {
+                                        mapRef.current?.fitToCoordinates(coords, {
+                                            edgePadding: { top: 60, right: 60, bottom: 60, left: 60 },
+                                            animated: false,
+                                        });
+                                    }
+                                }}
                             >
                                 <Marker
                                     coordinate={{ latitude: reqLat, longitude: reqLng }}
                                     title="Client location"
+                                    pinColor="red"
                                 />
+                                {mechanicCoords && (
+                                    <Marker
+                                        coordinate={mechanicCoords}
+                                        title="Your location"
+                                        pinColor="blue"
+                                    />
+                                )}
+                                {routePolyline && (
+                                    <Polyline
+                                        coordinates={decodePolyline(routePolyline)}
+                                        strokeColor="#2563EB"
+                                        strokeWidth={4}
+                                    />
+                                )}
                             </MapView>
                         </View>
                     )}

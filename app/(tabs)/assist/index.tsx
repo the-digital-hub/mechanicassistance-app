@@ -1,107 +1,81 @@
-import { useAppointments } from '@/context/AppointmentsContext';
+import { useSocket } from '@/context/SocketContext';
 import { useUser } from '@/context/UserContext';
-import { useRouter } from 'expo-router';
-import { ChevronRight, MapPin, Phone, Search, Zap, Video } from 'lucide-react-native';
+import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
+import { AssistanceRequest } from '@/lib/dao/interfaces';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { MapPin, Search, Zap, Video } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-interface RequestCard {
-  id: string;
-  userName: string;
-  userPhone: string;
-  location: string;
-  distance: string;
-  description: string;
-  status: string;
-}
+const SERVICE_TYPE_LABEL: Record<string, string> = {
+  videocall: 'Video Call Assistance',
+  immediate: 'Immediate Assistance',
+  scheduled: 'Scheduled Assistance',
+  witness: 'Witness Assistance',
+};
 
 export default function AssistanceRequestsScreen() {
   const router = useRouter();
   const { user, isLoading: userLoading } = useUser();
-  const { appointments, isLoading: appointmentsLoading } = useAppointments();
+  const { lastMessage } = useSocket();
+  const [requests, setRequests] = useState<AssistanceRequest[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
 
-  const requestExamples = [
-    {
-      id: '1',
-      serviceType: 'Video Call Assistance',
-      location: 'Hollywood, FL',
-      distance: '1.3',
-      timeAgo: '32 min ago',
-      price: '$45',
-      vehicle: 'Ford F-150 2019',
-      issue: 'Dashboard warning light',
-      status: 'pending',
-      iconType: 'video',
-      badge: null,
-    },
-    {
-      id: '2',
-      serviceType: 'Immediate Assistance',
-      location: 'Weston, FL',
-      distance: '2.2',
-      timeAgo: '3 min ago',
-      price: '$150',
-      vehicle: 'Honda Accord 2022',
-      issue: "Won't start",
-      status: 'offered',
-      iconType: 'urgent',
-      badge: 'URGENT',
-    },
-    {
-      id: '3',
-      serviceType: 'Immediate Assistance',
-      location: 'Pembroke Pines, FL',
-      distance: '3.4',
-      timeAgo: '52 min ago',
-      price: '$180',
-      vehicle: 'Nissan Altima 2018',
-      issue: 'Flat tire',
-      status: 'pending',
-      iconType: 'urgent',
-      badge: 'URGENT',
-    },
-  ];
+  const loadRequests = useCallback(async () => {
+    if (!user?.id) return;
+    setIsLoading(true);
+    try {
+      const data = await assistanceDAO.getAll({ status: 'pending' });
+      setRequests(data);
+    } catch (e) {
+      console.error('Failed to load assistance requests', e);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user?.id]);
 
-  const requests = useMemo(() => {
-    return requestExamples.map((req) => req);
-  }, []);
+  useFocusEffect(useCallback(() => { loadRequests(); }, [loadRequests]));
+
+  useEffect(() => {
+    if (!lastMessage) return;
+    if (['new_request', 'assistance_update', 'appointment_update'].includes(lastMessage.type)) {
+      loadRequests();
+    }
+  }, [lastMessage]);
 
   const filterTabs = useMemo(() => {
-    const uniqueServices = [...new Set(requests.map((req) => req.serviceType))];
-    const tabs = [
+    const uniqueTypes = [...new Set(requests.map((req) => req.type))];
+    return [
       { id: 'all', label: 'All', count: requests.length },
-      ...uniqueServices.map((service) => ({
-        id: service.toLowerCase().replace(/\s+/g, '-'),
-        label: service,
-        count: requests.filter((req) => req.serviceType === service).length,
+      ...uniqueTypes.map((type) => ({
+        id: type,
+        label: SERVICE_TYPE_LABEL[type] ?? type,
+        count: requests.filter((req) => req.type === type).length,
       })),
     ];
-    return tabs;
   }, [requests]);
 
   const filteredRequests = useMemo(() => {
     return requests.filter((req) => {
-      // Filter by search query
+      const serviceLabel = SERVICE_TYPE_LABEL[req.type] ?? req.type;
       const matchesSearch =
-        req.serviceType.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        req.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        req.vehicle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        req.issue.toLowerCase().includes(searchQuery.toLowerCase());
+        serviceLabel.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (req.address ?? '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (req.car ?? '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (req.notes ?? '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (req.title ?? '').toLowerCase().includes(searchQuery.toLowerCase());
 
-      // Filter by selected service type
       if (selectedFilter !== 'all') {
-        const matchesFilter = req.serviceType.toLowerCase().replace(/\s+/g, '-') === selectedFilter;
-        return matchesSearch && matchesFilter;
+        return matchesSearch && req.type === selectedFilter;
       }
-
       return matchesSearch;
     });
   }, [requests, searchQuery, selectedFilter]);
 
-  if (userLoading || appointmentsLoading) {
+  if (userLoading || isLoading) {
     return (
       <View className="flex-1 bg-white justify-center items-center">
         <ActivityIndicator size="large" color="#0047AB" />
@@ -172,11 +146,18 @@ export default function AssistanceRequestsScreen() {
           </View>
         </ScrollView>
 
-        {filteredRequests.length > 0 && (
+        {filteredRequests.length === 0 ? (
+          <View className="items-center justify-center py-12">
+            <Text className="text-gray-400 font-outfit-regular text-base">No pending requests in your area</Text>
+          </View>
+        ) : (
           <View className="gap-4">
             {filteredRequests.map((request) => {
-              const iconBgColor = request.iconType === 'urgent' ? '#FEE2E2' : '#DBEAFE';
-              const iconColor = request.iconType === 'urgent' ? '#DC2626' : '#0047AB';
+              const iconType = request.type === 'videocall' ? 'video' : 'urgent';
+              const iconBgColor = iconType === 'urgent' ? '#FEE2E2' : '#DBEAFE';
+              const iconColor = iconType === 'urgent' ? '#DC2626' : '#0047AB';
+              const serviceTypeLabel = SERVICE_TYPE_LABEL[request.type] ?? request.type;
+              const badge = request.type === 'immediate' ? 'URGENT' : null;
 
               return (
                 <View
@@ -192,104 +173,112 @@ export default function AssistanceRequestsScreen() {
                 >
                   <View className="bg-white rounded-3xl overflow-hidden">
                     {/* Top Section */}
-                  <View className="p-6 pb-4">
-                    <View className="flex-row gap-4">
-                      {/* Icon spanning two rows */}
-                      <View
-                        className="w-16 h-16 rounded-2xl items-center justify-center"
-                        style={{ backgroundColor: iconBgColor }}
-                      >
-                        {request.iconType === 'video' ? (
-                          <Video size={32} color={iconColor} />
-                        ) : (
-                          <Zap size={32} color={iconColor} />
-                        )}
-                      </View>
+                    <View className="p-6 pb-4">
+                      <View className="flex-row gap-4">
+                        <View
+                          className="w-16 h-16 rounded-2xl items-center justify-center"
+                          style={{ backgroundColor: iconBgColor }}
+                        >
+                          {iconType === 'video' ? (
+                            <Video size={32} color={iconColor} />
+                          ) : (
+                            <Zap size={32} color={iconColor} />
+                          )}
+                        </View>
 
-                      {/* Right side content */}
-                      <View className="flex-1">
-                        {/* First Row: Service Type and Time */}
-                        <View className="flex-row items-center justify-between mb-2">
-                          <View className="flex-1 pr-2">
-                            <Text className="text-gray-900 font-outfit-bold text-lg">
-                              {request.serviceType}
-                            </Text>
-                            {request.badge && (
-                              <Text className="text-red-600 font-outfit-bold text-xs tracking-widest">
-                                {request.badge}
+                        <View className="flex-1">
+                          <View className="flex-row items-center justify-between mb-2">
+                            <View className="flex-1 pr-2">
+                              <Text className="text-gray-900 font-outfit-bold text-lg">
+                                {serviceTypeLabel}
                               </Text>
-                            )}
+                              {badge && (
+                                <Text className="text-red-600 font-outfit-bold text-xs tracking-widest">
+                                  {badge}
+                                </Text>
+                              )}
+                            </View>
                           </View>
-                          <Text className="text-gray-400 font-outfit-regular text-xs">
-                            {request.timeAgo}
-                          </Text>
-                        </View>
 
-                        {/* Second Row: Location and Price */}
-                        <View className="flex-row items-center justify-between">
-                          <View className="flex-row items-center gap-1 flex-1">
-                            <MapPin size={14} color="#9CA3AF" />
-                            <Text className="text-gray-600 font-outfit-regular text-sm">
-                              {request.location} · {request.distance} Km
+                          <View className="flex-row items-center justify-between">
+                            <View className="flex-row items-center gap-1 flex-1">
+                              <MapPin size={14} color="#9CA3AF" />
+                              <Text className="text-gray-600 font-outfit-regular text-sm">
+                                {request.address}{request.distance ? ` · ${request.distance} Km` : ''}
+                              </Text>
+                            </View>
+                            <Text className="text-gray-900 font-outfit-bold text-lg ml-2">
+                              {request.budget}
                             </Text>
                           </View>
-                          <Text className="text-gray-900 font-outfit-bold text-lg ml-2">
-                            {request.price}
-                          </Text>
                         </View>
+                      </View>
+
+                      {/* Vehicle Badge */}
+                      <View className="mt-5 mb-2 p-3 rounded-xl" style={{ backgroundColor: '#F4F8FF' }}>
+                        <Text className="text-gray-900 font-outfit-semibold text-sm">
+                          {request.car}
+                        </Text>
+                      </View>
+
+                      {/* Issue */}
+                      <View>
+                        <Text className="text-gray-500 font-outfit-regular text-sm">
+                          · {request.notes || request.title}
+                        </Text>
                       </View>
                     </View>
 
-                    {/* Vehicle Badge */}
-                    <View className="mt-5 mb-2 p-3 rounded-xl" style={{ backgroundColor: '#F4F8FF' }}>
-                      <Text className="text-gray-900 font-outfit-semibold text-sm">
-                        {request.vehicle}
-                      </Text>
-                    </View>
-
-                    {/* Issue */}
-                    <View>
-                      <Text className="text-gray-500 font-outfit-regular text-sm">
-                        · {request.issue}
-                      </Text>
-                    </View>
-                  </View>
-
-                  {/* Buttons Section */}
-                  <View className="flex-row px-6 pb-6 gap-3">
-                    <TouchableOpacity
-                      style={{ flex: 0.35 }}
-                      className="py-3 rounded-2xl border border-gray-300 items-center"
-                      activeOpacity={0.8}
-                    >
-                      <Text className="text-gray-600 font-outfit-semibold text-lg">
-                        Decline
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={{ flex: 0.65 }}
-                      onPress={() => router.push(`/appointments/${request.id}`)}
-                      activeOpacity={0.8}
-                    >
-                      <LinearGradient
-                        colors={['#2B66F8', '#081E72']}
-                        start={{ x: 0, y: 1 }}
-                        end={{ x: 1, y: 0 }}
-                        style={{
-                          borderRadius: 16,
-                          paddingVertical: 12,
-                          paddingHorizontal: 16,
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
+                    {/* Buttons Section */}
+                    <View className="flex-row px-6 pb-6 gap-3">
+                      <TouchableOpacity
+                        style={{ flex: 0.35 }}
+                        className="py-3 rounded-2xl border border-gray-300 items-center"
+                        activeOpacity={0.8}
                       >
-                        <Text className="text-white font-outfit-semibold text-lg">
-                          Accept request
+                        <Text className="text-gray-600 font-outfit-semibold text-lg">
+                          Decline
                         </Text>
-                      </LinearGradient>
-                    </TouchableOpacity>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={{ flex: 0.65 }}
+                        onPress={() => router.push({
+                          pathname: `/dashboard/${request.id}` as any,
+                          params: {
+                            type: request.type,
+                            assistanceType: request.assistanceType || '',
+                            title: request.title,
+                            car: request.car,
+                            address: request.address,
+                            budget: request.budget,
+                            distance: request.distance || '',
+                            userId: request.userId || '',
+                            zip: request.zip || '',
+                            locationLat: request.locationLat ?? '',
+                            locationLng: request.locationLng ?? '',
+                          }
+                        })}
+                        activeOpacity={0.8}
+                      >
+                        <LinearGradient
+                          colors={['#2B66F8', '#081E72']}
+                          start={{ x: 0, y: 1 }}
+                          end={{ x: 1, y: 0 }}
+                          style={{
+                            borderRadius: 16,
+                            paddingVertical: 12,
+                            paddingHorizontal: 16,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <Text className="text-white font-outfit-semibold text-lg">
+                            Accept request
+                          </Text>
+                        </LinearGradient>
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                </View>
                 </View>
               );
             })}

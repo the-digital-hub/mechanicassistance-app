@@ -6,7 +6,7 @@ import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { AssistanceRequest } from '@/lib/dao/interfaces';
 import * as Location from 'expo-location';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Calendar, Clock, SlidersHorizontal, Video, Zap, ChevronRight, Circle, MapPin } from 'lucide-react-native';
+import { Calendar, Video, Zap, MapPin } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -42,8 +42,6 @@ export default function DashboardScreen() {
     const { appointments } = useAppointments();
     const { lastMessage } = useSocket();
     const [mechanicStatus, setMechanicStatus] = useState<'available' | 'busy' | 'offline'>('available');
-    const [mechanicRequests, setMechanicRequests] = useState<any[]>([]);
-    const [isLoadingMechanicRequests, setIsLoadingMechanicRequests] = useState(true);
 
     const loadRequests = async () => {
         if (!user?.id) {
@@ -100,64 +98,6 @@ export default function DashboardScreen() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastMessage]);
 
-    const loadMechanicRequests = useCallback(async () => {
-        setIsLoadingMechanicRequests(true);
-        try {
-            const exampleRequests = [
-                {
-                    id: '1',
-                    serviceType: 'Video Call Assistance',
-                    location: 'Hollywood, FL',
-                    distance: '1.3',
-                    timeAgo: '32 min ago',
-                    price: '$45',
-                    vehicle: 'Ford F-150 2019',
-                    issue: 'Dashboard warning light',
-                    status: 'pending',
-                    iconType: 'video',
-                    badge: null,
-                },
-                {
-                    id: '2',
-                    serviceType: 'Immediate Assistance',
-                    location: 'Weston, FL',
-                    distance: '2.2',
-                    timeAgo: '3 min ago',
-                    price: '$150',
-                    vehicle: 'Honda Accord 2022',
-                    issue: "Won't start",
-                    status: 'offered',
-                    iconType: 'urgent',
-                    badge: 'URGENT',
-                },
-                {
-                    id: '3',
-                    serviceType: 'Immediate Assistance',
-                    location: 'Pembroke Pines, FL',
-                    distance: '3.4',
-                    timeAgo: '52 min ago',
-                    price: '$180',
-                    vehicle: 'Nissan Altima 2018',
-                    issue: 'Flat tire',
-                    status: 'pending',
-                    iconType: 'urgent',
-                    badge: 'URGENT',
-                },
-            ];
-            setMechanicRequests(exampleRequests);
-        } catch (error) {
-            console.error('Failed to load mechanic requests', error);
-        } finally {
-            setIsLoadingMechanicRequests(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        if (user?.role === 'mechanic') {
-            loadMechanicRequests();
-        }
-    }, [loadMechanicRequests, user?.role]);
-
     useEffect(() => {
         if (!isUserLoading && !user) {
             router.replace('/login');
@@ -174,12 +114,6 @@ export default function DashboardScreen() {
 
     // Dashboard for mechanics
     if (user?.role === 'mechanic') {
-        const getStatusColor = (status: 'available' | 'busy' | 'offline') => {
-            if (status === 'available') return '#10B981';
-            if (status === 'busy') return '#F97316';
-            return '#9CA3AF';
-        };
-
         const statusOptions = [
             { id: 'available', label: 'Available', color: '#10B981' },
             { id: 'busy', label: 'Busy', color: '#F97316' },
@@ -259,15 +193,22 @@ export default function DashboardScreen() {
                             </Text>
 
                             {/* Requests List */}
-                            {isLoadingMechanicRequests ? (
+                            {isLoadingRequests ? (
                                 <View className="items-center justify-center py-8">
                                     <ActivityIndicator size="large" color="#0047AB" />
                                 </View>
+                            ) : requests.length === 0 ? (
+                                <View className="items-center justify-center py-8">
+                                    <Text className="text-gray-400 font-outfit-regular text-base">No pending requests in your area</Text>
+                                </View>
                             ) : (
                         <View className="gap-4">
-                            {mechanicRequests.map((request) => {
-                                const iconBgColor = request.iconType === 'urgent' ? '#FEE2E2' : '#DBEAFE';
-                                const iconColor = request.iconType === 'urgent' ? '#DC2626' : '#0047AB';
+                            {requests.map((request) => {
+                                const iconType = request.type === 'videocall' ? 'video' : 'urgent';
+                                const iconBgColor = iconType === 'urgent' ? '#FEE2E2' : '#DBEAFE';
+                                const iconColor = iconType === 'urgent' ? '#DC2626' : '#0047AB';
+                                const serviceTypeLabel = request.type === 'videocall' ? 'Video Call Assistance' : request.type === 'scheduled' ? 'Scheduled Assistance' : 'Immediate Assistance';
+                                const badge = request.type === 'immediate' ? 'URGENT' : null;
 
                                 return (
                                     <View
@@ -290,7 +231,7 @@ export default function DashboardScreen() {
                                                         className="w-16 h-16 rounded-2xl items-center justify-center"
                                                         style={{ backgroundColor: iconBgColor }}
                                                     >
-                                                        {request.iconType === 'video' ? (
+                                                        {iconType === 'video' ? (
                                                             <Video size={32} color={iconColor} />
                                                         ) : (
                                                             <Zap size={32} color={iconColor} />
@@ -299,21 +240,18 @@ export default function DashboardScreen() {
 
                                                     {/* Content */}
                                                     <View className="flex-1">
-                                                        {/* First Row: Service Type and Time */}
+                                                        {/* First Row: Service Type */}
                                                         <View className="flex-row items-center justify-between mb-2">
                                                             <View className="flex-1 pr-2">
                                                                 <Text className="text-gray-900 font-outfit-bold text-base">
-                                                                    {request.serviceType}
+                                                                    {serviceTypeLabel}
                                                                 </Text>
-                                                                {request.badge && (
+                                                                {badge && (
                                                                     <Text className="text-red-600 font-outfit-bold text-xs tracking-widest">
-                                                                        {request.badge}
+                                                                        {badge}
                                                                     </Text>
                                                                 )}
                                                             </View>
-                                                            <Text className="text-gray-400 font-outfit-regular text-xs">
-                                                                {request.timeAgo}
-                                                            </Text>
                                                         </View>
 
                                                         {/* Second Row: Location and Price */}
@@ -321,11 +259,11 @@ export default function DashboardScreen() {
                                                             <View className="flex-row items-center gap-1 flex-1">
                                                                 <MapPin size={14} color="#9CA3AF" />
                                                                 <Text className="text-gray-600 font-outfit-regular text-xs">
-                                                                    {request.location} · {request.distance} Km
+                                                                    {request.address}{request.distance ? ` · ${request.distance} Km` : ''}
                                                                 </Text>
                                                             </View>
                                                             <Text className="text-gray-900 font-outfit-bold text-lg ml-2">
-                                                                {request.price}
+                                                                {request.budget}
                                                             </Text>
                                                         </View>
                                                     </View>
@@ -334,14 +272,14 @@ export default function DashboardScreen() {
                                                 {/* Vehicle Badge */}
                                                 <View className="mt-5 mb-2 p-3 rounded-xl" style={{ backgroundColor: '#F4F8FF' }}>
                                                     <Text className="text-gray-900 font-outfit-semibold text-sm">
-                                                        {request.vehicle}
+                                                        {request.car}
                                                     </Text>
                                                 </View>
 
                                                 {/* Issue */}
                                                 <View>
                                                     <Text className="text-gray-500 font-outfit-regular text-sm">
-                                                        · {request.issue}
+                                                        · {request.notes || request.title}
                                                     </Text>
                                                 </View>
                                             </View>
@@ -359,7 +297,22 @@ export default function DashboardScreen() {
                                                 </TouchableOpacity>
                                                 <TouchableOpacity
                                                     style={{ flex: 0.65 }}
-                                                    onPress={() => router.push(`/dashboard/${request.id}`)}
+                                                    onPress={() => router.push({
+                                                        pathname: `/dashboard/${request.id}` as any,
+                                                        params: {
+                                                            type: request.type,
+                                                            assistanceType: request.assistanceType || '',
+                                                            title: request.title,
+                                                            car: request.car,
+                                                            address: request.address,
+                                                            budget: request.budget,
+                                                            distance: request.distance || '',
+                                                            userId: request.userId || '',
+                                                            zip: request.zip || '',
+                                                            locationLat: request.locationLat ?? '',
+                                                            locationLng: request.locationLng ?? '',
+                                                        }
+                                                    })}
                                                     activeOpacity={0.8}
                                                 >
                                                     <LinearGradient
@@ -397,25 +350,6 @@ export default function DashboardScreen() {
         return (
             <View className="flex-1 bg-white justify-center items-center">
                 <ActivityIndicator size="large" color="#0047AB" />
-            </View>
-        );
-    }
-
-    if (user?.role === 'mechanic' && !user.isOnline) {
-        return (
-            <View className="flex-1 bg-white justify-center items-center px-6">
-                <Text className="text-lg font-outfit-semibold text-center text-gray-900 mb-4">
-                    You are currently offline
-                </Text>
-                <Text className="text-center text-gray-500 mb-6 font-outfit-medium">
-                    Please go to your Profile to go On-Line and see assistance requests.
-                </Text>
-                <TouchableOpacity
-                    className="bg-blue-600 py-3 px-6 rounded-lg"
-                    onPress={() => router.push('/(tabs)')}
-                >
-                    <Text className="text-white font-outfit-semibold">Go to Profile</Text>
-                </TouchableOpacity>
             </View>
         );
     }
