@@ -23,14 +23,30 @@ export default function AddressScreen() {
   const [showStateModal, setShowStateModal] = useState(false);
   const [searchSuggestions, setSearchSuggestions] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [homeData, setHomeData] = useState({
+  const [homeData, setHomeData] = useState<{
+    street: string;
+    apartment: string;
+    city: string;
+    state: string;
+    zip: string;
+    lat?: number;
+    lng?: number;
+  }>({
     street: "",
     apartment: "",
     city: "",
     state: "",
     zip: "",
   });
-  const [workData, setWorkData] = useState({
+  const [workData, setWorkData] = useState<{
+    street: string;
+    apartment: string;
+    city: string;
+    state: string;
+    zip: string;
+    lat?: number;
+    lng?: number;
+  }>({
     street: "",
     apartment: "",
     city: "",
@@ -120,12 +136,15 @@ export default function AddressScreen() {
   };
 
   const handleSelectAddress = (feature: any) => {
-    const { properties } = feature;
+    const { properties, geometry } = feature;
     const houseNumber = properties.housenumber || "";
     const streetPart = properties.street || properties.name || "";
     const city = properties.city || "";
     const stateName = properties.state || "";
     const zip = properties.postcode || "";
+    // Photon returns GeoJSON: geometry.coordinates = [lon, lat]. Optional —
+    // a suggestion without geometry should never block saving the address.
+    const [lon, lat] = geometry?.coordinates ?? [undefined, undefined];
 
     const normalizedStreet = normalizeStreet(streetPart);
 
@@ -143,6 +162,8 @@ export default function AddressScreen() {
       city: city,
       state: stateMapping?.code || prev.state,
       zip: zip.slice(0, 5),
+      lat,
+      lng: lon,
     }));
     setSearchSuggestions([]);
   };

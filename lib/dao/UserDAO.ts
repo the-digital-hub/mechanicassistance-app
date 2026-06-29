@@ -57,7 +57,7 @@ export class UserDAO implements IUserDAO {
      *
      * Backend CreateUserDto expects top-level fields:
      *   { name, surname, email, phone, dob, profileImage, role, firebaseUid,
-     *     address, vehicles, dealerInfo, expertise, credentials, availability, identity }
+     *     addresses, vehicles, dealerInfo, expertise, credentials, availability, identity }
      */
     private buildRegistrationPayload(progress: Record<string, unknown>): Record<string, unknown> {
         const basicInfo = (progress.basicInfo ?? {}) as Record<string, unknown>;
@@ -66,6 +66,8 @@ export class UserDAO implements IUserDAO {
         const roleData = (progress.role ?? {}) as Record<string, unknown>;
         const addressData = progress.address as Record<string, unknown> | undefined;
         const vehiclesData = progress.vehicles as Record<string, unknown>[] | undefined;
+        const hasAddressData = (a?: Record<string, unknown>) =>
+            !!a && (!!a.street || !!a.city);
 
         const payload: Record<string, unknown> = {
             // Flat top-level fields extracted from basicInfo
@@ -86,7 +88,16 @@ export class UserDAO implements IUserDAO {
         };
 
         // Nested objects — pass through as the backend expects Record<string, any>
-        if (addressData) payload.address = addressData;
+        // Address: send home and/or work as an array, only including blocks that
+        // were actually filled in (so a single completed block sends just one entry).
+        if (addressData) {
+            const home = addressData.home as Record<string, unknown> | undefined;
+            const work = addressData.work as Record<string, unknown> | undefined;
+            const addresses: Record<string, unknown>[] = [];
+            if (hasAddressData(home)) addresses.push({ ...home, type: 'home' });
+            if (hasAddressData(work)) addresses.push({ ...work, type: 'work' });
+            if (addresses.length > 0) payload.addresses = addresses;
+        }
         if (progress.dealerInfo) payload.dealerInfo = progress.dealerInfo;
         if (progress.expertise) payload.expertise = progress.expertise;
         if (progress.credentials) payload.credentials = progress.credentials;
