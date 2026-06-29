@@ -198,19 +198,25 @@ export default function AssistanceRequestsScreen() {
                                 </Text>
                               )}
                             </View>
-                          </View>
-
-                          <View className="flex-row items-center justify-between">
-                            <View className="flex-row items-center gap-1 flex-1">
-                              <MapPin size={14} color="#9CA3AF" />
-                              <Text className="text-gray-600 font-outfit-regular text-sm">
-                                {request.address}{request.distance ? ` · ${request.distance} Km` : ''}
-                              </Text>
-                            </View>
-                            <Text className="text-gray-900 font-outfit-bold text-lg ml-2">
+                            <Text className="text-gray-900 font-outfit-bold text-lg">
                               {request.budget}
                             </Text>
                           </View>
+
+                          <View className="flex-row items-center gap-1 mb-1">
+                            <MapPin size={14} color="#9CA3AF" />
+                            <Text className="text-gray-600 font-outfit-regular text-sm">
+                              {request.address}
+                            </Text>
+                          </View>
+                          {request.distance && (
+                            <View className="flex-row items-center gap-1">
+                              <View className="w-4" />
+                              <Text className="text-gray-500 font-outfit-regular text-xs">
+                                {request.distance} away
+                              </Text>
+                            </View>
+                          )}
                         </View>
                       </View>
 
@@ -243,7 +249,7 @@ export default function AssistanceRequestsScreen() {
                       <TouchableOpacity
                         style={{ flex: 0.65 }}
                         onPress={() => router.push({
-                          pathname: `/dashboard/${request.id}` as any,
+                          pathname: `/assist/${request.id}` as any,
                           params: {
                             type: request.type,
                             assistanceType: request.assistanceType || '',
@@ -273,7 +279,7 @@ export default function AssistanceRequestsScreen() {
                           }}
                         >
                           <Text className="text-white font-outfit-semibold text-lg">
-                            Accept request
+                            View request
                           </Text>
                         </LinearGradient>
                       </TouchableOpacity>

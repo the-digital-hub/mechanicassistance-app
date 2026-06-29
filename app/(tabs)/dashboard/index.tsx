@@ -1,12 +1,15 @@
 import { AssistanceCard, AssistanceType } from '@/components/ui/AssistanceCard';
+import { KPICard } from '@/components/ui/KPICard';
+import { PromotionalCard } from '@/components/ui/PromotionalCard';
 import { useAppointments } from '@/context/AppointmentsContext';
+import { useMechanicStatus } from '@/context/MechanicStatusContext';
 import { useSocket } from '@/context/SocketContext';
 import { useUser } from '@/context/UserContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { AssistanceRequest } from '@/lib/dao/interfaces';
 import * as Location from 'expo-location';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Calendar, Video, Zap, MapPin } from 'lucide-react-native';
+import { Calendar, Video, Zap, MapPin, Wrench, DollarSign, Star, Award } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -41,7 +44,7 @@ export default function DashboardScreen() {
     const [isLoadingRequests, setIsLoadingRequests] = useState(true);
     const { appointments } = useAppointments();
     const { lastMessage } = useSocket();
-    const [mechanicStatus, setMechanicStatus] = useState<'available' | 'busy' | 'offline'>('available');
+    const { mechanicStatus, setMechanicStatus } = useMechanicStatus();
 
     const loadRequests = async () => {
         if (!user?.id) {
@@ -138,51 +141,32 @@ export default function DashboardScreen() {
 
                     {/* Subtitle */}
                     <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-                        Set your status and review new requests in your area
+                        Review new requests in your area
                     </Text>
 
-                    {/* Status Card */}
-                    <View className="bg-white rounded-3xl p-6 mb-8" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 8, elevation: 6 }}>
-                        {/* Header */}
-                        <View className="mb-6">
-                            <Text className="text-gray-900 font-outfit-bold text-xl">
-                                Available to provide services
-                            </Text>
-                        </View>
-
-                        {/* Status Selector */}
-                        <View className="flex-row gap-2 mb-6 bg-gray-100 p-1.5 rounded-2xl">
-                            {statusOptions.map((option) => (
-                                <TouchableOpacity
-                                    key={option.id}
-                                    onPress={() => setMechanicStatus(option.id as 'available' | 'busy' | 'offline')}
-                                    className="flex-1 py-2.5 rounded-xl flex-row items-center justify-center gap-2"
-                                    style={{
-                                        backgroundColor: mechanicStatus === option.id ? 'white' : 'transparent',
-                                    }}
-                                >
-                                    <View
-                                        className="w-2 h-2 rounded-full"
-                                        style={{ backgroundColor: option.color }}
-                                    />
-                                    <Text
-                                        className="font-outfit-semibold text-sm"
-                                        style={{
-                                            color: mechanicStatus === option.id ? '#1F2937' : '#6B7280',
-                                        }}
-                                    >
-                                        {option.label}
-                                    </Text>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-
-                        {/* Description Text */}
-                        <Text className="text-gray-600 font-outfit-regular text-sm">
-                            {mechanicStatus === 'available' && 'You are visible to nearby owners and can receive new requests.'}
-                            {mechanicStatus === 'busy' && 'You are visible to nearby owners but won\'t receive new requests.'}
-                            {mechanicStatus === 'offline' && 'You are not visible to nearby owners and won\'t receive requests.'}
-                        </Text>
+                    {/* KPIs Section */}
+                    <View className="flex-row gap-3 mb-8">
+                      <KPICard
+                        icon={Wrench}
+                        iconColor="#0047AB"
+                        value={appointments.filter(a => a.status === 'completed').length.toString()}
+                        label="Jobs today"
+                        bgColor="#E0ECFF"
+                      />
+                      <KPICard
+                        icon={DollarSign}
+                        iconColor="#10B981"
+                        value={`$${(appointments.filter(a => a.status === 'completed').length * 50).toString()}`}
+                        label="Earned today"
+                        bgColor="#ECFDF5"
+                      />
+                      <KPICard
+                        icon={Star}
+                        iconColor="#F97316"
+                        value={(user?.rating || 4.8).toString()}
+                        label="Rating"
+                        bgColor="#FFF7ED"
+                      />
                     </View>
 
                     {mechanicStatus !== 'offline' && (
@@ -341,6 +325,17 @@ export default function DashboardScreen() {
                         )}
                         </>
                     )}
+
+                    {/* Promotional Card */}
+                    <View className="mt-8 mb-4">
+                      <PromotionalCard
+                        badge="BOOST YOUR PROFILE"
+                        title="Add a new ASE certification"
+                        description="Get more visibility and higher-value jobs."
+                        icon={Award}
+                        onPress={() => router.push('/(tabs)/ase')}
+                      />
+                    </View>
                 </View>
             </ScrollView>
         );

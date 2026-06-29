@@ -1,11 +1,10 @@
-import { useAppointments } from '@/context/AppointmentsContext';
 import { useUser } from '@/context/UserContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import * as Location from 'expo-location';
 import { CommonActions, useNavigation } from '@react-navigation/native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Calendar, Clock, Navigation, CheckCircle } from 'lucide-react-native';
-import React, { useEffect, useRef, useState } from 'react';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
+import { Calendar, Clock, Navigation, CheckCircle, ChevronLeft } from 'lucide-react-native';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import { apiClient } from '@/lib/api/apiClient';
@@ -43,12 +42,24 @@ function formatEta(minutes: number): string {
     return m > 0 ? `${h} hr ${m} min` : `${h} hr`;
 }
 
-export default function AssistDetailScreen() {
+export default function RequestDetailScreen() {
     const { id, type, assistanceType, title, car, address, zip, budget, userId, locationLat, locationLng } = useLocalSearchParams();
     const router = useRouter();
     const navigation = useNavigation();
     const { user } = useUser();
-    const { appointments } = useAppointments();
+
+    useFocusEffect(
+        useCallback(() => {
+            navigation.setOptions({
+                title: 'Request Details',
+                headerLeft: () => (
+                    <TouchableOpacity onPress={() => router.back()} style={{ marginLeft: 16 }}>
+                        <ChevronLeft size={24} color="#0047AB" />
+                    </TouchableOpacity>
+                ),
+            });
+        }, [navigation, router])
+    );
 
     const isImmediate = type === 'immediate' || type === 'videocall' || type === 'witness' || assistanceType === 'witness';
     const isVideo = type === 'videocall';
@@ -64,7 +75,6 @@ export default function AssistDetailScreen() {
     const [routePolyline, setRoutePolyline] = useState<string | null>(null);
     const mapRef = useRef<MapView | null>(null);
 
-    // Selection States
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
     const [isDateOpen, setIsDateOpen] = useState(false);
 
@@ -74,7 +84,6 @@ export default function AssistDetailScreen() {
     const DATES = ['Monday, July 14', 'Tuesday, July 15', 'Wednesday, July 16'];
     const TIMES = ['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '04:00 PM'];
 
-    // Re-fit map when mechanic coords become available (async after location fetch).
     useEffect(() => {
         if (!mechanicCoords || !hasLocation) return;
         mapRef.current?.fitToCoordinates(
@@ -83,8 +92,6 @@ export default function AssistDetailScreen() {
         );
     }, [mechanicCoords]);
 
-    // Calculate distance + ETA from mechanic's current location to the request location,
-    // then fetch the Google Directions route polyline for the map.
     useEffect(() => {
         if (!hasLocation) return;
 
@@ -101,7 +108,6 @@ export default function AssistDetailScreen() {
                 setEtaText(formatEta(minutes));
                 setMechanicCoords({ latitude, longitude });
 
-                // Fetch route polyline from backend (Google Directions API).
                 const route: any = await apiClient.get(
                     `/api/appointments/route?fromLat=${latitude}&fromLng=${longitude}&toLat=${reqLat}&toLng=${reqLng}`
                 ).catch(() => null);
@@ -129,11 +135,7 @@ export default function AssistDetailScreen() {
             setShowNotification(true);
             setTimeout(() => {
                 setShowNotification(false);
-
-                // Navigate to Appointments tab immediately
                 router.replace('/(tabs)/appointments');
-
-                // Reset the Assist stack to the root (List View)
                 navigation.dispatch(
                     CommonActions.reset({
                         index: 0,
@@ -149,14 +151,27 @@ export default function AssistDetailScreen() {
     return (
         <View className="flex-1 bg-white">
             <ScrollView className="flex-1">
-                {/* Header Section */}
-                <View className={`px-4 py-4 ${isVideo ? 'bg-cyan-600' : 'bg-blue-600'}`}>
-                    <Text className="text-white font-outfit-bold text-lg text-center">
-                        {assistanceType === 'witness' ? 'ACCIDENT ASSISTANCE' : isVideo ? 'Video Call Assistance' : isImmediate ? 'Immediate Assistance' : 'Scheduled Assistance'}
+                <View className="p-6">
+                    {/* Section Badge */}
+                    <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+                        <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+                        <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+                            REQUEST DETAILS
+                        </Text>
+                    </View>
+
+                    {/* Title */}
+                    <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
+                        {assistanceType === 'witness' ? 'Accident Assistance' : isVideo ? 'Video Call Assistance' : isImmediate ? 'Immediate Assistance' : 'Scheduled Assistance'}
+                    </Text>
+
+                    {/* Subtitle */}
+                    <Text className="text-gray-500 font-outfit-regular text-base mb-8">
+                        Review the details and accept if available
                     </Text>
                 </View>
 
-                <View className="p-6">
+                <View className="px-6">
                     {/* Details Info */}
                     <View className="mb-6 gap-4">
                         <View>
@@ -188,7 +203,7 @@ export default function AssistDetailScreen() {
                         )}
                     </View>
 
-                    {/* Route map: client pin (red) + mechanic pin (blue) + polyline */}
+                    {/* Route map */}
                     {hasLocation && (
                         <View className="mb-6 rounded-xl overflow-hidden" style={{ height: 200 }}>
                             <MapView
@@ -236,7 +251,7 @@ export default function AssistDetailScreen() {
                         </View>
                     )}
 
-                    {/* Date Selector (Only if scheduled) */}
+                    {/* Date Selector */}
                     {!isImmediate && (
                         <>
                             <View className="mb-6 z-20">
@@ -297,11 +312,30 @@ export default function AssistDetailScreen() {
                     )}
 
                     <TouchableOpacity
-                        className={`w-full py-4 rounded-xl items-center shadow-sm ${isImmediate || (selectedDate && selectedTime) ? 'bg-emerald-500' : 'bg-gray-300'}`}
                         onPress={handleAccept}
                         disabled={!isImmediate && (!selectedDate || !selectedTime)}
+                        activeOpacity={0.8}
                     >
-                        <Text className="text-white font-outfit-bold text-lg">Accept request</Text>
+                        {isImmediate || (selectedDate && selectedTime) ? (
+                            <LinearGradient
+                                colors={['#10B981', '#059669']}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 1 }}
+                                style={{
+                                    borderRadius: 12,
+                                    paddingVertical: 16,
+                                    paddingHorizontal: 16,
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                }}
+                            >
+                                <Text className="text-white font-outfit-bold text-lg">Accept request</Text>
+                            </LinearGradient>
+                        ) : (
+                            <View className="w-full py-4 rounded-xl items-center bg-gray-300">
+                                <Text className="text-white font-outfit-bold text-lg">Accept request</Text>
+                            </View>
+                        )}
                     </TouchableOpacity>
 
                     <Text className="text-center text-[10px] text-gray-400 mt-4">

@@ -15,6 +15,7 @@ import "react-native-reanimated";
 
 import { GlobalNotificationListener } from "@/components/GlobalNotificationListener";
 import { AppointmentsProvider } from "@/context/AppointmentsContext";
+import { MechanicStatusProvider } from "@/context/MechanicStatusContext";
 import { NotificationsProvider } from "@/context/NotificationsContext";
 import { SocketProvider } from "@/context/SocketContext";
 import { UserProvider, useUser } from "@/context/UserContext";
@@ -99,13 +100,15 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={DefaultTheme}>
       <UserProvider>
-        <SocketProvider>
-          <NotificationsProvider>
-            <AppointmentsProvider>
-              <AppShell />
-            </AppointmentsProvider>
-          </NotificationsProvider>
-        </SocketProvider>
+        <MechanicStatusProvider>
+          <SocketProvider>
+            <NotificationsProvider>
+              <AppointmentsProvider>
+                <AppShell />
+              </AppointmentsProvider>
+            </NotificationsProvider>
+          </SocketProvider>
+        </MechanicStatusProvider>
       </UserProvider>
     </ThemeProvider>
   );
