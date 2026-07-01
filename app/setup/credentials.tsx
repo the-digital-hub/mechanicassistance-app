@@ -1,24 +1,41 @@
 import { Input } from '@/components/ui/Input';
+import { AseDAO, AseMechanicData } from '@/lib/dao/AseDAO';
+import { ApiError } from '@/lib/api/types';
 import { getSetupProgress, saveSetupProgress } from '@/lib/storage';
 import { useRouter } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
 import { useState } from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function CredentialsScreen() {
     const router = useRouter();
     const [aseId, setAseId] = useState('');
-    const [isValidated, setIsValidated] = useState(false);
+    const [mechanic, setMechanic] = useState<AseMechanicData | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    const handleSearch = () => {
-        if (aseId.length > 3) {
-            setIsValidated(true);
+    const handleSearch = async () => {
+        if (!aseId.trim()) return;
+        setIsLoading(true);
+        setError(null);
+        setMechanic(null);
+        try {
+            const result = await AseDAO.lookupByAseId(aseId.trim());
+            setMechanic(result);
+        } catch (err) {
+            if (err instanceof ApiError && err.status === 404) {
+                setError('No ASE mechanic found with that ID. Please verify and try again.');
+            } else {
+                setError('An error occurred while searching. Please try again.');
+            }
+        } finally {
+            setIsLoading(false);
         }
     };
 
     const handleContinue = async () => {
-        await saveSetupProgress('credentials', { aseId, validated: isValidated });
+        await saveSetupProgress('credentials', { aseId: mechanic?.aseId ?? aseId, validated: !!mechanic });
         const progress = await getSetupProgress();
         const role = (progress.role as Record<string, unknown>)?.role;
 
@@ -27,6 +44,11 @@ export default function CredentialsScreen() {
         } else {
             router.push('/setup/vehicle-info');
         }
+    };
+
+    const formatExpiration = (date: string | null) => {
+        if (!date) return 'No expiration';
+        return new Date(date).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
     };
 
     return (
@@ -51,7 +73,6 @@ export default function CredentialsScreen() {
 
             {/* ASE Logo Area */}
             <View className="mb-6">
-                {/* Placeholder for ASE Logo - Text representation for now */}
                 <View className="flex-row items-center mb-4">
                     <View className="bg-blue-600 rounded-full w-10 h-10 items-center justify-center mr-2">
                         <Text className="text-white font-bold text-xs">ASE</Text>
@@ -67,18 +88,25 @@ export default function CredentialsScreen() {
                 </Text>
             </View>
 
-            {!isValidated ? (
+            {!mechanic ? (
                 <View>
                     <Text className="font-outfit-medium text-[#0F172A] mb-2">ASE Member ID</Text>
                     <Input
-                        placeholder="ASE - XXXX-XXXX"
+                        placeholder="ASE-XXXX-XXXX"
                         value={aseId}
-                        onChangeText={setAseId}
-                        containerClassName="bg-white border border-gray-300 rounded-2xl mb-8"
+                        onChangeText={(text) => { setAseId(text); setError(null); }}
+                        containerClassName="bg-white border border-gray-300 rounded-2xl mb-4"
+                        autoCapitalize="characters"
                     />
+
+                    {error && (
+                        <Text className="text-red-500 font-outfit-regular text-sm mb-4">{error}</Text>
+                    )}
+
                     <TouchableOpacity
                         onPress={handleSearch}
                         activeOpacity={0.8}
+                        disabled={isLoading || !aseId.trim()}
                     >
                         <LinearGradient
                             colors={['#2B66F8', '#081E72']}
@@ -91,27 +119,52 @@ export default function CredentialsScreen() {
                                 flexDirection: 'row',
                                 alignItems: 'center',
                                 justifyContent: 'center',
+                                opacity: isLoading || !aseId.trim() ? 0.6 : 1,
                             }}
                         >
-                            <Text className="text-white font-outfit-bold text-center mr-2">Search ASE records</Text>
-                            <ChevronRight size={20} color="white" />
+                            {isLoading ? (
+                                <ActivityIndicator color="white" />
+                            ) : (
+                                <>
+                                    <Text className="text-white font-outfit-bold text-center mr-2">Search ASE records</Text>
+                                    <ChevronRight size={20} color="white" />
+                                </>
+                            )}
                         </LinearGradient>
                     </TouchableOpacity>
                 </View>
             ) : (
                 <View>
                     <Text className="font-outfit-medium text-[#0F172A] mb-1">ASE Member ID</Text>
-                    <Text className="text-[#0047AB] font-outfit-medium text-base mb-6">ASE - {aseId}</Text>
+                    <Text className="text-[#0047AB] font-outfit-medium text-base mb-2">{mechanic.aseId}</Text>
+                    <Text className="text-gray-500 font-outfit-regular text-sm mb-6">
+                        {mechanic.firstName} {mechanic.lastName}
+                    </Text>
 
-                    {/* Cert List */}
                     <View className="space-y-4 mb-8">
-                        {['A1 - Engine Repair', 'A2 - Brakes', 'A3 - Electricity'].map((cert, i) => (
-                            <View key={i} className="bg-blue-50/50 p-4 rounded-xl">
-                                <Text className="font-outfit-bold text-[#0F172A] mb-1">{cert}</Text>
-                                <Text className="text-blue-400 text-xs">Expiration: 06/30/2027</Text>
-                            </View>
-                        ))}
+                        {mechanic.certifications.length === 0 ? (
+                            <Text className="text-gray-400 font-outfit-regular text-sm">No certifications found for this ID.</Text>
+                        ) : (
+                            mechanic.certifications.map((cert) => (
+                                <View key={cert.id} className="bg-blue-50/50 p-4 rounded-xl">
+                                    <Text className="font-outfit-bold text-[#0F172A] mb-1">
+                                        {cert.code}{cert.name ? ` - ${cert.name}` : ''}
+                                    </Text>
+                                    <Text className="text-blue-400 text-xs">
+                                        Expiration: {formatExpiration(cert.expirationDate)}
+                                    </Text>
+                                </View>
+                            ))
+                        )}
                     </View>
+
+                    <TouchableOpacity
+                        onPress={() => setMechanic(null)}
+                        activeOpacity={0.8}
+                        className="mb-3"
+                    >
+                        <Text className="text-blue-600 font-outfit-medium text-center text-sm">Search a different ID</Text>
+                    </TouchableOpacity>
 
                     <TouchableOpacity
                         onPress={handleContinue}
