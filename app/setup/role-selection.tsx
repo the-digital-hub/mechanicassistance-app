@@ -145,18 +145,6 @@ export default function RoleSelectionScreen() {
                             marginBottom: 24,
                         }}
                     >
-                        {/* Top Section: Badge and Download Arrow */}
-                        <View className="flex-row items-center justify-between mb-6">
-                            <View className="flex-row items-center gap-2 px-3 py-2 rounded-full" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
-                                <View className="w-2 h-2 rounded-full bg-green-400" />
-                                <Text className="text-white font-outfit-semibold text-xs tracking-widest">
-                                    {config.badge}
-                                </Text>
-                            </View>
-                            <TouchableOpacity className="w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
-                                <Ionicons name="chevron-down" size={20} color="white" />
-                            </TouchableOpacity>
-                        </View>
 
                         {/* Icon */}
                         <View className="w-20 h-20 rounded-2xl items-center justify-center mb-6" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.3)' }}>
@@ -177,35 +165,13 @@ export default function RoleSelectionScreen() {
                         <View className="flex-row flex-wrap gap-2 mb-8">
                             {config.highlights.map((highlight, idx) => (
                                 <View key={idx} className="px-3 py-2 rounded-full" style={{ backgroundColor: 'rgba(255, 255, 255, 0.15)', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.3)' }}>
-                                    <View className="flex-row items-center gap-1.5">
-                                        <Ionicons name="checkmark" size={14} color="white" />
-                                        <Text className="text-white font-outfit-medium text-xs">
-                                            {highlight}
-                                        </Text>
-                                    </View>
+                                    <Text className="text-white font-outfit-medium text-xs">
+                                        {highlight}
+                                    </Text>
                                 </View>
                             ))}
                         </View>
 
-                        {/* Divider */}
-                        <View className="h-px bg-white/20 mb-6" />
-
-                        {/* Stats */}
-                        <View className="flex-row justify-between">
-                            {config.stats.map((stat, idx) => (
-                                <View key={idx} className="flex-1 items-center">
-                                    <Text className="text-white font-outfit-bold text-xl mb-1">
-                                        {stat.value}
-                                    </Text>
-                                    <Text className="text-white/70 font-outfit-regular text-xs tracking-widest">
-                                        {stat.label}
-                                    </Text>
-                                    {idx < config.stats.length - 1 && (
-                                        <View className="absolute right-0 w-px h-8 bg-white/20" />
-                                    )}
-                                </View>
-                            ))}
-                        </View>
                     </LinearGradient>
                 </View>
 

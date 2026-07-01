@@ -245,22 +245,27 @@ export default function IdentityScreen() {
         onPress={() => handlePickImage(side)}
         disabled={isUploading === side}
         activeOpacity={0.8}
-        style={{
-          borderRadius: 10,
-          backgroundColor: '#00afcc',
-          paddingVertical: 16,
-          paddingHorizontal: 16,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 8,
-          opacity: isUploading === side ? 0.6 : 1,
-        }}
       >
-        <Ionicons name={image ? "refresh" : "camera"} size={16} color="white" />
-        <Text className="text-white font-outfit-bold text-sm">
-          {image ? "Retake photo" : "Take photo"}
-        </Text>
+        <LinearGradient
+          colors={['#00afcc', '#0088a3']}
+          start={{ x: 0, y: 1 }}
+          end={{ x: 1, y: 0 }}
+          style={{
+            borderRadius: 10,
+            paddingVertical: 16,
+            paddingHorizontal: 16,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            opacity: isUploading === side ? 0.6 : 1,
+          }}
+        >
+          <Ionicons name={image ? "refresh" : "camera"} size={16} color="white" />
+          <Text className="text-white font-outfit-bold text-sm">
+            {image ? "Retake photo" : "Take photo"}
+          </Text>
+        </LinearGradient>
       </TouchableOpacity>
     </View>
   );
@@ -325,7 +330,7 @@ export default function IdentityScreen() {
         activeOpacity={0.7}
       >
         <Text
-          className={`font-outfit-regular ${documentType ? "text-[#0F172A]" : "text-[#9CA3AF]"}`}
+          className={`font-outfit-regular text-[17px] ${documentType ? "text-[#0F172A]" : "text-[#9CA3AF]"}`}
         >
           {documentType ?? "Select document type"}
         </Text>

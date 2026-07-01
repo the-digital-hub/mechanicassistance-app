@@ -363,7 +363,7 @@ export default function VehicleInfoScreen() {
                     resizeMode="contain"
                   />
                 )} */}
-                <Text className="text-[#0F172A] font-outfit-regular">
+                <Text className="text-[#0F172A] font-outfit-regular text-[17px]">
                   {formData.make}
                 </Text>
               </View>
@@ -387,7 +387,7 @@ export default function VehicleInfoScreen() {
               className={`bg-white border border-gray-300 rounded-2xl flex-row items-center justify-between px-4 ${formData.make === "Select" ? "opacity-50" : ""}`}
               style={{ height: 52 }}
             >
-              <Text className="text-[#0F172A] font-outfit-regular">
+              <Text className="text-[#0F172A] font-outfit-regular text-[17px]">
                 {formData.model}
               </Text>
               {isLoadingModels ? (

@@ -1,10 +1,12 @@
 import { Input } from '@/components/ui/Input';
 import { Building2, ChevronRight } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function PaymentsScreen() {
+    const router = useRouter();
     const [method, setMethod] = useState<'bank' | 'paypal' | 'gpay' | 'apple'>('bank');
 
     return (
@@ -93,25 +95,41 @@ export default function PaymentsScreen() {
                 </View>
             </View>
 
-            <TouchableOpacity
-                activeOpacity={0.8}
-            >
-                <LinearGradient
-                    colors={['#2B66F8', '#081E72']}
-                    start={{ x: 0, y: 1 }}
-                    end={{ x: 1, y: 0 }}
-                    style={{
-                        borderRadius: 10,
-                        paddingVertical: 16,
-                        paddingHorizontal: 16,
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                    }}
+            {/* Buttons Row */}
+            <View className="flex-row gap-3">
+                {/* Back Button - 30% width */}
+                <TouchableOpacity
+                    onPress={() => router.navigate('/(tabs)')}
+                    activeOpacity={0.8}
+                    style={{ flex: 0.3 }}
+                    className="py-4 rounded-lg border border-gray-300 items-center"
                 >
-                    <Text className="text-white font-outfit-semibold text-lg text-center">Save</Text>
-                </LinearGradient>
-            </TouchableOpacity>
+                    <Text className="text-gray-900 font-outfit-semibold text-base">Back</Text>
+                </TouchableOpacity>
+
+                {/* Save Button - 70% width */}
+                <TouchableOpacity
+                    onPress={() => {}}
+                    activeOpacity={0.8}
+                    style={{ flex: 0.7 }}
+                >
+                    <LinearGradient
+                        colors={['#2B66F8', '#081E72']}
+                        start={{ x: 0, y: 1 }}
+                        end={{ x: 1, y: 0 }}
+                        style={{
+                            borderRadius: 8,
+                            paddingVertical: 16,
+                            paddingHorizontal: 16,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}
+                    >
+                        <Text className="text-white font-outfit-semibold text-base text-center">Save</Text>
+                    </LinearGradient>
+                </TouchableOpacity>
+            </View>
         </ScrollView>
     );
 }

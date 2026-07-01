@@ -40,53 +40,63 @@ export default function AppointmentsScreen() {
 
     return (
         <View className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
-            <View className="px-6 pt-4 pb-4">
-                {/* Section Badge */}
-                <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
-                  <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
-                  <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                    YOUR REQUEST
-                  </Text>
-                </View>
-
-                {/* Title */}
-                <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">Your request, all in one place</Text>
-
-                {/* Subtitle */}
-                <Text className="text-gray-500 font-outfit-regular text-base mb-6">
-                  Track active requests, view past jobs and manage your booking form here.
-                </Text>
-
-                {/* Tab Switcher */}
-                <View className="flex-row gap-4 p-1 rounded-2xl" style={{ backgroundColor: '#EDF1F7' }}>
-                    <TouchableOpacity
-                        className="flex-1 flex-row items-center justify-center gap-2 py-3 rounded-xl"
-                        style={{ backgroundColor: activeTab === 'upcoming' ? '#FFFFFF' : 'transparent' }}
-                        onPress={() => setActiveTab('upcoming')}
-                    >
-                        <Text className={`font-outfit-bold text-lg`} style={{ color: activeTab === 'upcoming' ? '#1E56E3' : '#9CA3AF' }}>Upcoming</Text>
-                        <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: activeTab === 'upcoming' ? '#1E56E3' : '#E5E7EB', justifyContent: 'center', alignItems: 'center' }}>
-                            <Text className={`font-outfit-bold text-sm`} style={{ color: activeTab === 'upcoming' ? '#FFFFFF' : '#9CA3AF', lineHeight: 16 }}>{upcomingCount}</Text>
-                        </View>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        className="flex-1 flex-row items-center justify-center gap-2 py-3 rounded-xl"
-                        style={{ backgroundColor: activeTab === 'past' ? '#FFFFFF' : 'transparent' }}
-                        onPress={() => setActiveTab('past')}
-                    >
-                        <Text className={`font-outfit-bold text-lg`} style={{ color: activeTab === 'past' ? '#1E56E3' : '#9CA3AF' }}>Past</Text>
-                        <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: activeTab === 'past' ? '#1E56E3' : '#E5E7EB', justifyContent: 'center', alignItems: 'center' }}>
-                            <Text className={`font-outfit-bold text-sm`} style={{ color: activeTab === 'past' ? '#FFFFFF' : '#9CA3AF', lineHeight: 16 }}>{pastCount}</Text>
-                        </View>
-                    </TouchableOpacity>
-                </View>
-            </View>
-
             <FlatList
                 data={appointments}
                 keyExtractor={(item) => item.id}
+                ListHeaderComponent={
+                    <View className="px-6 pt-4 pb-4">
+                        {/* Section Badge */}
+                        <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+                          <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+                          <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+                            YOUR REQUEST
+                          </Text>
+                        </View>
+
+                        {/* Title */}
+                        <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">Your request, all in one place</Text>
+
+                        {/* Subtitle */}
+                        <Text className="text-gray-500 font-outfit-regular text-base mb-6">
+                          Track active requests, view past jobs and manage your booking form here.
+                        </Text>
+
+                        {/* Tab Switcher */}
+                        <View className="flex-row gap-4 p-1 rounded-2xl" style={{ backgroundColor: '#EDF1F7' }}>
+                            <TouchableOpacity
+                                className="flex-1 flex-row items-center justify-center gap-2 py-3 rounded-xl"
+                                style={{ backgroundColor: activeTab === 'upcoming' ? '#FFFFFF' : 'transparent' }}
+                                onPress={() => setActiveTab('upcoming')}
+                            >
+                                <Text className={`font-outfit-bold text-lg`} style={{ color: activeTab === 'upcoming' ? '#1E56E3' : '#9CA3AF' }}>Upcoming</Text>
+                                <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: activeTab === 'upcoming' ? '#1E56E3' : '#E5E7EB', justifyContent: 'center', alignItems: 'center' }}>
+                                    <Text className={`font-outfit-bold text-sm`} style={{ color: activeTab === 'upcoming' ? '#FFFFFF' : '#9CA3AF', lineHeight: 16 }}>{upcomingCount}</Text>
+                                </View>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                className="flex-1 flex-row items-center justify-center gap-2 py-3 rounded-xl"
+                                style={{ backgroundColor: activeTab === 'past' ? '#FFFFFF' : 'transparent' }}
+                                onPress={() => setActiveTab('past')}
+                            >
+                                <Text className={`font-outfit-bold text-lg`} style={{ color: activeTab === 'past' ? '#1E56E3' : '#9CA3AF' }}>Past</Text>
+                                <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: activeTab === 'past' ? '#1E56E3' : '#E5E7EB', justifyContent: 'center', alignItems: 'center' }}>
+                                    <Text className={`font-outfit-bold text-sm`} style={{ color: activeTab === 'past' ? '#FFFFFF' : '#9CA3AF', lineHeight: 16 }}>{pastCount}</Text>
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                }
                 renderItem={({ item }) => (
-                    <View className="px-6">
+                    <View
+                        className="px-6 mb-1"
+                        style={{
+                            shadowColor: '#000',
+                            shadowOffset: { width: 0, height: 4 },
+                            shadowOpacity: 0.12,
+                            shadowRadius: 8,
+                            elevation: 6,
+                        }}
+                    >
                         <AppointmentCard
                             appointment={item}
                             onCancel={handleCancelRequest}

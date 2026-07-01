@@ -92,8 +92,7 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
 
     return (
         <TouchableOpacity
-            className="bg-white rounded-xl overflow-hidden mb-4"
-            style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 3 }}
+            className="bg-white rounded-xl overflow-hidden"
             onPress={() => router.navigate(`/appointments/${appointment.id}`)}
             activeOpacity={0.7}
         >

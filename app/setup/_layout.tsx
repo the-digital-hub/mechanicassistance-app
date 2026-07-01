@@ -22,10 +22,18 @@ export default function SetupLayout() {
         headerLeft: () => (
           <TouchableOpacity
             onPress={() => router.back()}
-            className="p-2"
-            style={{ backgroundColor: "transparent" }}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: "#FFFFFF",
+              justifyContent: "center",
+              alignItems: "center",
+              marginLeft: 0,
+              overflow: "hidden",
+            }}
           >
-            <Ionicons name="arrow-back" size={24} color="#1F2937" />
+            <Ionicons name="arrow-back" size={18} color="#1F2937" />
           </TouchableOpacity>
         ),
       }}
@@ -39,17 +47,7 @@ export default function SetupLayout() {
       <Stack.Screen name="basic-info" options={{ title: "Account Set-up" }} />
       <Stack.Screen
         name="address"
-        options={{
-          title: "Account Set-up",
-          headerRight: () => (
-            <TouchableOpacity
-              onPress={() => router.push("/setup/credentials")}
-              style={{ backgroundColor: "transparent" }}
-            >
-              <Text className="text-[#0047AB] font-outfit-medium">Skip</Text>
-            </TouchableOpacity>
-          ),
-        }}
+        options={{ title: "Account Set-up" }}
       />
       <Stack.Screen name="credentials" options={{ title: "Account Set-up" }} />
       <Stack.Screen

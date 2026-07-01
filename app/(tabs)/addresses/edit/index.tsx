@@ -96,36 +96,8 @@ export default function EditAddressScreen() {
     };
 
     return (
-        <View className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
-            {/* Custom Header */}
-            <View className="px-6 pt-20 pb-2 flex-row items-center justify-between" style={{ backgroundColor: '#F4F5FA', borderBottomWidth: 0.5, borderBottomColor: '#D1D5DB' }}>
-                {isMechanic ? (
-                    <TouchableOpacity
-                        onPress={() => setShowStatusModal(true)}
-                        style={{ marginLeft: 0, backgroundColor: styles.bgColor, borderWidth: 1, borderColor: '#E5E7EB' }}
-                        className="flex-row items-center gap-2 px-3 py-1.5 rounded-full"
-                    >
-                        <Circle size={8} color={styles.dotColor} fill={styles.dotColor} />
-                        <Text style={{ color: styles.textColor }} className="font-outfit-semibold text-xs">
-                            {getStatusLabel()}
-                        </Text>
-                    </TouchableOpacity>
-                ) : (
-                    <TouchableOpacity onPress={() => router.back()}>
-                        <View className="w-10 h-10 rounded-full justify-center items-center" style={{ backgroundColor: '#FFFFFF' }}>
-                            <ChevronLeft size={20} color="#0047AB" />
-                        </View>
-                    </TouchableOpacity>
-                )}
-                <Text style={{ fontFamily: 'Outfit_500Medium', fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>
-                    Profile
-                </Text>
-                <TouchableOpacity onPress={() => router.push('/(tabs)/notifications')}>
-                    <Bell size={24} color="#0047AB" />
-                </TouchableOpacity>
-            </View>
-
-            <ScrollView className="flex-1 px-6 pt-6">
+        <View className="flex-1 bg-white">
+            <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 24, paddingBottom: 40 }}>
                 {/* Section Badge */}
                 <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                     <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
@@ -204,21 +176,22 @@ export default function EditAddressScreen() {
 
                 {/* Buttons Row */}
                 <View className="flex-row gap-3 mb-10">
-                    {/* Back Button */}
+                    {/* Back Button - 30% width */}
                     <TouchableOpacity
                         onPress={() => router.back()}
                         activeOpacity={0.8}
-                        className="flex-1 py-4 rounded-lg border border-gray-300 items-center"
+                        style={{ flex: 0.3 }}
+                        className="py-4 rounded-lg border border-gray-300 items-center"
                     >
                         <Text className="text-gray-900 font-outfit-semibold text-base">Back</Text>
                     </TouchableOpacity>
 
-                    {/* Save Button */}
+                    {/* Save Button - 70% width */}
                     <TouchableOpacity
                         onPress={handleUpdate}
                         activeOpacity={0.8}
                         disabled={isLoading}
-                        className="flex-1"
+                        style={{ flex: 0.7 }}
                     >
                         <LinearGradient
                             colors={['#2B66F8', '#081E72']}
@@ -236,9 +209,7 @@ export default function EditAddressScreen() {
                             {isLoading ? (
                                 <ActivityIndicator color="white" />
                             ) : (
-                                <>
-                                    <Text className="text-white font-outfit-semibold text-base text-center">Save</Text>
-                                </>
+                                <Text className="text-white font-outfit-semibold text-base text-center">Save</Text>
                             )}
                         </LinearGradient>
                     </TouchableOpacity>

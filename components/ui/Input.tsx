@@ -34,12 +34,13 @@ export function Input({
       {leftIcon && <View className="mr-3">{leftIcon}</View>}
       <TextInput
         className={cn(
-          "flex-1 font-outfit-medium text-black text-base",
+          "flex-1 font-outfit-medium text-black",
           className,
         )}
         style={{
           height: "100%",
-          paddingBottom: 5,
+          fontSize: 17,
+          textAlignVertical: 'center',
         }}
         secureTextEntry={isPassword && !showPassword}
         placeholderTextColor="#9CA3AF"

@@ -187,6 +187,17 @@ export default function AddressScreen() {
     }
   };
 
+  const handleSkip = async () => {
+    const progress = await getSetupProgress();
+    const role = progress.role?.role;
+
+    if (role === "user") {
+      router.push("/setup/vehicle-info");
+    } else {
+      router.push("/setup/credentials");
+    }
+  };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -341,28 +352,52 @@ export default function AddressScreen() {
           </View>
         </View>
 
-        <TouchableOpacity
-          onPress={handleContinue}
-          activeOpacity={0.8}
-          className="mt-4 mb-10"
-        >
-          <LinearGradient
-            colors={['#2B66F8', '#081E72']}
-            start={{ x: 0, y: 1 }}
-            end={{ x: 1, y: 0 }}
-            style={{
-              borderRadius: 10,
-              paddingVertical: 16,
-              paddingHorizontal: 16,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+        <View className="flex-row gap-3 mt-4 mb-10">
+          <TouchableOpacity
+            onPress={handleSkip}
+            activeOpacity={0.8}
+            style={{ flex: 0.3 }}
           >
-            <Text className="text-white font-outfit-bold text-center mr-2">Continue</Text>
-            <ChevronRight size={20} color="white" />
-          </LinearGradient>
-        </TouchableOpacity>
+            <View
+              style={{
+                borderRadius: 10,
+                paddingVertical: 16,
+                paddingHorizontal: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#F3F4F6',
+                borderWidth: 1,
+                borderColor: '#E5E7EB',
+              }}
+            >
+              <Text className="text-gray-700 font-outfit-bold text-center">Skip</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={handleContinue}
+            activeOpacity={0.8}
+            style={{ flex: 0.7 }}
+          >
+            <LinearGradient
+              colors={['#2B66F8', '#081E72']}
+              start={{ x: 0, y: 1 }}
+              end={{ x: 1, y: 0 }}
+              style={{
+                borderRadius: 10,
+                paddingVertical: 16,
+                paddingHorizontal: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text className="text-white font-outfit-bold text-center mr-2">Continue</Text>
+              <ChevronRight size={20} color="white" />
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
 
         {/* State Selection Modal */}
         <Modal

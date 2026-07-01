@@ -1,11 +1,12 @@
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { useAppointments } from '@/context/AppointmentsContext';
 import { useUser } from '@/context/UserContext';
+import { useMechanicStatus } from '@/context/MechanicStatusContext';
 import { mediaDAO } from '@/lib/dao/MediaDAO';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Award, Camera, Car, ChevronLeft, ChevronRight, CreditCard, Heart, HelpCircle, Lock, LogOut, MapPin, PlugZap, Settings, User } from 'lucide-react-native';
+import { Award, Camera, Car, ChevronLeft, ChevronRight, Circle, CreditCard, Heart, HelpCircle, Lock, LogOut, MapPin, PlugZap, Settings, User } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
@@ -13,16 +14,17 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { user, isLoading, updateUser, logout } = useUser();
   const { appointments } = useAppointments();
+  const { mechanicStatus, setMechanicStatus } = useMechanicStatus();
 
   const isOnline = user?.isOnline || false;
 
   const [showOnlineModal, setShowOnlineModal] = useState(false);
   const [showOfflineModal, setShowOfflineModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
   const [language, setLanguage] = useState<'en' | 'es'>('en');
   const [localProfileUri, setLocalProfileUri] = useState<string | null>(null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
-  const [mechanicStatus, setMechanicStatus] = useState<'available' | 'busy' | 'offline'>(isOnline ? 'available' : 'offline');
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -94,6 +96,43 @@ export default function ProfileScreen() {
     router.replace('/login');
   };
 
+  const getStatusStyles = () => {
+    switch (mechanicStatus) {
+      case 'available':
+        return { bgColor: '#ECFDF5', textColor: '#111827', dotColor: '#10B981' };
+      case 'busy':
+        return { bgColor: '#FEF3C7', textColor: '#111827', dotColor: '#F97316' };
+      case 'offline':
+        return { bgColor: '#F3F4F6', textColor: '#6B7280', dotColor: '#9CA3AF' };
+      default:
+        return { bgColor: '#ECFDF5', textColor: '#111827', dotColor: '#10B981' };
+    }
+  };
+
+  const getStatusColor = (status: 'available' | 'busy' | 'offline') => {
+    if (status === 'available') return '#10B981';
+    if (status === 'busy') return '#F97316';
+    return '#9CA3AF';
+  };
+
+  const statusOptions: Array<{ id: 'available' | 'busy' | 'offline', label: string, description: string }> = [
+    {
+      id: 'available',
+      label: 'Available',
+      description: 'Visible to owners and can receive new requests'
+    },
+    {
+      id: 'busy',
+      label: 'Busy',
+      description: 'Visible but won\'t receive new requests'
+    },
+    {
+      id: 'offline',
+      label: 'Offline',
+      description: 'Not visible to owners and won\'t receive requests'
+    },
+  ];
+
   return (
     <View className="flex-1 px-6 pt-4" style={{ backgroundColor: '#F6F8FC' }}>
       {isLoading || !user ? (
@@ -154,11 +193,72 @@ export default function ProfileScreen() {
           </View>
         </View>
 
+        {/* Status Block - Only for Mechanics */}
+        {user?.role === 'mechanic' && (
+          <View className="bg-white rounded-3xl p-6 mb-8" style={{
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.08,
+            shadowRadius: 4,
+            elevation: 3,
+          }}>
+            {/* Header with Title */}
+            <Text style={{ fontFamily: 'Outfit_600SemiBold', fontSize: 18, color: '#111827' }} className="mb-4">
+              Available to provide services
+            </Text>
+
+            {/* Status Options */}
+            <View className="flex-row gap-2 mb-4">
+              {statusOptions.map((option) => {
+                const optionStyles = (() => {
+                  switch (option.id) {
+                    case 'available':
+                      return { bgColor: '#ECFDF5', borderColor: '#D1FAE5', textColor: '#111827' };
+                    case 'busy':
+                      return { bgColor: '#FEF3C7', borderColor: '#FCD34D', textColor: '#111827' };
+                    case 'offline':
+                      return { bgColor: '#F3F4F6', borderColor: '#D1D5DB', textColor: '#6B7280' };
+                    default:
+                      return { bgColor: '#F3F4F6', borderColor: '#D1D5DB', textColor: '#6B7280' };
+                  }
+                })();
+
+                return (
+                  <TouchableOpacity
+                    key={option.id}
+                    onPress={() => setMechanicStatus(option.id)}
+                    className="flex-1 py-3 px-4 rounded-2xl flex-row items-center justify-center gap-2"
+                    style={{
+                      backgroundColor: mechanicStatus === option.id ? optionStyles.bgColor : '#F9FAFB',
+                      borderColor: mechanicStatus === option.id ? optionStyles.borderColor : '#E5E7EB',
+                      borderWidth: 1,
+                    }}
+                  >
+                    <Circle size={8} color={getStatusColor(option.id)} fill={getStatusColor(option.id)} />
+                    <Text style={{ color: mechanicStatus === option.id ? optionStyles.textColor : '#9CA3AF', fontFamily: 'Outfit_600SemiBold', fontSize: 13 }}>
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* Description */}
+            <Text style={{ color: '#4B5563', fontFamily: 'Outfit_400Regular', fontSize: 15, lineHeight: 20 }}>
+              {mechanicStatus === 'available'
+                ? 'You are visible to nearby owners and can receive new requests.'
+                : mechanicStatus === 'busy'
+                ? 'You are visible but won\'t receive new requests.'
+                : 'You are not visible to owners and won\'t receive requests.'}
+            </Text>
+          </View>
+        )}
+
         {/* Menu Items Card */}
         {(() => {
           const menuItems = [
             { icon: User, label: 'Personal information', route: '/personal-info' },
-            { icon: MapPin, label: 'My Addresses', route: '/addresses' },
+            { icon: MapPin, label: 'My Addresses', route: '/(tabs)/addresses' },
             ...(user.role?.toLowerCase().trim() !== 'mechanic' ? [
               { icon: Car || User, label: 'My Vehicles', route: '/vehicles' },
             ] : []),
@@ -322,6 +422,52 @@ export default function ProfileScreen() {
         confirmText="Yes"
         cancelText="No"
       />
+
+      {/* Status Modal */}
+      {showStatusModal && (
+        <Modal transparent visible={showStatusModal} animationType="fade">
+          <View className="flex-1 bg-black/50 justify-center items-center px-6">
+            <View className="bg-white w-full rounded-2xl p-6 items-center">
+              <Text className="text-lg font-outfit-bold text-gray-900 mb-6 text-center">
+                Change your status
+              </Text>
+
+              <View className="w-full gap-3">
+                {statusOptions.map((option) => (
+                  <TouchableOpacity
+                    key={option.id}
+                    onPress={() => {
+                      setMechanicStatus(option.id);
+                      setShowStatusModal(false);
+                    }}
+                    activeOpacity={0.8}
+                    className={`flex-row items-start gap-3 p-4 rounded-xl border ${
+                      mechanicStatus === option.id ? 'bg-blue-50 border-blue-200' : 'border-gray-200'
+                    }`}
+                  >
+                    <View className="mt-0.5">
+                      <Circle size={10} color={getStatusColor(option.id)} fill={getStatusColor(option.id)} />
+                    </View>
+                    <View className="flex-1">
+                      <Text className={`font-outfit-semibold text-base ${
+                        mechanicStatus === option.id ? 'text-blue-600' : 'text-gray-900'
+                      }`}>
+                        {option.label}
+                      </Text>
+                      <Text className="text-gray-600 font-outfit-regular text-xs mt-1">
+                        {option.description}
+                      </Text>
+                    </View>
+                    {mechanicStatus === option.id && (
+                      <View className="w-5 h-5 rounded-full bg-blue-600 mt-0.5" />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </View>
+        </Modal>
+      )}
       </ScrollView>
       )}
     </View>

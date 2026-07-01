@@ -9,9 +9,9 @@ import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { AssistanceRequest } from '@/lib/dao/interfaces';
 import * as Location from 'expo-location';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Calendar, Video, Zap, MapPin, Wrench, DollarSign, Star, Award } from 'lucide-react-native';
+import { Calendar, Video, Zap, MapPin, Wrench, DollarSign, Star, Award, Circle } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, ScrollView, Text, TouchableOpacity, View, Modal } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 // Mechanics see requests within this radius of their current location.
@@ -42,9 +42,55 @@ export default function DashboardScreen() {
     const [filter, setFilter] = useState<AssistanceType | null>(null);
     const [requests, setRequests] = useState<AssistanceRequest[]>([]);
     const [isLoadingRequests, setIsLoadingRequests] = useState(true);
+    const [showStatusModal, setShowStatusModal] = useState(false);
     const { appointments } = useAppointments();
     const { lastMessage } = useSocket();
     const { mechanicStatus, setMechanicStatus } = useMechanicStatus();
+
+    const getStatusStyles = () => {
+        switch (mechanicStatus) {
+            case 'available':
+                return { bgColor: '#ECFDF5', textColor: '#111827', dotColor: '#10B981' };
+            case 'busy':
+                return { bgColor: '#FEF3C7', textColor: '#111827', dotColor: '#F97316' };
+            case 'offline':
+                return { bgColor: '#F3F4F6', textColor: '#6B7280', dotColor: '#9CA3AF' };
+            default:
+                return { bgColor: '#ECFDF5', textColor: '#111827', dotColor: '#10B981' };
+        }
+    };
+
+    const getStatusLabel = () => {
+        if (mechanicStatus === 'available') return 'Available';
+        if (mechanicStatus === 'busy') return 'Busy';
+        return 'Offline';
+    };
+
+    const getStatusColor = (status: 'available' | 'busy' | 'offline') => {
+        if (status === 'available') return '#10B981';
+        if (status === 'busy') return '#F97316';
+        return '#9CA3AF';
+    };
+
+    const statusOptions: Array<{ id: 'available' | 'busy' | 'offline', label: string, description: string }> = [
+        {
+            id: 'available',
+            label: 'Available',
+            description: 'Visible to owners and can receive new requests'
+        },
+        {
+            id: 'busy',
+            label: 'Busy',
+            description: 'Visible but won\'t receive new requests'
+        },
+        {
+            id: 'offline',
+            label: 'Offline',
+            description: 'Not visible to owners and won\'t receive requests'
+        },
+    ];
+
+    const styles = getStatusStyles();
 
     const loadRequests = async () => {
         if (!user?.id) {
@@ -124,8 +170,9 @@ export default function DashboardScreen() {
         ];
 
         return (
-            <ScrollView className="flex-1" style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ paddingBottom: 40 }}>
-                <View className="px-6 pt-4">
+            <View className="flex-1">
+                <ScrollView style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ paddingBottom: 40 }}>
+                    <View className="px-6 pt-4">
                     {/* Section Badge */}
                     <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                         <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
@@ -143,6 +190,65 @@ export default function DashboardScreen() {
                     <Text className="text-gray-500 font-outfit-regular text-base mb-8">
                         Review new requests in your area
                     </Text>
+
+                    {/* Status Block */}
+                    <View className="bg-white rounded-3xl p-6 mb-8" style={{
+                        shadowColor: '#000',
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.08,
+                        shadowRadius: 4,
+                        elevation: 3,
+                    }}>
+                        {/* Header with Title */}
+                        <Text style={{ fontFamily: 'Outfit_600SemiBold', fontSize: 18, color: '#111827' }} className="mb-4">
+                            Available to provide services
+                        </Text>
+
+                        {/* Status Options */}
+                        <View className="flex-row gap-2 mb-4">
+                            {statusOptions.map((option) => {
+                                const optionStyles = (() => {
+                                    switch (option.id) {
+                                        case 'available':
+                                            return { bgColor: '#ECFDF5', borderColor: '#D1FAE5', textColor: '#111827' };
+                                        case 'busy':
+                                            return { bgColor: '#FEF3C7', borderColor: '#FCD34D', textColor: '#111827' };
+                                        case 'offline':
+                                            return { bgColor: '#F3F4F6', borderColor: '#D1D5DB', textColor: '#6B7280' };
+                                        default:
+                                            return { bgColor: '#F3F4F6', borderColor: '#D1D5DB', textColor: '#6B7280' };
+                                    }
+                                })();
+
+                                return (
+                                    <TouchableOpacity
+                                        key={option.id}
+                                        onPress={() => setMechanicStatus(option.id)}
+                                        className="flex-1 py-3 px-4 rounded-2xl flex-row items-center justify-center gap-2"
+                                        style={{
+                                            backgroundColor: mechanicStatus === option.id ? optionStyles.bgColor : '#F9FAFB',
+                                            borderColor: mechanicStatus === option.id ? optionStyles.borderColor : '#E5E7EB',
+                                            borderWidth: 1,
+                                        }}
+                                    >
+                                        <Circle size={8} color={getStatusColor(option.id)} fill={getStatusColor(option.id)} />
+                                        <Text style={{ color: mechanicStatus === option.id ? optionStyles.textColor : '#9CA3AF', fontFamily: 'Outfit_600SemiBold', fontSize: 13 }}>
+                                            {option.label}
+                                        </Text>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </View>
+
+                        {/* Description */}
+                        <Text style={{ color: '#4B5563', fontFamily: 'Outfit_400Regular', fontSize: 15, lineHeight: 20 }}>
+                            {mechanicStatus === 'available'
+                                ? 'You are visible to nearby owners and can receive new requests.'
+                                : mechanicStatus === 'busy'
+                                ? 'You are visible but won\'t receive new requests.'
+                                : 'You are not visible to owners and won\'t receive requests.'}
+                        </Text>
+                    </View>
 
                     {/* KPIs Section */}
                     <View className="flex-row gap-3 mb-8">
@@ -172,7 +278,7 @@ export default function DashboardScreen() {
                     {mechanicStatus !== 'offline' && (
                         <>
                             {/* New Requests Title */}
-                            <Text className="text-gray-900 font-outfit-bold text-lg mt-2 mb-4">
+                            <Text style={{ fontFamily: 'Outfit_600SemiBold', fontSize: 16, color: '#111827' }} className="mt-2 mb-4">
                                 New requests in your area
                             </Text>
 
@@ -312,7 +418,7 @@ export default function DashboardScreen() {
                                                         }}
                                                     >
                                                         <Text className="text-white font-outfit-semibold text-lg">
-                                                            Accept request
+                                                            View request
                                                         </Text>
                                                     </LinearGradient>
                                                 </TouchableOpacity>
@@ -336,8 +442,55 @@ export default function DashboardScreen() {
                         onPress={() => router.push('/(tabs)/ase')}
                       />
                     </View>
-                </View>
-            </ScrollView>
+                    </View>
+                </ScrollView>
+
+                {/* Status Modal */}
+                {showStatusModal && (
+                    <Modal transparent visible={showStatusModal} animationType="fade">
+                        <View className="flex-1 bg-black/50 justify-center items-center px-6">
+                            <View className="bg-white w-full rounded-2xl p-6 items-center">
+                                <Text className="text-lg font-outfit-bold text-gray-900 mb-6 text-center">
+                                    Change your status
+                                </Text>
+
+                                <View className="w-full gap-3">
+                                    {statusOptions.map((option) => (
+                                        <TouchableOpacity
+                                            key={option.id}
+                                            onPress={() => {
+                                                setMechanicStatus(option.id);
+                                                setShowStatusModal(false);
+                                            }}
+                                            activeOpacity={0.8}
+                                            className={`flex-row items-start gap-3 p-4 rounded-xl border ${
+                                                mechanicStatus === option.id ? 'bg-blue-50 border-blue-200' : 'border-gray-200'
+                                            }`}
+                                        >
+                                            <View className="mt-0.5">
+                                                <Circle size={10} color={getStatusColor(option.id)} fill={getStatusColor(option.id)} />
+                                            </View>
+                                            <View className="flex-1">
+                                                <Text className={`font-outfit-semibold text-base ${
+                                                    mechanicStatus === option.id ? 'text-blue-600' : 'text-gray-900'
+                                                }`}>
+                                                    {option.label}
+                                                </Text>
+                                                <Text className="text-gray-600 font-outfit-regular text-xs mt-1">
+                                                    {option.description}
+                                                </Text>
+                                            </View>
+                                            {mechanicStatus === option.id && (
+                                                <View className="w-5 h-5 rounded-full bg-blue-600 mt-0.5" />
+                                            )}
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            </View>
+                        </View>
+                    </Modal>
+                )}
+            </View>
         );
     }
 
@@ -373,7 +526,7 @@ export default function DashboardScreen() {
                         <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                             <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
                             <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                                {user?.role?.toLowerCase() === 'mechanic' ? 'FIND JOBS' : 'NEED HELP'}
+                                {user?.role?.toLowerCase() === 'mechanic' ? 'FIND JOBS' : getTimeGreeting()}
                             </Text>
                         </View>
 

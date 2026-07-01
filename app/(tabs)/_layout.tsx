@@ -37,6 +37,62 @@ function ProfileHeaderLeft() {
   );
 }
 
+function PersonalInfoHeaderLeft() {
+  const router = useRouter();
+  const { user } = useUser();
+
+  if (user?.role === 'mechanic') {
+    return <MechanicStatusBadge />;
+  }
+
+  return (
+    <TouchableOpacity
+      onPress={() => router.navigate("/(tabs)")}
+      style={{ marginLeft: 16 }}
+    >
+      <ChevronLeft size={24} color="#0047AB" />
+    </TouchableOpacity>
+  );
+}
+
+function PersonalInfoHeaderRight() {
+  const router = useRouter();
+  const { user } = useUser();
+
+  if (user?.role === 'mechanic') {
+    return null;
+  }
+
+  return (
+    <TouchableOpacity
+      onPress={() => router.push("/(tabs)/notifications")}
+      style={{ marginRight: 16 }}
+      className="justify-center items-center"
+    >
+      <Bell size={24} color="#0047AB" />
+    </TouchableOpacity>
+  );
+}
+
+function AddressesHeaderLeft() {
+  const router = useRouter();
+  const { user } = useUser();
+
+  // For mechanics, show badge; for users, show back button
+  if (user?.role?.toLowerCase().trim() === 'mechanic') {
+    return <MechanicStatusBadge />;
+  }
+
+  return (
+    <TouchableOpacity
+      onPress={() => router.navigate("/(tabs)")}
+      style={{ marginLeft: 16 }}
+    >
+      <ChevronLeft size={24} color="#0047AB" />
+    </TouchableOpacity>
+  );
+}
+
 function MechanicStatusBadge() {
   const { user } = useUser();
   const { mechanicStatus, setMechanicStatus } = useMechanicStatus();
@@ -238,7 +294,7 @@ export default function TabLayout() {
         options={{
           href: user?.role === "mechanic" ? undefined : null,
           title: "Requests",
-          tabBarIcon: ({ color }) => <FileText size={24} color={color} />,
+          tabBarIcon: ({ color }) => <Wrench size={24} color={color} />,
           headerLeft: () => <MechanicStatusHeaderLeft />,
           headerRight: () => <NotificationHeaderRight />,
         }}
@@ -295,7 +351,8 @@ export default function TabLayout() {
         options={{
           href: null,
           title: "Profile",
-          headerLeft: () => <ProfileHeaderLeft />,
+          headerLeft: () => <PersonalInfoHeaderLeft />,
+          headerRight: () => <PersonalInfoHeaderRight />,
         }}
       />
       <Tabs.Screen
@@ -303,14 +360,8 @@ export default function TabLayout() {
         options={{
           href: null,
           title: "Profile",
-          headerLeft: () => (
-            <TouchableOpacity
-              onPress={() => router.navigate("/(tabs)")}
-              style={{ marginLeft: 16 }}
-            >
-              <ChevronLeft size={24} color="#0047AB" />
-            </TouchableOpacity>
-          ),
+          headerLeft: () => <PersonalInfoHeaderLeft />,
+          headerRight: () => <PersonalInfoHeaderRight />,
         }}
       />
       <Tabs.Screen
@@ -318,14 +369,8 @@ export default function TabLayout() {
         options={{
           href: null,
           title: "Profile",
-          headerLeft: () => (
-            <TouchableOpacity
-              onPress={() => router.navigate("/(tabs)")}
-              style={{ marginLeft: 16 }}
-            >
-              <ChevronLeft size={24} color="#0047AB" />
-            </TouchableOpacity>
-          ),
+          headerLeft: () => <PersonalInfoHeaderLeft />,
+          headerRight: () => <PersonalInfoHeaderRight />,
         }}
       />
       <Tabs.Screen
@@ -333,14 +378,8 @@ export default function TabLayout() {
         options={{
           href: null,
           title: "Profile",
-          headerLeft: () => (
-            <TouchableOpacity
-              onPress={() => router.navigate("/(tabs)")}
-              style={{ marginLeft: 16 }}
-            >
-              <ChevronLeft size={24} color="#0047AB" />
-            </TouchableOpacity>
-          ),
+          headerLeft: () => <PersonalInfoHeaderLeft />,
+          headerRight: () => <PersonalInfoHeaderRight />,
         }}
       />
       <Tabs.Screen
@@ -348,14 +387,8 @@ export default function TabLayout() {
         options={{
           href: null,
           title: "Profile",
-          headerLeft: () => (
-            <TouchableOpacity
-              onPress={() => router.navigate("/(tabs)")}
-              style={{ marginLeft: 16 }}
-            >
-              <ChevronLeft size={24} color="#0047AB" />
-            </TouchableOpacity>
-          ),
+          headerLeft: () => <PersonalInfoHeaderLeft />,
+          headerRight: () => <PersonalInfoHeaderRight />,
         }}
       />
       <Tabs.Screen
@@ -363,19 +396,18 @@ export default function TabLayout() {
         options={{
           href: null,
           title: "Profile",
-          headerLeft: () => (
-            <TouchableOpacity
-              onPress={() => router.navigate("/(tabs)")}
-              style={{ marginLeft: 16 }}
-            >
-              <ChevronLeft size={24} color="#0047AB" />
-            </TouchableOpacity>
-          ),
+          headerLeft: () => <PersonalInfoHeaderLeft />,
+          headerRight: () => <PersonalInfoHeaderRight />,
         }}
       />
       <Tabs.Screen
         name="settings"
-        options={{ href: null, headerShown: false }}
+        options={{
+          href: null,
+          title: "Profile",
+          headerLeft: () => <PersonalInfoHeaderLeft />,
+          headerRight: () => <PersonalInfoHeaderRight />,
+        }}
       />
       <Tabs.Screen
         name="live-chat"
@@ -405,6 +437,23 @@ export default function TabLayout() {
               <ChevronLeft size={24} color="#0047AB" />
             </TouchableOpacity>
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="addresses"
+        options={{
+          href: null,
+          title: "Profile",
+          headerLeft: () => <PersonalInfoHeaderLeft />,
+          headerRight: () => <PersonalInfoHeaderRight />,
+          tabBarStyle: {
+            backgroundColor: "#FFFFFF",
+            borderTopWidth: 1,
+            borderTopColor: "#E5E5E5",
+            height: Platform.OS === "ios" ? 88 : 68,
+            paddingTop: 8,
+            paddingBottom: Platform.OS === "ios" ? 28 : 8,
+          },
         }}
       />
 
