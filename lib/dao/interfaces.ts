@@ -45,7 +45,6 @@ export interface MechanicDetail {
     companyInvitation?: string;
     expertiseDetails?: string;
     yearsExperience?: string;
-    aseMembership?: string;
 }
 
 export interface MechanicAvailability {
