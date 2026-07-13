@@ -3,7 +3,7 @@ import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import * as Location from 'expo-location';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
-import { Calendar, Clock, Navigation, CheckCircle, ChevronLeft } from 'lucide-react-native';
+import { Calendar, Clock, Navigation, CheckCircle, ChevronLeft, Zap, Car, Wrench, Lock, ArrowUpRight } from 'lucide-react-native';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
@@ -63,6 +63,21 @@ export default function RequestDetailScreen() {
 
     const isImmediate = type === 'immediate' || type === 'videocall' || type === 'witness' || assistanceType === 'witness';
     const isVideo = type === 'videocall';
+    const isUrgent = type === 'immediate' || type === 'witness' || assistanceType === 'witness';
+
+    const serviceLabel = assistanceType === 'witness'
+        ? 'Accident Assistance'
+        : isVideo
+            ? 'Video Call Assistance'
+            : isImmediate
+                ? 'Immediate Assistance'
+                : 'Scheduled Assistance';
+
+    // Split full address into a hidden street line and a public city/state line.
+    const addressParts = String(address || '').split(',').map((p) => p.trim()).filter(Boolean);
+    const cityLine = addressParts.length > 1
+        ? `${addressParts.slice(1).join(', ')}${zip ? ` · ${zip}` : ''}`
+        : String(address || '');
 
     const reqLat = parseFloat(locationLat as string);
     const reqLng = parseFloat(locationLng as string);
@@ -149,7 +164,7 @@ export default function RequestDetailScreen() {
     };
 
     return (
-        <View className="flex-1 bg-white">
+        <View className="flex-1" style={{ backgroundColor: '#F4F6FC' }}>
             <ScrollView className="flex-1">
                 <View className="p-6">
                     {/* Section Badge */}
@@ -162,46 +177,113 @@ export default function RequestDetailScreen() {
 
                     {/* Title */}
                     <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
-                        {assistanceType === 'witness' ? 'Accident Assistance' : isVideo ? 'Video Call Assistance' : isImmediate ? 'Immediate Assistance' : 'Scheduled Assistance'}
+                        Review before you accept
                     </Text>
 
                     {/* Subtitle */}
-                    <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-                        Review the details and accept if available
+                    <Text className="text-gray-500 font-outfit-regular text-base mb-2">
+                        Check the vehicle issue, location, and budget below
                     </Text>
                 </View>
 
                 <View className="px-6">
-                    {/* Details Info */}
-                    <View className="mb-6 gap-4">
-                        <View>
-                            <Text className="font-outfit-bold text-gray-900 mb-1">Assistance needed:</Text>
-                            <Text className="font-outfit-regular text-gray-600">{title}</Text>
+                    {/* Header Card: service, urgency, budget */}
+                    <View
+                        className="bg-white rounded-2xl p-5 mb-4 flex-row items-center"
+                        style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 4 }}
+                    >
+                        <View
+                            className="w-14 h-14 rounded-2xl justify-center items-center mr-4"
+                            style={{ backgroundColor: isUrgent ? '#FEE2E2' : '#E9F1FF' }}
+                        >
+                            <Zap size={26} color={isUrgent ? '#EF4444' : '#0047AB'} fill={isUrgent ? '#EF4444' : '#0047AB'} />
                         </View>
-                        <View>
-                            <Text className="font-outfit-bold text-gray-900 mb-1">Car:</Text>
-                            <Text className="font-outfit-regular text-gray-600">{car}</Text>
-                        </View>
-                        <View>
-                            <Text className="font-outfit-bold text-gray-900 mb-1">Address:</Text>
-                            <Text className="font-outfit-regular text-gray-600">{address}</Text>
-                        </View>
-                        <View>
-                            <Text className="font-outfit-bold text-gray-900 mb-1">Assistance Budget:</Text>
-                            <Text className="font-outfit-bold text-blue-600 text-lg">{budget}</Text>
-                        </View>
-                        {(etaText || distKm !== null) && (
-                            <View className="flex-row items-center gap-2 bg-blue-50 rounded-xl px-4 py-3">
-                                <Navigation size={16} color="#0047AB" />
-                                {distKm !== null && (
-                                    <Text className="font-outfit-bold text-blue-900">{distKm.toFixed(1)} km</Text>
+                        <View className="flex-1">
+                            <Text className="font-outfit-bold text-lg text-gray-900" numberOfLines={1}>{serviceLabel}</Text>
+                            <View className="flex-row items-center gap-2 mt-1">
+                                {isUrgent && (
+                                    <View className="px-2 py-0.5 rounded-md" style={{ backgroundColor: '#FEE2E2' }}>
+                                        <Text className="font-outfit-bold text-[11px] tracking-widest" style={{ color: '#EF4444' }}>URGENT</Text>
+                                    </View>
                                 )}
-                                {etaText && (
-                                    <Text className="font-outfit-bold text-blue-900">· ETA: {etaText}</Text>
-                                )}
+                                <View className="flex-row items-center gap-1">
+                                    <Clock size={13} color="#9CA3AF" />
+                                    <Text className="font-outfit-regular text-sm text-gray-500">Just now</Text>
+                                </View>
                             </View>
-                        )}
+                        </View>
+                        <View className="items-end ml-2">
+                            <Text className="font-outfit-bold text-2xl" style={{ color: '#0047AB' }}>{budget}</Text>
+                            <Text className="font-outfit-regular text-sm text-gray-400">budget</Text>
+                        </View>
                     </View>
+
+                    {/* Details Card: vehicle, assistance, address */}
+                    <View
+                        className="bg-white rounded-2xl mb-4"
+                        style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 4 }}
+                    >
+                        {/* Vehicle */}
+                        <View className="flex-row items-center px-5 py-4 border-b border-gray-100">
+                            <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
+                                <Car size={20} color="#0047AB" />
+                            </View>
+                            <View className="flex-1">
+                                <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">VEHICLE</Text>
+                                <Text className="font-outfit-bold text-base text-gray-900">{car}</Text>
+                            </View>
+                        </View>
+
+                        {/* Assistance needed */}
+                        <View className="flex-row items-center px-5 py-4 border-b border-gray-100">
+                            <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
+                                <Wrench size={20} color="#0047AB" />
+                            </View>
+                            <View className="flex-1">
+                                <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">ASSISTANCE NEEDED</Text>
+                                <Text className="font-outfit-bold text-base text-gray-900">{title}</Text>
+                            </View>
+                        </View>
+
+                        {/* Address */}
+                        <View className="flex-row px-5 py-4">
+                            <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
+                                <Lock size={20} color="#0047AB" />
+                            </View>
+                            <View className="flex-1">
+                                <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-1.5">ADDRESS</Text>
+                                {/* Redacted street — unlocks after accept */}
+                                <View className="h-4 rounded-md mb-1.5" style={{ backgroundColor: '#E5E7EB', width: '75%' }} />
+                                <Text className="font-outfit-bold text-base text-gray-900">{cityLine}</Text>
+                                <Text className="font-outfit-regular text-sm text-gray-400 mt-0.5">Exact address unlocks once you accept</Text>
+                            </View>
+                        </View>
+                    </View>
+
+                    {/* Distance / ETA Card */}
+                    {(etaText || distKm !== null) && (
+                        <View className="flex-row rounded-2xl mb-4 overflow-hidden" style={{ backgroundColor: '#E9F1FF', borderWidth: 1, borderColor: '#C7D7F5' }}>
+                            <View className="flex-1 flex-row items-center p-4">
+                                <View className="w-11 h-11 rounded-xl bg-white justify-center items-center mr-3">
+                                    <ArrowUpRight size={20} color="#0047AB" />
+                                </View>
+                                <View>
+                                    <Text className="font-outfit-semibold text-xs tracking-widest text-blue-500 mb-0.5">DISTANCE</Text>
+                                    <Text className="font-outfit-bold text-lg text-gray-900">{distKm !== null ? `${(distKm * 0.621371).toFixed(1)} mi` : '—'}</Text>
+                                </View>
+                            </View>
+                            <View style={{ width: 1, backgroundColor: '#C7D7F5' }} className="my-4" />
+                            <View className="flex-1 flex-row items-center p-4">
+                                <View className="w-11 h-11 rounded-xl bg-white justify-center items-center mr-3">
+                                    <Clock size={20} color="#0047AB" />
+                                </View>
+                                <View>
+                                    <Text className="font-outfit-semibold text-xs tracking-widest text-blue-500 mb-0.5">ETA</Text>
+                                    <Text className="font-outfit-bold text-lg text-gray-900">{etaText || '—'}</Text>
+                                </View>
+                            </View>
+                        </View>
+                    )}
 
                     {/* Route map */}
                     {hasLocation && (
@@ -318,9 +400,9 @@ export default function RequestDetailScreen() {
                     >
                         {isImmediate || (selectedDate && selectedTime) ? (
                             <LinearGradient
-                                colors={['#10B981', '#059669']}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 1 }}
+                                colors={['#10B981', '#047857']}
+                                start={{ x: 0, y: 1 }}
+                                end={{ x: 1, y: 0 }}
                                 style={{
                                     borderRadius: 12,
                                     paddingVertical: 16,
@@ -337,10 +419,6 @@ export default function RequestDetailScreen() {
                             </View>
                         )}
                     </TouchableOpacity>
-
-                    <Text className="text-center text-[10px] text-gray-400 mt-4">
-                        Posted: 07/07/2026 - 03:15 AM{'\n'}ID:#34532-2384-33327
-                    </Text>
                 </View>
             </ScrollView>
 

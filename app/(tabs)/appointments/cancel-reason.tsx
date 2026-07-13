@@ -1,14 +1,18 @@
 import { useAppointments } from '@/context/AppointmentsContext';
 import { useSocket } from '@/context/SocketContext';
-import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+import { ChevronRight, Circle, Info } from 'lucide-react-native';
 import React, { useState } from 'react';
-import { SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 const REASONS = [
-    "The issue has already been solved",
-    "I've already received help",
-    "My mechanic took too long to arrive",
+    "No longer available",
+    "Too far away",
+    "Accepted another job",
+    "Vehicle issue",
+    "Missing required tools",
+    "Personal emergency",
     "Other"
 ];
 
@@ -29,59 +33,107 @@ export default function CancelReasonScreen() {
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-white">
-            {/* Header */}
-            <View className="px-4 py-4 flex-row items-center mb-6">
-                <TouchableOpacity onPress={() => router.back()}>
-                    <Ionicons name="arrow-back" size={24} color="#1F2937" />
-                </TouchableOpacity>
-                <View className="flex-1 items-center mr-6">
-                    <Text className="font-outfit-bold text-lg text-gray-900">Assistance</Text>
-                </View>
-            </View>
+        <View className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
+            <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+                <View className="px-6 pt-4">
+                    {/* Section Badge */}
+                    <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+                        <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+                        <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+                            CANCEL REQUEST
+                        </Text>
+                    </View>
 
-            <View className="px-6 flex-1">
-                <Text className="font-outfit-bold text-xl text-gray-900 mb-8 text-center px-4">
-                    Before you go, we just wanted to know why you canceled your request
-                </Text>
+                    {/* Title */}
+                    <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
+                        Why are you canceling this request?
+                    </Text>
 
-                <View className="gap-3">
-                    {REASONS.map((reason) => (
+                    {/* Subtitle */}
+                    <Text className="text-gray-500 font-outfit-regular text-base mb-8">
+                        Please select the reason below. This helps us improve future assignments.
+                    </Text>
+
+                    {/* Reasons List */}
+                    <View className="gap-3 mb-8">
+                        {REASONS.map((reason) => (
+                            <TouchableOpacity
+                                key={reason}
+                                onPress={() => setSelectedReason(reason)}
+                                className={`py-4 px-4 rounded-2xl border flex-row items-center gap-3 ${selectedReason === reason
+                                    ? 'bg-blue-50 border-blue-200'
+                                    : 'bg-white border-gray-200'
+                                    }`}
+                            >
+                                <Circle
+                                    size={20}
+                                    color={selectedReason === reason ? '#0047AB' : '#D1D5DB'}
+                                    fill={selectedReason === reason ? '#0047AB' : 'transparent'}
+                                />
+                                <Text className={`font-outfit-medium text-base ${selectedReason === reason ? 'text-blue-900' : 'text-gray-700'
+                                    }`}>
+                                    {reason}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+
+                    {/* Information Message */}
+                    <View className="flex-row gap-3 p-4 rounded-2xl mb-8" style={{ backgroundColor: '#EFF6FF' }}>
+                        <Info size={20} color="#0047AB" style={{ marginTop: 2 }} />
+                        <Text className="flex-1 font-outfit-regular text-base" style={{ color: '#0047AB', lineHeight: 20 }}>
+                            Frequent cancellations may affect your acceptance rate and visibility in the request queue.
+                        </Text>
+                    </View>
+
+                    {/* Buttons */}
+                    <View className="gap-3">
+                        {/* Cancel Request Button */}
                         <TouchableOpacity
-                            key={reason}
-                            onPress={() => setSelectedReason(reason)}
-                            className={`py-4 px-4 rounded-lg border flex-row items-center justify-center ${selectedReason === reason
-                                ? 'bg-white border-blue-600 border-2'
-                                : 'bg-white border-gray-100 shadow-sm'
-                                }`}
+                            onPress={handleDone}
+                            disabled={!selectedReason}
+                            activeOpacity={0.8}
                         >
-                            <Text className={`font-outfit-medium text-xs ${selectedReason === reason ? 'text-blue-900' : 'text-gray-500'
-                                }`}>
-                                {reason}
-                            </Text>
+                            <LinearGradient
+                                colors={selectedReason ? ['#EF4444', '#DC2626'] : ['#FECACA', '#FECACA']}
+                                start={{ x: 0, y: 1 }}
+                                end={{ x: 1, y: 0 }}
+                                style={{
+                                    borderRadius: 10,
+                                    paddingVertical: 16,
+                                    paddingHorizontal: 16,
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    opacity: selectedReason ? 1 : 0.6,
+                                }}
+                            >
+                                <Text className="text-white font-outfit-bold text-center">Cancel Request</Text>
+                            </LinearGradient>
                         </TouchableOpacity>
-                    ))}
-                </View>
-            </View>
 
-            <View className="px-6 mb-8">
-                <TouchableOpacity
-                    onPress={handleDone}
-                    disabled={!selectedReason}
-                    className={`w-full py-4 rounded-lg items-center ${selectedReason ? 'bg-blue-600' : 'bg-gray-300'
-                        }`}
-                >
-                    <Text className="font-outfit-bold text-white text-base">Done</Text>
-                </TouchableOpacity>
-
-                {/* Bottom navigation simulation */}
-                <View className="flex-row justify-between items-center mt-8 px-4 border-t border-gray-100 pt-4">
-                    <View className="items-center opacity-40"><Ionicons name="person-circle-outline" size={24} color="gray" /><Text className="text-[10px] text-gray-500">Profile</Text></View>
-                    <View className="items-center"><Ionicons name="help-buoy" size={24} color="#3B82F6" /><Text className="text-[10px] text-blue-500 font-bold">Assist</Text></View>
-                    <View className="items-center opacity-40"><Ionicons name="calendar-outline" size={24} color="gray" /><Text className="text-[10px] text-gray-500">Appointments</Text></View>
-                    <View className="items-center opacity-40"><Ionicons name="notifications-outline" size={24} color="gray" /><Text className="text-[10px] text-gray-500">Notifications</Text></View>
+                        {/* Keep Request Button */}
+                        <TouchableOpacity
+                            onPress={() => router.back()}
+                            activeOpacity={0.8}
+                        >
+                            <View
+                                style={{
+                                    borderRadius: 10,
+                                    paddingVertical: 16,
+                                    paddingHorizontal: 16,
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    backgroundColor: '#EFF6FF',
+                                }}
+                            >
+                                <Text className="font-outfit-bold text-center" style={{ color: '#0047AB' }}>Keep Request</Text>
+                            </View>
+                        </TouchableOpacity>
+                    </View>
                 </View>
-            </View>
-        </SafeAreaView>
+            </ScrollView>
+        </View>
     );
 }

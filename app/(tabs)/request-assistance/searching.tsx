@@ -2,11 +2,19 @@ import { useSocket } from '@/context/SocketContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ChevronLeft } from 'lucide-react-native';
+import { ChevronLeft, Clock, Zap, Car, MapPin, DollarSign } from 'lucide-react-native';
+import { AssistanceRequest } from '@/lib/dao/interfaces';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import { Animated, Easing, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faWrench } from '@fortawesome/free-solid-svg-icons';
+
+const STEPS = [
+    { title: 'Request sent', subtitle: 'Your request is live.' },
+    { title: 'Notifying mechanics', subtitle: 'Mechanics have been alerted.' },
+    { title: 'Reviewing offers', subtitle: 'Waiting for the best match to accept...' },
+];
 
 export default function SearchingScreen() {
     const router = useRouter();
@@ -16,6 +24,9 @@ export default function SearchingScreen() {
 
     const [spinValue] = useState(new Animated.Value(0));
     const [pulseValue] = useState(new Animated.Value(0));
+    const [elapsedSeconds, setElapsedSeconds] = useState(0);
+    const [activeStep, setActiveStep] = useState(0);
+    const [requestData, setRequestData] = useState<AssistanceRequest | null>(null);
 
     const getTitle = () => {
         switch (type) {
@@ -38,10 +49,32 @@ export default function SearchingScreen() {
     };
 
     useEffect(() => {
+        const timer = setInterval(() => {
+            setElapsedSeconds(prev => prev + 1);
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, []);
+
+    useEffect(() => {
+        const stepTimer = setInterval(() => {
+            setActiveStep(prev => {
+                if (prev >= 2) {
+                    clearInterval(stepTimer);
+                    return 2;
+                }
+                return prev + 1;
+            });
+        }, 3000);
+
+        return () => clearInterval(stepTimer);
+    }, []);
+
+    useEffect(() => {
         Animated.loop(
             Animated.timing(spinValue, {
                 toValue: 1,
-                duration: 3000,
+                duration: 1200,
                 easing: Easing.linear,
                 useNativeDriver: true,
             })
@@ -61,6 +94,7 @@ export default function SearchingScreen() {
             if (!requestId) return;
             try {
                 const data = await assistanceDAO.getById(requestId as string);
+                if (data) setRequestData(data);
                 if (data && data.status === 'offered') {
                     router.replace({
                         pathname: '/request-assistance/mechanic-found',
@@ -129,7 +163,7 @@ export default function SearchingScreen() {
     };
 
     return (
-        <View className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
+        <View className="flex-1" style={{ backgroundColor: '#F4F6FC' }}>
             {/* Custom Header */}
             <View className="px-6 pt-20 pb-2 flex-row items-center justify-between" style={{ backgroundColor: '#F4F5FA', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 3, elevation: 3, borderBottomWidth: 0.5, borderBottomColor: '#D1D5DB' }}>
                 <TouchableOpacity onPress={() => router.back()}>
@@ -147,296 +181,155 @@ export default function SearchingScreen() {
                 <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                     <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
                     <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                        REQUEST A MECHANIC
+                        FINDING A MECHANIC
                     </Text>
                 </View>
 
-                <Text className="text-gray-900 font-outfit-medium text-3xl mb-2">Searching for an available mechanic</Text>
+                <Text className="text-gray-900 font-outfit-medium text-3xl mb-2">Hang tight — we're finding your mechanic</Text>
 
                 <Text className="text-gray-500 font-outfit-regular text-base mb-6">
                     We're scanning your area in real-time to find the best match.
                 </Text>
 
                 <View className="items-center mb-6">
-                    <View className="bg-white p-4 flex-row items-center gap-4 mb-0" style={{ width: '100%', borderRadius: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2, zIndex: 10 }}>
-                        <View className="flex-1">
-                            <Text className="text-gray-600 font-outfit-medium text-lg mb-1">Mechanics in your area</Text>
-                            <Text className="text-blue-600 font-outfit-bold" style={{ fontSize: 44 }}>28+</Text>
+                    <View style={{ width: '100%', borderRadius: 24, shadowColor: '#2B66F8', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.4, shadowRadius: 16, elevation: 10 }}>
+                        <LinearGradient
+                            colors={['#2B66F8', '#081E72']}
+                            start={{ x: 0, y: 1 }}
+                            end={{ x: 1, y: 0 }}
+                            style={{ width: '100%', borderRadius: 24, padding: 24 }}
+                        >
+                        {/* Badge */}
+                        <View className="flex-row items-center gap-1.5 mb-4 px-3 py-1.5 rounded-full self-center" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.3)' }}>
+                            <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#10B981' }} />
+                            <Text className="text-white font-outfit-semibold text-xs tracking-widest">
+                                SEARCHING NEARBY
+                            </Text>
                         </View>
-                        <View className="w-16 h-16 rounded-2xl justify-center items-center" style={{ backgroundColor: '#E9F1FF' }}>
-                            <Ionicons name="search" size={20} color="#0047AB" />
+
+                        {/* Timer */}
+                        <View className="flex-row items-center justify-center mb-4">
+                            <Text className="text-white font-outfit-bold" style={{ fontSize: 48 }}>
+                                {String(Math.floor(elapsedSeconds / 60)).padStart(2, '0')}:{String(elapsedSeconds % 60).padStart(2, '0')}
+                            </Text>
                         </View>
+
+                        {/* Average match time */}
+                        <Text className="text-white text-center font-outfit-regular text-base mb-6">
+                            Average match time is under 8 minutes
+                        </Text>
+
+                        {/* Mechanics notified */}
+                        <View className="flex-row items-center justify-center px-3 py-1.5 rounded-full self-center" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.3)' }}>
+                            <Text className="text-white font-outfit-semibold text-xs tracking-widest">6 mechanics notified</Text>
+                        </View>
+                        </LinearGradient>
                     </View>
 
-                    <View className="w-56 h-56 relative justify-center items-center mb-16 mt-16">
-                        {/* Radar sweep - rotating line with trail */}
-                        <Animated.View
-                            style={{
-                                position: 'absolute',
-                                width: 200,
-                                height: 200,
-                                transform: [{ rotate: spin }],
-                            }}
-                        >
-                            {/* Trail line 1 - fading */}
-                            <View
-                                style={{
-                                    position: 'absolute',
-                                    width: 3,
-                                    height: 120,
-                                    backgroundColor: '#2B66F8',
-                                    left: 98.5,
-                                    top: 0,
-                                    opacity: 0.2,
-                                    borderRadius: 1.5,
-                                    shadowColor: '#2B66F8',
-                                    shadowOffset: { width: 0, height: 0 },
-                                    shadowOpacity: 0.3,
-                                    shadowRadius: 6,
-                                    elevation: 3,
-                                }}
-                            />
+                    {/* Progress Steps */}
+                    <View className="w-full gap-3 mb-4 mt-8">
+                        {STEPS.map((step, index) => {
+                            const isActive = activeStep === index;
+                            const isDone = activeStep > index;
 
-                            {/* Trail line 2 - more fading */}
-                            <View
-                                style={{
-                                    position: 'absolute',
-                                    width: 3,
-                                    height: 120,
-                                    backgroundColor: '#4D77EF',
-                                    left: 98.5,
-                                    top: 0,
-                                    opacity: 0.4,
-                                    borderRadius: 1.5,
-                                    shadowColor: '#4D77EF',
-                                    shadowOffset: { width: 0, height: 0 },
-                                    shadowOpacity: 0.5,
-                                    shadowRadius: 7,
-                                    elevation: 6,
-                                }}
-                            />
-
-                            {/* Main sweep line - bright and visible */}
-                            <View
-                                style={{
-                                    position: 'absolute',
-                                    width: 3,
-                                    height: 120,
-                                    backgroundColor: '#0047AB',
-                                    left: 98.5,
-                                    top: 0,
-                                    borderRadius: 1.5,
-                                    shadowColor: '#0047AB',
-                                    shadowOffset: { width: 0, height: 0 },
-                                    shadowOpacity: 1,
-                                    shadowRadius: 8,
-                                    elevation: 10,
-                                }}
-                            />
-
-                            {/* Bright tip - intensified glow at the sweep front */}
-                            <View
-                                style={{
-                                    position: 'absolute',
-                                    width: 8,
-                                    height: 8,
-                                    borderRadius: 4,
-                                    backgroundColor: '#FFFFFF',
-                                    left: 96,
-                                    top: 0,
-                                    shadowColor: '#0047AB',
-                                    shadowOffset: { width: 0, height: 0 },
-                                    shadowOpacity: 1,
-                                    shadowRadius: 12,
-                                    elevation: 12,
-                                }}
-                            />
-                        </Animated.View>
-
-                        {/* Glow halo - wider effect */}
-                        <Animated.View
-                            style={{
-                                position: 'absolute',
-                                width: 200,
-                                height: 200,
-                                transform: [{ rotate: spin }],
-                                opacity: 0.5,
-                            }}
-                        >
-                            <View
-                                style={{
-                                    position: 'absolute',
-                                    width: 20,
-                                    height: 100,
-                                    backgroundColor: '#2B66F8',
-                                    left: 90,
-                                    top: 0,
-                                    borderRadius: 10,
-                                    opacity: 0.4,
-                                }}
-                            />
-                        </Animated.View>
-
-                        {/* Outer circle - ripple effect */}
-                        <Animated.View
-                            style={{
-                                position: 'absolute',
-                                width: 200,
-                                height: 200,
-                                borderRadius: 100,
-                                borderWidth: 2,
-                                borderColor: '#2B66F8',
-                                transform: [{ scale: rippleScale }],
-                                opacity: rippleOpacity,
-                            }}
-                        />
-
-                        {/* Secondary ripple halo - delayed effect */}
-                        <Animated.View
-                            style={{
-                                position: 'absolute',
-                                width: 200,
-                                height: 200,
-                                borderRadius: 100,
-                                borderWidth: 1,
-                                borderColor: '#4D77EF',
-                                transform: [{ scale: rippleScale }],
-                                opacity: rippleOpacity.interpolate({
-                                    inputRange: [0, 1],
-                                    outputRange: [0.6, 0],
-                                }),
-                            }}
-                        />
-
-                        {/* Middle circle - subtle pulsation */}
-                        <Animated.View
-                            style={{
-                                position: 'absolute',
-                                width: 140,
-                                height: 140,
-                                borderRadius: 70,
-                                borderWidth: 1.5,
-                                borderColor: '#A5B4FC',
-                                opacity: pulseValue.interpolate({
-                                    inputRange: [0, 0.5, 1],
-                                    outputRange: [0.4, 0.8, 0.4],
-                                }),
-                            }}
-                        />
-
-                        {/* Inner circle - subtle glow pulsation */}
-                        <Animated.View
-                            style={{
-                                position: 'absolute',
-                                width: 80,
-                                height: 80,
-                                borderRadius: 40,
-                                borderWidth: 1.5,
-                                borderColor: '#818CF8',
-                                opacity: pulseValue.interpolate({
-                                    inputRange: [0, 0.5, 1],
-                                    outputRange: [0.5, 1, 0.5],
-                                }),
-                            }}
-                        />
-
-                        {/* Center circle with icon */}
-                        <View
-                            style={{
-                                width: 100,
-                                height: 100,
-                                borderRadius: 50,
-                                backgroundColor: '#0047AB',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                zIndex: 10,
-                                shadowColor: '#000',
-                                shadowOffset: { width: 0, height: 4 },
-                                shadowOpacity: 0.3,
-                                shadowRadius: 8,
-                                elevation: 8,
-                            }}
-                        >
-                            <FontAwesomeIcon icon={faWrench} size={35} color="white" />
-                        </View>
-
-                        {/* Radar points - FIXED positions at DIFFERENT distances from center */}
-                        {/* Point 1 - Very close (near center) - Top Right */}
-                        <View
-                            style={{
-                                position: 'absolute',
-                                width: 10,
-                                height: 10,
-                                borderRadius: 5,
-                                backgroundColor: '#A5B4FC',
-                                top: 35,
-                                right: 80,
-                                shadowColor: '#0047AB',
-                                shadowOffset: { width: 0, height: 0 },
-                                shadowOpacity: 0.6,
-                                shadowRadius: 3,
-                                elevation: 3,
-                            }}
-                        />
-
-                        {/* Point 2 - Medium distance - Bottom Right */}
-                        <View
-                            style={{
-                                position: 'absolute',
-                                width: 10,
-                                height: 10,
-                                borderRadius: 5,
-                                backgroundColor: '#A5B4FC',
-                                bottom: 40,
-                                right: 30,
-                                shadowColor: '#0047AB',
-                                shadowOffset: { width: 0, height: 0 },
-                                shadowOpacity: 0.6,
-                                shadowRadius: 3,
-                                elevation: 3,
-                            }}
-                        />
-
-                        {/* Point 3 - Medium-far distance - Bottom Left */}
-                        <View
-                            style={{
-                                position: 'absolute',
-                                width: 10,
-                                height: 10,
-                                borderRadius: 5,
-                                backgroundColor: '#A5B4FC',
-                                bottom: 15,
-                                left: 50,
-                                shadowColor: '#0047AB',
-                                shadowOffset: { width: 0, height: 0 },
-                                shadowOpacity: 0.6,
-                                shadowRadius: 3,
-                                elevation: 3,
-                            }}
-                        />
-
-                        {/* Point 4 - Far distance - Top Left */}
-                        <View
-                            style={{
-                                position: 'absolute',
-                                width: 10,
-                                height: 10,
-                                borderRadius: 5,
-                                backgroundColor: '#A5B4FC',
-                                top: 10,
-                                left: 60,
-                                shadowColor: '#0047AB',
-                                shadowOffset: { width: 0, height: 0 },
-                                shadowOpacity: 0.6,
-                                shadowRadius: 3,
-                                elevation: 3,
-                            }}
-                        />
+                            return (
+                                <View
+                                    key={step.title}
+                                    className={`flex-row items-center p-4 rounded-2xl ${isActive ? 'bg-white border-2' : 'bg-white'}`}
+                                    style={{
+                                        borderColor: isActive ? '#0047AB' : '#E5E7EB',
+                                        shadowColor: '#000',
+                                        shadowOffset: { width: 0, height: 4 },
+                                        shadowOpacity: 0.08,
+                                        shadowRadius: 8,
+                                        elevation: 4,
+                                    }}
+                                >
+                                    {isDone ? (
+                                        <View style={{ width: 50, height: 50, borderRadius: 25, backgroundColor: '#ECFDF5', justifyContent: 'center', alignItems: 'center', marginRight: 16 }}>
+                                            <Ionicons name="checkmark" size={26} color="#10B981" />
+                                        </View>
+                                    ) : isActive ? (
+                                        <View style={{ width: 50, height: 50, borderRadius: 25, backgroundColor: '#EEF2FF', justifyContent: 'center', alignItems: 'center', marginRight: 16 }}>
+                                            <Animated.View
+                                                style={{
+                                                    width: 34,
+                                                    height: 34,
+                                                    borderRadius: 17,
+                                                    borderWidth: 3,
+                                                    borderColor: '#DBE4FF',
+                                                    borderTopColor: '#0047AB',
+                                                    transform: [{ rotate: spin }],
+                                                }}
+                                            />
+                                        </View>
+                                    ) : (
+                                        <View style={{ width: 50, height: 50, borderRadius: 25, backgroundColor: '#F3F4F6', justifyContent: 'center', alignItems: 'center', marginRight: 16 }}>
+                                            <Text className="font-outfit-bold" style={{ fontSize: 18, color: '#9CA3AF' }}>{index + 1}</Text>
+                                        </View>
+                                    )}
+                                    <View className="flex-1">
+                                        <Text className="font-outfit-semibold text-[17px] text-gray-900">{step.title}</Text>
+                                        <Text className="font-outfit-regular text-[14px] text-gray-500">{step.subtitle}</Text>
+                                    </View>
+                                </View>
+                            );
+                        })}
                     </View>
 
-                    <Text className="text-blue-600 font-outfit-bold text-4xl tracking-widest mb-4">
-                        SEARCHING <Text className="text-blue-600">...</Text>
-                    </Text>
+                </View>
+
+                {/* Request Summary Grid */}
+                <View
+                    className="bg-white rounded-2xl mb-8"
+                    style={{
+                        shadowColor: '#000',
+                        shadowOffset: { width: 0, height: 4 },
+                        shadowOpacity: 0.08,
+                        shadowRadius: 8,
+                        elevation: 4,
+                    }}
+                >
+                    {/* Header */}
+                    <View className="px-5 py-4 border-b border-gray-100">
+                        <Text className="font-outfit-bold text-lg text-gray-900">Your request</Text>
+                    </View>
+
+                    {/* Service */}
+                    <View className="flex-row items-center px-5 py-4 border-b border-gray-100">
+                        <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
+                            <Zap size={20} color="#0047AB" />
+                        </View>
+                        <Text className="font-outfit-medium text-base text-gray-500">Service</Text>
+                        <Text className="flex-1 text-right font-outfit-semibold text-base text-gray-900" numberOfLines={1}>{getTitle()}</Text>
+                    </View>
+
+                    {/* Vehicle */}
+                    <View className="flex-row items-center px-5 py-4 border-b border-gray-100">
+                        <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
+                            <Car size={20} color="#0047AB" />
+                        </View>
+                        <Text className="font-outfit-medium text-base text-gray-500">Vehicle</Text>
+                        <Text className="flex-1 text-right font-outfit-semibold text-base text-gray-900" numberOfLines={1}>{requestData?.car || '—'}</Text>
+                    </View>
+
+                    {/* Location */}
+                    <View className="flex-row items-center px-5 py-4 border-b border-gray-100">
+                        <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
+                            <MapPin size={20} color="#0047AB" />
+                        </View>
+                        <Text className="font-outfit-medium text-base text-gray-500">Location</Text>
+                        <Text className="flex-1 text-right font-outfit-semibold text-base text-gray-900" numberOfLines={1}>{requestData?.address || '—'}</Text>
+                    </View>
+
+                    {/* Budget */}
+                    <View className="flex-row items-center px-5 py-4">
+                        <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
+                            <DollarSign size={20} color="#0047AB" />
+                        </View>
+                        <Text className="font-outfit-medium text-base text-gray-500">Budget</Text>
+                        <Text className="flex-1 text-right font-outfit-semibold text-base text-gray-900" numberOfLines={1}>{requestData?.budget || '—'}</Text>
+                    </View>
                 </View>
 
                 <TouchableOpacity
@@ -444,7 +337,6 @@ export default function SearchingScreen() {
                     className="w-full py-4 mb-8 flex-row items-center justify-center border-2"
                     style={{ borderColor: '#FCA5A5', borderRadius: 10, backgroundColor: '#FEF0F0' }}
                 >
-                    <Ionicons name="trash" size={18} color="#EF4444" style={{ marginRight: 8 }} />
                     <Text className="text-red-500 font-outfit-bold text-lg">Cancel Request</Text>
                 </TouchableOpacity>
 
