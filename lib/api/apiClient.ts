@@ -1,5 +1,15 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ConfigService } from '../config/ConfigService';
 import { ApiError, ApiResponse } from './types';
+
+async function getAuthHeaders(): Promise<Record<string, string>> {
+    try {
+        const token = await AsyncStorage.getItem('access_token');
+        return token ? { Authorization: `Bearer ${token}` } : {};
+    } catch {
+        return {};
+    }
+}
 
 /**
  * Safely joins baseUrl and endpoint, preventing double-slash issues.
@@ -44,16 +54,20 @@ export const apiClient = {
     async get<T = unknown>(endpoint: string): Promise<T> {
         await ConfigService.init();
         const baseUrl = ConfigService.getApiBaseUrl();
-        const response = await fetch(buildUrl(baseUrl, endpoint));
+        const authHeaders = await getAuthHeaders();
+        const response = await fetch(buildUrl(baseUrl, endpoint), {
+            headers: { ...authHeaders },
+        });
         return unwrapResponse<T>(response, 'GET', endpoint);
     },
 
     async post<T = unknown>(endpoint: string, data: unknown): Promise<T> {
         await ConfigService.init();
         const baseUrl = ConfigService.getApiBaseUrl();
+        const authHeaders = await getAuthHeaders();
         const response = await fetch(buildUrl(baseUrl, endpoint), {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify(data),
         });
         return unwrapResponse<T>(response, 'POST', endpoint);
@@ -62,9 +76,10 @@ export const apiClient = {
     async patch<T = unknown>(endpoint: string, data: unknown): Promise<T> {
         await ConfigService.init();
         const baseUrl = ConfigService.getApiBaseUrl();
+        const authHeaders = await getAuthHeaders();
         const response = await fetch(buildUrl(baseUrl, endpoint), {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify(data),
         });
         return unwrapResponse<T>(response, 'PATCH', endpoint);
@@ -73,8 +88,10 @@ export const apiClient = {
     async delete<T = unknown>(endpoint: string): Promise<T> {
         await ConfigService.init();
         const baseUrl = ConfigService.getApiBaseUrl();
+        const authHeaders = await getAuthHeaders();
         const response = await fetch(buildUrl(baseUrl, endpoint), {
             method: 'DELETE',
+            headers: { ...authHeaders },
         });
         return unwrapResponse<T>(response, 'DELETE', endpoint);
     },
@@ -82,9 +99,11 @@ export const apiClient = {
     async upload<T = unknown>(endpoint: string, formData: FormData): Promise<T> {
         await ConfigService.init();
         const baseUrl = ConfigService.getApiBaseUrl();
+        const authHeaders = await getAuthHeaders();
         // Do NOT set Content-Type — fetch sets it automatically with the multipart boundary
         const response = await fetch(buildUrl(baseUrl, endpoint), {
             method: 'POST',
+            headers: { ...authHeaders },
             body: formData,
         });
         return unwrapResponse<T>(response, 'POST', endpoint);

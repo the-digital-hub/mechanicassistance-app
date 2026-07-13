@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiClient } from '../api/apiClient';
 import { IUserDAO, UserData } from './interfaces';
 
@@ -22,7 +23,9 @@ export class UserDAO implements IUserDAO {
             '/api/auth/login',
             { idToken: firebaseIdToken, phone },
         );
-        // TODO: persist accessToken for authenticated API calls when JWT auth is enforced
+        if (result.accessToken) {
+            await AsyncStorage.setItem('access_token', result.accessToken);
+        }
         return result.user ?? null;
     }
 

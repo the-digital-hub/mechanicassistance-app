@@ -107,6 +107,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const logout = async () => {
         setUser(null);
         await AsyncStorage.removeItem('user_session');
+        await AsyncStorage.removeItem('access_token');
         try {
             await firebaseSignOut();
         } catch {
