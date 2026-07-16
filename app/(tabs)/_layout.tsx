@@ -298,6 +298,12 @@ export default function TabLayout() {
           headerLeft: () => <MechanicStatusHeaderLeft />,
           headerRight: () => <NotificationHeaderRight />,
         }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.navigate('assist', { screen: 'index' });
+          },
+        })}
       />
       <Tabs.Screen
         name="request-assistance"

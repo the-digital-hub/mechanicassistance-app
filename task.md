@@ -22,3 +22,7 @@
     - [x] Fix NativeWind Configuration (Metro & PostCSS) <!-- id: 13 -->
     - [x] Run Project in Simulator/Emulator (Compilation Check) <!-- id: 11 -->
     - [x] Create Walkthrough Artifact <!-- id: 12 -->
+
+- [ ] **Backlog / Pendientes**
+    - [ ] Persistir `issues` (categorías de problema mecánico) en las solicitudes de asistencia — ver [docs/PENDING-persist-assistance-issues.md](docs/PENDING-persist-assistance-issues.md) (requiere cambios en backend + app)
+    - [ ] Implementar acción del botón "Decline" en los cards de asistencia — ver [docs/PENDING-decline-request-action.md](docs/PENDING-decline-request-action.md) (requiere revisar API)

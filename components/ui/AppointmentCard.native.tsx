@@ -99,8 +99,6 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
             {/* Pending Banner */}
             {isPending && (
                 <View className="bg-orange-50 p-3 items-center border-b border-orange-100">
-                    <View className="w-1 h-1 rounded-full mb-1" style={{ backgroundColor: '#F97316' }} />
-                    <Text className="text-orange-500 font-outfit-medium text-xs">STATUS</Text>
                     <Text className="text-orange-600 font-outfit-bold text-base uppercase">Waiting for Mechanic</Text>
                 </View>
             )}
@@ -108,8 +106,6 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
             {/* Offered Banner */}
             {appointment.status === 'offered' && (
                 <View className="bg-blue-50 p-3 items-center border-b border-blue-100">
-                    <View className="w-1 h-1 rounded-full mb-1" style={{ backgroundColor: '#3B82F6' }} />
-                    <Text className="text-blue-500 font-outfit-medium text-xs">STATUS</Text>
                     <Text className="text-blue-600 font-outfit-bold text-base uppercase">Mechanic Offered</Text>
                     <Text className="text-blue-400 text-[10px]">Tap to view offer</Text>
                 </View>
@@ -118,8 +114,6 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
             {/* Accepted Banner */}
             {appointment.status === 'accepted' && (
                 <View className="bg-emerald-50 p-3 items-center border-b border-emerald-100">
-                    <View className="w-1 h-1 rounded-full mb-1" style={{ backgroundColor: '#10B981' }} />
-                    <Text className="text-emerald-500 font-outfit-medium text-xs">STATUS</Text>
                     <Text className="text-emerald-600 font-outfit-bold text-base uppercase">Service Accepted</Text>
                     <Text className="text-emerald-400 text-[10px]">Mechanic is on the way</Text>
                 </View>
@@ -128,7 +122,6 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
             {/* Canceled Banner */}
             {isCanceled && (
                 <View className="bg-red-50 p-3 items-center border-b border-red-100">
-                    <Text className="text-red-500 font-outfit-medium text-xs">STATUS</Text>
                     <Text className="text-red-600 font-outfit-bold text-base">REQUEST CANCELED</Text>
                 </View>
             )}

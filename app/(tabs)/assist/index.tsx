@@ -3,7 +3,7 @@ import { useUser } from '@/context/UserContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { AssistanceRequest } from '@/lib/dao/interfaces';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { MapPin, Search, Zap, Video } from 'lucide-react-native';
+import { MapPin, Search, Zap, Video, Clock } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -173,79 +173,71 @@ export default function AssistanceRequestsScreen() {
                 >
                   <View className="bg-white rounded-3xl overflow-hidden">
                     {/* Top Section */}
-                    <View className="p-6 pb-4">
-                      <View className="flex-row gap-4">
+                    <View className="p-5 pb-3">
+                      {/* Header Row: icon, title/badge/time, budget */}
+                      <View className="flex-row items-center">
                         <View
-                          className="w-16 h-16 rounded-2xl items-center justify-center"
+                          className="w-16 h-16 rounded-2xl items-center justify-center mr-4"
                           style={{ backgroundColor: iconBgColor }}
                         >
                           {iconType === 'video' ? (
-                            <Video size={32} color={iconColor} />
+                            <Video size={30} color={iconColor} />
                           ) : (
-                            <Zap size={32} color={iconColor} />
+                            <Zap size={30} color={iconColor} fill={iconColor} />
                           )}
                         </View>
 
-                        <View className="flex-1">
-                          <View className="flex-row items-center justify-between mb-2">
-                            <View className="flex-1 pr-2">
-                              <Text className="text-gray-900 font-outfit-bold text-lg">
-                                {serviceTypeLabel}
-                              </Text>
-                              {badge && (
-                                <Text className="text-red-600 font-outfit-bold text-xs tracking-widest">
+                        {/* Title + badge + time */}
+                        <View className="flex-1 pr-2">
+                          <Text className="text-gray-900 font-outfit-bold text-lg" numberOfLines={1}>
+                            {serviceTypeLabel}
+                          </Text>
+                          <View className="flex-row items-center gap-2 mt-1">
+                            {badge && (
+                              <View className="px-2 py-0.5 rounded-md" style={{ backgroundColor: '#FEE2E2' }}>
+                                <Text className="font-outfit-bold text-[10px] tracking-widest" style={{ color: '#EF4444' }}>
                                   {badge}
                                 </Text>
-                              )}
-                            </View>
-                            <Text className="text-gray-900 font-outfit-bold text-lg">
-                              {request.budget}
-                            </Text>
-                          </View>
-
-                          <View className="flex-row items-center gap-1 mb-1">
-                            <MapPin size={14} color="#9CA3AF" />
-                            <Text className="text-gray-600 font-outfit-regular text-sm">
-                              {request.address}
-                            </Text>
-                          </View>
-                          {request.distance && (
+                              </View>
+                            )}
                             <View className="flex-row items-center gap-1">
-                              <View className="w-4" />
-                              <Text className="text-gray-500 font-outfit-regular text-xs">
-                                {request.distance} away
-                              </Text>
+                              <Clock size={13} color="#9CA3AF" />
+                              <Text className="text-gray-500 font-outfit-regular text-sm">Just now</Text>
                             </View>
-                          )}
+                          </View>
+                        </View>
+
+                        {/* Budget */}
+                        <View className="items-end">
+                          <Text className="font-outfit-bold text-2xl" style={{ color: '#0047AB' }}>
+                            {request.budget}
+                          </Text>
+                          <Text className="font-outfit-regular text-sm text-gray-400">budget</Text>
                         </View>
                       </View>
 
-                      {/* Vehicle Badge */}
-                      <View className="mt-5 mb-2 p-3 rounded-xl" style={{ backgroundColor: '#F4F8FF' }}>
-                        <Text className="text-gray-900 font-outfit-semibold text-sm">
-                          {request.car}
-                        </Text>
-                      </View>
-
-                      {/* Issue */}
-                      <View>
-                        <Text className="text-gray-500 font-outfit-regular text-sm">
-                          · {request.notes || request.title}
-                        </Text>
+                      {/* Info Block: vehicle, issue, address */}
+                      <View className="mt-4 rounded-2xl overflow-hidden" style={{ backgroundColor: '#F4F8FF' }}>
+                        <View className="px-4 pt-4 pb-3">
+                          <Text className="text-gray-900 font-outfit-semibold text-lg">
+                            {request.car}
+                          </Text>
+                          <Text className="text-gray-500 font-outfit-regular text-base mt-0.5">
+                            {request.notes || request.title}
+                          </Text>
+                        </View>
+                        <View style={{ height: 1, backgroundColor: '#E1EAFB' }} />
+                        <View className="flex-row items-center gap-1.5 px-4 py-3">
+                          <MapPin size={15} color="#9CA3AF" />
+                          <Text className="text-gray-600 font-outfit-regular text-base">
+                            {request.address}{request.distance ? ` · ${String(request.distance).replace(/\s*km/i, '').trim()} mi` : ''}
+                          </Text>
+                        </View>
                       </View>
                     </View>
 
                     {/* Buttons Section */}
-                    <View className="flex-row px-6 pb-6 gap-3">
-                      <TouchableOpacity
-                        style={{ flex: 0.35 }}
-                        className="py-3 rounded-2xl border border-gray-300 items-center"
-                        activeOpacity={0.8}
-                      >
-                        <Text className="text-gray-600 font-outfit-semibold text-lg">
-                          Decline
-                        </Text>
-                      </TouchableOpacity>
+                    <View className="flex-row px-5 pb-5 gap-3">
                       <TouchableOpacity
                         style={{ flex: 0.65 }}
                         onPress={() => router.push({
@@ -279,9 +271,18 @@ export default function AssistanceRequestsScreen() {
                           }}
                         >
                           <Text className="text-white font-outfit-semibold text-lg">
-                            View request
+                            View Request
                           </Text>
                         </LinearGradient>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        className="py-3 rounded-2xl items-center justify-center"
+                        style={{ flex: 0.35, backgroundColor: '#F3F4F6' }}
+                        activeOpacity={0.8}
+                      >
+                        <Text className="text-gray-600 font-outfit-semibold text-lg">
+                          Decline
+                        </Text>
                       </TouchableOpacity>
                     </View>
                   </View>

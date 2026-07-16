@@ -88,7 +88,7 @@ export default function AppointmentsScreen() {
                 }
                 renderItem={({ item }) => (
                     <View
-                        className="px-6 mb-1"
+                        className="px-6 mb-4"
                         style={{
                             shadowColor: '#000',
                             shadowOffset: { width: 0, height: 4 },
