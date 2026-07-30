@@ -1,3 +1,4 @@
+import { ApiError } from "@/lib/api/types";
 import { userDAO } from "@/lib/dao/UserDAO";
 import { sendOTP } from "@/lib/firebase/auth";
 import { saveSetupProgress } from "@/lib/storage";
@@ -80,10 +81,12 @@ export default function PhoneNumberScreen() {
       await sendOTP(fullPhone);
       router.push("/setup/otp");
     } catch (error: any) {
-      const rawMessage = error.message || "";
+      const rawMessage = error?.message || "";
       const displayMessage = rawMessage.includes("auth/too-many-requests")
         ? "Too many login attempts. Please wait a few minutes and try again later."
-        : rawMessage || "Something went wrong. Please try again.";
+        : error instanceof ApiError
+          ? "We couldn't verify your phone number right now. Please try again in a moment."
+          : rawMessage || "Something went wrong. Please try again.";
       showError("Error", displayMessage);
     } finally {
       setIsChecking(false);

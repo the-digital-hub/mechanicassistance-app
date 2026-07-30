@@ -21,6 +21,7 @@ import { SocketProvider } from "@/context/SocketContext";
 import { UserProvider, useUser } from "@/context/UserContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { ConfigService } from "@/lib/config/ConfigService";
+import "@/lib/i18n";
 import "../global.css";
 
 // Suppress warnings from dependencies that aren't yet updated for React 19

@@ -4,11 +4,13 @@ import { Vehicle } from '@/lib/dao/interfaces';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Car, ChevronLeft, ChevronRight, Plus } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function SelectVehicleScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
     const params = useLocalSearchParams();
     const { type } = params; // 'immediate', 'scheduled', 'videocall'
     const { user } = useUser();
@@ -47,11 +49,11 @@ export default function SelectVehicleScreen() {
 
     const getTitle = () => {
         switch (type) {
-            case 'immediate': return 'Immediate Assistance';
-            case 'scheduled': return 'Scheduled Assistance';
-            case 'videocall': return 'Video Call Assistance';
-            case 'witness': return 'Accident Assistance';
-            default: return 'Assistance';
+            case 'immediate': return t('requestAssistance.header.immediate');
+            case 'scheduled': return t('requestAssistance.header.scheduled');
+            case 'videocall': return t('requestAssistance.header.videoCall');
+            case 'witness': return t('requestAssistance.header.accident');
+            default: return t('requestAssistance.header.default');
         }
     };
 
@@ -73,13 +75,13 @@ export default function SelectVehicleScreen() {
             <ScrollView className="flex-1 px-6 pt-6">
                 <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                     <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
-                    <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">SELECT YOUR VEHICLE</Text>
+                    <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">{t('requestAssistance.selectVehicle.badge')}</Text>
                 </View>
 
-                <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">Vehicles</Text>
+                <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">{t('requestAssistance.selectVehicle.title')}</Text>
 
                 <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-                    Which vehicle has the issue?
+                    {t('requestAssistance.selectVehicle.subtitle')}
                 </Text>
 
                 {isLoading ? (
@@ -87,7 +89,7 @@ export default function SelectVehicleScreen() {
                 ) : (
                     <View>
                         {vehicles.length === 0 ? (
-                            <Text className="text-center text-gray-500 font-outfit-regular my-4">No vehicles found. Please add one.</Text>
+                            <Text className="text-center text-gray-500 font-outfit-regular my-4">{t('requestAssistance.selectVehicle.noVehicles')}</Text>
                         ) : (
                             vehicles.map((vehicle) => (
                                 <TouchableOpacity
@@ -104,7 +106,7 @@ export default function SelectVehicleScreen() {
                                                 {vehicle.make} {vehicle.model}
                                             </Text>
                                             <Text className="font-outfit-medium text-blue-500 text-xs tracking-widest uppercase">
-                                                {vehicle.plate || 'NO PLATE'}
+                                                {vehicle.plate || t('requestAssistance.selectVehicle.noPlate')}
                                             </Text>
                                         </View>
                                     </View>
@@ -132,7 +134,7 @@ export default function SelectVehicleScreen() {
                                 }}
                             >
                                 <Plus size={20} color="#FFFFFF" />
-                                <Text className="font-outfit-bold text-white ml-2">Add a vehicle</Text>
+                                <Text className="font-outfit-bold text-white ml-2">{t('requestAssistance.selectVehicle.addVehicle')}</Text>
                             </LinearGradient>
                         </TouchableOpacity>
                     </View>

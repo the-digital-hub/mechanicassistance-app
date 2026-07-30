@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AlertTriangle, Battery, ChevronLeft, ChevronRight, HelpCircle, Wrench, Zap } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 type IssueOption = { id: string; label: string };
@@ -31,6 +32,7 @@ const iconForIssue = (label: string) => {
 
 export default function IssueSelectionScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
     const params = useLocalSearchParams();
     const { type, vehicleId, vehicleName } = params;
 
@@ -60,21 +62,21 @@ export default function IssueSelectionScreen() {
 
     const getTitle = () => {
         switch (type) {
-            case 'immediate': return 'Immediate Assistance';
-            case 'scheduled': return 'Scheduled Assistance';
-            case 'videocall': return 'Video Call Assistance';
-            case 'witness': return 'Accident Assistance';
-            default: return 'Assistance';
+            case 'immediate': return t('requestAssistance.header.immediate');
+            case 'scheduled': return t('requestAssistance.header.scheduled');
+            case 'videocall': return t('requestAssistance.header.videoCall');
+            case 'witness': return t('requestAssistance.header.accident');
+            default: return t('requestAssistance.header.default');
         }
     };
 
     const getBadgeText = () => {
         switch (type) {
-            case 'immediate': return 'IMMEDIATE ASSISTANCE';
-            case 'scheduled': return 'SCHEDULED ASSISTANCE';
-            case 'videocall': return 'VIDEO CALL ASSISTANCE';
-            case 'witness': return 'ACCIDENT ASSISTANCE';
-            default: return 'ASSISTANCE';
+            case 'immediate': return t('requestAssistance.badge.immediate');
+            case 'scheduled': return t('requestAssistance.badge.scheduled');
+            case 'videocall': return t('requestAssistance.badge.videoCall');
+            case 'witness': return t('requestAssistance.badge.accident');
+            default: return t('requestAssistance.badge.default');
         }
     };
 
@@ -122,17 +124,17 @@ export default function IssueSelectionScreen() {
                     </Text>
                 </View>
 
-                <Text className="text-gray-900 font-outfit-medium text-3xl mb-4">Indicate the issue</Text>
+                <Text className="text-gray-900 font-outfit-medium text-3xl mb-4">{t('requestAssistance.issueSelection.title')}</Text>
 
                 <Text className="text-gray-500 font-outfit-regular text-base mb-2">
-                    Describe the problem or select a common issue
+                    {t('requestAssistance.issueSelection.subtitle')}
                 </Text>
 
                 <View className="mb-6">
                     <TextInput
                         multiline
                         numberOfLines={4}
-                        placeholder="Describe what's happening with your vehicle"
+                        placeholder={t('requestAssistance.issueSelection.placeholder')}
                         placeholderTextColor="#D1D5DB"
                         value={description}
                         onChangeText={setDescription}
@@ -142,7 +144,7 @@ export default function IssueSelectionScreen() {
                 </View>
 
                 <View className="mb-8">
-                    <Text className="text-gray-900 font-outfit-medium text-lg mb-2" style={{ fontSize: 18 }}>Possible issues detected</Text>
+                    <Text className="text-gray-900 font-outfit-medium text-lg mb-2" style={{ fontSize: 18 }}>{t('requestAssistance.issueSelection.possibleIssues')}</Text>
                     <View className="rounded-xl border border-gray-100 overflow-hidden">
                         {loadingIssues ? (
                             <View className="p-6 items-center">
@@ -177,7 +179,7 @@ export default function IssueSelectionScreen() {
                 >
                     {selectedIssues.length === 0 ? (
                         <View className="bg-slate-200 rounded-lg p-4 mb-8 items-center justify-center flex-row">
-                            <Text className="text-gray-500 font-outfit-bold text-center mr-2">Continue</Text>
+                            <Text className="text-gray-500 font-outfit-bold text-center mr-2">{t('requestAssistance.continue')}</Text>
                             <ChevronRight size={20} color="#9CA3AF" />
                         </View>
                     ) : (
@@ -195,7 +197,7 @@ export default function IssueSelectionScreen() {
                                 justifyContent: 'center',
                             }}
                         >
-                            <Text className="text-white font-outfit-bold text-center mr-2">Continue</Text>
+                            <Text className="text-white font-outfit-bold text-center mr-2">{t('requestAssistance.continue')}</Text>
                             <ChevronRight size={20} color="white" />
                         </LinearGradient>
                     )}

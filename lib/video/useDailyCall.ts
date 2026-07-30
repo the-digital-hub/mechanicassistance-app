@@ -37,27 +37,6 @@ export function useDailyCall(): UseDailyCall {
     setIsCameraOff(!call.localVideo());
   }, []);
 
-  const join = useCallback(async (roomUrl: string, token: string) => {
-    if (callRef.current) return;
-    const call = Daily.createCallObject();
-    callRef.current = call;
-    setCallState('joining');
-
-    const onUpdate = (_e?: DailyEventObjectParticipant) => syncParticipants(call);
-    call.on('joined-meeting', () => { setCallState('joined'); syncParticipants(call); });
-    call.on('participant-joined', onUpdate);
-    call.on('participant-updated', onUpdate);
-    call.on('participant-left', () => setRemoteParticipant(null));
-    call.on('error', (e: any) => { setErrorMessage(e?.errorMsg ?? 'Call error'); setCallState('error'); });
-
-    try {
-      await call.join({ url: roomUrl, token });
-    } catch (err: any) {
-      setErrorMessage(err?.message ?? 'Failed to join call');
-      setCallState('error');
-    }
-  }, [syncParticipants]);
-
   const teardown = useCallback(async (call: DailyCall) => {
     // Remove all listeners we registered, swallow any per-listener errors.
     try {
@@ -70,6 +49,37 @@ export function useDailyCall(): UseDailyCall {
     try { await call.leave(); } catch { /* already gone is fine */ }
     try { await call.destroy(); } catch { /* idempotent */ }
   }, []);
+
+  const join = useCallback(async (roomUrl: string, token: string) => {
+    if (callRef.current) return;
+    const call = Daily.createCallObject();
+    callRef.current = call;
+    setCallState('joining');
+
+    const onUpdate = (_e?: DailyEventObjectParticipant) => syncParticipants(call);
+    call.on('joined-meeting', () => { setCallState('joined'); syncParticipants(call); });
+    call.on('participant-joined', onUpdate);
+    call.on('participant-updated', onUpdate);
+    call.on('participant-left', () => setRemoteParticipant(null));
+    call.on('error', (e: any) => {
+      setErrorMessage(e?.errorMsg ?? 'Call error');
+      setCallState('error');
+      // Clear the ref so a subsequent join() (e.g. a "Retry" button) isn't
+      // blocked by the guard above — without this the call object from the
+      // failed attempt stays wedged in callRef forever.
+      callRef.current = null;
+      teardown(call).catch(() => {});
+    });
+
+    try {
+      await call.join({ url: roomUrl, token });
+    } catch (err: any) {
+      setErrorMessage(err?.message ?? 'Failed to join call');
+      setCallState('error');
+      callRef.current = null;
+      teardown(call).catch(() => {});
+    }
+  }, [syncParticipants, teardown]);
 
   const leave = useCallback(async () => {
     const call = callRef.current;

@@ -6,21 +6,23 @@ import { ChevronLeft, Clock, Zap, Car, MapPin, DollarSign } from 'lucide-react-n
 import { AssistanceRequest } from '@/lib/dao/interfaces';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Animated, Easing, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faWrench } from '@fortawesome/free-solid-svg-icons';
 
-const STEPS = [
-    { title: 'Request sent', subtitle: 'Your request is live.' },
-    { title: 'Notifying mechanics', subtitle: 'Mechanics have been alerted.' },
-    { title: 'Reviewing offers', subtitle: 'Waiting for the best match to accept...' },
-];
-
 export default function SearchingScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
     const params = useLocalSearchParams();
     const { requestId, type } = params;
     const { lastMessage, clearChatHistory } = useSocket();
+
+    const STEPS = [
+        { title: t('requestAssistance.searching.step1Title'), subtitle: t('requestAssistance.searching.step1Subtitle') },
+        { title: t('requestAssistance.searching.step2Title'), subtitle: t('requestAssistance.searching.step2Subtitle') },
+        { title: t('requestAssistance.searching.step3Title'), subtitle: t('requestAssistance.searching.step3Subtitle') },
+    ];
 
     const [spinValue] = useState(new Animated.Value(0));
     const [pulseValue] = useState(new Animated.Value(0));
@@ -30,21 +32,21 @@ export default function SearchingScreen() {
 
     const getTitle = () => {
         switch (type) {
-            case 'immediate': return 'Immediate Assistance';
-            case 'scheduled': return 'Scheduled Assistance';
-            case 'videocall': return 'Video Call Assistance';
-            case 'witness': return 'Accident Assistance';
-            default: return 'Assistance';
+            case 'immediate': return t('requestAssistance.header.immediate');
+            case 'scheduled': return t('requestAssistance.header.scheduled');
+            case 'videocall': return t('requestAssistance.header.videoCall');
+            case 'witness': return t('requestAssistance.header.accident');
+            default: return t('requestAssistance.header.default');
         }
     };
 
     const getBadgeText = () => {
         switch (type) {
-            case 'immediate': return 'IMMEDIATE ASSISTANCE';
-            case 'scheduled': return 'SCHEDULED ASSISTANCE';
-            case 'videocall': return 'VIDEO CALL ASSISTANCE';
-            case 'witness': return 'ACCIDENT ASSISTANCE';
-            default: return 'ASSISTANCE';
+            case 'immediate': return t('requestAssistance.badge.immediate');
+            case 'scheduled': return t('requestAssistance.badge.scheduled');
+            case 'videocall': return t('requestAssistance.badge.videoCall');
+            case 'witness': return t('requestAssistance.badge.accident');
+            default: return t('requestAssistance.badge.default');
         }
     };
 
@@ -149,11 +151,11 @@ export default function SearchingScreen() {
                 // Also update the backend status to 'canceled'
                 await assistanceDAO.updateStatus(requestId as string, '', 'canceled');
                 clearChatHistory(requestId as string);
-                alert('Assistance search cancelled.');
+                alert(t('requestAssistance.searching.cancelledAlert'));
                 router.replace('/(tabs)/dashboard');
             } catch (error) {
                 console.error('Failed to cancel request:', error);
-                alert('Error cancelling request. Please try again.');
+                alert(t('requestAssistance.searching.cancelErrorAlert'));
             }
         }
     };
@@ -181,14 +183,14 @@ export default function SearchingScreen() {
                 <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                     <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
                     <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                        FINDING A MECHANIC
+                        {t('requestAssistance.searching.badge')}
                     </Text>
                 </View>
 
-                <Text className="text-gray-900 font-outfit-medium text-3xl mb-2">Hang tight — we're finding your mechanic</Text>
+                <Text className="text-gray-900 font-outfit-medium text-3xl mb-2">{t('requestAssistance.searching.title')}</Text>
 
                 <Text className="text-gray-500 font-outfit-regular text-base mb-6">
-                    We're scanning your area in real-time to find the best match.
+                    {t('requestAssistance.searching.subtitle')}
                 </Text>
 
                 <View className="items-center mb-6">
@@ -203,7 +205,7 @@ export default function SearchingScreen() {
                         <View className="flex-row items-center gap-1.5 mb-4 px-3 py-1.5 rounded-full self-center" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.3)' }}>
                             <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#10B981' }} />
                             <Text className="text-white font-outfit-semibold text-xs tracking-widest">
-                                SEARCHING NEARBY
+                                {t('requestAssistance.searching.searchingNearby')}
                             </Text>
                         </View>
 
@@ -216,12 +218,12 @@ export default function SearchingScreen() {
 
                         {/* Average match time */}
                         <Text className="text-white text-center font-outfit-regular text-base mb-6">
-                            Average match time is under 8 minutes
+                            {t('requestAssistance.searching.averageMatchTime')}
                         </Text>
 
                         {/* Mechanics notified */}
                         <View className="flex-row items-center justify-center px-3 py-1.5 rounded-full self-center" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.3)' }}>
-                            <Text className="text-white font-outfit-semibold text-xs tracking-widest">6 mechanics notified</Text>
+                            <Text className="text-white font-outfit-semibold text-xs tracking-widest">{t('requestAssistance.searching.mechanicsNotified', { count: 6 })}</Text>
                         </View>
                         </LinearGradient>
                     </View>
@@ -292,7 +294,7 @@ export default function SearchingScreen() {
                 >
                     {/* Header */}
                     <View className="px-5 py-4 border-b border-gray-100">
-                        <Text className="font-outfit-bold text-lg text-gray-900">Your request</Text>
+                        <Text className="font-outfit-bold text-lg text-gray-900">{t('requestAssistance.searching.yourRequest')}</Text>
                     </View>
 
                     {/* Service */}
@@ -300,7 +302,7 @@ export default function SearchingScreen() {
                         <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
                             <Zap size={20} color="#0047AB" />
                         </View>
-                        <Text className="font-outfit-medium text-base text-gray-500">Service</Text>
+                        <Text className="font-outfit-medium text-base text-gray-500">{t('requestAssistance.searching.service')}</Text>
                         <Text className="flex-1 text-right font-outfit-semibold text-base text-gray-900" numberOfLines={1}>{getTitle()}</Text>
                     </View>
 
@@ -309,7 +311,7 @@ export default function SearchingScreen() {
                         <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
                             <Car size={20} color="#0047AB" />
                         </View>
-                        <Text className="font-outfit-medium text-base text-gray-500">Vehicle</Text>
+                        <Text className="font-outfit-medium text-base text-gray-500">{t('requestAssistance.searching.vehicle')}</Text>
                         <Text className="flex-1 text-right font-outfit-semibold text-base text-gray-900" numberOfLines={1}>{requestData?.car || '—'}</Text>
                     </View>
 
@@ -318,7 +320,7 @@ export default function SearchingScreen() {
                         <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
                             <MapPin size={20} color="#0047AB" />
                         </View>
-                        <Text className="font-outfit-medium text-base text-gray-500">Location</Text>
+                        <Text className="font-outfit-medium text-base text-gray-500">{t('requestAssistance.searching.location')}</Text>
                         <Text className="flex-1 text-right font-outfit-semibold text-base text-gray-900" numberOfLines={1}>{requestData?.address || '—'}</Text>
                     </View>
 
@@ -327,7 +329,7 @@ export default function SearchingScreen() {
                         <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
                             <DollarSign size={20} color="#0047AB" />
                         </View>
-                        <Text className="font-outfit-medium text-base text-gray-500">Price</Text>
+                        <Text className="font-outfit-medium text-base text-gray-500">{t('requestAssistance.searching.budget')}</Text>
                         <Text className="flex-1 text-right font-outfit-semibold text-base text-gray-900" numberOfLines={1}>{requestData?.budget || '—'}</Text>
                     </View>
                 </View>
@@ -337,12 +339,12 @@ export default function SearchingScreen() {
                     className="w-full py-4 mb-8 flex-row items-center justify-center border-2"
                     style={{ borderColor: '#FCA5A5', borderRadius: 10, backgroundColor: '#FEF0F0' }}
                 >
-                    <Text className="text-red-500 font-outfit-bold text-lg">Cancel Request</Text>
+                    <Text className="text-red-500 font-outfit-bold text-lg">{t('requestAssistance.searching.cancelRequest')}</Text>
                 </TouchableOpacity>
 
                 <View className="mt-4 pb-6">
                     <Text className="text-[10px] text-gray-400 text-center font-outfit-medium">
-                        Mechanic Assistance App # request:
+                        {t('requestAssistance.searching.footer')}
                     </Text>
                     <Text className="text-[10px] text-gray-400 text-center font-outfit-medium">
                         FL-{new Date().toISOString().split('T')[0]}-{requestId || 'PENDING'}

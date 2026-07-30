@@ -19,17 +19,19 @@ export function useEmailAvailability(email: string) {
         }
 
         setStatus('checking');
+        let cancelled = false;
 
         timerRef.current = setTimeout(async () => {
             try {
                 const exists = await userDAO.checkEmailExists(email);
-                setStatus(exists ? 'taken' : 'available');
+                if (!cancelled) setStatus(exists ? 'taken' : 'available');
             } catch {
-                setStatus('error');
+                if (!cancelled) setStatus('error');
             }
         }, DEBOUNCE_MS);
 
         return () => {
+            cancelled = true;
             if (timerRef.current) clearTimeout(timerRef.current);
         };
     }, [email]);

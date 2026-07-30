@@ -11,6 +11,7 @@ import * as Location from 'expo-location';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Calendar, Video, Zap, MapPin, Wrench, DollarSign, Star, Award, Circle, Clock } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, ScrollView, Text, TouchableOpacity, View, Modal } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -29,15 +30,17 @@ async function getCurrentCoords(): Promise<{ latitude: number; longitude: number
     }
 }
 
-const getTimeGreeting = (): string => {
+/** Returns a translation key for the current time of day — resolve with t() at the call site. */
+const getTimeGreetingKey = (): string => {
     const hour = new Date().getHours();
-    if (hour >= 5 && hour < 12) return 'GOOD MORNING';
-    if (hour >= 12 && hour < 18) return 'GOOD AFTERNOON';
-    return 'GOOD NIGHT';
+    if (hour >= 5 && hour < 12) return 'dashboard.greeting.morning';
+    if (hour >= 12 && hour < 18) return 'dashboard.greeting.afternoon';
+    return 'dashboard.greeting.night';
 };
 
 export default function DashboardScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
     const { user, isLoading: isUserLoading } = useUser();
     const [filter, setFilter] = useState<AssistanceType | null>(null);
     const [requests, setRequests] = useState<AssistanceRequest[]>([]);
@@ -177,7 +180,7 @@ export default function DashboardScreen() {
                     <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                         <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
                         <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                            {getTimeGreeting()}
+                            {t(getTimeGreetingKey())}
                         </Text>
                     </View>
 
@@ -530,16 +533,16 @@ export default function DashboardScreen() {
                         <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                             <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
                             <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                                {user?.role?.toLowerCase() === 'mechanic' ? 'FIND JOBS' : getTimeGreeting()}
+                                {user?.role?.toLowerCase() === 'mechanic' ? 'FIND JOBS' : t(getTimeGreetingKey())}
                             </Text>
                         </View>
 
                         {/* Title */}
-                        <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">Welcome back{user?.name ? `, ${user.name.split(' ')[0]}` : ''}</Text>
+                        <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">{t('dashboard.user.title')}{user?.name ? `, ${user.name.split(' ')[0]}` : ''}</Text>
 
                         {/* Subtitle */}
                         <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-                            What kind of assistance do you need today?
+                            {t('dashboard.user.subtitle')}
                         </Text>
 
                         {/* Assistance Type Cards - Horizontal */}
@@ -574,9 +577,9 @@ export default function DashboardScreen() {
                                     </View>
 
                                     {/* Content */}
-                                    <Text className="text-white font-outfit-semibold text-center" style={{ fontSize: 15 }}>Immediate</Text>
-                                    <Text className="text-blue-100 font-outfit-semibold text-center" style={{ fontSize: 15 }}>
-                                        Assist
+                                    <Text className="text-white font-outfit-semibold text-center" style={{ fontSize: 13 }}>{t('dashboard.user.cards.immediateTitle')}</Text>
+                                    <Text className="text-blue-100 font-outfit-semibold text-center" style={{ fontSize: 13 }}>
+                                        {t('dashboard.user.cards.immediateSubtitle')}
                                     </Text>
                                 </LinearGradient>
                             </TouchableOpacity>
@@ -597,9 +600,9 @@ export default function DashboardScreen() {
                                     <View className="w-14 h-14 rounded-2xl justify-center items-center mb-3" style={{ backgroundColor: '#E9F1FF' }}>
                                         <Calendar size={24} color="#1E56E3" />
                                     </View>
-                                    <Text className="text-gray-900 font-outfit-semibold text-center" style={{ fontSize: 15 }}>Scheduled</Text>
-                                    <Text className="text-gray-600 font-outfit-semibold text-center mt-1" style={{ fontSize: 15 }}>
-                                        Assist
+                                    <Text className="text-gray-900 font-outfit-semibold text-center" style={{ fontSize: 13 }}>{t('dashboard.user.cards.scheduledTitle')}</Text>
+                                    <Text className="text-gray-600 font-outfit-semibold text-center mt-1" style={{ fontSize: 13 }}>
+                                        {t('dashboard.user.cards.scheduledSubtitle')}
                                     </Text>
                                 </View>
                             </TouchableOpacity>
@@ -620,20 +623,20 @@ export default function DashboardScreen() {
                                     <View className="w-14 h-14 rounded-2xl justify-center items-center mb-3" style={{ backgroundColor: '#E9F1FF' }}>
                                         <Video size={24} color="#1E56E3" />
                                     </View>
-                                    <Text className="text-gray-900 font-outfit-semibold text-center" style={{ fontSize: 15 }}>Video Call</Text>
-                                    <Text className="text-gray-600 font-outfit-semibold text-center mt-1" style={{ fontSize: 15 }}>
-                                        DIY
+                                    <Text className="text-gray-900 font-outfit-semibold text-center" style={{ fontSize: 13 }}>{t('dashboard.user.cards.videoCallTitle')}</Text>
+                                    <Text className="text-gray-600 font-outfit-semibold text-center mt-1" style={{ fontSize: 13 }}>
+                                        {t('dashboard.user.cards.videoCallSubtitle')}
                                     </Text>
                                 </View>
                             </TouchableOpacity>
                         </View>
 
                         {/* Active Request Title */}
-                        <Text className="text-gray-900 font-outfit-medium text-lg mb-2" style={{ fontSize: 18 }}>Your active request!</Text>
+                        <Text className="text-gray-900 font-outfit-medium text-lg mb-2" style={{ fontSize: 18 }}>{t('dashboard.user.activeRequestTitle')}</Text>
 
                         {/* Empty State Message */}
                         <Text className="text-gray-500 font-outfit-regular text-base mb-6">
-                            No active requests at the moment
+                            {t('dashboard.user.noActiveRequests')}
                         </Text>
 
                         {/* DIY Tutorial Card 1 */}
@@ -646,11 +649,11 @@ export default function DashboardScreen() {
                             {/* Right Column */}
                             <View className="flex-1">
                                 {/* Title */}
-                                <Text className="text-gray-900 font-outfit-medium mb-1" style={{ fontSize: 17 }}>Replace the wiper blades</Text>
+                                <Text className="text-gray-900 font-outfit-medium mb-1" style={{ fontSize: 17 }}>{t('dashboard.user.diy1.title')}</Text>
 
                                 {/* Description */}
                                 <Text className="text-gray-500 font-outfit-regular text-sm mb-3">
-                                    Quick 5-minute DIY · No tools required.
+                                    {t('dashboard.user.diy1.description')}
                                 </Text>
 
                                 {/* Button */}
@@ -659,7 +662,7 @@ export default function DashboardScreen() {
                                     style={{ backgroundColor: '#2B66F8', alignSelf: 'flex-start' }}
                                 >
                                     <Text style={{ fontSize: 14, color: '#FFFFFF' }}>▶</Text>
-                                    <Text className="text-white font-outfit-semibold" style={{ fontSize: 14 }}>Watch DIY tutorial</Text>
+                                    <Text className="text-white font-outfit-semibold" style={{ fontSize: 14 }}>{t('dashboard.user.watchTutorial')}</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -670,18 +673,18 @@ export default function DashboardScreen() {
                             <View className="flex-1">
                                 {/* Subtitle */}
                                 <Text className="text-blue-600 font-outfit-semibold text-xs mb-1" style={{ fontSize: 11, letterSpacing: 1 }}>
-                                    REFER & EARN
+                                    {t('dashboard.user.referEarn.badge')}
                                 </Text>
 
                                 {/* Title */}
-                                <Text className="text-gray-900 font-outfit-medium mb-3" style={{ fontSize: 17 }}>Apply now, get $20 back</Text>
+                                <Text className="text-gray-900 font-outfit-medium mb-3" style={{ fontSize: 17 }}>{t('dashboard.user.referEarn.title')}</Text>
 
                                 {/* Button */}
                                 <TouchableOpacity
                                     className="rounded-full px-4 py-2.5 flex-row items-center gap-1.5"
                                     style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}
                                 >
-                                    <Text className="font-outfit-semibold" style={{ fontSize: 14, color: '#0047AB' }}>Start earning</Text>
+                                    <Text className="font-outfit-semibold" style={{ fontSize: 14, color: '#0047AB' }}>{t('dashboard.user.referEarn.button')}</Text>
                                     <Text style={{ fontSize: 14, color: '#0047AB' }}>→</Text>
                                 </TouchableOpacity>
                             </View>
@@ -702,11 +705,11 @@ export default function DashboardScreen() {
                             {/* Right Column */}
                             <View className="flex-1">
                                 {/* Title */}
-                                <Text className="text-gray-900 font-outfit-medium mb-1" style={{ fontSize: 17 }}>Replace the brake pads</Text>
+                                <Text className="text-gray-900 font-outfit-medium mb-1" style={{ fontSize: 17 }}>{t('dashboard.user.diy2.title')}</Text>
 
                                 {/* Description */}
                                 <Text className="text-gray-500 font-outfit-regular text-sm mb-3">
-                                    Intermediate DIY · 30 min · Basic tools
+                                    {t('dashboard.user.diy2.description')}
                                 </Text>
 
                                 {/* Button */}
@@ -715,7 +718,7 @@ export default function DashboardScreen() {
                                     style={{ backgroundColor: '#2B66F8', alignSelf: 'flex-start' }}
                                 >
                                     <Text style={{ fontSize: 14, color: '#FFFFFF' }}>▶</Text>
-                                    <Text className="text-white font-outfit-semibold" style={{ fontSize: 14 }}>Watch DIY tutorial</Text>
+                                    <Text className="text-white font-outfit-semibold" style={{ fontSize: 14 }}>{t('dashboard.user.watchTutorial')}</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>

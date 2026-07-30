@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { ConfigService } from '@/lib/config/ConfigService';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Image, ScrollView, Text, View } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import { MAP_PROVIDER } from '@/lib/maps/provider';
@@ -26,6 +27,7 @@ function decodePolyline(encoded: string): { latitude: number; longitude: number 
 
 
 export function UserStatusTab({ appointment, mechanicCoords, routePolyline }: { appointment: any; mechanicCoords?: { latitude: number; longitude: number } | null; routePolyline?: string | null }) {
+    const { t } = useTranslation();
     if (!appointment) return null;
 
     const mapRef = React.useRef<MapView | null>(null);
@@ -66,14 +68,14 @@ export function UserStatusTab({ appointment, mechanicCoords, routePolyline }: { 
         <View className="gap-6" testID="user-status-tab">
             <View className="gap-4">
                 <View>
-                    <Text className="font-outfit-bold text-blue-900">Current status:</Text>
+                    <Text className="font-outfit-bold text-blue-900">{t('appointments.userStatus.currentStatus')}</Text>
                     <Text className="font-outfit-bold text-lg" style={{ color: statusColor }}>
                         {currentStatus.toUpperCase()}
                     </Text>
                 </View>
 
                 <View>
-                    <Text className="font-outfit-bold text-blue-900">Vehicle:</Text>
+                    <Text className="font-outfit-bold text-blue-900">{t('appointments.userStatus.vehicle')}</Text>
                     <Text className="text-gray-600 font-outfit-regular">{appointment.car || '—'}</Text>
                 </View>
 
@@ -85,7 +87,7 @@ export function UserStatusTab({ appointment, mechanicCoords, routePolyline }: { 
                 </View>
 
                 <View>
-                    <Text className="font-outfit-bold text-blue-900">Address:</Text>
+                    <Text className="font-outfit-bold text-blue-900">{t('appointments.userStatus.address')}</Text>
                     <Text className="text-gray-600 font-outfit-regular">{appointment.address || '—'}</Text>
                     {/* Map — client pin (red) + mechanic live pin (blue) */}
                     <View style={{ height: 220, borderRadius: 12, overflow: 'hidden', marginTop: 8, backgroundColor: '#E5E7EB' }}>
@@ -104,15 +106,15 @@ export function UserStatusTab({ appointment, mechanicCoords, routePolyline }: { 
                             >
                                 <Marker
                                     coordinate={clientCoords!}
-                                    title={appointment.address || 'Your location'}
-                                    description="Your location"
+                                    title={appointment.address || t('appointments.userStatus.yourLocation')}
+                                    description={t('appointments.userStatus.yourLocation')}
                                     pinColor="red"
                                 />
                                 {mechanicCoords && (
                                     <Marker
                                         coordinate={mechanicCoords}
-                                        title="Mechanic"
-                                        description="Mechanic's location"
+                                        title={t('appointments.userStatus.mechanic')}
+                                        description={t('appointments.userStatus.mechanicLocation')}
                                         pinColor="blue"
                                     />
                                 )}
@@ -128,7 +130,7 @@ export function UserStatusTab({ appointment, mechanicCoords, routePolyline }: { 
                             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                                 <Ionicons name="map-outline" size={32} color="#9CA3AF" />
                                 <Text style={{ color: '#6B7280', marginTop: 8, fontFamily: 'Outfit_400Regular' }}>
-                                    Location not available
+                                    {t('appointments.userStatus.locationNotAvailable')}
                                 </Text>
                             </View>
                         )}
@@ -137,7 +139,7 @@ export function UserStatusTab({ appointment, mechanicCoords, routePolyline }: { 
 
                 {appointment.notes ? (
                     <View>
-                        <Text className="font-outfit-bold text-blue-900">Notes:</Text>
+                        <Text className="font-outfit-bold text-blue-900">{t('appointments.userStatus.notes')}</Text>
                         <Text className="text-gray-600 font-outfit-regular">{appointment.notes}</Text>
                     </View>
                 ) : null}
@@ -145,7 +147,7 @@ export function UserStatusTab({ appointment, mechanicCoords, routePolyline }: { 
                 {photos.length > 0 && (
                     <View>
                         <Text className="font-outfit-bold text-blue-900 mb-2">
-                            Submitted photos ({photos.length}):
+                            {t('appointments.userStatus.submittedPhotos', { count: photos.length })}
                         </Text>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                             {photos.map((uri, index) => {

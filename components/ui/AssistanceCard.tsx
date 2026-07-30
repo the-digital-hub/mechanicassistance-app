@@ -1,4 +1,5 @@
 import { Car, ClipboardList, Clock, MapPin, ShieldCheck } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { Text, TouchableOpacity, View } from 'react-native';
 
 export type AssistanceType = 'immediate' | 'scheduled' | 'videocall' | 'witness';
@@ -18,6 +19,7 @@ interface AssistanceCardProps {
 }
 
 export function AssistanceCard({ id, type, assistanceType, title, car, notes, address, distance, budget, onAccept, isAccepted }: AssistanceCardProps) {
+    const { t } = useTranslation();
 
     const getHeaderColor = () => {
         switch (type) {
@@ -32,14 +34,14 @@ export function AssistanceCard({ id, type, assistanceType, title, car, notes, ad
     };
 
     const getHeaderTitle = () => {
-        if (assistanceType === 'witness') return 'ACCIDENT ASSISTANCE';
+        if (assistanceType === 'witness') return t('assistanceCard.headerAccident');
 
         switch (type) {
-            case 'immediate': return 'Immediate Assistance';
-            case 'witness': return 'ACCIDENT ASSISTANCE';
-            case 'scheduled': return 'Scheduled Assistance';
-            case 'videocall': return 'Video Call';
-            default: return 'Assistance';
+            case 'immediate': return t('assistanceCard.headerImmediate');
+            case 'witness': return t('assistanceCard.headerAccident');
+            case 'scheduled': return t('assistanceCard.headerScheduled');
+            case 'videocall': return t('assistanceCard.headerVideoCall');
+            default: return t('assistanceCard.headerDefault');
         }
     };
 
@@ -108,14 +110,14 @@ export function AssistanceCard({ id, type, assistanceType, title, car, notes, ad
                 {distance && (
                     <View className="flex-row items-center mb-4">
                         <MapPin size={12} color="#6B7280" />
-                        <Text className="text-gray-500 text-xs ml-1">Distance: {distance}</Text>
+                        <Text className="text-gray-500 text-xs ml-1">{t('assistanceCard.distance', { distance })}</Text>
                     </View>
                 )}
 
                 {/* Action Buttons */}
                 <View className="flex-row gap-3">
                     <View className="flex-1 bg-white border border-gray-200 rounded-lg py-2.5 items-center justify-center">
-                        <Text className="text-blue-900 font-outfit-bold text-sm">Budget: {budget}</Text>
+                        <Text className="text-blue-900 font-outfit-bold text-sm">{t('assistanceCard.budget', { budget })}</Text>
                     </View>
 
                     <TouchableOpacity
@@ -124,7 +126,7 @@ export function AssistanceCard({ id, type, assistanceType, title, car, notes, ad
                         className={`flex-1 rounded-lg py-2.5 items-center justify-center ${isAccepted ? 'bg-gray-300' : 'bg-emerald-500'}`}
                     >
                         <Text className="text-white font-outfit-bold text-sm">
-                            {isAccepted ? 'Accepted' : 'Accept'}
+                            {isAccepted ? t('assistanceCard.accepted') : t('assistanceCard.accept')}
                         </Text>
                     </TouchableOpacity>
                 </View>

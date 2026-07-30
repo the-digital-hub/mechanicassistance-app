@@ -4,10 +4,12 @@ import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 export default function MechanicFoundScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
     const { user } = useUser();
     const params = useLocalSearchParams();
     const { requestId } = params;
@@ -65,7 +67,7 @@ export default function MechanicFoundScreen() {
             }
         } catch (error) {
             console.error('Failed to confirm appointment:', error);
-            Alert.alert('Error', 'Failed to confirm the appointment. Please try again.');
+            Alert.alert(t('requestAssistance.mechanicFound.errorTitle'), t('requestAssistance.mechanicFound.errorMessage'));
         } finally {
             setIsConfirming(false);
         }
@@ -79,10 +81,10 @@ export default function MechanicFoundScreen() {
 
     // Derive type label and icon from the request
     const typeLabel =
-        assistanceRequest?.assistanceType === 'witness' ? 'ACCIDENT ASSISTANCE' :
-            assistanceRequest?.type === 'immediate' ? 'IMMEDIATE ASSISTANCE' :
-                assistanceRequest?.type === 'video' ? 'VIDEO CALL ASSISTANCE' :
-                    'SCHEDULED ASSISTANCE';
+        assistanceRequest?.assistanceType === 'witness' ? t('requestAssistance.badge.accident') :
+            assistanceRequest?.type === 'immediate' ? t('requestAssistance.badge.immediate') :
+                assistanceRequest?.type === 'video' ? t('requestAssistance.badge.videoCall') :
+                    t('requestAssistance.badge.scheduled');
 
     const typeIcon: any =
         assistanceRequest?.type === 'immediate' ? 'construct-outline' :
@@ -91,15 +93,15 @@ export default function MechanicFoundScreen() {
 
     const typeSubtitle =
         assistanceRequest?.type === 'immediate'
-            ? `Available now · ETA: ${assistanceRequest?.eta || '2hs'}`
-            : assistanceRequest?.type === 'video' ? 'Available now · Start Call'
-                : `Available ${assistanceRequest?.date || ''} ${assistanceRequest?.time || ''}`.trim();
+            ? t('requestAssistance.mechanicFound.availableEta', { eta: assistanceRequest?.eta || '2hs' })
+            : assistanceRequest?.type === 'video' ? t('requestAssistance.mechanicFound.availableStartCall')
+                : t('requestAssistance.mechanicFound.availableDateTime', { date: assistanceRequest?.date || '', time: assistanceRequest?.time || '' }).trim();
 
     if (isLoading) {
         return (
             <View className="flex-1 bg-white justify-center items-center">
                 <ActivityIndicator size="large" color="#0047AB" />
-                <Text className="text-gray-500 font-outfit-medium mt-4">Loading assistance details...</Text>
+                <Text className="text-gray-500 font-outfit-medium mt-4">{t('requestAssistance.mechanicFound.loading')}</Text>
             </View>
         );
     }
@@ -112,14 +114,14 @@ export default function MechanicFoundScreen() {
                     <Ionicons name="chevron-back" size={24} color="#0F172A" />
                 </TouchableOpacity>
                 <Text className="text-xl font-outfit-bold text-[#0F172A] flex-1 text-center mr-8">
-                    Assistance
+                    {t('requestAssistance.mechanicFound.headerTitle')}
                 </Text>
             </View>
 
             <ScrollView className="flex-1" contentContainerStyle={{ padding: 24, paddingBottom: 40 }}>
                 {/* Title Section */}
-                <Text className="text-blue-600 font-outfit-bold text-lg mb-1">Request a mechanic</Text>
-                <Text className="text-gray-800 font-outfit-medium text-sm mb-6">Select your best match</Text>
+                <Text className="text-blue-600 font-outfit-bold text-lg mb-1">{t('requestAssistance.mechanicFound.requestAMechanic')}</Text>
+                <Text className="text-gray-800 font-outfit-medium text-sm mb-6">{t('requestAssistance.mechanicFound.selectBestMatch')}</Text>
 
                 {/* Main Card */}
                 <View
@@ -150,20 +152,20 @@ export default function MechanicFoundScreen() {
                     {/* Cost — prefers mechanic's proposed price, falls back to budget */}
                     <View className="mb-4">
                         <Text className="font-outfit-bold text-[#0F172A] text-base">
-                            Cost per this service assistance:
+                            {t('requestAssistance.mechanicFound.costLabel')}
                         </Text>
                         <Text className="font-outfit-bold text-blue-600 text-2xl">
                             {assistanceRequest?.price
                                 ? `$${assistanceRequest.price}`
                                 : assistanceRequest?.budget
                                     ? `$${assistanceRequest.budget}`
-                                    : 'TBD'}
+                                    : t('requestAssistance.mechanicFound.tbd')}
                         </Text>
                     </View>
 
                     {/* Payment Method */}
                     <View className="mb-4">
-                        <Text className="font-outfit-bold text-[#0F172A] text-base mb-2">Payment Method:</Text>
+                        <Text className="font-outfit-bold text-[#0F172A] text-base mb-2">{t('requestAssistance.mechanicFound.paymentMethod')}</Text>
                         <View className="flex-row items-center justify-between">
                             <View className="flex-row items-center">
                                 <View className="bg-blue-900 rounded-md px-3 py-1 mr-2">
@@ -173,14 +175,14 @@ export default function MechanicFoundScreen() {
                                 </View>
                             </View>
                             <TouchableOpacity>
-                                <Text className="text-blue-600 font-outfit-bold text-sm">Change</Text>
+                                <Text className="text-blue-600 font-outfit-bold text-sm">{t('requestAssistance.mechanicFound.change')}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
 
                     {/* Disclaimer */}
                     <Text className="text-blue-500 font-outfit-regular text-xs">
-                        No FEES will be charged to your account until work is done and approved.
+                        {t('requestAssistance.confirmation.feesInfo')}
                     </Text>
                 </View>
 
@@ -201,13 +203,13 @@ export default function MechanicFoundScreen() {
                         <ActivityIndicator size="small" color="white" />
                     ) : (
                         <Text style={{ color: 'white', fontFamily: 'Outfit_700Bold', fontSize: 16 }}>
-                            {isConfirmed ? 'Request Confirmed ✓' : 'Confirm and Request'}
+                            {isConfirmed ? t('requestAssistance.mechanicFound.requestConfirmed') : t('requestAssistance.confirmation.confirmAndRequest')}
                         </Text>
                     )}
                 </TouchableOpacity>
 
                 {/* Other Options */}
-                <Text className="text-gray-800 font-outfit-bold text-base mb-4">Other options</Text>
+                <Text className="text-gray-800 font-outfit-bold text-base mb-4">{t('requestAssistance.mechanicFound.otherOptions')}</Text>
 
                 {/* Immediate Assistance Option */}
                 <TouchableOpacity
@@ -224,13 +226,13 @@ export default function MechanicFoundScreen() {
                         </View>
                         <View className="flex-1">
                             <Text className="font-outfit-bold text-[#0F172A] text-sm tracking-widest uppercase">
-                                IMMEDIATE ASSISTANCE
+                                {t('requestAssistance.badge.immediate')}
                             </Text>
                             <Text className="font-outfit-medium text-blue-600 text-sm">
-                                Available now ETA: 2hs
+                                {t('requestAssistance.mechanicFound.immediateEta')}
                             </Text>
                             <Text className="font-outfit-bold text-blue-600 text-sm">
-                                Starting from: $350
+                                {t('requestAssistance.mechanicFound.startingFrom', { price: 350 })}
                             </Text>
                         </View>
                     </View>
@@ -251,13 +253,13 @@ export default function MechanicFoundScreen() {
                         </View>
                         <View className="flex-1">
                             <Text className="font-outfit-bold text-[#0F172A] text-sm tracking-widest uppercase">
-                                VIDEO CALL ASSISTANCE
+                                {t('requestAssistance.badge.videoCall')}
                             </Text>
                             <Text className="font-outfit-medium text-blue-600 text-sm">
-                                Available now start Call
+                                {t('requestAssistance.mechanicFound.videoCallAvailable')}
                             </Text>
                             <Text className="font-outfit-bold text-blue-600 text-sm">
-                                Starting from: $50
+                                {t('requestAssistance.mechanicFound.startingFrom', { price: 50 })}
                             </Text>
                         </View>
                     </View>
@@ -265,13 +267,13 @@ export default function MechanicFoundScreen() {
 
                 {/* Cancel Request */}
                 <TouchableOpacity onPress={handleCancel} className="items-center mb-6">
-                    <Text className="text-red-500 font-outfit-bold text-base">Cancel Request</Text>
+                    <Text className="text-red-500 font-outfit-bold text-base">{t('requestAssistance.searching.cancelRequest')}</Text>
                 </TouchableOpacity>
 
                 {/* Reference Footer */}
                 <View className="items-center mt-2">
                     <Text className="text-gray-400 font-outfit-regular text-[10px]">
-                        Mechanic Assistance App # request:
+                        {t('requestAssistance.searching.footer')}
                     </Text>
                     <Text className="text-gray-400 font-outfit-regular text-[10px]">
                         {refNumber}

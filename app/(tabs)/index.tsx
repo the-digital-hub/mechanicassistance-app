@@ -3,11 +3,13 @@ import { useAppointments } from '@/context/AppointmentsContext';
 import { useUser } from '@/context/UserContext';
 import { useMechanicStatus } from '@/context/MechanicStatusContext';
 import { mediaDAO } from '@/lib/dao/MediaDAO';
+import { setAppLanguage } from '@/lib/i18n';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Award, Camera, Car, ChevronLeft, ChevronRight, Circle, CreditCard, Heart, HelpCircle, Lock, LogOut, MapPin, PlugZap, Settings, User } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Image, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 export default function ProfileScreen() {
@@ -15,6 +17,7 @@ export default function ProfileScreen() {
   const { user, isLoading, updateUser, logout } = useUser();
   const { appointments } = useAppointments();
   const { mechanicStatus, setMechanicStatus } = useMechanicStatus();
+  const { t, i18n } = useTranslation();
 
   const isOnline = user?.isOnline || false;
 
@@ -22,7 +25,6 @@ export default function ProfileScreen() {
   const [showOfflineModal, setShowOfflineModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
-  const [language, setLanguage] = useState<'en' | 'es'>('en');
   const [localProfileUri, setLocalProfileUri] = useState<string | null>(null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
@@ -42,7 +44,7 @@ export default function ProfileScreen() {
       const uploaded = await mediaDAO.uploadPhoto(localUri);
       await updateUser({ profileImage: uploaded.url });
     } catch {
-      Alert.alert('Upload Failed', 'Could not upload profile photo. Please try again.');
+      Alert.alert(t('profile.modals.uploadFailedTitle'), t('profile.modals.uploadFailedMessage'));
       setLocalProfileUri(null);
     } finally {
       setIsUploadingPhoto(false);
@@ -66,12 +68,12 @@ export default function ProfileScreen() {
 
       if (hasActiveAppointments) {
         if (Platform.OS === 'web') {
-          window.alert("You cannot go offline while you have active appointments.");
+          window.alert(t('profile.modals.cannotGoOfflineMessage'));
         } else {
           Alert.alert(
-            "Cannot go offline",
-            "You cannot go offline while you have active appointments.",
-            [{ text: "OK" }]
+            t('profile.modals.cannotGoOfflineTitle'),
+            t('profile.modals.cannotGoOfflineMessage'),
+            [{ text: t('profile.modals.ok') }]
           );
         }
       } else {
@@ -121,18 +123,18 @@ export default function ProfileScreen() {
   const statusOptions: Array<{ id: 'available' | 'busy' | 'offline', label: string, description: string }> = [
     {
       id: 'available',
-      label: 'Available',
-      description: 'Visible to owners and can receive new requests'
+      label: t('profile.availability.available'),
+      description: t('profile.availability.availableDesc')
     },
     {
       id: 'busy',
-      label: 'Busy',
-      description: 'Visible but won\'t receive new requests'
+      label: t('profile.availability.busy'),
+      description: t('profile.availability.busyDesc')
     },
     {
       id: 'offline',
-      label: 'Offline',
-      description: 'Not visible to owners and won\'t receive requests'
+      label: t('profile.availability.offline'),
+      description: t('profile.availability.offlineDesc')
     },
   ];
 
@@ -148,16 +150,16 @@ export default function ProfileScreen() {
         <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
           <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
           <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-            MY PROFILE
+            {t('profile.badge')}
           </Text>
         </View>
 
         {/* Title */}
-        <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">Your account, your preferences</Text>
+        <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">{t('profile.title')}</Text>
 
         {/* Subtitle */}
         <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-          Manage your personal info, vehicles and app settings.
+          {t('profile.subtitle')}
         </Text>
 
         {/* User Info Card */}
@@ -191,7 +193,7 @@ export default function ProfileScreen() {
           {/* Role Badge */}
           <View className="px-4 py-2 rounded-full" style={{ backgroundColor: '#E9F1FF' }}>
             <Text className="text-blue-600 font-outfit-semibold text-sm capitalize">
-              {user.role === 'mechanic' ? 'Mechanic' : 'Vehicle Owner'}
+              {user.role === 'mechanic' ? t('profile.roleMechanic') : t('profile.roleOwner')}
             </Text>
           </View>
         </View>
@@ -207,7 +209,7 @@ export default function ProfileScreen() {
           }}>
             {/* Header with Title */}
             <Text style={{ fontFamily: 'Outfit_600SemiBold', fontSize: 18, color: '#111827' }} className="mb-4">
-              Available to provide services
+              {t('profile.availability.heading')}
             </Text>
 
             {/* Status Options */}
@@ -249,10 +251,10 @@ export default function ProfileScreen() {
             {/* Description */}
             <Text style={{ color: '#4B5563', fontFamily: 'Outfit_400Regular', fontSize: 15, lineHeight: 20 }}>
               {mechanicStatus === 'available'
-                ? 'You are visible to nearby owners and can receive new requests.'
+                ? t('profile.availability.descAvailable')
                 : mechanicStatus === 'busy'
-                ? 'You are visible but won\'t receive new requests.'
-                : 'You are not visible to owners and won\'t receive requests.'}
+                ? t('profile.availability.descBusy')
+                : t('profile.availability.descOffline')}
             </Text>
           </View>
         )}
@@ -260,20 +262,20 @@ export default function ProfileScreen() {
         {/* Menu Items Card */}
         {(() => {
           const menuItems = [
-            { icon: User, label: 'Personal information', route: '/personal-info' },
-            { icon: MapPin, label: 'My Addresses', route: '/(tabs)/addresses' },
+            { icon: User, label: t('profile.menu.personalInfo'), route: '/personal-info' },
+            { icon: MapPin, label: t('profile.menu.addresses'), route: '/(tabs)/addresses' },
             ...(user.role?.toLowerCase().trim() !== 'mechanic' ? [
-              { icon: Car || User, label: 'My Vehicles', route: '/vehicles' },
+              { icon: Car || User, label: t('profile.menu.vehicles'), route: '/vehicles' },
             ] : []),
             ...(user.role === 'mechanic' ? [
-              { icon: Award, label: 'ASE Certifications', route: '/ase' },
-              { icon: CreditCard, label: 'Bank Account / payments', route: '/payments' },
-              { icon: Heart, label: 'Promotions', route: '/promotions' },
+              { icon: Award, label: t('profile.menu.ase'), route: '/ase' },
+              { icon: CreditCard, label: t('profile.menu.payments'), route: '/payments' },
+              { icon: Heart, label: t('profile.menu.promotions'), route: '/promotions' },
             ] : []),
-            { icon: HelpCircle, label: 'Help Center', route: '/help' },
-            { icon: Lock, label: 'Privacy Policy', route: '/privacy' },
-            { icon: Settings, label: 'Settings', route: '/settings' },
-            { icon: LogOut, label: 'Log out', action: () => setShowLogoutModal(true), color: '#EF4444' },
+            { icon: HelpCircle, label: t('profile.menu.help'), route: '/help' },
+            { icon: Lock, label: t('profile.menu.privacy'), route: '/privacy' },
+            { icon: Settings, label: t('profile.menu.settings'), route: '/settings' },
+            { icon: LogOut, label: t('profile.menu.logout'), action: () => setShowLogoutModal(true), color: '#EF4444' },
           ];
           return (
         <View className="mb-6" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 10, elevation: 5 }}>
@@ -303,27 +305,27 @@ export default function ProfileScreen() {
 
         {/* Language Selector Card */}
         <View className="bg-white rounded-3xl p-6" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 10, elevation: 5 }}>
-          <Text className="font-outfit-semibold text-base mb-4" style={{ color: '#2B66F8' }}>Select Language</Text>
+          <Text className="font-outfit-semibold text-base mb-4" style={{ color: '#2B66F8' }}>{t('profile.language.heading')}</Text>
           <View className="flex-row gap-3">
             <TouchableOpacity
-              onPress={() => setLanguage('en')}
+              onPress={() => setAppLanguage('en')}
               className="flex-1 py-3 rounded-2xl border-2 items-center justify-center"
               style={{
-                borderColor: language === 'en' ? '#2B66F8' : '#E5E7EB',
-                backgroundColor: language === 'en' ? '#E9F1FF' : '#FFFFFF'
+                borderColor: i18n.language === 'en' ? '#2B66F8' : '#E5E7EB',
+                backgroundColor: i18n.language === 'en' ? '#E9F1FF' : '#FFFFFF'
               }}
             >
-              <Text className="font-outfit-semibold text-base" style={{ color: language === 'en' ? '#2B66F8' : '#9CA3AF' }}>English</Text>
+              <Text className="font-outfit-semibold text-base" style={{ color: i18n.language === 'en' ? '#2B66F8' : '#9CA3AF' }}>{t('profile.language.english')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => setLanguage('es')}
+              onPress={() => setAppLanguage('es')}
               className="flex-1 py-3 rounded-2xl border-2 items-center justify-center"
               style={{
-                borderColor: language === 'es' ? '#2B66F8' : '#E5E7EB',
-                backgroundColor: language === 'es' ? '#E9F1FF' : '#FFFFFF'
+                borderColor: i18n.language === 'es' ? '#2B66F8' : '#E5E7EB',
+                backgroundColor: i18n.language === 'es' ? '#E9F1FF' : '#FFFFFF'
               }}
             >
-              <Text className="font-outfit-semibold text-base" style={{ color: language === 'es' ? '#2B66F8' : '#9CA3AF' }}>Spanish</Text>
+              <Text className="font-outfit-semibold text-base" style={{ color: i18n.language === 'es' ? '#2B66F8' : '#9CA3AF' }}>{t('profile.language.spanish')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -336,14 +338,14 @@ export default function ProfileScreen() {
               <PlugZap size={40} color="white" />
             </View>
             <Text className="text-lg font-outfit-bold text-center text-gray-900 mb-6">
-              Confirm you want to be On-Line providing your services?
+              {t('profile.modals.goOnlineTitle')}
             </Text>
             <View className="flex-row gap-3 w-full">
               <TouchableOpacity
                 className="flex-1 py-3 rounded-lg border border-gray-300 bg-white"
                 onPress={() => setShowOnlineModal(false)}
               >
-                <Text className="text-center font-outfit-bold text-gray-900">No</Text>
+                <Text className="text-center font-outfit-bold text-gray-900">{t('profile.modals.no')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 className="flex-1"
@@ -362,7 +364,7 @@ export default function ProfileScreen() {
                     justifyContent: 'center',
                   }}
                 >
-                  <Text className="text-center font-outfit-bold text-white">Yes</Text>
+                  <Text className="text-center font-outfit-bold text-white">{t('profile.modals.yes')}</Text>
                 </LinearGradient>
               </TouchableOpacity>
             </View>
@@ -378,14 +380,14 @@ export default function ProfileScreen() {
               <PlugZap size={40} color="white" style={{ transform: [{ rotate: '45deg' }] }} />
             </View>
             <Text className="text-lg font-outfit-bold text-center text-gray-900 mb-6">
-              Are you sure you want to be Off-Line providing your services?
+              {t('profile.modals.goOfflineTitle')}
             </Text>
             <View className="flex-row gap-3 w-full">
               <TouchableOpacity
                 className="flex-1 py-3 rounded-lg border border-gray-300 bg-white"
                 onPress={() => setShowOfflineModal(false)}
               >
-                <Text className="text-center font-outfit-bold text-gray-900">No</Text>
+                <Text className="text-center font-outfit-bold text-gray-900">{t('profile.modals.no')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 className="flex-1"
@@ -404,7 +406,7 @@ export default function ProfileScreen() {
                     justifyContent: 'center',
                   }}
                 >
-                  <Text className="text-center font-outfit-bold text-white">Yes</Text>
+                  <Text className="text-center font-outfit-bold text-white">{t('profile.modals.yes')}</Text>
                 </LinearGradient>
               </TouchableOpacity>
             </View>
@@ -417,13 +419,13 @@ export default function ProfileScreen() {
         visible={showLogoutModal}
         onClose={() => setShowLogoutModal(false)}
         onConfirm={handleLogout}
-        title="Are you sure you want to Log out?"
+        title={t('profile.modals.logoutTitle')}
         message=""
         icon={LogOut}
         iconColor="#00A8E8"
         confirmButtonColor="#0047AB"
-        confirmText="Yes"
-        cancelText="No"
+        confirmText={t('profile.modals.yes')}
+        cancelText={t('profile.modals.no')}
       />
 
       {/* Status Modal */}
@@ -432,7 +434,7 @@ export default function ProfileScreen() {
           <View className="flex-1 bg-black/50 justify-center items-center px-6">
             <View className="bg-white w-full rounded-2xl p-6 items-center">
               <Text className="text-lg font-outfit-bold text-gray-900 mb-6 text-center">
-                Change your status
+                {t('profile.modals.changeStatus')}
               </Text>
 
               <View className="w-full gap-3">

@@ -1,0 +1,364 @@
+{
+  "profile": {
+    "badge": "MY PROFILE",
+    "title": "Your account, your preferences",
+    "subtitle": "Manage your personal info, vehicles and app settings.",
+    "roleMechanic": "Mechanic",
+    "roleOwner": "Vehicle Owner",
+    "availability": {
+      "heading": "Available to provide services",
+      "available": "Available",
+      "busy": "Busy",
+      "offline": "Offline",
+      "availableDesc": "Visible to owners and can receive new requests",
+      "busyDesc": "Visible but won't receive new requests",
+      "offlineDesc": "Not visible to owners and won't receive requests",
+      "descAvailable": "You are visible to nearby owners and can receive new requests.",
+      "descBusy": "You are visible but won't receive new requests.",
+      "descOffline": "You are not visible to owners and won't receive requests."
+    },
+    "menu": {
+      "personalInfo": "Personal information",
+      "addresses": "My Addresses",
+      "vehicles": "My Vehicles",
+      "ase": "ASE Certifications",
+      "payments": "Bank Account / payments",
+      "promotions": "Promotions",
+      "help": "Help Center",
+      "privacy": "Privacy Policy",
+      "settings": "Settings",
+      "logout": "Log out"
+    },
+    "language": {
+      "heading": "Select Language",
+      "english": "English",
+      "spanish": "Spanish"
+    },
+    "modals": {
+      "goOnlineTitle": "Confirm you want to be On-Line providing your services?",
+      "goOfflineTitle": "Are you sure you want to be Off-Line providing your services?",
+      "logoutTitle": "Are you sure you want to Log out?",
+      "changeStatus": "Change your status",
+      "yes": "Yes",
+      "no": "No",
+      "cannotGoOfflineTitle": "Cannot go offline",
+      "cannotGoOfflineMessage": "You cannot go offline while you have active appointments.",
+      "ok": "OK",
+      "uploadFailedTitle": "Upload Failed",
+      "uploadFailedMessage": "Could not upload profile photo. Please try again."
+    }
+  },
+  "assistanceCard": {
+    "headerAccident": "ACCIDENT ASSISTANCE",
+    "headerImmediate": "Immediate Assistance",
+    "headerScheduled": "Scheduled Assistance",
+    "headerVideoCall": "Video Call",
+    "headerDefault": "Assistance",
+    "distance": "Distance: {{distance}}",
+    "budget": "Budget: {{budget}}",
+    "accepted": "Accepted",
+    "accept": "Accept"
+  },
+  "dashboard": {
+    "greeting": {
+      "morning": "GOOD MORNING",
+      "afternoon": "GOOD AFTERNOON",
+      "night": "GOOD NIGHT"
+    },
+    "user": {
+      "title": "Welcome back",
+      "subtitle": "What kind of assistance do you need today?",
+      "cards": {
+        "immediateTitle": "Immediate",
+        "immediateSubtitle": "Assist",
+        "scheduledTitle": "Scheduled",
+        "scheduledSubtitle": "Assist",
+        "videoCallTitle": "Video Call",
+        "videoCallSubtitle": "DIY"
+      },
+      "activeRequestTitle": "Your active request!",
+      "noActiveRequests": "No active requests at the moment",
+      "watchTutorial": "Watch DIY tutorial",
+      "diy1": {
+        "title": "Replace the wiper blades",
+        "description": "Quick 5-minute DIY · No tools required."
+      },
+      "diy2": {
+        "title": "Replace the brake pads",
+        "description": "Intermediate DIY · 30 min · Basic tools"
+      },
+      "referEarn": {
+        "badge": "REFER & EARN",
+        "title": "Apply now, get $20 back",
+        "button": "Start earning"
+      }
+    }
+  },
+  "requestAssistance": {
+    "continue": "Continue",
+    "header": {
+      "immediate": "Immediate Assistance",
+      "scheduled": "Scheduled Assistance",
+      "videoCall": "Video Call Assistance",
+      "accident": "Accident Assistance",
+      "default": "Assistance"
+    },
+    "badge": {
+      "immediate": "IMMEDIATE ASSISTANCE",
+      "scheduled": "SCHEDULED ASSISTANCE",
+      "videoCall": "VIDEO CALL ASSISTANCE",
+      "accident": "ACCIDENT ASSISTANCE",
+      "default": "ASSISTANCE"
+    },
+    "issues": {
+      "battery": "Battery / Starting issue",
+      "electrical": "Electrical system",
+      "starter": "Starter motor",
+      "warning": "Warning light",
+      "other": "Other"
+    },
+    "type": {
+      "badge": "REQUEST A MECHANIC",
+      "title": "How can we help today?",
+      "subtitle": "Pick the type of assistance — we'll route you to the right specialist.",
+      "immediate": {
+        "badge": "RECOMMENDED · 24H PERIOD",
+        "title": "Immediate Assistance",
+        "description": "A nearby mechanic dispatched right away."
+      },
+      "scheduled": {
+        "title": "Scheduled Assistance",
+        "description": "Pick a date and time that works for you.",
+        "badge": "7 DAYS PERIOD"
+      },
+      "videoCall": {
+        "title": "Video Call Assistance",
+        "description": "Talk a mechanic through it from your phone.",
+        "badge": "DIY · ON DEMAND"
+      },
+      "accident": {
+        "title": "Accident",
+        "description": "Insurance support and on-scene response.",
+        "badge": "24H PERIOD"
+      }
+    },
+    "selectVehicle": {
+      "badge": "SELECT YOUR VEHICLE",
+      "title": "Vehicles",
+      "subtitle": "Which vehicle has the issue?",
+      "noVehicles": "No vehicles found. Please add one.",
+      "noPlate": "NO PLATE",
+      "addVehicle": "Add a vehicle"
+    },
+    "issueSelection": {
+      "title": "Indicate the issue",
+      "subtitle": "Describe the problem or select a common issue",
+      "placeholder": "Describe what's happening with your vehicle",
+      "possibleIssues": "Possible issues detected"
+    },
+    "addDetails": {
+      "photoLimitTitle": "Photo limit reached",
+      "photoLimitMessage": "Only {{max}} photos are supported per request.",
+      "title": "Indicate more issue details",
+      "subtitle": "Are there any further details you'd like to pass on to the mechanic?",
+      "placeholder": "Type here...",
+      "uploadPrefix": "Click",
+      "uploadHere": "here",
+      "uploadSuffix": "to upload / add photo",
+      "maxPhotos": "Max {{max}} photos ({{count}}/{{max}})",
+      "photoLimitReached": "Photo limit reached ({{max}}/{{max}})",
+      "addPhotos": "Add Photos",
+      "confirmIssue": "Confirm Issue"
+    },
+    "locationAddress": {
+      "title": "Search for your address",
+      "subtitle": "Enter the address where you need assistance",
+      "placeholder": "Search for address"
+    },
+    "locationMap": {
+      "myCurrentLocation": "My Current Location",
+      "selectedLocation": "Selected Location",
+      "customLocation": "Custom Location",
+      "permissionDenied": "Permission to access location was denied",
+      "noAddressDetails": "No address details available. Please add an address in your profile.",
+      "coordsNotFound": "Could not find coordinates for \"{{query}}\". Please search manually.",
+      "resolveFailed": "Could not resolve address. Please search manually.",
+      "title": "Indicate your location",
+      "subtitle": "Tap the map or search to set your location",
+      "searchAddress": "Search Address",
+      "noHomeAddress": "No home address saved. Add one in your profile settings.",
+      "noWorkAddress": "No work address saved. Add one in your profile settings.",
+      "home": "Home",
+      "work": "Work",
+      "notSet": "Not set",
+      "selectedLocationLabel": "Selected Location",
+      "confirmLocation": "Confirm Location"
+    },
+    "confirmation": {
+      "vehicleId": "Vehicle ID: {{vehicleId}}",
+      "videoCallShort": "Video Call",
+      "locationRequiredTitle": "Location required",
+      "locationRequiredMessage": "Please go back and set the assistance location on the map.",
+      "uploadingPhoto": "Uploading photo {{current}} of {{total}}...",
+      "errorTitle": "Error",
+      "errorMessage": "Failed to submit request. Please try again.",
+      "title": "Confirm your request",
+      "subtitle": "Review and confirm your assistance request details",
+      "assistanceNeeded": "Assistance needed",
+      "noDescription": "No description provided",
+      "timeframe": "Timeframe",
+      "timeframe4h": "4 Hours",
+      "timeframe7d": "7 Days",
+      "timeframeOnDemand": "On Demand",
+      "car": "Car",
+      "address": "Address",
+      "notes": "Notes",
+      "none": "None",
+      "feesInfo": "No FEES will be charged to your account until work is done and approved.",
+      "confirmAndRequest": "Confirm and Request"
+    },
+    "searching": {
+      "step1Title": "Request sent",
+      "step1Subtitle": "Your request is live.",
+      "step2Title": "Notifying mechanics",
+      "step2Subtitle": "Mechanics have been alerted.",
+      "step3Title": "Reviewing offers",
+      "step3Subtitle": "Waiting for the best match to accept...",
+      "cancelledAlert": "Assistance search cancelled.",
+      "cancelErrorAlert": "Error cancelling request. Please try again.",
+      "badge": "FINDING A MECHANIC",
+      "title": "Hang tight — we're finding your mechanic",
+      "subtitle": "We're scanning your area in real-time to find the best match.",
+      "searchingNearby": "SEARCHING NEARBY",
+      "averageMatchTime": "Average match time is under 8 minutes",
+      "mechanicsNotified": "{{count}} mechanics notified",
+      "yourRequest": "Your request",
+      "service": "Service",
+      "vehicle": "Vehicle",
+      "location": "Location",
+      "budget": "Price",
+      "cancelRequest": "Cancel Request",
+      "footer": "Mechanic Assistance App # request:"
+    },
+    "mechanicFound": {
+      "errorTitle": "Error",
+      "errorMessage": "Failed to confirm the appointment. Please try again.",
+      "availableEta": "Available now · ETA: {{eta}}",
+      "availableStartCall": "Available now · Start Call",
+      "availableDateTime": "Available {{date}} {{time}}",
+      "loading": "Loading assistance details...",
+      "headerTitle": "Assistance",
+      "requestAMechanic": "Request a mechanic",
+      "selectBestMatch": "Select your best match",
+      "costLabel": "Cost per this service assistance:",
+      "tbd": "TBD",
+      "paymentMethod": "Payment Method:",
+      "change": "Change",
+      "requestConfirmed": "Request Confirmed ✓",
+      "otherOptions": "Other options",
+      "immediateEta": "Available now ETA: 2hs",
+      "startingFrom": "Starting from: ${{price}}",
+      "videoCallAvailable": "Available now start Call"
+    }
+  },
+  "appointments": {
+    "list": {
+      "badge": "YOUR REQUEST",
+      "title": "Your request, all in one place",
+      "subtitle": "Track active requests, view past jobs and manage your booking form here.",
+      "upcoming": "Upcoming",
+      "past": "Past",
+      "noUpcoming": "No upcoming appointments",
+      "noPast": "No past appointments",
+      "cancelModalTitle": "Cancel Request",
+      "cancelModalMessage": "Are you sure you'd like to cancel this request?",
+      "no": "No",
+      "yesCancel": "Yes, Cancel"
+    },
+    "cancelReason": {
+      "badge": "CANCEL REQUEST",
+      "title": "Why are you canceling this request?",
+      "subtitle": "Please select the reason below. This helps us improve future assignments.",
+      "infoMessage": "Frequent cancellations may affect your acceptance rate and visibility in the request queue.",
+      "keepRequest": "Keep Request",
+      "reasons": {
+        "noLongerAvailable": "No longer available",
+        "tooFarAway": "Too far away",
+        "acceptedAnotherJob": "Accepted another job",
+        "vehicleIssue": "Vehicle issue",
+        "missingTools": "Missing required tools",
+        "personalEmergency": "Personal emergency",
+        "other": "Other"
+      }
+    },
+    "detail": {
+      "tabs": {
+        "assistanceInfo": "Assistance info",
+        "mechanicInfo": "Mechanic info",
+        "clientInfo": "Client info",
+        "assistStatus": "Assist status",
+        "budget": "Budget"
+      },
+      "notFound": "Appointment not found",
+      "goBack": "Go back",
+      "assistanceAccepted": "Assistance accepted",
+      "status": "Status",
+      "accepted": "ACCEPTED",
+      "onTrip": "On trip to client's address",
+      "startVideoChat": "Start Video Chat",
+      "joinVideoCall": "Join Video Call"
+    },
+    "userTracking": {
+      "mechanicMatch": "Mechanic Match!",
+      "calculating": "Calculating...",
+      "minAway": "{{minutes}} min away",
+      "onTheWay": "On the way",
+      "etaValue": "ETA: {{eta}}",
+      "etaUnknown": "ETA: --",
+      "posted": "Posted: 07/07/2025 - 03:15 AM",
+      "mechanicLabel": "Mechanic:",
+      "unknown": "Unknown",
+      "loadingMechanic": "Loading mechanic...",
+      "call": "Call",
+      "message": "Message"
+    },
+    "userMechanicInfo": {
+      "loading": "Loading mechanic info...",
+      "backToProfile": "Back to Profile",
+      "reviewsHistory": "Reviews History",
+      "sampleReviewDate": "February 20th, 2019",
+      "sampleReviewText": "Great service! Highly recommended.",
+      "identifyMe": "Identify Me: {{vehicle}}",
+      "defaultVehicle": "Ford Focus, Blue",
+      "mechanicSince": "Mechanic Since: July 2018",
+      "yearsExperience": "{{years}} years experience",
+      "schedule": "Mon-Sat / 9:00AM - 5:00PM",
+      "aboutMe": "About Me",
+      "defaultBio": "I'm just your ordinary guy trying to give back to the community.",
+      "specializeIn": "I specialize in",
+      "defaultSpec1": "Lock Smithing",
+      "defaultSpec2": "Plumbing",
+      "defaultSpec3": "Automotive Issue",
+      "aseCertified": "ASE Certified in:",
+      "seeReviews": "See My Reviews"
+    },
+    "userBudget": {
+      "initialQuote": "Initial Quote:",
+      "totalEstimate": "TOTAL ESTIMATE:"
+    },
+    "userStatus": {
+      "currentStatus": "Current status:",
+      "vehicle": "Vehicle:",
+      "address": "Address:",
+      "notes": "Notes:",
+      "submittedPhotos": "Submitted photos ({{count}}):",
+      "yourLocation": "Your location",
+      "mechanic": "Mechanic",
+      "mechanicLocation": "Mechanic's location",
+      "locationNotAvailable": "Location not available"
+    },
+    "cancellationModal": {
+      "message": "Are you sure you'd like to cancel this request?\nYour mechanic is already on their way to you."
+    }
+  }
+}

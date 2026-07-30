@@ -15,6 +15,7 @@ import { userDAO } from '@/lib/dao/UserDAO';
 import { Ionicons } from '@expo/vector-icons';
 import { useGlobalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     Dimensions,
     Image,
@@ -33,6 +34,7 @@ export default function AppointmentDetailScreen() {
     const { id } = useGlobalSearchParams();
     // const { id } = useLocalSearchParams();
     const router = useRouter();
+    const { t } = useTranslation();
     const { getAppointmentById, updateAppointment } = useAppointments();
 
     const appointment = getAppointmentById(Array.isArray(id) ? id[0] : id || '');
@@ -66,9 +68,23 @@ export default function AppointmentDetailScreen() {
     // Consistent state for Status Updates (Mechanic View)
     const [statusUpdate, setStatusUpdate] = React.useState(appointment?.currentStatus || '');
     const [isStatusUpdated, setIsStatusUpdated] = React.useState(appointment?.isStatusUpdated || false);
-    const [additionalAmount, setAdditionalAmount] = React.useState('');
+    const [additionalAmount, setAdditionalAmount] = React.useState(appointment?.additionalFunds?.[0]?.amount || '');
     const [additionalType, setAdditionalType] = React.useState(appointment?.additionalFunds?.[0]?.type || '');
     const [additionalDetails, setAdditionalDetails] = React.useState(appointment?.additionalFunds?.[0]?.details || '');
+
+    // Hydrate mechanic review state once appointment data arrives — AppointmentsContext
+    // loads asynchronously, so a cold navigation into this screen can mount before it
+    // does, leaving the useState initializers above stuck at their empty defaults.
+    const hasHydratedReview = React.useRef(false);
+    React.useEffect(() => {
+        if (appointment && !hasHydratedReview.current) {
+            hasHydratedReview.current = true;
+            setRating(appointment.clientReview?.rating || 0);
+            setSelectedOption(appointment.clientReview?.experienceTags?.[0] || '');
+            setReviewText(appointment.clientReview?.review || '');
+            setIsReviewSubmitted(appointment.isReviewSubmitted || false);
+        }
+    }, [appointment]);
 
     // Debounced update implementation for preservation
     const timerRef = React.useRef<any>(null);
@@ -159,25 +175,25 @@ export default function AppointmentDetailScreen() {
 
     const tabs: { key: TabType; label: string }[] = React.useMemo(() => isUserRole
         ? [
-            { key: 'info', label: 'Assistance info' },
-            { key: 'client', label: 'Mechanic info' },
-            { key: 'status', label: 'Assist status' },
-            { key: 'budget', label: 'Budget' },
+            { key: 'info', label: t('appointments.detail.tabs.assistanceInfo') },
+            { key: 'client', label: t('appointments.detail.tabs.mechanicInfo') },
+            { key: 'status', label: t('appointments.detail.tabs.assistStatus') },
+            { key: 'budget', label: t('appointments.detail.tabs.budget') },
         ]
         : [
-            { key: 'info', label: 'Assistance info' },
-            { key: 'client', label: 'Client info' },
-            { key: 'status', label: 'Assist status' },
-            { key: 'budget', label: 'Budget' },
-        ], [isUserRole]);
+            { key: 'info', label: t('appointments.detail.tabs.assistanceInfo') },
+            { key: 'client', label: t('appointments.detail.tabs.clientInfo') },
+            { key: 'status', label: t('appointments.detail.tabs.assistStatus') },
+            { key: 'budget', label: t('appointments.detail.tabs.budget') },
+        ], [isUserRole, t]);
 
     if (!appointment) {
         return (
             <View className="flex-1 bg-white justify-center items-center p-6">
-                <Text className="font-outfit-bold text-lg text-gray-900">Appointment not found</Text>
+                <Text className="font-outfit-bold text-lg text-gray-900">{t('appointments.detail.notFound')}</Text>
                 <Text className="text-gray-500 mt-2">ID: {JSON.stringify(id)}</Text>
                 <TouchableOpacity onPress={() => router.back()} className="mt-4">
-                    <Text className="text-blue-600 font-outfit-medium">Go back</Text>
+                    <Text className="text-blue-600 font-outfit-medium">{t('appointments.detail.goBack')}</Text>
                 </TouchableOpacity>
             </View>
         );
@@ -285,7 +301,7 @@ export default function AppointmentDetailScreen() {
                     <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
                         {/* Title Section */}
                         <View className="px-6 py-4">
-                            <Text className="font-outfit-bold text-blue-900 text-lg">Assistance accepted</Text>
+                            <Text className="font-outfit-bold text-blue-900 text-lg">{t('appointments.detail.assistanceAccepted')}</Text>
                             <Text className="text-gray-400 text-xs">ID:#{appointment.id.slice(0, 8)}...</Text>
                         </View>
 
@@ -296,9 +312,9 @@ export default function AppointmentDetailScreen() {
                                 testID="status-badge"
                                 nativeID="status-badge"
                             >
-                                <Text className="text-gray-500 font-outfit-medium text-xs mb-1" testID="status-label">Status</Text>
-                                <Text className="text-emerald-600 font-outfit-bold text-lg uppercase mb-1" testID="status-value">ACCEPTED</Text>
-                                <Text className="text-emerald-600/80 text-[10px]" testID="status-description">On trip to client's address</Text>
+                                <Text className="text-gray-500 font-outfit-medium text-xs mb-1" testID="status-label">{t('appointments.detail.status')}</Text>
+                                <Text className="text-emerald-600 font-outfit-bold text-lg uppercase mb-1" testID="status-value">{t('appointments.detail.accepted')}</Text>
+                                <Text className="text-emerald-600/80 text-[10px]" testID="status-description">{t('appointments.detail.onTrip')}</Text>
                             </View>
                         </View>
 
@@ -315,7 +331,7 @@ export default function AppointmentDetailScreen() {
                                 >
                                     <Ionicons name="videocam" size={24} color="white" />
                                     <Text className="text-white font-outfit-bold text-lg">
-                                        {isUserRole ? 'Start Video Chat' : 'Join Video Call'}
+                                        {isUserRole ? t('appointments.detail.startVideoChat') : t('appointments.detail.joinVideoCall')}
                                     </Text>
                                 </TouchableOpacity>
                             </View>

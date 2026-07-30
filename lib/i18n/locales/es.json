@@ -1,0 +1,364 @@
+{
+  "profile": {
+    "badge": "MI PERFIL",
+    "title": "Tu cuenta, tus preferencias",
+    "subtitle": "Gestioná tu información personal, vehículos y configuración de la app.",
+    "roleMechanic": "Mecánico",
+    "roleOwner": "Dueño de vehículo",
+    "availability": {
+      "heading": "Disponible para brindar servicios",
+      "available": "Disponible",
+      "busy": "Ocupado",
+      "offline": "Desconectado",
+      "availableDesc": "Visible para los dueños y podés recibir nuevas solicitudes",
+      "busyDesc": "Visible pero no recibirás nuevas solicitudes",
+      "offlineDesc": "No visible para los dueños y no recibirás solicitudes",
+      "descAvailable": "Estás visible para los dueños cercanos y podés recibir nuevas solicitudes.",
+      "descBusy": "Estás visible pero no recibirás nuevas solicitudes.",
+      "descOffline": "No estás visible para los dueños y no recibirás solicitudes."
+    },
+    "menu": {
+      "personalInfo": "Información personal",
+      "addresses": "Mis Direcciones",
+      "vehicles": "Mis Vehículos",
+      "ase": "Certificaciones ASE",
+      "payments": "Cuenta bancaria / pagos",
+      "promotions": "Promociones",
+      "help": "Centro de ayuda",
+      "privacy": "Política de privacidad",
+      "settings": "Configuración",
+      "logout": "Cerrar sesión"
+    },
+    "language": {
+      "heading": "Seleccionar idioma",
+      "english": "Inglés",
+      "spanish": "Español"
+    },
+    "modals": {
+      "goOnlineTitle": "¿Confirmás que querés estar En línea brindando tus servicios?",
+      "goOfflineTitle": "¿Estás seguro de que querés estar Desconectado y dejar de brindar tus servicios?",
+      "logoutTitle": "¿Estás seguro de que querés cerrar sesión?",
+      "changeStatus": "Cambiar tu estado",
+      "yes": "Sí",
+      "no": "No",
+      "cannotGoOfflineTitle": "No podés desconectarte",
+      "cannotGoOfflineMessage": "No podés desconectarte mientras tenés citas activas.",
+      "ok": "OK",
+      "uploadFailedTitle": "Error al subir",
+      "uploadFailedMessage": "No se pudo subir la foto de perfil. Intentá de nuevo."
+    }
+  },
+  "assistanceCard": {
+    "headerAccident": "ASISTENCIA POR ACCIDENTE",
+    "headerImmediate": "Asistencia inmediata",
+    "headerScheduled": "Asistencia programada",
+    "headerVideoCall": "Videollamada",
+    "headerDefault": "Asistencia",
+    "distance": "Distancia: {{distance}}",
+    "budget": "Presupuesto: {{budget}}",
+    "accepted": "Aceptada",
+    "accept": "Aceptar"
+  },
+  "dashboard": {
+    "greeting": {
+      "morning": "BUENOS DÍAS",
+      "afternoon": "BUENAS TARDES",
+      "night": "BUENAS NOCHES"
+    },
+    "user": {
+      "title": "Bienvenido de nuevo",
+      "subtitle": "¿Qué tipo de asistencia necesitás hoy?",
+      "cards": {
+        "immediateTitle": "Asistencia",
+        "immediateSubtitle": "Inmediata",
+        "scheduledTitle": "Asistencia",
+        "scheduledSubtitle": "Programada",
+        "videoCallTitle": "Asistencia",
+        "videoCallSubtitle": "Videollamada"
+      },
+      "activeRequestTitle": "¡Tu solicitud activa!",
+      "noActiveRequests": "No hay solicitudes activas por el momento",
+      "watchTutorial": "Ver tutorial DIY",
+      "diy1": {
+        "title": "Cambiar las escobillas del limpiaparabrisas",
+        "description": "DIY rápido de 5 minutos · No requiere herramientas."
+      },
+      "diy2": {
+        "title": "Cambiar las pastillas de freno",
+        "description": "DIY intermedio · 30 min · Herramientas básicas"
+      },
+      "referEarn": {
+        "badge": "REFERÍ Y GANÁ",
+        "title": "Aplicá ahora y recibí $20",
+        "button": "Empezar a ganar"
+      }
+    }
+  },
+  "requestAssistance": {
+    "continue": "Continuar",
+    "header": {
+      "immediate": "Asistencia inmediata",
+      "scheduled": "Asistencia programada",
+      "videoCall": "Asistencia por videollamada",
+      "accident": "Asistencia por accidente",
+      "default": "Asistencia"
+    },
+    "badge": {
+      "immediate": "ASISTENCIA INMEDIATA",
+      "scheduled": "ASISTENCIA PROGRAMADA",
+      "videoCall": "ASISTENCIA POR VIDEOLLAMADA",
+      "accident": "ASISTENCIA POR ACCIDENTE",
+      "default": "ASISTENCIA"
+    },
+    "issues": {
+      "battery": "Batería / Problema de arranque",
+      "electrical": "Sistema eléctrico",
+      "starter": "Motor de arranque",
+      "warning": "Luz de advertencia",
+      "other": "Otro"
+    },
+    "type": {
+      "badge": "SOLICITAR UN MECÁNICO",
+      "title": "¿Cómo podemos ayudarte hoy?",
+      "subtitle": "Elegí el tipo de asistencia — te vamos a conectar con el especialista adecuado.",
+      "immediate": {
+        "badge": "RECOMENDADO · PERÍODO DE 24H",
+        "title": "Asistencia inmediata",
+        "description": "Un mecánico cercano enviado de inmediato."
+      },
+      "scheduled": {
+        "title": "Asistencia programada",
+        "description": "Elegí una fecha y hora que te convenga.",
+        "badge": "PERÍODO DE 7 DÍAS"
+      },
+      "videoCall": {
+        "title": "Asistencia por videollamada",
+        "description": "Un mecánico te guía por teléfono paso a paso.",
+        "badge": "DIY · A DEMANDA"
+      },
+      "accident": {
+        "title": "Accidente",
+        "description": "Soporte de seguro y respuesta en el lugar.",
+        "badge": "PERÍODO DE 24H"
+      }
+    },
+    "selectVehicle": {
+      "badge": "SELECCIONÁ TU VEHÍCULO",
+      "title": "Vehículos",
+      "subtitle": "¿Qué vehículo tiene el problema?",
+      "noVehicles": "No se encontraron vehículos. Agregá uno.",
+      "noPlate": "SIN PATENTE",
+      "addVehicle": "Agregar un vehículo"
+    },
+    "issueSelection": {
+      "title": "Indicá el problema",
+      "subtitle": "Describí el problema o seleccioná un problema común",
+      "placeholder": "Describí qué le está pasando a tu vehículo",
+      "possibleIssues": "Posibles problemas detectados"
+    },
+    "addDetails": {
+      "photoLimitTitle": "Límite de fotos alcanzado",
+      "photoLimitMessage": "Solo se admiten {{max}} fotos por solicitud.",
+      "title": "Indicá más detalles del problema",
+      "subtitle": "¿Hay algún otro detalle que quieras compartir con el mecánico?",
+      "placeholder": "Escribí acá...",
+      "uploadPrefix": "Hacé clic",
+      "uploadHere": "acá",
+      "uploadSuffix": "para subir / agregar una foto",
+      "maxPhotos": "Máximo {{max}} fotos ({{count}}/{{max}})",
+      "photoLimitReached": "Límite de fotos alcanzado ({{max}}/{{max}})",
+      "addPhotos": "Agregar fotos",
+      "confirmIssue": "Confirmar problema"
+    },
+    "locationAddress": {
+      "title": "Buscá tu dirección",
+      "subtitle": "Ingresá la dirección donde necesitás asistencia",
+      "placeholder": "Buscar dirección"
+    },
+    "locationMap": {
+      "myCurrentLocation": "Mi ubicación actual",
+      "selectedLocation": "Ubicación seleccionada",
+      "customLocation": "Ubicación personalizada",
+      "permissionDenied": "Se denegó el permiso de acceso a la ubicación",
+      "noAddressDetails": "No hay detalles de dirección disponibles. Agregá una dirección en tu perfil.",
+      "coordsNotFound": "No se pudieron encontrar coordenadas para \"{{query}}\". Buscá manualmente.",
+      "resolveFailed": "No se pudo resolver la dirección. Buscá manualmente.",
+      "title": "Indicá tu ubicación",
+      "subtitle": "Tocá el mapa o buscá para establecer tu ubicación",
+      "searchAddress": "Buscar dirección",
+      "noHomeAddress": "No hay una dirección de casa guardada. Agregá una en la configuración de tu perfil.",
+      "noWorkAddress": "No hay una dirección de trabajo guardada. Agregá una en la configuración de tu perfil.",
+      "home": "Casa",
+      "work": "Trabajo",
+      "notSet": "No configurada",
+      "selectedLocationLabel": "Ubicación seleccionada",
+      "confirmLocation": "Confirmar ubicación"
+    },
+    "confirmation": {
+      "vehicleId": "ID de vehículo: {{vehicleId}}",
+      "videoCallShort": "Videollamada",
+      "locationRequiredTitle": "Se requiere ubicación",
+      "locationRequiredMessage": "Volvé atrás y establecé la ubicación de la asistencia en el mapa.",
+      "uploadingPhoto": "Subiendo foto {{current}} de {{total}}...",
+      "errorTitle": "Error",
+      "errorMessage": "No se pudo enviar la solicitud. Intentá de nuevo.",
+      "title": "Confirmá tu solicitud",
+      "subtitle": "Revisá y confirmá los detalles de tu solicitud de asistencia",
+      "assistanceNeeded": "Asistencia necesaria",
+      "noDescription": "No se proporcionó descripción",
+      "timeframe": "Plazo",
+      "timeframe4h": "4 horas",
+      "timeframe7d": "7 días",
+      "timeframeOnDemand": "A demanda",
+      "car": "Vehículo",
+      "address": "Dirección",
+      "notes": "Notas",
+      "none": "Ninguna",
+      "feesInfo": "No se cobrará ningún CARGO a tu cuenta hasta que el trabajo esté hecho y aprobado.",
+      "confirmAndRequest": "Confirmar y Solicitar"
+    },
+    "searching": {
+      "step1Title": "Solicitud enviada",
+      "step1Subtitle": "Tu solicitud está activa.",
+      "step2Title": "Notificando mecánicos",
+      "step2Subtitle": "Se avisó a los mecánicos.",
+      "step3Title": "Revisando ofertas",
+      "step3Subtitle": "Esperando a que el mejor match acepte...",
+      "cancelledAlert": "Búsqueda de asistencia cancelada.",
+      "cancelErrorAlert": "Error al cancelar la solicitud. Intentá de nuevo.",
+      "badge": "BUSCANDO UN MECÁNICO",
+      "title": "Esperá un momento — estamos buscando tu mecánico",
+      "subtitle": "Estamos escaneando tu zona en tiempo real para encontrar el mejor match.",
+      "searchingNearby": "BUSCANDO CERCA",
+      "averageMatchTime": "El tiempo promedio de match es menos de 8 minutos",
+      "mechanicsNotified": "{{count}} mecánicos notificados",
+      "yourRequest": "Tu solicitud",
+      "service": "Servicio",
+      "vehicle": "Vehículo",
+      "location": "Ubicación",
+      "budget": "Precio",
+      "cancelRequest": "Cancelar solicitud",
+      "footer": "Mechanic Assistance App # solicitud:"
+    },
+    "mechanicFound": {
+      "errorTitle": "Error",
+      "errorMessage": "No se pudo confirmar la cita. Intentá de nuevo.",
+      "availableEta": "Disponible ahora · ETA: {{eta}}",
+      "availableStartCall": "Disponible ahora · Iniciar llamada",
+      "availableDateTime": "Disponible {{date}} {{time}}",
+      "loading": "Cargando detalles de la asistencia...",
+      "headerTitle": "Asistencia",
+      "requestAMechanic": "Solicitar un mecánico",
+      "selectBestMatch": "Seleccioná tu mejor opción",
+      "costLabel": "Costo de esta asistencia:",
+      "tbd": "A definir",
+      "paymentMethod": "Método de pago:",
+      "change": "Cambiar",
+      "requestConfirmed": "Solicitud confirmada ✓",
+      "otherOptions": "Otras opciones",
+      "immediateEta": "Disponible ahora ETA: 2hs",
+      "startingFrom": "Desde: ${{price}}",
+      "videoCallAvailable": "Disponible ahora iniciar llamada"
+    }
+  },
+  "appointments": {
+    "list": {
+      "badge": "TU SOLICITUD",
+      "title": "Tu solicitud, todo en un solo lugar",
+      "subtitle": "Seguí tus solicitudes activas, mirá trabajos pasados y gestioná tu reserva acá.",
+      "upcoming": "Próximas",
+      "past": "Pasadas",
+      "noUpcoming": "No hay citas próximas",
+      "noPast": "No hay citas pasadas",
+      "cancelModalTitle": "Cancelar solicitud",
+      "cancelModalMessage": "¿Estás seguro de que querés cancelar esta solicitud?",
+      "no": "No",
+      "yesCancel": "Sí, cancelar"
+    },
+    "cancelReason": {
+      "badge": "CANCELAR SOLICITUD",
+      "title": "¿Por qué estás cancelando esta solicitud?",
+      "subtitle": "Seleccioná el motivo debajo. Esto nos ayuda a mejorar futuras asignaciones.",
+      "infoMessage": "Las cancelaciones frecuentes pueden afectar tu tasa de aceptación y visibilidad en la cola de solicitudes.",
+      "keepRequest": "Mantener solicitud",
+      "reasons": {
+        "noLongerAvailable": "Ya no está disponible",
+        "tooFarAway": "Demasiado lejos",
+        "acceptedAnotherJob": "Aceptó otro trabajo",
+        "vehicleIssue": "Problema con el vehículo",
+        "missingTools": "Faltan herramientas necesarias",
+        "personalEmergency": "Emergencia personal",
+        "other": "Otro"
+      }
+    },
+    "detail": {
+      "tabs": {
+        "assistanceInfo": "Info de asistencia",
+        "mechanicInfo": "Info del mecánico",
+        "clientInfo": "Info del cliente",
+        "assistStatus": "Estado de la asistencia",
+        "budget": "Presupuesto"
+      },
+      "notFound": "No se encontró la cita",
+      "goBack": "Volver",
+      "assistanceAccepted": "Asistencia aceptada",
+      "status": "Estado",
+      "accepted": "ACEPTADA",
+      "onTrip": "En camino a la dirección del cliente",
+      "startVideoChat": "Iniciar videollamada",
+      "joinVideoCall": "Unirse a la videollamada"
+    },
+    "userTracking": {
+      "mechanicMatch": "¡Mecánico encontrado!",
+      "calculating": "Calculando...",
+      "minAway": "A {{minutes}} min",
+      "onTheWay": "En camino",
+      "etaValue": "ETA: {{eta}}",
+      "etaUnknown": "ETA: --",
+      "posted": "Publicado: 07/07/2025 - 03:15 AM",
+      "mechanicLabel": "Mecánico:",
+      "unknown": "Desconocido",
+      "loadingMechanic": "Cargando mecánico...",
+      "call": "Llamar",
+      "message": "Mensaje"
+    },
+    "userMechanicInfo": {
+      "loading": "Cargando información del mecánico...",
+      "backToProfile": "Volver al perfil",
+      "reviewsHistory": "Historial de reseñas",
+      "sampleReviewDate": "20 de febrero de 2019",
+      "sampleReviewText": "¡Excelente servicio! Muy recomendable.",
+      "identifyMe": "Identificame: {{vehicle}}",
+      "defaultVehicle": "Ford Focus, azul",
+      "mechanicSince": "Mecánico desde: julio de 2018",
+      "yearsExperience": "{{years}} años de experiencia",
+      "schedule": "Lun-Sáb / 9:00 a 17:00",
+      "aboutMe": "Sobre mí",
+      "defaultBio": "Soy solo un tipo común tratando de devolverle algo a la comunidad.",
+      "specializeIn": "Me especializo en",
+      "defaultSpec1": "Cerrajería",
+      "defaultSpec2": "Plomería",
+      "defaultSpec3": "Problemas automotrices",
+      "aseCertified": "Certificado ASE en:",
+      "seeReviews": "Ver mis reseñas"
+    },
+    "userBudget": {
+      "initialQuote": "Presupuesto inicial:",
+      "totalEstimate": "ESTIMADO TOTAL:"
+    },
+    "userStatus": {
+      "currentStatus": "Estado actual:",
+      "vehicle": "Vehículo:",
+      "address": "Dirección:",
+      "notes": "Notas:",
+      "submittedPhotos": "Fotos enviadas ({{count}}):",
+      "yourLocation": "Tu ubicación",
+      "mechanic": "Mecánico",
+      "mechanicLocation": "Ubicación del mecánico",
+      "locationNotAvailable": "Ubicación no disponible"
+    },
+    "cancellationModal": {
+      "message": "¿Estás seguro de que querés cancelar esta solicitud?\nTu mecánico ya está en camino hacia vos."
+    }
+  }
+}

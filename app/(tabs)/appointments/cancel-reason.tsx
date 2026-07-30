@@ -4,24 +4,28 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight, Circle, Info } from 'lucide-react-native';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
-const REASONS = [
-    "No longer available",
-    "Too far away",
-    "Accepted another job",
-    "Vehicle issue",
-    "Missing required tools",
-    "Personal emergency",
-    "Other"
+const REASON_IDS = [
+    'noLongerAvailable',
+    'tooFarAway',
+    'acceptedAnotherJob',
+    'vehicleIssue',
+    'missingTools',
+    'personalEmergency',
+    'other',
 ];
 
 export default function CancelReasonScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
     const { id } = useLocalSearchParams();
     const { cancelAppointment } = useAppointments();
     const { clearChatHistory } = useSocket();
     const [selectedReason, setSelectedReason] = useState<string | null>(null);
+
+    const REASONS = REASON_IDS.map((reasonId) => t(`appointments.cancelReason.reasons.${reasonId}`));
 
     const handleDone = async () => {
         if (selectedReason && id) {
@@ -40,18 +44,18 @@ export default function CancelReasonScreen() {
                     <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                         <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
                         <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                            CANCEL REQUEST
+                            {t('appointments.cancelReason.badge')}
                         </Text>
                     </View>
 
                     {/* Title */}
                     <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
-                        Why are you canceling this request?
+                        {t('appointments.cancelReason.title')}
                     </Text>
 
                     {/* Subtitle */}
                     <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-                        Please select the reason below. This helps us improve future assignments.
+                        {t('appointments.cancelReason.subtitle')}
                     </Text>
 
                     {/* Reasons List */}
@@ -82,7 +86,7 @@ export default function CancelReasonScreen() {
                     <View className="flex-row gap-3 p-4 rounded-2xl mb-8" style={{ backgroundColor: '#EFF6FF' }}>
                         <Info size={20} color="#0047AB" style={{ marginTop: 2 }} />
                         <Text className="flex-1 font-outfit-regular text-base" style={{ color: '#0047AB', lineHeight: 20 }}>
-                            Frequent cancellations may affect your acceptance rate and visibility in the request queue.
+                            {t('appointments.cancelReason.infoMessage')}
                         </Text>
                     </View>
 
@@ -108,7 +112,7 @@ export default function CancelReasonScreen() {
                                     opacity: selectedReason ? 1 : 0.6,
                                 }}
                             >
-                                <Text className="text-white font-outfit-bold text-center">Cancel Request</Text>
+                                <Text className="text-white font-outfit-bold text-center">{t('appointments.list.cancelModalTitle')}</Text>
                             </LinearGradient>
                         </TouchableOpacity>
 
@@ -128,7 +132,7 @@ export default function CancelReasonScreen() {
                                     backgroundColor: '#EFF6FF',
                                 }}
                             >
-                                <Text className="font-outfit-bold text-center" style={{ color: '#0047AB' }}>Keep Request</Text>
+                                <Text className="font-outfit-bold text-center" style={{ color: '#0047AB' }}>{t('appointments.cancelReason.keepRequest')}</Text>
                             </View>
                         </TouchableOpacity>
                     </View>

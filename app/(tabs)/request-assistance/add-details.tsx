@@ -4,12 +4,14 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft, ChevronRight, Plus, Upload } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import { Alert, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const MAX_PHOTOS = 3;
 
 export default function AddDetailsScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
     const params = useLocalSearchParams();
     const { type, vehicleId, vehicleName, description, issues } = params;
 
@@ -18,27 +20,27 @@ export default function AddDetailsScreen() {
 
     const getTitle = () => {
         switch (type) {
-            case 'immediate': return 'Immediate Assistance';
-            case 'scheduled': return 'Scheduled Assistance';
-            case 'videocall': return 'Video Call Assistance';
-            case 'witness': return 'Accident Assistance';
-            default: return 'Assistance';
+            case 'immediate': return t('requestAssistance.header.immediate');
+            case 'scheduled': return t('requestAssistance.header.scheduled');
+            case 'videocall': return t('requestAssistance.header.videoCall');
+            case 'witness': return t('requestAssistance.header.accident');
+            default: return t('requestAssistance.header.default');
         }
     };
 
     const getBadgeText = () => {
         switch (type) {
-            case 'immediate': return 'IMMEDIATE ASSISTANCE';
-            case 'scheduled': return 'SCHEDULED ASSISTANCE';
-            case 'videocall': return 'VIDEO CALL ASSISTANCE';
-            case 'witness': return 'ACCIDENT ASSISTANCE';
-            default: return 'ASSISTANCE';
+            case 'immediate': return t('requestAssistance.badge.immediate');
+            case 'scheduled': return t('requestAssistance.badge.scheduled');
+            case 'videocall': return t('requestAssistance.badge.videoCall');
+            case 'witness': return t('requestAssistance.badge.accident');
+            default: return t('requestAssistance.badge.default');
         }
     };
 
     const pickImage = async () => {
         if (photos.length >= MAX_PHOTOS) {
-            Alert.alert('Photo limit reached', `Only ${MAX_PHOTOS} photos are supported per request.`);
+            Alert.alert(t('requestAssistance.addDetails.photoLimitTitle'), t('requestAssistance.addDetails.photoLimitMessage', { max: MAX_PHOTOS }));
             return;
         }
 
@@ -92,17 +94,17 @@ export default function AddDetailsScreen() {
                     </Text>
                 </View>
 
-                <Text className="text-gray-900 font-outfit-medium text-3xl mb-4">Indicate more issue details</Text>
+                <Text className="text-gray-900 font-outfit-medium text-3xl mb-4">{t('requestAssistance.addDetails.title')}</Text>
 
                 <Text className="text-gray-500 font-outfit-regular text-base mb-6">
-                    Are there any further details you'd like to pass on to the mechanic?
+                    {t('requestAssistance.addDetails.subtitle')}
                 </Text>
 
                 <View className="mb-6">
                     <TextInput
                         multiline
                         numberOfLines={4}
-                        placeholder="Type here..."
+                        placeholder={t('requestAssistance.addDetails.placeholder')}
                         placeholderTextColor="#D1D5DB"
                         value={details}
                         onChangeText={setDetails}
@@ -120,10 +122,10 @@ export default function AddDetailsScreen() {
                         <Upload size={24} color="#0047AB" />
                     </View>
                     <Text className="text-gray-500 font-outfit-medium text-xs text-center">
-                        Click <Text className="text-blue-600">here</Text> to upload / add photo
+                        {t('requestAssistance.addDetails.uploadPrefix')} <Text className="text-blue-600">{t('requestAssistance.addDetails.uploadHere')}</Text> {t('requestAssistance.addDetails.uploadSuffix')}
                     </Text>
                     <Text className="text-gray-400 font-outfit-regular text-xs text-center mt-1">
-                        Max {MAX_PHOTOS} photos ({photos.length}/{MAX_PHOTOS})
+                        {t('requestAssistance.addDetails.maxPhotos', { max: MAX_PHOTOS, count: photos.length })}
                     </Text>
                 </TouchableOpacity>
 
@@ -151,7 +153,7 @@ export default function AddDetailsScreen() {
                 >
                     <Plus size={20} color={photos.length >= MAX_PHOTOS ? '#9CA3AF' : '#0047AB'} />
                     <Text className={`font-outfit-bold ml-2 ${photos.length >= MAX_PHOTOS ? 'text-gray-400' : 'text-[#0047AB]'}`}>
-                        {photos.length >= MAX_PHOTOS ? 'Photo limit reached (3/3)' : 'Add Photos'}
+                        {photos.length >= MAX_PHOTOS ? t('requestAssistance.addDetails.photoLimitReached', { max: MAX_PHOTOS }) : t('requestAssistance.addDetails.addPhotos')}
                     </Text>
                 </TouchableOpacity>
 
@@ -173,7 +175,7 @@ export default function AddDetailsScreen() {
                             justifyContent: 'center',
                         }}
                     >
-                        <Text className="text-white font-outfit-bold text-center mr-2">Confirm Issue</Text>
+                        <Text className="text-white font-outfit-bold text-center mr-2">{t('requestAssistance.addDetails.confirmIssue')}</Text>
                         <ChevronRight size={20} color="white" />
                     </LinearGradient>
                 </TouchableOpacity>

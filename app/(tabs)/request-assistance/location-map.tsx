@@ -6,10 +6,12 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronLeft, ChevronRight, Search } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 export default function LocationMapScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
     const params = useLocalSearchParams();
     const { type, vehicleId, description, issues, details, photos, selectedAddress } = params;
     const { user } = useUser();
@@ -20,7 +22,7 @@ export default function LocationMapScreen() {
 
     const [region, setRegion] = useState<Region | null>(null);
     const [marker, setMarker] = useState<{ latitude: number; longitude: number } | null>(null);
-    const [locationName, setLocationName] = useState('My Current Location');
+    const [locationName, setLocationName] = useState(t('requestAssistance.locationMap.myCurrentLocation'));
     const [locationZip, setLocationZip] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [isResolving, setIsResolving] = useState(false);
@@ -30,21 +32,21 @@ export default function LocationMapScreen() {
 
     const getTitle = () => {
         switch (type) {
-            case 'immediate': return 'Immediate Assistance';
-            case 'scheduled': return 'Scheduled Assistance';
-            case 'videocall': return 'Video Call Assistance';
-            case 'witness': return 'Accident Assistance';
-            default: return 'Assistance';
+            case 'immediate': return t('requestAssistance.header.immediate');
+            case 'scheduled': return t('requestAssistance.header.scheduled');
+            case 'videocall': return t('requestAssistance.header.videoCall');
+            case 'witness': return t('requestAssistance.header.accident');
+            default: return t('requestAssistance.header.default');
         }
     };
 
     const getBadgeText = () => {
         switch (type) {
-            case 'immediate': return 'IMMEDIATE ASSISTANCE';
-            case 'scheduled': return 'SCHEDULED ASSISTANCE';
-            case 'videocall': return 'VIDEO CALL ASSISTANCE';
-            case 'witness': return 'ACCIDENT ASSISTANCE';
-            default: return 'ASSISTANCE';
+            case 'immediate': return t('requestAssistance.badge.immediate');
+            case 'scheduled': return t('requestAssistance.badge.scheduled');
+            case 'videocall': return t('requestAssistance.badge.videoCall');
+            case 'witness': return t('requestAssistance.badge.accident');
+            default: return t('requestAssistance.badge.default');
         }
     };
 
@@ -63,7 +65,7 @@ export default function LocationMapScreen() {
         if (addrs && addrs[0]) {
             const a = addrs[0];
             const address = `${a.streetNumber || ''} ${a.street || ''}, ${a.city || ''}, ${a.region || ''}`.trim().replace(/^, |, $/g, '').replace(/, ,/g, ',');
-            setLocationName(address || 'My Current Location');
+            setLocationName(address || t('requestAssistance.locationMap.myCurrentLocation'));
             setLocationZip(a.postalCode || '');
         }
 
@@ -90,7 +92,7 @@ export default function LocationMapScreen() {
                         };
                         setRegion(newRegion);
                         setMarker({ latitude: newRegion.latitude, longitude: newRegion.longitude });
-                        setLocationName(parsed.label || 'Selected Location');
+                        setLocationName(parsed.label || t('requestAssistance.locationMap.selectedLocation'));
                         setLocationZip(parsed.zip || '');
                         setIsLoading(false);
                         return;
@@ -123,7 +125,7 @@ export default function LocationMapScreen() {
 
             let { status } = await Location.requestForegroundPermissionsAsync();
             if (status !== 'granted') {
-                alert('Permission to access location was denied');
+                alert(t('requestAssistance.locationMap.permissionDenied'));
                 setIsLoading(false);
                 return;
             }
@@ -140,7 +142,7 @@ export default function LocationMapScreen() {
             if (addrs && addrs[0]) {
                 const a = addrs[0];
                 const address = `${a.streetNumber || ''} ${a.street || ''}, ${a.city || ''}, ${a.region || ''}`.trim().replace(/^, |, $/g, '').replace(/, ,/g, ',');
-                setLocationName(address || 'Custom Location');
+                setLocationName(address || t('requestAssistance.locationMap.customLocation'));
                 setLocationZip(a.postalCode || '');
             }
         } catch (e) {
@@ -173,7 +175,7 @@ export default function LocationMapScreen() {
             .filter(Boolean)
             .join(', ');
         if (!query) {
-            alert('No address details available. Please add an address in your profile.');
+            alert(t('requestAssistance.locationMap.noAddressDetails'));
             return;
         }
         try {
@@ -185,11 +187,11 @@ export default function LocationMapScreen() {
                 setLocationName(label);
                 setLocationZip(address.zip || '');
             } else {
-                alert(`Could not find coordinates for "${query}". Please search manually.`);
+                alert(t('requestAssistance.locationMap.coordsNotFound', { query }));
             }
         } catch (e) {
             console.error('Geocoding failed', e);
-            alert('Could not resolve address. Please search manually.');
+            alert(t('requestAssistance.locationMap.resolveFailed'));
         }
     };
 
@@ -217,10 +219,10 @@ export default function LocationMapScreen() {
                         </Text>
                     </View>
 
-                    <Text className="text-gray-900 font-outfit-medium text-3xl mb-2">Indicate your location</Text>
+                    <Text className="text-gray-900 font-outfit-medium text-3xl mb-2">{t('requestAssistance.locationMap.title')}</Text>
 
                     <Text className="text-gray-500 font-outfit-regular text-base mb-6">
-                        Tap the map or search to set your location
+                        {t('requestAssistance.locationMap.subtitle')}
                     </Text>
 
                     <TouchableOpacity
@@ -231,7 +233,7 @@ export default function LocationMapScreen() {
                         className="bg-white rounded-xl p-3 flex-row items-center shadow-sm border border-gray-200 mb-6"
                     >
                         <Search size={20} color="#9CA3AF" className="mr-2" />
-                        <Text className="text-gray-400 font-outfit-regular">Search Address</Text>
+                        <Text className="text-gray-400 font-outfit-regular">{t('requestAssistance.locationMap.searchAddress')}</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -282,16 +284,16 @@ export default function LocationMapScreen() {
                                         `${homeAddress.street || ''}, ${homeAddress.city || ''}`.trim().replace(/^,\s*/, '')
                                     );
                                 } else {
-                                    alert('No home address saved. Add one in your profile settings.');
+                                    alert(t('requestAssistance.locationMap.noHomeAddress'));
                                 }
                             }}
                             className="flex-1 bg-gray-50 p-4 rounded-xl border border-gray-100 relative"
                         >
                             <View className="flex-row justify-between items-start mb-1">
-                                <Text className="text-blue-900 font-outfit-bold">Home</Text>
+                                <Text className="text-blue-900 font-outfit-bold">{t('requestAssistance.locationMap.home')}</Text>
                             </View>
                             <Text numberOfLines={1} className="text-gray-500 text-xs">
-                                {homeAddress ? `${homeAddress.street || ''}, ${homeAddress.city || ''}` : 'Not set'}
+                                {homeAddress ? `${homeAddress.street || ''}, ${homeAddress.city || ''}` : t('requestAssistance.locationMap.notSet')}
                             </Text>
                         </TouchableOpacity>
 
@@ -303,21 +305,21 @@ export default function LocationMapScreen() {
                                         `${workAddress.street || ''}, ${workAddress.city || ''}`.trim().replace(/^,\s*/, '')
                                     );
                                 } else {
-                                    alert('No work address saved. Add one in your profile settings.');
+                                    alert(t('requestAssistance.locationMap.noWorkAddress'));
                                 }
                             }}
                             className="flex-1 bg-gray-50 p-4 rounded-xl border border-gray-100 relative"
                         >
                             <View className="flex-row justify-between items-start mb-1">
-                                <Text className="text-blue-900 font-outfit-bold">Work</Text>
+                                <Text className="text-blue-900 font-outfit-bold">{t('requestAssistance.locationMap.work')}</Text>
                             </View>
                             <Text numberOfLines={1} className="text-gray-500 text-xs">
-                                {workAddress ? `${workAddress.street || ''}, ${workAddress.city || ''}` : 'Not set'}
+                                {workAddress ? `${workAddress.street || ''}, ${workAddress.city || ''}` : t('requestAssistance.locationMap.notSet')}
                             </Text>
                         </TouchableOpacity>
                     </View>
 
-                    <Text className="text-gray-600 font-outfit-medium text-sm mb-2">Selected Location</Text>
+                    <Text className="text-gray-600 font-outfit-medium text-sm mb-2">{t('requestAssistance.locationMap.selectedLocationLabel')}</Text>
                     <Text className="text-gray-900 font-outfit-bold text-base mb-6">{locationName}</Text>
 
                     <TouchableOpacity
@@ -327,7 +329,7 @@ export default function LocationMapScreen() {
                     >
                         {!marker ? (
                             <View className="bg-slate-200 rounded-lg p-4 items-center justify-center">
-                                <Text className="text-gray-500 font-outfit-bold text-center">Confirm Location</Text>
+                                <Text className="text-gray-500 font-outfit-bold text-center">{t('requestAssistance.locationMap.confirmLocation')}</Text>
                             </View>
                         ) : (
                             <LinearGradient
@@ -343,7 +345,7 @@ export default function LocationMapScreen() {
                                     justifyContent: 'center',
                                 }}
                             >
-                                <Text className="text-white font-outfit-bold text-center mr-2">Confirm Location</Text>
+                                <Text className="text-white font-outfit-bold text-center mr-2">{t('requestAssistance.locationMap.confirmLocation')}</Text>
                                 <ChevronRight size={20} color="white" />
                             </LinearGradient>
                         )}

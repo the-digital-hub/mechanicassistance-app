@@ -2,10 +2,12 @@ import { Input } from '@/components/ui/Input';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft, MapPin } from 'lucide-react-native';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from 'react-native';
 
 export default function LocationAddressScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
     const params = useLocalSearchParams();
     const { type } = params;
 
@@ -15,21 +17,21 @@ export default function LocationAddressScreen() {
 
     const getTitle = () => {
         switch (type) {
-            case 'immediate': return 'Immediate Assistance';
-            case 'scheduled': return 'Scheduled Assistance';
-            case 'videocall': return 'Video Call Assistance';
-            case 'witness': return 'Accident Assistance';
-            default: return 'Assistance';
+            case 'immediate': return t('requestAssistance.header.immediate');
+            case 'scheduled': return t('requestAssistance.header.scheduled');
+            case 'videocall': return t('requestAssistance.header.videoCall');
+            case 'witness': return t('requestAssistance.header.accident');
+            default: return t('requestAssistance.header.default');
         }
     };
 
     const getBadgeText = () => {
         switch (type) {
-            case 'immediate': return 'IMMEDIATE ASSISTANCE';
-            case 'scheduled': return 'SCHEDULED ASSISTANCE';
-            case 'videocall': return 'VIDEO CALL ASSISTANCE';
-            case 'witness': return 'ACCIDENT ASSISTANCE';
-            default: return 'ASSISTANCE';
+            case 'immediate': return t('requestAssistance.badge.immediate');
+            case 'scheduled': return t('requestAssistance.badge.scheduled');
+            case 'videocall': return t('requestAssistance.badge.videoCall');
+            case 'witness': return t('requestAssistance.badge.accident');
+            default: return t('requestAssistance.badge.default');
         }
     };
 
@@ -103,16 +105,16 @@ export default function LocationAddressScreen() {
                     </Text>
                 </View>
 
-                <Text className="text-gray-900 font-outfit-medium text-3xl mb-2">Search for your address</Text>
+                <Text className="text-gray-900 font-outfit-medium text-3xl mb-2">{t('requestAssistance.locationAddress.title')}</Text>
 
                 <Text className="text-gray-500 font-outfit-regular text-base mb-6">
-                    Enter the address where you need assistance
+                    {t('requestAssistance.locationAddress.subtitle')}
                 </Text>
 
                 <Input
                     value={query}
                     onChangeText={searchAddress}
-                    placeholder="Search for address"
+                    placeholder={t('requestAssistance.locationAddress.placeholder')}
                     containerClassName="bg-gray-50 border-gray-200 mb-4"
                     autoFocus
                 />

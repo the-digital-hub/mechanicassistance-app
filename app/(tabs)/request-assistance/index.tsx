@@ -1,11 +1,13 @@
 import { useRouter } from 'expo-router';
 import { Calendar, Clock, ShieldCheck, Video, ChevronRight, Zap } from 'lucide-react-native';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function RequestAssistanceTypeScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
 
     return (
         <View className="flex-1 bg-white">
@@ -13,15 +15,15 @@ export default function RequestAssistanceTypeScreen() {
                 {/* Section Badge */}
                 <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                     <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
-                    <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">REQUEST A MECHANIC</Text>
+                    <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">{t('requestAssistance.type.badge')}</Text>
                 </View>
 
                 {/* Title */}
-                <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">How can we help today?</Text>
+                <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">{t('requestAssistance.type.title')}</Text>
 
                 {/* Subtitle */}
                 <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-                    Pick the type of assistance — we&apos;ll route you to the right specialist.
+                    {t('requestAssistance.type.subtitle')}
                 </Text>
 
                 <View className="gap-2">
@@ -60,12 +62,12 @@ export default function RequestAssistanceTypeScreen() {
                                         }}
                                     >
                                         <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#49DE7F' }} />
-                                        <Text className="font-outfit-bold text-[9px] tracking-widest" style={{ color: '#FFFFFF' }}>RECOMMENDED · 24H PERIOD</Text>
+                                        <Text className="font-outfit-bold text-[9px] tracking-widest" style={{ color: '#FFFFFF' }}>{t('requestAssistance.type.immediate.badge')}</Text>
                                     </View>
                                 </View>
-                                <Text className="text-white font-outfit-bold text-xl">Immediate Assistance</Text>
+                                <Text className="text-white font-outfit-bold text-xl">{t('requestAssistance.type.immediate.title')}</Text>
                                 <Text className="text-blue-100 font-outfit-regular text-base mt-1">
-                                    A nearby mechanic dispatched right away.
+                                    {t('requestAssistance.type.immediate.description')}
                                 </Text>
                             </View>
 
@@ -86,13 +88,13 @@ export default function RequestAssistanceTypeScreen() {
                             <Calendar size={24} color="#1E56E3" />
                         </View>
                         <View className="flex-1 ml-2">
-                            <Text className="text-gray-900 font-outfit-bold text-lg">Scheduled Assistance</Text>
+                            <Text className="text-gray-900 font-outfit-bold text-lg">{t('requestAssistance.type.scheduled.title')}</Text>
                             <Text className="text-gray-600 font-outfit-regular text-base mt-0.5">
-                                Pick a date and time that works for you.
+                                {t('requestAssistance.type.scheduled.description')}
                             </Text>
                             <View className="flex-row items-center gap-1 mt-2 px-2.5 py-1 rounded-full w-fit" style={{ backgroundColor: '#F4F8FF', borderWidth: 1, borderColor: '#DBE7FA', alignSelf: 'flex-start' }}>
                                 <Clock size={10} color="#0047AB" />
-                                <Text className="text-blue-600 font-outfit-bold text-[9px] tracking-widest">7 DAYS PERIOD</Text>
+                                <Text className="text-blue-600 font-outfit-bold text-[9px] tracking-widest">{t('requestAssistance.type.scheduled.badge')}</Text>
                             </View>
                         </View>
                         <View className="w-10 h-10 rounded-full justify-center items-center" style={{ backgroundColor: '#F4F8FF' }}>
@@ -110,13 +112,13 @@ export default function RequestAssistanceTypeScreen() {
                             <Video size={28} color="#1E56E3" />
                         </View>
                         <View className="flex-1 ml-2">
-                            <Text className="text-gray-900 font-outfit-bold text-lg">Video Call Assistance</Text>
+                            <Text className="text-gray-900 font-outfit-bold text-lg">{t('requestAssistance.type.videoCall.title')}</Text>
                             <Text className="text-gray-600 font-outfit-regular text-base mt-0.5">
-                                Talk a mechanic through it from your phone.
+                                {t('requestAssistance.type.videoCall.description')}
                             </Text>
                             <View className="flex-row items-center gap-1 mt-2 px-2.5 py-1 rounded-full w-fit" style={{ backgroundColor: '#F4F8FF', borderWidth: 1, borderColor: '#DBE7FA', alignSelf: 'flex-start' }}>
                                 <Clock size={10} color="#0047AB" />
-                                <Text className="text-blue-600 font-outfit-bold text-[9px] tracking-widest">DIY · ON DEMAND</Text>
+                                <Text className="text-blue-600 font-outfit-bold text-[9px] tracking-widest">{t('requestAssistance.type.videoCall.badge')}</Text>
                             </View>
                         </View>
                         <View className="w-10 h-10 rounded-full justify-center items-center" style={{ backgroundColor: '#F4F8FF' }}>
@@ -134,13 +136,13 @@ export default function RequestAssistanceTypeScreen() {
                             <ShieldCheck size={28} color="#1E56E3" />
                         </View>
                         <View className="flex-1 ml-2">
-                            <Text className="text-gray-900 font-outfit-bold text-lg">Accident</Text>
+                            <Text className="text-gray-900 font-outfit-bold text-lg">{t('requestAssistance.type.accident.title')}</Text>
                             <Text className="text-gray-600 font-outfit-regular text-base mt-0.5">
-                                Insurance support and on-scene response.
+                                {t('requestAssistance.type.accident.description')}
                             </Text>
                             <View className="flex-row items-center gap-1 mt-2 px-2.5 py-1 rounded-full w-fit" style={{ backgroundColor: '#F4F8FF', borderWidth: 1, borderColor: '#DBE7FA', alignSelf: 'flex-start' }}>
                                 <Clock size={10} color="#0047AB" />
-                                <Text className="text-blue-600 font-outfit-bold text-[9px] tracking-widest">24H PERIOD</Text>
+                                <Text className="text-blue-600 font-outfit-bold text-[9px] tracking-widest">{t('requestAssistance.type.accident.badge')}</Text>
                             </View>
                         </View>
                         <View className="w-10 h-10 rounded-full justify-center items-center" style={{ backgroundColor: '#F4F8FF' }}>

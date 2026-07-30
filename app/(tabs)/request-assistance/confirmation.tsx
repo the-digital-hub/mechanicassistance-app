@@ -7,10 +7,12 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 export default function ConfirmationScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
     const { user } = useUser();
     const params = useLocalSearchParams();
     // latitude, longitude, addressLabel, finalAddress, type, vehicleId, vehicleName, description, issues, details, photos
@@ -73,35 +75,35 @@ export default function ConfirmationScreen() {
     }, []);
 
     // vehicleName is passed through the wizard from select-vehicle screen
-    const vehicleStr = (vehicleName as string) || `Vehicle ID: ${vehicleId}`;
+    const vehicleStr = (vehicleName as string) || t('requestAssistance.confirmation.vehicleId', { vehicleId });
 
     const getTitle = () => {
         switch (type) {
-            case 'immediate': return 'Immediate Assistance';
-            case 'scheduled': return 'Scheduled Assistance';
-            case 'videocall': return 'Video Call Assistance';
-            case 'witness': return 'Accident Assistance';
-            default: return 'Assistance';
+            case 'immediate': return t('requestAssistance.header.immediate');
+            case 'scheduled': return t('requestAssistance.header.scheduled');
+            case 'videocall': return t('requestAssistance.header.videoCall');
+            case 'witness': return t('requestAssistance.header.accident');
+            default: return t('requestAssistance.header.default');
         }
     };
 
     const getBadgeText = () => {
         switch (type) {
-            case 'immediate': return 'IMMEDIATE ASSISTANCE';
-            case 'scheduled': return 'SCHEDULED ASSISTANCE';
-            case 'videocall': return 'VIDEO CALL ASSISTANCE';
-            case 'witness': return 'ACCIDENT ASSISTANCE';
-            default: return 'ASSISTANCE';
+            case 'immediate': return t('requestAssistance.badge.immediate');
+            case 'scheduled': return t('requestAssistance.badge.scheduled');
+            case 'videocall': return t('requestAssistance.badge.videoCall');
+            case 'witness': return t('requestAssistance.badge.accident');
+            default: return t('requestAssistance.badge.default');
         }
     };
 
     const getTypeLabel = () => {
         switch (type) {
-            case 'immediate': return 'Immediate Assistance';
-            case 'scheduled': return 'Scheduled Assistance';
-            case 'videocall': return 'Video Call';
-            case 'witness': return 'Accident Assistance';
-            default: return 'Assistance';
+            case 'immediate': return t('requestAssistance.header.immediate');
+            case 'scheduled': return t('requestAssistance.header.scheduled');
+            case 'videocall': return t('requestAssistance.confirmation.videoCallShort');
+            case 'witness': return t('requestAssistance.header.accident');
+            default: return t('requestAssistance.header.default');
         }
     };
 
@@ -111,7 +113,7 @@ export default function ConfirmationScreen() {
         const lat = Number(latitude);
         const lng = Number(longitude);
         if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-            Alert.alert('Location required', 'Please go back and set the assistance location on the map.');
+            Alert.alert(t('requestAssistance.confirmation.locationRequiredTitle'), t('requestAssistance.confirmation.locationRequiredMessage'));
             return;
         }
 
@@ -122,7 +124,7 @@ export default function ConfirmationScreen() {
             const uploadedUrls: string[] = [];
 
             for (let i = 0; i < localPhotos.length; i++) {
-                setUploadProgress(`Uploading photo ${i + 1} of ${localPhotos.length}...`);
+                setUploadProgress(t('requestAssistance.confirmation.uploadingPhoto', { current: i + 1, total: localPhotos.length }));
                 const url = await assistanceDAO.uploadPhoto(localPhotos[i]);
                 uploadedUrls.push(url);
             }
@@ -175,7 +177,7 @@ export default function ConfirmationScreen() {
         } catch (error) {
             console.error(error);
             setUploadProgress('');
-            Alert.alert('Error', 'Failed to submit request. Please try again.');
+            Alert.alert(t('requestAssistance.confirmation.errorTitle'), t('requestAssistance.confirmation.errorMessage'));
         } finally {
             setIsSubmitting(false);
         }
@@ -204,10 +206,10 @@ export default function ConfirmationScreen() {
                     </Text>
                 </View>
 
-                <Text className="text-gray-900 font-outfit-medium text-3xl mb-2">Confirm your request</Text>
+                <Text className="text-gray-900 font-outfit-medium text-3xl mb-2">{t('requestAssistance.confirmation.title')}</Text>
 
                 <Text className="text-gray-500 font-outfit-regular text-base mb-6">
-                    Review and confirm your assistance request details
+                    {t('requestAssistance.confirmation.subtitle')}
                 </Text>
 
                 <View className="bg-white overflow-hidden mb-6" style={{ borderRadius: 10 }}>
@@ -230,19 +232,19 @@ export default function ConfirmationScreen() {
                     {/* Content */}
                     <View className="px-6 py-4">
                         <View className="mb-3">
-                            <Text className="text-gray-400 font-outfit-medium text-sm uppercase tracking-wide mb-1">Assistance needed</Text>
-                            <Text className="text-gray-900 font-outfit-semibold text-lg">{description || 'No description provided'}</Text>
+                            <Text className="text-gray-400 font-outfit-medium text-sm uppercase tracking-wide mb-1">{t('requestAssistance.confirmation.assistanceNeeded')}</Text>
+                            <Text className="text-gray-900 font-outfit-semibold text-lg">{description || t('requestAssistance.confirmation.noDescription')}</Text>
                         </View>
 
                         <View className="border-t border-gray-200 pt-3 mb-3">
-                            <Text className="text-gray-400 font-outfit-medium text-sm uppercase tracking-wide mb-1">Timeframe</Text>
+                            <Text className="text-gray-400 font-outfit-medium text-sm uppercase tracking-wide mb-1">{t('requestAssistance.confirmation.timeframe')}</Text>
                             <Text className="text-gray-900 font-outfit-semibold text-lg">
-                                {type === 'immediate' || type === 'witness' ? '4 Hours' : type === 'scheduled' ? '7 Days' : 'On Demand'}
+                                {type === 'immediate' || type === 'witness' ? t('requestAssistance.confirmation.timeframe4h') : type === 'scheduled' ? t('requestAssistance.confirmation.timeframe7d') : t('requestAssistance.confirmation.timeframeOnDemand')}
                             </Text>
                         </View>
 
                         <View className="border-t border-gray-200 pt-3 mb-3">
-                            <Text className="text-gray-400 font-outfit-medium text-sm uppercase tracking-wide mb-1">Car</Text>
+                            <Text className="text-gray-400 font-outfit-medium text-sm uppercase tracking-wide mb-1">{t('requestAssistance.confirmation.car')}</Text>
                             <Text className="text-gray-900 font-outfit-semibold text-lg">{vehicleStr}</Text>
                         </View>
 
@@ -258,20 +260,20 @@ export default function ConfirmationScreen() {
                         </View>
 
                         <View className="border-t border-gray-200 pt-3 mb-3">
-                            <Text className="text-gray-400 font-outfit-medium text-sm uppercase tracking-wide mb-1">Address</Text>
+                            <Text className="text-gray-400 font-outfit-medium text-sm uppercase tracking-wide mb-1">{t('requestAssistance.confirmation.address')}</Text>
                             <Text className="text-gray-900 font-outfit-semibold text-lg">{finalAddress || addressLabel}</Text>
                         </View>
 
                         <View className="border-t border-gray-200 pt-3">
-                            <Text className="text-gray-400 font-outfit-medium text-sm uppercase tracking-wide mb-1">Notes</Text>
-                            <Text className="text-gray-900 font-outfit-semibold text-lg">{details || 'None'}</Text>
+                            <Text className="text-gray-400 font-outfit-medium text-sm uppercase tracking-wide mb-1">{t('requestAssistance.confirmation.notes')}</Text>
+                            <Text className="text-gray-900 font-outfit-semibold text-lg">{details || t('requestAssistance.confirmation.none')}</Text>
                         </View>
                     </View>
 
                     {/* Fees Info */}
                     <View className="mx-6 mb-6 p-4 rounded-2xl items-center" style={{ backgroundColor: '#EFF6FF' }}>
                         <Text className="text-blue-600 font-outfit-semibold text-center">
-                            No FEES will be charged to your account until work is done and approved.
+                            {t('requestAssistance.confirmation.feesInfo')}
                         </Text>
                     </View>
                 </View>
@@ -302,7 +304,7 @@ export default function ConfirmationScreen() {
                                 justifyContent: 'center',
                             }}
                         >
-                            <Text className="text-white font-outfit-bold text-center mr-2">Confirm and Request</Text>
+                            <Text className="text-white font-outfit-bold text-center mr-2">{t('requestAssistance.confirmation.confirmAndRequest')}</Text>
                             <ChevronRight size={20} color="white" />
                         </LinearGradient>
                     </TouchableOpacity>
