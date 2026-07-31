@@ -125,3 +125,46 @@ export interface ISetupDAO {
     getProgress(key: string): Promise<any>;
     saveProgress(key: string, value: any): Promise<void>;
 }
+
+/** A vehicle issue from the pricing service catalog (GET /api/pricing/vehicle-issues). */
+export interface VehicleIssue {
+    id: string;
+    name: string;
+    description?: string;
+    sortOrder?: number;
+    isActiveApp?: boolean;
+}
+
+/** Body for POST /api/pricing/calculate. Jurisdiction is resolved server-side from `zipcode`. */
+export interface CalculatePricePayload {
+    vehicle_issue_id: string;
+    latitude: number;
+    longitude: number;
+    zipcode?: string;
+    add_on_ids?: string[];
+}
+
+/** Body for POST /api/pricing/requests/:serviceRequestId/price. */
+export interface PersistRequestPricePayload {
+    vehicle_issue_ids: string[];
+    latitude: number;
+    longitude: number;
+    zipcode?: string;
+}
+
+/** Response from POST /api/pricing/calculate — only `final_price` is consumed today. */
+export interface PriceCalculationResult {
+    vehicle_issue?: { id: string; name: string; assistance_type?: string | null };
+    pricing_breakdown: {
+        final_price: number;
+        base_price?: number;
+        adjusted_price?: number;
+        [key: string]: unknown;
+    };
+}
+
+export interface IPricingDAO {
+    getVehicleIssues(): Promise<VehicleIssue[]>;
+    calculatePrice(payload: CalculatePricePayload): Promise<PriceCalculationResult>;
+    persistRequestPrice(serviceRequestId: string, payload: PersistRequestPricePayload): Promise<PriceCalculationResult>;
+}

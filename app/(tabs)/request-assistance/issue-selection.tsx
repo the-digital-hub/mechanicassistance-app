@@ -1,17 +1,33 @@
 import { Button } from '@/components/ui/Button';
+import { pricingDAO } from '@/lib/dao/PricingDAO';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AlertTriangle, Battery, ChevronLeft, ChevronRight, HelpCircle, Wrench, Zap } from 'lucide-react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-const COMMON_ISSUES = [
-    { id: 'battery', label: 'Battery / Starting issue', icon: Battery },
-    { id: 'electrical', label: 'Electrical system', icon: Zap },
-    { id: 'starter', label: 'Starter motor', icon: Wrench },
-    { id: 'warning', label: 'Warning light', icon: AlertTriangle },
-    { id: 'other', label: 'Other', icon: HelpCircle },
+type IssueOption = { id: string; label: string };
+
+// Fallback used only if the pricing catalog can't be fetched. These ids are NOT
+// real VehicleIssue UUIDs, so pricing will fall back to "TBD" when this is used.
+const FALLBACK_ISSUES: IssueOption[] = [
+    { id: 'battery', label: 'Battery / Starting issue' },
+    { id: 'electrical', label: 'Electrical system' },
+    { id: 'starter', label: 'Starter motor' },
+    { id: 'warning', label: 'Warning light' },
+    { id: 'other', label: 'Other' },
 ];
+
+// Pick an icon from the issue name so backend-fetched issues still render nicely.
+const iconForIssue = (label: string) => {
+    const n = label.toLowerCase();
+    if (n.includes('batter')) return Battery;
+    if (n.includes('electric')) return Zap;
+    if (n.includes('start')) return Wrench;
+    if (n.includes('warning') || n.includes('light')) return AlertTriangle;
+    if (n.includes('other')) return HelpCircle;
+    return Wrench;
+};
 
 export default function IssueSelectionScreen() {
     const router = useRouter();
@@ -20,6 +36,27 @@ export default function IssueSelectionScreen() {
 
     const [description, setDescription] = useState('');
     const [selectedIssues, setSelectedIssues] = useState<string[]>([]);
+    const [issueOptions, setIssueOptions] = useState<IssueOption[]>(FALLBACK_ISSUES);
+    const [loadingIssues, setLoadingIssues] = useState(true);
+
+    // Load the real vehicle-issue catalog so selected ids ARE the UUIDs the
+    // pricing service needs. Falls back to the static list if the fetch fails.
+    useEffect(() => {
+        let mounted = true;
+        (async () => {
+            try {
+                const data = await pricingDAO.getVehicleIssues();
+                if (mounted && Array.isArray(data) && data.length > 0) {
+                    setIssueOptions(data.map(i => ({ id: i.id, label: i.name })));
+                }
+            } catch (err) {
+                console.warn('Could not load vehicle issues; using fallback list', err);
+            } finally {
+                if (mounted) setLoadingIssues(false);
+            }
+        })();
+        return () => { mounted = false; };
+    }, []);
 
     const getTitle = () => {
         switch (type) {
@@ -107,22 +144,29 @@ export default function IssueSelectionScreen() {
                 <View className="mb-8">
                     <Text className="text-gray-900 font-outfit-medium text-lg mb-2" style={{ fontSize: 18 }}>Possible issues detected</Text>
                     <View className="rounded-xl border border-gray-100 overflow-hidden">
-                        {COMMON_ISSUES.map((issue, index) => {
-                            const isSelected = selectedIssues.includes(issue.id);
-                            return (
-                                <TouchableOpacity
-                                    key={issue.id}
-                                    onPress={() => toggleIssue(issue.id)}
-                                    className={`flex-row items-center p-4 border-b border-gray-100 ${isSelected ? 'bg-blue-600' : 'bg-white'}`}
-                                >
-                                    <issue.icon size={20} color={isSelected ? 'white' : '#0047AB'} />
-                                    <Text className={`ml-3 flex-1 font-outfit-medium ${isSelected ? 'text-white' : 'text-gray-700'}`}>
-                                        {issue.label}
-                                    </Text>
-                                    {isSelected && <View className="w-2 h-2 bg-white rounded-full" />}
-                                </TouchableOpacity>
-                            );
-                        })}
+                        {loadingIssues ? (
+                            <View className="p-6 items-center">
+                                <ActivityIndicator size="small" color="#0047AB" />
+                            </View>
+                        ) : (
+                            issueOptions.map((issue) => {
+                                const isSelected = selectedIssues.includes(issue.id);
+                                const Icon = iconForIssue(issue.label);
+                                return (
+                                    <TouchableOpacity
+                                        key={issue.id}
+                                        onPress={() => toggleIssue(issue.id)}
+                                        className={`flex-row items-center p-4 border-b border-gray-100 ${isSelected ? 'bg-blue-600' : 'bg-white'}`}
+                                    >
+                                        <Icon size={20} color={isSelected ? 'white' : '#0047AB'} />
+                                        <Text className={`ml-3 flex-1 font-outfit-medium ${isSelected ? 'text-white' : 'text-gray-700'}`}>
+                                            {issue.label}
+                                        </Text>
+                                        {isSelected && <View className="w-2 h-2 bg-white rounded-full" />}
+                                    </TouchableOpacity>
+                                );
+                            })
+                        )}
                     </View>
                 </View>
 
