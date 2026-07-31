@@ -43,7 +43,7 @@ function formatEta(minutes: number): string {
 }
 
 export default function RequestDetailScreen() {
-    const { id, type, assistanceType, title, car, address, zip, budget, userId, locationLat, locationLng } = useLocalSearchParams();
+    const { id, type, assistanceType, title, car, address, zip, budget, price, userId, locationLat, locationLng } = useLocalSearchParams();
     const router = useRouter();
     const navigation = useNavigation();
     const { user } = useUser();
@@ -213,8 +213,8 @@ export default function RequestDetailScreen() {
                             </View>
                         </View>
                         <View className="items-end ml-2">
-                            <Text className="font-outfit-bold text-2xl" style={{ color: '#0047AB' }}>{budget}</Text>
-                            <Text className="font-outfit-regular text-sm text-gray-400">budget</Text>
+                            <Text className="font-outfit-bold text-2xl" style={{ color: '#0047AB' }}>{price ? `$${price}` : budget}</Text>
+                            <Text className="font-outfit-regular text-sm text-gray-400">price</Text>
                         </View>
                     </View>
 
