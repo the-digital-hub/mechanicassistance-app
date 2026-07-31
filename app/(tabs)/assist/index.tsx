@@ -207,12 +207,12 @@ export default function AssistanceRequestsScreen() {
                           </View>
                         </View>
 
-                        {/* Budget */}
+                        {/* Price */}
                         <View className="items-end">
                           <Text className="font-outfit-bold text-2xl" style={{ color: '#0047AB' }}>
-                            {request.budget}
+                            {request.price ? `$${request.price}` : request.budget}
                           </Text>
-                          <Text className="font-outfit-regular text-sm text-gray-400">budget</Text>
+                          <Text className="font-outfit-regular text-sm text-gray-400">price</Text>
                         </View>
                       </View>
 
@@ -249,6 +249,7 @@ export default function AssistanceRequestsScreen() {
                             car: request.car,
                             address: request.address,
                             budget: request.budget,
+                            price: request.price || '',
                             distance: request.distance || '',
                             userId: request.userId || '',
                             zip: request.zip || '',
