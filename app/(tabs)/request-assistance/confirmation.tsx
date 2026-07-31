@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/Button';
 import { useUser } from '@/context/UserContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
+import { pricingDAO } from '@/lib/dao/PricingDAO';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
@@ -29,6 +30,47 @@ export default function ConfirmationScreen() {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [uploadProgress, setUploadProgress] = useState('');
+    const [price, setPrice] = useState<number | null>(null);
+    const [priceLoading, setPriceLoading] = useState(true);
+
+    // Resolve the ZIP once (from the passed locationZip or parsed from the address);
+    // the pricing service uses it to derive the tax jurisdiction (state + county).
+    const paramsZip = (params.locationZip as string) || '';
+    const addrForZip = (finalAddress || addressLabel || '') as string;
+    const zipFromAddr = typeof addrForZip === 'string' ? addrForZip.match(/\b\d{5}\b/) : null;
+    const zipCode = paramsZip || (zipFromAddr ? zipFromAddr[0] : '');
+
+    // Fetch the price estimate from the pricing service once the request details are
+    // known. The first selected issue id is the primary VehicleIssue UUID. Failures
+    // fall back to "TBD" and never block submit.
+    useEffect(() => {
+        let mounted = true;
+        (async () => {
+            const lat = Number(latitude);
+            const lng = Number(longitude);
+            const firstIssueId = typeof issues === 'string' ? issues.split(',')[0] : '';
+            if (!firstIssueId || !Number.isFinite(lat) || !Number.isFinite(lng)) {
+                if (mounted) setPriceLoading(false);
+                return;
+            }
+
+            try {
+                const result = await pricingDAO.calculatePrice({
+                    vehicle_issue_id: firstIssueId,
+                    latitude: lat,
+                    longitude: lng,
+                    ...(zipCode ? { zipcode: zipCode } : {}),
+                });
+                if (mounted) setPrice(result?.pricing_breakdown?.final_price ?? null);
+            } catch (err) {
+                console.warn('Price calculation failed; showing TBD', err);
+            } finally {
+                if (mounted) setPriceLoading(false);
+            }
+        })();
+        return () => { mounted = false; };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // vehicleName is passed through the wizard from select-vehicle screen
     const vehicleStr = (vehicleName as string) || `Vehicle ID: ${vehicleId}`;
@@ -87,11 +129,7 @@ export default function ConfirmationScreen() {
 
             setUploadProgress('');
 
-            // Extract ZIP from address if possible, or use passed locationZip
-            const paramsZip = (params.locationZip as string) || '';
             const addr = finalAddress || addressLabel || '';
-            const zipMatch = typeof addr === 'string' ? addr.match(/\b\d{5}\b/) : null;
-            const zipCode = paramsZip || (zipMatch ? zipMatch[0] : '');
 
             const response = await assistanceDAO.create({
                 userId: user?.id || 'current-user-id',
@@ -111,6 +149,24 @@ export default function ConfirmationScreen() {
                 distance: '0 km',
                 zip: zipCode
             });
+
+            // Price + persist the created request server-side (breakdown + issue
+            // pivot + assistance_requests.price). Never block the flow on failure.
+            try {
+                const issueIds = typeof issues === 'string'
+                    ? issues.split(',').filter(Boolean)
+                    : [];
+                if (issueIds.length > 0) {
+                    await pricingDAO.persistRequestPrice(response.id, {
+                        vehicle_issue_ids: issueIds,
+                        latitude: lat,
+                        longitude: lng,
+                        ...(zipCode ? { zipcode: zipCode } : {}),
+                    });
+                }
+            } catch (err) {
+                console.warn('Persisting request price failed', err);
+            }
 
             router.replace({
                 pathname: '/request-assistance/searching',
@@ -188,6 +244,17 @@ export default function ConfirmationScreen() {
                         <View className="border-t border-gray-200 pt-3 mb-3">
                             <Text className="text-gray-400 font-outfit-medium text-sm uppercase tracking-wide mb-1">Car</Text>
                             <Text className="text-gray-900 font-outfit-semibold text-lg">{vehicleStr}</Text>
+                        </View>
+
+                        <View className="border-t border-gray-200 pt-3 mb-3">
+                            <Text className="text-gray-400 font-outfit-medium text-sm uppercase tracking-wide mb-1">Estimated price</Text>
+                            {priceLoading ? (
+                                <ActivityIndicator size="small" color="#0047AB" style={{ alignSelf: 'flex-start', marginTop: 4 }} />
+                            ) : (
+                                <Text className="text-gray-900 font-outfit-semibold text-lg">
+                                    {price != null ? `$${price.toFixed(2)}` : 'TBD'}
+                                </Text>
+                            )}
                         </View>
 
                         <View className="border-t border-gray-200 pt-3 mb-3">
