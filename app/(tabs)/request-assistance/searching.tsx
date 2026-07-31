@@ -327,7 +327,7 @@ export default function SearchingScreen() {
                         <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
                             <DollarSign size={20} color="#0047AB" />
                         </View>
-                        <Text className="font-outfit-medium text-base text-gray-500">Budget</Text>
+                        <Text className="font-outfit-medium text-base text-gray-500">Price</Text>
                         <Text className="flex-1 text-right font-outfit-semibold text-base text-gray-900" numberOfLines={1}>{requestData?.budget || '—'}</Text>
                     </View>
                 </View>

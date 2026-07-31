@@ -172,7 +172,7 @@ export default function AssistDetailScreen() {
                             <Text className="font-outfit-regular text-gray-600">{address}</Text>
                         </View>
                         <View>
-                            <Text className="font-outfit-bold text-gray-900 mb-1">Assistance Budget:</Text>
+                            <Text className="font-outfit-bold text-gray-900 mb-1">Estimated Price:</Text>
                             <Text className="font-outfit-bold text-blue-600 text-lg">{budget}</Text>
                         </View>
                         {(etaText || distKm !== null) && (

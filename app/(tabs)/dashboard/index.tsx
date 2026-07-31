@@ -349,12 +349,12 @@ export default function DashboardScreen() {
                                                         </View>
                                                     </View>
 
-                                                    {/* Budget */}
+                                                    {/* Price */}
                                                     <View className="items-end">
                                                         <Text className="font-outfit-bold text-2xl" style={{ color: '#0047AB' }}>
                                                             {request.budget}
                                                         </Text>
-                                                        <Text className="font-outfit-regular text-sm text-gray-400">budget</Text>
+                                                        <Text className="font-outfit-regular text-sm text-gray-400">price</Text>
                                                     </View>
                                                 </View>
 
