@@ -26,6 +26,8 @@ export interface AssistanceRequest {
     eta?: string;
     /** ISO date string of the last update (used e.g. as cancellation date) */
     updatedAt?: string;
+    /** Vehicle issues selected for this request (from GET /api/pricing/requests/:id/issues) */
+    vehicleIssues?: VehicleIssueSnapshot[];
 }
 
 export interface Address {
@@ -152,6 +154,14 @@ export interface PersistRequestPricePayload {
     zipcode?: string;
 }
 
+/** A vehicle issue previously persisted for a request (GET /api/pricing/requests/:id/issues). */
+export interface VehicleIssueSnapshot {
+    vehicleIssueId: string;
+    name: string;
+    priceSnapshot?: number;
+    quantity?: number;
+}
+
 /** Response from POST /api/pricing/calculate — only `final_price` is consumed today. */
 export interface PriceCalculationResult {
     vehicle_issue?: { id: string; name: string; assistance_type?: string | null };
@@ -167,4 +177,5 @@ export interface IPricingDAO {
     getVehicleIssues(): Promise<VehicleIssue[]>;
     calculatePrice(payload: CalculatePricePayload): Promise<PriceCalculationResult>;
     persistRequestPrice(serviceRequestId: string, payload: PersistRequestPricePayload): Promise<PriceCalculationResult>;
+    getRequestIssues(serviceRequestId: string): Promise<VehicleIssueSnapshot[]>;
 }

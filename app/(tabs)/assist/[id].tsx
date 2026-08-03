@@ -43,7 +43,16 @@ function formatEta(minutes: number): string {
 }
 
 export default function RequestDetailScreen() {
-    const { id, type, assistanceType, title, car, address, zip, budget, price, userId, locationLat, locationLng } = useLocalSearchParams();
+    const { id, type, assistanceType, title, car, address, zip, budget, price, userId, locationLat, locationLng, vehicleIssues } = useLocalSearchParams();
+
+    const vehicleIssueNames: string = React.useMemo(() => {
+        try {
+            const parsed = JSON.parse(String(vehicleIssues || '[]')) as { name: string }[];
+            return parsed.map((i) => i.name).join(', ');
+        } catch {
+            return '';
+        }
+    }, [vehicleIssues]);
     const router = useRouter();
     const navigation = useNavigation();
     const { user } = useUser();
@@ -233,6 +242,19 @@ export default function RequestDetailScreen() {
                                 <Text className="font-outfit-bold text-base text-gray-900">{car}</Text>
                             </View>
                         </View>
+
+                        {/* Vehicle issue */}
+                        {!!vehicleIssueNames && (
+                            <View className="flex-row items-center px-5 py-4 border-b border-gray-100">
+                                <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
+                                    <Wrench size={20} color="#0047AB" />
+                                </View>
+                                <View className="flex-1">
+                                    <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">VEHICLE ISSUE</Text>
+                                    <Text className="font-outfit-bold text-base text-gray-900">{vehicleIssueNames}</Text>
+                                </View>
+                            </View>
+                        )}
 
                         {/* Assistance needed */}
                         <View className="flex-row items-center px-5 py-4 border-b border-gray-100">

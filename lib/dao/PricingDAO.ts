@@ -1,5 +1,5 @@
 import { apiClient } from '../api/apiClient';
-import { CalculatePricePayload, IPricingDAO, PersistRequestPricePayload, PriceCalculationResult, VehicleIssue } from './interfaces';
+import { CalculatePricePayload, IPricingDAO, PersistRequestPricePayload, PriceCalculationResult, VehicleIssue, VehicleIssueSnapshot } from './interfaces';
 
 /**
  * Client for the pricing microservice (proxied by the gateway under /api/pricing).
@@ -22,6 +22,10 @@ export class PricingDAO implements IPricingDAO {
         payload: PersistRequestPricePayload,
     ): Promise<PriceCalculationResult> {
         return apiClient.post(`/api/pricing/requests/${serviceRequestId}/price`, payload);
+    }
+
+    async getRequestIssues(serviceRequestId: string): Promise<VehicleIssueSnapshot[]> {
+        return apiClient.get(`/api/pricing/requests/${serviceRequestId}/issues`);
     }
 }
 

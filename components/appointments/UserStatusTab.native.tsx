@@ -77,6 +77,13 @@ export function UserStatusTab({ appointment, mechanicCoords, routePolyline }: { 
                 </View>
 
                 <View>
+                    <Text className="font-outfit-bold text-blue-900">Vehicle issue:</Text>
+                    <Text className="text-gray-600 font-outfit-regular">
+                        {appointment.vehicleIssues?.length ? appointment.vehicleIssues.map((i: { name: string }) => i.name).join(', ') : '—'}
+                    </Text>
+                </View>
+
+                <View>
                     <Text className="font-outfit-bold text-blue-900">Address:</Text>
                     <Text className="text-gray-600 font-outfit-regular">{appointment.address || '—'}</Text>
                     {/* Map — client pin (red) + mechanic live pin (blue) */}

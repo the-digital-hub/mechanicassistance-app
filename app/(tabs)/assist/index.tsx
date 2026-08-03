@@ -1,6 +1,7 @@
 import { useSocket } from '@/context/SocketContext';
 import { useUser } from '@/context/UserContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
+import { pricingDAO } from '@/lib/dao/PricingDAO';
 import { AssistanceRequest } from '@/lib/dao/interfaces';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { MapPin, Search, Zap, Video, Clock } from 'lucide-react-native';
@@ -29,7 +30,20 @@ export default function AssistanceRequestsScreen() {
     setIsLoading(true);
     try {
       const data = await assistanceDAO.getAll({ status: 'pending' });
-      setRequests(data);
+      // Best-effort: vehicle issues live in the pricing service, not on
+      // assistance_requests. A failed fetch for one request must not block
+      // the rest of the feed from loading.
+      const withIssues = await Promise.all(
+        data.map(async (req) => {
+          try {
+            return { ...req, vehicleIssues: await pricingDAO.getRequestIssues(req.id) };
+          } catch (e) {
+            console.warn(`Failed to load vehicle issues for ${req.id}`, e);
+            return req;
+          }
+        })
+      );
+      setRequests(withIssues);
     } catch (e) {
       console.error('Failed to load assistance requests', e);
     } finally {
@@ -255,6 +269,7 @@ export default function AssistanceRequestsScreen() {
                             zip: request.zip || '',
                             locationLat: request.locationLat ?? '',
                             locationLng: request.locationLng ?? '',
+                            vehicleIssues: JSON.stringify(request.vehicleIssues || []),
                           }
                         })}
                         activeOpacity={0.8}

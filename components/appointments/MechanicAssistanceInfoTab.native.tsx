@@ -147,6 +147,13 @@ export function MechanicAssistanceInfoTab({ appointment, onScan }: MechanicAssis
                 </View>
 
                 <View>
+                    <Text className="font-outfit-bold text-gray-900 text-base">Vehicle issue:</Text>
+                    <Text className="text-gray-600 font-outfit-regular">
+                        {appointment.vehicleIssues?.length ? appointment.vehicleIssues.map((i: { name: string }) => i.name).join(', ') : '—'}
+                    </Text>
+                </View>
+
+                <View>
                     <Text className="font-outfit-bold text-gray-900 text-base">Notes:</Text>
                     <Text className="text-gray-600 font-outfit-regular leading-5">
                         {appointment.notes || 'No notes provided.'}

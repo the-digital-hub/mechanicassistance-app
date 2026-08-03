@@ -1,7 +1,8 @@
 import { useUser } from '@/context/UserContext';
 import { appointmentDAO } from '@/lib/dao/AppointmentDAO';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
-import { AssistanceRequest } from '@/lib/dao/interfaces';
+import { pricingDAO } from '@/lib/dao/PricingDAO';
+import { AssistanceRequest, VehicleIssueSnapshot } from '@/lib/dao/interfaces';
 import { ConfigService } from '@/lib/config/ConfigService';
 import React, { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
 import { useSocket } from './SocketContext';
@@ -54,6 +55,8 @@ export interface Appointment {
     eta?: string;
     /** ISO timestamp of estimated arrival (the arrival hour) */
     etaTime?: string;
+    /** Vehicle issues selected for this request (from GET /api/pricing/requests/:id/issues) */
+    vehicleIssues?: VehicleIssueSnapshot[];
 }
 
 interface AppointmentsContextType {
@@ -95,6 +98,22 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                 assistanceDAO.getAll(user.role === 'user' ? { userId: user.id } : { mechanicId: user.id })
             ]);
 
+            // Best-effort: vehicle issues live in the pricing service, not on
+            // assistance_requests/appointments. A failed fetch for one id must
+            // not block the rest of the list from loading.
+            const ids = Array.from(new Set([...data.map((a: any) => a.id), ...assistanceRequests.map((r: AssistanceRequest) => r.id)]));
+            const issuesEntries = await Promise.all(
+                ids.map(async (id): Promise<[string, VehicleIssueSnapshot[]]> => {
+                    try {
+                        return [id, await pricingDAO.getRequestIssues(id)];
+                    } catch (error) {
+                        console.warn(`Failed to load vehicle issues for ${id}`, error);
+                        return [id, []];
+                    }
+                })
+            );
+            const issuesById = new Map(issuesEntries);
+
             const mappedAssistance: Appointment[] = assistanceRequests
                 .filter((req: AssistanceRequest) => !data.some(appt => appt.id === req.id))
                 .map((req: AssistanceRequest) => ({
@@ -119,7 +138,8 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                         return raw.map((p: string) => p.startsWith('http') ? p : `${base}${p}`);
                     })(),
                     locationLat: req.locationLat,
-                    locationLng: req.locationLng
+                    locationLng: req.locationLng,
+                    vehicleIssues: issuesById.get(req.id) || []
                 }));
 
             // Build a lookup of assistance_requests by id so we can back-fill
@@ -135,6 +155,7 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                     locationLat: appt.locationLat ?? ar?.locationLat,
                     locationLng: appt.locationLng ?? ar?.locationLng,
                     time: appt.time || ar?.eta || 'Pending',
+                    vehicleIssues: issuesById.get(appt.id) || [],
                 };
             });
 
