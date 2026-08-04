@@ -80,15 +80,18 @@ export default function ProfileScreen() {
     }
   };
 
-  const confirmOnline = async () => {
-    await updateUser({ isOnline: true });
-    setShowOnlineModal(false);
+  const setAvailability = async (isOnline: boolean, closeModal: () => void) => {
+    try {
+      await updateUser({ isOnline });
+      closeModal();
+    } catch {
+      Alert.alert('Update Failed', 'Could not change your availability. Please try again.');
+    }
   };
 
-  const confirmOffline = async () => {
-    await updateUser({ isOnline: false });
-    setShowOfflineModal(false);
-  };
+  const confirmOnline = () => setAvailability(true, () => setShowOnlineModal(false));
+
+  const confirmOffline = () => setAvailability(false, () => setShowOfflineModal(false));
 
   const handleLogout = async () => {
     await logout();

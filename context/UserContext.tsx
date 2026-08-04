@@ -125,7 +125,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
             setUser(newUser);
             await AsyncStorage.setItem('user_session', JSON.stringify(newUser));
         } catch (error) {
+            // Rethrow: swallowing this left the UI reporting success while the
+            // local state kept the old values (e.g. a picked profile photo that
+            // never reached the backend). Callers must handle the failure.
             console.error('Failed to update user', error);
+            throw error;
         }
     };
 

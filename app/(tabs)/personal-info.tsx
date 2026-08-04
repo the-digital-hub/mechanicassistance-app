@@ -51,8 +51,14 @@ export default function PersonalInfoScreen() {
         }
     });
 
+    // Hydrate once, when the user record first arrives. Re-running on every
+    // `user` change would wipe whatever is being typed — the photo now saves
+    // immediately, so `user` updates while the form is still open.
+    const hydratedRef = useRef(false);
+
     useEffect(() => {
-        if (user) {
+        if (user && !hydratedRef.current) {
+            hydratedRef.current = true;
             setFormData({
                 name: user.name,
                 surname: user.surname,
@@ -85,6 +91,8 @@ export default function PersonalInfoScreen() {
         setIsUploadingPhoto(true);
         try {
             const uploaded = await mediaDAO.uploadPhoto(localUri);
+            // Persist right away — the photo should not wait for "Update profile".
+            await updateUser({ profileImage: uploaded.url });
             setFormData((prev) => ({ ...prev, profileImage: uploaded.url }));
         } catch {
             Alert.alert('Upload Failed', 'Could not upload profile photo. Please try again.');
@@ -107,12 +115,35 @@ export default function PersonalInfoScreen() {
     };
 
     const handleUpdate = async () => {
-        const payloadToUpdate = {
-            ...formData,
-            phone: getPlainPhoneNumber(formData.phone)
+        // The backend DTO only whitelists `addresses` (an array); sending the
+        // singular `address` object gets the whole PATCH rejected with a 400,
+        // which silently dropped every field on this screen — photo included.
+        const { address, ...rest } = formData;
+        const hasAddress = !!(address.street || address.city);
+        const [existingAddress, ...otherAddresses] = user?.addresses ?? [];
+        // `id` is kept only to satisfy the Address type — the backend strips it
+        // and recreates the rows.
+        const editedAddress = {
+            ...existingAddress,
+            id: existingAddress?.id ?? '',
+            type: existingAddress?.type ?? 'home',
+            ...address,
         };
-        await updateUser(payloadToUpdate);
-        setShowSuccessModal(true);
+
+        const payloadToUpdate = {
+            ...rest,
+            phone: getPlainPhoneNumber(formData.phone),
+            // The backend replaces the whole set (deleteMany + create), so keep
+            // the addresses this screen does not edit.
+            ...(hasAddress && { addresses: [editedAddress, ...otherAddresses] }),
+        };
+
+        try {
+            await updateUser(payloadToUpdate);
+            setShowSuccessModal(true);
+        } catch {
+            Alert.alert('Update Failed', 'Could not save your profile. Please try again.');
+        }
     };
 
     const searchAddress = async (query: string) => {

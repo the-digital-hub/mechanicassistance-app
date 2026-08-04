@@ -5,7 +5,7 @@ import { US_STATES } from '@/lib/address';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft, ChevronRight, Circle, Bell } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View, Modal, Platform } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View, Modal, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function EditAddressScreen() {
@@ -90,6 +90,8 @@ export default function EditAddressScreen() {
 
             await updateUser({ addresses: updatedAddresses });
             router.back();
+        } catch {
+            Alert.alert('Save Failed', 'Could not save the address. Please try again.');
         } finally {
             setIsLoading(false);
         }
