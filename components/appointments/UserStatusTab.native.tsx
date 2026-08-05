@@ -3,6 +3,7 @@ import { ConfigService } from '@/lib/config/ConfigService';
 import React from 'react';
 import { Image, ScrollView, Text, View } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
+import { MAP_PROVIDER } from '@/lib/maps/provider';
 
 function decodePolyline(encoded: string): { latitude: number; longitude: number }[] {
     const points: { latitude: number; longitude: number }[] = [];
@@ -90,6 +91,7 @@ export function UserStatusTab({ appointment, mechanicCoords, routePolyline }: { 
                     <View style={{ height: 220, borderRadius: 12, overflow: 'hidden', marginTop: 8, backgroundColor: '#E5E7EB' }}>
                         {hasCoords ? (
                             <MapView
+                                provider={MAP_PROVIDER}
                                 ref={mapRef}
                                 style={{ width: '100%', height: '100%' }}
                                 onMapReady={fitMarkers}

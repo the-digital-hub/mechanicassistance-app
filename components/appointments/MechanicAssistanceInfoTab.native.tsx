@@ -3,6 +3,7 @@ import * as Location from 'expo-location';
 import React from 'react';
 import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
+import { MAP_PROVIDER } from '@/lib/maps/provider';
 import { formatEtaTime, useAppointmentEta } from '@/hooks/useAppointmentEta';
 import { useSocket } from '@/context/SocketContext';
 
@@ -184,6 +185,7 @@ export function MechanicAssistanceInfoTab({ appointment, onScan }: MechanicAssis
                     <View className="h-48 rounded-xl mt-2 overflow-hidden bg-gray-200">
                         {requestCoords ? (
                             <MapView
+                                provider={MAP_PROVIDER}
                                 ref={mapRef}
                                 style={{ width: '100%', height: '100%' }}
                                 onMapReady={fitMarkers}

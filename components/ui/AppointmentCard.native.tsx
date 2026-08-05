@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import MapView, { Marker } from 'react-native-maps';
+import { MAP_PROVIDER } from '@/lib/maps/provider';
 
 /** Format an ISO date string to a human-readable "MM/DD/YYYY - hh:mm AM/PM" */
 function formatDate(iso?: string): string {
@@ -155,6 +156,7 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                 <View className="h-32 bg-gray-100 rounded-lg mb-3 relative overflow-hidden border border-gray-200">
                     {appointment.locationLat && appointment.locationLng ? (
                         <MapView
+                            provider={MAP_PROVIDER}
                             style={{ flex: 1 }}
                             initialRegion={{
                                 latitude: appointment.locationLat,

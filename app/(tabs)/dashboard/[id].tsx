@@ -8,6 +8,7 @@ import { Calendar, Clock, Navigation, CheckCircle } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
+import { MAP_PROVIDER } from '@/lib/maps/provider';
 import { apiClient } from '@/lib/api/apiClient';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -192,6 +193,7 @@ export default function AssistDetailScreen() {
                     {hasLocation && (
                         <View className="mb-6 rounded-xl overflow-hidden" style={{ height: 200 }}>
                             <MapView
+                                provider={MAP_PROVIDER}
                                 ref={mapRef}
                                 style={{ flex: 1 }}
                                 initialRegion={{

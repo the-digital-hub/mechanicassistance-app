@@ -13,6 +13,7 @@ import {
   View,
 } from "react-native";
 import MapView, { Circle, Marker } from "react-native-maps";
+import { MAP_PROVIDER } from "@/lib/maps/provider";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type TimePickerField = "from" | "to";
@@ -326,6 +327,7 @@ export default function AvailabilityScreen() {
             <View className="p-3 pb-0">
               <View className="rounded-xl overflow-hidden">
                 <MapView
+                  provider={MAP_PROVIDER}
                   style={{ height: 180 }}
                   region={{
                     latitude: BASE_LOCATION.latitude,
