@@ -92,6 +92,53 @@
         "title": "Apply now, get $20 back",
         "button": "Start earning"
       }
+    },
+    "timeAgo": {
+      "justNow": "Just now",
+      "minutes": "{{count}} min ago",
+      "hours": "{{count}}h ago",
+      "days": "{{count}}d ago"
+    },
+    "mechanic": {
+      "readyToWork": "Ready to work",
+      "reviewSubtitle": "Review new requests in your area",
+      "availableToProvide": "Available to provide services",
+      "descAvailable": "You are visible to nearby owners and can receive new requests.",
+      "descBusy": "You are visible but won't receive new requests.",
+      "descOffline": "You are not visible to owners and won't receive requests.",
+      "status": {
+        "available": {
+          "label": "Available",
+          "description": "Visible to owners and can receive new requests"
+        },
+        "busy": {
+          "label": "Busy",
+          "description": "Visible but won't receive new requests"
+        },
+        "offline": {
+          "label": "Offline",
+          "description": "Not visible to owners and won't receive requests"
+        }
+      },
+      "jobsToday": "Jobs today",
+      "earnedToday": "Earned today",
+      "rating": "Rating",
+      "newRequestsTitle": "New requests in your area",
+      "noPendingRequests": "No pending requests in your area",
+      "promoBadge": "BOOST YOUR PROFILE",
+      "promoTitle": "Add a new ASE certification",
+      "promoDescription": "Get more visibility and higher-value jobs.",
+      "vehicle": "VEHICLE",
+      "assistanceNeeded": "ASSISTANCE NEEDED",
+      "address": "ADDRESS",
+      "addressUnlock": "Exact address unlocks once you accept",
+      "price": "price",
+      "viewRequest": "View Request",
+      "decline": "Decline",
+      "urgent": "URGENT",
+      "changeStatus": "Change your status",
+      "lookingForMoreWork": "Looking for more work?",
+      "viewOpportunities": "View opportunities"
     }
   },
   "requestAssistance": {
@@ -359,6 +406,39 @@
     },
     "cancellationModal": {
       "message": "Are you sure you'd like to cancel this request?\nYour mechanic is already on their way to you."
+    }
+  },
+  "requestDetail": {
+    "headerTitle": "Request Details",
+    "badge": "REQUEST DETAILS",
+    "title": "Review before you accept",
+    "subtitle": "Check the vehicle issue, location, and budget below",
+    "vehicle": "VEHICLE",
+    "vehicleIssue": "VEHICLE ISSUE",
+    "assistanceNeeded": "ASSISTANCE NEEDED",
+    "address": "ADDRESS",
+    "addressUnlock": "Exact address unlocks once you accept",
+    "price": "price",
+    "urgent": "URGENT",
+    "distance": "DISTANCE",
+    "eta": "ETA",
+    "dayAvailability": "Day Availability Options",
+    "selectDate": "Select Date",
+    "selectTimeTitle": "Select time",
+    "selectTime": "Select Time",
+    "acceptRequest": "Accept request",
+    "offerAccepted": "Offer Accepted!",
+    "acceptedImmediate": "You accepted the immediate request for {{title}}.",
+    "acceptedScheduled": "You accepted the request for {{date}} at {{time}}.",
+    "dismiss": "Dismiss",
+    "ok": "OK",
+    "selectDateTimeAlert": "Please select a date and time.",
+    "acceptFailed": "Failed to accept request: {{error}}",
+    "timeAgo": {
+      "justNow": "Just now",
+      "minutes": "{{count}} min ago",
+      "hours": "{{count}}h ago",
+      "days": "{{count}}d ago"
     }
   }
 }

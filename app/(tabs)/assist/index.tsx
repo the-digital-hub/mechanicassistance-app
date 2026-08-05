@@ -270,6 +270,7 @@ export default function AssistanceRequestsScreen() {
                             locationLat: request.locationLat ?? '',
                             locationLng: request.locationLng ?? '',
                             vehicleIssues: JSON.stringify(request.vehicleIssues || []),
+                            date: request.date || request.updatedAt || '',
                           }
                         })}
                         activeOpacity={0.8}

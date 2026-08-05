@@ -5,6 +5,7 @@ import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { Calendar, Clock, Navigation, CheckCircle, ChevronLeft, Zap, Car, Wrench, Lock, ArrowUpRight } from 'lucide-react-native';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import { MAP_PROVIDER } from '@/lib/maps/provider';
@@ -44,7 +45,7 @@ function formatEta(minutes: number): string {
 }
 
 export default function RequestDetailScreen() {
-    const { id, type, assistanceType, title, car, address, zip, budget, price, userId, locationLat, locationLng, vehicleIssues } = useLocalSearchParams();
+    const { id, type, assistanceType, title, car, address, zip, budget, price, userId, locationLat, locationLng, vehicleIssues, date } = useLocalSearchParams();
 
     const vehicleIssueNames: string = React.useMemo(() => {
         try {
@@ -57,11 +58,12 @@ export default function RequestDetailScreen() {
     const router = useRouter();
     const navigation = useNavigation();
     const { user } = useUser();
+    const { t } = useTranslation();
 
     useFocusEffect(
         useCallback(() => {
             navigation.setOptions({
-                title: 'Request Details',
+                title: t('requestDetail.headerTitle'),
                 headerLeft: () => (
                     <TouchableOpacity onPress={() => router.back()} style={{ marginLeft: 16 }}>
                         <ChevronLeft size={24} color="#0047AB" />
@@ -75,13 +77,28 @@ export default function RequestDetailScreen() {
     const isVideo = type === 'videocall';
     const isUrgent = type === 'immediate' || type === 'witness' || assistanceType === 'witness';
 
+    // Relative time from the request timestamp. Falls back to "Just now" when the
+    // param is missing or not a parseable date (the backend may not send it).
+    const formatTimeAgo = (raw?: string) => {
+        if (!raw) return t('requestDetail.timeAgo.justNow');
+        const then = new Date(raw).getTime();
+        if (isNaN(then)) return t('requestDetail.timeAgo.justNow');
+        const mins = Math.floor((Date.now() - then) / 60000);
+        if (mins < 1) return t('requestDetail.timeAgo.justNow');
+        if (mins < 60) return t('requestDetail.timeAgo.minutes', { count: mins });
+        const hours = Math.floor(mins / 60);
+        if (hours < 24) return t('requestDetail.timeAgo.hours', { count: hours });
+        return t('requestDetail.timeAgo.days', { count: Math.floor(hours / 24) });
+    };
+    const timeAgo = formatTimeAgo(typeof date === 'string' ? date : undefined);
+
     const serviceLabel = assistanceType === 'witness'
-        ? 'Accident Assistance'
+        ? t('requestAssistance.header.accident')
         : isVideo
-            ? 'Video Call Assistance'
+            ? t('requestAssistance.header.videoCall')
             : isImmediate
-                ? 'Immediate Assistance'
-                : 'Scheduled Assistance';
+                ? t('requestAssistance.header.immediate')
+                : t('requestAssistance.header.scheduled');
 
     // Split full address into a hidden street line and a public city/state line.
     const addressParts = String(address || '').split(',').map((p) => p.trim()).filter(Boolean);
@@ -147,7 +164,7 @@ export default function RequestDetailScreen() {
 
     const handleAccept = async () => {
         if (!isImmediate && (!selectedDate || !selectedTime)) {
-            alert('Please select a date and time.');
+            alert(t('requestDetail.selectDateTimeAlert'));
             return;
         }
 
@@ -169,7 +186,7 @@ export default function RequestDetailScreen() {
                 );
             }, 2000);
         } catch (error: any) {
-            alert(`Failed to accept request: ${error.message || 'Unknown error'}`);
+            alert(t('requestDetail.acceptFailed', { error: error.message || 'Unknown error' }));
         }
     };
 
@@ -181,18 +198,18 @@ export default function RequestDetailScreen() {
                     <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                         <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
                         <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                            REQUEST DETAILS
+                            {t('requestDetail.badge')}
                         </Text>
                     </View>
 
                     {/* Title */}
                     <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
-                        Review before you accept
+                        {t('requestDetail.title')}
                     </Text>
 
                     {/* Subtitle */}
                     <Text className="text-gray-500 font-outfit-regular text-base mb-2">
-                        Check the vehicle issue, location, and budget below
+                        {t('requestDetail.subtitle')}
                     </Text>
                 </View>
 
@@ -213,18 +230,18 @@ export default function RequestDetailScreen() {
                             <View className="flex-row items-center gap-2 mt-1">
                                 {isUrgent && (
                                     <View className="px-2 py-0.5 rounded-md" style={{ backgroundColor: '#FEE2E2' }}>
-                                        <Text className="font-outfit-bold text-[11px] tracking-widest" style={{ color: '#EF4444' }}>URGENT</Text>
+                                        <Text className="font-outfit-bold text-[11px] tracking-widest" style={{ color: '#EF4444' }}>{t('requestDetail.urgent')}</Text>
                                     </View>
                                 )}
                                 <View className="flex-row items-center gap-1">
                                     <Clock size={13} color="#9CA3AF" />
-                                    <Text className="font-outfit-regular text-sm text-gray-500">Just now</Text>
+                                    <Text className="font-outfit-regular text-sm text-gray-500">{timeAgo}</Text>
                                 </View>
                             </View>
                         </View>
                         <View className="items-end ml-2">
                             <Text className="font-outfit-bold text-2xl" style={{ color: '#0047AB' }}>{price ? `$${price}` : budget}</Text>
-                            <Text className="font-outfit-regular text-sm text-gray-400">price</Text>
+                            <Text className="font-outfit-regular text-sm text-gray-400">{t('requestDetail.price')}</Text>
                         </View>
                     </View>
 
@@ -239,7 +256,7 @@ export default function RequestDetailScreen() {
                                 <Car size={20} color="#0047AB" />
                             </View>
                             <View className="flex-1">
-                                <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">VEHICLE</Text>
+                                <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">{t('requestDetail.vehicle')}</Text>
                                 <Text className="font-outfit-bold text-base text-gray-900">{car}</Text>
                             </View>
                         </View>
@@ -251,7 +268,7 @@ export default function RequestDetailScreen() {
                                     <Wrench size={20} color="#0047AB" />
                                 </View>
                                 <View className="flex-1">
-                                    <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">VEHICLE ISSUE</Text>
+                                    <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">{t('requestDetail.vehicleIssue')}</Text>
                                     <Text className="font-outfit-bold text-base text-gray-900">{vehicleIssueNames}</Text>
                                 </View>
                             </View>
@@ -263,7 +280,7 @@ export default function RequestDetailScreen() {
                                 <Wrench size={20} color="#0047AB" />
                             </View>
                             <View className="flex-1">
-                                <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">ASSISTANCE NEEDED</Text>
+                                <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">{t('requestDetail.assistanceNeeded')}</Text>
                                 <Text className="font-outfit-bold text-base text-gray-900">{title}</Text>
                             </View>
                         </View>
@@ -274,11 +291,11 @@ export default function RequestDetailScreen() {
                                 <Lock size={20} color="#0047AB" />
                             </View>
                             <View className="flex-1">
-                                <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-1.5">ADDRESS</Text>
+                                <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-1.5">{t('requestDetail.address')}</Text>
                                 {/* Redacted street — unlocks after accept */}
                                 <View className="h-4 rounded-md mb-1.5" style={{ backgroundColor: '#E5E7EB', width: '75%' }} />
                                 <Text className="font-outfit-bold text-base text-gray-900">{cityLine}</Text>
-                                <Text className="font-outfit-regular text-sm text-gray-400 mt-0.5">Exact address unlocks once you accept</Text>
+                                <Text className="font-outfit-regular text-sm text-gray-400 mt-0.5">{t('requestDetail.addressUnlock')}</Text>
                             </View>
                         </View>
                     </View>
@@ -291,7 +308,7 @@ export default function RequestDetailScreen() {
                                     <ArrowUpRight size={20} color="#0047AB" />
                                 </View>
                                 <View>
-                                    <Text className="font-outfit-semibold text-xs tracking-widest text-blue-500 mb-0.5">DISTANCE</Text>
+                                    <Text className="font-outfit-semibold text-xs tracking-widest text-blue-500 mb-0.5">{t('requestDetail.distance')}</Text>
                                     <Text className="font-outfit-bold text-lg text-gray-900">{distKm !== null ? `${(distKm * 0.621371).toFixed(1)} mi` : '—'}</Text>
                                 </View>
                             </View>
@@ -301,7 +318,7 @@ export default function RequestDetailScreen() {
                                     <Clock size={20} color="#0047AB" />
                                 </View>
                                 <View>
-                                    <Text className="font-outfit-semibold text-xs tracking-widest text-blue-500 mb-0.5">ETA</Text>
+                                    <Text className="font-outfit-semibold text-xs tracking-widest text-blue-500 mb-0.5">{t('requestDetail.eta')}</Text>
                                     <Text className="font-outfit-bold text-lg text-gray-900">{etaText || '—'}</Text>
                                 </View>
                             </View>
@@ -361,13 +378,13 @@ export default function RequestDetailScreen() {
                     {!isImmediate && (
                         <>
                             <View className="mb-6 z-20">
-                                <Text className="font-outfit-bold text-gray-900 mb-2">Day Availability Options</Text>
+                                <Text className="font-outfit-bold text-gray-900 mb-2">{t('requestDetail.dayAvailability')}</Text>
                                 <TouchableOpacity
                                     className="bg-blue-50/50 border border-blue-100 rounded-lg p-3 flex-row justify-between items-center"
                                     onPress={() => { setIsDateOpen(!isDateOpen); setIsTimeOpen(false); }}
                                 >
                                     <Text className={selectedDate ? "text-gray-900 font-outfit-medium" : "text-gray-500 font-outfit-regular"}>
-                                        {selectedDate || 'Select Date'}
+                                        {selectedDate || t('requestDetail.selectDate')}
                                     </Text>
                                     <Calendar size={18} color="#9CA3AF" />
                                 </TouchableOpacity>
@@ -389,13 +406,13 @@ export default function RequestDetailScreen() {
 
                             {/* Time Selector */}
                             <View className="mb-8 z-10">
-                                <Text className="font-outfit-bold text-gray-900 mb-2">Select time</Text>
+                                <Text className="font-outfit-bold text-gray-900 mb-2">{t('requestDetail.selectTimeTitle')}</Text>
                                 <TouchableOpacity
                                     className="bg-blue-50/50 border border-blue-100 rounded-lg p-3 flex-row justify-between items-center"
                                     onPress={() => { setIsTimeOpen(!isTimeOpen); setIsDateOpen(false); }}
                                 >
                                     <Text className={selectedTime ? "text-gray-900 font-outfit-medium" : "text-gray-500 font-outfit-regular"}>
-                                        {selectedTime || 'Select Time'}
+                                        {selectedTime || t('requestDetail.selectTime')}
                                     </Text>
                                     <Clock size={16} color="#9CA3AF" />
                                 </TouchableOpacity>
@@ -435,11 +452,11 @@ export default function RequestDetailScreen() {
                                     justifyContent: 'center',
                                 }}
                             >
-                                <Text className="text-white font-outfit-bold text-lg">Accept request</Text>
+                                <Text className="text-white font-outfit-bold text-lg">{t('requestDetail.acceptRequest')}</Text>
                             </LinearGradient>
                         ) : (
                             <View className="w-full py-4 rounded-xl items-center bg-gray-300">
-                                <Text className="text-white font-outfit-bold text-lg">Accept request</Text>
+                                <Text className="text-white font-outfit-bold text-lg">{t('requestDetail.acceptRequest')}</Text>
                             </View>
                         )}
                     </TouchableOpacity>
@@ -454,12 +471,12 @@ export default function RequestDetailScreen() {
                             <CheckCircle size={40} color="#10B981" />
                         </View>
                         <Text className="text-lg font-outfit-bold text-gray-900 mb-2 text-center">
-                            Offer Accepted!
+                            {t('requestDetail.offerAccepted')}
                         </Text>
                         <Text className="text-gray-500 font-outfit-regular text-sm text-center mb-6">
                             {isImmediate
-                                ? `You accepted the immediate request for ${title}.`
-                                : `You accepted the request for ${selectedDate} at ${selectedTime}.`
+                                ? t('requestDetail.acceptedImmediate', { title })
+                                : t('requestDetail.acceptedScheduled', { date: selectedDate, time: selectedTime })
                             }
                         </Text>
                         <View className="w-full flex-row gap-3">
@@ -467,7 +484,7 @@ export default function RequestDetailScreen() {
                                 className="flex-1 py-3 rounded-lg border border-gray-300 bg-white items-center"
                                 onPress={() => setShowNotification(false)}
                             >
-                                <Text className="text-gray-900 font-outfit-bold text-base">Dismiss</Text>
+                                <Text className="text-gray-900 font-outfit-bold text-base">{t('requestDetail.dismiss')}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 className="flex-1"
@@ -495,7 +512,7 @@ export default function RequestDetailScreen() {
                                         justifyContent: 'center',
                                     }}
                                 >
-                                    <Text className="text-white font-outfit-bold text-base">OK</Text>
+                                    <Text className="text-white font-outfit-bold text-base">{t('requestDetail.ok')}</Text>
                                 </LinearGradient>
                             </TouchableOpacity>
                         </View>

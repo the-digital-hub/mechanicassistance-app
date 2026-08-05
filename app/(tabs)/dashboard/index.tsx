@@ -64,9 +64,9 @@ export default function DashboardScreen() {
     };
 
     const getStatusLabel = () => {
-        if (mechanicStatus === 'available') return 'Available';
-        if (mechanicStatus === 'busy') return 'Busy';
-        return 'Offline';
+        if (mechanicStatus === 'available') return t('dashboard.mechanic.status.available.label');
+        if (mechanicStatus === 'busy') return t('dashboard.mechanic.status.busy.label');
+        return t('dashboard.mechanic.status.offline.label');
     };
 
     const getStatusColor = (status: 'available' | 'busy' | 'offline') => {
@@ -78,22 +78,38 @@ export default function DashboardScreen() {
     const statusOptions: Array<{ id: 'available' | 'busy' | 'offline', label: string, description: string }> = [
         {
             id: 'available',
-            label: 'Available',
-            description: 'Visible to owners and can receive new requests'
+            label: t('dashboard.mechanic.status.available.label'),
+            description: t('dashboard.mechanic.status.available.description')
         },
         {
             id: 'busy',
-            label: 'Busy',
-            description: 'Visible but won\'t receive new requests'
+            label: t('dashboard.mechanic.status.busy.label'),
+            description: t('dashboard.mechanic.status.busy.description')
         },
         {
             id: 'offline',
-            label: 'Offline',
-            description: 'Not visible to owners and won\'t receive requests'
+            label: t('dashboard.mechanic.status.offline.label'),
+            description: t('dashboard.mechanic.status.offline.description')
         },
     ];
 
     const styles = getStatusStyles();
+
+    // Relative time for request cards. The backend may send `date` or `updatedAt`;
+    // if neither is a parseable timestamp we fall back to "just now" rather than
+    // showing a broken value.
+    const formatTimeAgo = (raw?: string) => {
+        if (!raw) return t('dashboard.timeAgo.justNow');
+        const then = new Date(raw).getTime();
+        if (isNaN(then)) return t('dashboard.timeAgo.justNow');
+        const mins = Math.floor((Date.now() - then) / 60000);
+        if (mins < 1) return t('dashboard.timeAgo.justNow');
+        if (mins < 60) return t('dashboard.timeAgo.minutes', { count: mins });
+        const hours = Math.floor(mins / 60);
+        if (hours < 24) return t('dashboard.timeAgo.hours', { count: hours });
+        const days = Math.floor(hours / 24);
+        return t('dashboard.timeAgo.days', { count: days });
+    };
 
     const loadRequests = async () => {
         if (!user?.id) {
@@ -167,9 +183,9 @@ export default function DashboardScreen() {
     // Dashboard for mechanics
     if (user?.role === 'mechanic') {
         const statusOptions = [
-            { id: 'available', label: 'Available', color: '#10B981' },
-            { id: 'busy', label: 'Busy', color: '#F97316' },
-            { id: 'offline', label: 'Offline', color: '#9CA3AF' },
+            { id: 'available', label: t('dashboard.mechanic.status.available.label'), description: t('dashboard.mechanic.status.available.description'), color: '#10B981' },
+            { id: 'busy', label: t('dashboard.mechanic.status.busy.label'), description: t('dashboard.mechanic.status.busy.description'), color: '#F97316' },
+            { id: 'offline', label: t('dashboard.mechanic.status.offline.label'), description: t('dashboard.mechanic.status.offline.description'), color: '#9CA3AF' },
         ];
 
         return (
@@ -186,12 +202,12 @@ export default function DashboardScreen() {
 
                     {/* Title */}
                     <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
-                        Ready to work{user?.name ? `, ${user.name.split(' ')[0]}` : ''}
+                        {t('dashboard.mechanic.readyToWork')}{user?.name ? `, ${user.name.split(' ')[0]}` : ''}
                     </Text>
 
                     {/* Subtitle */}
                     <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-                        Review new requests in your area
+                        {t('dashboard.mechanic.reviewSubtitle')}
                     </Text>
 
                     {/* Status Block */}
@@ -204,7 +220,7 @@ export default function DashboardScreen() {
                     }}>
                         {/* Header with Title */}
                         <Text style={{ fontFamily: 'Outfit_600SemiBold', fontSize: 18, color: '#111827' }} className="mb-4">
-                            Available to provide services
+                            {t('dashboard.mechanic.availableToProvide')}
                         </Text>
 
                         {/* Status Options */}
@@ -246,10 +262,10 @@ export default function DashboardScreen() {
                         {/* Description */}
                         <Text style={{ color: '#4B5563', fontFamily: 'Outfit_400Regular', fontSize: 15, lineHeight: 20 }}>
                             {mechanicStatus === 'available'
-                                ? 'You are visible to nearby owners and can receive new requests.'
+                                ? t('dashboard.mechanic.descAvailable')
                                 : mechanicStatus === 'busy'
-                                ? 'You are visible but won\'t receive new requests.'
-                                : 'You are not visible to owners and won\'t receive requests.'}
+                                ? t('dashboard.mechanic.descBusy')
+                                : t('dashboard.mechanic.descOffline')}
                         </Text>
                     </View>
 
@@ -259,21 +275,21 @@ export default function DashboardScreen() {
                         icon={Wrench}
                         iconColor="#0047AB"
                         value={appointments.filter(a => a.status === 'completed').length.toString()}
-                        label="Jobs today"
+                        label={t('dashboard.mechanic.jobsToday')}
                         bgColor="#E0ECFF"
                       />
                       <KPICard
                         icon={DollarSign}
                         iconColor="#10B981"
                         value={`$${(appointments.filter(a => a.status === 'completed').length * 50).toString()}`}
-                        label="Earned today"
+                        label={t('dashboard.mechanic.earnedToday')}
                         bgColor="#ECFDF5"
                       />
                       <KPICard
                         icon={Star}
                         iconColor="#F97316"
                         value={(user?.rating || 4.8).toString()}
-                        label="Rating"
+                        label={t('dashboard.mechanic.rating')}
                         bgColor="#FFF7ED"
                       />
                     </View>
@@ -282,7 +298,7 @@ export default function DashboardScreen() {
                         <>
                             {/* New Requests Title */}
                             <Text style={{ fontFamily: 'Outfit_600SemiBold', fontSize: 16, color: '#111827' }} className="mt-2 mb-4">
-                                New requests in your area
+                                {t('dashboard.mechanic.newRequestsTitle')}
                             </Text>
 
                             {/* Requests List */}
@@ -292,7 +308,7 @@ export default function DashboardScreen() {
                                 </View>
                             ) : requests.length === 0 ? (
                                 <View className="items-center justify-center py-8">
-                                    <Text className="text-gray-400 font-outfit-regular text-base">No pending requests in your area</Text>
+                                    <Text className="text-gray-400 font-outfit-regular text-base">{t('dashboard.mechanic.noPendingRequests')}</Text>
                                 </View>
                             ) : (
                         <View className="gap-4">
@@ -300,8 +316,8 @@ export default function DashboardScreen() {
                                 const iconType = request.type === 'videocall' ? 'video' : 'urgent';
                                 const iconBgColor = iconType === 'urgent' ? '#FEE2E2' : '#DBEAFE';
                                 const iconColor = iconType === 'urgent' ? '#DC2626' : '#0047AB';
-                                const serviceTypeLabel = request.type === 'videocall' ? 'Video Call Assistance' : request.type === 'scheduled' ? 'Scheduled Assistance' : 'Immediate Assistance';
-                                const badge = request.type === 'immediate' ? 'URGENT' : null;
+                                const serviceTypeLabel = request.type === 'videocall' ? t('requestAssistance.header.videoCall') : request.type === 'scheduled' ? t('requestAssistance.header.scheduled') : t('requestAssistance.header.immediate');
+                                const badge = request.type === 'immediate' ? t('dashboard.mechanic.urgent') : null;
 
                                 // Hide the street; show only city/state (+ zip) once.
                                 const addressParts = String(request.address || '').split(',').map((p) => p.trim()).filter(Boolean);
@@ -347,7 +363,7 @@ export default function DashboardScreen() {
                                                         )}
                                                         <View className="flex-row items-center gap-1">
                                                             <Clock size={13} color="#9CA3AF" />
-                                                            <Text className="text-gray-500 font-outfit-regular text-sm">Just now</Text>
+                                                            <Text className="text-gray-500 font-outfit-regular text-sm">{formatTimeAgo(request.date || request.updatedAt)}</Text>
                                                         </View>
                                                     </View>
                                                 </View>
@@ -355,7 +371,7 @@ export default function DashboardScreen() {
                                                     <Text className="font-outfit-bold text-2xl" style={{ color: '#0047AB' }}>
                                                         {request.budget}
                                                     </Text>
-                                                    <Text className="font-outfit-regular text-sm text-gray-400">price</Text>
+                                                    <Text className="font-outfit-regular text-sm text-gray-400">{t('dashboard.mechanic.price')}</Text>
                                                 </View>
                                             </View>
 
@@ -365,7 +381,7 @@ export default function DashboardScreen() {
                                                     <Car size={20} color="#0047AB" />
                                                 </View>
                                                 <View className="flex-1">
-                                                    <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">VEHICLE</Text>
+                                                    <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">{t('dashboard.mechanic.vehicle')}</Text>
                                                     <Text className="font-outfit-bold text-base text-gray-900">{request.car}</Text>
                                                 </View>
                                             </View>
@@ -376,7 +392,7 @@ export default function DashboardScreen() {
                                                     <Wrench size={20} color="#0047AB" />
                                                 </View>
                                                 <View className="flex-1">
-                                                    <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">ASSISTANCE NEEDED</Text>
+                                                    <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">{t('dashboard.mechanic.assistanceNeeded')}</Text>
                                                     <Text className="font-outfit-bold text-base text-gray-900">{request.notes || request.title}</Text>
                                                 </View>
                                             </View>
@@ -387,10 +403,10 @@ export default function DashboardScreen() {
                                                     <Lock size={20} color="#0047AB" />
                                                 </View>
                                                 <View className="flex-1">
-                                                    <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-1.5">ADDRESS</Text>
+                                                    <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-1.5">{t('dashboard.mechanic.address')}</Text>
                                                     <View className="h-4 rounded-md mb-1.5" style={{ backgroundColor: '#E5E7EB', width: '75%' }} />
                                                     <Text className="font-outfit-bold text-base text-gray-900">{cityLine}</Text>
-                                                    <Text className="font-outfit-regular text-sm text-gray-400 mt-0.5">Exact address unlocks once you accept</Text>
+                                                    <Text className="font-outfit-regular text-sm text-gray-400 mt-0.5">{t('dashboard.mechanic.addressUnlock')}</Text>
                                                 </View>
                                             </View>
 
@@ -412,6 +428,7 @@ export default function DashboardScreen() {
                                                             zip: request.zip || '',
                                                             locationLat: request.locationLat ?? '',
                                                             locationLng: request.locationLng ?? '',
+                                                            date: request.date || request.updatedAt || '',
                                                         }
                                                     })}
                                                     activeOpacity={0.8}
@@ -429,7 +446,7 @@ export default function DashboardScreen() {
                                                         }}
                                                     >
                                                         <Text className="text-white font-outfit-semibold text-lg">
-                                                            View Request
+                                                            {t('dashboard.mechanic.viewRequest')}
                                                         </Text>
                                                     </LinearGradient>
                                                 </TouchableOpacity>
@@ -439,7 +456,7 @@ export default function DashboardScreen() {
                                                     activeOpacity={0.8}
                                                 >
                                                     <Text className="text-gray-600 font-outfit-semibold text-lg">
-                                                        Decline
+                                                        {t('dashboard.mechanic.decline')}
                                                     </Text>
                                                 </TouchableOpacity>
                                             </View>
@@ -455,9 +472,9 @@ export default function DashboardScreen() {
                     {/* Promotional Card */}
                     <View className="mt-8 mb-4">
                       <PromotionalCard
-                        badge="BOOST YOUR PROFILE"
-                        title="Add a new ASE certification"
-                        description="Get more visibility and higher-value jobs."
+                        badge={t('dashboard.mechanic.promoBadge')}
+                        title={t('dashboard.mechanic.promoTitle')}
+                        description={t('dashboard.mechanic.promoDescription')}
                         icon={Award}
                         onPress={() => router.push('/(tabs)/ase')}
                       />
@@ -471,7 +488,7 @@ export default function DashboardScreen() {
                         <View className="flex-1 bg-black/50 justify-center items-center px-6">
                             <View className="bg-white w-full rounded-2xl p-6 items-center">
                                 <Text className="text-lg font-outfit-bold text-gray-900 mb-6 text-center">
-                                    Change your status
+                                    {t('dashboard.mechanic.changeStatus')}
                                 </Text>
 
                                 <View className="w-full gap-3">
@@ -793,11 +810,11 @@ export default function DashboardScreen() {
                         {user?.role?.toLowerCase().trim() === 'mechanic' && (
                             <View className="bg-blue-50 rounded-xl p-4 flex-row items-center mb-6 border border-blue-100">
                                 <View className="flex-1">
-                                    <Text className="text-blue-900 font-outfit-semibold text-lg mb-2">Looking for more work?</Text>
+                                    <Text className="text-blue-900 font-outfit-semibold text-lg mb-2">{t('dashboard.mechanic.lookingForMoreWork')}</Text>
                                     <TouchableOpacity
                                         className="bg-blue-600 w-full py-2 rounded-lg"
                                     >
-                                        <Text className="text-white font-outfit-semibold text-center text-xs">View opportunities</Text>
+                                        <Text className="text-white font-outfit-semibold text-center text-xs">{t('dashboard.mechanic.viewOpportunities')}</Text>
                                     </TouchableOpacity>
                                 </View>
                                 <View className="w-16 h-16 bg-blue-200 rounded-full ml-4" />

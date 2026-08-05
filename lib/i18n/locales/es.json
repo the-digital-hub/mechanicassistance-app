@@ -92,6 +92,53 @@
         "title": "Aplicá ahora y recibí $20",
         "button": "Empezar a ganar"
       }
+    },
+    "timeAgo": {
+      "justNow": "Recién",
+      "minutes": "hace {{count}} min",
+      "hours": "hace {{count}}h",
+      "days": "hace {{count}}d"
+    },
+    "mechanic": {
+      "readyToWork": "Listo para trabajar",
+      "reviewSubtitle": "Revisá las nuevas solicitudes en tu zona",
+      "availableToProvide": "Disponible para brindar servicios",
+      "descAvailable": "Sos visible para los propietarios cercanos y podés recibir nuevas solicitudes.",
+      "descBusy": "Sos visible pero no vas a recibir nuevas solicitudes.",
+      "descOffline": "No sos visible para los propietarios y no vas a recibir solicitudes.",
+      "status": {
+        "available": {
+          "label": "Disponible",
+          "description": "Visible para los propietarios y podés recibir nuevas solicitudes"
+        },
+        "busy": {
+          "label": "Ocupado",
+          "description": "Visible pero no vas a recibir nuevas solicitudes"
+        },
+        "offline": {
+          "label": "Desconectado",
+          "description": "No visible para los propietarios y no vas a recibir solicitudes"
+        }
+      },
+      "jobsToday": "Trabajos hoy",
+      "earnedToday": "Ganado hoy",
+      "rating": "Calificación",
+      "newRequestsTitle": "Nuevas solicitudes en tu zona",
+      "noPendingRequests": "No hay solicitudes pendientes en tu zona",
+      "promoBadge": "POTENCIÁ TU PERFIL",
+      "promoTitle": "Agregá una nueva certificación ASE",
+      "promoDescription": "Conseguí más visibilidad y trabajos de mayor valor.",
+      "vehicle": "VEHÍCULO",
+      "assistanceNeeded": "ASISTENCIA NECESARIA",
+      "address": "DIRECCIÓN",
+      "addressUnlock": "La dirección exacta se desbloquea cuando aceptás",
+      "price": "precio",
+      "viewRequest": "Ver solicitud",
+      "decline": "Rechazar",
+      "urgent": "URGENTE",
+      "changeStatus": "Cambiá tu estado",
+      "lookingForMoreWork": "¿Buscás más trabajo?",
+      "viewOpportunities": "Ver oportunidades"
     }
   },
   "requestAssistance": {
@@ -359,6 +406,39 @@
     },
     "cancellationModal": {
       "message": "¿Estás seguro de que querés cancelar esta solicitud?\nTu mecánico ya está en camino hacia vos."
+    }
+  },
+  "requestDetail": {
+    "headerTitle": "Detalles de la solicitud",
+    "badge": "DETALLES DE LA SOLICITUD",
+    "title": "Revisá antes de aceptar",
+    "subtitle": "Revisá el problema del vehículo, la ubicación y el precio a continuación",
+    "vehicle": "VEHÍCULO",
+    "vehicleIssue": "PROBLEMA DEL VEHÍCULO",
+    "assistanceNeeded": "ASISTENCIA NECESARIA",
+    "address": "DIRECCIÓN",
+    "addressUnlock": "La dirección exacta se desbloquea cuando aceptás",
+    "price": "precio",
+    "urgent": "URGENTE",
+    "distance": "DISTANCIA",
+    "eta": "ETA",
+    "dayAvailability": "Opciones de disponibilidad por día",
+    "selectDate": "Seleccioná la fecha",
+    "selectTimeTitle": "Seleccioná la hora",
+    "selectTime": "Seleccioná la hora",
+    "acceptRequest": "Aceptar solicitud",
+    "offerAccepted": "¡Oferta aceptada!",
+    "acceptedImmediate": "Aceptaste la solicitud inmediata de {{title}}.",
+    "acceptedScheduled": "Aceptaste la solicitud para el {{date}} a las {{time}}.",
+    "dismiss": "Descartar",
+    "ok": "OK",
+    "selectDateTimeAlert": "Por favor seleccioná una fecha y una hora.",
+    "acceptFailed": "No se pudo aceptar la solicitud: {{error}}",
+    "timeAgo": {
+      "justNow": "Recién",
+      "minutes": "hace {{count}} min",
+      "hours": "hace {{count}} h",
+      "days": "hace {{count}} d"
     }
   }
 }
