@@ -76,63 +76,28 @@ Expo Router file-based routing. Key entrypoints:
 
 Screens must use DAOs or Contexts, not raw `fetch`. Adding a new feature that needs backend support means coordinating with the backend repo — this repo alone can't add endpoints.
 
-### Backend contract (implementation lives in the separate backend repo)
-Documented here because the mobile app's behavior depends on it:
-- REST API at `/api/*`; WS on the same host. Clients register with `{ type: 'register', userId }`.
-- WS message types in use: `register`, `unregister`, `chat_message`, `assistance_update`, `video_room_ready`, `register_admin`, `user_status_change`.
-- `appointments` vs `assistance_requests` tables: both share the same `id` (the assistance request ID). `appointments` is the "accepted/active" record; `assistance_requests` is the source of truth for request lifecycle. `AppointmentsContext` on mobile uses the `appointments` row when it exists, filtering out the duplicate `assistance_requests` entry by ID.
-- Photos: upload returns a full absolute URL (`http://<host>/api/photos/<uuid>.jpg`), stored as a JSON array. Mobile upload is `AssistanceDAO.uploadPhoto(localUri)` using `apiClient.upload()` with `FormData` — the `upload()` method must NOT set `Content-Type` manually, fetch sets it with the multipart boundary automatically. Max 3 photos per request (enforced in `app/(tabs)/request-assistance/add-details.tsx`).
-- **Mechanic test bot**: simulates a real mechanic for test user `+11111111111` (acts as mechanic `mech-1`, Shayna Samett). Sets assistance status to `'offered'` first (not `'accepted'`) — `searching.tsx` listens for `status === 'offered'` to navigate to the mechanic-found screen; status becomes `'accepted'` only after the user confirms. After confirmation it progresses through status updates: "On my way" (~15s) → "Arrived" (~40s) → "Diagnosing" (~75s). Useful to know when debugging why a status transition on-device seems slow or out of order.
-- Video calls: `POST /api/video-room` creates a Daily.co room; server notifies the mechanic via `video_room_ready` WS event (with a 3s polling fallback). If the mechanic is the test bot, a separate video-bot microservice joins the call as a real Daily.co participant for ~2 minutes.
+### Backend contract, video flow, online tracking
+The mobile app depends on a backend contract (REST/WS shape, `appointments` vs
+`assistance_requests`, photo upload rules, test-bot timing), plus the Daily.co video
+flow and WebSocket-driven online tracking. Full reference: [docs/backend-contract.md](docs/backend-contract.md).
 
-### Video Call Flow (Daily.co, native SDK)
-1. User requests video call → mechanic accepts → both go to video lobby (`app/(tabs)/video-lobby/[id].tsx`)
-2. User starts call → backend creates the Daily.co room
-3. Both join via `lib/video/useDailyCall.ts` (native Daily SDK, not a WebView)
-4. `components/video/CallControls.tsx`, `components/video/VideoTile.tsx` render the call UI
-
-### User Online Tracking
-The `users.isOnline` flag is driven purely by WebSocket events on the mobile side — no polling:
-- `context/SocketContext.tsx` sends `{ type: 'unregister', userId }` explicitly in three cases: on logout (`user?.id` becomes null), when `AppState` goes to `'background'`/`'inactive'`, and re-sends `{ type: 'register', userId }` when `AppState` returns to `'active'`.
-- `userIdRef` keeps the userId accessible inside event handlers after user state clears.
-- The server-side broadcast to admin clients and the admin portal's live dashboard are implemented in the separate backend/admin-portal repo.
-
-### Firebase Phone Auth (`lib/firebase/auth.ts`)
-- Uses `auth().signInWithPhoneNumber(phoneNumber)` — **namespaced API only**. The modular `signInWithPhoneNumber(getAuth(), ...)` does not properly handle the reCAPTCHA fallback on iOS.
-- Signs out any existing Firebase user before calling `signInWithPhoneNumber` to avoid `auth/internal-error`.
-- **Firebase Blaze billing plan is required** for real SMS on real devices. Test phone numbers (Firebase Console → Authentication → Sign-in method → Phone → "Phone numbers for testing") bypass SMS and work on any plan — use them for local dev to avoid rate limiting.
-- `auth/too-many-requests` = device blocked due to too many failed attempts → wait ~1 hour or use a test phone number.
-- `auth/internal-error` in <500ms on real device = check Firebase billing (must be Blaze) and verify via: `curl -X POST "https://identitytoolkit.googleapis.com/v1/accounts:sendVerificationCode?key=<API_KEY>" -H "Content-Type: application/json" -d '{"phoneNumber":"+1...","recaptchaToken":"test"}'` — if returns `BILLING_NOT_ENABLED`, upgrade to Blaze.
-- APNs forwarding is set up in `ios/Mechanic/AppDelegate.swift` via `withFirebaseAuthAPNS` config plugin — `setAPNSToken(.sandbox)` for DEBUG, `.prod` for release. Required entitlements: `aps-environment: production`, `UIBackgroundModes: remote-notification`.
-- Config plugin files: `plugins/withFirebasePodfile.js`, `plugins/withFirebaseAuthAPNS.js` — these survive `expo prebuild --clean` (EAS).
-- `firebase/GoogleService-Info.plist` → copied to `ios/Mechanic/GoogleService-Info.plist` during prebuild. Must include `REVERSED_CLIENT_ID` for reCAPTCHA fallback.
-
-### Internationalization (`lib/i18n/`)
-- `i18next` + `react-i18next`, initialized as a side-effect import (`import "@/lib/i18n"` in `app/_layout.tsx`) — no Provider needed, `useTranslation()` reads the global instance.
-- Locale files: `lib/i18n/locales/en.json`, `lib/i18n/locales/es.json`. Selected language persists to AsyncStorage (`app_language`) and restores on app start; switch it with `setAppLanguage('en' | 'es')` from `lib/i18n`.
-- Namespaced by screen/feature (`profile`, `dashboard`, `requestAssistance`, `appointments`, ...). When translating a new screen, check for existing shared keys (e.g. `requestAssistance.header.*`, `requestAssistance.badge.*`) before adding duplicates — several wizard screens repeat the same title/badge text.
-- Not all screens are translated yet — see [docs/](docs/) or check a screen directly before assuming `t()` is wired up.
-
-### Styling
-Mobile: **NativeWind** (Tailwind classes on RN components). Base components in `components/ui/`.
+### Area-specific guides → skills
+Conditional/procedural knowledge lives in skills (loaded on-demand), not here:
+- **Firebase phone auth / login / OTP** → skill `firebase-phone-auth`
+- **Traducciones / i18n** → skill `add-translation`
+- **Estilos de UI (cards, botones, badges, sombras, títulos)** → skill `ui-card-styling`
 
 ---
 
-## Conventions
+## Conventions (always apply)
 
-- **TypeScript** — avoid `any`; when unavoidable (WS parsing), encapsulate it.
-- **Files to ignore** — `._*` (Apple resource forks), `node_modules/`, `.expo/`, build artifacts.
-- **Minimal diffs** — prefer small targeted changes; do not refactor surrounding code.
 - **No direct backend edits** — this repo can't implement or modify API endpoints; new features that need backend support require coordinating with the backend repo.
-
-### Styling Rules
-
-**View Titles (Screen Headers)**
-- **Font size**: `text-3xl` (30px)
-- **Color**: `text-gray-900` (#111827)
-- **Font weight**: `font-outfit-medium`
-- Example: Welcome back title in `app/(tabs)/dashboard/index.tsx`
-- Use this standard for all primary screen titles unless explicitly overridden by design specs
+- **Minimal diffs** — prefer small targeted changes; do not refactor surrounding code.
+- **TypeScript** — avoid `any`; when unavoidable (WS parsing), encapsulate it.
+- **Use DAOs/Contexts, never raw `fetch`** — screens consume `lib/dao/` or `context/`.
+- **Never hardcode endpoints** — always `ConfigService.getApiBaseUrl()` / `getWsUrl()`.
+- **Styling** — NativeWind (Tailwind on RN); base components in `components/ui/`. Screen-title/card/button conventions live in the `ui-card-styling` skill.
+- **Files to ignore** — `._*` (Apple resource forks), `node_modules/`, `.expo/`, build artifacts.
 
 ---
 

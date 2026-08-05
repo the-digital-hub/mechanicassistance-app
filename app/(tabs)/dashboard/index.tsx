@@ -9,7 +9,7 @@ import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { AssistanceRequest } from '@/lib/dao/interfaces';
 import * as Location from 'expo-location';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Calendar, Video, Zap, MapPin, Wrench, DollarSign, Star, Award, Circle, Clock } from 'lucide-react-native';
+import { Calendar, Video, Zap, MapPin, Wrench, DollarSign, Star, Award, Circle, Clock, Car, Lock } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, ScrollView, Text, TouchableOpacity, View, Modal } from 'react-native';
@@ -303,86 +303,99 @@ export default function DashboardScreen() {
                                 const serviceTypeLabel = request.type === 'videocall' ? 'Video Call Assistance' : request.type === 'scheduled' ? 'Scheduled Assistance' : 'Immediate Assistance';
                                 const badge = request.type === 'immediate' ? 'URGENT' : null;
 
-                                return (
-                                    <View
-                                        key={request.id}
-                                        style={{
-                                            shadowColor: '#000',
-                                            shadowOffset: { width: 0, height: 4 },
-                                            shadowOpacity: 0.12,
-                                            shadowRadius: 8,
-                                            elevation: 6,
-                                            marginBottom: 4,
-                                        }}
-                                    >
-                                        <View className="bg-white rounded-3xl">
-                                            {/* Top Section */}
-                                            <View className="p-5 pb-3">
-                                                {/* Header Row: icon, title/badge/time, budget */}
-                                                <View className="flex-row items-center">
-                                                    {/* Icon */}
-                                                    <View
-                                                        className="w-16 h-16 rounded-2xl items-center justify-center mr-4"
-                                                        style={{ backgroundColor: iconBgColor }}
-                                                    >
-                                                        {iconType === 'video' ? (
-                                                            <Video size={30} color={iconColor} />
-                                                        ) : (
-                                                            <Zap size={30} color={iconColor} fill={iconColor} />
-                                                        )}
-                                                    </View>
+                                // Hide the street; show only city/state (+ zip) once.
+                                const addressParts = String(request.address || '').split(',').map((p) => p.trim()).filter(Boolean);
+                                const cityLine = addressParts.length > 1
+                                    ? `${addressParts.slice(1).join(', ')}${request.zip ? ` · ${request.zip}` : ''}`
+                                    : String(request.address || '');
 
-                                                    {/* Title + badge + time */}
-                                                    <View className="flex-1 pr-2">
-                                                        <Text className="text-gray-900 font-outfit-bold text-lg" numberOfLines={1}>
-                                                            {serviceTypeLabel}
-                                                        </Text>
-                                                        <View className="flex-row items-center gap-2 mt-1">
-                                                            {badge && (
-                                                                <View className="px-2 py-0.5 rounded-md" style={{ backgroundColor: '#FEE2E2' }}>
-                                                                    <Text className="font-outfit-bold text-[10px] tracking-widest" style={{ color: '#EF4444' }}>
-                                                                        {badge}
-                                                                    </Text>
-                                                                </View>
-                                                            )}
-                                                            <View className="flex-row items-center gap-1">
-                                                                <Clock size={13} color="#9CA3AF" />
-                                                                <Text className="text-gray-500 font-outfit-regular text-sm">Just now</Text>
+                                const cardShadow = {
+                                    shadowColor: '#000',
+                                    shadowOffset: { width: 0, height: 4 },
+                                    shadowOpacity: 0.12,
+                                    shadowRadius: 8,
+                                    elevation: 6,
+                                };
+
+                                return (
+                                    <View key={request.id} className="mb-2">
+                                        {/* Combined Card: header + details */}
+                                        <View className="bg-white rounded-3xl mb-3" style={cardShadow}>
+                                            {/* Header Row: service, urgency, price */}
+                                            <View className="p-5 flex-row items-center border-b border-gray-100">
+                                                <View
+                                                    className="w-14 h-14 rounded-2xl items-center justify-center mr-4"
+                                                    style={{ backgroundColor: iconBgColor }}
+                                                >
+                                                    {iconType === 'video' ? (
+                                                        <Video size={26} color={iconColor} />
+                                                    ) : (
+                                                        <Zap size={26} color={iconColor} fill={iconColor} />
+                                                    )}
+                                                </View>
+                                                <View className="flex-1 pr-2">
+                                                    <Text className="text-gray-900 font-outfit-bold text-lg" numberOfLines={1}>
+                                                        {serviceTypeLabel}
+                                                    </Text>
+                                                    <View className="flex-row items-center gap-2 mt-1">
+                                                        {badge && (
+                                                            <View className="px-2 py-0.5 rounded-md" style={{ backgroundColor: '#FEE2E2' }}>
+                                                                <Text className="font-outfit-bold text-[10px] tracking-widest" style={{ color: '#EF4444' }}>
+                                                                    {badge}
+                                                                </Text>
                                                             </View>
+                                                        )}
+                                                        <View className="flex-row items-center gap-1">
+                                                            <Clock size={13} color="#9CA3AF" />
+                                                            <Text className="text-gray-500 font-outfit-regular text-sm">Just now</Text>
                                                         </View>
                                                     </View>
-
-                                                    {/* Price */}
-                                                    <View className="items-end">
-                                                        <Text className="font-outfit-bold text-2xl" style={{ color: '#0047AB' }}>
-                                                            {request.budget}
-                                                        </Text>
-                                                        <Text className="font-outfit-regular text-sm text-gray-400">price</Text>
-                                                    </View>
                                                 </View>
-
-                                                {/* Info Block: vehicle, issue, address */}
-                                                <View className="mt-4 rounded-2xl overflow-hidden" style={{ backgroundColor: '#F4F8FF' }}>
-                                                    <View className="px-4 pt-4 pb-3">
-                                                        <Text className="text-gray-900 font-outfit-semibold text-lg">
-                                                            {request.car}
-                                                        </Text>
-                                                        <Text className="text-gray-500 font-outfit-regular text-base mt-0.5">
-                                                            {request.notes || request.title}
-                                                        </Text>
-                                                    </View>
-                                                    <View style={{ height: 1, backgroundColor: '#E1EAFB' }} />
-                                                    <View className="flex-row items-center gap-1.5 px-4 py-3">
-                                                        <MapPin size={15} color="#9CA3AF" />
-                                                        <Text className="text-gray-600 font-outfit-regular text-base">
-                                                            {request.address}{request.distance ? ` · ${String(request.distance).replace(/\s*km/i, '').trim()} mi` : ''}
-                                                        </Text>
-                                                    </View>
+                                                <View className="items-end ml-2">
+                                                    <Text className="font-outfit-bold text-2xl" style={{ color: '#0047AB' }}>
+                                                        {request.budget}
+                                                    </Text>
+                                                    <Text className="font-outfit-regular text-sm text-gray-400">price</Text>
                                                 </View>
                                             </View>
 
-                                            {/* Buttons Section */}
-                                            <View className="flex-row px-5 pb-5 gap-3">
+                                            {/* Vehicle */}
+                                            <View className="flex-row items-center px-5 py-4 border-b border-gray-100">
+                                                <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
+                                                    <Car size={20} color="#0047AB" />
+                                                </View>
+                                                <View className="flex-1">
+                                                    <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">VEHICLE</Text>
+                                                    <Text className="font-outfit-bold text-base text-gray-900">{request.car}</Text>
+                                                </View>
+                                            </View>
+
+                                            {/* Assistance needed */}
+                                            <View className="flex-row items-center px-5 py-4 border-b border-gray-100">
+                                                <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
+                                                    <Wrench size={20} color="#0047AB" />
+                                                </View>
+                                                <View className="flex-1">
+                                                    <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">ASSISTANCE NEEDED</Text>
+                                                    <Text className="font-outfit-bold text-base text-gray-900">{request.notes || request.title}</Text>
+                                                </View>
+                                            </View>
+
+                                            {/* Address (blurred street, city/state shown) */}
+                                            <View className="flex-row px-5 py-4">
+                                                <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
+                                                    <Lock size={20} color="#0047AB" />
+                                                </View>
+                                                <View className="flex-1">
+                                                    <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-1.5">ADDRESS</Text>
+                                                    <View className="h-4 rounded-md mb-1.5" style={{ backgroundColor: '#E5E7EB', width: '75%' }} />
+                                                    <Text className="font-outfit-bold text-base text-gray-900">{cityLine}</Text>
+                                                    <Text className="font-outfit-regular text-sm text-gray-400 mt-0.5">Exact address unlocks once you accept</Text>
+                                                </View>
+                                            </View>
+
+                                            {/* Buttons Row (inside card) */}
+                                            <View className="flex-row gap-3 px-5 py-4 border-t border-gray-100">
                                                 <TouchableOpacity
                                                     style={{ flex: 0.65 }}
                                                     onPress={() => router.push({
@@ -409,7 +422,7 @@ export default function DashboardScreen() {
                                                         end={{ x: 1, y: 0 }}
                                                         style={{
                                                             borderRadius: 16,
-                                                            paddingVertical: 12,
+                                                            paddingVertical: 14,
                                                             paddingHorizontal: 16,
                                                             alignItems: 'center',
                                                             justifyContent: 'center',
@@ -546,7 +559,7 @@ export default function DashboardScreen() {
                         </Text>
 
                         {/* Assistance Type Cards - Horizontal */}
-                        <View className="flex-row gap-3 mb-6 justify-between">
+                        <View className="flex-row gap-3 mb-8 justify-between">
                             {/* Immediate Assistance - Featured Card */}
                             <TouchableOpacity
                                 onPress={() => {
@@ -632,13 +645,66 @@ export default function DashboardScreen() {
                         </View>
 
                         {/* Active Request Title */}
-                        <Text className="text-gray-900 font-outfit-medium text-lg mb-2" style={{ fontSize: 18 }}>{t('dashboard.user.activeRequestTitle')}</Text>
+                        <Text className="text-gray-900 font-outfit-medium text-lg mb-3" style={{ fontSize: 18 }}>{t('dashboard.user.activeRequestTitle')}</Text>
 
-                        {/* Empty State Message */}
-                        <Text className="text-gray-500 font-outfit-regular text-base mb-6">
-                            {t('dashboard.user.noActiveRequests')}
-                        </Text>
-
+                        {/* Empty State Message (only when no active requests) */}
+                        {filteredRequests.length === 0 && (
+                            <Text className="text-gray-500 font-outfit-regular text-base mb-2">
+                                {t('dashboard.user.noActiveRequests')}
+                            </Text>
+                        )}
+                    </View>
+                }
+                data={filteredRequests}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => {
+                    const isAccepted = appointments.some(appt => appt.id === item.id && appt.status !== 'canceled');
+                    return (
+                        <View
+                            style={{
+                                borderRadius: 12,
+                                backgroundColor: '#EFF6FF',
+                                marginBottom: 16,
+                                shadowColor: '#000',
+                                shadowOffset: { width: 0, height: 2 },
+                                shadowOpacity: 0.1,
+                                shadowRadius: 4,
+                                elevation: 3,
+                            }}
+                        >
+                            <AssistanceCard
+                                id={item.id}
+                                type={item.type}
+                                assistanceType={item.assistanceType}
+                                title={item.title}
+                                car={item.car}
+                                notes={item.notes}
+                                address={item.address}
+                                distance={item.distance}
+                                budget={item.budget}
+                                onAccept={() => !isAccepted && router.push({
+                                    pathname: `/dashboard/${item.id}` as any,
+                                    params: {
+                                        type: item.type,
+                                        assistanceType: item.assistanceType || '',
+                                        title: item.title,
+                                        car: item.car,
+                                        address: item.address,
+                                        budget: item.budget,
+                                        distance: item.distance || '',
+                                        userId: item.userId || '',
+                                        zip: item.zip || '',
+                                        locationLat: item.locationLat ?? '',
+                                        locationLng: item.locationLng ?? '',
+                                    }
+                                })}
+                                isAccepted={isAccepted}
+                            />
+                        </View>
+                    );
+                }}
+                ListFooterComponent={
+                    <View className="mt-4">
                         {/* DIY Tutorial Card 1 */}
                         <View className="bg-white rounded-3xl p-5 mb-6 flex-row items-center gap-4" style={{ borderWidth: 1.5, borderColor: '#EEF2FA' }}>
                             {/* Icon - Left Column */}
@@ -739,41 +805,6 @@ export default function DashboardScreen() {
                         )}
                     </View>
                 }
-                data={filteredRequests}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => {
-                    const isAccepted = appointments.some(appt => appt.id === item.id && appt.status !== 'canceled');
-                    return (
-                        <AssistanceCard
-                            id={item.id}
-                            type={item.type}
-                            assistanceType={item.assistanceType}
-                            title={item.title}
-                            car={item.car}
-                            notes={item.notes}
-                            address={item.address}
-                            distance={item.distance}
-                            budget={item.budget}
-                            onAccept={() => !isAccepted && router.push({
-                                pathname: `/dashboard/${item.id}` as any,
-                                params: {
-                                    type: item.type,
-                                    assistanceType: item.assistanceType || '',
-                                    title: item.title,
-                                    car: item.car,
-                                    address: item.address,
-                                    budget: item.budget,
-                                    distance: item.distance || '',
-                                    userId: item.userId || '',
-                                    zip: item.zip || '',
-                                    locationLat: item.locationLat ?? '',
-                                    locationLng: item.locationLng ?? '',
-                                }
-                            })}
-                            isAccepted={isAccepted}
-                        />
-                    );
-                }}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: 20 }}
             />
