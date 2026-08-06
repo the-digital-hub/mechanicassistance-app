@@ -3,7 +3,7 @@ import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import * as Location from 'expo-location';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
-import { Calendar, Clock, Navigation, CheckCircle, ChevronLeft, Zap, Car, Wrench, Lock, ArrowUpRight } from 'lucide-react-native';
+import { Calendar, Clock, Navigation, CheckCircle, ChevronLeft, Zap, Car, Wrench, Lock, ArrowUpRight, DollarSign } from 'lucide-react-native';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -123,16 +123,27 @@ export default function RequestDetailScreen() {
     const [selectedTime, setSelectedTime] = useState<string | null>(null);
     const [isTimeOpen, setIsTimeOpen] = useState(false);
 
-    const DATES = ['Monday, July 14', 'Tuesday, July 15', 'Wednesday, July 16'];
+    const DATES = [
+        t('requestDetail.mockDates.date1'),
+        t('requestDetail.mockDates.date2'),
+        t('requestDetail.mockDates.date3'),
+    ];
     const TIMES = ['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '04:00 PM'];
 
+    // Only zoom out to fit both pins when the mechanic is actually in the
+    // request's vicinity — otherwise (e.g. testing far from the request city)
+    // fitting both points zooms the small embedded map out to a whole
+    // country/continent, which isn't useful. Past that distance we just keep
+    // the map centered on the request location.
+    const NEARBY_KM_THRESHOLD = 100;
     useEffect(() => {
         if (!mechanicCoords || !hasLocation) return;
+        if (distKm === null || distKm > NEARBY_KM_THRESHOLD) return;
         mapRef.current?.fitToCoordinates(
             [{ latitude: reqLat, longitude: reqLng }, mechanicCoords],
-            { edgePadding: { top: 60, right: 60, bottom: 60, left: 60 }, animated: true },
+            { edgePadding: { top: 20, right: 20, bottom: 20, left: 20 }, animated: true },
         );
-    }, [mechanicCoords]);
+    }, [mechanicCoords, distKm]);
 
     useEffect(() => {
         if (!hasLocation) return;
@@ -226,30 +237,37 @@ export default function RequestDetailScreen() {
                             <Zap size={26} color={isUrgent ? '#EF4444' : '#0047AB'} fill={isUrgent ? '#EF4444' : '#0047AB'} />
                         </View>
                         <View className="flex-1">
-                            <Text className="font-outfit-bold text-lg text-gray-900" numberOfLines={1}>{serviceLabel}</Text>
-                            <View className="flex-row items-center gap-2 mt-1">
+                            <View className="flex-row items-center gap-2">
+                                <Text className="font-outfit-bold text-lg text-gray-900" numberOfLines={1}>{serviceLabel}</Text>
                                 {isUrgent && (
                                     <View className="px-2 py-0.5 rounded-md" style={{ backgroundColor: '#FEE2E2' }}>
                                         <Text className="font-outfit-bold text-[11px] tracking-widest" style={{ color: '#EF4444' }}>{t('requestDetail.urgent')}</Text>
                                     </View>
                                 )}
-                                <View className="flex-row items-center gap-1">
-                                    <Clock size={13} color="#9CA3AF" />
-                                    <Text className="font-outfit-regular text-sm text-gray-500">{timeAgo}</Text>
-                                </View>
                             </View>
-                        </View>
-                        <View className="items-end ml-2">
-                            <Text className="font-outfit-bold text-2xl" style={{ color: '#0047AB' }}>{price ? `$${price}` : budget}</Text>
-                            <Text className="font-outfit-regular text-sm text-gray-400">{t('requestDetail.price')}</Text>
+                            <View className="flex-row items-center gap-1 mt-1">
+                                <Clock size={13} color="#9CA3AF" />
+                                <Text className="font-outfit-regular text-sm text-gray-500">{timeAgo}</Text>
+                            </View>
                         </View>
                     </View>
 
-                    {/* Details Card: vehicle, assistance, address */}
+                    {/* Details Card: budget, vehicle, assistance, address */}
                     <View
                         className="bg-white rounded-2xl mb-4"
                         style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 4 }}
                     >
+                        {/* Budget */}
+                        <View className="flex-row items-center px-5 py-4 border-b border-gray-100">
+                            <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
+                                <DollarSign size={20} color="#0047AB" />
+                            </View>
+                            <View className="flex-1">
+                                <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">{t('requestDetail.budget')}</Text>
+                                <Text className="font-outfit-bold text-base text-gray-900">{price ? `$${price}` : budget}</Text>
+                            </View>
+                        </View>
+
                         {/* Vehicle */}
                         <View className="flex-row items-center px-5 py-4 border-b border-gray-100">
                             <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
@@ -298,6 +316,55 @@ export default function RequestDetailScreen() {
                                 <Text className="font-outfit-regular text-sm text-gray-400 mt-0.5">{t('requestDetail.addressUnlock')}</Text>
                             </View>
                         </View>
+
+                        {/* Address map — client pin (+ own GPS pin / route once available) */}
+                        {hasLocation && (
+                            <View className="mx-5 mb-5 rounded-xl overflow-hidden" style={{ height: 160 }}>
+                                <MapView
+                                    provider={MAP_PROVIDER}
+                                    ref={mapRef}
+                                    style={{ flex: 1 }}
+                                    initialRegion={{
+                                        latitude: reqLat,
+                                        longitude: reqLng,
+                                        latitudeDelta: 0.09,
+                                        longitudeDelta: 0.09,
+                                    }}
+                                    onMapReady={() => {
+                                        // Only fit the mechanic's pin in too if they're actually nearby —
+                                        // see the effect above for why.
+                                        if (!mechanicCoords || distKm === null || distKm > NEARBY_KM_THRESHOLD) return;
+                                        mapRef.current?.fitToCoordinates(
+                                            [{ latitude: reqLat, longitude: reqLng }, mechanicCoords],
+                                            {
+                                                edgePadding: { top: 20, right: 20, bottom: 20, left: 20 },
+                                                animated: false,
+                                            }
+                                        );
+                                    }}
+                                >
+                                    <Marker
+                                        coordinate={{ latitude: reqLat, longitude: reqLng }}
+                                        title={t('requestDetail.clientLocation')}
+                                        pinColor="red"
+                                    />
+                                    {mechanicCoords && (
+                                        <Marker
+                                            coordinate={mechanicCoords}
+                                            title={t('requestDetail.yourLocation')}
+                                            pinColor="blue"
+                                        />
+                                    )}
+                                    {routePolyline && (
+                                        <Polyline
+                                            coordinates={decodePolyline(routePolyline)}
+                                            strokeColor="#2563EB"
+                                            strokeWidth={4}
+                                        />
+                                    )}
+                                </MapView>
+                            </View>
+                        )}
                     </View>
 
                     {/* Distance / ETA Card */}
@@ -322,55 +389,6 @@ export default function RequestDetailScreen() {
                                     <Text className="font-outfit-bold text-lg text-gray-900">{etaText || '—'}</Text>
                                 </View>
                             </View>
-                        </View>
-                    )}
-
-                    {/* Route map */}
-                    {hasLocation && (
-                        <View className="mb-6 rounded-xl overflow-hidden" style={{ height: 200 }}>
-                            <MapView
-                                provider={MAP_PROVIDER}
-                                ref={mapRef}
-                                style={{ flex: 1 }}
-                                initialRegion={{
-                                    latitude: reqLat,
-                                    longitude: reqLng,
-                                    latitudeDelta: 0.05,
-                                    longitudeDelta: 0.05,
-                                }}
-                                onMapReady={() => {
-                                    const coords = [
-                                        { latitude: reqLat, longitude: reqLng },
-                                        ...(mechanicCoords ? [mechanicCoords] : []),
-                                    ];
-                                    if (coords.length >= 2) {
-                                        mapRef.current?.fitToCoordinates(coords, {
-                                            edgePadding: { top: 60, right: 60, bottom: 60, left: 60 },
-                                            animated: false,
-                                        });
-                                    }
-                                }}
-                            >
-                                <Marker
-                                    coordinate={{ latitude: reqLat, longitude: reqLng }}
-                                    title="Client location"
-                                    pinColor="red"
-                                />
-                                {mechanicCoords && (
-                                    <Marker
-                                        coordinate={mechanicCoords}
-                                        title="Your location"
-                                        pinColor="blue"
-                                    />
-                                )}
-                                {routePolyline && (
-                                    <Polyline
-                                        coordinates={decodePolyline(routePolyline)}
-                                        strokeColor="#2563EB"
-                                        strokeWidth={4}
-                                    />
-                                )}
-                            </MapView>
                         </View>
                     )}
 

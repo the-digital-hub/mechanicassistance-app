@@ -8,10 +8,12 @@ import { ChevronRight } from "lucide-react-native";
 import { TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Text, View } from "react-native";
 
 export default function SuccessScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { login } = useUser();
   const [isCreating, setIsCreating] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +64,7 @@ export default function SuccessScreen() {
         console.error("❌ [success.tsx] Registration failed:", err);
         console.error("❌ [success.tsx] Error message:", err.message);
         console.error("❌ [success.tsx] Error stack:", err.stack);
-        setError(err.message || "Failed to create account");
+        setError(err.message || t("setup.success.createAccountFailed"));
         setIsCreating(false);
       }
     };
@@ -85,7 +87,7 @@ export default function SuccessScreen() {
       <View className="flex-1 items-center justify-center p-6" style={{ backgroundColor: '#F6F8FC' }}>
         <ActivityIndicator size="large" color="#0047AB" />
         <Text className="text-lg font-outfit-medium text-[#0047AB] text-center mt-4">
-          Finalizing your account...
+          {t("setup.success.finalizing")}
         </Text>
       </View>
     );
@@ -95,7 +97,7 @@ export default function SuccessScreen() {
     return (
       <View className="flex-1 items-center justify-center p-6" style={{ backgroundColor: '#F6F8FC' }}>
         <Text className="text-xl font-outfit-bold text-red-600 mb-4 text-center">
-          Oops! Something went wrong
+          {t("setup.success.errorTitle")}
         </Text>
         <Text className="text-base font-outfit-regular text-slate-500 mb-8 text-center">
           {error}
@@ -118,7 +120,7 @@ export default function SuccessScreen() {
               justifyContent: 'center',
             }}
           >
-            <Text className="text-white font-outfit-bold text-center mr-2">Try Again</Text>
+            <Text className="text-white font-outfit-bold text-center mr-2">{t("setup.success.tryAgain")}</Text>
             <ChevronRight size={20} color="white" />
           </LinearGradient>
         </TouchableOpacity>
@@ -139,10 +141,10 @@ export default function SuccessScreen() {
       </View>
 
       <Text className="text-3xl font-outfit-medium text-gray-900 mb-3 text-center">
-        Congratulations
+        {t("setup.success.congratulations")}
       </Text>
       <Text className="text-base font-outfit-regular text-gray-500 mb-12 text-center">
-        Your account has been set-up successfully!
+        {t("setup.success.setupComplete")}
       </Text>
 
       <TouchableOpacity
@@ -163,7 +165,7 @@ export default function SuccessScreen() {
             justifyContent: 'center',
           }}
         >
-          <Text className="text-white font-outfit-bold text-center mr-2">Get Started</Text>
+          <Text className="text-white font-outfit-bold text-center mr-2">{t("setup.success.getStarted")}</Text>
           <ChevronRight size={20} color="white" />
         </LinearGradient>
       </TouchableOpacity>

@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -15,6 +16,7 @@ import { MakeType, VEHICLE_COLORS, VEHICLE_DATA, decodeVin } from '@/lib/vehicle
 
 export default function VehiclesScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
     const { user } = useUser();
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -168,7 +170,7 @@ export default function VehiclesScreen() {
     const handleVinLookup = async () => {
         const vin = formData.vin.trim();
         if (vin.length !== 17) {
-            Alert.alert('Invalid VIN', 'A VIN must be exactly 17 characters.');
+            Alert.alert(t('vehicles.invalidVinTitle'), t('vehicles.invalidVinMessage'));
             return;
         }
 
@@ -183,13 +185,13 @@ export default function VehiclesScreen() {
                         model,
                     }));
                     Alert.alert(
-                        'VIN Decoded',
-                        `Found: ${make} ${model}`,
-                        [{ text: 'OK' }]
+                        t('vehicles.vinDecodedTitle'),
+                        t('vehicles.vinDecodedMessage', { make, model }),
+                        [{ text: t('vehicles.ok') }]
                     );
                 },
                 (errorMsg) => {
-                    Alert.alert('VIN Not Found', errorMsg);
+                    Alert.alert(t('vehicles.vinNotFoundTitle'), errorMsg);
                 }
             );
         } finally {
@@ -223,43 +225,43 @@ export default function VehiclesScreen() {
                     <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                       <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
                       <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                        YOUR INFORMATION
+                        {t('vehicles.badge')}
                       </Text>
                     </View>
 
                     {/* Title */}
-                    <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">Add vehicle</Text>
+                    <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">{t('vehicles.addVehicleTitle')}</Text>
 
                     {/* Subtitle */}
                     <Text className="text-gray-500 font-outfit-regular text-base mb-6">
-                      Register your vehicle to request assistance
+                      {t('vehicles.addVehicleSubtitle')}
                     </Text>
 
                     <View className="gap-4 mb-8">
                         <View>
-                            <Text className="font-outfit-medium text-[#0F172A] mb-2">Vehicle make</Text>
+                            <Text className="font-outfit-medium text-[#0F172A] mb-2">{t('vehicles.make')}</Text>
                             <TouchableOpacity
                                 onPress={() => setActiveModal('make')}
                                 className="bg-white border border-gray-300 h-12 flex-row items-center justify-between px-4 rounded-[10px]"
                             >
-                                <Text className="text-[#0F172A] font-outfit-regular">{formData.make}</Text>
+                                <Text className="text-[#0F172A] font-outfit-regular">{formData.make === 'Select' ? t('vehicles.select') : formData.make}</Text>
                                 <Ionicons name="chevron-down" size={20} color="#0047AB" />
                             </TouchableOpacity>
                         </View>
 
                         <View>
-                            <Text className="font-outfit-medium text-[#0F172A] mb-2">Vehicle model</Text>
+                            <Text className="font-outfit-medium text-[#0F172A] mb-2">{t('vehicles.model')}</Text>
                             <TouchableOpacity
                                 onPress={() => formData.make !== 'Select' && setActiveModal('model')}
                                 className={`bg-white border border-gray-300 h-12 flex-row items-center justify-between px-4 rounded-[10px] ${formData.make === 'Select' ? 'opacity-50' : ''}`}
                             >
-                                <Text className="text-[#0F172A] font-outfit-regular">{formData.model}</Text>
+                                <Text className="text-[#0F172A] font-outfit-regular">{formData.model === 'Select' ? t('vehicles.select') : formData.model}</Text>
                                 <Ionicons name="chevron-down" size={20} color="#0047AB" />
                             </TouchableOpacity>
                         </View>
 
                         <View>
-                            <Text className="font-outfit-medium text-[#0F172A] mb-2">Color</Text>
+                            <Text className="font-outfit-medium text-[#0F172A] mb-2">{t('vehicles.color')}</Text>
                             <View className="flex-row gap-3">
                                 {VEHICLE_COLORS.map((c) => {
                                     const isSelected = formData.color === c.name;
@@ -291,7 +293,7 @@ export default function VehiclesScreen() {
                         </View>
 
                         <View>
-                            <Text className="font-outfit-medium text-[#0F172A] mb-2">License plate #</Text>
+                            <Text className="font-outfit-medium text-[#0F172A] mb-2">{t('vehicles.plate')}</Text>
                             <Input
                                 value={formData.plate}
                                 onChangeText={(text) => setFormData(p => ({ ...p, plate: text }))}
@@ -300,7 +302,7 @@ export default function VehiclesScreen() {
                         </View>
 
                         <View>
-                            <Text className="font-outfit-medium text-[#0F172A] mb-2">VIN #</Text>
+                            <Text className="font-outfit-medium text-[#0F172A] mb-2">{t('vehicles.vin')}</Text>
                             <View className="flex-row items-center gap-2">
                                 <View className="flex-1">
                                     <Input
@@ -315,7 +317,7 @@ export default function VehiclesScreen() {
                                         containerClassName="bg-white border border-gray-300 h-12 rounded-[10px]"
                                         maxLength={17}
                                         autoCapitalize="characters"
-                                        placeholder="Enter 17-character VIN"
+                                        placeholder={t('vehicles.vinPlaceholder')}
                                     />
                                 </View>
                                 <TouchableOpacity
@@ -338,12 +340,12 @@ export default function VehiclesScreen() {
                                 </TouchableOpacity>
                             </View>
                             <Text className="text-xs font-outfit-regular text-slate-400 mt-1">
-                                Enter VIN and tap search to auto-fill Make & Model
+                                {t('vehicles.vinHint')}
                             </Text>
                         </View>
 
                         <View ref={detailsContainerRef}>
-                            <Text className="font-outfit-medium text-[#0F172A] mb-2">Further details</Text>
+                            <Text className="font-outfit-medium text-[#0F172A] mb-2">{t('vehicles.furtherDetails')}</Text>
                             <TextInput
                                 multiline
                                 numberOfLines={3}
@@ -375,7 +377,7 @@ export default function VehiclesScreen() {
                                         justifyContent: 'center',
                                     }}
                                 >
-                                    <Text className="text-white font-outfit-bold text-center mr-2">Save Vehicle</Text>
+                                    <Text className="text-white font-outfit-bold text-center mr-2">{t('vehicles.saveVehicle')}</Text>
                                     <ChevronRight size={20} color="white" />
                                 </LinearGradient>
                             ) : (
@@ -391,7 +393,7 @@ export default function VehiclesScreen() {
                                         backgroundColor: '#E5E7EB'
                                     }}
                                 >
-                                    <Text className="text-gray-400 font-outfit-bold text-center mr-2">Save Vehicle</Text>
+                                    <Text className="text-gray-400 font-outfit-bold text-center mr-2">{t('vehicles.saveVehicle')}</Text>
                                     <ChevronRight size={20} color="#9CA3AF" />
                                 </View>
                             )}
@@ -403,8 +405,8 @@ export default function VehiclesScreen() {
                         <View className="flex-1 bg-black/40 justify-end">
                             <View className="bg-white rounded-t-3xl min-h-[50%] max-h-[80%] p-6">
                                 <View className="flex-row justify-between items-center mb-6">
-                                    <Text className="text-xl font-outfit-bold text-[#0F172A]">Select {activeModal === 'make' ? 'Make' : 'Model'}</Text>
-                                    <TouchableOpacity onPress={() => setActiveModal(null)}><Text className="text-blue-600 font-outfit-bold">Done</Text></TouchableOpacity>
+                                    <Text className="text-xl font-outfit-bold text-[#0F172A]">{activeModal === 'make' ? t('vehicles.selectMake') : t('vehicles.selectModel')}</Text>
+                                    <TouchableOpacity onPress={() => setActiveModal(null)}><Text className="text-blue-600 font-outfit-bold">{t('vehicles.done')}</Text></TouchableOpacity>
                                 </View>
                                 <ScrollView showsVerticalScrollIndicator={false}>
                                     {activeModal === 'make' ? (
@@ -435,23 +437,23 @@ export default function VehiclesScreen() {
             <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
               <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
               <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                VEHICLE MANAGEMENT
+                {t('vehicles.listBadge')}
               </Text>
             </View>
 
             {/* Title */}
-            <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">My vehicles</Text>
+            <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">{t('vehicles.listTitle')}</Text>
 
             {/* Subtitle */}
             <Text className="text-gray-500 font-outfit-regular text-base mb-6">
-              Register and manage your vehicles for faster assistance requests
+              {t('vehicles.listSubtitle')}
             </Text>
 
             <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
                 {vehicles.length === 0 ? (
                     <View className="items-center justify-center pt-20">
-                        <Text className="text-slate-400 font-outfit-medium text-lg mb-4">No vehicles registered</Text>
-                        <Button onPress={() => setIsEditing(true)} className="bg-blue-700 rounded-2xl px-12">Add First Vehicle</Button>
+                        <Text className="text-slate-400 font-outfit-medium text-lg mb-4">{t('vehicles.noVehicles')}</Text>
+                        <Button onPress={() => setIsEditing(true)} className="bg-blue-700 rounded-2xl px-12">{t('vehicles.addFirstVehicle')}</Button>
                     </View>
                 ) : (
                     vehicles.map((v) => (
@@ -462,7 +464,7 @@ export default function VehiclesScreen() {
                         >
                             <View className="flex-1">
                                 <Text className="text-lg font-outfit-bold text-[#0F172A] uppercase">{v.make} {v.model}</Text>
-                                <Text className="text-blue-600 font-outfit-medium text-xs tracking-widest uppercase mt-1">{v.plate || 'No Plate'}</Text>
+                                <Text className="text-blue-600 font-outfit-medium text-xs tracking-widest uppercase mt-1">{v.plate || t('vehicles.noPlate')}</Text>
                             </View>
                             <TouchableOpacity onPress={() => v.id && handleDeleteVehicle(v.id)} className="p-2">
                                 <Ionicons name="trash-outline" size={20} color="#EF4444" style={{ opacity: 0.6 }} />
@@ -491,7 +493,7 @@ export default function VehiclesScreen() {
                   flexDirection: 'row',
                 }}
               >
-                <Text className="text-white font-outfit-bold text-center mr-2">Add Vehicles</Text>
+                <Text className="text-white font-outfit-bold text-center mr-2">{t('vehicles.addVehicles')}</Text>
                 <ChevronRight size={20} color="white" />
               </LinearGradient>
             </TouchableOpacity>

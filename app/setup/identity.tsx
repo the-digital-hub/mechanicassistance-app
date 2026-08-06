@@ -6,6 +6,7 @@ import { useRouter } from "expo-router";
 import { ChevronRight } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
     ActionSheetIOS,
     ActivityIndicator,
@@ -28,21 +29,28 @@ interface UploadedImage {
   remoteKey: string;
 }
 
+// Canonical values sent to the backend — kept in English regardless of UI language.
 const DOCUMENT_TYPES = [
   "Driving Licence",
   "Passport",
   "Residence Permit",
   "National ID",
 ];
+const DOCUMENT_TYPE_KEYS = [
+  "drivingLicence",
+  "passport",
+  "residencePermit",
+  "nationalId",
+];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-async function pickFromCamera(): Promise<string | null> {
+async function pickFromCamera(t: (key: string) => string): Promise<string | null> {
   const { status } = await ImagePicker.requestCameraPermissionsAsync();
   if (status !== "granted") {
     Alert.alert(
-      "Permission Required",
-      "Please allow camera access in your device settings to take a photo.",
+      t("setup.identity.permissionRequiredTitle"),
+      t("setup.identity.permissionRequiredMessage"),
     );
     return null;
   }
@@ -68,19 +76,24 @@ async function pickFromGallery(): Promise<string | null> {
 
 export default function IdentityScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [documentType, setDocumentType] = useState<string | null>(null);
   const [frontImage, setFrontImage] = useState<UploadedImage | null>(null);
   const [backImage, setBackImage] = useState<UploadedImage | null>(null);
   const [isUploading, setIsUploading] = useState<Side | null>(null);
+
+  const documentTypeLabels = DOCUMENT_TYPE_KEYS.map((key) =>
+    t(`setup.identity.docTypes.${key}`),
+  );
 
   // ── Document type picker ────────────────────────────────────────────────────
   const handleDocTypePicker = () => {
     if (Platform.OS === "ios") {
       ActionSheetIOS.showActionSheetWithOptions(
         {
-          options: [...DOCUMENT_TYPES, "Cancel"],
-          cancelButtonIndex: DOCUMENT_TYPES.length,
-          title: "Select Document Type",
+          options: [...documentTypeLabels, t("setup.identity.cancel")],
+          cancelButtonIndex: documentTypeLabels.length,
+          title: t("setup.identity.selectDocType"),
         },
         (index) => {
           if (index < DOCUMENT_TYPES.length)
@@ -89,12 +102,12 @@ export default function IdentityScreen() {
       );
     } else {
       Alert.alert(
-        "Select Document Type",
+        t("setup.identity.selectDocType"),
         undefined,
-        DOCUMENT_TYPES.map((type) => ({
-          text: type,
+        DOCUMENT_TYPES.map((type, i) => ({
+          text: documentTypeLabels[i],
           onPress: () => setDocumentType(type),
-        })).concat([{ text: "Cancel", onPress: () => {} }]),
+        })).concat([{ text: t("setup.identity.cancel"), onPress: () => {} }]),
       );
     }
   };
@@ -117,8 +130,8 @@ export default function IdentityScreen() {
     } catch (error) {
       console.error(`Failed to upload ${side} image:`, error);
       Alert.alert(
-        "Upload Failed",
-        "Could not upload the photo. Please try again.",
+        t("setup.identity.uploadFailedTitle"),
+        t("setup.identity.uploadFailedMessage"),
       );
     } finally {
       setIsUploading(null);
@@ -130,33 +143,33 @@ export default function IdentityScreen() {
     if (Platform.OS === "ios") {
       ActionSheetIOS.showActionSheetWithOptions(
         {
-          options: ["Take Photo", "Choose from Gallery", "Cancel"],
+          options: [t("setup.identity.takePhoto"), t("setup.identity.chooseFromGallery"), t("setup.identity.cancel")],
           cancelButtonIndex: 2,
         },
         async (index) => {
           let uri: string | null = null;
-          if (index === 0) uri = await pickFromCamera();
+          if (index === 0) uri = await pickFromCamera(t);
           else if (index === 1) uri = await pickFromGallery();
           if (uri) await uploadAndSetImage(uri, side);
         },
       );
     } else {
-      Alert.alert("Add Photo", undefined, [
+      Alert.alert(t("setup.identity.addPhoto"), undefined, [
         {
-          text: "Take Photo",
+          text: t("setup.identity.takePhoto"),
           onPress: async () => {
-            const uri = await pickFromCamera();
+            const uri = await pickFromCamera(t);
             if (uri) await uploadAndSetImage(uri, side);
           },
         },
         {
-          text: "Choose from Gallery",
+          text: t("setup.identity.chooseFromGallery"),
           onPress: async () => {
             const uri = await pickFromGallery();
             if (uri) await uploadAndSetImage(uri, side);
           },
         },
-        { text: "Cancel", style: "cancel" },
+        { text: t("setup.identity.cancel"), style: "cancel" },
       ]);
     }
   };
@@ -164,13 +177,13 @@ export default function IdentityScreen() {
   // ── Continue ───────────────────────────────────────────────────────────────
   const handleContinue = async () => {
     if (!documentType) {
-      Alert.alert("Required", "Please select a document type.");
+      Alert.alert(t("setup.identity.requiredTitle"), t("setup.identity.selectDocTypeRequired"));
       return;
     }
     if (!frontImage || !backImage) {
       Alert.alert(
-        "Required",
-        "Please upload both the front and back of your document.",
+        t("setup.identity.requiredTitle"),
+        t("setup.identity.uploadBothSidesRequired"),
       );
       return;
     }
@@ -207,7 +220,7 @@ export default function IdentityScreen() {
           <View className="flex-1 justify-center items-center gap-3">
             <ActivityIndicator size="large" color="#0047AB" />
             <Text className="text-[#0047AB] font-outfit-medium text-sm">
-              Uploading...
+              {t("setup.identity.uploading")}
             </Text>
           </View>
         ) : image ? (
@@ -221,7 +234,7 @@ export default function IdentityScreen() {
             <View className="absolute bottom-2 right-2 bg-white/90 rounded-full px-3 py-1 flex-row items-center gap-1 shadow-sm">
               <Ionicons name="pencil" size={12} color="#0047AB" />
               <Text className="text-[#0047AB] font-outfit-medium text-xs ml-1">
-                Change
+                {t("setup.identity.change")}
               </Text>
             </View>
           </>
@@ -263,7 +276,7 @@ export default function IdentityScreen() {
         >
           <Ionicons name={image ? "refresh" : "camera"} size={16} color="white" />
           <Text className="text-white font-outfit-bold text-sm">
-            {image ? "Retake photo" : "Take photo"}
+            {image ? t("setup.identity.retakePhoto") : t("setup.identity.takePhoto")}
           </Text>
         </LinearGradient>
       </TouchableOpacity>
@@ -281,47 +294,44 @@ export default function IdentityScreen() {
       <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
         <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
         <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-          IDENTITY VERIFICATION
+          {t("setup.identity.badge")}
         </Text>
       </View>
 
       {/* Title */}
       <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
-        Identity Document
+        {t("setup.identity.title")}
       </Text>
 
       {/* Subtitle */}
       <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-        Upload clear photos of both sides of your identity document
+        {t("setup.identity.subtitle")}
       </Text>
 
         <Text className="text-[#0F172A] font-outfit-regular text-sm mb-2">
-          The following documents are accepted:
+          {t("setup.identity.acceptedDocsIntro")}
         </Text>
         <Text className="text-[#0F172A] font-outfit-regular text-sm mb-4">
-          (1) Driving Licence{"\n"}
-          (2) Passport{"\n"}
-          (3) Residence Permit{"\n"}
-          (4) National ID. Also, please ensure:
+          {t("setup.identity.acceptedDocsList")}
         </Text>
         <View className="pl-2 mb-2">
           <Text className="text-slate-500 font-outfit-regular text-xs mb-1">
-            • All information is readable and image is not blurry.
+            • {t("setup.identity.checkReadable")}
           </Text>
           <Text className="text-slate-500 font-outfit-regular text-xs mb-1">
-            • All corners of the document are visible.
+            • {t("setup.identity.checkCorners")}
           </Text>
           <Text className="text-slate-500 font-outfit-regular text-xs mb-1">
-            • We can see a picture of you.
+            • {t("setup.identity.checkPhoto")}
           </Text>
           <Text className="text-slate-500 font-outfit-regular text-xs">
-            • Information must match the back of the document.
+            • {t("setup.identity.checkMatch")}
           </Text>
         </View>
 
       {/* Document type selector */}
       <Text className="font-outfit-medium text-[#0F172A] mb-2">
-        Identification document
+        {t("setup.identity.identificationDocument")}
       </Text>
       <TouchableOpacity
         onPress={handleDocTypePicker}
@@ -332,7 +342,9 @@ export default function IdentityScreen() {
         <Text
           className={`font-outfit-regular text-[17px] ${documentType ? "text-[#0F172A]" : "text-[#9CA3AF]"}`}
         >
-          {documentType ?? "Select document type"}
+          {documentType
+            ? documentTypeLabels[DOCUMENT_TYPES.indexOf(documentType)]
+            : t("setup.identity.selectDocTypePlaceholder")}
         </Text>
         <Ionicons name="chevron-down" size={20} color="#0F172A" />
       </TouchableOpacity>
@@ -341,14 +353,14 @@ export default function IdentityScreen() {
       <PhotoCard
         side="front"
         image={frontImage}
-        label="Tap to add front side"
-        hint="Upload photo of the FRONT of your Identity Document."
+        label={t("setup.identity.tapAddFront")}
+        hint={t("setup.identity.uploadFrontHint")}
       />
       <PhotoCard
         side="back"
         image={backImage}
-        label="Tap to add back side"
-        hint="Upload photo of the BACK of your Identity Document."
+        label={t("setup.identity.tapAddBack")}
+        hint={t("setup.identity.uploadBackHint")}
       />
 
       <TouchableOpacity
@@ -374,7 +386,7 @@ export default function IdentityScreen() {
             <ActivityIndicator color="white" />
           ) : (
             <>
-              <Text className="text-white font-outfit-bold text-center mr-2">Continue</Text>
+              <Text className="text-white font-outfit-bold text-center mr-2">{t("setup.identity.continue")}</Text>
               <ChevronRight size={20} color="white" />
             </>
           )}

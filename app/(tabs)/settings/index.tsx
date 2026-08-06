@@ -1,28 +1,27 @@
 import { useRouter } from 'expo-router';
 import { Bell, ChevronLeft, ChevronRight, Key, UserX } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 export default function SettingsScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
 
     const menuItems = [
         {
             icon: Bell,
-            label: 'Notifications',
+            label: t('settingsMenu.notifications'),
             route: '/settings/notifications',
-            description: 'Set up your preferences'
         },
         {
             icon: Key,
-            label: 'Account password',
+            label: t('settingsMenu.password'),
             route: '/settings/password',
-            description: 'Change your password'
         },
         {
             icon: UserX,
-            label: 'Delete Account',
+            label: t('settingsMenu.deleteAccount'),
             route: '/settings/delete-account',
-            description: 'Danger zone'
         },
     ];
 
@@ -32,16 +31,16 @@ export default function SettingsScreen() {
             <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
               <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
               <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                ACCOUNT SETTINGS
+                {t('settingsMenu.badge')}
               </Text>
             </View>
 
             {/* Title */}
-            <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">Settings</Text>
+            <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">{t('settingsMenu.title')}</Text>
 
             {/* Subtitle */}
             <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-              Manage your account preferences and security
+              {t('settingsMenu.subtitle')}
             </Text>
 
             <View className="bg-white rounded-3xl overflow-hidden" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 10, elevation: 5 }}>

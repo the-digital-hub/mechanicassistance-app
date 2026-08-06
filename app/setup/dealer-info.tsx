@@ -3,10 +3,12 @@ import { Input } from "@/components/ui/Input";
 import { getSetupProgress, saveSetupProgress } from "@/lib/storage";
 import { useRouter } from "expo-router";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 export default function DealerInfoScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [workForDealer, setWorkForDealer] = useState<boolean | null>(null);
   const [companyName, setCompanyName] = useState("");
   const [companyInvitation, setCompanyInvitation] = useState("");
@@ -37,15 +39,15 @@ export default function DealerInfoScreen() {
 
       <View className="mb-6">
         <Text className="text-xl font-outfit-bold text-[#0F172A] mb-1">
-          Dealer Info
+          {t("setup.dealerInfo.title")}
         </Text>
         <Text className="text-[#0047AB] font-outfit-medium text-base">
-          Please enter your Dealer information
+          {t("setup.dealerInfo.subtitle")}
         </Text>
       </View>
 
       <Text className="font-outfit-regular text-[#0F172A] text-base mb-4">
-        Do you work for a Dealer or Car Care center?
+        {t("setup.dealerInfo.question")}
       </Text>
 
       {/* Yes/No Toggle */}
@@ -57,7 +59,7 @@ export default function DealerInfoScreen() {
           <Text
             className={`font-outfit-medium ${workForDealer === true ? "text-[#0F172A]" : "text-gray-500"}`}
           >
-            Yes
+            {t("setup.dealerInfo.yes")}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -67,7 +69,7 @@ export default function DealerInfoScreen() {
           <Text
             className={`font-outfit-medium ${workForDealer === false ? "text-[#0F172A]" : "text-gray-500"}`}
           >
-            No
+            {t("setup.dealerInfo.no")}
           </Text>
         </TouchableOpacity>
       </View>
@@ -75,7 +77,7 @@ export default function DealerInfoScreen() {
       <View className="space-y-6 mb-8 gap-5">
         <View>
           <Text className="font-outfit-medium text-[#0F172A] mb-2">
-            Company name
+            {t("setup.dealerInfo.companyName")}
           </Text>
           <Input
             value={companyName}
@@ -86,7 +88,7 @@ export default function DealerInfoScreen() {
 
         <View>
           <Text className="font-outfit-medium text-[#0F172A] mb-2">
-            Company invitation #
+            {t("setup.dealerInfo.companyInvitation")}
           </Text>
           <Input
             value={companyInvitation}
@@ -101,7 +103,7 @@ export default function DealerInfoScreen() {
         size="lg"
         className="bg-blue-700 rounded-xl mt-auto"
       >
-        Continue
+        {t("setup.dealerInfo.continue")}
       </Button>
     </ScrollView>
   );

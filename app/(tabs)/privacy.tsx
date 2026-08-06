@@ -2,11 +2,13 @@ import { Button } from '@/components/ui/Button';
 import { useRouter } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function PrivacyScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
     const [loading, setLoading] = useState(false);
 
     const handleAccept = async () => {
@@ -28,33 +30,33 @@ export default function PrivacyScreen() {
                 <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                   <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
                   <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                    PRIVACY & SECURITY
+                    {t('privacy.badge')}
                   </Text>
                 </View>
 
                 {/* Title */}
-                <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">Privacy Policy</Text>
+                <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">{t('privacy.title')}</Text>
 
                 {/* Subtitle */}
                 <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-                  Learn how we protect your data and privacy. Last updated: 14/08/2024
+                  {t('privacy.subtitle')}
                 </Text>
 
                 <Text className="font-outfit-regular text-gray-600 leading-6 mb-6">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent pellentesque congue lorem, vel tincidunt tortor placerat a. Proin ac diam quam. Aenean in sagittis magna, ut feugiat diam. Fusce a scelerisque neque, sed accumsan metus.
+                    {t('privacy.intro')}
                 </Text>
 
-                <Text className="font-outfit-bold text-gray-900 text-lg mb-2">Terms & conditions</Text>
+                <Text className="font-outfit-bold text-gray-900 text-lg mb-2">{t('privacy.termsHeading')}</Text>
                 <Text className="font-outfit-regular text-gray-600 leading-6 mb-4">
-                    Nunc auctor tortor in dolor luctus, quis euismod urna tincidunt. Aenean arcu metus, bibendum at rhoncus at, volutpat ut lacus. Morbi pellentesque malesuada eros semper ultrices. Vestibulum lobortis enim vel neque auctor, a ultrices ex placerat. Mauris ut lacinia justo, sed suscipit tortor. Nam egestas nulla posuere neque tincidunt porta.
+                    {t('privacy.termsBody')}
                 </Text>
 
                 <View className="mb-4">
                     <Text className="font-outfit-regular text-gray-600 leading-6 mb-2">
-                        1. Ut lacinia justo sit amet lorem sodales accumsan. Proin malesuada eleifend fermentum. Donec condimentum, nunc at rhoncus faucibus, ex nisi laoreet
+                        {t('privacy.clause1')}
                     </Text>
                     <Text className="font-outfit-regular text-gray-600 leading-6">
-                        2. We may use your email address to send you occasional promotions and updates. You are able to opt out from receiving these emails at any time by adjusting your account settings.
+                        {t('privacy.clause2')}
                     </Text>
                 </View>
 
@@ -85,7 +87,7 @@ export default function PrivacyScreen() {
                             <ActivityIndicator color="white" />
                         ) : (
                             <>
-                                <Text className="text-white font-outfit-semibold text-lg text-center">Accept</Text>
+                                <Text className="text-white font-outfit-semibold text-lg text-center">{t('privacy.accept')}</Text>
                             </>
                         )}
                     </LinearGradient>

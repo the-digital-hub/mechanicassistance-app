@@ -7,11 +7,13 @@ import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { Camera, CheckCircle2 } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, FlatList, Image, KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function PersonalInfoScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
     const { user, isLoading, updateUser } = useUser();
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [showStateModal, setShowStateModal] = useState(false);
@@ -95,7 +97,7 @@ export default function PersonalInfoScreen() {
             await updateUser({ profileImage: uploaded.url });
             setFormData((prev) => ({ ...prev, profileImage: uploaded.url }));
         } catch {
-            Alert.alert('Upload Failed', 'Could not upload profile photo. Please try again.');
+            Alert.alert(t('personalInfo.uploadFailedTitle'), t('personalInfo.uploadFailedMessage'));
             setLocalProfileUri(null);
         } finally {
             setIsUploadingPhoto(false);
@@ -142,7 +144,7 @@ export default function PersonalInfoScreen() {
             await updateUser(payloadToUpdate);
             setShowSuccessModal(true);
         } catch {
-            Alert.alert('Update Failed', 'Could not save your profile. Please try again.');
+            Alert.alert(t('personalInfo.updateFailedTitle'), t('personalInfo.updateFailedMessage'));
         }
     };
 
@@ -265,16 +267,16 @@ export default function PersonalInfoScreen() {
                 <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                   <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
                   <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                    YOUR ACCOUNT
+                    {t('personalInfo.badge')}
                   </Text>
                 </View>
 
                 {/* Title */}
-                <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">Personal information</Text>
+                <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">{t('personalInfo.title')}</Text>
 
                 {/* Subtitle */}
                 <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-                  Keep your profile up to date to ensure the best service experience
+                  {t('personalInfo.subtitle')}
                 </Text>
 
                 {/* Profile Image Section */}
@@ -300,12 +302,12 @@ export default function PersonalInfoScreen() {
                             </View>
                         )}
                     </TouchableOpacity>
-                    <Text className="text-gray-500 font-outfit-regular mt-2 text-xs">Tap to change photo</Text>
+                    <Text className="text-gray-500 font-outfit-regular mt-2 text-xs">{t('personalInfo.tapToChangePhoto')}</Text>
                 </View>
 
                 <View className="gap-4 mb-8">
                     <View>
-                        <Text className="font-outfit-medium mb-2 text-gray-900">Name</Text>
+                        <Text className="font-outfit-medium mb-2 text-gray-900">{t('personalInfo.name')}</Text>
                         <Input
                             value={formData.name}
                             editable={false}
@@ -314,7 +316,7 @@ export default function PersonalInfoScreen() {
                     </View>
 
                     <View>
-                        <Text className="font-outfit-medium mb-2 text-gray-900">Surname</Text>
+                        <Text className="font-outfit-medium mb-2 text-gray-900">{t('personalInfo.surname')}</Text>
                         <Input
                             value={formData.surname}
                             editable={false}
@@ -323,17 +325,17 @@ export default function PersonalInfoScreen() {
                     </View>
 
                     <View>
-                        <Text className="font-outfit-medium mb-2 text-gray-900">Email</Text>
+                        <Text className="font-outfit-medium mb-2 text-gray-900">{t('personalInfo.email')}</Text>
                         <Input
                             value={formData.email}
-                            onChangeText={(t) => setFormData({ ...formData, email: t })}
+                            onChangeText={(text) => setFormData({ ...formData, email: text })}
                             containerClassName="bg-white border border-gray-300 rounded-2xl"
                             keyboardType="email-address"
                         />
                     </View>
 
                     <View>
-                        <Text className="font-outfit-medium mb-2 text-gray-900">Phone number</Text>
+                        <Text className="font-outfit-medium mb-2 text-gray-900">{t('personalInfo.phoneNumber')}</Text>
                         <Input
                             value={formData.phone}
                             editable={false}
@@ -342,10 +344,10 @@ export default function PersonalInfoScreen() {
                     </View>
 
                     <View>
-                        <Text className="font-outfit-medium mb-2 text-gray-900">Date of birth</Text>
+                        <Text className="font-outfit-medium mb-2 text-gray-900">{t('personalInfo.dob')}</Text>
                         <Input
                             value={formData.dob}
-                            onChangeText={(t) => setFormData({ ...formData, dob: t })}
+                            onChangeText={(text) => setFormData({ ...formData, dob: text })}
                             containerClassName="bg-gray-100 border border-gray-300 rounded-2xl text-gray-500"
                             keyboardType="number-pad"
                             editable={false}
@@ -370,7 +372,7 @@ export default function PersonalInfoScreen() {
                             justifyContent: 'center',
                         }}
                     >
-                        <Text className="text-white font-outfit-semibold text-lg text-center">Update Profile</Text>
+                        <Text className="text-white font-outfit-semibold text-lg text-center">{t('personalInfo.updateProfile')}</Text>
                     </LinearGradient>
                 </TouchableOpacity>
 
@@ -384,9 +386,9 @@ export default function PersonalInfoScreen() {
                     <View className="flex-1 bg-black/50 justify-end">
                         <View className="bg-white rounded-t-3xl h-2/3">
                             <View className="p-6 border-b border-gray-100 flex-row justify-between items-center">
-                                <Text className="text-xl font-outfit-bold text-blue-900">Select State</Text>
+                                <Text className="text-xl font-outfit-bold text-blue-900">{t('personalInfo.selectState')}</Text>
                                 <TouchableOpacity onPress={() => setShowStateModal(false)}>
-                                    <Text className="text-blue-600 font-outfit-bold">Done</Text>
+                                    <Text className="text-blue-600 font-outfit-bold">{t('personalInfo.done')}</Text>
                                 </TouchableOpacity>
                             </View>
                             <FlatList
@@ -423,10 +425,10 @@ export default function PersonalInfoScreen() {
                                 <CheckCircle2 size={48} color="#0047AB" />
                             </View>
                             <Text className="text-xl font-outfit-bold text-blue-900 mb-2 text-center">
-                                Success!
+                                {t('personalInfo.success')}
                             </Text>
                             <Text className="text-gray-500 font-outfit-regular text-center mb-8">
-                                Information was updated
+                                {t('personalInfo.infoUpdated')}
                             </Text>
                             <TouchableOpacity
                                 onPress={() => setShowSuccessModal(false)}
@@ -445,7 +447,7 @@ export default function PersonalInfoScreen() {
                                         justifyContent: 'center',
                                     }}
                                 >
-                                    <Text className="text-white font-outfit-bold text-center">Close</Text>
+                                    <Text className="text-white font-outfit-bold text-center">{t('personalInfo.close')}</Text>
                                 </LinearGradient>
                             </TouchableOpacity>
                         </View>

@@ -337,7 +337,7 @@ export default function DashboardScreen() {
                                     <View key={request.id} className="mb-2">
                                         {/* Combined Card: header + details */}
                                         <View className="bg-white rounded-3xl mb-3" style={cardShadow}>
-                                            {/* Header Row: service, urgency, price */}
+                                            {/* Header Row: service type + urgency + time */}
                                             <View className="p-5 flex-row items-center border-b border-gray-100">
                                                 <View
                                                     className="w-14 h-14 rounded-2xl items-center justify-center mr-4"
@@ -349,11 +349,11 @@ export default function DashboardScreen() {
                                                         <Zap size={26} color={iconColor} fill={iconColor} />
                                                     )}
                                                 </View>
-                                                <View className="flex-1 pr-2">
-                                                    <Text className="text-gray-900 font-outfit-bold text-lg" numberOfLines={1}>
-                                                        {serviceTypeLabel}
-                                                    </Text>
-                                                    <View className="flex-row items-center gap-2 mt-1">
+                                                <View className="flex-1">
+                                                    <View className="flex-row items-center gap-2">
+                                                        <Text className="text-gray-900 font-outfit-bold text-lg" numberOfLines={1}>
+                                                            {serviceTypeLabel}
+                                                        </Text>
                                                         {badge && (
                                                             <View className="px-2 py-0.5 rounded-md" style={{ backgroundColor: '#FEE2E2' }}>
                                                                 <Text className="font-outfit-bold text-[10px] tracking-widest" style={{ color: '#EF4444' }}>
@@ -361,17 +361,24 @@ export default function DashboardScreen() {
                                                                 </Text>
                                                             </View>
                                                         )}
-                                                        <View className="flex-row items-center gap-1">
-                                                            <Clock size={13} color="#9CA3AF" />
-                                                            <Text className="text-gray-500 font-outfit-regular text-sm">{formatTimeAgo(request.date || request.updatedAt)}</Text>
-                                                        </View>
+                                                    </View>
+                                                    <View className="flex-row items-center gap-1 mt-1">
+                                                        <Clock size={13} color="#9CA3AF" />
+                                                        <Text className="text-gray-500 font-outfit-regular text-sm">{formatTimeAgo(request.date || request.updatedAt)}</Text>
                                                     </View>
                                                 </View>
-                                                <View className="items-end ml-2">
-                                                    <Text className="font-outfit-bold text-2xl" style={{ color: '#0047AB' }}>
+                                            </View>
+
+                                            {/* Budget */}
+                                            <View className="flex-row items-center px-5 py-4 border-b border-gray-100">
+                                                <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
+                                                    <DollarSign size={20} color="#0047AB" />
+                                                </View>
+                                                <View className="flex-1">
+                                                    <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">{t('dashboard.mechanic.budget')}</Text>
+                                                    <Text className="font-outfit-bold text-base text-gray-900">
                                                         {request.budget}
                                                     </Text>
-                                                    <Text className="font-outfit-regular text-sm text-gray-400">{t('dashboard.mechanic.price')}</Text>
                                                 </View>
                                             </View>
 

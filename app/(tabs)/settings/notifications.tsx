@@ -1,10 +1,12 @@
 import { useRouter } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, Switch, Text, TouchableOpacity, View } from 'react-native';
 
 export default function NotificationsSettingsScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
     const [settings, setSettings] = useState({
         general: true,
         sound: true,
@@ -21,14 +23,14 @@ export default function NotificationsSettingsScreen() {
     };
 
     const items = [
-        { key: 'general', label: 'General Notification' },
-        { key: 'sound', label: 'Sound' },
-        { key: 'soundCall', label: 'Sound Call' },
-        { key: 'vibrate', label: 'Vibrate' },
-        { key: 'specialOffers', label: 'Special Offers' },
-        { key: 'payments', label: 'Payments' },
-        { key: 'promo', label: 'Promo and discount' },
-        { key: 'cashback', label: 'Cashback' },
+        { key: 'general', label: t('settingsNotifications.general') },
+        { key: 'sound', label: t('settingsNotifications.sound') },
+        { key: 'soundCall', label: t('settingsNotifications.soundCall') },
+        { key: 'vibrate', label: t('settingsNotifications.vibrate') },
+        { key: 'specialOffers', label: t('settingsNotifications.specialOffers') },
+        { key: 'payments', label: t('settingsNotifications.payments') },
+        { key: 'promo', label: t('settingsNotifications.promo') },
+        { key: 'cashback', label: t('settingsNotifications.cashback') },
     ];
 
     return (
@@ -37,16 +39,16 @@ export default function NotificationsSettingsScreen() {
             <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
               <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
               <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                NOTIFICATION SETTINGS
+                {t('settingsNotifications.badge')}
               </Text>
             </View>
 
             {/* Title */}
-            <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">Notifications</Text>
+            <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">{t('settingsNotifications.title')}</Text>
 
             {/* Subtitle */}
             <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-              Customize your notification preferences
+              {t('settingsNotifications.subtitle')}
             </Text>
 
             <View className="gap-6">

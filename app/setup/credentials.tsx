@@ -5,11 +5,13 @@ import { getSetupProgress, saveSetupProgress } from '@/lib/storage';
 import { useRouter } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function CredentialsScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
     const [aseId, setAseId] = useState('');
     const [mechanic, setMechanic] = useState<AseMechanicData | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -25,9 +27,9 @@ export default function CredentialsScreen() {
             setMechanic(result);
         } catch (err) {
             if (err instanceof ApiError && err.status === 404) {
-                setError('No ASE mechanic found with that ID. Please verify and try again.');
+                setError(t('setup.credentials.notFound'));
             } else {
-                setError('An error occurred while searching. Please try again.');
+                setError(t('setup.credentials.searchError'));
             }
         } finally {
             setIsLoading(false);
@@ -47,7 +49,7 @@ export default function CredentialsScreen() {
     };
 
     const formatExpiration = (date: string | null) => {
-        if (!date) return 'No expiration';
+        if (!date) return t('setup.credentials.noExpiration');
         return new Date(date).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
     };
 
@@ -57,18 +59,18 @@ export default function CredentialsScreen() {
             <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
               <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
               <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                ASE CERTIFICATIONS
+                {t('setup.credentials.badge')}
               </Text>
             </View>
 
             {/* Title */}
             <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
-              ASE Certifications
+              {t('setup.credentials.title')}
             </Text>
 
             {/* Subtitle */}
             <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-              Validate your ASE Member ID to showcase your certifications
+              {t('setup.credentials.subtitle')}
             </Text>
 
             {/* ASE Logo Area */}
@@ -78,19 +80,19 @@ export default function CredentialsScreen() {
                         <Text className="text-white font-bold text-xs">ASE</Text>
                     </View>
                     <View>
-                        <Text className="font-bold text-xs text-gray-800">National Institute for</Text>
-                        <Text className="font-bold text-xs text-gray-800 uppercase">Automotive Service Excellence</Text>
+                        <Text className="font-bold text-xs text-gray-800">{t('setup.credentials.instituteLine1')}</Text>
+                        <Text className="font-bold text-xs text-gray-800 uppercase">{t('setup.credentials.instituteLine2')}</Text>
                     </View>
                 </View>
 
                 <Text className="text-[#0F172A] font-outfit-regular text-sm mb-6">
-                    Your Member ID is validated against ASE records to verify your certification status and the corresponding expiration dates.
+                    {t('setup.credentials.description')}
                 </Text>
             </View>
 
             {!mechanic ? (
                 <View>
-                    <Text className="font-outfit-medium text-[#0F172A] mb-2">ASE Member ID</Text>
+                    <Text className="font-outfit-medium text-[#0F172A] mb-2">{t('setup.credentials.memberIdLabel')}</Text>
                     <Input
                         placeholder="ASE-XXXX-XXXX"
                         value={aseId}
@@ -126,7 +128,7 @@ export default function CredentialsScreen() {
                                 <ActivityIndicator color="white" />
                             ) : (
                                 <>
-                                    <Text className="text-white font-outfit-bold text-center mr-2">Search ASE records</Text>
+                                    <Text className="text-white font-outfit-bold text-center mr-2">{t('setup.credentials.searchButton')}</Text>
                                     <ChevronRight size={20} color="white" />
                                 </>
                             )}
@@ -135,7 +137,7 @@ export default function CredentialsScreen() {
                 </View>
             ) : (
                 <View>
-                    <Text className="font-outfit-medium text-[#0F172A] mb-1">ASE Member ID</Text>
+                    <Text className="font-outfit-medium text-[#0F172A] mb-1">{t('setup.credentials.memberIdLabel')}</Text>
                     <Text className="text-[#0047AB] font-outfit-medium text-base mb-2">{mechanic.aseId}</Text>
                     <Text className="text-gray-500 font-outfit-regular text-sm mb-6">
                         {mechanic.firstName} {mechanic.lastName}
@@ -143,7 +145,7 @@ export default function CredentialsScreen() {
 
                     <View className="space-y-4 mb-8">
                         {mechanic.certifications.length === 0 ? (
-                            <Text className="text-gray-400 font-outfit-regular text-sm">No certifications found for this ID.</Text>
+                            <Text className="text-gray-400 font-outfit-regular text-sm">{t('setup.credentials.noCertifications')}</Text>
                         ) : (
                             mechanic.certifications.map((cert) => (
                                 <View key={cert.id} className="bg-blue-50/50 p-4 rounded-xl">
@@ -151,7 +153,7 @@ export default function CredentialsScreen() {
                                         {cert.code}{cert.name ? ` - ${cert.name}` : ''}
                                     </Text>
                                     <Text className="text-blue-400 text-xs">
-                                        Expiration: {formatExpiration(cert.expirationDate)}
+                                        {t('setup.credentials.expiration', { date: formatExpiration(cert.expirationDate) })}
                                     </Text>
                                 </View>
                             ))
@@ -163,7 +165,7 @@ export default function CredentialsScreen() {
                         activeOpacity={0.8}
                         className="mb-3"
                     >
-                        <Text className="text-blue-600 font-outfit-medium text-center text-sm">Search a different ID</Text>
+                        <Text className="text-blue-600 font-outfit-medium text-center text-sm">{t('setup.credentials.searchDifferent')}</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -183,7 +185,7 @@ export default function CredentialsScreen() {
                                 justifyContent: 'center',
                             }}
                         >
-                            <Text className="text-white font-outfit-bold text-center mr-2">Validate Certifications</Text>
+                            <Text className="text-white font-outfit-bold text-center mr-2">{t('setup.credentials.validateButton')}</Text>
                             <ChevronRight size={20} color="white" />
                         </LinearGradient>
                     </TouchableOpacity>

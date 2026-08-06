@@ -1,12 +1,14 @@
 import { useUser } from '@/context/UserContext';
 import { useRouter } from 'expo-router';
 import { ChevronRight, MapPin, Plus } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 
 export default function AddressesScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
     const { user } = useUser();
 
     return (
@@ -16,16 +18,16 @@ export default function AddressesScreen() {
                 <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                     <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
                     <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                        SAVE YOUR FAVORITE LOCATIONS
+                        {t('addresses.badge')}
                     </Text>
                 </View>
 
                 {/* Title */}
-                <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">My Addresses</Text>
+                <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">{t('addresses.title')}</Text>
 
                 {/* Subtitle */}
                 <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-                    Manage your saved addresses and choose your preferred locations
+                    {t('addresses.subtitle')}
                 </Text>
 
                 {/* Addresses List */}
@@ -67,7 +69,7 @@ export default function AddressesScreen() {
                             ))}
                         </View>
 
-                        {/* Add New Address Button */}
+                        {/* {t('addresses.addNew')} Button */}
                         <TouchableOpacity
                             onPress={() => router.push('/(tabs)/addresses/create')}
                             activeOpacity={0.8}
@@ -87,7 +89,7 @@ export default function AddressesScreen() {
                                 }}
                             >
                                 <Plus size={20} color="white" />
-                                <Text className="text-white font-outfit-semibold text-lg text-center ml-2">Add New Address</Text>
+                                <Text className="text-white font-outfit-semibold text-lg text-center ml-2">{t('addresses.addNew')}</Text>
                             </LinearGradient>
                         </TouchableOpacity>
                     </>
@@ -95,13 +97,13 @@ export default function AddressesScreen() {
                     <>
                         <View className="items-center justify-center py-16">
                             <MapPin size={48} color="#9CA3AF" />
-                            <Text className="text-gray-400 font-outfit-medium text-base mt-4">No addresses yet</Text>
+                            <Text className="text-gray-400 font-outfit-medium text-base mt-4">{t('addresses.empty')}</Text>
                             <Text className="text-gray-300 font-outfit-regular text-sm text-center mt-2">
-                                Start by adding your first address
+                                {t('addresses.emptyHint')}
                             </Text>
                         </View>
 
-                        {/* Add New Address Button */}
+                        {/* {t('addresses.addNew')} Button */}
                         <TouchableOpacity
                             onPress={() => router.push('/(tabs)/addresses/create')}
                             activeOpacity={0.8}
@@ -121,7 +123,7 @@ export default function AddressesScreen() {
                                 }}
                             >
                                 <Plus size={20} color="white" />
-                                <Text className="text-white font-outfit-semibold text-lg text-center ml-2">Add New Address</Text>
+                                <Text className="text-white font-outfit-semibold text-lg text-center ml-2">{t('addresses.addNew')}</Text>
                             </LinearGradient>
                         </TouchableOpacity>
                     </>

@@ -5,11 +5,13 @@ import { US_STATES } from '@/lib/address';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft, ChevronRight, Circle, Bell } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View, Modal, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function EditAddressScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
     const params = useLocalSearchParams();
     const { user, updateUser } = useUser();
     const { mechanicStatus, setMechanicStatus } = useMechanicStatus();
@@ -91,7 +93,7 @@ export default function EditAddressScreen() {
             await updateUser({ addresses: updatedAddresses });
             router.back();
         } catch {
-            Alert.alert('Save Failed', 'Could not save the address. Please try again.');
+            Alert.alert(t('addressForm.saveFailedTitle'), t('addressForm.saveFailedMessage'));
         } finally {
             setIsLoading(false);
         }
@@ -104,51 +106,51 @@ export default function EditAddressScreen() {
                 <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                     <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
                     <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                        EDIT ADDRESS
+                        {t('addressForm.editBadge')}
                     </Text>
                 </View>
 
                 {/* Title */}
-                <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">Edit Address</Text>
+                <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">{t('addressForm.editTitle')}</Text>
 
                 {/* Subtitle */}
                 <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-                    Update your address information
+                    {t('addressForm.editSubtitle')}
                 </Text>
 
                 {/* Form Fields */}
                 <View className="gap-4 mb-8">
                     <View>
-                        <Text className="font-outfit-medium mb-2 text-gray-900">Street</Text>
+                        <Text className="font-outfit-medium mb-2 text-gray-900">{t('addressForm.street')}</Text>
                         <Input
                             value={formData.street}
-                            onChangeText={(t) => setFormData({ ...formData, street: t })}
+                            onChangeText={(text) => setFormData({ ...formData, street: text })}
                             containerClassName="bg-white border border-gray-300 rounded-2xl"
-                            placeholder="Enter street address"
+                            placeholder={t('addressForm.streetPlaceholder')}
                         />
                     </View>
 
                     <View>
-                        <Text className="font-outfit-medium mb-2 text-gray-900">Apartment / Suite</Text>
+                        <Text className="font-outfit-medium mb-2 text-gray-900">{t('addressForm.apartment')}</Text>
                         <Input
                             value={formData.apartment}
-                            onChangeText={(t) => setFormData({ ...formData, apartment: t })}
+                            onChangeText={(text) => setFormData({ ...formData, apartment: text })}
                             containerClassName="bg-white border border-gray-300 rounded-2xl"
-                            placeholder="Optional"
+                            placeholder={t('addressForm.optional')}
                         />
                     </View>
 
                     <View className="flex-row gap-4">
                         <View className="flex-1">
-                            <Text className="font-outfit-medium mb-2 text-gray-900">City</Text>
+                            <Text className="font-outfit-medium mb-2 text-gray-900">{t('addressForm.city')}</Text>
                             <Input
                                 value={formData.city}
-                                onChangeText={(t) => setFormData({ ...formData, city: t })}
+                                onChangeText={(text) => setFormData({ ...formData, city: text })}
                                 containerClassName="bg-white border border-gray-300 rounded-2xl"
                             />
                         </View>
                         <View className="flex-1">
-                            <Text className="font-outfit-medium mb-2 text-gray-900">State</Text>
+                            <Text className="font-outfit-medium mb-2 text-gray-900">{t('addressForm.state')}</Text>
                             <TouchableOpacity
                                 onPress={() => setShowStateModal(true)}
                                 className="bg-white border border-gray-300 rounded-2xl h-[52px] justify-center px-4"
@@ -161,11 +163,11 @@ export default function EditAddressScreen() {
                     </View>
 
                     <View>
-                        <Text className="font-outfit-medium mb-2 text-gray-900">Zip Code</Text>
+                        <Text className="font-outfit-medium mb-2 text-gray-900">{t('addressForm.zip')}</Text>
                         <Input
                             value={formData.zip}
-                            onChangeText={(t) => {
-                                const cleaned = t.replace(/\D/g, '').slice(0, 5);
+                            onChangeText={(text) => {
+                                const cleaned = text.replace(/\D/g, '').slice(0, 5);
                                 setFormData({ ...formData, zip: cleaned });
                             }}
                             containerClassName="bg-white border border-gray-300 rounded-2xl"
@@ -185,7 +187,7 @@ export default function EditAddressScreen() {
                         style={{ flex: 0.3 }}
                         className="py-4 rounded-lg border border-gray-300 items-center"
                     >
-                        <Text className="text-gray-900 font-outfit-semibold text-base">Back</Text>
+                        <Text className="text-gray-900 font-outfit-semibold text-base">{t('addressForm.back')}</Text>
                     </TouchableOpacity>
 
                     {/* Save Button - 70% width */}
@@ -211,7 +213,7 @@ export default function EditAddressScreen() {
                             {isLoading ? (
                                 <ActivityIndicator color="white" />
                             ) : (
-                                <Text className="text-white font-outfit-semibold text-base text-center">Save</Text>
+                                <Text className="text-white font-outfit-semibold text-base text-center">{t('addressForm.save')}</Text>
                             )}
                         </LinearGradient>
                     </TouchableOpacity>
@@ -223,9 +225,9 @@ export default function EditAddressScreen() {
                 <View className="absolute inset-0 bg-black/40 justify-end">
                     <View className="bg-white rounded-t-3xl max-h-[60%]">
                         <View className="p-4 border-b border-gray-200 flex-row justify-between items-center">
-                            <Text className="text-xl font-outfit-bold text-gray-900">Select State</Text>
+                            <Text className="text-xl font-outfit-bold text-gray-900">{t('addressForm.selectState')}</Text>
                             <TouchableOpacity onPress={() => setShowStateModal(false)}>
-                                <Text className="text-blue-600 font-outfit-bold">Done</Text>
+                                <Text className="text-blue-600 font-outfit-bold">{t('addressForm.done')}</Text>
                             </TouchableOpacity>
                         </View>
                         <ScrollView className="flex-1">

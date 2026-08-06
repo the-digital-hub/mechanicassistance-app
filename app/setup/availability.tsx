@@ -3,6 +3,7 @@ import { saveSetupProgress } from "@/lib/storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   FlatList,
   Modal,
@@ -64,6 +65,7 @@ function TimePickerModal({
   onSelect: (t: string) => void;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <Modal visible={visible} transparent animationType="slide">
       <TouchableOpacity
@@ -79,11 +81,11 @@ function TimePickerModal({
 
         <View className="flex-row justify-between items-center px-5 pb-3">
           <Text className="text-[#0F172A] font-outfit-bold text-base">
-            Select time
+            {t('setup.availability.selectTime')}
           </Text>
           <TouchableOpacity onPress={onClose}>
             <Text className="text-[#0047AB] font-outfit-bold text-sm">
-              Done
+              {t('setup.availability.done')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -140,6 +142,7 @@ function TimePickerModal({
 // ── Screen ─────────────────────────────────────────────────────────────────
 export default function AvailabilityScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   const [selectedDays, setSelectedDays] = useState<string[]>(DEFAULT_DAYS);
   const [applySameTime, setApplySameTime] = useState(true);
@@ -216,11 +219,11 @@ export default function AvailabilityScreen() {
           <View className="flex-row items-center mb-1">
             <Ionicons name="calendar-outline" size={18} color="#0047AB" />
             <Text className="text-[#0F172A] font-outfit-bold text-base ml-2">
-              Weekly schedule
+              {t('setup.availability.weeklySchedule')}
             </Text>
           </View>
           <Text className="text-[#64748B] font-outfit-regular text-sm mb-3">
-            Pick the days you want to take requests
+            {t('setup.availability.weeklyScheduleHint')}
           </Text>
 
           <View className="bg-white rounded-2xl p-4">
@@ -252,7 +255,7 @@ export default function AvailabilityScreen() {
             <View className="flex-row gap-3 mb-4">
               <View className="flex-1">
                 <Text className="text-[#64748B] font-outfit-medium text-xs mb-1 tracking-widest uppercase">
-                  From
+                  {t('setup.availability.from')}
                 </Text>
                 <TouchableOpacity
                   className="bg-[#F8FAFF] flex-row items-center justify-between px-3 h-11 rounded-xl border border-[#E2E8F0]"
@@ -270,7 +273,7 @@ export default function AvailabilityScreen() {
 
               <View className="flex-1">
                 <Text className="text-[#64748B] font-outfit-medium text-xs mb-1 tracking-widest uppercase">
-                  To
+                  {t('setup.availability.to')}
                 </Text>
                 <TouchableOpacity
                   className="bg-[#F8FAFF] flex-row items-center justify-between px-3 h-11 rounded-xl border border-[#E2E8F0]"
@@ -304,7 +307,7 @@ export default function AvailabilityScreen() {
                 )}
               </View>
               <Text className="text-[#0F172A] font-outfit-regular text-sm flex-1">
-                Apply same hours to all selected days
+                {t('setup.availability.applySameHours')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -315,11 +318,11 @@ export default function AvailabilityScreen() {
           <View className="flex-row items-center mb-1">
             <Ionicons name="location-outline" size={18} color="#0047AB" />
             <Text className="text-[#0F172A] font-outfit-bold text-base ml-2">
-              Service area
+              {t('setup.availability.serviceArea')}
             </Text>
           </View>
           <Text className="text-[#64748B] font-outfit-regular text-sm mb-3">
-            How far you're willing to drive for a job
+            {t('setup.availability.serviceAreaHint')}
           </Text>
 
           <View className="bg-white rounded-2xl">
@@ -356,10 +359,10 @@ export default function AvailabilityScreen() {
               {/* Radius label */}
               <View className="flex-row justify-between items-center mb-3">
                 <Text className="text-[#64748B] font-outfit-regular text-sm">
-                  Service radius
+                  {t('setup.availability.serviceRadius')}
                 </Text>
                 <Text className="text-[#0F172A] font-outfit-bold text-base">
-                  {serviceRadius} miles
+                  {t('setup.availability.miles', { count: serviceRadius })}
                 </Text>
               </View>
 
@@ -391,13 +394,13 @@ export default function AvailabilityScreen() {
               {/* Tick labels */}
               <View className="flex-row justify-between mt-1 mb-4">
                 <Text className="text-[#94A3B8] font-outfit-regular text-xs">
-                  1 mi
+                  {t('setup.availability.milesAbbr', { count: 1 })}
                 </Text>
                 <Text className="text-[#94A3B8] font-outfit-regular text-xs">
-                  25 mi
+                  {t('setup.availability.milesAbbr', { count: 25 })}
                 </Text>
                 <Text className="text-[#94A3B8] font-outfit-regular text-xs">
-                  50 mi
+                  {t('setup.availability.milesAbbr', { count: 50 })}
                 </Text>
               </View>
 
@@ -407,7 +410,7 @@ export default function AvailabilityScreen() {
                   <Ionicons name="globe-outline" size={18} color="#0047AB" />
                   <View className="flex-1">
                     <Text className="text-[#94A3B8] font-outfit-medium text-[10px] uppercase tracking-widest mb-0.5">
-                      Base location
+                      {t('setup.availability.baseLocation')}
                     </Text>
                     <Text
                       className="text-[#0F172A] font-outfit-medium text-sm"
@@ -419,7 +422,7 @@ export default function AvailabilityScreen() {
                 </View>
                 <TouchableOpacity>
                   <Text className="text-[#0047AB] font-outfit-bold text-sm">
-                    Edit
+                    {t('setup.availability.edit')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -433,7 +436,7 @@ export default function AvailabilityScreen() {
           size="lg"
           className="bg-[#0047AB] rounded-xl"
         >
-          Save changes
+          {t('setup.availability.saveChanges')}
         </Button>
       </ScrollView>
     </>

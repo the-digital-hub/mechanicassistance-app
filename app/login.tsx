@@ -18,6 +18,7 @@ import { getLastPhone, saveLastPhone } from "@/lib/storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Image,
   Keyboard,
@@ -34,6 +35,7 @@ type Step = "phone" | "otp";
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { login } = useUser();
   const [step, setStep] = useState<Step>("phone");
   const [method, setMethod] = useState<"email" | "mobile">("mobile");
@@ -101,8 +103,8 @@ export default function LoginScreen() {
     const cleaned = phoneNumber.replace(/\D/g, "");
     if (cleaned.length < 10) {
       showError(
-        "Invalid Number",
-        "Please enter a valid 10-digit mobile number.",
+        t("login.invalidNumberTitle"),
+        t("login.invalidNumberMessage"),
       );
       return;
     }
@@ -117,9 +119,8 @@ export default function LoginScreen() {
         const preCheck = await userDAO.preCheckPhone(e164);
         if (!preCheck.allowed) {
           showError(
-            "Verification Unavailable",
-            preCheck.message ||
-              "Unable to send verification code. Please try again or contact support.",
+            t("login.verificationUnavailableTitle"),
+            preCheck.message || t("login.verificationUnavailableMessage"),
           );
           return;
         }
@@ -145,10 +146,10 @@ export default function LoginScreen() {
             : "";
 
       const displayMessage = message.includes("auth/too-many-requests")
-        ? "Too many login attempts. Please wait a few minutes before trying again."
-        : message || "Failed to send verification code. Please try again.";
+        ? t("login.tooManyAttempts")
+        : message || t("login.sendCodeFailed");
 
-      showError("Error", displayMessage);
+      showError(t("login.errorTitle"), displayMessage);
     } finally {
       setIsLoading(false);
     }
@@ -173,9 +174,9 @@ export default function LoginScreen() {
         router.replace("/(tabs)/dashboard");
       } else {
         showError(
-          "Account Not Found",
-          "No account is registered with this phone number. Please sign up first.",
-          { label: "Sign Up", onPress: () => router.push("/setup") },
+          t("login.accountNotFoundTitle"),
+          t("login.accountNotFoundPhoneMessage"),
+          { label: t("login.signUp"), onPress: () => router.push("/setup") },
         );
       }
     } catch (err: unknown) {
@@ -187,10 +188,10 @@ export default function LoginScreen() {
             : "";
 
       const displayMessage = message.includes("auth/too-many-requests")
-        ? "Accounts are locked temporarily after too many attempts. Please try again later."
-        : message || "Invalid code. Please try again.";
+        ? t("login.accountsLocked")
+        : message || t("login.invalidCode");
 
-      showError("Verification Failed", displayMessage);
+      showError(t("login.verificationFailedTitle"), displayMessage);
     } finally {
       setIsLoading(false);
     }
@@ -217,9 +218,9 @@ export default function LoginScreen() {
         router.replace("/(tabs)/dashboard");
       } else {
         showError(
-          "Account Not Found",
-          `No account is registered with this ${providerName} account. Please sign up first.`,
-          { label: "Sign Up", onPress: () => router.push("/setup") },
+          t("login.accountNotFoundTitle"),
+          t("login.accountNotFoundProviderMessage", { providerName }),
+          { label: t("login.signUp"), onPress: () => router.push("/setup") },
         );
       }
     } catch (err: unknown) {
@@ -241,8 +242,8 @@ export default function LoginScreen() {
             : "";
 
       showError(
-        "Login Failed",
-        message || `Failed to sign in with ${providerName}. Please try again.`,
+        t("login.loginFailedTitle"),
+        message || t("login.loginFailedProviderMessage", { providerName }),
       );
     } finally {
       setIsLoading(false);
@@ -257,7 +258,7 @@ export default function LoginScreen() {
 
   const handleEmailLogin = () => {
     if (!emailAddress.trim() || !password.trim()) {
-      showError("Missing Fields", "Please enter both email and password.");
+      showError(t("login.missingFieldsTitle"), t("login.missingFieldsMessage"));
       return;
     }
     handleProviderLogin(
@@ -313,10 +314,10 @@ export default function LoginScreen() {
               </TouchableOpacity>
 
               <Text className="text-xl font-outfit-bold text-[#0F172A] mb-2">
-                Enter verification code
+                {t("login.enterVerificationCode")}
               </Text>
               <Text className="text-base font-outfit-medium text-[#0047AB] mb-12">
-                Sent to {fullPhoneRef.current}
+                {t("login.sentTo", { phone: fullPhoneRef.current })}
               </Text>
 
               {/* 6-digit display */}
@@ -370,7 +371,7 @@ export default function LoginScreen() {
                   }}
                   isLoading={isLoading}
                 >
-                  Verify
+                  {t("login.verify")}
                 </Button>
                 <TouchableOpacity
                   onPress={handleSendOTP}
@@ -378,7 +379,7 @@ export default function LoginScreen() {
                   disabled={isLoading}
                 >
                   <Text className="text-[#0047AB] text-center font-outfit-medium">
-                    Resend code
+                    {t("login.resendCode")}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -405,14 +406,14 @@ export default function LoginScreen() {
                 <View className="flex-1" />
 
                 <Text className="text-white text-3xl font-outfit-bold text-center">
-                  Get Started
+                  {t("login.getStarted")}
                 </Text>
 
                 <View className="w-full">
                   {method === "email" ? (
                     <View className="gap-4">
                       <Input
-                        placeholder="Email"
+                        placeholder={t("login.email")}
                         keyboardType="email-address"
                         autoCapitalize="none"
                         autoComplete="email"
@@ -427,7 +428,7 @@ export default function LoginScreen() {
                         }
                       />
                       <Input
-                        placeholder="Password"
+                        placeholder={t("login.password")}
                         isPassword
                         value={password}
                         onChangeText={setPassword}
@@ -467,11 +468,11 @@ export default function LoginScreen() {
                   className="border-white/40 border bg-blue-600/20 backdrop-blur-sm"
                   isLoading={isLoading}
                 >
-                  Login
+                  {t("login.loginButton")}
                 </Button>
 
                 <Text className="text-white/80 text-center font-outfit-regular">
-                  Or
+                  {t("login.or")}
                 </Text>
 
                 <View className="gap-4">
@@ -487,9 +488,9 @@ export default function LoginScreen() {
                         resizeMode="contain"
                       />
                     }
-                    accessibilityLabel="Sign in with Google"
+                    accessibilityLabel={t("login.signInWithGoogle")}
                   >
-                    Sign in with Google
+                    {t("login.signInWithGoogle")}
                   </Button>
                   <Button
                     variant="apple"
@@ -503,9 +504,9 @@ export default function LoginScreen() {
                         resizeMode="contain"
                       />
                     }
-                    accessibilityLabel="Sign in with Apple"
+                    accessibilityLabel={t("login.signInWithApple")}
                   >
-                    Sign in with Apple
+                    {t("login.signInWithApple")}
                   </Button>
                   <Button
                     variant="social"
@@ -518,20 +519,20 @@ export default function LoginScreen() {
                     className="h-[52px]"
                   >
                     {method === "email"
-                      ? "Sign in with Mobile"
-                      : "Sign in with Email"}
+                      ? t("login.signInWithMobile")
+                      : t("login.signInWithEmail")}
                   </Button>
                 </View>
 
                 <View className="flex-row justify-center pt-2">
                   <Text className="text-white/80 font-outfit-regular">
-                    Don't have an account?{" "}
+                    {t("login.noAccount")}{" "}
                   </Text>
                   <TouchableOpacity
                     onPress={() => router.push("/setup")}
                   >
                     <Text className="text-white font-outfit-bold underline">
-                      Sign Up
+                      {t("login.signUp")}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -581,7 +582,7 @@ export default function LoginScreen() {
               onPress={hideError}
             >
               <Text className="text-slate-700 text-center font-outfit-bold text-lg">
-                {errorModal.onAction ? "Cancel" : "Got it"}
+                {errorModal.onAction ? t("login.cancel") : t("login.gotIt")}
               </Text>
             </TouchableOpacity>
           </View>

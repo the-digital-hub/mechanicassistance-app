@@ -5,6 +5,7 @@ import { saveSetupProgress } from "@/lib/storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
     ActivityIndicator,
     Modal,
@@ -33,6 +34,7 @@ function MultiSelectDropdown({
     onChange,
     loading,
 }: DropdownProps) {
+    const { t } = useTranslation();
     const [open, setOpen] = useState(false);
     const summary = useMemo(() => {
         if (!selectedIds.length) return placeholder;
@@ -62,7 +64,7 @@ function MultiSelectDropdown({
                     numberOfLines={2}
                     className={`flex-1 pr-2 font-outfit-regular ${selectedIds.length ? "text-[#0F172A]" : "text-[#0F172A]/60"}`}
                 >
-                    {loading ? "Loading..." : summary}
+                    {loading ? t("setup.expertise.loading") : summary}
                 </Text>
                 {loading ? (
                     <ActivityIndicator size="small" color="#0047AB" />
@@ -89,7 +91,7 @@ function MultiSelectDropdown({
                         <ScrollView className="px-2 py-2">
                             {options.length === 0 && (
                                 <Text className="text-center text-[#0F172A]/60 py-6 font-outfit-regular">
-                                    No options available
+                                    {t("setup.expertise.noOptions")}
                                 </Text>
                             )}
                             {options.map((opt) => {
@@ -114,7 +116,7 @@ function MultiSelectDropdown({
                         </ScrollView>
                         <View className="px-5 py-4 border-t border-gray-100">
                             <Button onPress={() => setOpen(false)} size="default" className="bg-blue-700 rounded-xl">
-                                Done
+                                {t("setup.expertise.done")}
                             </Button>
                         </View>
                     </Pressable>
@@ -126,6 +128,7 @@ function MultiSelectDropdown({
 
 export default function ExpertiseScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
     const { user } = useUser();
     const [details, setDetails] = useState("");
     const [loading, setLoading] = useState(true);
@@ -194,24 +197,24 @@ export default function ExpertiseScreen() {
         >
             <View className="mb-6">
                 <Text className="text-xl font-outfit-bold text-[#0F172A] mb-1">
-                    Mechanic expertise Info
+                    {t("setup.expertise.title")}
                 </Text>
                 <Text className="text-[#0047AB] font-outfit-medium text-base">
-                    Help us get to know your skills — it means more job matches for you
+                    {t("setup.expertise.subtitle")}
                 </Text>
             </View>
 
             <MultiSelectDropdown
-                label="Prefered type of assistance"
-                placeholder="Select"
+                label={t("setup.expertise.assistanceTypeLabel")}
+                placeholder={t("setup.expertise.select")}
                 options={assistanceTypes}
                 selectedIds={selectedAssistanceIds}
                 onChange={setSelectedAssistanceIds}
                 loading={loading}
             />
             <MultiSelectDropdown
-                label="Services offered"
-                placeholder="Select"
+                label={t("setup.expertise.servicesLabel")}
+                placeholder={t("setup.expertise.select")}
                 options={services}
                 selectedIds={selectedServiceIds}
                 onChange={setSelectedServiceIds}
@@ -220,7 +223,7 @@ export default function ExpertiseScreen() {
 
             <View className="mb-6">
                 <Text className="font-outfit-medium text-[#0F172A] mb-2">
-                    Are there any further details you’d like to add to your profile?
+                    {t("setup.expertise.detailsLabel")}
                 </Text>
                 <TextInput
                     multiline
@@ -238,7 +241,7 @@ export default function ExpertiseScreen() {
                 className="bg-blue-700 rounded-xl"
                 disabled={saving}
             >
-                {saving ? "Saving..." : "Continue"}
+                {saving ? t("setup.expertise.saving") : t("setup.expertise.continue")}
             </Button>
         </ScrollView>
     );

@@ -3,55 +3,48 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 interface RoleConfig {
-    title: string;
-    description: string;
     icon: string;
-    badge: string;
-    highlights: string[];
     stats: { value: string; label: string }[];
-    buttonText: string;
     gradientColors: [string, string];
 }
 
 const roleConfigs: Record<'mechanic' | 'user', RoleConfig> = {
     mechanic: {
-        title: 'Turn your skills into income.',
-        description: 'Pick up nearby jobs, set your rates, and build a reputation drivers trust.',
         icon: 'settings',
-        badge: 'JOIN 2,800+ VERIFIED PROS',
-        highlights: ['Flexible hours', 'Fast payouts', 'Your rates'],
         stats: [
             { value: '$840', label: 'AVG WEEKLY' },
             { value: '4.9★', label: 'PRO RATING' },
             { value: '12 mi', label: 'RADIUS' },
         ],
-        buttonText: 'Continue as Technician',
         gradientColors: ['#2B66F8', '#081E72'],
     },
     user: {
-        title: 'Roadside help, on demand.',
-        description: 'Connect with certified technicians around you, compare offers and get back on the road.',
         icon: 'car',
-        badge: 'HELP IS 8 MIN AWAY ON AVERAGE',
-        highlights: ['Live tracking', 'Up-front pricing', 'Verified pros'],
         stats: [
             { value: '8 min', label: 'AVG RESPONSE' },
             { value: '24/7', label: 'COVERAGE' },
             { value: '2.5km', label: 'NEAREST HELP' },
         ],
-        buttonText: 'Continue as Vehicle Owner',
         gradientColors: ['#4B7BA7', '#2D4F6F'],
     },
 };
 
 export default function RoleSelectionScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
     const [selectedRole, setSelectedRole] = useState<'mechanic' | 'user'>('mechanic');
     const config = roleConfigs[selectedRole];
+    const roleText = {
+        title: t(`setup.roleSelection.${selectedRole}.title`),
+        description: t(`setup.roleSelection.${selectedRole}.description`),
+        highlights: t(`setup.roleSelection.${selectedRole}.highlights`, { returnObjects: true }) as string[],
+        buttonText: t(`setup.roleSelection.${selectedRole}.buttonText`),
+    };
 
     const handleContinue = async () => {
         try {
@@ -71,18 +64,18 @@ export default function RoleSelectionScreen() {
                     <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                         <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
                         <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                            CHOOSE YOUR ROLE
+                            {t('setup.roleSelection.badge')}
                         </Text>
                     </View>
 
                     {/* Title */}
                     <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
-                        Choose Your Path
+                        {t('setup.roleSelection.choosePath')}
                     </Text>
 
                     {/* Subtitle */}
                     <Text className="text-gray-500 font-outfit-regular text-base mb-0">
-                        Tell us how you'll be using the app
+                        {t('setup.roleSelection.subtitle')}
                     </Text>
                 </View>
 
@@ -105,7 +98,7 @@ export default function RoleSelectionScreen() {
                                 }}
                             >
                                 <Text className={`text-center font-outfit-semibold ${selectedRole === 'mechanic' ? 'text-white' : 'text-slate-600'}`}>
-                                    Technician
+                                    {t('setup.roleSelection.technician')}
                                 </Text>
                             </LinearGradient>
                         </TouchableOpacity>
@@ -126,7 +119,7 @@ export default function RoleSelectionScreen() {
                                 }}
                             >
                                 <Text className={`text-center font-outfit-semibold ${selectedRole === 'user' ? 'text-white' : 'text-slate-600'}`}>
-                                    Vehicle Owner
+                                    {t('setup.roleSelection.vehicleOwner')}
                                 </Text>
                             </LinearGradient>
                         </TouchableOpacity>
@@ -153,17 +146,17 @@ export default function RoleSelectionScreen() {
 
                         {/* Title */}
                         <Text className="text-white font-outfit-bold text-3xl mb-4 leading-tight">
-                            {config.title}
+                            {roleText.title}
                         </Text>
 
                         {/* Description */}
                         <Text className="text-white font-outfit-regular text-base mb-8 leading-relaxed opacity-90">
-                            {config.description}
+                            {roleText.description}
                         </Text>
 
                         {/* Highlights */}
                         <View className="flex-row flex-wrap gap-2 mb-8">
-                            {config.highlights.map((highlight, idx) => (
+                            {roleText.highlights.map((highlight, idx) => (
                                 <View key={idx} className="px-3 py-2 rounded-full" style={{ backgroundColor: 'rgba(255, 255, 255, 0.15)', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.3)' }}>
                                     <Text className="text-white font-outfit-medium text-xs">
                                         {highlight}
@@ -195,7 +188,7 @@ export default function RoleSelectionScreen() {
                         }}
                     >
                         <Text className="text-white font-outfit-bold text-center mr-2">
-                            {config.buttonText}
+                            {roleText.buttonText}
                         </Text>
                         <ChevronRight size={20} color="white" />
                     </LinearGradient>

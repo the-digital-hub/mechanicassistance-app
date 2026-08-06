@@ -7,9 +7,11 @@ import { ChevronRight } from 'lucide-react-native';
 import { ActivityIndicator, Keyboard, Modal, Platform, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export default function OTPScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
     const [code, setCode] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
     const [isVerifying, setIsVerifying] = useState(false);
@@ -23,10 +25,11 @@ export default function OTPScreen() {
         message: string;
         actionLabel?: string;
         onAction?: () => void;
+        isSuccess?: boolean;
     }>({ visible: false, title: '', message: '' });
 
-    const showError = (title: string, message: string, action?: { label: string; onPress: () => void }) => {
-        setErrorModal({ visible: true, title, message, actionLabel: action?.label, onAction: action?.onPress });
+    const showError = (title: string, message: string, action?: { label: string; onPress: () => void }, isSuccess?: boolean) => {
+        setErrorModal({ visible: true, title, message, actionLabel: action?.label, onAction: action?.onPress, isSuccess });
     };
     const hideError = () => setErrorModal(prev => ({ ...prev, visible: false }));
 
@@ -70,10 +73,10 @@ export default function OTPScreen() {
         } catch (err: any) {
             const rawMessage = err.message || '';
             const displayMessage = rawMessage.includes('auth/too-many-requests')
-                ? 'Too many attempts. Please wait a few minutes and try again later.'
-                : rawMessage || 'The code you entered is incorrect. Please try again.';
+                ? t('setup.otp.tooManyAttempts')
+                : rawMessage || t('setup.otp.invalidCodeMessage');
 
-            showError('Invalid code', displayMessage);
+            showError(t('setup.otp.invalidCodeTitle'), displayMessage);
             setCode('');
         } finally {
             setIsVerifying(false);
@@ -89,14 +92,14 @@ export default function OTPScreen() {
         try {
             await sendOTP(phone);
             setCode('');
-            showError('Code sent', 'A new verification code has been sent to your phone.');
+            showError(t('setup.otp.codeSentTitle'), t('setup.otp.codeSentMessage'), undefined, true);
         } catch (err: any) {
             const rawMessage = err.message || '';
             const displayMessage = rawMessage.includes('auth/too-many-requests')
-                ? 'Please wait a few minutes before requesting another code.'
-                : rawMessage || 'Failed to resend code. Please try again.';
+                ? t('setup.otp.waitBeforeResend')
+                : rawMessage || t('setup.otp.resendFailed');
 
-            showError('Error', displayMessage);
+            showError(t('setup.otp.errorTitle'), displayMessage);
         } finally {
             setIsResending(false);
         }
@@ -111,18 +114,18 @@ export default function OTPScreen() {
                         <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                             <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
                             <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                                VERIFY CODE
+                                {t('setup.otp.badge')}
                             </Text>
                         </View>
 
                         {/* Title */}
                         <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
-                            What's The Code?
+                            {t('setup.otp.title')}
                         </Text>
 
                         {/* Subtitle */}
                         <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-                            Enter the code sent to {phoneNumber || 'your phone'}
+                            {t('setup.otp.subtitle', { phone: phoneNumber || t('setup.otp.yourPhone') })}
                         </Text>
 
                         {/* 6-Digit Input Display with Native Autofill support */}
@@ -186,7 +189,7 @@ export default function OTPScreen() {
                                         <ActivityIndicator color="white" />
                                     ) : (
                                         <>
-                                            <Text className="text-white font-outfit-bold text-center mr-2">Verify</Text>
+                                            <Text className="text-white font-outfit-bold text-center mr-2">{t('setup.otp.verify')}</Text>
                                             <ChevronRight size={20} color="white" />
                                         </>
                                     )}
@@ -194,7 +197,7 @@ export default function OTPScreen() {
                             </TouchableOpacity>
                             <TouchableOpacity className="mb-6" onPress={handleResend} disabled={isResending}>
                                 <Text className="text-[#0047AB] text-center font-outfit-medium">
-                                    {isResending ? 'Sending…' : 'Resend code'}
+                                    {isResending ? t('setup.otp.sending') : t('setup.otp.resendCode')}
                                 </Text>
                             </TouchableOpacity>
                         </View>
@@ -219,7 +222,7 @@ export default function OTPScreen() {
                 <View className="flex-1 bg-black/40 justify-center items-center px-6">
                     <View className="bg-white rounded-3xl w-full p-8 items-center shadow-xl">
                         <View className="w-16 h-16 bg-red-50 rounded-full justify-center items-center mb-6">
-                            <Ionicons name="alert-circle" size={32} color={errorModal.title === 'Code sent' ? '#10B981' : '#EF4444'} />
+                            <Ionicons name="alert-circle" size={32} color={errorModal.isSuccess ? '#10B981' : '#EF4444'} />
                         </View>
 
                         <Text className="text-xl font-outfit-bold text-[#0F172A] mb-2 text-center">
@@ -249,7 +252,7 @@ export default function OTPScreen() {
                             onPress={hideError}
                         >
                             <Text className="text-slate-700 text-center font-outfit-bold text-lg">
-                                {errorModal.onAction ? 'Cancel' : 'Got it'}
+                                {errorModal.onAction ? t('setup.otp.cancel') : t('setup.otp.gotIt')}
                             </Text>
                         </TouchableOpacity>
                     </View>

@@ -2,10 +2,12 @@ import { useNotifications } from '@/context/NotificationsContext';
 import { useRouter } from 'expo-router';
 import { Check, MoreHorizontal, X } from 'lucide-react-native';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 export default function NotificationsScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
     const { notifications, deleteNotification, markAllRead } = useNotifications();
 
@@ -13,16 +15,16 @@ export default function NotificationsScreen() {
         const performDelete = () => deleteNotification(id);
 
         if (Platform.OS === 'web') {
-            if (window.confirm('Are you sure you want to remove this notification?')) {
+            if (window.confirm(t('notifications.deleteConfirmMessage'))) {
                 performDelete();
             }
         } else {
             Alert.alert(
-                'Delete Notification',
-                'Are you sure you want to remove this notification?',
+                t('notifications.deleteConfirmTitle'),
+                t('notifications.deleteConfirmMessage'),
                 [
-                    { text: 'Cancel', style: 'cancel' },
-                    { text: 'Delete', style: 'destructive', onPress: performDelete }
+                    { text: t('notifications.cancel'), style: 'cancel' },
+                    { text: t('notifications.delete'), style: 'destructive', onPress: performDelete }
                 ]
             );
         }
@@ -60,16 +62,16 @@ export default function NotificationsScreen() {
                     <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                         <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
                         <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                            YOUR NOTIFICATIONS
+                            {t('notifications.badge')}
                         </Text>
                     </View>
 
                     {/* Title */}
-                    <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">Notification center</Text>
+                    <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">{t('notifications.title')}</Text>
 
                     {/* Subtitle */}
                     <Text className="text-gray-500 font-outfit-regular text-base mb-6">
-                        Stay updated with the latest activity on your requests and messages
+                        {t('notifications.subtitle')}
                     </Text>
                 </View>
 
@@ -81,7 +83,7 @@ export default function NotificationsScreen() {
                             className={`pb-2 ${activeTab === 'all' ? 'border-b-2 border-blue-600' : ''}`}
                         >
                             <Text className={`font-outfit-bold ${activeTab === 'all' ? 'text-blue-900' : 'text-gray-400'}`}>
-                                All {notifications.length > 0 && <Text className="text-[10px] ml-1">{notifications.length}</Text>}
+                                {t('notifications.all')} {notifications.length > 0 && <Text className="text-[10px] ml-1">{notifications.length}</Text>}
                             </Text>
                         </TouchableOpacity>
                         <TouchableOpacity
@@ -89,7 +91,7 @@ export default function NotificationsScreen() {
                             className={`pb-2 ${activeTab === 'unread' ? 'border-b-2 border-blue-600' : ''}`}
                         >
                             <Text className={`font-outfit-bold ${activeTab === 'unread' ? 'text-blue-900' : 'text-gray-400'}`}>
-                                Unread {unreadCount > 0 && <Text className="text-[10px] ml-1">{unreadCount}</Text>}
+                                {t('notifications.unread')} {unreadCount > 0 && <Text className="text-[10px] ml-1">{unreadCount}</Text>}
                             </Text>
                         </TouchableOpacity>
                     </View>
@@ -108,9 +110,9 @@ export default function NotificationsScreen() {
                     {filteredNotifications.length === 0 ? (
                         <View className="px-6 py-16 items-center">
                             <Text className="text-4xl mb-4">🔔</Text>
-                            <Text className="text-gray-400 font-outfit-medium text-base text-center">No notifications yet</Text>
+                            <Text className="text-gray-400 font-outfit-medium text-base text-center">{t('notifications.empty')}</Text>
                             <Text className="text-gray-300 font-outfit-regular text-sm text-center mt-1">
-                                When a mechanic responds to your request, it will appear here.
+                                {t('notifications.emptyHint')}
                             </Text>
                         </View>
                     ) : (
@@ -138,7 +140,7 @@ export default function NotificationsScreen() {
                                             <Text className="text-gray-900 font-outfit-bold text-sm mb-0.5">{notif.title}</Text>
                                             <Text className="text-gray-500 font-outfit-regular text-[13px] leading-4">{notif.body}</Text>
                                             {notif.type === 'mechanic_found' && notif.requestId && (
-                                                <Text className="text-blue-500 font-outfit-medium text-xs mt-1">Tap to view details →</Text>
+                                                <Text className="text-blue-500 font-outfit-medium text-xs mt-1">{t('notifications.tapToView')}</Text>
                                             )}
                                         </View>
                                         <View className="items-end min-w-[30px]">

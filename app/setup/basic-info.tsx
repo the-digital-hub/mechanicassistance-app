@@ -9,6 +9,7 @@ import { useRouter } from "expo-router";
 import { ChevronRight } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -24,6 +25,7 @@ import { z } from "zod";
 
 export default function BasicInfoScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: "",
     surname: "",
@@ -71,7 +73,7 @@ export default function BasicInfoScreen() {
       const uploaded = await mediaDAO.uploadPhoto(localUri);
       setFormData((prev) => ({ ...prev, profileImage: uploaded.url }));
     } catch {
-      Alert.alert("Upload Failed", "Could not upload profile photo. Please try again.");
+      Alert.alert(t("setup.basicInfo.uploadFailedTitle"), t("setup.basicInfo.uploadFailedMessage"));
       setLocalProfileUri(null);
     } finally {
       setIsUploadingPhoto(false);
@@ -147,18 +149,18 @@ export default function BasicInfoScreen() {
         <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
           <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
           <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-            BASIC INFORMATION
+            {t("setup.basicInfo.badge")}
           </Text>
         </View>
 
         {/* Title */}
         <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
-          Basic Info
+          {t("setup.basicInfo.title")}
         </Text>
 
         {/* Subtitle */}
         <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-          Please enter your information
+          {t("setup.basicInfo.subtitle")}
         </Text>
 
         {/* Profile Photo */}
@@ -186,10 +188,10 @@ export default function BasicInfoScreen() {
           </TouchableOpacity>
           <View>
             <Text className="font-outfit-bold text-[#0F172A] text-lg">
-              Profile Photo
+              {t("setup.basicInfo.profilePhoto")}
             </Text>
             <Text className="font-outfit-regular text-slate-400 text-sm">
-              Update your avatar
+              {t("setup.basicInfo.updateAvatar")}
             </Text>
           </View>
         </View>
@@ -198,7 +200,7 @@ export default function BasicInfoScreen() {
         <View className="space-y-4 mb-6 gap-5">
           <View>
             <Text className="font-outfit-medium text-[#0F172A] mb-2 capitalize">
-              Name
+              {t("setup.basicInfo.name")}
             </Text>
             <Input
               value={formData.name}
@@ -211,7 +213,7 @@ export default function BasicInfoScreen() {
 
           <View>
             <Text className="font-outfit-medium text-[#0F172A] mb-2 capitalize">
-              Surname
+              {t("setup.basicInfo.surname")}
             </Text>
             <Input
               value={formData.surname}
@@ -224,7 +226,7 @@ export default function BasicInfoScreen() {
 
           <View>
             <Text className="font-outfit-medium text-[#0F172A] mb-2 capitalize">
-              email
+              {t("setup.basicInfo.email")}
             </Text>
             <Input
               value={formData.email}
@@ -236,22 +238,22 @@ export default function BasicInfoScreen() {
               autoCapitalize="none"
             />
             {emailStatus === 'checking' && (
-              <Text className="font-outfit-regular text-xs text-slate-400 mt-1">Checking availability…</Text>
+              <Text className="font-outfit-regular text-xs text-slate-400 mt-1">{t("setup.basicInfo.checkingAvailability")}</Text>
             )}
             {emailStatus === 'taken' && (
-              <Text className="font-outfit-regular text-xs text-red-500 mt-1">Email already registered</Text>
+              <Text className="font-outfit-regular text-xs text-red-500 mt-1">{t("setup.basicInfo.emailTaken")}</Text>
             )}
             {emailStatus === 'available' && (
-              <Text className="font-outfit-regular text-xs text-green-600 mt-1">Email available</Text>
+              <Text className="font-outfit-regular text-xs text-green-600 mt-1">{t("setup.basicInfo.emailAvailable")}</Text>
             )}
             {emailStatus === 'error' && (
-              <Text className="font-outfit-regular text-xs text-orange-500 mt-1">Could not verify email</Text>
+              <Text className="font-outfit-regular text-xs text-orange-500 mt-1">{t("setup.basicInfo.emailCheckError")}</Text>
             )}
           </View>
 
           <View>
             <Text className="font-outfit-medium text-[#0F172A] mb-2">
-              Date of birth
+              {t("setup.basicInfo.dob")}
             </Text>
             <DatePicker
               value={formData.dob}
@@ -263,7 +265,7 @@ export default function BasicInfoScreen() {
 
           <View ref={passwordContainerRef}>
             <Text className="font-outfit-medium text-[#0F172A] mb-2 capitalize">
-              Account Password
+              {t("setup.basicInfo.accountPassword")}
             </Text>
             <View className="relative">
               <Input
@@ -280,7 +282,7 @@ export default function BasicInfoScreen() {
 
           <View ref={confirmPasswordContainerRef}>
             <Text className="font-outfit-medium text-[#0F172A] mb-2 capitalize">
-              Confirm Password
+              {t("setup.basicInfo.confirmPassword")}
             </Text>
             <Input
               value={formData.confirmPassword}
@@ -301,28 +303,28 @@ export default function BasicInfoScreen() {
               ruleNameEmail ? "text-green-600" : "text-gray-600"
             }`}
           >
-            • Must not contain your name or email.
+            • {t("setup.basicInfo.ruleNoNameEmail")}
           </Text>
           <Text
             className={`font-outfit-regular text-sm mb-1 ${
               ruleLength ? "text-green-600" : "text-gray-600"
             }`}
           >
-            • At least 8 characters.
+            • {t("setup.basicInfo.ruleMinLength")}
           </Text>
           <Text
             className={`font-outfit-regular text-sm ${
               ruleSymbol ? "text-green-600" : "text-gray-600"
             }`}
           >
-            • Contains a symbol or a number
+            • {t("setup.basicInfo.ruleSymbol")}
           </Text>
           <Text
             className={`font-outfit-regular text-sm mt-1 ${
               ruleMatch ? "text-green-600" : "text-gray-600"
             }`}
           >
-            • Passwords match
+            • {t("setup.basicInfo.rulePasswordsMatch")}
           </Text>
         </View>
 
@@ -348,7 +350,7 @@ export default function BasicInfoScreen() {
               <ActivityIndicator color="white" />
             ) : (
               <>
-                <Text className="text-white font-outfit-bold text-center mr-2">Continue</Text>
+                <Text className="text-white font-outfit-bold text-center mr-2">{t("setup.basicInfo.continue")}</Text>
                 <ChevronRight size={20} color="white" />
               </>
             )}

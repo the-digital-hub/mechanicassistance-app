@@ -6,6 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { ChevronRight } from "lucide-react-native";
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
     ActivityIndicator,
     Keyboard,
@@ -23,6 +24,7 @@ import { LinearGradient } from "expo-linear-gradient";
 
 export default function PhoneNumberScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [phoneNumber, setPhoneNumber] = useState(""); // raw digits only
   const [isChecking, setIsChecking] = useState(false);
   const [errorModal, setErrorModal] = useState({
@@ -58,8 +60,8 @@ export default function PhoneNumberScreen() {
     Keyboard.dismiss();
     if (phoneNumber.length < 10) {
       showError(
-        "Invalid number",
-        "Please enter a valid 10-digit phone number.",
+        t("setup.phone.invalidTitle"),
+        t("setup.phone.invalidMessage"),
       );
       return;
     }
@@ -71,8 +73,8 @@ export default function PhoneNumberScreen() {
       const exists = await userDAO.checkPhoneExists(fullPhone);
       if (exists) {
         showError(
-          "Account Exists",
-          "This phone number is already registered. Please log in instead or use a different number.",
+          t("setup.phone.existsTitle"),
+          t("setup.phone.existsMessage"),
         );
         return;
       }
@@ -83,11 +85,11 @@ export default function PhoneNumberScreen() {
     } catch (error: any) {
       const rawMessage = error?.message || "";
       const displayMessage = rawMessage.includes("auth/too-many-requests")
-        ? "Too many login attempts. Please wait a few minutes and try again later."
+        ? t("setup.phone.tooManyAttempts")
         : error instanceof ApiError
-          ? "We couldn't verify your phone number right now. Please try again in a moment."
-          : rawMessage || "Something went wrong. Please try again.";
-      showError("Error", displayMessage);
+          ? t("setup.phone.verifyFailed")
+          : rawMessage || t("setup.phone.genericError");
+      showError(t("setup.phone.errorTitle"), displayMessage);
     } finally {
       setIsChecking(false);
     }
@@ -105,18 +107,18 @@ export default function PhoneNumberScreen() {
           <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
             <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
             <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-              GET STARTED
+              {t("setup.phone.badge")}
             </Text>
           </View>
 
           {/* Title */}
           <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
-            What's your number?
+            {t("setup.phone.title")}
           </Text>
 
           {/* Subtitle */}
           <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-            We'll send you an SMS to verify your phone number.
+            {t("setup.phone.subtitle")}
           </Text>
 
           {/* Phone input row */}
@@ -145,16 +147,15 @@ export default function PhoneNumberScreen() {
 
           <View className="bg-blue-50/50 p-4 rounded-xl mt-auto mb-4">
             <Text className="text-xs text-slate-500 text-center font-outfit-regular leading-5">
-              By providing my mobile number, I hereby agree and accept the{" "}
+              {t("setup.phone.consentPrefix")}{" "}
               <Text className="font-outfit-bold text-[#0047AB]">
-                Terms of Service
+                {t("setup.phone.termsOfService")}
               </Text>{" "}
-              and{" "}
+              {t("setup.phone.consentAnd")}{" "}
               <Text className="font-outfit-bold text-[#0047AB]">
-                Privacy Policy
+                {t("setup.phone.privacyPolicy")}
               </Text>{" "}
-              in use of the mechanic assistance app and to receive text message
-              communications from mechanic on my mobile device.
+              {t("setup.phone.consentSuffix")}
             </Text>
           </View>
 
@@ -182,7 +183,7 @@ export default function PhoneNumberScreen() {
                 <ActivityIndicator color="white" />
               ) : (
                 <>
-                  <Text className="text-white font-outfit-bold text-center mr-2">Continue</Text>
+                  <Text className="text-white font-outfit-bold text-center mr-2">{t("setup.phone.continue")}</Text>
                   <ChevronRight size={20} color="white" />
                 </>
               )}
@@ -216,7 +217,7 @@ export default function PhoneNumberScreen() {
                 onPress={hideError}
               >
                 <Text className="text-white text-center font-outfit-bold text-lg">
-                  Got it
+                  {t("setup.phone.gotIt")}
                 </Text>
               </TouchableOpacity>
             </View>

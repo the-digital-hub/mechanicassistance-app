@@ -5,6 +5,7 @@ import { useRouter } from "expo-router";
 import { ChevronRight } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   FlatList,
@@ -19,6 +20,7 @@ import {
 
 export default function AddressScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [addressType, setAddressType] = useState<"home" | "work">("home");
   const [showStateModal, setShowStateModal] = useState(false);
   const [searchSuggestions, setSearchSuggestions] = useState<any[]>([]);
@@ -214,18 +216,18 @@ export default function AddressScreen() {
         <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
           <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
           <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-            YOUR ADDRESS
+            {t('setup.address.badge')}
           </Text>
         </View>
 
         {/* Title */}
         <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
-          Your address
+          {t('setup.address.title')}
         </Text>
 
         {/* Subtitle */}
         <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-          Set your address now to receive quicker assistance later.
+          {t('setup.address.subtitle')}
         </Text>
 
         {/* Toggle */}
@@ -237,7 +239,7 @@ export default function AddressScreen() {
             <Text
               className={`font-outfit-medium ${addressType === "home" ? "text-[#0F172A]" : "text-gray-500"}`}
             >
-              Home
+              {t('setup.address.home')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -247,7 +249,7 @@ export default function AddressScreen() {
             <Text
               className={`font-outfit-medium ${addressType === "work" ? "text-[#0F172A]" : "text-gray-500"}`}
             >
-              Work
+              {t('setup.address.work')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -255,7 +257,7 @@ export default function AddressScreen() {
         <View className="space-y-4 mb-4 gap-5">
           <View className="relative z-50">
             <Text className="font-outfit-medium text-[#0F172A] mb-2">
-              Street / Number
+              {t('setup.address.streetNumber')}
             </Text>
             <Input
               value={formData.street}
@@ -264,7 +266,7 @@ export default function AddressScreen() {
                 searchAddress(text);
               }}
               containerClassName="bg-white border border-gray-300 rounded-2xl"
-              placeholder="Enter street address"
+              placeholder={t('setup.address.streetPlaceholder')}
             />
             {isSearching && (
               <ActivityIndicator
@@ -296,7 +298,7 @@ export default function AddressScreen() {
 
           <View>
             <Text className="font-outfit-medium text-[#0F172A] mb-2">
-              Apartment, suite, unit, building, etc.
+              {t('setup.address.apartment')}
             </Text>
             <Input
               value={formData.apartment}
@@ -308,7 +310,7 @@ export default function AddressScreen() {
           <View className="flex-row gap-4">
             <View className="flex-1">
               <Text className="font-outfit-medium text-[#0F172A] mb-2">
-                City
+                {t('setup.address.city')}
               </Text>
               <Input
                 value={formData.city}
@@ -319,7 +321,7 @@ export default function AddressScreen() {
 
             <View className="flex-1">
               <Text className="font-outfit-medium text-[#0F172A] mb-2">
-                State
+                {t('setup.address.state')}
               </Text>
               <TouchableOpacity
                 onPress={() => setShowStateModal(true)}
@@ -330,14 +332,14 @@ export default function AddressScreen() {
                   className={`font-outfit-medium ${formData.state ? "text-[#0F172A]" : "text-gray-400"}`}
                   style={{ lineHeight: 25 }}
                 >
-                  {formData.state || "Select"}
+                  {formData.state || t('setup.address.select')}
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
 
           <View ref={zipContainerRef}>
-            <Text className="font-outfit-medium text-[#0F172A] mb-2">Zip</Text>
+            <Text className="font-outfit-medium text-[#0F172A] mb-2">{t('setup.address.zip')}</Text>
             <Input
               value={formData.zip}
               onChangeText={(text) => {
@@ -371,7 +373,7 @@ export default function AddressScreen() {
                 borderColor: '#E5E7EB',
               }}
             >
-              <Text className="text-gray-700 font-outfit-bold text-center">Skip</Text>
+              <Text className="text-gray-700 font-outfit-bold text-center">{t('setup.address.skip')}</Text>
             </View>
           </TouchableOpacity>
 
@@ -393,7 +395,7 @@ export default function AddressScreen() {
                 justifyContent: 'center',
               }}
             >
-              <Text className="text-white font-outfit-bold text-center mr-2">Continue</Text>
+              <Text className="text-white font-outfit-bold text-center mr-2">{t('setup.address.continue')}</Text>
               <ChevronRight size={20} color="white" />
             </LinearGradient>
           </TouchableOpacity>
@@ -410,10 +412,10 @@ export default function AddressScreen() {
             <View className="bg-white rounded-t-3xl h-2/3">
               <View className="p-6 border-b border-gray-100 flex-row justify-between items-center">
                 <Text className="text-xl font-outfit-bold text-blue-900">
-                  Select State
+                  {t('setup.address.selectState')}
                 </Text>
                 <TouchableOpacity onPress={() => setShowStateModal(false)}>
-                  <Text className="text-blue-600 font-outfit-bold">Done</Text>
+                  <Text className="text-blue-600 font-outfit-bold">{t('setup.address.done')}</Text>
                 </TouchableOpacity>
               </View>
               <FlatList

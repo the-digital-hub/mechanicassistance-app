@@ -12,6 +12,7 @@ import { useRouter } from "expo-router";
 import { ChevronRight } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -38,6 +39,7 @@ interface Vehicle {
 
 export default function VehicleInfoScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [isAdding, setIsAdding] = useState(true);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [activeModal, setActiveModal] = useState<"make" | "model" | null>(null);
@@ -113,7 +115,7 @@ export default function VehicleInfoScreen() {
   const handleVinLookup = async () => {
     const vin = formData.vin.trim();
     if (vin.length !== 17) {
-      Alert.alert("Invalid VIN", "A VIN must be exactly 17 characters.");
+      Alert.alert(t("setup.vehicleInfo.invalidVinTitle"), t("setup.vehicleInfo.invalidVinMessage"));
       return;
     }
 
@@ -127,12 +129,12 @@ export default function VehicleInfoScreen() {
             make,
             model,
           }));
-          Alert.alert("VIN Decoded", `Found: ${make} ${model}`, [
-            { text: "OK" },
+          Alert.alert(t("setup.vehicleInfo.vinDecodedTitle"), t("setup.vehicleInfo.vinDecodedMessage", { make, model }), [
+            { text: t("setup.vehicleInfo.ok") },
           ]);
         },
         (errorMsg) => {
-          Alert.alert("VIN Not Found", errorMsg);
+          Alert.alert(t("setup.vehicleInfo.vinNotFoundTitle"), errorMsg);
         },
       );
     } finally {
@@ -179,18 +181,18 @@ export default function VehicleInfoScreen() {
           <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
             <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
             <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-              YOUR VEHICLES
+              {t("setup.vehicleInfo.yourVehicles")}
             </Text>
           </View>
 
           {/* Title */}
           <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
-            Vehicle Info
+            {t("setup.vehicleInfo.title")}
           </Text>
 
           {/* Subtitle */}
           <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-            Help us recognize you faster.
+            {t("setup.vehicleInfo.subtitle")}
           </Text>
 
           {vehicles.map((v, index) => (
@@ -234,7 +236,7 @@ export default function VehicleInfoScreen() {
                 justifyContent: 'center',
               }}
             >
-              <Text className="text-white font-outfit-bold text-center mr-2">Add vehicle</Text>
+              <Text className="text-white font-outfit-bold text-center mr-2">{t("setup.vehicleInfo.addVehicle")}</Text>
               <ChevronRight size={20} color="white" />
             </LinearGradient>
           </TouchableOpacity>
@@ -257,7 +259,7 @@ export default function VehicleInfoScreen() {
               marginTop: 32,
             }}
           >
-            <Text className="text-white font-outfit-bold text-center mr-2">Continue</Text>
+            <Text className="text-white font-outfit-bold text-center mr-2">{t("setup.vehicleInfo.continue")}</Text>
             <ChevronRight size={20} color="white" />
           </LinearGradient>
         </TouchableOpacity>
@@ -282,25 +284,25 @@ export default function VehicleInfoScreen() {
         <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
           <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
           <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-            VEHICLE INFORMATION
+            {t("setup.vehicleInfo.badge")}
           </Text>
         </View>
 
         {/* Title */}
         <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
-          Vehicle Info
+          {t("setup.vehicleInfo.title")}
         </Text>
 
         {/* Subtitle */}
         <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-          Help us recognize you faster.
+          {t("setup.vehicleInfo.subtitle")}
         </Text>
 
         <View className="space-y-6 gap-5">
           {/* VIN FIRST per user request */}
           <View>
             <Text className="font-outfit-medium text-[#0F172A] mb-2">
-              VIN #
+              {t("setup.vehicleInfo.vin")}
             </Text>
             <View className="flex-row items-center gap-2">
               <View ref={vinContainerRef} className="flex-1">
@@ -318,7 +320,7 @@ export default function VehicleInfoScreen() {
                   containerClassName="bg-white border border-gray-300 rounded-2xl h-12"
                   maxLength={17}
                   autoCapitalize="characters"
-                  placeholder="Enter 17-character VIN"
+                  placeholder={t("setup.vehicleInfo.vinPlaceholder")}
                 />
               </View>
               <TouchableOpacity
@@ -342,13 +344,13 @@ export default function VehicleInfoScreen() {
               </TouchableOpacity>
             </View>
             <Text className="text-xs font-outfit-regular text-slate-400 mt-1">
-              Enter VIN and tap search to auto-fill Make & Model
+              {t("setup.vehicleInfo.vinHint")}
             </Text>
           </View>
 
           <View>
             <Text className="font-outfit-medium text-[#0F172A] mb-2">
-              Vehicle make
+              {t("setup.vehicleInfo.make")}
             </Text>
             <TouchableOpacity
               onPress={() => setActiveModal("make")}
@@ -364,7 +366,7 @@ export default function VehicleInfoScreen() {
                   />
                 )} */}
                 <Text className="text-[#0F172A] font-outfit-regular text-[17px]">
-                  {formData.make}
+                  {formData.make === "Select" ? t("setup.vehicleInfo.select") : formData.make}
                 </Text>
               </View>
               {isLoadingMakes ? (
@@ -377,7 +379,7 @@ export default function VehicleInfoScreen() {
 
           <View>
             <Text className="font-outfit-medium text-[#0F172A] mb-2">
-              Vehicle model
+              {t("setup.vehicleInfo.model")}
             </Text>
             <TouchableOpacity
               onPress={() =>
@@ -388,7 +390,7 @@ export default function VehicleInfoScreen() {
               style={{ height: 52 }}
             >
               <Text className="text-[#0F172A] font-outfit-regular text-[17px]">
-                {formData.model}
+                {formData.model === "Select" ? t("setup.vehicleInfo.select") : formData.model}
               </Text>
               {isLoadingModels ? (
                 <ActivityIndicator size="small" color="#0047AB" />
@@ -400,7 +402,7 @@ export default function VehicleInfoScreen() {
 
           <View>
             <Text className="font-outfit-medium text-[#0F172A] mb-2">
-              Color
+              {t("setup.vehicleInfo.color")}
             </Text>
             <View className="flex-row gap-3">
               {VEHICLE_COLORS.map((c) => {
@@ -448,7 +450,7 @@ export default function VehicleInfoScreen() {
 
           <View>
             <Text className="font-outfit-medium text-[#0F172A] mb-2">
-              License plate #
+              {t("setup.vehicleInfo.plate")}
             </Text>
             <Input
               value={formData.plate}
@@ -461,8 +463,7 @@ export default function VehicleInfoScreen() {
 
           <View ref={detailsContainerRef}>
             <Text className="font-outfit-medium text-[#0F172A] mb-2">
-              Are there any further details that can better help identify your
-              vehicle?
+              {t("setup.vehicleInfo.detailsLabel")}
             </Text>
             <TextInput
               multiline
@@ -498,7 +499,7 @@ export default function VehicleInfoScreen() {
                 opacity: formData.make === "Select" || formData.model === "Select" ? 0.6 : 1,
               }}
             >
-              <Text className="text-white font-outfit-bold text-center mr-2">Continue</Text>
+              <Text className="text-white font-outfit-bold text-center mr-2">{t("setup.vehicleInfo.continue")}</Text>
               <ChevronRight size={20} color="white" />
             </LinearGradient>
           </TouchableOpacity>
@@ -515,17 +516,17 @@ export default function VehicleInfoScreen() {
             <View className="bg-white rounded-t-3xl min-h-[50%] max-h-[80%] p-6">
               <View className="flex-row justify-between items-center mb-6">
                 <Text className="text-xl font-outfit-bold text-[#0F172A]">
-                  Select {activeModal === "make" ? "Make" : "Model"}
+                  {activeModal === "make" ? t("setup.vehicleInfo.selectMake") : t("setup.vehicleInfo.selectModel")}
                 </Text>
                 <TouchableOpacity onPress={() => setActiveModal(null)}>
-                  <Text className="text-blue-600 font-outfit-bold">Done</Text>
+                  <Text className="text-blue-600 font-outfit-bold">{t("setup.vehicleInfo.done")}</Text>
                 </TouchableOpacity>
               </View>
 
               <View className="flex-row items-center bg-slate-50 border border-slate-100 rounded-xl px-3 mb-4">
                 <Ionicons name="search" size={18} color="#64748B" />
                 <TextInput
-                  placeholder={`Search ${activeModal === "make" ? "Make" : "Model"}...`}
+                  placeholder={activeModal === "make" ? t("setup.vehicleInfo.searchMake") : t("setup.vehicleInfo.searchModel")}
                   value={makeSearchQuery}
                   onChangeText={setMakeSearchQuery}
                   className="flex-1 h-11 px-2 font-outfit-medium text-[#0F172A]"

@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { ChevronDown, ChevronUp } from 'lucide-react-native';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { LayoutAnimation, Platform, ScrollView, Text, TouchableOpacity, UIManager, View } from 'react-native';
 
 if (Platform.OS === 'android') {
@@ -11,6 +12,7 @@ if (Platform.OS === 'android') {
 
 export default function HelpScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
     const [expandedIds, setExpandedIds] = useState<number[]>([]);
 
     const toggleExpand = (id: number) => {
@@ -22,12 +24,11 @@ export default function HelpScreen() {
         }
     };
 
-    const faqs = [
-        { id: 1, question: 'Lorem ipsum dolor sit amet?', answer: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent pellentesque congue lorem, vel tincidunt tortor placerat a. Proin ac diam quam.' },
-        { id: 2, question: 'Lorem ipsum dolor sit amet?', answer: 'Answer for item 2...' },
-        { id: 3, question: 'Lorem ipsum dolor sit amet?', answer: 'Answer for item 3...' },
-        { id: 4, question: 'Lorem ipsum dolor sit amet?', answer: 'Answer for item 4...' },
-    ];
+    const faqs = [1, 2, 3, 4].map((id) => ({
+        id,
+        question: t(`help.faqs.q${id}.question`),
+        answer: t(`help.faqs.q${id}.answer`),
+    }));
 
     return (
         <View className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
@@ -36,34 +37,34 @@ export default function HelpScreen() {
             <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
               <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
               <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                HELP & SUPPORT
+                {t('help.badge')}
               </Text>
             </View>
 
             {/* Title */}
-            <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">Help center</Text>
+            <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">{t('help.title')}</Text>
 
             {/* Subtitle */}
             <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-                We're here to guide you, check out our frequently asked questions or contact us directly
+                {t('help.subtitle')}
             </Text>
 
             {/* Action Buttons */}
             <View className="flex-row flex-wrap gap-3 mb-8">
                 <TouchableOpacity className="flex-1 min-w-[45%] border border-gray-800 rounded-lg py-3 items-center">
-                    <Text className="font-outfit-bold text-gray-900">Contact Us</Text>
+                    <Text className="font-outfit-bold text-gray-900">{t('help.contactUs')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                     className="flex-1 min-w-[45%] border border-gray-800 rounded-lg py-3 items-center"
                     onPress={() => router.push('/live-chat')}
                 >
-                    <Text className="font-outfit-bold text-gray-900">Live chat</Text>
+                    <Text className="font-outfit-bold text-gray-900">{t('help.liveChat')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity className="flex-1 min-w-[45%] border border-gray-800 rounded-lg py-3 items-center">
-                    <Text className="font-outfit-bold text-gray-900">FAQ</Text>
+                    <Text className="font-outfit-bold text-gray-900">{t('help.faq')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity className="flex-1 min-w-[45%] border border-gray-200 rounded-lg py-3 items-center">
-                    <Text className="font-outfit-bold text-gray-900">Website</Text>
+                    <Text className="font-outfit-bold text-gray-900">{t('help.website')}</Text>
                 </TouchableOpacity>
             </View>
 

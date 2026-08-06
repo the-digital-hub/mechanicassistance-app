@@ -17,6 +17,7 @@ import { LinearGradient } from "expo-linear-gradient";
 
 import { HapticTab } from "@/components/haptic-tab";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useTranslation } from "react-i18next";
 
 function MechanicStatusHeaderLeft() {
   return <MechanicStatusBadge />;
@@ -94,6 +95,7 @@ function AddressesHeaderLeft() {
 }
 
 function MechanicStatusBadge() {
+  const { t } = useTranslation();
   const { user } = useUser();
   const { mechanicStatus, setMechanicStatus } = useMechanicStatus();
   const [showModal, setShowModal] = useState(false);
@@ -116,9 +118,9 @@ function MechanicStatusBadge() {
   };
 
   const getStatusLabel = () => {
-    if (mechanicStatus === 'available') return 'Available';
-    if (mechanicStatus === 'busy') return 'Busy';
-    return 'Offline';
+    if (mechanicStatus === 'available') return t('profile.availability.available');
+    if (mechanicStatus === 'busy') return t('profile.availability.busy');
+    return t('profile.availability.offline');
   };
 
   const getStatusColor = (status: 'available' | 'busy' | 'offline') => {
@@ -130,18 +132,18 @@ function MechanicStatusBadge() {
   const statusOptions: Array<{ id: 'available' | 'busy' | 'offline', label: string, description: string }> = [
     {
       id: 'available',
-      label: 'Available',
-      description: 'Visible to owners and can receive new requests'
+      label: t('profile.availability.available'),
+      description: t('profile.availability.availableDesc')
     },
     {
       id: 'busy',
-      label: 'Busy',
-      description: 'Visible but won\'t receive new requests'
+      label: t('profile.availability.busy'),
+      description: t('profile.availability.busyDesc')
     },
     {
       id: 'offline',
-      label: 'Offline',
-      description: 'Not visible to owners and won\'t receive requests'
+      label: t('profile.availability.offline'),
+      description: t('profile.availability.offlineDesc')
     },
   ];
 
@@ -164,7 +166,7 @@ function MechanicStatusBadge() {
         <View className="flex-1 bg-black/50 justify-center items-center px-6">
           <View className="bg-white w-full rounded-2xl p-6 items-center">
             <Text className="text-lg font-outfit-bold text-gray-900 mb-6 text-center">
-              Change your status
+              {t('profile.modals.changeStatus')}
             </Text>
 
             <View className="w-full gap-3">
@@ -240,6 +242,7 @@ export default function TabLayout() {
   const colorScheme = useColorScheme();
   const navigation = useNavigation();
   const router = useRouter();
+  const { t } = useTranslation();
   const { user } = useUser();
   const pathname = usePathname();
 
@@ -283,7 +286,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="dashboard"
         options={{
-          title: "Dashboard",
+          title: t('tabs.dashboard'),
           tabBarIcon: ({ color }) => <LifeBuoy size={24} color={color} />,
           headerLeft: () => <MechanicStatusHeaderLeft />,
           headerRight: () => <NotificationHeaderRight />,
@@ -293,7 +296,7 @@ export default function TabLayout() {
         name="assist"
         options={{
           href: user?.role === "mechanic" ? undefined : null,
-          title: "Requests",
+          title: t('tabs.requests'),
           tabBarIcon: ({ color }) => <Wrench size={24} color={color} />,
           headerLeft: () => <MechanicStatusHeaderLeft />,
           headerRight: () => <NotificationHeaderRight />,
@@ -309,7 +312,7 @@ export default function TabLayout() {
         name="request-assistance"
         options={{
           href: user?.role === "mechanic" ? null : undefined,
-          title: "Requests",
+          title: t('tabs.requests'),
           tabBarIcon: ({ color }) => <Wrench size={24} color={color} />,
           headerShown: isRequestAssistanceRoot,
           headerLeft: () => null,
@@ -325,7 +328,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="appointments"
         options={{
-          title: "Appointments",
+          title: t('tabs.appointments'),
           tabBarIcon: ({ color }) => <Calendar size={24} color={color} />,
           headerLeft: () => <MechanicStatusHeaderLeft />,
           headerRight: () => <NotificationHeaderRight />,
@@ -335,7 +338,7 @@ export default function TabLayout() {
         name="notifications"
         options={{
           href: null,
-          title: "Notifications",
+          title: t('tabs.notifications'),
           tabBarIcon: ({ color }) => <Bell size={24} color={color} />,
           headerLeft: () => null,
           headerRight: () => <NotificationHeaderRight />,
@@ -344,7 +347,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Profile",
+          title: t('tabs.profile'),
           tabBarIcon: ({ color }) => <ProfileTabIcon color={color} />,
           headerLeft: () => <MechanicStatusHeaderLeft />,
           headerRight: () => <NotificationHeaderRight />,
@@ -356,7 +359,7 @@ export default function TabLayout() {
         name="personal-info"
         options={{
           href: null,
-          title: "Profile",
+          title: t('tabs.profile'),
           headerLeft: () => <PersonalInfoHeaderLeft />,
           headerRight: () => <PersonalInfoHeaderRight />,
         }}
@@ -365,7 +368,7 @@ export default function TabLayout() {
         name="ase"
         options={{
           href: null,
-          title: "Profile",
+          title: t('tabs.profile'),
           headerLeft: () => <PersonalInfoHeaderLeft />,
           headerRight: () => <PersonalInfoHeaderRight />,
         }}
@@ -374,7 +377,7 @@ export default function TabLayout() {
         name="payments"
         options={{
           href: null,
-          title: "Profile",
+          title: t('tabs.profile'),
           headerLeft: () => <PersonalInfoHeaderLeft />,
           headerRight: () => <PersonalInfoHeaderRight />,
         }}
@@ -383,7 +386,7 @@ export default function TabLayout() {
         name="promotions"
         options={{
           href: null,
-          title: "Profile",
+          title: t('tabs.profile'),
           headerLeft: () => <PersonalInfoHeaderLeft />,
           headerRight: () => <PersonalInfoHeaderRight />,
         }}
@@ -392,7 +395,7 @@ export default function TabLayout() {
         name="help"
         options={{
           href: null,
-          title: "Profile",
+          title: t('tabs.profile'),
           headerLeft: () => <PersonalInfoHeaderLeft />,
           headerRight: () => <PersonalInfoHeaderRight />,
         }}
@@ -401,7 +404,7 @@ export default function TabLayout() {
         name="privacy"
         options={{
           href: null,
-          title: "Profile",
+          title: t('tabs.profile'),
           headerLeft: () => <PersonalInfoHeaderLeft />,
           headerRight: () => <PersonalInfoHeaderRight />,
         }}
@@ -410,7 +413,7 @@ export default function TabLayout() {
         name="settings"
         options={{
           href: null,
-          title: "Profile",
+          title: t('tabs.profile'),
           headerLeft: () => <PersonalInfoHeaderLeft />,
           headerRight: () => <PersonalInfoHeaderRight />,
         }}
@@ -419,7 +422,7 @@ export default function TabLayout() {
         name="live-chat"
         options={{
           href: null,
-          title: "Profile",
+          title: t('tabs.profile'),
           headerLeft: () => (
             <TouchableOpacity
               onPress={() => router.navigate("/(tabs)")}
@@ -434,7 +437,7 @@ export default function TabLayout() {
         name="vehicles"
         options={{
           href: null,
-          title: "Profile",
+          title: t('tabs.profile'),
           headerLeft: () => (
             <TouchableOpacity
               onPress={() => router.navigate("/(tabs)")}
@@ -449,7 +452,7 @@ export default function TabLayout() {
         name="addresses"
         options={{
           href: null,
-          title: "Profile",
+          title: t('tabs.profile'),
           headerLeft: () => <PersonalInfoHeaderLeft />,
           headerRight: () => <PersonalInfoHeaderRight />,
           tabBarStyle: {

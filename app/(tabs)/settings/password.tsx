@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/Button";
 import { useRouter } from "expo-router";
 import { ChevronLeft, ChevronRight, Eye, EyeOff } from "lucide-react-native";
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
     ScrollView,
@@ -13,6 +14,7 @@ import {
 
 export default function PasswordScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [passwords, setPasswords] = useState({
     current: "",
     new: "",
@@ -39,32 +41,32 @@ export default function PasswordScreen() {
       <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
         <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
         <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-          PASSWORD SETTINGS
+          {t('password.badge')}
         </Text>
       </View>
 
       {/* Title */}
       <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
-        Account Password
+        {t('password.title')}
       </Text>
 
       {/* Subtitle */}
       <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-        Secure your account with a strong password
+        {t('password.subtitle')}
       </Text>
 
       <View className="gap-6 mb-8">
         {/* Current Password */}
         <View>
           <Text className="font-outfit-medium text-gray-900 mb-2">
-            Current Password
+            {t('password.currentPassword')}
           </Text>
           <View className="flex-row items-center bg-white border border-gray-300 rounded-2xl px-4 h-12">
             <TextInput
               className="flex-1 font-outfit-medium text-gray-900"
               secureTextEntry={secureTextEntry.current}
               value={passwords.current}
-              onChangeText={(t) => setPasswords({ ...passwords, current: t })}
+              onChangeText={(text) => setPasswords({ ...passwords, current: text })}
               placeholder="*************"
             />
             <TouchableOpacity onPress={() => toggleSecureResponse("current")}>
@@ -77,7 +79,7 @@ export default function PasswordScreen() {
           </View>
           <TouchableOpacity className="self-end mt-2">
             <Text className="text-blue-600 font-outfit-medium text-xs">
-              Forgot Password?
+              {t('password.forgotPassword')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -85,14 +87,14 @@ export default function PasswordScreen() {
         {/* New Password */}
         <View>
           <Text className="font-outfit-medium text-gray-900 mb-2">
-            New Password
+            {t('password.newPassword')}
           </Text>
           <View className="flex-row items-center bg-white border border-gray-300 rounded-2xl px-4 h-12">
             <TextInput
               className="flex-1 font-outfit-medium text-gray-900"
               secureTextEntry={secureTextEntry.new}
               value={passwords.new}
-              onChangeText={(t) => setPasswords({ ...passwords, new: t })}
+              onChangeText={(text) => setPasswords({ ...passwords, new: text })}
               placeholder="*************"
             />
             <TouchableOpacity onPress={() => toggleSecureResponse("new")}>
@@ -108,14 +110,14 @@ export default function PasswordScreen() {
         {/* Confirm Password */}
         <View>
           <Text className="font-outfit-medium text-gray-900 mb-2">
-            Confirm New Password
+            {t('password.confirmPassword')}
           </Text>
           <View className="flex-row items-center bg-white border border-gray-300 rounded-2xl px-4 h-12">
             <TextInput
               className="flex-1 font-outfit-medium text-gray-900"
               secureTextEntry={secureTextEntry.confirm}
               value={passwords.confirm}
-              onChangeText={(t) => setPasswords({ ...passwords, confirm: t })}
+              onChangeText={(text) => setPasswords({ ...passwords, confirm: text })}
               placeholder="*************"
             />
             <TouchableOpacity onPress={() => toggleSecureResponse("confirm")}>
@@ -134,17 +136,17 @@ export default function PasswordScreen() {
         <Text
           className={`font-outfit-regular text-xs mb-1 ${!hasNameOrEmail ? "text-red-500" : "text-green-500"}`}
         >
-          Must not contain your name or email.
+          {t('password.ruleNoNameEmail')}
         </Text>
         <Text
           className={`font-outfit-regular text-xs mb-1 ${!hasMinLength ? "text-red-500" : "text-green-500"}`}
         >
-          At least 8 characters.
+          {t('password.ruleMinLength')}
         </Text>
         <Text
           className={`font-outfit-regular text-xs ${!hasSymbolOrNumber ? "text-red-500" : "text-green-500"}`}
         >
-          Contains a symbol or a number
+          {t('password.ruleSymbolOrNumber')}
         </Text>
       </View>
 
@@ -157,7 +159,7 @@ export default function PasswordScreen() {
           style={{ flex: 0.3 }}
           className="py-4 rounded-lg border border-gray-300 items-center"
         >
-          <Text className="text-gray-900 font-outfit-semibold text-base">Back</Text>
+          <Text className="text-gray-900 font-outfit-semibold text-base">{t('password.back')}</Text>
         </TouchableOpacity>
 
         {/* Change Password Button - 70% width */}
@@ -178,7 +180,7 @@ export default function PasswordScreen() {
               justifyContent: 'center',
             }}
           >
-            <Text className="text-white font-outfit-bold text-base text-center">Change Password</Text>
+            <Text className="text-white font-outfit-bold text-base text-center">{t('password.changePassword')}</Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>
