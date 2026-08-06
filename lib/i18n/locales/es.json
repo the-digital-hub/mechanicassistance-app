@@ -91,7 +91,15 @@
         "badge": "REFERÍ Y GANÁ",
         "title": "Aplicá ahora y recibí $20",
         "button": "Empezar a ganar"
-      }
+      },
+      "requestStatus": {
+        "pending": "Buscando mecánico",
+        "offered": "Mecánico encontrado",
+        "accepted": "Aceptado",
+        "started": "En curso"
+      },
+      "viewRequest": "Ver solicitud",
+      "cancelRequest": "Cancelar"
     },
     "timeAgo": {
       "justNow": "Recién",

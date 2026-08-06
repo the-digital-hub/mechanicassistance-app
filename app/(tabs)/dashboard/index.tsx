@@ -1,7 +1,8 @@
-import { AssistanceCard, AssistanceType } from '@/components/ui/AssistanceCard';
+import { AssistanceType } from '@/components/ui/AssistanceCard';
 import { KPICard } from '@/components/ui/KPICard';
 import { PromotionalCard } from '@/components/ui/PromotionalCard';
-import { useAppointments } from '@/context/AppointmentsContext';
+import { UserRequestCard } from '@/components/ui/UserRequestCard';
+import { useAppointments, type Appointment } from '@/context/AppointmentsContext';
 import { useMechanicStatus } from '@/context/MechanicStatusContext';
 import { useSocket } from '@/context/SocketContext';
 import { useUser } from '@/context/UserContext';
@@ -46,7 +47,7 @@ export default function DashboardScreen() {
     const [requests, setRequests] = useState<AssistanceRequest[]>([]);
     const [isLoadingRequests, setIsLoadingRequests] = useState(true);
     const [showStatusModal, setShowStatusModal] = useState(false);
-    const { appointments } = useAppointments();
+    const { appointments, getActiveRequests, refresh: refreshAppointments, isLoading: isLoadingAppointments } = useAppointments();
     const { lastMessage } = useSocket();
     const { mechanicStatus, setMechanicStatus } = useMechanicStatus();
 
@@ -111,32 +112,25 @@ export default function DashboardScreen() {
         return t('dashboard.timeAgo.days', { count: days });
     };
 
+    // Mechanic-only feed. The user's own requests come from AppointmentsContext
+    // (see activeRequests below), which already merges assistance_requests with
+    // appointments and keeps the appointment's status when both exist.
     const loadRequests = async () => {
-        if (!user?.id) {
+        if (!user?.id || user.role !== 'mechanic') {
             setIsLoadingRequests(false);
             return;
         }
         setIsLoadingRequests(true);
         try {
-            const filters: any = {};
-            if (user?.role === 'mechanic') {
-                filters.status = 'pending';
-                // Localized filtering: show only requests within MECHANIC_RADIUS_KM
-                // of the mechanic's *current* location (they may be away from home).
-                // Falls back to no geo filter if location permission is denied.
-                const coords = await getCurrentCoords();
-                if (coords) {
-                    filters.lat = coords.latitude;
-                    filters.lng = coords.longitude;
-                    filters.radiusKm = MECHANIC_RADIUS_KM;
-                }
-            } else if (user?.role === 'user') {
-                filters.userId = user.id;
-                filters.status = 'pending';
-            }
-
-            if (filter) {
-                filters.status = 'pending'; // or filter based on AssistanceType etc
+            const filters: Record<string, string | number> = { status: 'pending' };
+            // Localized filtering: show only requests within MECHANIC_RADIUS_KM
+            // of the mechanic's *current* location (they may be away from home).
+            // Falls back to no geo filter if location permission is denied.
+            const coords = await getCurrentCoords();
+            if (coords) {
+                filters.lat = coords.latitude;
+                filters.lng = coords.longitude;
+                filters.radiusKm = MECHANIC_RADIUS_KM;
             }
 
             const data = await assistanceDAO.getAll(filters);
@@ -150,8 +144,11 @@ export default function DashboardScreen() {
 
     useFocusEffect(
         useCallback(() => {
-            if (user) {
+            if (!user) return;
+            if (user.role === 'mechanic') {
                 loadRequests();
+            } else {
+                refreshAppointments();
             }
         }, [filter, user?.id, user?.addresses])
     );
@@ -538,7 +535,9 @@ export default function DashboardScreen() {
         );
     }
 
-    if (isLoadingRequests && requests.length === 0) {
+    const activeRequests = getActiveRequests();
+
+    if (isLoadingAppointments && activeRequests.length === 0) {
         return (
             <View className="flex-1 bg-white justify-center items-center">
                 <ActivityIndicator size="large" color="#0047AB" />
@@ -546,20 +545,35 @@ export default function DashboardScreen() {
         );
     }
 
-    // Exclude any requests that are already in the user's active appointments list
-    const filteredRequests = requests.filter(req => {
-        // If the user currently has this request locally as an active appointment, hide it from the Assist feed
-        const isAlreadyAppointment = appointments.some(appt => appt.id === req.id && appt.status !== 'canceled');
-        if (isAlreadyAppointment) return false;
-
-        // Otherwise apply the selected visual filter
-        if (filter) {
-            if (filter === 'witness') return req.assistanceType === 'witness' || req.type === 'witness';
-            if (filter === 'immediate') return req.type === 'immediate' && req.assistanceType !== 'witness';
-            return req.type === filter;
-        }
-        return true;
+    // Everything the user has in flight, narrowed by the visual type filter.
+    const filteredRequests = activeRequests.filter(req => {
+        if (!filter) return true;
+        if (filter === 'witness') return req.assistanceType === 'witness' || req.type === 'witness';
+        if (filter === 'immediate') return req.type === 'immediate' && req.assistanceType !== 'witness';
+        return req.type === filter;
     });
+
+    const openRequest = (req: Appointment) => {
+        // pending/offered have no appointment row yet — the searching screen is the
+        // canonical "waiting for a mechanic" view and handles the offer hand-off.
+        if (req.status === 'pending' || req.status === 'offered') {
+            router.push({
+                pathname: '/(tabs)/request-assistance/searching',
+                params: { requestId: req.id, type: req.type }
+            });
+            return;
+        }
+        router.push(`/(tabs)/appointments/${req.id}` as any);
+    };
+
+    const cancelRequest = async (id: string) => {
+        try {
+            await assistanceDAO.updateStatus(id, '', 'canceled');
+            await refreshAppointments();
+        } catch (error) {
+            console.error('Failed to cancel assistance request', error);
+        }
+    };
 
     return (
         <View className="flex-1 px-6 pt-4" style={{ backgroundColor: '#F6F8FC' }}>
@@ -681,52 +695,19 @@ export default function DashboardScreen() {
                 }
                 data={filteredRequests}
                 keyExtractor={(item) => item.id}
-                renderItem={({ item }) => {
-                    const isAccepted = appointments.some(appt => appt.id === item.id && appt.status !== 'canceled');
-                    return (
-                        <View
-                            style={{
-                                borderRadius: 12,
-                                backgroundColor: '#EFF6FF',
-                                marginBottom: 16,
-                                shadowColor: '#000',
-                                shadowOffset: { width: 0, height: 2 },
-                                shadowOpacity: 0.1,
-                                shadowRadius: 4,
-                                elevation: 3,
-                            }}
-                        >
-                            <AssistanceCard
-                                id={item.id}
-                                type={item.type}
-                                assistanceType={item.assistanceType}
-                                title={item.title}
-                                car={item.car}
-                                notes={item.notes}
-                                address={item.address}
-                                distance={item.distance}
-                                budget={item.budget}
-                                onAccept={() => !isAccepted && router.push({
-                                    pathname: `/dashboard/${item.id}` as any,
-                                    params: {
-                                        type: item.type,
-                                        assistanceType: item.assistanceType || '',
-                                        title: item.title,
-                                        car: item.car,
-                                        address: item.address,
-                                        budget: item.budget,
-                                        distance: item.distance || '',
-                                        userId: item.userId || '',
-                                        zip: item.zip || '',
-                                        locationLat: item.locationLat ?? '',
-                                        locationLng: item.locationLng ?? '',
-                                    }
-                                })}
-                                isAccepted={isAccepted}
-                            />
-                        </View>
-                    );
-                }}
+                renderItem={({ item }) => (
+                    <UserRequestCard
+                        id={item.id}
+                        type={item.type}
+                        assistanceType={item.assistanceType}
+                        title={item.title}
+                        car={item.car}
+                        address={item.address}
+                        status={item.status}
+                        onPress={() => openRequest(item)}
+                        onCancel={() => cancelRequest(item.id)}
+                    />
+                )}
                 ListFooterComponent={
                     <View className="mt-4">
                         {/* DIY Tutorial Card 1 */}

@@ -57,16 +57,24 @@ export interface Appointment {
     etaTime?: string;
     /** Vehicle issues selected for this request (from GET /api/pricing/requests/:id/issues) */
     vehicleIssues?: VehicleIssueSnapshot[];
+    /**
+     * Which table the row came from. An appointment row is only created once the
+     * request is accepted, so `'assistance'` means "still only a request"
+     * (pending/offered) and `'appointment'` means "a real appointment".
+     */
+    source?: 'assistance' | 'appointment';
 }
 
 interface AppointmentsContextType {
     appointments: Appointment[];
+    isLoading: boolean;
     addAppointment: (appointment: Appointment) => Promise<boolean>;
     updateAppointment: (id: string, updates: Partial<Appointment>) => Promise<void>;
     cancelAppointment: (id: string, reason: string) => Promise<void>;
     refresh: () => Promise<void>;
     getUpcoming: () => Appointment[];
     getPast: () => Appointment[];
+    getActiveRequests: () => Appointment[];
     getAppointmentById: (id: string) => Appointment | undefined;
 }
 
@@ -74,6 +82,7 @@ const AppointmentsContext = createContext<AppointmentsContextType | undefined>(u
 
 export function AppointmentsProvider({ children }: { children: ReactNode }) {
     const [appointments, setAppointments] = useState<Appointment[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const { user } = useUser();
     const { socket, lastMessage } = useSocket();
 
@@ -87,7 +96,11 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
     }, [user?.id]);
 
     const loadAppointments = async () => {
-        if (!user?.id) return;
+        if (!user?.id) {
+            setIsLoading(false);
+            return;
+        }
+        setIsLoading(true);
         try {
             const filters = user.role === 'mechanic'
                 ? { mechanicId: user.id }
@@ -139,7 +152,8 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                     })(),
                     locationLat: req.locationLat,
                     locationLng: req.locationLng,
-                    vehicleIssues: issuesById.get(req.id) || []
+                    vehicleIssues: issuesById.get(req.id) || [],
+                    source: 'assistance' as const
                 }));
 
             // Build a lookup of assistance_requests by id so we can back-fill
@@ -156,6 +170,7 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                     locationLng: appt.locationLng ?? ar?.locationLng,
                     time: appt.time || ar?.eta || 'Pending',
                     vehicleIssues: issuesById.get(appt.id) || [],
+                    source: 'appointment' as const,
                 };
             });
 
@@ -165,6 +180,8 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
             // We will handle the alert in the Appointments screen instead.
         } catch (error) {
             console.error('Failed to load appointments', error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -221,14 +238,31 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
         }
     };
 
+    // Only real appointments belong here. A row still sourced from
+    // assistance_requests (pending/offered) has not been accepted by anyone yet,
+    // so it is not an appointment — it shows up on the dashboard instead, via
+    // getActiveRequests().
     const getUpcoming = () => {
         return appointments.filter(
-            (a) => a.status === 'scheduled' || a.status === 'started' || a.status === 'pending' || a.status === 'accepted' || a.status === 'offered'
+            (a) => a.source !== 'assistance' &&
+                (a.status === 'scheduled' || a.status === 'started' || a.status === 'pending' || a.status === 'accepted' || a.status === 'offered')
         );
     };
 
     const getPast = () => {
         return appointments.filter((a) => a.status === 'completed' || a.status === 'canceled');
+    };
+
+    /**
+     * Everything the user currently has in flight: from "looking for a mechanic"
+     * all the way to a job in progress. Single source of truth for the
+     * dashboard's "active request" section.
+     */
+    const getActiveRequests = () => {
+        const ACTIVE: AppointmentStatus[] = ['pending', 'offered', 'accepted', 'started'];
+        return appointments
+            .filter((a) => ACTIVE.includes(a.status))
+            .sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''));
     };
 
     const getAppointmentById = (id: string) => {
@@ -239,12 +273,14 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
         <AppointmentsContext.Provider
             value={{
                 appointments,
+                isLoading,
                 addAppointment,
                 updateAppointment,
                 cancelAppointment,
                 refresh: loadAppointments,
                 getUpcoming,
                 getPast,
+                getActiveRequests,
                 getAppointmentById
             }}
         >

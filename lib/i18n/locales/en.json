@@ -91,7 +91,15 @@
         "badge": "REFER & EARN",
         "title": "Apply now, get $20 back",
         "button": "Start earning"
-      }
+      },
+      "requestStatus": {
+        "pending": "Looking for a mechanic",
+        "offered": "Mechanic found",
+        "accepted": "Accepted",
+        "started": "In progress"
+      },
+      "viewRequest": "View request",
+      "cancelRequest": "Cancel"
     },
     "timeAgo": {
       "justNow": "Just now",
