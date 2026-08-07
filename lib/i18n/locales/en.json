@@ -970,5 +970,51 @@
     "specialOfferBody2": "Boost your visibility, grow your business, and access premium features at a reduced rate.",
     "validThrough": "Promo valid through: 06/06/2026",
     "askForBenefit": "Ask for your benefit"
+  },
+  "onboarding": {
+    "slide1": "Get Paid Providing Your Professional Services",
+    "slide2": "Provide Immediate Assistance",
+    "slide3": "Provide Scheduled Assistance",
+    "slide4": "Provide Video Call Assistance",
+    "getStarted": "Get Started"
+  },
+  "dashboardFilter": {
+    "select": "Select",
+    "title": "Filter results",
+    "typeOfAssistance": "Type of assistance",
+    "scheduledTime": "Scheduled time",
+    "carBrandModel": "Car brand / model",
+    "zipCode": "Zip code",
+    "typeOfIssue": "Type of issue",
+    "applyFilter": "Apply Filter"
+  },
+  "payments": {
+    "badge": "BANK ACCOUNT",
+    "title": "Bank account",
+    "subtitle": "Add your bank account to receive payments",
+    "collectionMethod": "Collection method",
+    "bankAccount": "Bank Account",
+    "gPay": "G Pay",
+    "applePay": "Pay",
+    "accountName": "Account name",
+    "accountNumber": "Account number",
+    "routingNumber": "Routing #",
+    "checkingAcc": "Checking acc.",
+    "back": "Back",
+    "save": "Save"
+  },
+  "chat": {
+    "online": "Online",
+    "noMessages": "No messages yet. Say hello!",
+    "ephemeralNotice": "Messages are ephemeral and not saved in the database.",
+    "writeHere": "Write Here..."
+  },
+  "dashboardDetail": {
+    "assistanceNeeded": "Assistance needed:",
+    "car": "Car:",
+    "address": "Address:",
+    "estimatedPrice": "Estimated Price:",
+    "posted": "Posted: {{date}}",
+    "idLabel": "ID:#{{id}}"
   }
 }

@@ -970,5 +970,51 @@
     "specialOfferBody2": "Aumentá tu visibilidad, hacé crecer tu negocio y accedé a funciones premium a un precio reducido.",
     "validThrough": "Promoción válida hasta: 06/06/2026",
     "askForBenefit": "Pedí tu beneficio"
+  },
+  "onboarding": {
+    "slide1": "Cobrá por brindar tus servicios profesionales",
+    "slide2": "Brindá asistencia inmediata",
+    "slide3": "Brindá asistencia programada",
+    "slide4": "Brindá asistencia por videollamada",
+    "getStarted": "Empecemos"
+  },
+  "dashboardFilter": {
+    "select": "Seleccionar",
+    "title": "Filtrar resultados",
+    "typeOfAssistance": "Tipo de asistencia",
+    "scheduledTime": "Horario programado",
+    "carBrandModel": "Marca / modelo del auto",
+    "zipCode": "Código postal",
+    "typeOfIssue": "Tipo de problema",
+    "applyFilter": "Aplicar filtro"
+  },
+  "payments": {
+    "badge": "CUENTA BANCARIA",
+    "title": "Cuenta bancaria",
+    "subtitle": "Agregá tu cuenta bancaria para recibir pagos",
+    "collectionMethod": "Método de cobro",
+    "bankAccount": "Cuenta bancaria",
+    "gPay": "G Pay",
+    "applePay": "Pay",
+    "accountName": "Nombre de la cuenta",
+    "accountNumber": "Número de cuenta",
+    "routingNumber": "N.º de ruta",
+    "checkingAcc": "Cuenta corriente",
+    "back": "Atrás",
+    "save": "Guardar"
+  },
+  "chat": {
+    "online": "En línea",
+    "noMessages": "Todavía no hay mensajes. ¡Saludá!",
+    "ephemeralNotice": "Los mensajes son efímeros y no se guardan en la base de datos.",
+    "writeHere": "Escribí acá..."
+  },
+  "dashboardDetail": {
+    "assistanceNeeded": "Asistencia necesaria:",
+    "car": "Auto:",
+    "address": "Dirección:",
+    "estimatedPrice": "Precio estimado:",
+    "posted": "Publicado: {{date}}",
+    "idLabel": "ID:#{{id}}"
   }
 }

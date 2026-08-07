@@ -4,7 +4,7 @@ import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { pricingDAO } from '@/lib/dao/PricingDAO';
 import { AssistanceRequest } from '@/lib/dao/interfaces';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Search, Zap, Video, Clock, Car, Wrench, Lock, DollarSign } from 'lucide-react-native';
+import { Search, Zap, Video, Calendar, Clock, Car, Wrench, Lock, DollarSign } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -19,6 +19,16 @@ export default function AssistanceRequestsScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
+  // Declined requests are hidden locally only — there's no backend support yet
+  // to persist a decline, so this resets on reload. See docs/PENDING-decline-request-action.md.
+  const [declinedIds, setDeclinedIds] = useState<Set<string>>(new Set());
+  const handleDecline = useCallback((id: string) => {
+    setDeclinedIds((prev) => new Set(prev).add(id));
+  }, []);
+  const visibleRequests = useMemo(
+    () => requests.filter((req) => !declinedIds.has(req.id)),
+    [requests, declinedIds]
+  );
 
   // Same service-type labels used across the app (dashboard, cards, request detail).
   const getServiceTypeLabel = useCallback((type: string) => {
@@ -81,19 +91,19 @@ export default function AssistanceRequestsScreen() {
   }, [lastMessage]);
 
   const filterTabs = useMemo(() => {
-    const uniqueTypes = [...new Set(requests.map((req) => req.type))];
+    const uniqueTypes = [...new Set(visibleRequests.map((req) => req.type))];
     return [
-      { id: 'all', label: t('assist.all'), count: requests.length },
+      { id: 'all', label: t('assist.all'), count: visibleRequests.length },
       ...uniqueTypes.map((type) => ({
         id: type,
         label: getServiceTypeLabel(type),
-        count: requests.filter((req) => req.type === type).length,
+        count: visibleRequests.filter((req) => req.type === type).length,
       })),
     ];
-  }, [requests, t, getServiceTypeLabel]);
+  }, [visibleRequests, t, getServiceTypeLabel]);
 
   const filteredRequests = useMemo(() => {
-    return requests.filter((req) => {
+    return visibleRequests.filter((req) => {
       const serviceLabel = getServiceTypeLabel(req.type);
       const matchesSearch =
         serviceLabel.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -107,7 +117,7 @@ export default function AssistanceRequestsScreen() {
       }
       return matchesSearch;
     });
-  }, [requests, searchQuery, selectedFilter, getServiceTypeLabel]);
+  }, [visibleRequests, searchQuery, selectedFilter, getServiceTypeLabel]);
 
   if (userLoading || isLoading) {
     return (
@@ -187,9 +197,9 @@ export default function AssistanceRequestsScreen() {
         ) : (
           <View className="gap-4">
             {filteredRequests.map((request) => {
-              const iconType = request.type === 'videocall' ? 'video' : 'urgent';
-              const iconBgColor = iconType === 'urgent' ? '#FEE2E2' : '#DBEAFE';
-              const iconColor = iconType === 'urgent' ? '#DC2626' : '#0047AB';
+              const iconType = request.type === 'videocall' ? 'video' : request.type === 'scheduled' ? 'scheduled' : 'urgent';
+              const iconBgColor = iconType === 'urgent' ? '#FEE2E2' : iconType === 'scheduled' ? '#EDE9FE' : '#DBEAFE';
+              const iconColor = iconType === 'urgent' ? '#DC2626' : iconType === 'scheduled' ? '#7C3AED' : '#0047AB';
               const serviceTypeLabel = request.type === 'videocall'
                 ? t('requestAssistance.header.videoCall')
                 : request.type === 'scheduled'
@@ -225,6 +235,8 @@ export default function AssistanceRequestsScreen() {
                       >
                         {iconType === 'video' ? (
                           <Video size={26} color={iconColor} />
+                        ) : iconType === 'scheduled' ? (
+                          <Calendar size={26} color={iconColor} />
                         ) : (
                           <Zap size={26} color={iconColor} fill={iconColor} />
                         )}
@@ -343,6 +355,7 @@ export default function AssistanceRequestsScreen() {
                         className="py-3 rounded-2xl items-center justify-center"
                         style={{ flex: 0.35, backgroundColor: '#F3F4F6' }}
                         activeOpacity={0.8}
+                        onPress={() => handleDecline(request.id)}
                       >
                         <Text className="text-gray-600 font-outfit-semibold text-lg">
                           {t('dashboard.mechanic.decline')}

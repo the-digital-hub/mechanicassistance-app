@@ -1,6 +1,7 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
     Dimensions,
     Image,
@@ -18,12 +19,13 @@ const { width, height } = Dimensions.get("window");
 const Onboarding = () => {
   const [index, setIndex] = useState(0);
   const router = useRouter();
+  const { t } = useTranslation();
 
   const texts = [
-    "Get Paid Providing Your Professional Services",
-    "Provide Immediate Assistance",
-    "Provide Scheduled Assistance",
-    "Provide Video Call Assistance",
+    t("onboarding.slide1"),
+    t("onboarding.slide2"),
+    t("onboarding.slide3"),
+    t("onboarding.slide4"),
   ];
 
   const panResponder = useRef(
@@ -94,7 +96,7 @@ const Onboarding = () => {
           style={styles.getStartedButton}
           onPress={() => router.push("/setup")}
         >
-          <Text style={styles.getStartedButtonText}>Get Started</Text>
+          <Text style={styles.getStartedButtonText}>{t("onboarding.getStarted")}</Text>
         </TouchableOpacity>
       </LinearGradient>
     </ImageBackground>

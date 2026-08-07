@@ -1,15 +1,17 @@
 import { useRouter } from 'expo-router';
 import { ChevronDown, SlidersHorizontal } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 export default function FilterScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
 
     const FilterSection = ({ title }: { title: string }) => (
         <View className="mb-6">
             <Text className="font-outfit-bold text-gray-900 mb-2">{title}</Text>
             <TouchableOpacity className="bg-blue-50/50 border border-blue-100 rounded-lg p-3 flex-row justify-between items-center">
-                <Text className="text-gray-500 font-outfit-regular">Select</Text>
+                <Text className="text-gray-500 font-outfit-regular">{t('dashboardFilter.select')}</Text>
                 <ChevronDown size={20} color="#9CA3AF" />
             </TouchableOpacity>
         </View>
@@ -19,15 +21,15 @@ export default function FilterScreen() {
         <View className="flex-1 bg-white">
             <ScrollView className="flex-1 px-6 pt-4">
                 <View className="flex-row justify-between items-center mb-6">
-                    <Text className="text-lg font-outfit-bold text-gray-900">Filter results</Text>
+                    <Text className="text-lg font-outfit-bold text-gray-900">{t('dashboardFilter.title')}</Text>
                     <SlidersHorizontal size={20} color="#000" />
                 </View>
 
-                <FilterSection title="Type of assistance" />
-                <FilterSection title="Scheduled time" />
-                <FilterSection title="Car brand / model" />
-                <FilterSection title="Zip code" />
-                <FilterSection title="Type of issue" />
+                <FilterSection title={t('dashboardFilter.typeOfAssistance')} />
+                <FilterSection title={t('dashboardFilter.scheduledTime')} />
+                <FilterSection title={t('dashboardFilter.carBrandModel')} />
+                <FilterSection title={t('dashboardFilter.zipCode')} />
+                <FilterSection title={t('dashboardFilter.typeOfIssue')} />
 
             </ScrollView>
 
@@ -36,7 +38,7 @@ export default function FilterScreen() {
                     className="bg-blue-700 w-full py-4 rounded-xl items-center"
                     onPress={() => router.back()}
                 >
-                    <Text className="text-white font-outfit-bold text-lg">Apply Filter</Text>
+                    <Text className="text-white font-outfit-bold text-lg">{t('dashboardFilter.applyFilter')}</Text>
                 </TouchableOpacity>
             </View>
         </View>

@@ -6,6 +6,7 @@ import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Calendar, Clock, Navigation, CheckCircle } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import { MAP_PROVIDER } from '@/lib/maps/provider';
@@ -48,6 +49,7 @@ export default function AssistDetailScreen() {
     const { id, type, assistanceType, title, car, address, zip, budget, userId, locationLat, locationLng } = useLocalSearchParams();
     const router = useRouter();
     const navigation = useNavigation();
+    const { t } = useTranslation();
     const { user } = useUser();
     const { appointments } = useAppointments();
 
@@ -72,7 +74,7 @@ export default function AssistDetailScreen() {
     const [selectedTime, setSelectedTime] = useState<string | null>(null);
     const [isTimeOpen, setIsTimeOpen] = useState(false);
 
-    const DATES = ['Monday, July 14', 'Tuesday, July 15', 'Wednesday, July 16'];
+    const DATES = [t('requestDetail.mockDates.date1'), t('requestDetail.mockDates.date2'), t('requestDetail.mockDates.date3')];
     const TIMES = ['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '04:00 PM'];
 
     // Re-fit map when mechanic coords become available (async after location fetch).
@@ -117,7 +119,7 @@ export default function AssistDetailScreen() {
 
     const handleAccept = async () => {
         if (!isImmediate && (!selectedDate || !selectedTime)) {
-            alert('Please select a date and time.');
+            alert(t('requestDetail.selectDateTimeAlert'));
             return;
         }
 
@@ -143,7 +145,7 @@ export default function AssistDetailScreen() {
                 );
             }, 2000);
         } catch (error: any) {
-            alert(`Failed to accept request: ${error.message || 'Unknown error'}`);
+            alert(t('requestDetail.acceptFailed', { error: error.message || 'Unknown error' }));
         }
     };
 
@@ -153,7 +155,7 @@ export default function AssistDetailScreen() {
                 {/* Header Section */}
                 <View className={`px-4 py-4 ${isVideo ? 'bg-cyan-600' : 'bg-blue-600'}`}>
                     <Text className="text-white font-outfit-bold text-lg text-center">
-                        {assistanceType === 'witness' ? 'ACCIDENT ASSISTANCE' : isVideo ? 'Video Call Assistance' : isImmediate ? 'Immediate Assistance' : 'Scheduled Assistance'}
+                        {assistanceType === 'witness' ? t('requestAssistance.header.accident') : isVideo ? t('requestAssistance.header.videoCall') : isImmediate ? t('requestAssistance.header.immediate') : t('requestAssistance.header.scheduled')}
                     </Text>
                 </View>
 
@@ -161,19 +163,19 @@ export default function AssistDetailScreen() {
                     {/* Details Info */}
                     <View className="mb-6 gap-4">
                         <View>
-                            <Text className="font-outfit-bold text-gray-900 mb-1">Assistance needed:</Text>
+                            <Text className="font-outfit-bold text-gray-900 mb-1">{t('dashboardDetail.assistanceNeeded')}</Text>
                             <Text className="font-outfit-regular text-gray-600">{title}</Text>
                         </View>
                         <View>
-                            <Text className="font-outfit-bold text-gray-900 mb-1">Car:</Text>
+                            <Text className="font-outfit-bold text-gray-900 mb-1">{t('dashboardDetail.car')}</Text>
                             <Text className="font-outfit-regular text-gray-600">{car}</Text>
                         </View>
                         <View>
-                            <Text className="font-outfit-bold text-gray-900 mb-1">Address:</Text>
+                            <Text className="font-outfit-bold text-gray-900 mb-1">{t('dashboardDetail.address')}</Text>
                             <Text className="font-outfit-regular text-gray-600">{address}</Text>
                         </View>
                         <View>
-                            <Text className="font-outfit-bold text-gray-900 mb-1">Estimated Price:</Text>
+                            <Text className="font-outfit-bold text-gray-900 mb-1">{t('dashboardDetail.estimatedPrice')}</Text>
                             <Text className="font-outfit-bold text-blue-600 text-lg">{budget}</Text>
                         </View>
                         {(etaText || distKm !== null) && (
@@ -217,13 +219,13 @@ export default function AssistDetailScreen() {
                             >
                                 <Marker
                                     coordinate={{ latitude: reqLat, longitude: reqLng }}
-                                    title="Client location"
+                                    title={t('requestDetail.clientLocation')}
                                     pinColor="red"
                                 />
                                 {mechanicCoords && (
                                     <Marker
                                         coordinate={mechanicCoords}
-                                        title="Your location"
+                                        title={t('requestDetail.yourLocation')}
                                         pinColor="blue"
                                     />
                                 )}
@@ -242,13 +244,13 @@ export default function AssistDetailScreen() {
                     {!isImmediate && (
                         <>
                             <View className="mb-6 z-20">
-                                <Text className="font-outfit-bold text-gray-900 mb-2">Day Availability Options</Text>
+                                <Text className="font-outfit-bold text-gray-900 mb-2">{t('requestDetail.dayAvailability')}</Text>
                                 <TouchableOpacity
                                     className="bg-blue-50/50 border border-blue-100 rounded-lg p-3 flex-row justify-between items-center"
                                     onPress={() => { setIsDateOpen(!isDateOpen); setIsTimeOpen(false); }}
                                 >
                                     <Text className={selectedDate ? "text-gray-900 font-outfit-medium" : "text-gray-500 font-outfit-regular"}>
-                                        {selectedDate || 'Select Date'}
+                                        {selectedDate || t('requestDetail.selectDate')}
                                     </Text>
                                     <Calendar size={18} color="#9CA3AF" />
                                 </TouchableOpacity>
@@ -270,13 +272,13 @@ export default function AssistDetailScreen() {
 
                             {/* Time Selector */}
                             <View className="mb-8 z-10">
-                                <Text className="font-outfit-bold text-gray-900 mb-2">Select time</Text>
+                                <Text className="font-outfit-bold text-gray-900 mb-2">{t('requestDetail.selectTimeTitle')}</Text>
                                 <TouchableOpacity
                                     className="bg-blue-50/50 border border-blue-100 rounded-lg p-3 flex-row justify-between items-center"
                                     onPress={() => { setIsTimeOpen(!isTimeOpen); setIsDateOpen(false); }}
                                 >
                                     <Text className={selectedTime ? "text-gray-900 font-outfit-medium" : "text-gray-500 font-outfit-regular"}>
-                                        {selectedTime || 'Select Time'}
+                                        {selectedTime || t('requestDetail.selectTime')}
                                     </Text>
                                     <Clock size={16} color="#9CA3AF" />
                                 </TouchableOpacity>
@@ -303,11 +305,11 @@ export default function AssistDetailScreen() {
                         onPress={handleAccept}
                         disabled={!isImmediate && (!selectedDate || !selectedTime)}
                     >
-                        <Text className="text-white font-outfit-bold text-lg">Accept request</Text>
+                        <Text className="text-white font-outfit-bold text-lg">{t('requestDetail.acceptRequest')}</Text>
                     </TouchableOpacity>
 
                     <Text className="text-center text-[10px] text-gray-400 mt-4">
-                        Posted: 07/07/2026 - 03:15 AM{'\n'}ID:#34532-2384-33327
+                        {t('dashboardDetail.posted', { date: '07/07/2026 - 03:15 AM' })}{'\n'}{t('dashboardDetail.idLabel', { id: '34532-2384-33327' })}
                     </Text>
                 </View>
             </ScrollView>
@@ -320,12 +322,12 @@ export default function AssistDetailScreen() {
                             <CheckCircle size={40} color="#10B981" />
                         </View>
                         <Text className="text-lg font-outfit-bold text-gray-900 mb-2 text-center">
-                            Offer Accepted!
+                            {t('requestDetail.offerAccepted')}
                         </Text>
                         <Text className="text-gray-500 font-outfit-regular text-sm text-center mb-6">
                             {isImmediate
-                                ? `You accepted the immediate request for ${title}.`
-                                : `You accepted the request for ${selectedDate} at ${selectedTime}.`
+                                ? t('requestDetail.acceptedImmediate', { title })
+                                : t('requestDetail.acceptedScheduled', { date: selectedDate, time: selectedTime })
                             }
                         </Text>
                         <View className="w-full flex-row gap-3">
@@ -333,7 +335,7 @@ export default function AssistDetailScreen() {
                                 className="flex-1 py-3 rounded-lg border border-gray-300 bg-white items-center"
                                 onPress={() => setShowNotification(false)}
                             >
-                                <Text className="text-gray-900 font-outfit-bold text-base">Dismiss</Text>
+                                <Text className="text-gray-900 font-outfit-bold text-base">{t('requestDetail.dismiss')}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 className="flex-1"
@@ -361,7 +363,7 @@ export default function AssistDetailScreen() {
                                         justifyContent: 'center',
                                     }}
                                 >
-                                    <Text className="text-white font-outfit-bold text-base">OK</Text>
+                                    <Text className="text-white font-outfit-bold text-base">{t('requestDetail.ok')}</Text>
                                 </LinearGradient>
                             </TouchableOpacity>
                         </View>

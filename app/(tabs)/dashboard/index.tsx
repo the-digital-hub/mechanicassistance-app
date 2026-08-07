@@ -46,6 +46,12 @@ export default function DashboardScreen() {
     const [filter, setFilter] = useState<AssistanceType | null>(null);
     const [requests, setRequests] = useState<AssistanceRequest[]>([]);
     const [isLoadingRequests, setIsLoadingRequests] = useState(true);
+    // Declined requests are hidden locally only — there's no backend support yet
+    // to persist a decline, so this resets on reload. See docs/PENDING-decline-request-action.md.
+    const [declinedIds, setDeclinedIds] = useState<Set<string>>(new Set());
+    const handleDecline = (id: string) => {
+        setDeclinedIds((prev) => new Set(prev).add(id));
+    };
     const [showStatusModal, setShowStatusModal] = useState(false);
     const { appointments, getActiveRequests, refresh: refreshAppointments, isLoading: isLoadingAppointments } = useAppointments();
     const { lastMessage } = useSocket();
@@ -303,16 +309,16 @@ export default function DashboardScreen() {
                                 <View className="items-center justify-center py-8">
                                     <ActivityIndicator size="large" color="#0047AB" />
                                 </View>
-                            ) : requests.length === 0 ? (
+                            ) : requests.filter((r) => !declinedIds.has(r.id)).length === 0 ? (
                                 <View className="items-center justify-center py-8">
                                     <Text className="text-gray-400 font-outfit-regular text-base">{t('dashboard.mechanic.noPendingRequests')}</Text>
                                 </View>
                             ) : (
                         <View className="gap-4">
-                            {requests.map((request) => {
-                                const iconType = request.type === 'videocall' ? 'video' : 'urgent';
-                                const iconBgColor = iconType === 'urgent' ? '#FEE2E2' : '#DBEAFE';
-                                const iconColor = iconType === 'urgent' ? '#DC2626' : '#0047AB';
+                            {requests.filter((r) => !declinedIds.has(r.id)).map((request) => {
+                                const iconType = request.type === 'videocall' ? 'video' : request.type === 'scheduled' ? 'scheduled' : 'urgent';
+                                const iconBgColor = iconType === 'urgent' ? '#FEE2E2' : iconType === 'scheduled' ? '#EDE9FE' : '#DBEAFE';
+                                const iconColor = iconType === 'urgent' ? '#DC2626' : iconType === 'scheduled' ? '#7C3AED' : '#0047AB';
                                 const serviceTypeLabel = request.type === 'videocall' ? t('requestAssistance.header.videoCall') : request.type === 'scheduled' ? t('requestAssistance.header.scheduled') : t('requestAssistance.header.immediate');
                                 const badge = request.type === 'immediate' ? t('dashboard.mechanic.urgent') : null;
 
@@ -342,6 +348,8 @@ export default function DashboardScreen() {
                                                 >
                                                     {iconType === 'video' ? (
                                                         <Video size={26} color={iconColor} />
+                                                    ) : iconType === 'scheduled' ? (
+                                                        <Calendar size={26} color={iconColor} />
                                                     ) : (
                                                         <Zap size={26} color={iconColor} fill={iconColor} />
                                                     )}
@@ -458,6 +466,7 @@ export default function DashboardScreen() {
                                                     className="py-3 rounded-2xl items-center justify-center"
                                                     style={{ flex: 0.35, backgroundColor: '#F3F4F6' }}
                                                     activeOpacity={0.8}
+                                                    onPress={() => handleDecline(request.id)}
                                                 >
                                                     <Text className="text-gray-600 font-outfit-semibold text-lg">
                                                         {t('dashboard.mechanic.decline')}

@@ -4,6 +4,7 @@ import { ConfigService } from '@/lib/config/ConfigService';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft, Paperclip, Phone, Send } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 interface Message {
@@ -17,6 +18,7 @@ export default function ChatScreen() {
     const { id } = useLocalSearchParams();
     const conversationId = Array.isArray(id) ? id[0] : id;
     const router = useRouter();
+    const { t } = useTranslation();
     const { user } = useUser();
     const { sendMessage, chatHistory } = useSocket();
     const [messageText, setMessageText] = useState('');
@@ -95,7 +97,7 @@ export default function ChatScreen() {
                         <Text className="text-white font-outfit-bold text-lg">{recipient?.name} {recipient?.surname}</Text>
                         <View className="flex-row items-center">
                             <View className="w-2 h-2 bg-emerald-400 rounded-full mr-1.5" />
-                            <Text className="text-white/80 text-xs font-outfit-regular">Online</Text>
+                            <Text className="text-white/80 text-xs font-outfit-regular">{t('chat.online')}</Text>
                         </View>
                     </View>
                 </View>
@@ -116,8 +118,8 @@ export default function ChatScreen() {
             >
                 {messages.length === 0 && (
                     <View className="items-center justify-center mt-10">
-                        <Text className="text-gray-400 font-outfit-regular text-sm">No messages yet. Say hello!</Text>
-                        <Text className="text-gray-300 text-[10px] mt-2 italic">Messages are ephemeral and not saved in the database.</Text>
+                        <Text className="text-gray-400 font-outfit-regular text-sm">{t('chat.noMessages')}</Text>
+                        <Text className="text-gray-300 text-[10px] mt-2 italic">{t('chat.ephemeralNotice')}</Text>
                     </View>
                 )}
                 {messages.map((msg) => {
@@ -149,7 +151,7 @@ export default function ChatScreen() {
                     </TouchableOpacity>
                     <TextInput
                         className="flex-1 font-outfit-regular text-sm px-2"
-                        placeholder="Write Here..."
+                        placeholder={t('chat.writeHere')}
                         value={messageText}
                         onChangeText={setMessageText}
                         placeholderTextColor="#9CA3AF"
