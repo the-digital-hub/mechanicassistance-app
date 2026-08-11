@@ -24,6 +24,7 @@ export default function RequestAssistanceLayout() {
       <Stack.Screen name="add-details" options={{ headerShown: false }} />
       <Stack.Screen name="location-map" options={{ headerShown: false }} />
       <Stack.Screen name="location-address" options={{ headerShown: false }} />
+      <Stack.Screen name="date-time" options={{ headerShown: false }} />
       <Stack.Screen name="searching" options={{ headerShown: false }} />
       <Stack.Screen name="mechanic-found" options={{ headerShown: false }} />
       <Stack.Screen name="confirmation" options={{ headerShown: false }} />

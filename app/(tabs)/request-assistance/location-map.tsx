@@ -155,8 +155,14 @@ export default function LocationMapScreen() {
     const handleConfirm = () => {
         if (!marker) return;
 
+        // scheduled/videocall requests need a date, so they get an extra step;
+        // immediate/witness are served right away and go straight to review.
+        const needsDate = type === 'scheduled' || type === 'videocall';
+
         router.push({
-            pathname: '/request-assistance/confirmation',
+            pathname: needsDate
+                ? '/request-assistance/date-time'
+                : '/request-assistance/confirmation',
             params: {
                 ...params,
                 latitude: marker.latitude,

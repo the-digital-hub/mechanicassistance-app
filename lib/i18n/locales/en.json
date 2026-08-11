@@ -271,7 +271,20 @@
       "notes": "Notes",
       "none": "None",
       "feesInfo": "No FEES will be charged to your account until work is done and approved.",
-      "confirmAndRequest": "Confirm and Request"
+      "confirmAndRequest": "Confirm and Request",
+      "scheduledFor": "Scheduled for",
+      "pricingUnavailableTitle": "Price pending",
+      "pricingUnavailableMessage": "Your request was sent, but we couldn't calculate the price right now. A mechanic will confirm it with you."
+    },
+    "dateTime": {
+      "header": "Pick a date and time",
+      "badge": "WHEN",
+      "title": "When do you need it?",
+      "subtitle": "Choose the day and time you want the mechanic to arrive",
+      "dayLabel": "Day",
+      "timeLabel": "Time",
+      "noSlots": "No times left today. Pick another day.",
+      "continue": "Continue"
     },
     "searching": {
       "step1Title": "Request sent",

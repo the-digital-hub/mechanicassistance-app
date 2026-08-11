@@ -24,5 +24,5 @@
     - [x] Create Walkthrough Artifact <!-- id: 12 -->
 
 - [ ] **Backlog / Pendientes**
-    - [ ] Persistir `issues` (categorías de problema mecánico) en las solicitudes de asistencia — ver [docs/PENDING-persist-assistance-issues.md](docs/PENDING-persist-assistance-issues.md) (requiere cambios en backend + app)
+    - [x] Persistir `issues` (categorías de problema mecánico) en las solicitudes de asistencia — ya se guardan en `assistance_request_issues` vía el pricing service; auditoría completa en [docs/assistance-request-field-persistence.md](docs/assistance-request-field-persistence.md)
     - [ ] Implementar acción del botón "Decline" en los cards de asistencia — ver [docs/PENDING-decline-request-action.md](docs/PENDING-decline-request-action.md) (requiere revisar API)

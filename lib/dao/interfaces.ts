@@ -18,7 +18,6 @@ export interface AssistanceRequest {
     locationLng?: number;
     photos?: string[];
     vehicleId?: string;
-    description?: string;
     zip?: string;
     /** Mechanic's proposed price for this service (set when mechanic makes an offer) */
     price?: string;

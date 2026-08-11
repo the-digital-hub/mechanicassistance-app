@@ -271,7 +271,20 @@
       "notes": "Notas",
       "none": "Ninguna",
       "feesInfo": "No se cobrará ningún CARGO a tu cuenta hasta que el trabajo esté hecho y aprobado.",
-      "confirmAndRequest": "Confirmar y Solicitar"
+      "confirmAndRequest": "Confirmar y Solicitar",
+      "scheduledFor": "Agendado para",
+      "pricingUnavailableTitle": "Precio pendiente",
+      "pricingUnavailableMessage": "Tu solicitud se envió, pero no pudimos calcular el precio ahora. Un mecánico te lo va a confirmar."
+    },
+    "dateTime": {
+      "header": "Elegí fecha y hora",
+      "badge": "CUÁNDO",
+      "title": "¿Cuándo lo necesitás?",
+      "subtitle": "Elegí el día y la hora en que querés que llegue el mecánico",
+      "dayLabel": "Día",
+      "timeLabel": "Hora",
+      "noSlots": "No quedan horarios para hoy. Elegí otro día.",
+      "continue": "Continuar"
     },
     "searching": {
       "step1Title": "Solicitud enviada",

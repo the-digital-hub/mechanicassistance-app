@@ -10,12 +10,23 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
+/**
+ * The pricing service validates `vehicle_issue_ids` with `@IsUUID`, so an id that
+ * isn't a UUID is rejected with a 400 and the selected symptoms are never
+ * persisted. That happens whenever issue-selection fell back to FALLBACK_ISSUES
+ * (ids like 'battery'), so filter those out and warn instead of failing silently.
+ */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+const parseIssueIds = (issues: unknown): string[] =>
+    typeof issues === 'string' ? issues.split(',').filter(Boolean) : [];
+
 export default function ConfirmationScreen() {
     const router = useRouter();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { user } = useUser();
     const params = useLocalSearchParams();
-    // latitude, longitude, addressLabel, finalAddress, type, vehicleId, vehicleName, description, issues, details, photos
+    // latitude, longitude, addressLabel, finalAddress, type, vehicleId, vehicleName, description, issues, details, photos, date
     const {
         type,
         vehicleId,
@@ -27,7 +38,8 @@ export default function ConfirmationScreen() {
         latitude,
         longitude,
         addressLabel,
-        finalAddress
+        finalAddress,
+        date
     } = params;
 
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -50,7 +62,7 @@ export default function ConfirmationScreen() {
         (async () => {
             const lat = Number(latitude);
             const lng = Number(longitude);
-            const firstIssueId = typeof issues === 'string' ? issues.split(',')[0] : '';
+            const firstIssueId = parseIssueIds(issues).find((id) => UUID_RE.test(id)) ?? '';
             if (!firstIssueId || !Number.isFinite(lat) || !Number.isFinite(lng)) {
                 if (mounted) setPriceLoading(false);
                 return;
@@ -76,6 +88,18 @@ export default function ConfirmationScreen() {
 
     // vehicleName is passed through the wizard from select-vehicle screen
     const vehicleStr = (vehicleName as string) || t('requestAssistance.confirmation.vehicleId', { vehicleId });
+
+    // Only scheduled/videocall requests carry a date (collected in date-time.tsx).
+    // Render it in place of the generic timeframe copy when present.
+    const scheduledDateLabel = React.useMemo(() => {
+        if (typeof date !== 'string' || !date) return null;
+        const parsed = new Date(date);
+        if (Number.isNaN(parsed.getTime())) return null;
+        return parsed.toLocaleString(i18n.language, {
+            weekday: 'short', day: 'numeric', month: 'short',
+            hour: '2-digit', minute: '2-digit',
+        });
+    }, [date, i18n.language]);
 
     const getTitle = () => {
         switch (type) {
@@ -133,11 +157,13 @@ export default function ConfirmationScreen() {
 
             const addr = finalAddress || addressLabel || '';
 
+            // `budget` and `distance` are intentionally not sent: the pricing service
+            // fills `budget`/`price` right after creation, and `distance` is computed
+            // per-mechanic at read time (it has no meaningful value at creation).
             const response = await assistanceDAO.create({
                 userId: user?.id || 'current-user-id',
                 title: typeof description === 'string' ? description : 'Assistance Request',
                 notes: typeof details === 'string' ? details : '',
-                description: typeof details === 'string' ? details : '',
                 type: type as any,
                 assistanceType: type as string,
                 vehicleId: vehicleId as string,
@@ -147,27 +173,59 @@ export default function ConfirmationScreen() {
                 locationLng: lng,
                 status: 'pending',
                 photos: uploadedUrls,
-                budget: 'TBD',
-                distance: '0 km',
-                zip: zipCode
+                zip: zipCode,
+                ...(typeof date === 'string' && date ? { date } : {})
             });
 
             // Price + persist the created request server-side (breakdown + issue
-            // pivot + assistance_requests.price). Never block the flow on failure.
-            try {
-                const issueIds = typeof issues === 'string'
-                    ? issues.split(',').filter(Boolean)
-                    : [];
-                if (issueIds.length > 0) {
-                    await pricingDAO.persistRequestPrice(response.id, {
+            // pivot + assistance_requests.budget/price). The request already exists,
+            // so a failure here must not block the flow or revert it — but it must
+            // not be silent either: the selected symptoms would be lost.
+            const selectedIssueIds = parseIssueIds(issues);
+            const issueIds = selectedIssueIds.filter((id) => UUID_RE.test(id));
+
+            if (selectedIssueIds.length > 0 && issueIds.length === 0) {
+                console.warn(
+                    `[assistance] issues not persisted for request ${response.id}: ` +
+                    `the vehicle-issue catalog was unavailable, so the wizard used ` +
+                    `fallback ids (${selectedIssueIds.join(',')}) that the pricing ` +
+                    `service rejects.`
+                );
+                Alert.alert(
+                    t('requestAssistance.confirmation.pricingUnavailableTitle'),
+                    t('requestAssistance.confirmation.pricingUnavailableMessage')
+                );
+            } else if (issueIds.length > 0) {
+                try {
+                    const result = await pricingDAO.persistRequestPrice(response.id, {
                         vehicle_issue_ids: issueIds,
                         latitude: lat,
                         longitude: lng,
                         ...(zipCode ? { zipcode: zipCode } : {}),
                     });
+                    // The endpoint persists each part best-effort and reports which
+                    // ones landed; a partial write still returns 200.
+                    const persisted = (result as any)?.persisted;
+                    if (persisted && Object.values(persisted).some((ok) => ok === false)) {
+                        console.warn(
+                            `[assistance] partial pricing persistence for request ` +
+                            `${response.id}:`, persisted
+                        );
+                        Alert.alert(
+                            t('requestAssistance.confirmation.pricingUnavailableTitle'),
+                            t('requestAssistance.confirmation.pricingUnavailableMessage')
+                        );
+                    }
+                } catch (err) {
+                    console.warn(
+                        `[assistance] persisting request price failed for request ` +
+                        `${response.id} (issues: ${issueIds.join(',')})`, err
+                    );
+                    Alert.alert(
+                        t('requestAssistance.confirmation.pricingUnavailableTitle'),
+                        t('requestAssistance.confirmation.pricingUnavailableMessage')
+                    );
                 }
-            } catch (err) {
-                console.warn('Persisting request price failed', err);
             }
 
             router.replace({
@@ -237,9 +295,15 @@ export default function ConfirmationScreen() {
                         </View>
 
                         <View className="border-t border-gray-200 pt-3 mb-3">
-                            <Text className="text-gray-400 font-outfit-medium text-sm uppercase tracking-wide mb-1">{t('requestAssistance.confirmation.timeframe')}</Text>
+                            <Text className="text-gray-400 font-outfit-medium text-sm uppercase tracking-wide mb-1">
+                                {scheduledDateLabel
+                                    ? t('requestAssistance.confirmation.scheduledFor')
+                                    : t('requestAssistance.confirmation.timeframe')}
+                            </Text>
                             <Text className="text-gray-900 font-outfit-semibold text-lg">
-                                {type === 'immediate' || type === 'witness' ? t('requestAssistance.confirmation.timeframe4h') : type === 'scheduled' ? t('requestAssistance.confirmation.timeframe7d') : t('requestAssistance.confirmation.timeframeOnDemand')}
+                                {scheduledDateLabel
+                                    ? scheduledDateLabel
+                                    : type === 'immediate' || type === 'witness' ? t('requestAssistance.confirmation.timeframe4h') : type === 'scheduled' ? t('requestAssistance.confirmation.timeframe7d') : t('requestAssistance.confirmation.timeframeOnDemand')}
                             </Text>
                         </View>
 

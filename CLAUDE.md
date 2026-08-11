@@ -6,11 +6,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Scope of this repo
 
-This workspace contains **only the mobile app** (Expo + React Native + expo-router, TypeScript).
+This directory contains the **mobile app** (Expo + React Native + expo-router, TypeScript).
 
-The backend API (Node.js + Express + SQLite + WebSocket) and the admin portal (React + Vite) used to live in this monorepo but were extracted to a **separate repository** as of commit `502a5ba` ("refactor: remove admin-portal and server directories..."). They are not present in this workspace — if a task requires editing backend or admin-portal code, that work belongs in the other repo, not here.
+**The backend lives in the parent monorepo, not in a separate repo.** The old Express +
+SQLite server and the admin portal were removed in commit `502a5ba`, and the backend is
+now 8 NestJS microservices over PostgreSQL + Redis (`appointments-service`,
+`mechanicassistance-service-price`, `api-gateway`, …) — see the root `CLAUDE.md` for the
+service/port table. Backend changes are made in those sibling directories.
 
-This file still documents backend *behavior* (API contract, WebSocket message types, DB relationships, bot timing, etc.) where it's relevant to understanding or building mobile features — but any file path under `server/` or `admin-portal/` refers to the other repo, not this one.
+Any file path under `server/` or `admin-portal/` in this file is stale: those directories
+no longer exist anywhere. Backend *behavior* documented here (API contract, WebSocket
+message types, DB relationships) may also have drifted — check the actual service.
 
 ---
 
@@ -91,7 +97,7 @@ Conditional/procedural knowledge lives in skills (loaded on-demand), not here:
 
 ## Conventions (always apply)
 
-- **No direct backend edits** — this repo can't implement or modify API endpoints; new features that need backend support require coordinating with the backend repo.
+- **Backend edits go in the sibling services** — endpoints are implemented in the parent monorepo (`appointments-service`, `mechanicassistance-service-price`, …), not here. Deploy the backend before the app when a DTO gets stricter: `forbidNonWhitelisted: true` turns a removed field into a 400 for older app builds.
 - **Minimal diffs** — prefer small targeted changes; do not refactor surrounding code.
 - **TypeScript** — avoid `any`; when unavoidable (WS parsing), encapsulate it.
 - **Use DAOs/Contexts, never raw `fetch`** — screens consume `lib/dao/` or `context/`.
@@ -125,4 +131,5 @@ Conditional/procedural knowledge lives in skills (loaded on-demand), not here:
 
 - **Deployment**: `npm run upload`/`npm run local`, `k8s/`, `docker-compose.yml`, and `scripts/upload.sh` / `local-deploy.sh` / `sync-users-from-prod.sh` are leftover from the pre-split monorepo and are deprecated — do not use them as a guide to how deployment actually works today. This section needs to be rewritten once the current process is confirmed.
 - `DB.MD` documents the SQLite schema as it existed when the backend was still in this repo — still a useful reference for field names, but the schema itself now lives in the backend repo and may have drifted.
-- Pending product/engineering follow-ups are tracked in [docs/](docs/) (e.g. `docs/PENDING-decline-request-action.md`, `docs/PENDING-persist-assistance-issues.md`).
+- Pending product/engineering follow-ups are tracked in [docs/](docs/) (e.g. `docs/PENDING-decline-request-action.md`).
+- Field-by-field persistence of assistance requests (what reaches the DB, what doesn't, and the deployment ordering it implies) is audited in [docs/assistance-request-field-persistence.md](docs/assistance-request-field-persistence.md). `docs/PENDING-persist-assistance-issues.md` is closed — its premise was wrong.
