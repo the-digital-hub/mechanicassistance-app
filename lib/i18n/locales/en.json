@@ -1029,5 +1029,9 @@
     "estimatedPrice": "Estimated Price:",
     "posted": "Posted: {{date}}",
     "idLabel": "ID:#{{id}}"
+  },
+  "addressAutocomplete": {
+    "searchPlaceholder": "Start typing an address",
+    "detailsFailed": "Could not load that address. Please pick another or type it manually."
   }
 }

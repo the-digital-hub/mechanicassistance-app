@@ -1,9 +1,10 @@
-import { Input } from '@/components/ui/Input';
+import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
+import type { ParsedAddress } from '@/lib/places';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ChevronLeft, MapPin } from 'lucide-react-native';
+import { ChevronLeft } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 
 export default function LocationAddressScreen() {
     const router = useRouter();
@@ -12,8 +13,6 @@ export default function LocationAddressScreen() {
     const { type } = params;
 
     const [query, setQuery] = useState('');
-    const [results, setResults] = useState<any[]>([]);
-    const [isSearching, setIsSearching] = useState(false);
 
     const getTitle = () => {
         switch (type) {
@@ -35,48 +34,22 @@ export default function LocationAddressScreen() {
         }
     };
 
-    const searchAddress = async (text: string) => {
-        setQuery(text);
-        if (text.length < 3) return;
+    const handleSelect = (address: ParsedAddress) => {
+        const addressLabel =
+            address.formatted ||
+            `${address.street}, ${address.city} ${address.zip}`.trim();
 
-        setIsSearching(true);
-        try {
-            // Bias the search with ", FL" and increase limit to get more candidates for local filtering
-            const response = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(text + ", FL")}&limit=10`);
-            const data = await response.json();
-
-            // Filter results to only include Florida
-            const flResults = (data.features || []).filter((f: any) => {
-                const state = f.properties?.state?.toLowerCase();
-                return state === 'florida' || state === 'fl';
-            });
-
-            setResults(flResults.slice(0, 5)); // Show top 5 FL results
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setIsSearching(false);
-        }
-    };
-
-    const handleSelect = (feature: any) => {
-        const { geometry, properties } = feature;
-        const [lon, lat] = geometry.coordinates;
-
-        // Include city and postcode in label for better display and parsing
-        const addressLabel = `${properties.name || properties.street || ''}, ${properties.city || ''} ${properties.postcode || ''}`.trim();
-
-        // Pass back to map
+        // `lat`/`lon` are the keys location-map already reads — keep them.
         router.push({
             pathname: '/request-assistance/location-map',
             params: {
                 ...params,
                 selectedAddress: JSON.stringify({
                     label: addressLabel,
-                    lat,
-                    lon,
-                    zip: properties.postcode || '',
-                    full: feature,
+                    lat: address.locationLat,
+                    lon: address.locationLng,
+                    zip: address.zip,
+                    full: address,
                 })
             }
         });
@@ -111,40 +84,13 @@ export default function LocationAddressScreen() {
                     {t('requestAssistance.locationAddress.subtitle')}
                 </Text>
 
-                <Input
+                <AddressAutocomplete
                     value={query}
-                    onChangeText={searchAddress}
+                    onChangeText={setQuery}
+                    onSelect={handleSelect}
                     placeholder={t('requestAssistance.locationAddress.placeholder')}
-                    containerClassName="bg-gray-50 border-gray-200 mb-4"
+                    containerClassName="bg-gray-50 border-gray-200"
                     autoFocus
-                />
-
-                {isSearching && <ActivityIndicator color="#0047AB" />}
-
-                <FlatList
-                    data={results}
-                    keyExtractor={(item, index) => index.toString()}
-                    scrollEnabled={false}
-                    renderItem={({ item }) => {
-                        const props = item.properties;
-                        const mainText = props.name || props.street || '';
-                        const subText = `${props.city || ''}, ${props.state || ''} ${props.postcode || ''}`;
-
-                        return (
-                            <TouchableOpacity
-                                onPress={() => handleSelect(item)}
-                                className="flex-row items-center py-4 border-b border-gray-50"
-                            >
-                                <View className="w-10 h-10 bg-blue-50 rounded-full justify-center items-center mr-4">
-                                    <MapPin size={20} color="#0047AB" />
-                                </View>
-                                <View className="flex-1">
-                                    <Text className="font-outfit-bold text-gray-900">{mainText}</Text>
-                                    <Text className="font-outfit-regular text-gray-500 text-xs">{subText}</Text>
-                                </View>
-                            </TouchableOpacity>
-                        );
-                    }}
                 />
             </View>
         </View>

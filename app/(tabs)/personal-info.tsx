@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useUser } from '@/context/UserContext';
-import { US_STATES, normalizeStreet } from '@/lib/address';
+import { US_STATES } from '@/lib/address';
 import { mediaDAO } from '@/lib/dao/MediaDAO';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
@@ -17,8 +17,6 @@ export default function PersonalInfoScreen() {
     const { user, isLoading, updateUser } = useUser();
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [showStateModal, setShowStateModal] = useState(false);
-    const [searchSuggestions, setSearchSuggestions] = useState<any[]>([]);
-    const [isSearching, setIsSearching] = useState(false);
     const [localProfileUri, setLocalProfileUri] = useState<string | null>(null);
     const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
@@ -148,82 +146,9 @@ export default function PersonalInfoScreen() {
         }
     };
 
-    const searchAddress = async (query: string) => {
-        if (query.length < 3) {
-            setSearchSuggestions([]);
-            return;
-        }
-
-        setIsSearching(true);
-        try {
-            // Bias the search with ", FL" and increase limit to get more candidates for local filtering
-            const response = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query + ", FL")}&limit=10&lang=en`);
-            const data = await response.json();
-
-            // Filter results to only include Florida
-            const flResults = (data.features || []).filter((f: any) => {
-                const state = f.properties?.state?.toLowerCase();
-                return state === 'florida' || state === 'fl';
-            });
-
-            setSearchSuggestions(flResults.slice(0, 5)); // Show top 5 FL results
-        } catch (error) {
-            console.error('Search failed:', error);
-        } finally {
-            setIsSearching(false);
-        }
-    };
-
-
-    const getFormattedAddress = (feature: any) => {
-        const { properties } = feature;
-        const houseNumber = properties.housenumber || '';
-        const streetPart = properties.street || properties.name || '';
-        const city = properties.city || '';
-        const stateName = properties.state || '';
-        const zip = properties.postcode || '';
-
-        const normalizedStreet = normalizeStreet(streetPart);
-        const street = `${houseNumber} ${normalizedStreet}`.trim();
-
-        // Try shortened state
-        const stateMapping = US_STATES.find(s =>
-            s.name.toLowerCase() === stateName.toLowerCase() ||
-            s.code.toLowerCase() === stateName.toLowerCase()
-        );
-        const stateCode = stateMapping?.code || stateName;
-
-        return `${street}, ${city}, ${stateCode} ${zip}`.replace(/,\s*$/, '');
-    };
-
-    const handleSelectAddress = (feature: any) => {
-        const { properties } = feature;
-        const houseNumber = properties.housenumber || '';
-        const streetPart = properties.street || properties.name || '';
-        const city = properties.city || '';
-        const stateName = properties.state || '';
-        const zip = properties.postcode || '';
-
-        const normalizedStreet = normalizeStreet(streetPart);
-
-        // Try to map state name to 2-letter code
-        const stateMapping = US_STATES.find(s =>
-            s.name.toLowerCase() === stateName.toLowerCase() ||
-            s.code.toLowerCase() === stateName.toLowerCase()
-        );
-
-        setFormData({
-            ...formData,
-            address: {
-                street: `${houseNumber} ${normalizedStreet}`.trim(),
-                apartment: formData.address.apartment,
-                city: city,
-                state: stateMapping?.code || formData.address.state,
-                zip: zip.slice(0, 5)
-            }
-        });
-        setSearchSuggestions([]);
-    };
+    // The address fields this screen used to render were removed, so the Photon
+    // search/parse helpers that fed them are gone too. The remaining address
+    // entry points use <AddressAutocomplete> (Google Places) instead.
 
     function formatPhoneNumber(text: string) {
         if (!text) return '';

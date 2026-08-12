@@ -1,5 +1,7 @@
+import { AddressAutocomplete } from "@/components/ui/AddressAutocomplete";
 import { Input } from "@/components/ui/Input";
-import { US_STATES, getFormattedAddress, normalizeStreet } from "@/lib/address";
+import { US_STATES } from "@/lib/address";
+import type { ParsedAddress } from "@/lib/places";
 import { getSetupProgress, saveSetupProgress } from "@/lib/storage";
 import { useRouter } from "expo-router";
 import { ChevronRight } from "lucide-react-native";
@@ -7,7 +9,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ActivityIndicator,
   FlatList,
   KeyboardAvoidingView,
   Modal,
@@ -18,37 +19,48 @@ import {
   View,
 } from "react-native";
 
+/**
+ * `locationLat`/`locationLng` mirror the backend column names, so the payload
+ * built in UserDAO needs no renaming on the way out.
+ */
+type AddressFormData = {
+  street: string;
+  apartment: string;
+  city: string;
+  state: string;
+  zip: string;
+  locationLat?: number;
+  locationLng?: number;
+};
+
+/**
+ * Setup progress saved by older builds stored coordinates as `lat`/`lng`.
+ * Read those once so a half-finished registration doesn't lose its location.
+ */
+const migrateCoords = (stored: Record<string, any>): AddressFormData => ({
+  street: stored.street || "",
+  apartment: stored.apartment || "",
+  city: stored.city || "",
+  state: stored.state || "",
+  zip: stored.zip || "",
+  locationLat: stored.locationLat ?? stored.lat,
+  locationLng: stored.locationLng ?? stored.lng,
+});
+
 export default function AddressScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const [addressType, setAddressType] = useState<"home" | "work">("home");
   const [showStateModal, setShowStateModal] = useState(false);
-  const [searchSuggestions, setSearchSuggestions] = useState<any[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [homeData, setHomeData] = useState<{
-    street: string;
-    apartment: string;
-    city: string;
-    state: string;
-    zip: string;
-    lat?: number;
-    lng?: number;
-  }>({
+
+  const [homeData, setHomeData] = useState<AddressFormData>({
     street: "",
     apartment: "",
     city: "",
     state: "",
     zip: "",
   });
-  const [workData, setWorkData] = useState<{
-    street: string;
-    apartment: string;
-    city: string;
-    state: string;
-    zip: string;
-    lat?: number;
-    lng?: number;
-  }>({
+  const [workData, setWorkData] = useState<AddressFormData>({
     street: "",
     apartment: "",
     city: "",
@@ -60,8 +72,8 @@ export default function AddressScreen() {
     const loadData = async () => {
       const progress = await getSetupProgress();
       if (progress.address) {
-        if (progress.address.home) setHomeData(progress.address.home);
-        if (progress.address.work) setWorkData(progress.address.work);
+        if (progress.address.home) setHomeData(migrateCoords(progress.address.home));
+        if (progress.address.work) setWorkData(migrateCoords(progress.address.work));
         if (progress.address.type) setAddressType(progress.address.type);
 
         // Migrate old data structure if found
@@ -109,65 +121,33 @@ export default function AddressScreen() {
     setter((prev) => ({ ...prev, [key]: value }));
   };
 
-  const searchAddress = async (query: string) => {
-    if (query.length < 3) {
-      setSearchSuggestions([]);
-      return;
-    }
-
-    setIsSearching(true);
-    try {
-      // Bias the search with ", FL" and increase limit to get more candidates for local filtering
-      const response = await fetch(
-        `https://photon.komoot.io/api/?q=${encodeURIComponent(query + ", FL")}&limit=10&lang=en`,
-      );
-      const data = await response.json();
-
-      // Filter results to only include Florida
-      const flResults = (data.features || []).filter((f: any) => {
-        const state = f.properties?.state?.toLowerCase();
-        return state === "florida" || state === "fl";
-      });
-
-      setSearchSuggestions(flResults.slice(0, 5)); // Show top 5 FL results
-    } catch (error) {
-      console.error("Search failed:", error);
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  const handleSelectAddress = (feature: any) => {
-    const { properties, geometry } = feature;
-    const houseNumber = properties.housenumber || "";
-    const streetPart = properties.street || properties.name || "";
-    const city = properties.city || "";
-    const stateName = properties.state || "";
-    const zip = properties.postcode || "";
-    // Photon returns GeoJSON: geometry.coordinates = [lon, lat]. Optional —
-    // a suggestion without geometry should never block saving the address.
-    const [lon, lat] = geometry?.coordinates ?? [undefined, undefined];
-
-    const normalizedStreet = normalizeStreet(streetPart);
-
-    // Try to map state name to 2-letter code
-    const stateMapping = US_STATES.find(
-      (s) =>
-        s.name.toLowerCase() === stateName.toLowerCase() ||
-        s.code.toLowerCase() === stateName.toLowerCase(),
-    );
-
+  /** Fills the active (home/work) form from a Google Places suggestion. */
+  const handleSelectAddress = (address: ParsedAddress) => {
     const setter = addressType === "home" ? setHomeData : setWorkData;
     setter((prev) => ({
       ...prev,
-      street: `${houseNumber} ${normalizedStreet}`.trim(),
-      city: city,
-      state: stateMapping?.code || prev.state,
-      zip: zip.slice(0, 5),
-      lat,
-      lng: lon,
+      street: address.street || prev.street,
+      apartment: address.apartment || prev.apartment,
+      city: address.city || prev.city,
+      state: address.state || prev.state,
+      zip: address.zip || prev.zip,
+      locationLat: address.locationLat,
+      locationLng: address.locationLng,
     }));
-    setSearchSuggestions([]);
+  };
+
+  /**
+   * Typing over the street by hand invalidates the coordinates that came with
+   * the suggestion, so drop them instead of saving a mismatched pair.
+   */
+  const handleStreetChange = (text: string) => {
+    const setter = addressType === "home" ? setHomeData : setWorkData;
+    setter((prev) => ({
+      ...prev,
+      street: text,
+      locationLat: undefined,
+      locationLng: undefined,
+    }));
   };
 
   const handleContinue = async () => {
@@ -259,41 +239,13 @@ export default function AddressScreen() {
             <Text className="font-outfit-medium text-[#0F172A] mb-2">
               {t('setup.address.streetNumber')}
             </Text>
-            <Input
+            <AddressAutocomplete
               value={formData.street}
-              onChangeText={(text) => {
-                handleChange("street", text);
-                searchAddress(text);
-              }}
+              onChangeText={handleStreetChange}
+              onSelect={handleSelectAddress}
               containerClassName="bg-white border border-gray-300 rounded-2xl"
               placeholder={t('setup.address.streetPlaceholder')}
             />
-            {isSearching && (
-              <ActivityIndicator
-                size="small"
-                color="#0047AB"
-                className="absolute right-4 top-10"
-              />
-            )}
-
-            {searchSuggestions.length > 0 && (
-              <View className="absolute top-[80px] left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
-                {searchSuggestions.map((suggestion, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    className="px-4 py-3 border-b border-gray-50 flex-col"
-                    onPress={() => handleSelectAddress(suggestion)}
-                  >
-                    <Text
-                      className="font-outfit-medium text-gray-900 text-sm"
-                      numberOfLines={1}
-                    >
-                      {getFormattedAddress(suggestion)}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
           </View>
 
           <View>

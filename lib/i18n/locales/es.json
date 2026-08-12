@@ -1029,5 +1029,9 @@
     "estimatedPrice": "Precio estimado:",
     "posted": "Publicado: {{date}}",
     "idLabel": "ID:#{{id}}"
+  },
+  "addressAutocomplete": {
+    "searchPlaceholder": "Empezá a escribir una dirección",
+    "detailsFailed": "No se pudo cargar esa dirección. Elegí otra o escribila a mano."
   }
 }

@@ -74,13 +74,10 @@ export default function LocationMapScreen() {
 
     useEffect(() => {
         (async () => {
-            // If we returned from address search with a selected address, geocode it
+            // Coming back from the address search screen: it already resolved the
+            // coordinates through Google Places, so drop the pin there instead of
+            // asking for the current location.
             if (selectedAddress) {
-                // In a real app we would geocode this address string to coords.
-                // For now, let's just mock it or try to forward geocode if we had a library.
-                // Since we don't have a configured geocoder, we might have to rely on the search screen returning coords.
-                // Let's assume the search screen returns coords if possible, or we defaults.
-                // If selectedAddress is passed, we might need to parse it or it might be JSON.
                 try {
                     const parsed = JSON.parse(selectedAddress as string);
                     if (parsed.lat && parsed.lon) {
@@ -175,8 +172,25 @@ export default function LocationMapScreen() {
         });
     };
 
-    /** Geocode an Address object (street + city + state + zip) and move the map pin there. */
-    const geocodeAndSetAddress = async (address: { street?: string; city?: string; state?: string; zip?: string }, label: string) => {
+    /**
+     * Move the map pin to a saved Address. Addresses created through Google
+     * Places autocomplete already carry coordinates, so use them directly and
+     * geocode only the older ones that predate that.
+     */
+    const geocodeAndSetAddress = async (
+        address: { street?: string; city?: string; state?: string; zip?: string; locationLat?: number; locationLng?: number },
+        label: string,
+    ) => {
+        if (address.locationLat !== undefined && address.locationLng !== undefined) {
+            const latitude = address.locationLat;
+            const longitude = address.locationLng;
+            setRegion({ latitude, longitude, latitudeDelta: 0.005, longitudeDelta: 0.005 });
+            setMarker({ latitude, longitude });
+            setLocationName(label);
+            setLocationZip(address.zip || '');
+            return;
+        }
+
         const query = [address.street, address.city, address.state, address.zip]
             .filter(Boolean)
             .join(', ');

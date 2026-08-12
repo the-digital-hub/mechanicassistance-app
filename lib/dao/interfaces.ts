@@ -37,6 +37,13 @@ export interface Address {
     city?: string;
     state?: string;
     zip?: string;
+    /**
+     * Coordinates of the address, filled in by Google Places autocomplete.
+     * Named to match the backend (`user_addresses.locationLat/locationLng`), so
+     * the payload needs no renaming on the way out.
+     */
+    locationLat?: number;
+    locationLng?: number;
 }
 
 export interface MechanicDetail {

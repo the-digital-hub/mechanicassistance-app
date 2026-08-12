@@ -1,7 +1,9 @@
+import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { Input } from '@/components/ui/Input';
 import { useUser } from '@/context/UserContext';
 import { useMechanicStatus } from '@/context/MechanicStatusContext';
 import { US_STATES } from '@/lib/address';
+import type { ParsedAddress } from '@/lib/places';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft, ChevronRight, Circle, Bell } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
@@ -67,13 +69,49 @@ export default function EditAddressScreen() {
 
     const styles = getStatusStyles();
 
-    const [formData, setFormData] = useState({
+    const existingAddress = user?.addresses?.[addressIndex];
+
+    const [formData, setFormData] = useState<{
+        street: string;
+        apartment: string;
+        city: string;
+        state: string;
+        zip: string;
+        locationLat?: number;
+        locationLng?: number;
+    }>({
         street: params.street as string || '',
         apartment: params.apartment as string || '',
         city: params.city as string || '',
         state: params.state as string || 'FL',
-        zip: params.zip as string || ''
+        zip: params.zip as string || '',
+        // The navigation params carry no coordinates, so seed them from the
+        // stored address to avoid wiping them on an unrelated edit.
+        locationLat: existingAddress?.locationLat,
+        locationLng: existingAddress?.locationLng
     });
+
+    /** Fills the whole form from a Google Places suggestion. Fields stay editable. */
+    const handleSelectAddress = (address: ParsedAddress) => {
+        setFormData(prev => ({
+            ...prev,
+            street: address.street || prev.street,
+            apartment: address.apartment || prev.apartment,
+            city: address.city || prev.city,
+            state: address.state || prev.state,
+            zip: address.zip || prev.zip,
+            locationLat: address.locationLat,
+            locationLng: address.locationLng
+        }));
+    };
+
+    /**
+     * Typing over the street by hand invalidates the coordinates that came with
+     * the suggestion, so drop them instead of saving a mismatched pair.
+     */
+    const handleStreetChange = (text: string) => {
+        setFormData(prev => ({ ...prev, street: text, locationLat: undefined, locationLng: undefined }));
+    };
 
     const handleUpdate = async () => {
         if (!user?.addresses) return;
@@ -87,7 +125,9 @@ export default function EditAddressScreen() {
                 apartment: formData.apartment,
                 city: formData.city,
                 state: formData.state,
-                zip: formData.zip
+                zip: formData.zip,
+                locationLat: formData.locationLat,
+                locationLng: formData.locationLng
             };
 
             await updateUser({ addresses: updatedAddresses });
@@ -122,9 +162,10 @@ export default function EditAddressScreen() {
                 <View className="gap-4 mb-8">
                     <View>
                         <Text className="font-outfit-medium mb-2 text-gray-900">{t('addressForm.street')}</Text>
-                        <Input
+                        <AddressAutocomplete
                             value={formData.street}
-                            onChangeText={(text) => setFormData({ ...formData, street: text })}
+                            onChangeText={handleStreetChange}
+                            onSelect={handleSelectAddress}
                             containerClassName="bg-white border border-gray-300 rounded-2xl"
                             placeholder={t('addressForm.streetPlaceholder')}
                         />

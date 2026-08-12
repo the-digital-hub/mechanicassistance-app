@@ -1,7 +1,9 @@
+import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { Input } from '@/components/ui/Input';
 import { useUser } from '@/context/UserContext';
 import { useMechanicStatus } from '@/context/MechanicStatusContext';
 import { US_STATES } from '@/lib/address';
+import type { ParsedAddress } from '@/lib/places';
 import { useRouter } from 'expo-router';
 import { ChevronLeft, ChevronRight, Circle, Bell } from 'lucide-react-native';
 import { useState } from 'react';
@@ -65,13 +67,43 @@ export default function CreateAddressScreen() {
 
     const styles = getStatusStyles();
 
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<{
+        street: string;
+        apartment: string;
+        city: string;
+        state: string;
+        zip: string;
+        locationLat?: number;
+        locationLng?: number;
+    }>({
         street: '',
         apartment: '',
         city: '',
         state: 'FL',
         zip: ''
     });
+
+    /** Fills the whole form from a Google Places suggestion. Fields stay editable. */
+    const handleSelectAddress = (address: ParsedAddress) => {
+        setFormData(prev => ({
+            ...prev,
+            street: address.street || prev.street,
+            apartment: address.apartment || prev.apartment,
+            city: address.city || prev.city,
+            state: address.state || prev.state,
+            zip: address.zip || prev.zip,
+            locationLat: address.locationLat,
+            locationLng: address.locationLng
+        }));
+    };
+
+    /**
+     * Typing over the street by hand invalidates the coordinates that came with
+     * the suggestion, so drop them instead of saving a mismatched pair.
+     */
+    const handleStreetChange = (text: string) => {
+        setFormData(prev => ({ ...prev, street: text, locationLat: undefined, locationLng: undefined }));
+    };
 
     const handleCreate = async () => {
         if (!formData.street || !formData.city || !formData.zip) {
@@ -87,7 +119,9 @@ export default function CreateAddressScreen() {
                 apartment: formData.apartment,
                 city: formData.city,
                 state: formData.state,
-                zip: formData.zip
+                zip: formData.zip,
+                locationLat: formData.locationLat,
+                locationLng: formData.locationLng
             });
 
             await updateUser({ addresses: updatedAddresses });
@@ -122,9 +156,10 @@ export default function CreateAddressScreen() {
                 <View className="gap-4 mb-8">
                     <View>
                         <Text className="font-outfit-medium mb-2 text-gray-900">{t('addressForm.street')} <Text className="text-red-500">*</Text></Text>
-                        <Input
+                        <AddressAutocomplete
                             value={formData.street}
-                            onChangeText={(text) => setFormData({ ...formData, street: text })}
+                            onChangeText={handleStreetChange}
+                            onSelect={handleSelectAddress}
                             containerClassName="bg-white border border-gray-300 rounded-2xl"
                             placeholder={t('addressForm.streetPlaceholder')}
                         />
