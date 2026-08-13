@@ -1,26 +1,50 @@
-import { Button } from '@/components/ui/Button';
 import { pricingDAO } from '@/lib/dao/PricingDAO';
+import type { VehicleIssueCategory } from '@/lib/dao/interfaces';
+import { getLanguageId, translatedName } from '@/lib/i18n/catalogTranslations';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { AlertTriangle, Battery, ChevronLeft, ChevronRight, HelpCircle, Wrench, Zap } from 'lucide-react-native';
+import { AlertTriangle, Battery, ChevronLeft, ChevronRight, CircleDot, HelpCircle, Wrench, Zap } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-type IssueOption = { id: string; label: string };
-
 // Fallback used only if the pricing catalog can't be fetched. These ids are NOT
 // real VehicleIssue UUIDs, so pricing will fall back to "TBD" when this is used.
-const FALLBACK_ISSUES: IssueOption[] = [
-    { id: 'battery', label: 'Battery / Starting issue' },
-    { id: 'electrical', label: 'Electrical system' },
-    { id: 'starter', label: 'Starter motor' },
-    { id: 'warning', label: 'Warning light' },
-    { id: 'other', label: 'Other' },
+// Wrapped in a synthetic category so the rendering path stays the same.
+const FALLBACK_CATALOG: VehicleIssueCategory[] = [
+    {
+        id: null,
+        name: '',
+        icon: null,
+        issues: [
+            { id: 'battery', name: 'Battery / Starting issue' },
+            { id: 'electrical', name: 'Electrical system' },
+            { id: 'starter', name: 'Starter motor' },
+            { id: 'warning', name: 'Warning light' },
+            { id: 'other', name: 'Other' },
+        ],
+    },
 ];
 
-// Pick an icon from the issue name so backend-fetched issues still render nicely.
-const iconForIssue = (label: string) => {
+// `icon` is a free-form key set in the admin — there is no fixed catalog, so
+// unknown keys must degrade to the default instead of breaking the row.
+const ICONS_BY_KEY: Record<string, typeof Wrench> = {
+    bolt: Zap,
+    battery: Battery,
+    electrical: Zap,
+    tire: CircleDot,
+    wheel: CircleDot,
+    warning: AlertTriangle,
+    wrench: Wrench,
+    tool: Wrench,
+    other: HelpCircle,
+    help: HelpCircle,
+};
+
+// Legacy fallback for rows with no `icon`: guess from the English name. Only
+// reachable for uncategorised issues and the offline fallback list — localized
+// names would not match these substrings.
+const iconFromName = (label: string) => {
     const n = label.toLowerCase();
     if (n.includes('batter')) return Battery;
     if (n.includes('electric')) return Zap;
@@ -30,35 +54,57 @@ const iconForIssue = (label: string) => {
     return Wrench;
 };
 
+const iconFor = (iconKey: string | null | undefined, label: string) =>
+    (iconKey ? ICONS_BY_KEY[iconKey.toLowerCase()] : undefined) ?? iconFromName(label);
+
 export default function IssueSelectionScreen() {
     const router = useRouter();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const params = useLocalSearchParams();
     const { type, vehicleId, vehicleName } = params;
 
     const [description, setDescription] = useState('');
     const [selectedIssues, setSelectedIssues] = useState<string[]>([]);
-    const [issueOptions, setIssueOptions] = useState<IssueOption[]>(FALLBACK_ISSUES);
+    // Exactly one symptom across the whole screen — the single selection is a UX
+    // rule, the backend imposes no such constraint.
+    const [selectedSymptomId, setSelectedSymptomId] = useState<string | null>(null);
+    const [catalog, setCatalog] = useState<VehicleIssueCategory[]>(FALLBACK_CATALOG);
     const [loadingIssues, setLoadingIssues] = useState(true);
+    // Which row of each entity's `translations[]` to render. Null until resolved
+    // (or if it can't be), which makes everything fall back to the base name.
+    const [languageId, setLanguageId] = useState<number | null>(null);
 
-    // Load the real vehicle-issue catalog so selected ids ARE the UUIDs the
-    // pricing service needs. Falls back to the static list if the fetch fails.
+    const language = i18n.language;
+
+    // Load the real catalog so selected ids ARE the UUIDs the pricing service
+    // needs. The response carries every translation, so this does NOT depend on
+    // the current language — switching language only re-renders. Falls back to
+    // the static list if the fetch fails.
     useEffect(() => {
         let mounted = true;
         (async () => {
             try {
-                const data = await pricingDAO.getVehicleIssues();
+                const data = await pricingDAO.getVehicleIssueCatalog();
                 if (mounted && Array.isArray(data) && data.length > 0) {
-                    setIssueOptions(data.map(i => ({ id: i.id, label: i.name })));
+                    setCatalog(data);
                 }
             } catch (err) {
-                console.warn('Could not load vehicle issues; using fallback list', err);
+                console.warn('Could not load vehicle issue catalog; using fallback list', err);
             } finally {
                 if (mounted) setLoadingIssues(false);
             }
         })();
         return () => { mounted = false; };
     }, []);
+
+    // Map the app's locale to the languageId the translations are keyed by.
+    useEffect(() => {
+        let mounted = true;
+        getLanguageId(language).then(id => {
+            if (mounted) setLanguageId(id);
+        });
+        return () => { mounted = false; };
+    }, [language]);
 
     const getTitle = () => {
         switch (type) {
@@ -80,9 +126,14 @@ export default function IssueSelectionScreen() {
         }
     };
 
-    const toggleIssue = (id: string) => {
+    const toggleIssue = (id: string, symptomIds: string[]) => {
         if (selectedIssues.includes(id)) {
             setSelectedIssues(selectedIssues.filter(item => item !== id));
+            // Deselecting the issue hides its symptoms, so a symptom left
+            // selected underneath would be invisible but still submitted.
+            if (selectedSymptomId && symptomIds.includes(selectedSymptomId)) {
+                setSelectedSymptomId(null);
+            }
         } else {
             setSelectedIssues([...selectedIssues, id]);
         }
@@ -97,6 +148,10 @@ export default function IssueSelectionScreen() {
                 vehicleName,
                 description,
                 issues: selectedIssues.join(','),
+                // TODO: not persisted yet — assistance_requests has no symptom
+                // column. Carried through the wizard so the screens downstream
+                // can show it and so persisting it later is a backend-only change.
+                symptomId: selectedSymptomId ?? '',
             }
         });
     };
@@ -145,31 +200,84 @@ export default function IssueSelectionScreen() {
 
                 <View className="mb-8">
                     <Text className="text-gray-900 font-outfit-medium text-lg mb-2" style={{ fontSize: 18 }}>{t('requestAssistance.issueSelection.possibleIssues')}</Text>
-                    <View className="rounded-xl border border-gray-100 overflow-hidden">
-                        {loadingIssues ? (
-                            <View className="p-6 items-center">
-                                <ActivityIndicator size="small" color="#0047AB" />
-                            </View>
-                        ) : (
-                            issueOptions.map((issue) => {
-                                const isSelected = selectedIssues.includes(issue.id);
-                                const Icon = iconForIssue(issue.label);
-                                return (
-                                    <TouchableOpacity
-                                        key={issue.id}
-                                        onPress={() => toggleIssue(issue.id)}
-                                        className={`flex-row items-center p-4 border-b border-gray-100 ${isSelected ? 'bg-blue-600' : 'bg-white'}`}
-                                    >
-                                        <Icon size={20} color={isSelected ? 'white' : '#0047AB'} />
-                                        <Text className={`ml-3 flex-1 font-outfit-medium ${isSelected ? 'text-white' : 'text-gray-700'}`}>
-                                            {issue.label}
+                    {loadingIssues ? (
+                        <View className="rounded-xl border border-gray-100 p-6 items-center">
+                            <ActivityIndicator size="small" color="#0047AB" />
+                        </View>
+                    ) : (
+                        catalog.map((category, categoryIndex) => {
+                            // The trailing group (id: null) holds issues with no
+                            // category — it is rendered without a heading.
+                            const heading = category.id
+                                ? translatedName(category, languageId)
+                                : catalog.length > 1
+                                    ? t('requestAssistance.issueSelection.otherIssues')
+                                    : '';
+                            return (
+                                <View key={category.id ?? `uncategorised-${categoryIndex}`} className="mb-4">
+                                    {heading ? (
+                                        <Text className="text-gray-500 font-outfit-semibold text-xs tracking-widest mb-2 uppercase">
+                                            {heading}
                                         </Text>
-                                        {isSelected && <View className="w-2 h-2 bg-white rounded-full" />}
-                                    </TouchableOpacity>
-                                );
-                            })
-                        )}
-                    </View>
+                                    ) : null}
+                                    <View className="rounded-xl border border-gray-100 overflow-hidden">
+                                        {category.issues.map((issue) => {
+                                            const isSelected = selectedIssues.includes(issue.id);
+                                            const symptoms = issue.symptoms ?? [];
+                                            // Pass the BASE name, not the translated one: the
+                                            // no-icon fallback matches English substrings.
+                                            const Icon = iconFor(category.icon, issue.name);
+                                            return (
+                                                <View key={issue.id}>
+                                                    <TouchableOpacity
+                                                        onPress={() => toggleIssue(issue.id, symptoms.map(s => s.id))}
+                                                        className={`flex-row items-center p-4 border-b border-gray-100 ${isSelected ? 'bg-blue-600' : 'bg-white'}`}
+                                                    >
+                                                        <Icon size={20} color={isSelected ? 'white' : '#0047AB'} />
+                                                        <Text className={`ml-3 flex-1 font-outfit-medium ${isSelected ? 'text-white' : 'text-gray-700'}`}>
+                                                            {translatedName(issue, languageId)}
+                                                        </Text>
+                                                        {isSelected && <View className="w-2 h-2 bg-white rounded-full" />}
+                                                    </TouchableOpacity>
+
+                                                    {isSelected && symptoms.length > 0 && (
+                                                        <View className="border-b border-gray-100" style={{ backgroundColor: '#F4F8FF' }}>
+                                                            <Text className="px-4 pt-3 pb-1 text-gray-500 font-outfit-regular text-xs">
+                                                                {t('requestAssistance.issueSelection.symptoms')}
+                                                            </Text>
+                                                            {symptoms.map((symptom) => {
+                                                                const isSymptomSelected = selectedSymptomId === symptom.id;
+                                                                return (
+                                                                    <TouchableOpacity
+                                                                        key={symptom.id}
+                                                                        onPress={() => setSelectedSymptomId(isSymptomSelected ? null : symptom.id)}
+                                                                        className="flex-row items-center px-4 py-3"
+                                                                    >
+                                                                        {/* Radio, not checkbox: only one symptom can be picked. */}
+                                                                        <View
+                                                                            className="w-5 h-5 rounded-full items-center justify-center"
+                                                                            style={{ borderWidth: 1.5, borderColor: isSymptomSelected ? '#0047AB' : '#CBD5E1' }}
+                                                                        >
+                                                                            {isSymptomSelected && (
+                                                                                <View className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+                                                                            )}
+                                                                        </View>
+                                                                        <Text className={`ml-3 flex-1 font-outfit-regular ${isSymptomSelected ? 'text-blue-700' : 'text-gray-600'}`}>
+                                                                            {translatedName(symptom, languageId)}
+                                                                        </Text>
+                                                                    </TouchableOpacity>
+                                                                );
+                                                            })}
+                                                        </View>
+                                                    )}
+                                                </View>
+                                            );
+                                        })}
+                                    </View>
+                                </View>
+                            );
+                        })
+                    )}
                 </View>
 
                 <TouchableOpacity

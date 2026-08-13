@@ -21,6 +21,21 @@ function buildUrl(baseUrl: string, endpoint: string): string {
     return `${normalizedBase}${normalizedEndpoint}`;
 }
 
+/** Query params accepted by `apiClient.get`. `undefined` values are dropped. */
+export type QueryParams = Record<string, string | number | boolean | undefined>;
+
+/** Appends a query string, skipping params the caller left undefined. */
+function withQuery(endpoint: string, params?: QueryParams): string {
+    if (!params) return endpoint;
+    const search = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined) search.append(key, String(value));
+    });
+    const qs = search.toString();
+    if (!qs) return endpoint;
+    return endpoint.includes('?') ? `${endpoint}&${qs}` : `${endpoint}?${qs}`;
+}
+
 /**
  * Parses the standardized API envelope and returns only the `data` field.
  *
@@ -51,14 +66,15 @@ async function unwrapResponse<T>(response: Response, method: string, endpoint: s
 }
 
 export const apiClient = {
-    async get<T = unknown>(endpoint: string): Promise<T> {
+    async get<T = unknown>(endpoint: string, params?: QueryParams): Promise<T> {
         await ConfigService.init();
         const baseUrl = ConfigService.getApiBaseUrl();
         const authHeaders = await getAuthHeaders();
-        const response = await fetch(buildUrl(baseUrl, endpoint), {
+        const path = withQuery(endpoint, params);
+        const response = await fetch(buildUrl(baseUrl, path), {
             headers: { ...authHeaders },
         });
-        return unwrapResponse<T>(response, 'GET', endpoint);
+        return unwrapResponse<T>(response, 'GET', path);
     },
 
     async post<T = unknown>(endpoint: string, data: unknown): Promise<T> {

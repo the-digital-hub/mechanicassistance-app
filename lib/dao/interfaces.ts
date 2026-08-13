@@ -134,13 +134,66 @@ export interface ISetupDAO {
     saveProgress(key: string, value: any): Promise<void>;
 }
 
+/**
+ * One row of a catalog entity's `*_translations` table.
+ *
+ * The API never resolves the language itself: it returns the base `name` plus
+ * every translation, and the client picks the one matching the language it
+ * detected locally (see `lib/i18n/catalogTranslations.ts`).
+ */
+export interface VehicleIssueTranslation {
+    id: string;
+    languageId: number;
+    name: string;
+}
+
+/** A language from GET /api/pricing/languages — maps a locale code to a languageId. */
+export interface CatalogLanguage {
+    id: number;
+    code: string;
+    name: string;
+    isDefault?: boolean;
+}
+
+/**
+ * A symptom of a vehicle issue (third level of the catalog). Has no price —
+ * it only refines the issue. The client lets the user pick exactly one.
+ */
+export interface VehicleIssueSymptom {
+    id: string;
+    vehicleIssueId: string;
+    name: string;
+    sortOrder?: number | null;
+    translations?: VehicleIssueTranslation[];
+}
+
 /** A vehicle issue from the pricing service catalog (GET /api/pricing/vehicle-issues). */
 export interface VehicleIssue {
     id: string;
     name: string;
     description?: string;
-    sortOrder?: number;
+    sortOrder?: number | null;
     isActiveApp?: boolean;
+    /** Null for issues that belong to no category (e.g. "Other"). */
+    categoryId?: string | null;
+    /** Only present when the endpoint embeds them (catalog, or ?includeSymptoms=true). */
+    symptoms?: VehicleIssueSymptom[];
+    translations?: VehicleIssueTranslation[];
+}
+
+/**
+ * A category grouping vehicle issues (first level). Has no price — it is purely
+ * a visual grouping. `id: null` is the synthetic trailing group the catalog
+ * endpoint uses for issues with no category.
+ */
+export interface VehicleIssueCategory {
+    id: string | null;
+    name: string;
+    /** Free-form icon key (e.g. "bolt", "tire") — no fixed catalog, may be unknown to the client. */
+    icon?: string | null;
+    sortOrder?: number | null;
+    issues: VehicleIssue[];
+    translations?: VehicleIssueTranslation[];
 }
 
 /** Body for POST /api/pricing/calculate. Jurisdiction is resolved server-side from `zipcode`. */
@@ -181,6 +234,8 @@ export interface PriceCalculationResult {
 
 export interface IPricingDAO {
     getVehicleIssues(): Promise<VehicleIssue[]>;
+    getVehicleIssueCatalog(): Promise<VehicleIssueCategory[]>;
+    getLanguages(): Promise<CatalogLanguage[]>;
     calculatePrice(payload: CalculatePricePayload): Promise<PriceCalculationResult>;
     persistRequestPrice(serviceRequestId: string, payload: PersistRequestPricePayload): Promise<PriceCalculationResult>;
     getRequestIssues(serviceRequestId: string): Promise<VehicleIssueSnapshot[]>;

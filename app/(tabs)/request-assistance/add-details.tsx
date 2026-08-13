@@ -13,7 +13,7 @@ export default function AddDetailsScreen() {
     const router = useRouter();
     const { t } = useTranslation();
     const params = useLocalSearchParams();
-    const { type, vehicleId, vehicleName, description, issues } = params;
+    const { type, vehicleId, vehicleName, description, issues, symptomId } = params;
 
     const [details, setDetails] = useState('');
     const [photos, setPhotos] = useState<string[]>([]);
@@ -65,6 +65,11 @@ export default function AddDetailsScreen() {
                 vehicleName,
                 description,
                 issues,
+                // Not persisted yet (no symptom column on assistance_requests);
+                // carried through so the later steps keep it. Every screen after
+                // this one forwards `...params`, so this is the last hop that
+                // has to name it explicitly.
+                symptomId,
                 details,
                 photos: JSON.stringify(photos) // Pass photos as string
             }

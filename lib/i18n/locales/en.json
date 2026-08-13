@@ -210,7 +210,9 @@
       "title": "Indicate the issue",
       "subtitle": "Describe the problem or select a common issue",
       "placeholder": "Describe what's happening with your vehicle",
-      "possibleIssues": "Possible issues detected"
+      "possibleIssues": "Possible issues detected",
+      "symptoms": "Which one describes it best?",
+      "otherIssues": "Other"
     },
     "addDetails": {
       "photoLimitTitle": "Photo limit reached",

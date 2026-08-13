@@ -210,7 +210,9 @@
       "title": "Indicá el problema",
       "subtitle": "Describí el problema o seleccioná un problema común",
       "placeholder": "Describí qué le está pasando a tu vehículo",
-      "possibleIssues": "Posibles problemas detectados"
+      "possibleIssues": "Posibles problemas detectados",
+      "symptoms": "¿Cuál lo describe mejor?",
+      "otherIssues": "Otros"
     },
     "addDetails": {
       "photoLimitTitle": "Límite de fotos alcanzado",
