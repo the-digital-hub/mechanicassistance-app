@@ -45,6 +45,13 @@ export class UserDAO implements IUserDAO {
         return apiClient.post('/api/auth/pre-check', { phone });
     }
 
+    /** Pre-checks whether a phone number is free to start the signup OTP flow.
+     *  Lives under the public /api/auth prefix, so it works before any JWT exists
+     *  (unlike checkPhoneExists, which the gateway rejects with 401 during signup). */
+    async preCheckSignupPhone(phone: string): Promise<{ allowed: boolean; reason?: string }> {
+        return apiClient.post('/api/auth/pre-check-signup', { phone });
+    }
+
     async register(setupProgress: Record<string, unknown>): Promise<unknown> {
         const payload = this.buildRegistrationPayload(setupProgress);
         return apiClient.post('/api/users', payload);

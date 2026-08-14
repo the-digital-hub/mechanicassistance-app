@@ -70,12 +70,16 @@ export default function PhoneNumberScreen() {
     try {
       const fullPhone = `+1${phoneNumber}`;
 
-      const exists = await userDAO.checkPhoneExists(fullPhone);
-      if (exists) {
-        showError(
-          t("setup.phone.existsTitle"),
-          t("setup.phone.existsMessage"),
-        );
+      const { allowed, reason } = await userDAO.preCheckSignupPhone(fullPhone);
+      if (!allowed) {
+        if (reason === "phone_registered") {
+          showError(
+            t("setup.phone.existsTitle"),
+            t("setup.phone.existsMessage"),
+          );
+        } else {
+          showError(t("setup.phone.errorTitle"), t("setup.phone.verifyFailed"));
+        }
         return;
       }
 
