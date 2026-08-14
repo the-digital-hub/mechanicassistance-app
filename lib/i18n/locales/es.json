@@ -212,7 +212,11 @@
       "placeholder": "Describí qué le está pasando a tu vehículo",
       "possibleIssues": "Posibles problemas detectados",
       "symptoms": "¿Cuál lo describe mejor?",
-      "otherIssues": "Otros"
+      "otherIssues": "Otros",
+      "selectedCount": "{{count}} seleccionado(s)",
+      "selected": "Seleccionado",
+      "searchPlaceholder": "Buscar problemas",
+      "noResults": "No se encontraron problemas"
     },
     "addDetails": {
       "photoLimitTitle": "Límite de fotos alcanzado",

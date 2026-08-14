@@ -2,7 +2,7 @@ import { pricingDAO } from '@/lib/dao/PricingDAO';
 import type { VehicleIssueCategory } from '@/lib/dao/interfaces';
 import { getLanguageId, translatedName } from '@/lib/i18n/catalogTranslations';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { AlertTriangle, Battery, ChevronLeft, ChevronRight, CircleDot, HelpCircle, Wrench, Zap } from 'lucide-react-native';
+import { AlertTriangle, Battery, Check, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CircleDot, HelpCircle, Search, Wrench, X, Zap } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
@@ -57,19 +57,34 @@ const iconFromName = (label: string) => {
 const iconFor = (iconKey: string | null | undefined, label: string) =>
     (iconKey ? ICONS_BY_KEY[iconKey.toLowerCase()] : undefined) ?? iconFromName(label);
 
+const Checkbox = ({ selected }: { selected: boolean }) => (
+    <View
+        className="w-5 h-5 rounded items-center justify-center"
+        style={{ borderWidth: 1.5, borderColor: selected ? '#0047AB' : '#CBD5E1', backgroundColor: selected ? '#0047AB' : 'white' }}
+    >
+        {selected && <Check size={13} color="white" strokeWidth={3} />}
+    </View>
+);
+
 export default function IssueSelectionScreen() {
     const router = useRouter();
     const { t, i18n } = useTranslation();
     const params = useLocalSearchParams();
     const { type, vehicleId, vehicleName } = params;
 
-    const [description, setDescription] = useState('');
-    const [selectedIssues, setSelectedIssues] = useState<string[]>([]);
+    // Issues with no symptoms are selected directly by tapping their row.
+    const [directSelectedIssues, setDirectSelectedIssues] = useState<string[]>([]);
     // Exactly one symptom across the whole screen — the single selection is a UX
-    // rule, the backend imposes no such constraint.
+    // rule, the backend imposes no such constraint. Picking a symptom implicitly
+    // selects its parent issue, so it doesn't need its own direct toggle.
     const [selectedSymptomId, setSelectedSymptomId] = useState<string | null>(null);
     const [catalog, setCatalog] = useState<VehicleIssueCategory[]>(FALLBACK_CATALOG);
+    // Categories and issues expand/collapse independently — several can be open at once.
+    const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+    const [expandedIssues, setExpandedIssues] = useState<Set<string>>(new Set());
     const [loadingIssues, setLoadingIssues] = useState(true);
+    const [searchOpen, setSearchOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
     // Which row of each entity's `translations[]` to render. Null until resolved
     // (or if it can't be), which makes everything fall back to the base name.
     const [languageId, setLanguageId] = useState<number | null>(null);
@@ -126,18 +141,74 @@ export default function IssueSelectionScreen() {
         }
     };
 
-    const toggleIssue = (id: string, symptomIds: string[]) => {
-        if (selectedIssues.includes(id)) {
-            setSelectedIssues(selectedIssues.filter(item => item !== id));
-            // Deselecting the issue hides its symptoms, so a symptom left
-            // selected underneath would be invisible but still submitted.
-            if (selectedSymptomId && symptomIds.includes(selectedSymptomId)) {
-                setSelectedSymptomId(null);
-            }
-        } else {
-            setSelectedIssues([...selectedIssues, id]);
-        }
+    const toggleCategory = (categoryKey: string) => {
+        setExpandedCategories(prev => {
+            const next = new Set(prev);
+            if (next.has(categoryKey)) next.delete(categoryKey); else next.add(categoryKey);
+            return next;
+        });
     };
+
+    const toggleIssueExpanded = (issueId: string) => {
+        setExpandedIssues(prev => {
+            const next = new Set(prev);
+            if (next.has(issueId)) next.delete(issueId); else next.add(issueId);
+            return next;
+        });
+    };
+
+    const toggleDirectIssue = (id: string) => {
+        setDirectSelectedIssues(prev =>
+            prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+        );
+    };
+
+    const toggleSymptom = (symptomId: string) => {
+        setSelectedSymptomId(prev => (prev === symptomId ? null : symptomId));
+    };
+
+    const toggleSearch = () => {
+        setSearchOpen(prev => {
+            const next = !prev;
+            if (!next) setSearchQuery('');
+            return next;
+        });
+    };
+
+    // Filters the whole tree (category/issue/symptom names) as the user types.
+    // A match at any level keeps that branch, and matching categories/issues
+    // keep all of their children so context around the match stays visible.
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    const matchesQuery = (text: string) => text.toLowerCase().includes(normalizedQuery);
+    const filteredCatalog = normalizedQuery
+        ? catalog
+            .map((category) => {
+                const categoryHeading = category.id ? translatedName(category, languageId) : '';
+                const categoryMatches = categoryHeading ? matchesQuery(categoryHeading) : false;
+                const issues = category.issues
+                    .map((issue) => {
+                        if (categoryMatches || matchesQuery(translatedName(issue, languageId))) {
+                            return issue;
+                        }
+                        const matchingSymptoms = (issue.symptoms ?? []).filter(s => matchesQuery(translatedName(s, languageId)));
+                        return matchingSymptoms.length > 0 ? { ...issue, symptoms: matchingSymptoms } : null;
+                    })
+                    .filter((issue) => issue !== null);
+                return { ...category, issues };
+            })
+            .filter((category) => category.issues.length > 0)
+        : catalog;
+
+    // The issue that owns the single selected symptom, if any — picking a
+    // symptom implicitly selects its parent issue.
+    const symptomOwnerIssueId = catalog
+        .flatMap(category => category.issues)
+        .find(issue => (issue.symptoms ?? []).some(s => s.id === selectedSymptomId))?.id ?? null;
+
+    const selectedIssues = Array.from(new Set([
+        ...directSelectedIssues,
+        ...(symptomOwnerIssueId ? [symptomOwnerIssueId] : []),
+    ]));
 
     const handleContinue = () => {
         router.push({
@@ -146,7 +217,6 @@ export default function IssueSelectionScreen() {
                 type,
                 vehicleId,
                 vehicleName,
-                description,
                 issues: selectedIssues.join(','),
                 // TODO: not persisted yet — assistance_requests has no symptom
                 // column. Carried through the wizard so the screens downstream
@@ -179,101 +249,155 @@ export default function IssueSelectionScreen() {
                     </Text>
                 </View>
 
-                <Text className="text-gray-900 font-outfit-medium text-3xl mb-4">{t('requestAssistance.issueSelection.title')}</Text>
-
-                <Text className="text-gray-500 font-outfit-regular text-base mb-2">
-                    {t('requestAssistance.issueSelection.subtitle')}
-                </Text>
-
-                <View className="mb-6">
-                    <TextInput
-                        multiline
-                        numberOfLines={4}
-                        placeholder={t('requestAssistance.issueSelection.placeholder')}
-                        placeholderTextColor="#D1D5DB"
-                        value={description}
-                        onChangeText={setDescription}
-                        className="bg-white border border-gray-300 rounded-2xl p-4 font-outfit-regular text-[#0F172A] text-base h-32"
-                        style={{ textAlignVertical: 'top' }}
-                    />
+                <View className="flex-row items-center justify-between mb-4">
+                    <Text className="text-gray-900 font-outfit-medium text-3xl flex-1">{t('requestAssistance.issueSelection.title')}</Text>
+                    <TouchableOpacity onPress={toggleSearch}>
+                        <View className="w-10 h-10 rounded-full items-center justify-center ml-3" style={{ backgroundColor: searchOpen ? '#0047AB' : '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }}>
+                            {searchOpen ? <X size={18} color="white" /> : <Search size={18} color="#0047AB" />}
+                        </View>
+                    </TouchableOpacity>
                 </View>
 
+                <Text className="text-gray-500 font-outfit-regular text-base mb-2">
+                    {t('requestAssistance.issueSelection.possibleIssues')}
+                </Text>
+
+                {searchOpen && (
+                    <View className="flex-row items-center bg-white border border-gray-200 rounded-2xl px-4 mb-4" style={{ height: 52 }}>
+                        <Search size={18} color="#9CA3AF" />
+                        <TextInput
+                            autoFocus
+                            value={searchQuery}
+                            onChangeText={setSearchQuery}
+                            placeholder={t('requestAssistance.issueSelection.searchPlaceholder')}
+                            placeholderTextColor="#D1D5DB"
+                            className="ml-2 flex-1 font-outfit-regular text-[#0F172A] text-base"
+                        />
+                        {searchQuery.length > 0 && (
+                            <TouchableOpacity onPress={() => setSearchQuery('')}>
+                                <X size={18} color="#9CA3AF" />
+                            </TouchableOpacity>
+                        )}
+                    </View>
+                )}
+
                 <View className="mb-8">
-                    <Text className="text-gray-900 font-outfit-medium text-lg mb-2" style={{ fontSize: 18 }}>{t('requestAssistance.issueSelection.possibleIssues')}</Text>
                     {loadingIssues ? (
                         <View className="rounded-xl border border-gray-100 p-6 items-center">
                             <ActivityIndicator size="small" color="#0047AB" />
                         </View>
+                    ) : normalizedQuery && filteredCatalog.length === 0 ? (
+                        <View className="rounded-xl border border-gray-100 p-6 items-center">
+                            <Text className="text-gray-500 font-outfit-regular text-sm">{t('requestAssistance.issueSelection.noResults')}</Text>
+                        </View>
                     ) : (
-                        catalog.map((category, categoryIndex) => {
+                        filteredCatalog.map((category, categoryIndex) => {
+                            const categoryKey = category.id ?? `uncategorised-${categoryIndex}`;
                             // The trailing group (id: null) holds issues with no
-                            // category — it is rendered without a heading.
+                            // category — it is rendered without an icon/heading row.
                             const heading = category.id
                                 ? translatedName(category, languageId)
                                 : catalog.length > 1
                                     ? t('requestAssistance.issueSelection.otherIssues')
                                     : '';
-                            return (
-                                <View key={category.id ?? `uncategorised-${categoryIndex}`} className="mb-4">
-                                    {heading ? (
-                                        <Text className="text-gray-500 font-outfit-semibold text-xs tracking-widest mb-2 uppercase">
-                                            {heading}
-                                        </Text>
-                                    ) : null}
-                                    <View className="rounded-xl border border-gray-100 overflow-hidden">
-                                        {category.issues.map((issue) => {
-                                            const isSelected = selectedIssues.includes(issue.id);
-                                            const symptoms = issue.symptoms ?? [];
-                                            // Pass the BASE name, not the translated one: the
-                                            // no-icon fallback matches English substrings.
-                                            const Icon = iconFor(category.icon, issue.name);
-                                            return (
-                                                <View key={issue.id}>
-                                                    <TouchableOpacity
-                                                        onPress={() => toggleIssue(issue.id, symptoms.map(s => s.id))}
-                                                        className={`flex-row items-center p-4 border-b border-gray-100 ${isSelected ? 'bg-blue-600' : 'bg-white'}`}
-                                                    >
-                                                        <Icon size={20} color={isSelected ? 'white' : '#0047AB'} />
-                                                        <Text className={`ml-3 flex-1 font-outfit-medium ${isSelected ? 'text-white' : 'text-gray-700'}`}>
-                                                            {translatedName(issue, languageId)}
-                                                        </Text>
-                                                        {isSelected && <View className="w-2 h-2 bg-white rounded-full" />}
-                                                    </TouchableOpacity>
+                            const isCategoryExpanded = normalizedQuery ? true : expandedCategories.has(categoryKey);
+                            const categorySelectedCount = category.issues.filter(issue => selectedIssues.includes(issue.id)).length;
+                            const CategoryIcon = iconFor(category.icon, heading || category.issues[0]?.name || '');
+                            const CategoryChevron = isCategoryExpanded ? ChevronUp : ChevronDown;
 
-                                                    {isSelected && symptoms.length > 0 && (
-                                                        <View className="border-b border-gray-100" style={{ backgroundColor: '#F4F8FF' }}>
-                                                            <Text className="px-4 pt-3 pb-1 text-gray-500 font-outfit-regular text-xs">
-                                                                {t('requestAssistance.issueSelection.symptoms')}
+                            return (
+                                <View key={categoryKey} className="rounded-xl border border-gray-100 overflow-hidden mb-4">
+                                    <TouchableOpacity
+                                        onPress={() => toggleCategory(categoryKey)}
+                                        className="flex-row items-center p-4 bg-white"
+                                        disabled={!heading}
+                                    >
+                                        {heading ? (
+                                            <View className="w-9 h-9 rounded-lg items-center justify-center mr-3" style={{ backgroundColor: '#E9F1FF' }}>
+                                                <CategoryIcon size={18} color="#0047AB" />
+                                            </View>
+                                        ) : null}
+                                        <Text className="flex-1 font-outfit-medium text-gray-900">
+                                            {heading || t('requestAssistance.issueSelection.otherIssues')}
+                                        </Text>
+                                        {categorySelectedCount > 0 && (
+                                            <View className="px-2 py-1 rounded-full mr-2" style={{ backgroundColor: '#E9F1FF' }}>
+                                                <Text className="text-blue-600 font-outfit-semibold text-xs">
+                                                    {t('requestAssistance.issueSelection.selectedCount', { count: categorySelectedCount })}
+                                                </Text>
+                                            </View>
+                                        )}
+                                        {heading ? <CategoryChevron size={18} color="#6B7490" /> : null}
+                                    </TouchableOpacity>
+
+                                    {(isCategoryExpanded || !heading) && (
+                                        <View className="border-t border-gray-100">
+                                            {category.issues.map((issue) => {
+                                                const symptoms = issue.symptoms ?? [];
+                                                const hasSymptoms = symptoms.length > 0;
+                                                const isDirectSelected = directSelectedIssues.includes(issue.id);
+                                                const isIssueExpanded = normalizedQuery ? true : expandedIssues.has(issue.id);
+                                                const IssueChevron = isIssueExpanded ? ChevronUp : ChevronDown;
+
+                                                if (!hasSymptoms) {
+                                                    return (
+                                                        <TouchableOpacity
+                                                            key={issue.id}
+                                                            onPress={() => toggleDirectIssue(issue.id)}
+                                                            className="flex-row items-center px-4 py-3 border-b border-gray-100"
+                                                            style={{ backgroundColor: isDirectSelected ? '#F4F8FF' : 'white' }}
+                                                        >
+                                                            <Checkbox selected={isDirectSelected} />
+                                                            <Text className={`ml-3 flex-1 font-outfit-medium text-sm ${isDirectSelected ? 'text-blue-700' : 'text-gray-700'}`}>
+                                                                {translatedName(issue, languageId)}
                                                             </Text>
-                                                            {symptoms.map((symptom) => {
-                                                                const isSymptomSelected = selectedSymptomId === symptom.id;
-                                                                return (
-                                                                    <TouchableOpacity
-                                                                        key={symptom.id}
-                                                                        onPress={() => setSelectedSymptomId(isSymptomSelected ? null : symptom.id)}
-                                                                        className="flex-row items-center px-4 py-3"
-                                                                    >
-                                                                        {/* Radio, not checkbox: only one symptom can be picked. */}
-                                                                        <View
-                                                                            className="w-5 h-5 rounded-full items-center justify-center"
-                                                                            style={{ borderWidth: 1.5, borderColor: isSymptomSelected ? '#0047AB' : '#CBD5E1' }}
+                                                        </TouchableOpacity>
+                                                    );
+                                                }
+
+                                                return (
+                                                    <View key={issue.id} className="border-b border-gray-100" style={{ backgroundColor: '#FAFBFF' }}>
+                                                        <TouchableOpacity
+                                                            onPress={() => toggleIssueExpanded(issue.id)}
+                                                            className="flex-row items-center px-4 py-3"
+                                                        >
+                                                            <IssueChevron size={14} color="#0047AB" />
+                                                            <Text className="ml-2 flex-1 font-outfit-medium text-gray-800 text-sm">
+                                                                {translatedName(issue, languageId)}
+                                                            </Text>
+                                                        </TouchableOpacity>
+
+                                                        {isIssueExpanded && (
+                                                            <View>
+                                                                {symptoms.map((symptom) => {
+                                                                    const isSymptomSelected = selectedSymptomId === symptom.id;
+                                                                    return (
+                                                                        <TouchableOpacity
+                                                                            key={symptom.id}
+                                                                            onPress={() => toggleSymptom(symptom.id)}
+                                                                            className="flex-row items-center pl-10 pr-4 py-2.5"
                                                                         >
+                                                                            <Checkbox selected={isSymptomSelected} />
+                                                                            <Text className={`ml-3 flex-1 font-outfit-regular text-sm ${isSymptomSelected ? 'text-blue-700' : 'text-gray-600'}`}>
+                                                                                {translatedName(symptom, languageId)}
+                                                                            </Text>
                                                                             {isSymptomSelected && (
-                                                                                <View className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+                                                                                <View className="px-2 py-0.5 rounded-full ml-2" style={{ backgroundColor: '#E9F1FF' }}>
+                                                                                    <Text className="text-blue-600 font-outfit-semibold text-[10px]">
+                                                                                        {t('requestAssistance.issueSelection.selected')}
+                                                                                    </Text>
+                                                                                </View>
                                                                             )}
-                                                                        </View>
-                                                                        <Text className={`ml-3 flex-1 font-outfit-regular ${isSymptomSelected ? 'text-blue-700' : 'text-gray-600'}`}>
-                                                                            {translatedName(symptom, languageId)}
-                                                                        </Text>
-                                                                    </TouchableOpacity>
-                                                                );
-                                                            })}
-                                                        </View>
-                                                    )}
-                                                </View>
-                                            );
-                                        })}
-                                    </View>
+                                                                        </TouchableOpacity>
+                                                                    );
+                                                                })}
+                                                            </View>
+                                                        )}
+                                                    </View>
+                                                );
+                                            })}
+                                        </View>
+                                    )}
                                 </View>
                             );
                         })
