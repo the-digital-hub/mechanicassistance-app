@@ -196,7 +196,8 @@
         "title": "Accidente",
         "description": "Soporte de seguro y respuesta en el lugar.",
         "badge": "PERÍODO DE 24H"
-      }
+      },
+      "additionalServices": "SERVICIOS ADICIONALES"
     },
     "selectVehicle": {
       "badge": "SELECCIONÁ TU VEHÍCULO",

@@ -1,4 +1,12 @@
-export type AssistanceType = 'immediate' | 'scheduled' | 'videocall' | 'witness';
+// Mirrors the `code` column of the assistance type catalog (GET /api/assistance-types).
+// 'towing' exists in the catalog but has no dedicated handling in the request flow yet:
+// the cards that switch on this fall through to their default branch.
+export type AssistanceType =
+    | 'immediate'
+    | 'scheduled'
+    | 'videocall'
+    | 'witness'
+    | 'towing';
 
 export interface AssistanceRequest {
     id: string;
@@ -194,6 +202,42 @@ export interface VehicleIssueCategory {
     sortOrder?: number | null;
     issues: VehicleIssue[];
     translations?: VehicleIssueTranslation[];
+}
+
+/**
+ * A translation row of the assistance type catalog. Unlike VehicleIssueTranslation
+ * it carries no `id` — the endpoint only projects what the client renders.
+ */
+export interface AssistanceTypeTranslation {
+    languageId: number;
+    name: string;
+    description?: string | null;
+}
+
+/**
+ * An assistance type from GET /api/assistance-types (appointments-service).
+ *
+ * Every display column is nullable: they were added to a table that the web fleet
+ * already owned, and the migration deliberately left the existing rows untouched.
+ * Until the admin fills them in, the client falls back to its local defaults — so
+ * treat `code`, `icon`, `path` and `type` as absent-by-default, not as guaranteed.
+ */
+export interface AssistanceTypeCatalogItem {
+    id: string;
+    /** Stable identifier ('immediate', 'towing', ...). Doubles as the `type` param. */
+    code: string | null;
+    name: string;
+    description?: string | null;
+    /** Free-form icon key set by the admin — may be unknown to the client. */
+    icon?: string | null;
+    /** Route the card navigates to. Falls back to the vehicle picker when null. */
+    path?: string | null;
+    /** UI grouping: 'normal' renders as a gradient card, 'additional' as a plain one. */
+    type?: 'normal' | 'additional' | null;
+    sortOrder?: number | null;
+    isActiveApp?: boolean;
+    isActiveWebFleet?: boolean;
+    translations?: AssistanceTypeTranslation[];
 }
 
 /** Body for POST /api/pricing/calculate. Jurisdiction is resolved server-side from `zipcode`. */

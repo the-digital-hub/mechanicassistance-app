@@ -1,6 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { pricingDAO } from '../dao/PricingDAO';
-import type { VehicleIssueTranslation } from '../dao/interfaces';
 
 /**
  * Client-side resolution of the catalog's translations.
@@ -75,10 +74,20 @@ export async function getLanguageId(code: string): Promise<number | null> {
     }
 }
 
-/** Anything from the catalog: a base name plus the translations the API embedded. */
+/**
+ * Anything from the catalog: a base name plus the translations the API embedded.
+ * Structural on purpose — the pricing catalog ships an `id` on every translation and
+ * the assistance type catalog does not, so only the fields read here are required.
+ */
 interface Translatable {
     name: string;
-    translations?: VehicleIssueTranslation[];
+    translations?: { languageId: number; name: string }[];
+}
+
+/** Same idea for the description, which only some catalogs carry. */
+interface DescribableTranslatable {
+    description?: string | null;
+    translations?: { languageId: number; description?: string | null }[];
 }
 
 /**
@@ -92,4 +101,20 @@ export function translatedName(
     if (languageId === null || !entity.translations?.length) return entity.name;
     const match = entity.translations.find(t => t.languageId === languageId);
     return match?.name ?? entity.name;
+}
+
+/**
+ * Same as `translatedName` for the description, except there is no guaranteed base
+ * value: the column is nullable and may simply not be filled in yet. Callers get
+ * `null` and decide whether to fall back to a bundled string or render nothing.
+ */
+export function translatedDescription(
+    entity: DescribableTranslatable,
+    languageId: number | null,
+): string | null {
+    if (languageId !== null && entity.translations?.length) {
+        const match = entity.translations.find(t => t.languageId === languageId);
+        if (match?.description) return match.description;
+    }
+    return entity.description ?? null;
 }

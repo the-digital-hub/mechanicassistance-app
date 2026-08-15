@@ -196,7 +196,8 @@
         "title": "Accident",
         "description": "Insurance support and on-scene response.",
         "badge": "24H PERIOD"
-      }
+      },
+      "additionalServices": "ADDITIONAL SERVICES"
     },
     "selectVehicle": {
       "badge": "SELECT YOUR VEHICLE",

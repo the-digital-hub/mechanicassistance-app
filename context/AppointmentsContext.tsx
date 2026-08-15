@@ -2,7 +2,7 @@ import { useUser } from '@/context/UserContext';
 import { appointmentDAO } from '@/lib/dao/AppointmentDAO';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { pricingDAO } from '@/lib/dao/PricingDAO';
-import { AssistanceRequest, VehicleIssueSnapshot } from '@/lib/dao/interfaces';
+import { AssistanceRequest, AssistanceType, VehicleIssueSnapshot } from '@/lib/dao/interfaces';
 import { ConfigService } from '@/lib/config/ConfigService';
 import React, { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
 import { useSocket } from './SocketContext';
@@ -25,7 +25,9 @@ export interface ClientReview {
 
 export interface Appointment {
     id: string;
-    type: 'immediate' | 'scheduled' | 'videocall' | 'witness';
+    // Same union as AssistanceRequest.type — it is the catalog's `code`, not a
+    // separate vocabulary.
+    type: AssistanceType;
     assistanceType?: string;
     title: string;
     date: string;
