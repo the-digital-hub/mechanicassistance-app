@@ -27,6 +27,13 @@ export interface AssistanceRequest {
     photos?: string[];
     vehicleId?: string;
     zip?: string;
+    /** Odometer reading when the request was created. Snapshot: `Vehicle.mileage` gets overwritten, this doesn't. */
+    mileage?: number;
+    /** True when the account holder is the one in the vehicle; the driver fields below are then left empty. */
+    driverIsOwner?: boolean;
+    driverFirstName?: string;
+    driverLastName?: string;
+    driverPhone?: string;
     /** Mechanic's proposed price for this service (set when mechanic makes an offer) */
     price?: string;
     /** Mechanic's estimated arrival time, e.g. "20 min" */
@@ -106,6 +113,8 @@ export interface Vehicle {
     plate: string;
     vin: string;
     details: string;
+    /** Last known odometer reading. Overwritten on every request that reports a newer one. */
+    mileage?: number;
 }
 
 export interface IVehicleDAO {

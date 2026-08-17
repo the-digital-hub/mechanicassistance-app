@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/Button';
+import { useRequestDraft } from '@/context/RequestDraftContext';
 import { useUser } from '@/context/UserContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { pricingDAO } from '@/lib/dao/PricingDAO';
@@ -25,6 +26,7 @@ export default function ConfirmationScreen() {
     const router = useRouter();
     const { t, i18n } = useTranslation();
     const { user } = useUser();
+    const { vehicleDetails } = useRequestDraft();
     const params = useLocalSearchParams();
     // latitude, longitude, addressLabel, finalAddress, type, vehicleId, vehicleName, description, issues, details, photos, date
     const {
@@ -174,7 +176,14 @@ export default function ConfirmationScreen() {
                 status: 'pending',
                 photos: uploadedUrls,
                 zip: zipCode,
-                ...(typeof date === 'string' && date ? { date } : {})
+                ...(typeof date === 'string' && date ? { date } : {}),
+                // Captured on select-vehicle. Spread conditionally so empty values are
+                // omitted rather than sent as nulls, matching how `date` is handled.
+                ...(vehicleDetails.mileage !== undefined ? { mileage: vehicleDetails.mileage } : {}),
+                driverIsOwner: vehicleDetails.driverIsOwner,
+                ...(vehicleDetails.driverFirstName ? { driverFirstName: vehicleDetails.driverFirstName } : {}),
+                ...(vehicleDetails.driverLastName ? { driverLastName: vehicleDetails.driverLastName } : {}),
+                ...(vehicleDetails.driverPhone ? { driverPhone: vehicleDetails.driverPhone } : {})
             });
 
             // Price + persist the created request server-side (breakdown + issue

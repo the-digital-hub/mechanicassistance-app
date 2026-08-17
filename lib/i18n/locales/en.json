@@ -201,11 +201,30 @@
     },
     "selectVehicle": {
       "badge": "SELECT YOUR VEHICLE",
-      "title": "Vehicles",
-      "subtitle": "Which vehicle has the issue?",
+      "title": "Your available vehicles",
+      "subtitle": "Which vehicle needs assistance?",
       "noVehicles": "No vehicles found. Please add one.",
       "noPlate": "NO PLATE",
       "addVehicle": "Add a vehicle"
+    },
+    "vehicleDetails": {
+      "badge": "VEHICLE DETAILS",
+      "title": "Complete vehicle info for assistance",
+      "subtitle": "Driver contact details",
+      "selectedVehicle": "SELECTED VEHICLE",
+      "mileageLabel": "CURRENT MILEAGE (OPTIONAL)",
+      "mileagePlaceholder": "45,230",
+      "whoIsInVehicle": "Who is in the vehicle to receive assistance?",
+      "iAm": "I am",
+      "someoneElse": "Someone else",
+      "hintOwner": "Your account information will be used",
+      "hintOther": "Provide their contact information",
+      "firstName": "FIRST NAME",
+      "firstNamePlaceholder": "John",
+      "lastName": "LAST NAME",
+      "lastNamePlaceholder": "Doe",
+      "phone": "PHONE NUMBER",
+      "phonePlaceholder": "(305) 555-0100"
     },
     "issueSelection": {
       "title": "Indicate the issue",

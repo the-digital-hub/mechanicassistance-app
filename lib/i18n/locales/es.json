@@ -201,11 +201,30 @@
     },
     "selectVehicle": {
       "badge": "SELECCIONÁ TU VEHÍCULO",
-      "title": "Vehículos",
-      "subtitle": "¿Qué vehículo tiene el problema?",
+      "title": "Tus vehículos disponibles",
+      "subtitle": "¿Qué vehículo necesita asistencia?",
       "noVehicles": "No se encontraron vehículos. Agregá uno.",
       "noPlate": "SIN PATENTE",
       "addVehicle": "Agregar un vehículo"
+    },
+    "vehicleDetails": {
+      "badge": "DATOS DEL VEHÍCULO",
+      "title": "Completá los datos para la asistencia",
+      "subtitle": "Contacto de quien recibe la asistencia",
+      "selectedVehicle": "VEHÍCULO SELECCIONADO",
+      "mileageLabel": "KILOMETRAJE ACTUAL (OPCIONAL)",
+      "mileagePlaceholder": "45.230",
+      "whoIsInVehicle": "¿Quién está en el vehículo para recibir la asistencia?",
+      "iAm": "Soy yo",
+      "someoneElse": "Otra persona",
+      "hintOwner": "Se usarán los datos de tu cuenta",
+      "hintOther": "Ingresá los datos de contacto de esa persona",
+      "firstName": "NOMBRE",
+      "firstNamePlaceholder": "Juan",
+      "lastName": "APELLIDO",
+      "lastNamePlaceholder": "Pérez",
+      "phone": "TELÉFONO",
+      "phonePlaceholder": "(305) 555-0100"
     },
     "issueSelection": {
       "title": "Indicá el problema",
