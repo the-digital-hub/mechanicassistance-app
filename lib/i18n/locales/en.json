@@ -300,7 +300,16 @@
       "confirmAndRequest": "Confirm and Request",
       "scheduledFor": "Scheduled for",
       "pricingUnavailableTitle": "Price pending",
-      "pricingUnavailableMessage": "Your request was sent, but we couldn't calculate the price right now. A mechanic will confirm it with you."
+      "pricingUnavailableMessage": "Your request was sent, but we couldn't calculate the price right now. A mechanic will confirm it with you.",
+      "requestSummary": "REQUEST SUMMARY",
+      "assistanceTypeLabel": "Assistance type",
+      "priceLabel": "PRICE",
+      "priceDispatchNote": "A technician will be dispatched to you shortly.",
+      "carIssue": "Car issue",
+      "location": "Location",
+      "includedTitle": "Also included with this service",
+      "includedChecklist": "Maintenance checklist",
+      "includedScanner": "Scanner report"
     },
     "dateTime": {
       "header": "Pick a date and time",

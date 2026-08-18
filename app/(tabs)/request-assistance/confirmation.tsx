@@ -1,11 +1,9 @@
-import { Button } from '@/components/ui/Button';
 import { useRequestDraft } from '@/context/RequestDraftContext';
 import { useUser } from '@/context/UserContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { pricingDAO } from '@/lib/dao/PricingDAO';
-import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { AlertCircle, AlignLeft, Car, CheckCircle2, ChevronLeft, MapPin } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
@@ -24,7 +22,7 @@ const parseIssueIds = (issues: unknown): string[] =>
 
 export default function ConfirmationScreen() {
     const router = useRouter();
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
     const { user } = useUser();
     const { vehicleDetails } = useRequestDraft();
     const params = useLocalSearchParams();
@@ -91,18 +89,6 @@ export default function ConfirmationScreen() {
     // vehicleName is passed through the wizard from select-vehicle screen
     const vehicleStr = (vehicleName as string) || t('requestAssistance.confirmation.vehicleId', { vehicleId });
 
-    // Only scheduled/videocall requests carry a date (collected in date-time.tsx).
-    // Render it in place of the generic timeframe copy when present.
-    const scheduledDateLabel = React.useMemo(() => {
-        if (typeof date !== 'string' || !date) return null;
-        const parsed = new Date(date);
-        if (Number.isNaN(parsed.getTime())) return null;
-        return parsed.toLocaleString(i18n.language, {
-            weekday: 'short', day: 'numeric', month: 'short',
-            hour: '2-digit', minute: '2-digit',
-        });
-    }, [date, i18n.language]);
-
     const getTitle = () => {
         switch (type) {
             case 'immediate': return t('requestAssistance.header.immediate');
@@ -110,16 +96,6 @@ export default function ConfirmationScreen() {
             case 'videocall': return t('requestAssistance.header.videoCall');
             case 'witness': return t('requestAssistance.header.accident');
             default: return t('requestAssistance.header.default');
-        }
-    };
-
-    const getBadgeText = () => {
-        switch (type) {
-            case 'immediate': return t('requestAssistance.badge.immediate');
-            case 'scheduled': return t('requestAssistance.badge.scheduled');
-            case 'videocall': return t('requestAssistance.badge.videoCall');
-            case 'witness': return t('requestAssistance.badge.accident');
-            default: return t('requestAssistance.badge.default');
         }
     };
 
@@ -250,8 +226,29 @@ export default function ConfirmationScreen() {
         }
     };
 
+    /** Icon + label/value row of the white summary card. */
+    const SummaryRow = ({ icon, label, value, last }: { icon: React.ReactNode; label: string; value: string; last?: boolean }) => (
+        <View
+            className="flex-row items-start py-4"
+            style={{ gap: 12, borderBottomWidth: last ? 0 : 1, borderBottomColor: '#E5E9F5' }}
+        >
+            <View
+                className="items-center justify-center"
+                style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: 'rgba(30,86,227,0.08)' }}
+            >
+                {icon}
+            </View>
+            <View className="flex-1">
+                <Text className="font-outfit-bold text-[11px] tracking-wide mb-0.5" style={{ color: '#A8B2C7' }}>
+                    {label.toUpperCase()}
+                </Text>
+                <Text className="text-gray-900 font-outfit-semibold text-base">{value}</Text>
+            </View>
+        </View>
+    );
+
     return (
-        <View className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
+        <View className="flex-1" style={{ backgroundColor: '#F4F6FC' }}>
             {/* Custom Header */}
             <View className="px-6 pt-20 pb-2 flex-row items-center justify-between" style={{ backgroundColor: '#F4F5FA', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 3, elevation: 3, borderBottomWidth: 0.5, borderBottomColor: '#D1D5DB' }}>
                 <TouchableOpacity onPress={() => router.back()}>
@@ -265,104 +262,151 @@ export default function ConfirmationScreen() {
                 <View className="w-6" />
             </View>
 
-            <ScrollView className="flex-1 px-6 pt-6">
-                <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
-                    <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
-                    <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                        {getBadgeText()}
+            <ScrollView
+                className="flex-1"
+                contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24, gap: 20 }}
+            >
+                <View>
+                    <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+                        <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+                        <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+                            {t('requestAssistance.confirmation.requestSummary')}
+                        </Text>
+                    </View>
+
+                    <Text className="text-gray-900 font-outfit-medium text-3xl mb-2">{t('requestAssistance.confirmation.title')}</Text>
+
+                    <Text className="text-gray-500 font-outfit-regular text-base">
+                        {t('requestAssistance.confirmation.subtitle')}
                     </Text>
                 </View>
 
-                <Text className="text-gray-900 font-outfit-medium text-3xl mb-2">{t('requestAssistance.confirmation.title')}</Text>
-
-                <Text className="text-gray-500 font-outfit-regular text-base mb-6">
-                    {t('requestAssistance.confirmation.subtitle')}
-                </Text>
-
-                <View className="bg-white overflow-hidden mb-6" style={{ borderRadius: 10 }}>
-                    {/* Header Banner */}
-                    <LinearGradient
-                        colors={['#2B66F8', '#081E72']}
-                        start={{ x: 0, y: 1 }}
-                        end={{ x: 1, y: 0 }}
-                        style={{
-                            paddingHorizontal: 24,
-                            paddingVertical: 16,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                        }}
-                    >
-                        <Ionicons name="construct" size={24} color="white" />
-                        <Text className="text-white font-outfit-bold text-xl ml-3">{getTypeLabel()}</Text>
-                    </LinearGradient>
-
-                    {/* Content */}
-                    <View className="px-6 py-4">
-                        <View className="mb-3">
-                            <Text className="text-gray-400 font-outfit-medium text-sm uppercase tracking-wide mb-1">{t('requestAssistance.confirmation.assistanceNeeded')}</Text>
-                            <Text className="text-gray-900 font-outfit-semibold text-lg">{description || t('requestAssistance.confirmation.noDescription')}</Text>
-                        </View>
-
-                        <View className="border-t border-gray-200 pt-3 mb-3">
-                            <Text className="text-gray-400 font-outfit-medium text-sm uppercase tracking-wide mb-1">
-                                {scheduledDateLabel
-                                    ? t('requestAssistance.confirmation.scheduledFor')
-                                    : t('requestAssistance.confirmation.timeframe')}
-                            </Text>
-                            <Text className="text-gray-900 font-outfit-semibold text-lg">
-                                {scheduledDateLabel
-                                    ? scheduledDateLabel
-                                    : type === 'immediate' || type === 'witness' ? t('requestAssistance.confirmation.timeframe4h') : type === 'scheduled' ? t('requestAssistance.confirmation.timeframe7d') : t('requestAssistance.confirmation.timeframeOnDemand')}
-                            </Text>
-                        </View>
-
-                        <View className="border-t border-gray-200 pt-3 mb-3">
-                            <Text className="text-gray-400 font-outfit-medium text-sm uppercase tracking-wide mb-1">{t('requestAssistance.confirmation.car')}</Text>
-                            <Text className="text-gray-900 font-outfit-semibold text-lg">{vehicleStr}</Text>
-                        </View>
-
-                        <View className="border-t border-gray-200 pt-3 mb-3">
-                            <Text className="text-gray-400 font-outfit-medium text-sm uppercase tracking-wide mb-1">Estimated price</Text>
-                            {priceLoading ? (
-                                <ActivityIndicator size="small" color="#0047AB" style={{ alignSelf: 'flex-start', marginTop: 4 }} />
-                            ) : (
-                                <Text className="text-gray-900 font-outfit-semibold text-lg">
-                                    {price != null ? `$${price.toFixed(2)}` : 'TBD'}
-                                </Text>
-                            )}
-                        </View>
-
-                        <View className="border-t border-gray-200 pt-3 mb-3">
-                            <Text className="text-gray-400 font-outfit-medium text-sm uppercase tracking-wide mb-1">{t('requestAssistance.confirmation.address')}</Text>
-                            <Text className="text-gray-900 font-outfit-semibold text-lg">{finalAddress || addressLabel}</Text>
-                        </View>
-
-                        <View className="border-t border-gray-200 pt-3">
-                            <Text className="text-gray-400 font-outfit-medium text-sm uppercase tracking-wide mb-1">{t('requestAssistance.confirmation.notes')}</Text>
-                            <Text className="text-gray-900 font-outfit-semibold text-lg">{details || t('requestAssistance.confirmation.none')}</Text>
-                        </View>
+                {/* Assistance type */}
+                <LinearGradient
+                    colors={['#2B66F8', '#081E72']}
+                    start={{ x: 0, y: 1 }}
+                    end={{ x: 1, y: 0 }}
+                    style={{
+                        borderRadius: 12,
+                        paddingHorizontal: 20,
+                        paddingVertical: 16,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 12,
+                    }}
+                >
+                    <CheckCircle2 size={20} color="#FFFFFF" />
+                    <View className="flex-1">
+                        <Text className="font-outfit-bold text-[11px] tracking-wide" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                            {t('requestAssistance.confirmation.assistanceTypeLabel')}
+                        </Text>
+                        <Text className="text-white font-outfit-semibold text-sm mt-0.5">{getTypeLabel()}</Text>
                     </View>
+                </LinearGradient>
 
-                    {/* Fees Info */}
-                    <View className="mx-6 mb-6 p-4 rounded-2xl items-center" style={{ backgroundColor: '#EFF6FF' }}>
-                        <Text className="text-blue-600 font-outfit-semibold text-center">
-                            {t('requestAssistance.confirmation.feesInfo')}
+                {/* Price */}
+                <View
+                    style={{
+                        backgroundColor: '#EAF1FF',
+                        borderRadius: 16,
+                        borderWidth: 1,
+                        borderColor: '#D5DCED',
+                        paddingHorizontal: 20,
+                        paddingVertical: 18,
+                    }}
+                >
+                    <View className="px-2.5 py-1 rounded-full mb-3" style={{ backgroundColor: '#1E56E3', alignSelf: 'flex-start' }}>
+                        <Text className="text-white font-outfit-bold text-[11px] tracking-widest">
+                            {t('requestAssistance.confirmation.priceLabel')}
                         </Text>
                     </View>
+                    {priceLoading ? (
+                        <ActivityIndicator size="small" color="#1E56E3" style={{ alignSelf: 'flex-start' }} />
+                    ) : (
+                        <Text className="font-outfit-bold text-[26px]" style={{ color: '#1E56E3' }}>
+                            {price != null ? `$${price.toFixed(2)}` : 'TBD'}
+                        </Text>
+                    )}
+                    <Text className="text-gray-500 font-outfit-regular text-xs mt-1.5">
+                        {t('requestAssistance.confirmation.priceDispatchNote')}
+                    </Text>
                 </View>
 
+                {/* Summary */}
+                <View
+                    className="bg-white rounded-2xl px-5"
+                    style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 3, elevation: 2 }}
+                >
+                    <SummaryRow
+                        icon={<Car size={18} color="#1E56E3" />}
+                        label={t('requestAssistance.confirmation.car')}
+                        value={vehicleStr}
+                    />
+                    <SummaryRow
+                        icon={<AlertCircle size={18} color="#1E56E3" />}
+                        label={t('requestAssistance.confirmation.carIssue')}
+                        value={(description as string) || t('requestAssistance.confirmation.noDescription')}
+                    />
+                    <SummaryRow
+                        icon={<MapPin size={18} color="#1E56E3" />}
+                        label={t('requestAssistance.confirmation.location')}
+                        value={((finalAddress || addressLabel) as string) || ''}
+                    />
+                    <SummaryRow
+                        last
+                        icon={<AlignLeft size={18} color="#1E56E3" />}
+                        label={t('requestAssistance.confirmation.notes')}
+                        value={(details as string) || t('requestAssistance.confirmation.none')}
+                    />
+                </View>
+
+                {/* Included with the service */}
+                <View style={{ backgroundColor: '#EFFAF3', borderRadius: 12, borderWidth: 1, borderColor: '#BFE8D0', paddingHorizontal: 16, paddingVertical: 14 }}>
+                    <View className="flex-row items-center mb-3" style={{ gap: 8 }}>
+                        <CheckCircle2 size={18} color="#1E9E5A" />
+                        <Text className="font-outfit-bold text-[13px]" style={{ color: '#0F6B3E' }}>
+                            {t('requestAssistance.confirmation.includedTitle')}
+                        </Text>
+                    </View>
+                    {[
+                        t('requestAssistance.confirmation.includedChecklist'),
+                        t('requestAssistance.confirmation.includedScanner'),
+                    ].map((item) => (
+                        <View key={item} className="flex-row items-center mb-2" style={{ gap: 8 }}>
+                            <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: '#1E9E5A' }} />
+                            <Text className="font-outfit-regular text-[13px]" style={{ color: '#3B7A57' }}>{item}</Text>
+                        </View>
+                    ))}
+                </View>
+
+                {/* Fees Info */}
+                <View style={{ backgroundColor: 'rgba(30,86,227,0.08)', borderRadius: 8, borderWidth: 1, borderColor: 'rgba(30,86,227,0.13)', paddingHorizontal: 16, paddingVertical: 12 }}>
+                    <Text className="font-outfit-medium text-xs" style={{ color: '#1E56E3', lineHeight: 19 }}>
+                        {t('requestAssistance.confirmation.feesInfo')}
+                    </Text>
+                </View>
+            </ScrollView>
+
+            {/* Fixed footer */}
+            <View
+                style={{
+                    backgroundColor: '#F4F6FC',
+                    borderTopWidth: 1,
+                    borderTopColor: '#D5DCED',
+                    paddingHorizontal: 20,
+                    paddingTop: 16,
+                    paddingBottom: 28,
+                }}
+            >
                 {isSubmitting ? (
-                    <View className="items-center mb-8">
+                    <View className="items-center">
                         <ActivityIndicator size="large" color="#0047AB" />
                         {uploadProgress ? (
                             <Text className="text-gray-500 font-outfit-regular text-sm mt-2">{uploadProgress}</Text>
                         ) : null}
                     </View>
                 ) : (
-                    <TouchableOpacity
-                        onPress={handleConfirm}
-                        activeOpacity={0.8}
-                    >
+                    <TouchableOpacity onPress={handleConfirm} activeOpacity={0.8}>
                         <LinearGradient
                             colors={['#2B66F8', '#081E72']}
                             start={{ x: 0, y: 1 }}
@@ -371,18 +415,16 @@ export default function ConfirmationScreen() {
                                 borderRadius: 10,
                                 paddingVertical: 16,
                                 paddingHorizontal: 16,
-                                marginBottom: 32,
                                 flexDirection: 'row',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                             }}
                         >
-                            <Text className="text-white font-outfit-bold text-center mr-2">{t('requestAssistance.confirmation.confirmAndRequest')}</Text>
-                            <ChevronRight size={20} color="white" />
+                            <Text className="text-white font-outfit-bold text-center">{t('requestAssistance.confirmation.confirmAndRequest')}</Text>
                         </LinearGradient>
                     </TouchableOpacity>
                 )}
-            </ScrollView>
+            </View>
         </View>
     );
 }

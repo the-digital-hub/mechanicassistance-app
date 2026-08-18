@@ -300,7 +300,16 @@
       "confirmAndRequest": "Confirmar y Solicitar",
       "scheduledFor": "Agendado para",
       "pricingUnavailableTitle": "Precio pendiente",
-      "pricingUnavailableMessage": "Tu solicitud se envió, pero no pudimos calcular el precio ahora. Un mecánico te lo va a confirmar."
+      "pricingUnavailableMessage": "Tu solicitud se envió, pero no pudimos calcular el precio ahora. Un mecánico te lo va a confirmar.",
+      "requestSummary": "RESUMEN DEL PEDIDO",
+      "assistanceTypeLabel": "Tipo de asistencia",
+      "priceLabel": "PRECIO",
+      "priceDispatchNote": "Un técnico será asignado en breve.",
+      "carIssue": "Problema del vehículo",
+      "location": "Ubicación",
+      "includedTitle": "También incluido en este servicio",
+      "includedChecklist": "Checklist de mantenimiento",
+      "includedScanner": "Reporte de escáner"
     },
     "dateTime": {
       "header": "Elegí fecha y hora",
