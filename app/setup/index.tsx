@@ -1,3 +1,4 @@
+import { SmsConsent } from "@/components/SmsConsent";
 import { ApiError } from "@/lib/api/types";
 import { userDAO } from "@/lib/dao/UserDAO";
 import { sendOTP } from "@/lib/firebase/auth";
@@ -149,19 +150,7 @@ export default function PhoneNumberScreen() {
             />
           </TouchableOpacity>
 
-          <View className="bg-blue-50/50 p-4 rounded-xl mt-auto mb-4">
-            <Text className="text-xs text-slate-500 text-center font-outfit-regular leading-5">
-              {t("setup.phone.consentPrefix")}{" "}
-              <Text className="font-outfit-bold text-[#0047AB]">
-                {t("setup.phone.termsOfService")}
-              </Text>{" "}
-              {t("setup.phone.consentAnd")}{" "}
-              <Text className="font-outfit-bold text-[#0047AB]">
-                {t("setup.phone.privacyPolicy")}
-              </Text>{" "}
-              {t("setup.phone.consentSuffix")}
-            </Text>
-          </View>
+          <SmsConsent variant="light" className="mt-auto mb-4" />
 
           {/* Continue button */}
           <TouchableOpacity

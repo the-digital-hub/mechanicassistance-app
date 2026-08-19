@@ -1,4 +1,5 @@
 import { EnvSelector } from "@/components/EnvSelector";
+import { SmsConsent } from "@/components/SmsConsent";
 import { Button } from "@/components/ui/Button";
 import { GradientLayout } from "@/components/ui/GradientLayout";
 import { Input } from "@/components/ui/Input";
@@ -459,6 +460,8 @@ export default function LoginScreen() {
                     </View>
                   )}
                 </View>
+
+                {method === "mobile" && <SmsConsent variant="dark" />}
 
                 <Button
                   onPress={
