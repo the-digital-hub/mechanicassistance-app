@@ -2,10 +2,22 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ConfigService } from '../config/ConfigService';
 import { ApiError, ApiResponse } from './types';
 
+/**
+ * Bearer token for outgoing requests.
+ *
+ * During registration there is no `access_token` yet — the account does not
+ * exist — but the setup flow still has to upload a profile picture and an
+ * identity document, and then create the user. Those calls carry the short-lived
+ * `signup_token` issued by /api/auth/signup-token instead; the gateway accepts
+ * it on exactly those routes. A real session always wins over it.
+ */
 async function getAuthHeaders(): Promise<Record<string, string>> {
     try {
         const token = await AsyncStorage.getItem('access_token');
-        return token ? { Authorization: `Bearer ${token}` } : {};
+        if (token) return { Authorization: `Bearer ${token}` };
+
+        const signupToken = await AsyncStorage.getItem('signup_token');
+        return signupToken ? { Authorization: `Bearer ${signupToken}` } : {};
     } catch {
         return {};
     }

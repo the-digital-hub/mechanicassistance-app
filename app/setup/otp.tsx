@@ -1,5 +1,6 @@
 import { NumericKeypad } from '@/components/ui/Keypad';
-import { sendOTP, verifyOTP } from '@/lib/firebase/auth';
+import { getIdToken, sendOTP, verifyOTP } from '@/lib/firebase/auth';
+import { userDAO } from '@/lib/dao/UserDAO';
 import { getSetupProgress, saveSetupProgress } from '@/lib/storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -69,6 +70,22 @@ export default function OTPScreen() {
             const firebaseUser = await verifyOTP(currentCode);
             // Store Firebase UID in setup progress so registration can link Firebase ↔ SQLite
             await saveSetupProgress('otp', { verified: true, firebaseUid: firebaseUser.uid });
+
+            // The rest of the setup flow uploads a profile picture and an identity
+            // document before the account exists, and the gateway requires a Bearer
+            // token on those routes. Trade the verified OTP for a scoped token now.
+            try {
+                const idToken = await getIdToken();
+                if (idToken) {
+                    const progress = await getSetupProgress();
+                    await userDAO.fetchSignupToken(idToken, progress.phone?.phoneNumber);
+                }
+            } catch (tokenErr) {
+                // Don't strand the user on the OTP screen — the OTP itself succeeded.
+                // The uploads surface their own error if the token is missing.
+                console.error('Failed to obtain signup token:', tokenErr);
+            }
+
             router.push('/setup/role-selection');
         } catch (err: any) {
             const rawMessage = err.message || '';

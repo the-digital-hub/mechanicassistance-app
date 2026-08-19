@@ -25,8 +25,34 @@ export class UserDAO implements IUserDAO {
         );
         if (result.accessToken) {
             await AsyncStorage.setItem('access_token', result.accessToken);
+            // A real session supersedes any leftover signup token.
+            await this.clearSignupToken();
         }
         return result.user ?? null;
+    }
+
+    /**
+     * Obtains the short-lived token that authorizes the registration calls.
+     *
+     * The setup flow uploads a profile picture and an identity document, and
+     * finally creates the user, all before any account (and therefore any login
+     * token) exists. The gateway rejects those routes without a Bearer token, so
+     * this exchanges the just-verified Firebase OTP token for one scoped to
+     * exactly those routes. Stored under its own key so it can never be mistaken
+     * for a session.
+     */
+    async fetchSignupToken(firebaseIdToken: string, phone?: string): Promise<void> {
+        const result = await apiClient.post<{ signupToken: string; expiresIn: number }>(
+            '/api/auth/signup-token',
+            { idToken: firebaseIdToken, phone },
+        );
+        if (result?.signupToken) {
+            await AsyncStorage.setItem('signup_token', result.signupToken);
+        }
+    }
+
+    async clearSignupToken(): Promise<void> {
+        await AsyncStorage.removeItem('signup_token');
     }
 
     async checkEmailExists(email: string): Promise<boolean> {
@@ -54,7 +80,10 @@ export class UserDAO implements IUserDAO {
 
     async register(setupProgress: Record<string, unknown>): Promise<unknown> {
         const payload = this.buildRegistrationPayload(setupProgress);
-        return apiClient.post('/api/users', payload);
+        const result = await apiClient.post('/api/users', payload);
+        // The account exists now; the scoped token has served its purpose.
+        await this.clearSignupToken();
+        return result;
     }
 
     /**
