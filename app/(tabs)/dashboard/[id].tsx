@@ -1,4 +1,5 @@
 import { useAppointments } from '@/context/AppointmentsContext';
+import { useVerifiedAction } from '@/hooks/useVerifiedAction';
 import { useUser } from '@/context/UserContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import * as Location from 'expo-location';
@@ -117,7 +118,10 @@ export default function AssistDetailScreen() {
         })();
     }, [locationLat, locationLng]);
 
-    const handleAccept = async () => {
+    const gate = useVerifiedAction();
+
+    // Offering on a request needs a verified identity — see useVerifiedAction.
+    const handleAccept = gate('offer', async () => {
         if (!isImmediate && (!selectedDate || !selectedTime)) {
             alert(t('requestDetail.selectDateTimeAlert'));
             return;
@@ -147,7 +151,7 @@ export default function AssistDetailScreen() {
         } catch (error: any) {
             alert(t('requestDetail.acceptFailed', { error: error.message || 'Unknown error' }));
         }
-    };
+    });
 
     return (
         <View className="flex-1 bg-white">

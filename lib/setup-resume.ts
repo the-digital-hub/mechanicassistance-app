@@ -5,9 +5,16 @@
  * advances. This module maps that step to the next screen in the flow,
  * accounting for role-specific branching.
  *
- * Flow:
- *   User:     phone → otp → role → basic-info → identity → address → dealer-info → vehicle-info → success
- *   Mechanic: phone → otp → role → basic-info → identity → address → credentials → dealer-info → expertise → availability → success
+ * Flow (mirrors the router.push calls in each screen — keep both in sync):
+ *   User:     phone → otp → role → basic-info → identity → address → vehicle-info → success
+ *   Mechanic: phone → otp → role → basic-info → identity → address → credentials → availability → success
+ *
+ * dealer-info and expertise are only reachable through the header "Skip"
+ * buttons in app/setup/_layout.tsx, so they are not part of the forward flow —
+ * they only appear here as steps a user can resume *from*.
+ *
+ * The `identity` step is Didit identity verification (KYC), not a document
+ * upload: it stores the verificationId that POST /api/users links the account to.
  */
 
 interface SetupProgress {
@@ -23,7 +30,7 @@ const LINEAR_STEPS: Record<string, string> = {
   role: '/setup/basic-info',
   basicInfo: '/setup/identity',
   identity: '/setup/address',
-  credentials: '/setup/dealer-info',
+  credentials: '/setup/availability',
   expertise: '/setup/availability',
   availability: '/setup/success',
   vehicles: '/setup/success',
@@ -32,7 +39,7 @@ const LINEAR_STEPS: Record<string, string> = {
 /** Steps where the next screen depends on the selected role */
 const BRANCHING_STEPS: Record<string, Record<string, string>> = {
   address: {
-    user: '/setup/dealer-info',
+    user: '/setup/vehicle-info',
     mechanic: '/setup/credentials',
   },
   dealerInfo: {

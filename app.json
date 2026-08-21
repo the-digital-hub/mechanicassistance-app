@@ -59,7 +59,7 @@
       [
         "@config-plugins/react-native-webrtc",
         {
-          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera for video calls.",
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera for video calls and to verify your identity by scanning your ID document.",
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone for video calls."
         }
       ],
@@ -81,6 +81,13 @@
           "imageWidth": 360,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
+        }
+      ],
+      [
+        "@didit-protocol/sdk-react-native",
+        {
+          "iosNfcEnabled": false,
+          "androidNfcEnabled": false
         }
       ]
     ],

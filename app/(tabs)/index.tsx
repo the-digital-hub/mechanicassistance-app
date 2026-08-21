@@ -1,4 +1,5 @@
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
+import { VerificationBadge } from '@/components/ui/VerificationBadge';
 import { useAppointments } from '@/context/AppointmentsContext';
 import { useUser } from '@/context/UserContext';
 import { useMechanicStatus } from '@/context/MechanicStatusContext';
@@ -190,11 +191,14 @@ export default function ProfileScreen() {
             {user.name} {user.surname}
           </Text>
 
-          {/* Role Badge */}
-          <View className="px-4 py-2 rounded-full" style={{ backgroundColor: '#E9F1FF' }}>
-            <Text className="text-blue-600 font-outfit-semibold text-sm capitalize">
-              {user.role === 'mechanic' ? t('profile.roleMechanic') : t('profile.roleOwner')}
-            </Text>
+          {/* Role + identity verification badges */}
+          <View className="flex-row items-center gap-2">
+            <View className="px-4 py-2 rounded-full" style={{ backgroundColor: '#E9F1FF' }}>
+              <Text className="text-blue-600 font-outfit-semibold text-sm capitalize">
+                {user.role === 'mechanic' ? t('profile.roleMechanic') : t('profile.roleOwner')}
+              </Text>
+            </View>
+            <VerificationBadge />
           </View>
         </View>
 

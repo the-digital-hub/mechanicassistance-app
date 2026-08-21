@@ -1,4 +1,5 @@
 import { AssistanceType } from '@/components/ui/AssistanceCard';
+import { useVerifiedAction } from '@/hooks/useVerifiedAction';
 import { KPICard } from '@/components/ui/KPICard';
 import { PromotionalCard } from '@/components/ui/PromotionalCard';
 import { UserRequestCard } from '@/components/ui/UserRequestCard';
@@ -41,6 +42,7 @@ const getTimeGreetingKey = (): string => {
 
 export default function DashboardScreen() {
     const router = useRouter();
+    const gate = useVerifiedAction();
     const { t } = useTranslation();
     const { user, isLoading: isUserLoading } = useUser();
     const [filter, setFilter] = useState<AssistanceType | null>(null);
@@ -611,7 +613,9 @@ export default function DashboardScreen() {
                             <TouchableOpacity
                                 onPress={() => {
                                     if (user?.role === 'user') {
-                                        router.push({ pathname: '/(tabs)/request-assistance/select-vehicle', params: { type: 'immediate' } });
+                                        gate('request', () =>
+                                            router.push({ pathname: '/(tabs)/request-assistance/select-vehicle', params: { type: 'immediate' } }),
+                                        )();
                                     } else {
                                         setFilter(filter === 'immediate' ? null : 'immediate');
                                     }
@@ -648,7 +652,9 @@ export default function DashboardScreen() {
                             <TouchableOpacity
                                 onPress={() => {
                                     if (user?.role === 'user') {
-                                        router.push({ pathname: '/(tabs)/request-assistance/select-vehicle', params: { type: 'scheduled' } });
+                                        gate('request', () =>
+                                            router.push({ pathname: '/(tabs)/request-assistance/select-vehicle', params: { type: 'scheduled' } }),
+                                        )();
                                     } else {
                                         setFilter(filter === 'scheduled' ? null : 'scheduled');
                                     }
@@ -671,7 +677,9 @@ export default function DashboardScreen() {
                             <TouchableOpacity
                                 onPress={() => {
                                     if (user?.role === 'user') {
-                                        router.push({ pathname: '/(tabs)/request-assistance/select-vehicle', params: { type: 'videocall' } });
+                                        gate('request', () =>
+                                            router.push({ pathname: '/(tabs)/request-assistance/select-vehicle', params: { type: 'videocall' } }),
+                                        )();
                                     } else {
                                         setFilter(filter === 'videocall' ? null : 'videocall');
                                     }

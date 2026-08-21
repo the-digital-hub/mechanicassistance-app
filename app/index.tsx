@@ -10,6 +10,10 @@ import { useEffect, useState } from 'react';
  * 1. Logged in           → /(tabs)/dashboard (main app)
  * 2. Incomplete setup    → resume at the correct setup screen
  * 3. No session/progress → /onboarding
+ *
+ * Identity verification deliberately does NOT gate entry: an unverified account
+ * uses the app normally and is only stopped at the two gated actions (requesting
+ * assistance, offering on a request). See app/verify-identity.tsx.
  */
 export default function Index() {
     const { user, isLoading } = useUser();
@@ -38,7 +42,9 @@ export default function Index() {
     }, [isLoading, user]);
 
     if (isLoading || !checked) return null;
+
     if (user) return <Redirect href="/(tabs)/dashboard" />;
+
     if (resumeRoute) return <Redirect href={resumeRoute as any} />;
     return <Redirect href="/setup" />;
 }

@@ -141,23 +141,18 @@ export class UserDAO implements IUserDAO {
         if (progress.expertise) payload.expertise = progress.expertise;
         if (progress.credentials) payload.credentials = progress.credentials;
         if (progress.availability) payload.availability = progress.availability;
-        if (progress.identity) payload.identity = progress.identity;
 
         // Vehicles: strip client-generated `id` — Prisma generates UUIDs server-side
         if (vehiclesData && Array.isArray(vehiclesData) && vehiclesData.length > 0) {
             payload.vehicles = vehiclesData.map(({ id: _clientId, ...vehicleFields }) => vehicleFields);
         }
 
-        // Identity document: map uploaded photo URLs/keys to the DTO shape
+        // Identity verification: the account is linked to the Didit verification
+        // started on the identity step. Required server-side — there is no path
+        // to an account without one.
         const identityData = progress.identity as Record<string, unknown> | undefined;
-        if (identityData?.documentType && identityData?.frontImageUrl && identityData?.backImageUrl) {
-            payload.identityDocument = {
-                documentType: identityData.documentType,
-                frontImageUrl: identityData.frontImageUrl,
-                backImageUrl: identityData.backImageUrl,
-                frontImageKey: identityData.frontImageKey,
-                backImageKey: identityData.backImageKey,
-            };
+        if (identityData?.verificationId) {
+            payload.verificationId = identityData.verificationId;
         }
 
         return payload;

@@ -77,14 +77,29 @@ export interface MechanicAvailability {
     endTime?: string;
 }
 
-export interface IdentityDocument {
-    id: string;
-    documentType: string;
-    frontImageUrl: string;
-    backImageUrl: string;
-    frontImageKey?: string;
-    backImageKey?: string;
-    status: string;
+/**
+ * Every status Didit can report. `Approved` is the only one that unblocks the
+ * app — see VerificationContext and the gateway's verification gate.
+ */
+export type VerificationStatus =
+    | 'Not Started'
+    | 'In Progress'
+    | 'In Review'
+    | 'Approved'
+    | 'Declined'
+    | 'Abandoned'
+    | 'Resubmitted';
+
+/**
+ * Identity verification (KYC) state. Only the status lives on our side: the
+ * document data and images stay with Didit.
+ */
+export interface IdentityVerification {
+    verificationId: string;
+    sessionId: string;
+    status: VerificationStatus;
+    declineReason?: string;
+    verifiedAt?: string;
 }
 
 export interface UserData {
@@ -101,7 +116,7 @@ export interface UserData {
     vehicles?: Vehicle[];
     mechanicDetails?: MechanicDetail;
     mechanicAvailabilities?: MechanicAvailability[];
-    identityDocument?: IdentityDocument;
+    identityVerification?: IdentityVerification;
 }
 
 export interface Vehicle {

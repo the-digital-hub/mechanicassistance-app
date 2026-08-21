@@ -1,397 +1,305 @@
-import { mediaDAO } from "@/lib/dao/MediaDAO";
+import { ApiError } from "@/lib/api/types";
+import { verificationDAO } from "@/lib/dao/VerificationDAO";
 import { saveSetupProgress } from "@/lib/storage";
+import { startVerification } from "@didit-protocol/sdk-react-native";
 import { Ionicons } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { ChevronRight } from "lucide-react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-    ActionSheetIOS,
     ActivityIndicator,
     Alert,
-    Image,
-    Platform,
     ScrollView,
     Text,
     TouchableOpacity,
     View,
 } from "react-native";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+/**
+ * Identity verification (KYC) step of the setup wizard.
+ *
+ * The document never passes through us: the backend creates a Didit session, the
+ * native SDK captures the document and the selfie, and Didit reports the outcome
+ * to our webhook. The SDK's own result only decides what this screen shows next —
+ * an `Approved` here is a hint, never proof.
+ *
+ * Requires a development build: the SDK is a native module and does not exist in
+ * Expo Go.
+ */
 
-type Side = "front" | "back";
-
-interface UploadedImage {
-  localUri: string;
-  remoteUrl: string;
-  remoteKey: string;
+/** One numbered line in the "what happens next" list. */
+function Step({ index, text }: { index: number; text: string }) {
+  return (
+    <View className="flex-row items-start gap-3 mb-3">
+      <View
+        className="w-6 h-6 rounded-full justify-center items-center mt-0.5"
+        style={{ backgroundColor: "#E9F1FF" }}
+      >
+        <Text className="font-outfit-bold text-xs" style={{ color: "#0047AB" }}>
+          {index}
+        </Text>
+      </View>
+      <Text className="text-[#0F172A] font-outfit-regular text-sm flex-1">
+        {text}
+      </Text>
+    </View>
+  );
 }
-
-// Canonical values sent to the backend — kept in English regardless of UI language.
-const DOCUMENT_TYPES = [
-  "Driving Licence",
-  "Passport",
-  "Residence Permit",
-  "National ID",
-];
-const DOCUMENT_TYPE_KEYS = [
-  "drivingLicence",
-  "passport",
-  "residencePermit",
-  "nationalId",
-];
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-async function pickFromCamera(t: (key: string) => string): Promise<string | null> {
-  const { status } = await ImagePicker.requestCameraPermissionsAsync();
-  if (status !== "granted") {
-    Alert.alert(
-      t("setup.identity.permissionRequiredTitle"),
-      t("setup.identity.permissionRequiredMessage"),
-    );
-    return null;
-  }
-  const result = await ImagePicker.launchCameraAsync({
-    allowsEditing: true,
-    quality: 0.85,
-    base64: false,
-  });
-  return result.canceled ? null : result.assets[0].uri;
-}
-
-async function pickFromGallery(): Promise<string | null> {
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ["images"],
-    allowsEditing: true,
-    quality: 0.85,
-    base64: false,
-  });
-  return result.canceled ? null : result.assets[0].uri;
-}
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export default function IdentityScreen() {
   const router = useRouter();
-  const { t } = useTranslation();
-  const [documentType, setDocumentType] = useState<string | null>(null);
-  const [frontImage, setFrontImage] = useState<UploadedImage | null>(null);
-  const [backImage, setBackImage] = useState<UploadedImage | null>(null);
-  const [isUploading, setIsUploading] = useState<Side | null>(null);
+  const { t, i18n } = useTranslation();
+  const [consentGiven, setConsentGiven] = useState(false);
+  const [isStarting, setIsStarting] = useState(false);
+  /** Set once the SDK reports a finished flow, so the button becomes Continue. */
+  const [submitted, setSubmitted] = useState(false);
 
-  const documentTypeLabels = DOCUMENT_TYPE_KEYS.map((key) =>
-    t(`setup.identity.docTypes.${key}`),
-  );
+  const goToNextStep = () => router.push("/setup/address");
 
-  // ── Document type picker ────────────────────────────────────────────────────
-  const handleDocTypePicker = () => {
-    if (Platform.OS === "ios") {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options: [...documentTypeLabels, t("setup.identity.cancel")],
-          cancelButtonIndex: documentTypeLabels.length,
-          title: t("setup.identity.selectDocType"),
-        },
-        (index) => {
-          if (index < DOCUMENT_TYPES.length)
-            setDocumentType(DOCUMENT_TYPES[index]);
-        },
-      );
-    } else {
-      Alert.alert(
-        t("setup.identity.selectDocType"),
-        undefined,
-        DOCUMENT_TYPES.map((type, i) => ({
-          text: documentTypeLabels[i],
-          onPress: () => setDocumentType(type),
-        })).concat([{ text: t("setup.identity.cancel"), onPress: () => {} }]),
-      );
-    }
+  /**
+   * Skips verification for now. The account is created unverified, so the user
+   * can browse the app but not request assistance (or, as a mechanic, offer on a
+   * request) until they verify from the profile badge.
+   */
+  const handleVerifyLater = async () => {
+    await saveSetupProgress("identity", { skipped: true });
+    goToNextStep();
   };
 
-  // ── Upload photo to media-service ──────────────────────────────────────────
-  const uploadAndSetImage = async (localUri: string, side: Side) => {
-    setIsUploading(side);
-    try {
-      const result = await mediaDAO.uploadPhoto(localUri);
-      const uploaded: UploadedImage = {
-        localUri,
-        remoteUrl: result.url,
-        remoteKey: result.key,
-      };
-      if (side === "front") {
-        setFrontImage(uploaded);
-      } else {
-        setBackImage(uploaded);
-      }
-    } catch (error) {
-      console.error(`Failed to upload ${side} image:`, error);
+  /**
+   * Records the verification against the setup progress. UserDAO.register reads
+   * `identity.verificationId` and sends it on POST /api/users, which is what
+   * links the Didit session to the account being created.
+   */
+  const saveAndAdvance = async (verificationId: string, status: string) => {
+    await saveSetupProgress("identity", { verificationId, status });
+    setSubmitted(true);
+    Alert.alert(
+      t("setup.identity.submittedTitle"),
+      t("setup.identity.submittedMessage"),
+      [{ text: t("setup.identity.continue"), onPress: goToNextStep }],
+    );
+  };
+
+  const handleStart = async () => {
+    if (!consentGiven) {
       Alert.alert(
-        t("setup.identity.uploadFailedTitle"),
-        t("setup.identity.uploadFailedMessage"),
+        t("setup.identity.consentRequiredTitle"),
+        t("setup.identity.consentRequiredMessage"),
+      );
+      return;
+    }
+
+    setIsStarting(true);
+    try {
+      const session = await verificationDAO.createSession({
+        language: i18n.language,
+      });
+
+      const result = await startVerification(session.sessionToken, {
+        languageCode: i18n.language,
+      });
+
+      switch (result.type) {
+        case "completed":
+          // Any finished flow moves the wizard forward — In Review is a normal
+          // outcome, and the real decision arrives by webhook either way.
+          await saveAndAdvance(session.verificationId, result.session.status);
+          break;
+
+        case "cancelled":
+          Alert.alert(
+            t("setup.identity.cancelledTitle"),
+            t("setup.identity.cancelledMessage"),
+          );
+          break;
+
+        case "failed":
+          Alert.alert(
+            t("setup.identity.failedTitle"),
+            t("setup.identity.failedMessage", { reason: result.error.message }),
+          );
+          break;
+      }
+    } catch (error: unknown) {
+      // 409 ALREADY_VERIFIED is not a failure: a user re-entering the wizard
+      // after being approved should just move on.
+      if (error instanceof ApiError && error.statusCode === 409) {
+        Alert.alert(
+          t("setup.identity.alreadyVerifiedTitle"),
+          t("setup.identity.alreadyVerifiedMessage"),
+          [{ text: t("setup.identity.continue"), onPress: goToNextStep }],
+        );
+        return;
+      }
+      console.error("Failed to start identity verification:", error);
+      Alert.alert(
+        t("setup.identity.failedTitle"),
+        t("setup.identity.failedMessage", {
+          reason: (error as Error)?.message ?? "unknown",
+        }),
       );
     } finally {
-      setIsUploading(null);
+      setIsStarting(false);
     }
   };
 
-  // ── Photo picker (camera / gallery) ────────────────────────────────────────
-  const handlePickImage = (side: Side) => {
-    if (Platform.OS === "ios") {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options: [t("setup.identity.takePhoto"), t("setup.identity.chooseFromGallery"), t("setup.identity.cancel")],
-          cancelButtonIndex: 2,
-        },
-        async (index) => {
-          let uri: string | null = null;
-          if (index === 0) uri = await pickFromCamera(t);
-          else if (index === 1) uri = await pickFromGallery();
-          if (uri) await uploadAndSetImage(uri, side);
-        },
-      );
-    } else {
-      Alert.alert(t("setup.identity.addPhoto"), undefined, [
-        {
-          text: t("setup.identity.takePhoto"),
-          onPress: async () => {
-            const uri = await pickFromCamera(t);
-            if (uri) await uploadAndSetImage(uri, side);
-          },
-        },
-        {
-          text: t("setup.identity.chooseFromGallery"),
-          onPress: async () => {
-            const uri = await pickFromGallery();
-            if (uri) await uploadAndSetImage(uri, side);
-          },
-        },
-        { text: t("setup.identity.cancel"), style: "cancel" },
-      ]);
-    }
-  };
-
-  // ── Continue ───────────────────────────────────────────────────────────────
-  const handleContinue = async () => {
-    if (!documentType) {
-      Alert.alert(t("setup.identity.requiredTitle"), t("setup.identity.selectDocTypeRequired"));
-      return;
-    }
-    if (!frontImage || !backImage) {
-      Alert.alert(
-        t("setup.identity.requiredTitle"),
-        t("setup.identity.uploadBothSidesRequired"),
-      );
-      return;
-    }
-    await saveSetupProgress("identity", {
-      documentType,
-      frontImageUrl: frontImage.remoteUrl,
-      backImageUrl: backImage.remoteUrl,
-      frontImageKey: frontImage.remoteKey,
-      backImageKey: backImage.remoteKey,
-    });
-    router.push("/setup/address");
-  };
-
-  // ── Photo Card ─────────────────────────────────────────────────────────────
-  const PhotoCard = ({
-    side,
-    image,
-    label,
-    hint,
-  }: {
-    side: Side;
-    image: UploadedImage | null;
-    label: string;
-    hint: string;
-  }) => (
-    <View className="mb-8">
-      <TouchableOpacity
-        activeOpacity={0.85}
-        onPress={() => handlePickImage(side)}
-        disabled={isUploading === side}
-        className="h-48 rounded-2xl overflow-hidden mb-2 border-2 border-dashed border-blue-200 bg-blue-50/40"
-      >
-        {isUploading === side ? (
-          <View className="flex-1 justify-center items-center gap-3">
-            <ActivityIndicator size="large" color="#0047AB" />
-            <Text className="text-[#0047AB] font-outfit-medium text-sm">
-              {t("setup.identity.uploading")}
-            </Text>
-          </View>
-        ) : image ? (
-          <>
-            <Image
-              source={{ uri: image.localUri }}
-              className="w-full h-full"
-              resizeMode="cover"
-            />
-            {/* Overlay edit badge */}
-            <View className="absolute bottom-2 right-2 bg-white/90 rounded-full px-3 py-1 flex-row items-center gap-1 shadow-sm">
-              <Ionicons name="pencil" size={12} color="#0047AB" />
-              <Text className="text-[#0047AB] font-outfit-medium text-xs ml-1">
-                {t("setup.identity.change")}
-              </Text>
-            </View>
-          </>
-        ) : (
-          <View className="flex-1 justify-center items-center gap-3">
-            <View className="w-16 h-16 bg-blue-100 rounded-full justify-center items-center">
-              <Ionicons name="camera-outline" size={28} color="#0047AB" />
-            </View>
-            <Text className="text-[#0047AB] font-outfit-medium text-sm">
-              {label}
-            </Text>
-          </View>
-        )}
-      </TouchableOpacity>
-
-      <Text className="text-[#0047AB] font-outfit-medium text-xs mb-3">
-        {hint}
-      </Text>
-
-      <TouchableOpacity
-        onPress={() => handlePickImage(side)}
-        disabled={isUploading === side}
-        activeOpacity={0.8}
-      >
-        <LinearGradient
-          colors={['#00afcc', '#0088a3']}
-          start={{ x: 0, y: 1 }}
-          end={{ x: 1, y: 0 }}
-          style={{
-            borderRadius: 10,
-            paddingVertical: 16,
-            paddingHorizontal: 16,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-            opacity: isUploading === side ? 0.6 : 1,
-          }}
-        >
-          <Ionicons name={image ? "refresh" : "camera"} size={16} color="white" />
-          <Text className="text-white font-outfit-bold text-sm">
-            {image ? t("setup.identity.retakePhoto") : t("setup.identity.takePhoto")}
-          </Text>
-        </LinearGradient>
-      </TouchableOpacity>
-    </View>
-  );
-
-  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <ScrollView
-      style={{ backgroundColor: '#F6F8FC' }}
+      style={{ backgroundColor: "#F4F6FC" }}
       contentContainerStyle={{ padding: 24, paddingBottom: 40 }}
       keyboardShouldPersistTaps="handled"
     >
-      {/* Section Badge */}
-      <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
-        <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+      {/* Section badge */}
+      <View
+        className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full"
+        style={{ backgroundColor: "#E9F1FF", alignSelf: "flex-start" }}
+      >
+        <View
+          className="w-1.5 h-1.5 rounded-full"
+          style={{ backgroundColor: "#0047AB" }}
+        />
         <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
           {t("setup.identity.badge")}
         </Text>
       </View>
 
-      {/* Title */}
       <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
         {t("setup.identity.title")}
       </Text>
-
-      {/* Subtitle */}
       <Text className="text-gray-500 font-outfit-regular text-base mb-8">
         {t("setup.identity.subtitle")}
       </Text>
 
-        <Text className="text-[#0F172A] font-outfit-regular text-sm mb-2">
-          {t("setup.identity.acceptedDocsIntro")}
-        </Text>
-        <Text className="text-[#0F172A] font-outfit-regular text-sm mb-4">
-          {t("setup.identity.acceptedDocsList")}
-        </Text>
-        <View className="pl-2 mb-2">
-          <Text className="text-slate-500 font-outfit-regular text-xs mb-1">
-            • {t("setup.identity.checkReadable")}
-          </Text>
-          <Text className="text-slate-500 font-outfit-regular text-xs mb-1">
-            • {t("setup.identity.checkCorners")}
-          </Text>
-          <Text className="text-slate-500 font-outfit-regular text-xs mb-1">
-            • {t("setup.identity.checkPhoto")}
-          </Text>
-          <Text className="text-slate-500 font-outfit-regular text-xs">
-            • {t("setup.identity.checkMatch")}
-          </Text>
-        </View>
-
-      {/* Document type selector */}
-      <Text className="font-outfit-medium text-[#0F172A] mb-2">
-        {t("setup.identity.identificationDocument")}
-      </Text>
-      <TouchableOpacity
-        onPress={handleDocTypePicker}
-        className="bg-white border border-gray-300 rounded-2xl flex-row items-center justify-between px-4 mb-8"
-        style={{ height: 52 }}
-        activeOpacity={0.7}
+      {/* What happens next */}
+      <View
+        className="rounded-2xl p-4 mb-6"
+        style={{ backgroundColor: "#F4F8FF" }}
       >
-        <Text
-          className={`font-outfit-regular text-[17px] ${documentType ? "text-[#0F172A]" : "text-[#9CA3AF]"}`}
-        >
-          {documentType
-            ? documentTypeLabels[DOCUMENT_TYPES.indexOf(documentType)]
-            : t("setup.identity.selectDocTypePlaceholder")}
+        <Text className="text-[#0F172A] font-outfit-medium text-sm mb-3">
+          {t("setup.identity.stepsIntro")}
         </Text>
-        <Ionicons name="chevron-down" size={20} color="#0F172A" />
-      </TouchableOpacity>
+        <Step index={1} text={t("setup.identity.step1")} />
+        <Step index={2} text={t("setup.identity.step2")} />
+        <Step index={3} text={t("setup.identity.step3")} />
+      </View>
 
-      {/* Photo cards */}
-      <PhotoCard
-        side="front"
-        image={frontImage}
-        label={t("setup.identity.tapAddFront")}
-        hint={t("setup.identity.uploadFrontHint")}
-      />
-      <PhotoCard
-        side="back"
-        image={backImage}
-        label={t("setup.identity.tapAddBack")}
-        hint={t("setup.identity.uploadBackHint")}
-      />
-
-      <TouchableOpacity
-        onPress={handleContinue}
-        activeOpacity={0.8}
-        disabled={!!isUploading}
+      {/*
+        Consent lives in our product, not in the SDK: Didit's docs are explicit
+        that creating a session does not by itself prove the user was told what
+        happens to their data.
+      */}
+      <View
+        className="bg-white rounded-2xl p-4 mb-6 border"
+        style={{ borderColor: "#E1EAFB" }}
       >
-        <LinearGradient
-          colors={['#2B66F8', '#081E72']}
-          start={{ x: 0, y: 1 }}
-          end={{ x: 1, y: 0 }}
-          style={{
-            borderRadius: 10,
-            paddingVertical: 16,
-            paddingHorizontal: 16,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            opacity: isUploading ? 0.6 : 1,
-          }}
+        <Text className="text-[#0F172A] font-outfit-medium text-sm mb-2">
+          {t("setup.identity.consentTitle")}
+        </Text>
+        <Text className="text-slate-500 font-outfit-regular text-xs mb-4">
+          {t("setup.identity.consentBody")}
+        </Text>
+
+        <TouchableOpacity
+          onPress={() => setConsentGiven((given) => !given)}
+          activeOpacity={0.7}
+          className="flex-row items-center gap-3"
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: consentGiven }}
         >
-          {isUploading ? (
-            <ActivityIndicator color="white" />
-          ) : (
-            <>
-              <Text className="text-white font-outfit-bold text-center mr-2">{t("setup.identity.continue")}</Text>
-              <ChevronRight size={20} color="white" />
-            </>
-          )}
-        </LinearGradient>
-      </TouchableOpacity>
+          <View
+            className="w-6 h-6 rounded-md justify-center items-center border-2"
+            style={{
+              borderColor: consentGiven ? "#0047AB" : "#CBD5E1",
+              backgroundColor: consentGiven ? "#0047AB" : "transparent",
+            }}
+          >
+            {consentGiven && (
+              <Ionicons name="checkmark" size={16} color="white" />
+            )}
+          </View>
+          <Text className="text-[#0F172A] font-outfit-regular text-sm flex-1">
+            {t("setup.identity.accept")}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {submitted ? (
+        <TouchableOpacity onPress={goToNextStep} activeOpacity={0.8}>
+          <LinearGradient
+            colors={["#2B66F8", "#081E72"]}
+            start={{ x: 0, y: 1 }}
+            end={{ x: 1, y: 0 }}
+            style={{
+              borderRadius: 10,
+              paddingVertical: 16,
+              paddingHorizontal: 16,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text className="text-white font-outfit-bold text-center mr-2">
+              {t("setup.identity.continue")}
+            </Text>
+            <ChevronRight size={20} color="white" />
+          </LinearGradient>
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity
+          onPress={handleStart}
+          activeOpacity={0.8}
+          disabled={isStarting || !consentGiven}
+        >
+          <LinearGradient
+            colors={["#2B66F8", "#081E72"]}
+            start={{ x: 0, y: 1 }}
+            end={{ x: 1, y: 0 }}
+            style={{
+              borderRadius: 10,
+              paddingVertical: 16,
+              paddingHorizontal: 16,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              opacity: isStarting || !consentGiven ? 0.6 : 1,
+            }}
+          >
+            {isStarting ? (
+              <>
+                <ActivityIndicator color="white" />
+                <Text className="text-white font-outfit-bold text-center">
+                  {t("setup.identity.starting")}
+                </Text>
+              </>
+            ) : (
+              <>
+                <Ionicons name="shield-checkmark" size={18} color="white" />
+                <Text className="text-white font-outfit-bold text-center">
+                  {t("setup.identity.startButton")}
+                </Text>
+              </>
+            )}
+          </LinearGradient>
+        </TouchableOpacity>
+      )}
+
+      {!submitted && (
+        <TouchableOpacity
+          onPress={handleVerifyLater}
+          activeOpacity={0.8}
+          disabled={isStarting}
+          className="mt-3 rounded-[10px] py-4 px-4 items-center justify-center"
+          style={{ backgroundColor: "#F3F4F6", opacity: isStarting ? 0.6 : 1 }}
+        >
+          <Text className="text-gray-700 font-outfit-bold text-center">
+            {t("setup.identity.verifyLater")}
+          </Text>
+        </TouchableOpacity>
+      )}
     </ScrollView>
   );
 }

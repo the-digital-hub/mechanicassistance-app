@@ -19,6 +19,7 @@ import { MechanicStatusProvider } from "@/context/MechanicStatusContext";
 import { NotificationsProvider } from "@/context/NotificationsContext";
 import { SocketProvider } from "@/context/SocketContext";
 import { UserProvider, useUser } from "@/context/UserContext";
+import { VerificationProvider } from "@/context/VerificationContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { ConfigService } from "@/lib/config/ConfigService";
 import "@/lib/i18n";
@@ -65,6 +66,7 @@ function AppShell() {
         <Stack.Screen name="login" />
         <Stack.Screen name="onboarding" />
         <Stack.Screen name="setup" />
+        <Stack.Screen name="verify-identity" />
         <Stack.Screen
           name="modal"
           options={{ presentation: "modal", title: "Modal", headerShown: true }}
@@ -103,11 +105,13 @@ export default function RootLayout() {
       <UserProvider>
         <MechanicStatusProvider>
           <SocketProvider>
-            <NotificationsProvider>
-              <AppointmentsProvider>
-                <AppShell />
-              </AppointmentsProvider>
-            </NotificationsProvider>
+            <VerificationProvider>
+              <NotificationsProvider>
+                <AppointmentsProvider>
+                  <AppShell />
+                </AppointmentsProvider>
+              </NotificationsProvider>
+            </VerificationProvider>
           </SocketProvider>
         </MechanicStatusProvider>
       </UserProvider>
