@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/Input";
 import { NumericKeypad } from "@/components/ui/Keypad";
 import { useUser } from "@/context/UserContext";
 import { ApiError } from "@/lib/api/types";
-import { userDAO } from "@/lib/dao/UserDAO";
 import { describeAuthError } from "@/lib/auth/describe";
 import { toAuthError } from "@/lib/auth/errors";
 import {
@@ -433,6 +432,34 @@ export default function LoginScreen() {
                       : t("login.resendCode")}
                   </Text>
                 </TouchableOpacity>
+
+                {/*
+                  Always visible, never conditional.
+
+                  Requesting a code for a number with no account returns the same
+                  response as for one with an account, and sends nothing. That is
+                  deliberate — it stops the endpoint being used to discover which
+                  numbers are registered. The cost is that such a user would
+                  otherwise wait here forever for an SMS that is never coming, with
+                  no way forward.
+
+                  Showing this only when the account is missing would leak exactly
+                  what the identical response protects, so it is shown to everyone
+                  and worded as a possibility rather than a fact.
+                */}
+                <View className="border-t border-slate-200 pt-5">
+                  <Text className="text-center font-outfit-semibold text-[#0F172A] mb-1">
+                    {t("login.noCodeHint")}
+                  </Text>
+                  <Text className="text-center font-outfit-regular text-sm text-slate-500 mb-3">
+                    {t("login.noCodeHintDetail")}
+                  </Text>
+                  <TouchableOpacity onPress={() => router.push("/setup")}>
+                    <Text className="text-center font-outfit-semibold text-[#0047AB]">
+                      {t("login.signUp")}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
 

@@ -747,7 +747,9 @@
     "sessionExpiredTitle": "Signed out",
     "sessionExpiredMessage": "Your session expired. Please sign in again.",
     "countryNotSupportedMessage": "We don't support phone numbers from that country yet.",
-    "devCodeHint": "Development build: code filled in automatically."
+    "devCodeHint": "Development build: code filled in automatically.",
+    "noCodeHint": "Didn't get the code?",
+    "noCodeHintDetail": "It can take a minute. If it never arrives, that number may not have an account yet."
   },
   "setup": {
     "accountSetupTitle": "Account Set-up",
@@ -847,7 +849,10 @@
       "codeExpiresIn": "Code expires in {{time}}",
       "attemptsRemaining": "{{count}} attempt left",
       "attemptsRemaining_plural": "{{count}} attempts left",
-      "codeExpired": "That code has expired. Request a new one."
+      "codeExpired": "That code has expired. Request a new one.",
+      "noCodeHint": "Didn't get the code?",
+      "noCodeHintDetail": "It can take a minute. If it never arrives, that number may already have an account.",
+      "logIn": "Log in"
     },
     "success": {
       "createAccountFailed": "Failed to create account",

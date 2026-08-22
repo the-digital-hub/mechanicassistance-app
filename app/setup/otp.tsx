@@ -258,6 +258,31 @@ export default function OTPScreen() {
                                           : t('setup.otp.resendCode')}
                                 </Text>
                             </TouchableOpacity>
+
+                            {/*
+                              Mirror of the hint on the login screen, for the
+                              opposite case: requesting a signup code for a number
+                              that ALREADY has an account also returns the identical
+                              response and sends nothing, so that user would wait
+                              here forever too.
+
+                              Always visible, since showing it conditionally would
+                              reveal whether the number is registered — the exact
+                              thing the identical response exists to hide.
+                            */}
+                            <View className="border-t border-slate-200 pt-5 mb-6">
+                                <Text className="text-center font-outfit-semibold text-[#0F172A] mb-1">
+                                    {t('setup.otp.noCodeHint')}
+                                </Text>
+                                <Text className="text-center font-outfit-regular text-sm text-slate-500 mb-3">
+                                    {t('setup.otp.noCodeHintDetail')}
+                                </Text>
+                                <TouchableOpacity onPress={() => router.replace('/login')}>
+                                    <Text className="text-center font-outfit-semibold text-[#0047AB]">
+                                        {t('setup.otp.logIn')}
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
                     </View>
 
