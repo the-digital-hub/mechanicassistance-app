@@ -9,6 +9,7 @@ dist/
 web-build/
 expo-env.d.ts
 .agent
+.claude
 
 # Native
 .kotlin/
@@ -44,3 +45,4 @@ app-example
 /ios
 /android
 node_modules/
+

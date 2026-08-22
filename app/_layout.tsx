@@ -7,7 +7,7 @@ import { LogBox } from "react-native";
 
 import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
@@ -18,7 +18,9 @@ import { AppointmentsProvider } from "@/context/AppointmentsContext";
 import { MechanicStatusProvider } from "@/context/MechanicStatusContext";
 import { NotificationsProvider } from "@/context/NotificationsContext";
 import { SocketProvider } from "@/context/SocketContext";
+import { UpdateRequiredGate } from "@/components/UpdateRequiredGate";
 import { UserProvider, useUser } from "@/context/UserContext";
+import { onSessionExpired } from "@/lib/auth/session";
 import { VerificationProvider } from "@/context/VerificationContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { ConfigService } from "@/lib/config/ConfigService";
@@ -46,6 +48,7 @@ LogBox.ignoreLogs([
 // Keeps the splash screen visible until both fonts and the Firebase session check resolve.
 function AppShell() {
   const { isLoading } = useUser();
+  const router = useRouter();
 
   useEffect(() => {
     if (!isLoading) {
@@ -55,10 +58,26 @@ function AppShell() {
     }
   }, [isLoading]);
 
+  /**
+   * Sends the user to the login screen when the session is unrecoverable.
+   *
+   * The API client emits this once, however many concurrent requests discovered
+   * the 401 — UserContext has already cleared local state by then, and this is
+   * the navigation half. Without it the app would sit on a signed-in screen
+   * whose every request failed.
+   */
+  useEffect(
+    () =>
+      onSessionExpired(() => {
+        router.replace("/login");
+      }),
+    [router],
+  );
+
   if (isLoading) return null;
 
   return (
-    <>
+    <UpdateRequiredGate>
       <GlobalNotificationListener />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
@@ -73,7 +92,7 @@ function AppShell() {
         />
       </Stack>
       <StatusBar style="dark" />
-    </>
+    </UpdateRequiredGate>
   );
 }
 

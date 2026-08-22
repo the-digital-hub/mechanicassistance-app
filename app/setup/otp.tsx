@@ -1,7 +1,9 @@
 import { NumericKeypad } from '@/components/ui/Keypad';
-import { getIdToken, sendOTP, verifyOTP } from '@/lib/firebase/auth';
-import { userDAO } from '@/lib/dao/UserDAO';
-import { getSetupProgress, saveSetupProgress } from '@/lib/storage';
+import { describeAuthError } from '@/lib/auth/describe';
+import { toAuthError } from '@/lib/auth/errors';
+import { resendOtp, verifyOtp } from '@/lib/auth/otp';
+import { formatCountdown, useCountdown } from '@/hooks/useCountdown';
+import { clearSetupProgress, getSetupProgress, saveSetupProgress } from '@/lib/storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
@@ -18,6 +20,16 @@ export default function OTPScreen() {
     const [isVerifying, setIsVerifying] = useState(false);
     const [isResending, setIsResending] = useState(false);
     const [showKeypad, setShowKeypad] = useState(true);
+
+    // The challenge, carried over from the phone step. Deadlines are absolute
+    // epoch ms so they survive the app going to the background.
+    const [phoneE164, setPhoneE164] = useState('');
+    const [requestId, setRequestId] = useState<string | null>(null);
+    const [expiresAtMs, setExpiresAtMs] = useState<number | null>(null);
+    const [resendAtMs, setResendAtMs] = useState<number | null>(null);
+    const [attemptsLeft, setAttemptsLeft] = useState<number | null>(null);
+    const expiresIn = useCountdown(expiresAtMs);
+    const resendIn = useCountdown(resendAtMs);
     const otpInputRef = useRef<TextInput>(null);
 
     const [errorModal, setErrorModal] = useState<{
@@ -44,11 +56,22 @@ export default function OTPScreen() {
 
     const loadPhoneNumber = async () => {
         const progress = await getSetupProgress();
-        if (progress.phone?.phoneNumber) {
-            const raw = progress.phone.phoneNumber;
-            const digits = raw.replace(/\D/g, '').slice(-10);
-            setPhoneNumber(`+1 (${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`);
-        }
+        const phone = progress.phone;
+        if (!phone?.phoneNumber) return;
+
+        const raw = phone.phoneNumber as string;
+        // The raw E.164 is kept as well as the formatted one: verify needs the
+        // number the challenge was created for, and the display string is not it.
+        setPhoneE164(raw);
+
+        const digits = raw.replace(/\D/g, '').slice(-10);
+        setPhoneNumber(`+1 (${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`);
+
+        // Resume the timers the phone step started rather than restarting them.
+        if (typeof phone.requestId === 'string') setRequestId(phone.requestId);
+        if (typeof phone.expiresAtMs === 'number') setExpiresAtMs(phone.expiresAtMs);
+        if (typeof phone.resendAtMs === 'number') setResendAtMs(phone.resendAtMs);
+        if (typeof phone.devCode === 'string') setCode(phone.devCode);
     };
 
     const handleKeyPress = (key: string) => {
@@ -65,35 +88,29 @@ export default function OTPScreen() {
         const currentCode = typeof codeToVerify === 'string' ? codeToVerify : code;
         if (currentCode.length < 6) return;
 
+        if (!requestId || !phoneE164) return;
+
         setIsVerifying(true);
         try {
-            const firebaseUser = await verifyOTP(currentCode);
-            // Store Firebase UID in setup progress so registration can link Firebase ↔ SQLite
-            await saveSetupProgress('otp', { verified: true, firebaseUid: firebaseUser.uid });
+            // Verifying returns the scoped token and stores it, so the separate
+            // fetch this used to do is gone — along with the swallowed failure
+            // that let a missing token break the uploads two screens later.
+            const result = await verifyOtp(requestId, phoneE164, currentCode);
 
-            // The rest of the setup flow uploads a profile picture and an identity
-            // document before the account exists, and the gateway requires a Bearer
-            // token on those routes. Trade the verified OTP for a scoped token now.
-            try {
-                const idToken = await getIdToken();
-                if (idToken) {
-                    const progress = await getSetupProgress();
-                    await userDAO.fetchSignupToken(idToken, progress.phone?.phoneNumber);
-                }
-            } catch (tokenErr) {
-                // Don't strand the user on the OTP screen — the OTP itself succeeded.
-                // The uploads surface their own error if the token is missing.
-                console.error('Failed to obtain signup token:', tokenErr);
+            if (result.kind === 'session') {
+                // The number acquired an account while the wizard was open.
+                // Adopt the session instead of continuing to register.
+                await clearSetupProgress();
+                router.replace('/(tabs)/dashboard');
+                return;
             }
 
+            await saveSetupProgress('otp', { verified: true });
             router.push('/setup/role-selection');
-        } catch (err: any) {
-            const rawMessage = err.message || '';
-            const displayMessage = rawMessage.includes('auth/too-many-requests')
-                ? t('setup.otp.tooManyAttempts')
-                : rawMessage || t('setup.otp.invalidCodeMessage');
-
-            showError(t('setup.otp.invalidCodeTitle'), displayMessage);
+        } catch (err: unknown) {
+            const authError = toAuthError(err);
+            setAttemptsLeft(authError.attemptsRemaining ?? null);
+            showError(t('setup.otp.invalidCodeTitle'), describeAuthError(err, t));
             setCode('');
         } finally {
             setIsVerifying(false);
@@ -101,22 +118,18 @@ export default function OTPScreen() {
     };
 
     const handleResend = async () => {
-        const progress = await getSetupProgress();
-        const phone = progress.phone?.phoneNumber;
-        if (!phone) return;
+        if (!requestId || !phoneE164 || resendIn > 0) return;
 
         setIsResending(true);
         try {
-            await sendOTP(phone);
-            setCode('');
+            const challenge = await resendOtp(requestId, phoneE164);
+            setExpiresAtMs(Date.now() + challenge.expiresIn * 1000);
+            setResendAtMs(Date.now() + challenge.resendAfter * 1000);
+            setAttemptsLeft(null);
+            setCode(challenge.devCode ?? '');
             showError(t('setup.otp.codeSentTitle'), t('setup.otp.codeSentMessage'), undefined, true);
-        } catch (err: any) {
-            const rawMessage = err.message || '';
-            const displayMessage = rawMessage.includes('auth/too-many-requests')
-                ? t('setup.otp.waitBeforeResend')
-                : rawMessage || t('setup.otp.resendFailed');
-
-            showError(t('setup.otp.errorTitle'), displayMessage);
+        } catch (err: unknown) {
+            showError(t('setup.otp.errorTitle'), describeAuthError(err, t));
         } finally {
             setIsResending(false);
         }
@@ -212,9 +225,37 @@ export default function OTPScreen() {
                                     )}
                                 </LinearGradient>
                             </TouchableOpacity>
-                            <TouchableOpacity className="mb-6" onPress={handleResend} disabled={isResending}>
-                                <Text className="text-[#0047AB] text-center font-outfit-medium">
-                                    {isResending ? t('setup.otp.sending') : t('setup.otp.resendCode')}
+                            {/* Status line: what the user needs to know before acting. */}
+                            <View className="mb-4 min-h-[20px]">
+                                {attemptsLeft !== null && attemptsLeft > 0 ? (
+                                    <Text className="text-center font-outfit-medium text-red-600">
+                                        {t('setup.otp.attemptsRemaining', { count: attemptsLeft })}
+                                    </Text>
+                                ) : expiresIn > 0 ? (
+                                    <Text className="text-center font-outfit-medium text-slate-500">
+                                        {t('setup.otp.codeExpiresIn', { time: formatCountdown(expiresIn) })}
+                                    </Text>
+                                ) : (
+                                    <Text className="text-center font-outfit-medium text-red-600">
+                                        {t('setup.otp.codeExpired')}
+                                    </Text>
+                                )}
+                            </View>
+                            <TouchableOpacity
+                                className="mb-6"
+                                onPress={handleResend}
+                                disabled={isResending || resendIn > 0}
+                            >
+                                <Text
+                                    className={`text-center font-outfit-medium ${
+                                        resendIn > 0 ? 'text-slate-400' : 'text-[#0047AB]'
+                                    }`}
+                                >
+                                    {isResending
+                                        ? t('setup.otp.sending')
+                                        : resendIn > 0
+                                          ? t('setup.otp.resendIn', { seconds: resendIn })
+                                          : t('setup.otp.resendCode')}
                                 </Text>
                             </TouchableOpacity>
                         </View>

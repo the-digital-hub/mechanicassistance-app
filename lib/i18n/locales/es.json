@@ -729,7 +729,25 @@
     "signInWithEmail": "Iniciar sesión con email",
     "noAccount": "¿No tenés una cuenta?",
     "cancel": "Cancelar",
-    "gotIt": "Entendido"
+    "gotIt": "Entendido",
+    "resendIn": "Reenviar en {{seconds}}s",
+    "codeExpiresIn": "El código expira en {{time}}",
+    "codeExpiredTitle": "Código expirado",
+    "codeExpiredMessage": "Ese código expiró. Pedí uno nuevo.",
+    "attemptsRemaining": "Queda {{count}} intento",
+    "attemptsRemaining_plural": "Quedan {{count}} intentos",
+    "rateLimitedTitle": "Demasiados intentos",
+    "rateLimitedMessage": "Demasiados intentos. Esperá un momento y volvé a probar.",
+    "rateLimitedWithWait": "Demasiados intentos. Probá de nuevo en {{seconds}} segundos.",
+    "invalidCodeWithAttempts": "Ese código no es correcto. Queda {{count}} intento.",
+    "invalidCodeWithAttempts_plural": "Ese código no es correcto. Quedan {{count}} intentos.",
+    "attemptsExhaustedTitle": "Demasiados códigos incorrectos",
+    "attemptsExhaustedMessage": "Demasiados códigos incorrectos. Pedí uno nuevo para volver a intentar.",
+    "networkErrorMessage": "No pudimos conectarnos al servidor. Revisá tu conexión y volvé a probar.",
+    "sessionExpiredTitle": "Sesión cerrada",
+    "sessionExpiredMessage": "Tu sesión expiró. Volvé a iniciar sesión.",
+    "countryNotSupportedMessage": "Todavía no aceptamos números de teléfono de ese país.",
+    "devCodeHint": "Build de desarrollo: el código se completó automáticamente."
   },
   "setup": {
     "accountSetupTitle": "Configuración de la cuenta",
@@ -753,7 +771,8 @@
       "privacyPolicy": "Política de privacidad",
       "consentSuffix": ".",
       "continue": "Continuar",
-      "gotIt": "Entendido"
+      "gotIt": "Entendido",
+      "alreadyRegistered": "Ese número ya tiene una cuenta. Iniciá sesión."
     },
     "roleSelection": {
       "badge": "ELEGÍ TU ROL",
@@ -823,7 +842,12 @@
       "sending": "Enviando…",
       "resendCode": "Reenviar código",
       "cancel": "Cancelar",
-      "gotIt": "Entendido"
+      "gotIt": "Entendido",
+      "resendIn": "Reenviar en {{seconds}}s",
+      "codeExpiresIn": "El código expira en {{time}}",
+      "attemptsRemaining": "Queda {{count}} intento",
+      "attemptsRemaining_plural": "Quedan {{count}} intentos",
+      "codeExpired": "Ese código expiró. Pedí uno nuevo."
     },
     "success": {
       "createAccountFailed": "No se pudo crear la cuenta",
@@ -1080,5 +1104,12 @@
     "requiredToRequest": "Verificá tu identidad para pedir asistencia.",
     "requiredToOffer": "Verificá tu identidad para tomar trabajos.",
     "notNow": "Ahora no"
+  },
+  "common": {
+    "updateRequired": {
+      "title": "Actualización necesaria",
+      "message": "Esta versión de la app ya no está soportada. Actualizá para seguir.",
+      "action": "Actualizar ahora"
+    }
   }
 }

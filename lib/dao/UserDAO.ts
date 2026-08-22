@@ -1,6 +1,12 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiClient } from '../api/apiClient';
-import { IUserDAO, UserData } from './interfaces';
+import {
+    clearSession,
+    clearSignupToken as clearStoredSignupToken,
+    getRefreshToken,
+    saveCachedUser,
+    saveTokens,
+} from '../auth/session';
+import { IUserDAO, PublicUserProfile, UserData } from './interfaces';
 
 export class UserDAO implements IUserDAO {
     async getAll(): Promise<UserData[]> {
@@ -11,71 +17,115 @@ export class UserDAO implements IUserDAO {
         return apiClient.get(`/api/users/${id}`);
     }
 
-    /** Legacy phone-only login (kept for reference — use loginWithFirebase instead) */
-    async login(phone: string): Promise<UserData | null> {
-        return apiClient.post('/api/auth/login', { phone });
+    /**
+     * Name, surname, avatar and role for any user.
+     *
+     * `getById` is restricted to your own account server-side — it returns
+     * addresses, vehicles and identity verification. Use this to render someone
+     * else, such as the other participant in a chat.
+     */
+    async getPublicProfile(id: string): Promise<PublicUserProfile | null> {
+        return apiClient.get(`/api/users/${id}/public`);
     }
 
-    /** Firebase-authenticated login: sends the ID token + phone fallback to the backend.
-     *  The backend returns { accessToken, user } — we extract just the user record. */
+    /**
+     * Firebase-authenticated login, now used only by Google and Apple sign-in.
+     *
+     * Phone sign-in goes through our own OTP (`lib/auth/otp.ts`); this route
+     * stays for the social providers until they are migrated off Firebase too.
+     */
     async loginWithFirebase(firebaseIdToken: string, phone?: string): Promise<UserData | null> {
-        const result = await apiClient.post<{ accessToken: string; user: UserData }>(
-            '/api/auth/login',
-            { idToken: firebaseIdToken, phone },
-        );
+        const result = await apiClient.post<{
+            accessToken: string;
+            refreshToken?: string;
+            user: UserData;
+        }>('/api/auth/login', { idToken: firebaseIdToken, phone });
+
         if (result.accessToken) {
-            await AsyncStorage.setItem('access_token', result.accessToken);
+            await saveTokens({
+                accessToken: result.accessToken,
+                // The backend always sends one now; the fallback only matters
+                // against an older deployment.
+                refreshToken: result.refreshToken ?? '',
+            });
+            if (result.user) await saveCachedUser(result.user);
             // A real session supersedes any leftover signup token.
             await this.clearSignupToken();
         }
+
         return result.user ?? null;
     }
 
     /**
-     * Obtains the short-lived token that authorizes the registration calls.
+     * Trades a pre-refresh-token session for a current one.
      *
-     * The setup flow uploads a profile picture and an identity document, and
-     * finally creates the user, all before any account (and therefore any login
-     * token) exists. The gateway rejects those routes without a Bearer token, so
-     * this exchanges the just-verified Firebase OTP token for one scoped to
-     * exactly those routes. Stored under its own key so it can never be mistaken
-     * for a session.
+     * Older builds stored a single long-lived access token and nothing else.
+     * Called once at startup when that is what we find, so updating the app does
+     * not sign the user out.
      */
-    async fetchSignupToken(firebaseIdToken: string, phone?: string): Promise<void> {
-        const result = await apiClient.post<{ signupToken: string; expiresIn: number }>(
-            '/api/auth/signup-token',
-            { idToken: firebaseIdToken, phone },
-        );
-        if (result?.signupToken) {
-            await AsyncStorage.setItem('signup_token', result.signupToken);
+    async exchangeLegacySession(): Promise<UserData | null> {
+        const result = await apiClient.post<{
+            accessToken: string;
+            refreshToken: string;
+            user: UserData;
+        }>('/api/auth/session/exchange', {});
+
+        await saveTokens({
+            accessToken: result.accessToken,
+            refreshToken: result.refreshToken,
+        });
+        if (result.user) await saveCachedUser(result.user);
+
+        return result.user ?? null;
+    }
+
+    /**
+     * Trades the signup-scoped token for a real session, right after the account
+     * is created.
+     *
+     * The wizard runs on a scoped token because the account does not exist yet;
+     * this is the handover at the end. Sent as the Bearer, which apiClient
+     * already attaches from the stored signup token.
+     */
+    async startSessionFromSignup(): Promise<UserData | null> {
+        const result = await apiClient.post<{
+            accessToken: string;
+            refreshToken: string;
+            user: UserData;
+        }>('/api/auth/session/from-signup', {});
+
+        await saveTokens({
+            accessToken: result.accessToken,
+            refreshToken: result.refreshToken,
+        });
+        if (result.user) await saveCachedUser(result.user);
+        await this.clearSignupToken();
+
+        return result.user ?? null;
+    }
+
+    /** Ends the session server-side, revoking the whole rotation family. */
+    async logout(): Promise<void> {
+        const refreshToken = await getRefreshToken();
+
+        if (refreshToken) {
+            // A failure here must not strand the client with local state it
+            // cannot clear, so the outcome is deliberately ignored.
+            await apiClient
+                .post('/api/auth/logout', { refreshToken })
+                .catch(() => undefined);
         }
+
+        await clearSession();
     }
 
     async clearSignupToken(): Promise<void> {
-        await AsyncStorage.removeItem('signup_token');
+        await clearStoredSignupToken();
     }
 
     async checkEmailExists(email: string): Promise<boolean> {
         const result = await apiClient.get<{ exists: boolean }>(`/api/users/check-email/${encodeURIComponent(email)}`);
         return result.exists;
-    }
-
-    async checkPhoneExists(phone: string): Promise<boolean> {
-        const result = await apiClient.get<{ exists: boolean }>(`/api/users/check-phone/${encodeURIComponent(phone)}`);
-        return result.exists;
-    }
-
-    /** Pre-checks whether a phone number is allowed to receive an OTP before calling Firebase.
-     *  Returns a neutral allowed/message response — never reveals account existence to the caller. */
-    async preCheckPhone(phone: string): Promise<{ allowed: boolean; message?: string }> {
-        return apiClient.post('/api/auth/pre-check', { phone });
-    }
-
-    /** Pre-checks whether a phone number is free to start the signup OTP flow.
-     *  Lives under the public /api/auth prefix, so it works before any JWT exists
-     *  (unlike checkPhoneExists, which the gateway rejects with 401 during signup). */
-    async preCheckSignupPhone(phone: string): Promise<{ allowed: boolean; reason?: string }> {
-        return apiClient.post('/api/auth/pre-check-signup', { phone });
     }
 
     async register(setupProgress: Record<string, unknown>): Promise<unknown> {

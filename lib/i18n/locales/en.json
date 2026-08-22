@@ -729,7 +729,25 @@
     "signInWithEmail": "Sign in with Email",
     "noAccount": "Don't have an account?",
     "cancel": "Cancel",
-    "gotIt": "Got it"
+    "gotIt": "Got it",
+    "resendIn": "Resend in {{seconds}}s",
+    "codeExpiresIn": "Code expires in {{time}}",
+    "codeExpiredTitle": "Code expired",
+    "codeExpiredMessage": "That code has expired. Request a new one.",
+    "attemptsRemaining": "{{count}} attempt left",
+    "attemptsRemaining_plural": "{{count}} attempts left",
+    "rateLimitedTitle": "Too many attempts",
+    "rateLimitedMessage": "Too many attempts. Please wait a moment and try again.",
+    "rateLimitedWithWait": "Too many attempts. Try again in {{seconds}} seconds.",
+    "invalidCodeWithAttempts": "That code is not correct. {{count}} attempt left.",
+    "invalidCodeWithAttempts_plural": "That code is not correct. {{count}} attempts left.",
+    "attemptsExhaustedTitle": "Too many incorrect codes",
+    "attemptsExhaustedMessage": "Too many incorrect codes. Request a new one to try again.",
+    "networkErrorMessage": "We couldn't reach the server. Check your connection and try again.",
+    "sessionExpiredTitle": "Signed out",
+    "sessionExpiredMessage": "Your session expired. Please sign in again.",
+    "countryNotSupportedMessage": "We don't support phone numbers from that country yet.",
+    "devCodeHint": "Development build: code filled in automatically."
   },
   "setup": {
     "accountSetupTitle": "Account Set-up",
@@ -753,7 +771,8 @@
       "privacyPolicy": "Privacy Policy",
       "consentSuffix": ".",
       "continue": "Continue",
-      "gotIt": "Got it"
+      "gotIt": "Got it",
+      "alreadyRegistered": "That number already has an account. Log in instead."
     },
     "roleSelection": {
       "badge": "CHOOSE YOUR ROLE",
@@ -823,7 +842,12 @@
       "sending": "Sending…",
       "resendCode": "Resend code",
       "cancel": "Cancel",
-      "gotIt": "Got it"
+      "gotIt": "Got it",
+      "resendIn": "Resend in {{seconds}}s",
+      "codeExpiresIn": "Code expires in {{time}}",
+      "attemptsRemaining": "{{count}} attempt left",
+      "attemptsRemaining_plural": "{{count}} attempts left",
+      "codeExpired": "That code has expired. Request a new one."
     },
     "success": {
       "createAccountFailed": "Failed to create account",
@@ -1080,5 +1104,12 @@
     "requiredToRequest": "Verify your identity to request assistance.",
     "requiredToOffer": "Verify your identity to take jobs.",
     "notNow": "Not now"
+  },
+  "common": {
+    "updateRequired": {
+      "title": "Update required",
+      "message": "This version of the app is no longer supported. Update to keep going.",
+      "action": "Update now"
+    }
   }
 }

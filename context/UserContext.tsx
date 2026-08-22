@@ -1,8 +1,16 @@
+import {
+    clearSession,
+    getAccessToken,
+    getCachedUser,
+    getRefreshToken,
+    isExpired,
+    migrateLegacyTokenStorage,
+    onSessionExpired,
+    saveCachedUser,
+} from '@/lib/auth/session';
 import { userDAO } from '@/lib/dao/UserDAO';
 import { UserData } from '@/lib/dao/interfaces';
 import { firebaseSignOut } from '@/lib/firebase/auth';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import auth from '@react-native-firebase/auth';
 import React, { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
 
 export type { UserData } from '@/lib/dao/interfaces';
@@ -10,8 +18,10 @@ export type { UserData } from '@/lib/dao/interfaces';
 interface UserContextType {
     user: UserData | null;
     isLoading: boolean;
-    /** Pass the Firebase ID token obtained after OTP verification */
+    /** Google/Apple sign-in: pass the Firebase ID token. */
     login: (firebaseIdToken: string, phone?: string) => Promise<boolean>;
+    /** Adopts a session whose tokens are already stored — the OTP path. */
+    adoptSession: (user: UserData) => Promise<void>;
     logout: () => Promise<void>;
     updateUser: (updates: Partial<UserData>, syncToBackend?: boolean) => Promise<void>;
 }
@@ -22,79 +32,101 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<UserData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    const initialCheckDone = useRef(false);
+    const bootstrapped = useRef(false);
 
+    /**
+     * Restores the session on startup.
+     *
+     * Order matters, and the second step is the one that stops an app update
+     * from signing everybody out:
+     *
+     *   1. Move a token left behind in AsyncStorage into SecureStore.
+     *   2. An access token with no refresh token beside it is a session from
+     *      before refresh tokens existed. Exchange it for a proper pair rather
+     *      than treating it as unusable.
+     *   3. An expired access token with a live refresh token only needs a
+     *      refresh, which the API client performs on its first request.
+     *   4. Otherwise there is no session.
+     *
+     * This also fixes a real bug in the previous version: with no Firebase
+     * session it restored the cached profile *without any token*, so the UI
+     * looked signed in while every request quietly 401'd.
+     */
     useEffect(() => {
-        let unsubscribe: (() => void) | undefined;
+        if (bootstrapped.current) return;
+        bootstrapped.current = true;
 
-        try {
-            unsubscribe = auth().onAuthStateChanged(async (firebaseUser) => {
-                // Only restore the session on the initial startup check.
-                // Post-login state is managed by the explicit login() call in the OTP flow.
-                if (initialCheckDone.current) return;
-                initialCheckDone.current = true;
+        let cancelled = false;
 
-                if (firebaseUser) {
-                    try {
-                        const idToken = await firebaseUser.getIdToken();
-                        const userData = await userDAO.loginWithFirebase(idToken);
-                        if (userData) {
-                            setUser(userData);
-                            await AsyncStorage.setItem('user_session', JSON.stringify(userData));
-                        } else {
-                            // Firebase session valid but phone not registered in our DB
-                            setUser(null);
-                            await AsyncStorage.removeItem('user_session');
-                        }
-                    } catch (error) {
-                        console.error('[UserContext] Session restore failed:', error);
-                        setUser(null);
-                        await AsyncStorage.removeItem('user_session');
-                    }
-                } else {
-                    // No Firebase session — restore from AsyncStorage cache if available
-                    try {
-                        const stored = await AsyncStorage.getItem('user_session');
-                        if (stored) {
-                            setUser(JSON.parse(stored));
-                        } else {
-                            setUser(null);
-                        }
-                    } catch {
-                        setUser(null);
-                        await AsyncStorage.removeItem('user_session');
-                    }
+        const restore = async () => {
+            try {
+                await migrateLegacyTokenStorage();
+
+                const [accessToken, refreshToken] = await Promise.all([
+                    getAccessToken(),
+                    getRefreshToken(),
+                ]);
+
+                if (!accessToken && !refreshToken) {
+                    await clearSession();
+                    if (!cancelled) setUser(null);
+                    return;
                 }
-                setIsLoading(false);
-            });
-        } catch (err) {
-            // Firebase unavailable (e.g. web browser without native modules).
-            // Fall back to AsyncStorage-cached session so the app still loads.
-            console.warn('[UserContext] Firebase auth unavailable, using cached session:', err);
-            AsyncStorage.getItem('user_session')
-                .then(stored => {
-                    if (stored) {
-                        try { setUser(JSON.parse(stored)); } catch { setUser(null); }
-                    } else {
-                        setUser(null);
-                    }
-                })
-                .catch(() => setUser(null))
-                .finally(() => setIsLoading(false));
-        }
 
-        return () => unsubscribe?.();
+                if (accessToken && !refreshToken) {
+                    // Pre-refresh-token session. One call keeps the user signed in.
+                    try {
+                        const upgraded = await userDAO.exchangeLegacySession();
+                        if (!cancelled) setUser(upgraded);
+                    } catch (error) {
+                        console.warn('[UserContext] Legacy session could not be upgraded:', error);
+                        await clearSession();
+                        if (!cancelled) setUser(null);
+                    }
+                    return;
+                }
+
+                // Show the cached profile immediately rather than blocking on the
+                // network; a stale name is better than a blank screen.
+                const cached = await getCachedUser<UserData>();
+                if (cached && !cancelled) setUser(cached);
+
+                // An expired access token is fine as long as a refresh token
+                // exists — the API client renews on its first request. With
+                // neither usable, there is nothing to restore.
+                if ((!accessToken || isExpired(accessToken)) && !refreshToken) {
+                    await clearSession();
+                    if (!cancelled) setUser(null);
+                }
+            } catch (error) {
+                console.error('[UserContext] Session restore failed:', error);
+                await clearSession();
+                if (!cancelled) setUser(null);
+            } finally {
+                if (!cancelled) setIsLoading(false);
+            }
+        };
+
+        void restore();
+
+        return () => {
+            cancelled = true;
+        };
     }, []);
 
-    /** Authenticates with the backend by sending the Firebase ID token.
-     *  The backend verifies the token, extracts the phone number, and returns the user record.
+    /**
+     * Tears down local state when the API client reports the session is
+     * unrecoverable, so the UI cannot keep rendering as though signed in.
      */
+    useEffect(() => onSessionExpired(() => setUser(null)), []);
+
+    /** Google/Apple sign-in. Phone sign-in uses `adoptSession` instead. */
     const login = async (firebaseIdToken: string, phone?: string): Promise<boolean> => {
         try {
             const userData = await userDAO.loginWithFirebase(firebaseIdToken, phone);
             if (userData) {
                 setUser(userData);
-                await AsyncStorage.setItem('user_session', JSON.stringify(userData));
+                await saveCachedUser(userData);
                 return true;
             }
             return false;
@@ -104,14 +136,26 @@ export function UserProvider({ children }: { children: ReactNode }) {
         }
     };
 
+    /**
+     * Adopts a session the OTP flow has already established.
+     *
+     * `lib/auth/otp.ts` stores the tokens while verifying, because they arrive in
+     * the same response. This is what puts the user into React state.
+     */
+    const adoptSession = async (userData: UserData): Promise<void> => {
+        setUser(userData);
+        await saveCachedUser(userData);
+    };
+
     const logout = async () => {
         setUser(null);
-        await AsyncStorage.removeItem('user_session');
-        await AsyncStorage.removeItem('access_token');
+        // Revokes the whole rotation family server-side, so the refresh token is
+        // useless even if it was copied off the device.
+        await userDAO.logout();
         try {
             await firebaseSignOut();
         } catch {
-            // Ignore Firebase sign-out errors (e.g. already signed out)
+            // Ignore Firebase sign-out errors (e.g. already signed out).
         }
     };
 
@@ -123,7 +167,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
             }
             const newUser = { ...user, ...updates };
             setUser(newUser);
-            await AsyncStorage.setItem('user_session', JSON.stringify(newUser));
+            await saveCachedUser(newUser);
         } catch (error) {
             // Rethrow: swallowing this left the UI reporting success while the
             // local state kept the old values (e.g. a picked profile photo that
@@ -134,7 +178,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     };
 
     return (
-        <UserContext.Provider value={{ user, isLoading, login, logout, updateUser }}>
+        <UserContext.Provider value={{ user, isLoading, login, adoptSession, logout, updateUser }}>
             {children}
         </UserContext.Provider>
     );

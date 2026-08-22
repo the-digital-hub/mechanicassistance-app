@@ -1,7 +1,6 @@
 import { SmsConsent } from "@/components/SmsConsent";
-import { ApiError } from "@/lib/api/types";
-import { userDAO } from "@/lib/dao/UserDAO";
-import { sendOTP } from "@/lib/firebase/auth";
+import { describeAuthError } from "@/lib/auth/describe";
+import { requestOtp, toE164 } from "@/lib/auth/otp";
 import { saveSetupProgress } from "@/lib/storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -69,32 +68,26 @@ export default function PhoneNumberScreen() {
 
     setIsChecking(true);
     try {
-      const fullPhone = `+1${phoneNumber}`;
+      const fullPhone = toE164(phoneNumber);
 
-      const { allowed, reason } = await userDAO.preCheckSignupPhone(fullPhone);
-      if (!allowed) {
-        if (reason === "phone_registered") {
-          showError(
-            t("setup.phone.existsTitle"),
-            t("setup.phone.existsMessage"),
-          );
-        } else {
-          showError(t("setup.phone.errorTitle"), t("setup.phone.verifyFailed"));
-        }
-        return;
-      }
+      // No availability pre-check: it was an account-enumeration oracle. A
+      // number that already has an account gets the same response here and no
+      // message; the conflict surfaces when the account is created.
+      const challenge = await requestOtp(fullPhone, "signup");
 
-      await saveSetupProgress("phone", { phoneNumber: fullPhone });
-      await sendOTP(fullPhone);
+      // The timers travel with the progress so the OTP screen can resume them
+      // after navigation instead of restarting from zero.
+      await saveSetupProgress("phone", {
+        phoneNumber: fullPhone,
+        requestId: challenge.requestId,
+        expiresAtMs: Date.now() + challenge.expiresIn * 1000,
+        resendAtMs: Date.now() + challenge.resendAfter * 1000,
+        devCode: challenge.devCode,
+      });
+
       router.push("/setup/otp");
-    } catch (error: any) {
-      const rawMessage = error?.message || "";
-      const displayMessage = rawMessage.includes("auth/too-many-requests")
-        ? t("setup.phone.tooManyAttempts")
-        : error instanceof ApiError
-          ? t("setup.phone.verifyFailed")
-          : rawMessage || t("setup.phone.genericError");
-      showError(t("setup.phone.errorTitle"), displayMessage);
+    } catch (error: unknown) {
+      showError(t("setup.phone.errorTitle"), describeAuthError(error, t));
     } finally {
       setIsChecking(false);
     }

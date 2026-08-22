@@ -7,13 +7,21 @@ import { NumericKeypad } from "@/components/ui/Keypad";
 import { useUser } from "@/context/UserContext";
 import { ApiError } from "@/lib/api/types";
 import { userDAO } from "@/lib/dao/UserDAO";
+import { describeAuthError } from "@/lib/auth/describe";
+import { toAuthError } from "@/lib/auth/errors";
+import {
+  requestOtp,
+  resendOtp,
+  toE164,
+  verifyOtp,
+  type OtpChallenge,
+} from "@/lib/auth/otp";
+import { formatCountdown, useCountdown } from "@/hooks/useCountdown";
 import {
   getIdToken,
-  sendOTP,
   signInWithApple,
   signInWithEmail,
   signInWithGoogle,
-  verifyOTP,
 } from "@/lib/firebase/auth";
 import { getLastPhone, saveLastPhone } from "@/lib/storage";
 import { Ionicons } from "@expo/vector-icons";
@@ -37,7 +45,7 @@ type Step = "phone" | "otp";
 export default function LoginScreen() {
   const router = useRouter();
   const { t } = useTranslation();
-  const { login } = useUser();
+  const { login, adoptSession } = useUser();
   const [step, setStep] = useState<Step>("phone");
   const [method, setMethod] = useState<"email" | "mobile">("mobile");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -46,6 +54,16 @@ export default function LoginScreen() {
   const [otpCode, setOtpCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showKeypad, setShowKeypad] = useState(true);
+
+  // Challenge state. The deadlines are absolute epoch ms rather than durations
+  // so they stay correct across time spent in the background.
+  const [requestId, setRequestId] = useState<string | null>(null);
+  const [expiresAtMs, setExpiresAtMs] = useState<number | null>(null);
+  const [resendAtMs, setResendAtMs] = useState<number | null>(null);
+  const [attemptsLeft, setAttemptsLeft] = useState<number | null>(null);
+  const expiresIn = useCountdown(expiresAtMs);
+  const resendIn = useCountdown(resendAtMs);
+
   const fullPhoneRef = useRef("");
   const otpInputRef = useRef<TextInput>(null);
   const [errorModal, setErrorModal] = useState<{
@@ -99,7 +117,7 @@ export default function LoginScreen() {
     }
   };
 
-  // Step 1: send OTP via Firebase
+  // Step 1: ask our own backend for a code
   const handleSendOTP = async () => {
     const cleaned = phoneNumber.replace(/\D/g, "");
     if (cleaned.length < 10) {
@@ -110,89 +128,94 @@ export default function LoginScreen() {
       return;
     }
 
-    const e164 = `+1${cleaned}`;
+    const e164 = toE164(cleaned);
     fullPhoneRef.current = e164;
     setIsLoading(true);
     try {
-      // Pre-check is a non-critical gate — if the endpoint is not deployed (404),
-      // we gracefully skip it and proceed to send the OTP.
-      try {
-        const preCheck = await userDAO.preCheckPhone(e164);
-        if (!preCheck.allowed) {
-          showError(
-            t("login.verificationUnavailableTitle"),
-            preCheck.message || t("login.verificationUnavailableMessage"),
-          );
-          return;
-        }
-      } catch (preCheckErr) {
-        if (preCheckErr instanceof ApiError && preCheckErr.statusCode === 404) {
-          console.warn(
-            "[Login] pre-check endpoint not available, skipping gate",
-          );
-        } else {
-          throw preCheckErr;
-        }
-      }
-
-      await sendOTP(e164);
-      setOtpCode("");
+      // No pre-check any more: it was an account-enumeration oracle, and this
+      // endpoint deliberately answers the same for known and unknown numbers.
+      // A resolved promise means the request was accepted, not that an SMS is
+      // on its way — an unregistered number gets an identical response and no
+      // message. The "account not found" case surfaces at verify instead.
+      const challenge = await requestOtp(e164, "login");
+      applyChallenge(challenge);
+      setOtpCode(challenge.devCode ?? "");
       setStep("otp");
     } catch (err: unknown) {
-      const message =
-        err instanceof ApiError
-          ? err.apiMessage
-          : err instanceof Error
-            ? err.message
-            : "";
-
-      const displayMessage = message.includes("auth/too-many-requests")
-        ? t("login.tooManyAttempts")
-        : message || t("login.sendCodeFailed");
-
-      showError(t("login.errorTitle"), displayMessage);
+      showError(t("login.errorTitle"), describeAuthError(err, t));
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Step 2: verify OTP, get Firebase ID token, login with backend
-  const handleVerifyOTP = async (codeToVerify?: string) => {
-    const currentCode =
-      typeof codeToVerify === "string" ? codeToVerify : otpCode;
-    if (currentCode.length < 6) return;
+  /** Stores the challenge and turns its durations into absolute deadlines. */
+  const applyChallenge = (challenge: OtpChallenge) => {
+    setRequestId(challenge.requestId);
+    setAttemptsLeft(null);
+    // Absolute instants, so backgrounding the app does not freeze the timers.
+    setExpiresAtMs(Date.now() + challenge.expiresIn * 1000);
+    setResendAtMs(Date.now() + challenge.resendAfter * 1000);
+  };
+
+  const handleResendOTP = async () => {
+    if (!requestId || resendIn > 0) return;
 
     setIsLoading(true);
     try {
-      await verifyOTP(currentCode);
-      const idToken = await getIdToken();
-      if (!idToken) throw new Error("Failed to get authentication token.");
+      const challenge = await resendOtp(requestId, fullPhoneRef.current);
+      applyChallenge(challenge);
+      setOtpCode(challenge.devCode ?? "");
+    } catch (err: unknown) {
+      showError(t("login.errorTitle"), describeAuthError(err, t));
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-      const success = await login(idToken, fullPhoneRef.current);
-      if (success) {
-        const cleaned = fullPhoneRef.current.replace(/\D/g, "").slice(-10);
-        await saveLastPhone(cleaned);
-        router.replace("/(tabs)/dashboard");
-      } else {
+  // Step 2: check the code with our backend
+  const handleVerifyOTP = async (codeToVerify?: string) => {
+    const currentCode =
+      typeof codeToVerify === "string" ? codeToVerify : otpCode;
+    if (currentCode.length < 6 || !requestId) return;
+
+    setIsLoading(true);
+    try {
+      const result = await verifyOtp(
+        requestId,
+        fullPhoneRef.current,
+        currentCode,
+      );
+
+      if (result.kind === "signup") {
+        // The number verified but has no account. The signup token is already
+        // stored, so the wizard can skip straight past its own OTP step.
         showError(
           t("login.accountNotFoundTitle"),
           t("login.accountNotFoundPhoneMessage"),
           { label: t("login.signUp"), onPress: () => router.push("/setup") },
         );
+        return;
       }
+
+      await adoptSession(result.user);
+      await saveLastPhone(fullPhoneRef.current.replace(/\D/g, "").slice(-10));
+      router.replace("/(tabs)/dashboard");
     } catch (err: unknown) {
-      const message =
-        err instanceof ApiError
-          ? err.apiMessage
-          : err instanceof Error
-            ? err.message
-            : "";
+      const authError = toAuthError(err);
 
-      const displayMessage = message.includes("auth/too-many-requests")
-        ? t("login.accountsLocked")
-        : message || t("login.invalidCode");
+      // Remaining attempts drive the hint under the code boxes.
+      setAttemptsLeft(authError.attemptsRemaining ?? null);
+      if (
+        authError.code === "too_many_attempts" ||
+        authError.code === "code_expired"
+      ) {
+        setOtpCode("");
+      }
 
-      showError(t("login.verificationFailedTitle"), displayMessage);
+      showError(
+        t("login.verificationFailedTitle"),
+        describeAuthError(err, t),
+      );
     } finally {
       setIsLoading(false);
     }
@@ -362,6 +385,25 @@ export default function LoginScreen() {
                 />
               </TouchableOpacity>
 
+              {/* Status line: what the user needs to know before acting. */}
+              <View className="mb-6 min-h-[20px]">
+                {attemptsLeft !== null && attemptsLeft > 0 ? (
+                  <Text className="text-center font-outfit-medium text-red-600">
+                    {t("login.attemptsRemaining", { count: attemptsLeft })}
+                  </Text>
+                ) : expiresIn > 0 ? (
+                  <Text className="text-center font-outfit-medium text-slate-500">
+                    {t("login.codeExpiresIn", {
+                      time: formatCountdown(expiresIn),
+                    })}
+                  </Text>
+                ) : (
+                  <Text className="text-center font-outfit-medium text-red-600">
+                    {t("login.codeExpiredMessage")}
+                  </Text>
+                )}
+              </View>
+
               <View className="mb-4">
                 <Button
                   className="bg-blue-700 rounded-xl mb-6"
@@ -371,16 +413,24 @@ export default function LoginScreen() {
                     handleVerifyOTP();
                   }}
                   isLoading={isLoading}
+                  // An expired code cannot succeed; resending is the way out.
+                  disabled={expiresIn === 0}
                 >
                   {t("login.verify")}
                 </Button>
                 <TouchableOpacity
-                  onPress={handleSendOTP}
+                  onPress={handleResendOTP}
                   className="mb-6"
-                  disabled={isLoading}
+                  disabled={isLoading || resendIn > 0}
                 >
-                  <Text className="text-[#0047AB] text-center font-outfit-medium">
-                    {t("login.resendCode")}
+                  <Text
+                    className={`text-center font-outfit-medium ${
+                      resendIn > 0 ? "text-slate-400" : "text-[#0047AB]"
+                    }`}
+                  >
+                    {resendIn > 0
+                      ? t("login.resendIn", { seconds: resendIn })
+                      : t("login.resendCode")}
                   </Text>
                 </TouchableOpacity>
               </View>

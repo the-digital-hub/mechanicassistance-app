@@ -1,4 +1,5 @@
 import { useUser } from '@/context/UserContext';
+import { getFreshAccessToken } from '@/lib/api/apiClient';
 import { ConfigService } from '@/lib/config/ConfigService';
 import React, { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
@@ -39,8 +40,6 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     const [chatHistory, setChatHistory] = useState<Record<string, ChatMessage[]>>({});
 
     const currentSocket = useRef<Socket | null>(null);
-    const userIdRef = useRef<string | undefined>(undefined);
-    const roleRef = useRef<string | undefined>(undefined);
 
     const clearChatHistory = (conversationId: string) => {
         setChatHistory(prev => {
@@ -73,8 +72,6 @@ export function SocketProvider({ children }: { children: ReactNode }) {
 
     // Initial connection logic & listeners
     useEffect(() => {
-        userIdRef.current = user?.id;
-        roleRef.current = user?.role;
         if (!user?.id) return;
 
         // Reconnect if config changes while we are authenticated
@@ -89,9 +86,11 @@ export function SocketProvider({ children }: { children: ReactNode }) {
             const s = currentSocket.current;
             if (!s) return;
             if (nextState === 'background' || nextState === 'inactive') {
-                if (userIdRef.current) s.emit('unregister', { userId: userIdRef.current });
+                s.emit('unregister');
             } else if (nextState === 'active') {
-                if (userIdRef.current) s.emit('register', { userId: userIdRef.current, role: roleRef.current });
+                // No payload: the gateway re-joins the rooms of the identity it
+                // verified at handshake time.
+                s.emit('register');
             }
         };
         const appStateSub = AppState.addEventListener('change', handleAppState);
@@ -103,7 +102,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
             appStateSub.remove();
             const s = currentSocket.current;
             if (s) {
-                if (userIdRef.current) s.emit('unregister', { userId: userIdRef.current });
+                s.emit('unregister');
                 s.removeAllListeners();
                 s.disconnect();
             }
@@ -124,6 +123,16 @@ export function SocketProvider({ children }: { children: ReactNode }) {
             transports: ['websocket'],
             reconnection: true,
             reconnectionDelay: 2000,
+            // A function, not a value: socket.io-client re-evaluates it on every
+            // connection attempt, so a reconnect after the app was backgrounded
+            // presents a fresh token instead of the 30-minute one it held when
+            // it first connected. The gateway derives the room from this token
+            // and ignores anything we claim in a message body.
+            auth: (cb: (data: { token?: string }) => void) => {
+                getFreshAccessToken()
+                    .then((token) => cb({ token: token ?? undefined }))
+                    .catch(() => cb({}));
+            },
         });
         currentSocket.current = s;
         setSocket(s);
@@ -131,7 +140,6 @@ export function SocketProvider({ children }: { children: ReactNode }) {
         s.on('connect', () => {
             console.log('[Socket] Connected');
             setIsConnected(true);
-            if (user?.id) s.emit('register', { userId: user.id, role: user.role });
             // Surface a connect tick so consumers can refetch anything missed
             // while the socket was down (events are ephemeral, not replayed).
             setLastMessage({ type: 'socket_connect', ts: Date.now() });
@@ -143,7 +151,18 @@ export function SocketProvider({ children }: { children: ReactNode }) {
         });
 
         s.on('connect_error', (err: Error) => {
+            // Reconnection is left on: `auth` is re-evaluated per attempt, so a
+            // rejection caused by an expired token clears itself once the
+            // refresh lands. A genuinely dead session stops retrying when
+            // apiClient sees its own 401 and tears the provider down.
             console.warn('[Socket] connect_error:', err?.message);
+        });
+
+        // The gateway says so explicitly before closing an unauthenticated
+        // socket. Nothing to do but log it — retrying with a fresh token is
+        // already what the next attempt does.
+        s.on('unauthorized', (payload: any) => {
+            console.warn('[Socket] unauthorized:', payload?.message);
         });
 
         // Chat relay — the emitted arg is the flat message body.

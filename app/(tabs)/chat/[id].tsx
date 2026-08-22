@@ -1,6 +1,7 @@
 import { useSocket } from '@/context/SocketContext';
 import { useUser } from '@/context/UserContext';
-import { ConfigService } from '@/lib/config/ConfigService';
+import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
+import { userDAO } from '@/lib/dao/UserDAO';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft, Paperclip, Phone, Send } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
@@ -32,16 +33,18 @@ export default function ChatScreen() {
     useEffect(() => {
         const fetchDetails = async () => {
             try {
-                const response = await fetch(`${ConfigService.getApiBaseUrl()}/api/assistance/${conversationId}`);
-                const data = await response.json();
+                // Via the DAOs, not raw fetch: these endpoints require a Bearer
+                // token, and the bare fetch this used to do sent none — so the
+                // recipient never loaded and the error was swallowed below.
+                const data = await assistanceDAO.getById(conversationId);
+                if (!data) return;
 
                 // If I am the user, recipient is the mechanic. If I am the mechanic, recipient is the user.
                 const recipientId = user?.role === 'user' ? data.mechanicId : data.userId;
 
                 if (recipientId) {
-                    const userResponse = await fetch(`${ConfigService.getApiBaseUrl()}/api/users/${recipientId}`);
-                    const userData = await userResponse.json();
-                    setRecipient(userData);
+                    // Public projection: the full record is owner-only server-side.
+                    setRecipient(await userDAO.getPublicProfile(recipientId));
                 }
             } catch (error) {
                 console.error('Failed to fetch chat details:', error);

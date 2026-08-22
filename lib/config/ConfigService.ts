@@ -146,6 +146,20 @@ class ConfigServiceClass {
         return this.getEndpoints().wsUrl;
     }
 
+    /**
+     * Lowest app version the backend still serves, or null when there is no gate.
+     *
+     * Null today: nothing has been removed from the API, so every installed
+     * build still works. Set it in the bootstrap config when that changes.
+     */
+    public getMinSupportedVersion(): string | null {
+        return this.config.minSupportedVersion ?? null;
+    }
+
+    public getStoreUrl(platform: 'ios' | 'android'): string | null {
+        return this.config.storeUrls?.[platform] ?? null;
+    }
+
     // --- PIN Protection ---
 
     public async isPinOk(): Promise<boolean> {

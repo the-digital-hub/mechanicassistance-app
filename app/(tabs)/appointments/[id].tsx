@@ -132,7 +132,7 @@ export default function AppointmentDetailScreen() {
         const fetchMechanic = async () => {
             if (appointment?.mechanicId) {
                 try {
-                    const mechData = await userDAO.getById(appointment.mechanicId);
+                    const mechData = await userDAO.getPublicProfile(appointment.mechanicId);
                     setMechanic(mechData);
                 } catch (error) {
                     console.error('Error fetching mechanic:', error);
@@ -148,7 +148,7 @@ export default function AppointmentDetailScreen() {
         const fetchClient = async () => {
             if (!isUserRole && appointment?.userId) {
                 try {
-                    const clientData = await userDAO.getById(appointment.userId);
+                    const clientData = await userDAO.getPublicProfile(appointment.userId);
                     setClient(clientData);
                 } catch (error) {
                     console.error('Error fetching client:', error);

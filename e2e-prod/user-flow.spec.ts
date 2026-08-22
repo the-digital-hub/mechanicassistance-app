@@ -30,14 +30,75 @@ async function clickText(page: Page, text: string) {
 
 // ─── fetch test-user data from API (Node side, before browser opens) ─────────
 
-async function fetchTestUser() {
-    const res = await fetch(`${API_URL}/api/login`, {
+interface TestSession {
+    accessToken: string;
+    refreshToken: string;
+    user: Record<string, unknown>;
+}
+
+/** Unwraps the standard { success, message, data } envelope. */
+async function callApi<T>(path: string, body: unknown, bearer?: string): Promise<T> {
+    const res = await fetch(`${API_URL}${path}`, {
         method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ phone: TEST_PHONE }),
+        headers: {
+            'Content-Type': 'application/json',
+            ...(bearer ? { Authorization: `Bearer ${bearer}` } : {}),
+        },
+        body:    JSON.stringify(body),
     });
-    if (!res.ok) throw new Error(`/api/login returned ${res.status} — is the Railway backend running?`);
-    return res.json();
+
+    const payload = await res.json().catch(() => null);
+    if (!res.ok || !payload?.success) {
+        throw new Error(`POST ${path} → ${res.status} ${JSON.stringify(payload?.error ?? payload)}`);
+    }
+    return payload.data as T;
+}
+
+/**
+ * Obtains a session against a deployed backend.
+ *
+ * Prefers E2E_REFRESH_TOKEN: a real deployment has test numbers disabled and
+ * sends real SMS, so the dev OTP bypass is unavailable there by design. Supply a
+ * refresh token captured from a dedicated test account, and this trades it for a
+ * fresh pair (rotation means the token is single-use, so export a new one after
+ * each run — or point API_URL at staging and use the OTP path below).
+ */
+async function signInAsTestUser(): Promise<TestSession> {
+    const seeded = process.env.E2E_REFRESH_TOKEN;
+
+    if (seeded) {
+        const pair = await callApi<{ accessToken: string; refreshToken: string }>(
+            '/api/auth/refresh',
+            { refreshToken: seeded },
+        );
+        const user = await callApi<TestSession>('/api/auth/session/exchange', {}, pair.accessToken)
+            .catch(() => null);
+
+        return {
+            ...pair,
+            user: user?.user ?? {},
+        };
+    }
+
+    // Fallback for a staging target that still has the dev bypass enabled.
+    const challenge = await callApi<{ requestId: string; devCode?: string }>(
+        '/api/auth/otp/request',
+        { phone: TEST_PHONE, purpose: 'login' },
+    );
+
+    if (!challenge.devCode) {
+        throw new Error(
+            'No devCode in the OTP response, so this target sends real SMS. ' +
+            'Set E2E_REFRESH_TOKEN to a token from a dedicated test account, ' +
+            'or point API_URL at an environment with OTP_TEST_NUMBERS_ENABLED=true.',
+        );
+    }
+
+    return callApi<TestSession>('/api/auth/otp/verify', {
+        requestId: challenge.requestId,
+        phone:     TEST_PHONE,
+        code:      challenge.devCode,
+    });
 }
 
 // ─── test ─────────────────────────────────────────────────────────────────────
@@ -45,11 +106,11 @@ async function fetchTestUser() {
 test('Full user journey (PROD): session inject → edit profile → request → accept → cancel', async ({ page }) => {
 
     // ── 0. Fetch user from API (Node context, not browser) ───────────────────
-    let testUser: Record<string, unknown>;
+    let session: TestSession;
     await test.step('Fetch test user from Railway backend', async () => {
-        testUser = await fetchTestUser();
-        expect(testUser.id).toBeTruthy();
-        console.log(`  → user: ${testUser.name} ${testUser.surname}  id: ${testUser.id}`);
+        session = await signInAsTestUser();
+        expect(session.accessToken).toBeTruthy();
+        console.log(`  → user: ${session.user.name ?? '(unknown)'}  id: ${session.user.id ?? '(unknown)'}`);
     });
 
     // ── 1. Inject session + force Railway API config ────────────────────────
@@ -66,11 +127,22 @@ test('Full user journey (PROD): session inject → edit profile → request → 
             route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(prodBootstrap) })
         );
 
-        await page.addInitScript(({ user, apiUrl }) => {
+        await page.addInitScript(({ session, apiUrl }) => {
             try {
-                const serialised = JSON.stringify(user);
+                const serialised = JSON.stringify(session.user);
                 localStorage.setItem('user_session', serialised);
                 localStorage.setItem('@AsyncStorage:user_session', serialised);
+
+                // Both tokens are required: a cached user with no token reads as
+                // signed out, and an access token with no refresh token beside it
+                // is treated as a pre-refresh-token session to be exchanged.
+                for (const [key, value] of [
+                    ['access_token', session.accessToken],
+                    ['refresh_token', session.refreshToken],
+                ]) {
+                    localStorage.setItem(key, value);
+                    localStorage.setItem(`@AsyncStorage:${key}`, value);
+                }
 
                 const wsUrl = apiUrl.replace('https', 'wss').replace('http', 'ws');
                 const prodConfig = JSON.stringify({
@@ -86,7 +158,7 @@ test('Full user journey (PROD): session inject → edit profile → request → 
                 localStorage.setItem('@mechanic:selectedEnv', 'prod');
                 localStorage.setItem('@AsyncStorage:@mechanic:selectedEnv', 'prod');
             } catch { /* storage blocked — test will fail later with a clear message */ }
-        }, { user: testUser, apiUrl: API_URL });
+        }, { session: session!, apiUrl: API_URL });
     });
 
     // ── 2. Load app — should land on tabs (already logged in) ────────────────

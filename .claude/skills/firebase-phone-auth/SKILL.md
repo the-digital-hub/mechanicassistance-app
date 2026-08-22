@@ -1,17 +1,25 @@
 ---
 name: firebase-phone-auth
 description: >
-  Guía y troubleshooting de la autenticación por teléfono con Firebase en la app
-  móvil (login por SMS/OTP). Usá esta skill SIEMPRE que trabajes con login, inicio
-  de sesión, autenticación, código de verificación, OTP, número de teléfono,
-  reCAPTCHA, APNs, o cuando aparezcan errores tipo `auth/internal-error`,
-  `auth/too-many-requests` o `BILLING_NOT_ENABLED`. También aplica al tocar
-  `lib/firebase/auth.ts`, los config plugins de Firebase o `GoogleService-Info.plist`.
+  OBSOLETA para login por teléfono — usá `phone-otp-auth`. Sigue valiendo solo
+  para Google y Apple sign-in, que todavía pasan por Firebase. Usá esta skill al
+  tocar `signInWithGoogle` / `signInWithApple` en `lib/firebase/auth.ts`, los
+  config plugins de Firebase o `GoogleService-Info.plist`.
 ---
 
-# Firebase Phone Auth
+# Firebase Auth (solo social)
 
-La app usa autenticación por teléfono (SMS/OTP) con Firebase. La configuración es
+> **El login por teléfono ya no usa Firebase.** Lo hace `auth-service` con OTP
+> propio — ver la skill `phone-otp-auth`. Todo lo que sigue sobre
+> `signInWithPhoneNumber`, reCAPTCHA, APNs forwarding y `BILLING_NOT_ENABLED`
+> quedó **sin efecto** para el flujo de teléfono; se conserva porque Google y
+> Apple sign-in siguen pasando por Firebase, y porque describe la configuración
+> nativa (plugins, plist, frameworks) que esos dos todavía necesitan.
+>
+> Cuando Google y Apple migren a verificación de `id_token` en el backend,
+> este archivo se borra junto con `lib/firebase/`.
+
+La app usaba autenticación por teléfono (SMS/OTP) con Firebase. La configuración es
 delicada porque el fallback de reCAPTCHA en iOS y el forwarding de APNs tienen
 requisitos específicos. Seguí estas reglas para no romper el flujo.
 

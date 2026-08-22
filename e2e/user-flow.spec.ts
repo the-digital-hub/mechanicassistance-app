@@ -11,18 +11,26 @@
  *   APP_URL=http://... npx playwright test ← custom app URL
  *
  * Login strategy:
- *   @react-native-firebase is a native module and does NOT work in a web browser.
- *   Instead of going through the OTP UI we:
- *     1. Call the backend API directly to get the test user object.
- *     2. Inject it into localStorage (AsyncStorage maps to localStorage on web)
- *        BEFORE the page loads so UserContext reads it on startup.
- *   This gives us a fully logged-in session without touching Firebase.
+ *   Phone sign-in is our own OTP over plain HTTP now, so this drives the real
+ *   endpoints rather than faking a session:
+ *     1. POST /api/auth/otp/request for the whitelisted test number. In a
+ *        non-production backend the response carries the code, and no SMS is
+ *        sent.
+ *     2. POST /api/auth/otp/verify to get a real access/refresh pair.
+ *     3. Inject both tokens plus the user into localStorage (AsyncStorage maps
+ *        to localStorage on web) before the page loads.
+ *
+ *   Injecting the user *without* a token, as this used to, no longer works —
+ *   and it should not: that combination was a bug that made the UI look signed
+ *   in while every request 401'd.
  */
 
 import { expect, Page, test } from '@playwright/test';
 
 const API_URL   = process.env.API_URL   || 'http://localhost:3000';
 const TEST_PHONE = '+11111111111';
+/** Fixed code the backend accepts for whitelisted numbers outside production. */
+const TEST_NUMBER_CODE = '000000';
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -37,30 +45,69 @@ async function clickText(page: Page, text: string) {
 
 // ─── fetch test-user data from API (Node side, before browser opens) ─────────
 
-async function fetchTestUser() {
-    const res = await fetch(`${API_URL}/api/login`, {
+interface TestSession {
+    accessToken: string;
+    refreshToken: string;
+    user: Record<string, unknown>;
+}
+
+/** Unwraps the standard { success, message, data } envelope. */
+async function callApi<T>(path: string, body: unknown): Promise<T> {
+    const res = await fetch(`${API_URL}${path}`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ phone: TEST_PHONE }),
+        body:    JSON.stringify(body),
     });
-    if (!res.ok) throw new Error(`/api/login returned ${res.status} — is the backend running?`);
-    return res.json();
+
+    const payload = await res.json().catch(() => null);
+    if (!res.ok || !payload?.success) {
+        throw new Error(
+            `POST ${path} → ${res.status} ${JSON.stringify(payload?.error ?? payload)}. ` +
+            'Is the backend running with OTP_TEST_NUMBERS_ENABLED=true and SMS_PROVIDER=log?',
+        );
+    }
+    return payload.data as T;
+}
+
+/**
+ * Signs in through the real OTP endpoints.
+ *
+ * Depends on the backend running non-production with test numbers enabled: the
+ * whitelisted number accepts a fixed code and sends nothing. `devCode` is the
+ * fallback for a non-whitelisted number while SMS is simulated.
+ */
+async function signInAsTestUser(): Promise<TestSession> {
+    const challenge = await callApi<{ requestId: string; devCode?: string }>(
+        '/api/auth/otp/request',
+        { phone: TEST_PHONE, purpose: 'login' },
+    );
+
+    const session = await callApi<TestSession>('/api/auth/otp/verify', {
+        requestId: challenge.requestId,
+        phone:     TEST_PHONE,
+        code:      challenge.devCode ?? TEST_NUMBER_CODE,
+    });
+
+    if (!session.accessToken || !session.refreshToken) {
+        throw new Error('OTP verify returned no session — check the test number is registered.');
+    }
+    return session;
 }
 
 // ─── test ─────────────────────────────────────────────────────────────────────
 
 test('Full user journey: session inject → edit profile → request → accept → cancel', async ({ page }) => {
 
-    // ── 0. Fetch user from API (Node context, not browser) ───────────────────
-    let testUser: Record<string, unknown>;
-    await test.step('Fetch test user from backend API', async () => {
-        testUser = await fetchTestUser();
-        expect(testUser.id).toBeTruthy();
-        console.log(`  → user: ${testUser.name} ${testUser.surname}  id: ${testUser.id}`);
+    // ── 0. Sign in via the real OTP endpoints (Node context, not browser) ────
+    let session: TestSession;
+    await test.step('Sign in through the OTP endpoints', async () => {
+        session = await signInAsTestUser();
+        expect(session.user.id).toBeTruthy();
+        console.log(`  → user: ${session.user.name} ${session.user.surname}  id: ${session.user.id}`);
     });
 
     // ── 1. Inject session + force local API config ────────────────────────────
-    await test.step('Inject session into localStorage (bypass Firebase)', async () => {
+    await test.step('Inject the session into localStorage', async () => {
         // Intercept the bootstrap config fetch so ConfigService always gets
         // local endpoints — prevents it from overwriting localStorage with prod URLs.
         const localBootstrap = {
@@ -76,12 +123,24 @@ test('Full user journey: session inject → edit profile → request → accept 
         );
 
         // AsyncStorage on web stores values under the plain key in localStorage.
-        await page.addInitScript(({ user, apiUrl }) => {
+        await page.addInitScript(({ session, apiUrl }) => {
             try {
-                const serialised = JSON.stringify(user);
+                const serialised = JSON.stringify(session.user);
                 // Both storage keys used by different AsyncStorage versions
                 localStorage.setItem('user_session', serialised);
                 localStorage.setItem('@AsyncStorage:user_session', serialised);
+
+                // Both tokens are required: the bootstrap treats an access token
+                // with no refresh token beside it as a pre-refresh-token session
+                // and tries to exchange it, and a cached user with no token at
+                // all as signed out.
+                for (const [key, value] of [
+                    ['access_token', session.accessToken],
+                    ['refresh_token', session.refreshToken],
+                ]) {
+                    localStorage.setItem(key, value);
+                    localStorage.setItem(`@AsyncStorage:${key}`, value);
+                }
 
                 // Pre-seed the config cache so ConfigService skips the network
                 // fetch even if the route intercept races with app startup.
@@ -98,7 +157,7 @@ test('Full user journey: session inject → edit profile → request → accept 
                 localStorage.setItem('@mechanic:selectedEnv', 'dev');
                 localStorage.setItem('@AsyncStorage:@mechanic:selectedEnv', 'dev');
             } catch { /* storage blocked — test will fail later with a clear message */ }
-        }, { user: testUser, apiUrl: API_URL });
+        }, { session: session!, apiUrl: API_URL });
     });
 
     // ── 2. Load app — should land on tabs (already logged in) ────────────────

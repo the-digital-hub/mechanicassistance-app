@@ -139,11 +139,25 @@ export interface IVehicleDAO {
     delete(id: string): Promise<void>;
 }
 
+/** What any authenticated user may read about another user. */
+export interface PublicUserProfile {
+    id: string;
+    name?: string;
+    surname?: string;
+    profileImage?: string;
+    role?: string;
+}
+
 export interface IUserDAO {
     getAll(): Promise<UserData[]>;
     getById(id: string): Promise<UserData | null>;
-    login(phone: string): Promise<UserData | null>;
-    checkPhoneExists(phone: string): Promise<boolean>;
+    getPublicProfile(id: string): Promise<PublicUserProfile | null>;
+    /** Google/Apple sign-in. Phone sign-in goes through `lib/auth/otp.ts`. */
+    loginWithFirebase(idToken: string, phone?: string): Promise<UserData | null>;
+    /** Upgrades a pre-refresh-token session so an app update does not log the user out. */
+    exchangeLegacySession(): Promise<UserData | null>;
+    logout(): Promise<void>;
+    checkEmailExists(email: string): Promise<boolean>;
     register(setupData: any): Promise<any>;
     update(id: string, updates: Partial<UserData>): Promise<void>;
 }

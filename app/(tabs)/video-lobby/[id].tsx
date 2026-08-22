@@ -68,10 +68,10 @@ export default function VideoLobbyScreen() {
         const fetchOtherParty = async () => {
             try {
                 if (isUserRole && appointment?.mechanicId) {
-                    const mech = await userDAO.getById(appointment.mechanicId);
+                    const mech = await userDAO.getPublicProfile(appointment.mechanicId);
                     if (mech) setOtherPartyName(`${mech.name || ''} ${mech.surname || ''}`.trim());
                 } else if (!isUserRole && appointment?.userId) {
-                    const client = await userDAO.getById(appointment.userId);
+                    const client = await userDAO.getPublicProfile(appointment.userId);
                     if (client) setOtherPartyName(`${client.name || ''} ${client.surname || ''}`.trim());
                 }
             } catch (e) {

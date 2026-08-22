@@ -1,6 +1,5 @@
 import { useUser } from "@/context/UserContext";
 import { userDAO } from "@/lib/dao/UserDAO";
-import { getIdToken } from "@/lib/firebase/auth";
 import { clearSetupProgress, getSetupProgress } from "@/lib/storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -14,7 +13,7 @@ import { ActivityIndicator, Text, View } from "react-native";
 export default function SuccessScreen() {
   const router = useRouter();
   const { t } = useTranslation();
-  const { login } = useUser();
+  const { adoptSession } = useUser();
   const [isCreating, setIsCreating] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -36,24 +35,15 @@ export default function SuccessScreen() {
         const registerResult = await userDAO.register(progress);
         console.log("🔵 [success.tsx] Registration successful:", registerResult);
 
-        // Auto-login: use the Firebase token from the OTP step
-        console.log("🔵 [success.tsx] Getting Firebase ID token...");
-        const idToken = await getIdToken();
-        console.log("🔵 [success.tsx] ID Token obtained:", idToken ? "✓" : "✗");
-
-        const phone = (progress.phone as Record<string, unknown>)
-          ?.phoneNumber as string | undefined;
-        console.log("🔵 [success.tsx] Phone number from progress:", phone);
-
-        if (idToken) {
-          console.log("🔵 [success.tsx] Logging in user...");
-          const success = await login(idToken, phone);
-          console.log("🔵 [success.tsx] Login result:", success);
-          if (success) {
-            setIsLoggedIn(true);
-          }
+        // The wizard ran on a signup-scoped token; trade it for a real session
+        // now that the account exists. No Firebase token is involved any more.
+        console.log("🔵 [success.tsx] Starting session from signup token...");
+        const newUser = await userDAO.startSessionFromSignup();
+        if (newUser) {
+          await adoptSession(newUser);
+          setIsLoggedIn(true);
         } else {
-          console.warn("⚠️ [success.tsx] No ID token available for login");
+          console.warn("⚠️ [success.tsx] Session could not be started");
         }
 
         console.log("🔵 [success.tsx] Clearing setup progress...");
@@ -70,7 +60,7 @@ export default function SuccessScreen() {
     };
 
     createAccountAndLogin();
-  }, [login]);
+  }, [adoptSession]);
 
   const handleGetStarted = () => {
     if (isLoggedIn) {
