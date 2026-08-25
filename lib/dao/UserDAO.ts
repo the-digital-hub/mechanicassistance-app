@@ -131,8 +131,9 @@ export class UserDAO implements IUserDAO {
     async register(setupProgress: Record<string, unknown>): Promise<unknown> {
         const payload = this.buildRegistrationPayload(setupProgress);
         const result = await apiClient.post('/api/users', payload);
-        // The account exists now; the scoped token has served its purpose.
-        await this.clearSignupToken();
+        // The scoped token is NOT cleared here: startSessionFromSignup() still
+        // has to send it as the Bearer to trade it for a real session. It is
+        // cleared there, once the handover has succeeded.
         return result;
     }
 
@@ -189,7 +190,13 @@ export class UserDAO implements IUserDAO {
         }
         if (progress.dealerInfo) payload.dealerInfo = progress.dealerInfo;
         if (progress.expertise) payload.expertise = progress.expertise;
-        if (progress.credentials) payload.credentials = progress.credentials;
+        // ASE is optional: send credentials only when the step was actually
+        // completed. A skipped step sends nothing, and the backend leaves the
+        // mechanic at aseStatus "pending" so the profile keeps prompting.
+        const credentialsData = progress.credentials as Record<string, unknown> | undefined;
+        if (credentialsData?.validated && credentialsData.aseId) {
+            payload.credentials = { aseId: credentialsData.aseId };
+        }
         if (progress.availability) payload.availability = progress.availability;
 
         // Vehicles: strip client-generated `id` — Prisma generates UUIDs server-side

@@ -1,10 +1,11 @@
 import { Input } from '@/components/ui/Input';
-import { AseDAO, AseMechanicData } from '@/lib/dao/AseDAO';
+import { AseDAO, AseVerifyResult } from '@/lib/dao/AseDAO';
 import { ApiError } from '@/lib/api/types';
+import { formatAseId, isCompleteAseId, toAseIdRaw } from '@/lib/ase-id';
 import { getSetupProgress, saveSetupProgress } from '@/lib/storage';
 import { useRouter } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -13,20 +14,45 @@ export default function CredentialsScreen() {
     const router = useRouter();
     const { t } = useTranslation();
     const [aseId, setAseId] = useState('');
-    const [mechanic, setMechanic] = useState<AseMechanicData | null>(null);
+    const [verified, setVerified] = useState<AseVerifyResult | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    // The ASE record is matched against the name entered on the basic-info
+    // step, so an ID registered to somebody else is rejected.
+    const [name, setName] = useState('');
+    const [surname, setSurname] = useState('');
+
+    useEffect(() => {
+        (async () => {
+            const progress = await getSetupProgress();
+            const basicInfo = (progress.basicInfo ?? {}) as Record<string, unknown>;
+            setName(typeof basicInfo.name === 'string' ? basicInfo.name : '');
+            setSurname(typeof basicInfo.surname === 'string' ? basicInfo.surname : '');
+        })();
+    }, []);
+
+    // `aseId` holds the raw characters; the input renders the masked value.
+    const maskedAseId = formatAseId(aseId);
+    const canSearch = isCompleteAseId(aseId) && !!name.trim() && !!surname.trim();
+
+    // Only mechanics reach this screen (address.tsx branches on role).
+    const goToNextStep = () => router.push('/setup/availability');
 
     const handleSearch = async () => {
-        if (!aseId.trim()) return;
+        if (!canSearch) return;
         setIsLoading(true);
         setError(null);
-        setMechanic(null);
+        setVerified(null);
         try {
-            const result = await AseDAO.lookupByAseId(aseId.trim());
-            setMechanic(result);
+            const result = await AseDAO.verify(maskedAseId, name.trim(), surname.trim());
+            if (result.matched) {
+                setVerified(result);
+            } else {
+                // The ID exists but is registered to a different name.
+                setError(t('setup.credentials.mismatch'));
+            }
         } catch (err) {
-            if (err instanceof ApiError && err.status === 404) {
+            if (err instanceof ApiError && err.statusCode === 404) {
                 setError(t('setup.credentials.notFound'));
             } else {
                 setError(t('setup.credentials.searchError'));
@@ -37,15 +63,18 @@ export default function CredentialsScreen() {
     };
 
     const handleContinue = async () => {
-        await saveSetupProgress('credentials', { aseId: mechanic?.aseId ?? aseId, validated: !!mechanic });
-        const progress = await getSetupProgress();
-        const role = (progress.role as Record<string, unknown>)?.role;
+        await saveSetupProgress('credentials', { aseId: verified?.aseId ?? maskedAseId, validated: true });
+        goToNextStep();
+    };
 
-        if (role === 'mechanic') {
-            router.push('/setup/availability');
-        } else {
-            router.push('/setup/vehicle-info');
-        }
+    /**
+     * Skips ASE verification. The account is created with aseStatus "pending"
+     * and the mechanic finishes later from the ASE screen, prompted by the
+     * badge on their profile.
+     */
+    const handleSkip = async () => {
+        await saveSetupProgress('credentials', { skipped: true });
+        goToNextStep();
     };
 
     const formatExpiration = (date: string | null) => {
@@ -90,15 +119,17 @@ export default function CredentialsScreen() {
                 </Text>
             </View>
 
-            {!mechanic ? (
+            {!verified ? (
                 <View>
                     <Text className="font-outfit-medium text-[#0F172A] mb-2">{t('setup.credentials.memberIdLabel')}</Text>
                     <Input
                         placeholder="ASE-XXXX-XXXX"
-                        value={aseId}
-                        onChangeText={(text) => { setAseId(text); setError(null); }}
+                        value={maskedAseId}
+                        onChangeText={(text) => { setAseId(toAseIdRaw(text)); setError(null); }}
                         containerClassName="bg-white border border-gray-300 rounded-2xl mb-4"
-                        autoCapitalize="characters"
+                        autoCorrect={false}
+                        keyboardType="number-pad"
+                        maxLength={13}
                     />
 
                     {error && (
@@ -108,7 +139,7 @@ export default function CredentialsScreen() {
                     <TouchableOpacity
                         onPress={handleSearch}
                         activeOpacity={0.8}
-                        disabled={isLoading || !aseId.trim()}
+                        disabled={isLoading || !canSearch}
                     >
                         <LinearGradient
                             colors={['#2B66F8', '#081E72']}
@@ -121,7 +152,7 @@ export default function CredentialsScreen() {
                                 flexDirection: 'row',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                opacity: isLoading || !aseId.trim() ? 0.6 : 1,
+                                opacity: isLoading || !canSearch ? 0.6 : 1,
                             }}
                         >
                             {isLoading ? (
@@ -134,20 +165,27 @@ export default function CredentialsScreen() {
                             )}
                         </LinearGradient>
                     </TouchableOpacity>
+
+                    <TouchableOpacity onPress={handleSkip} activeOpacity={0.8} className="mt-4">
+                        <Text className="text-blue-600 font-outfit-medium text-center text-sm">
+                            {t('setup.credentials.skipButton')}
+                        </Text>
+                    </TouchableOpacity>
+
+                    <Text className="text-gray-400 font-outfit-regular text-xs text-center mt-2">
+                        {t('setup.credentials.skipHint')}
+                    </Text>
                 </View>
             ) : (
                 <View>
                     <Text className="font-outfit-medium text-[#0F172A] mb-1">{t('setup.credentials.memberIdLabel')}</Text>
-                    <Text className="text-[#0047AB] font-outfit-medium text-base mb-2">{mechanic.aseId}</Text>
-                    <Text className="text-gray-500 font-outfit-regular text-sm mb-6">
-                        {mechanic.firstName} {mechanic.lastName}
-                    </Text>
+                    <Text className="text-[#0047AB] font-outfit-medium text-base mb-6">{verified.aseId}</Text>
 
                     <View className="space-y-4 mb-8">
-                        {mechanic.certifications.length === 0 ? (
+                        {(verified.certifications ?? []).length === 0 ? (
                             <Text className="text-gray-400 font-outfit-regular text-sm">{t('setup.credentials.noCertifications')}</Text>
                         ) : (
-                            mechanic.certifications.map((cert) => (
+                            (verified.certifications ?? []).map((cert) => (
                                 <View key={cert.id} className="bg-blue-50/50 p-4 rounded-xl">
                                     <Text className="font-outfit-bold text-[#0F172A] mb-1">
                                         {cert.code}{cert.name ? ` - ${cert.name}` : ''}
@@ -161,7 +199,7 @@ export default function CredentialsScreen() {
                     </View>
 
                     <TouchableOpacity
-                        onPress={() => setMechanic(null)}
+                        onPress={() => setVerified(null)}
                         activeOpacity={0.8}
                         className="mb-3"
                     >

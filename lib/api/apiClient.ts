@@ -11,16 +11,50 @@ import {
 import { ApiError, ApiResponse } from './types';
 
 /**
+ * Routes the registration wizard drives: the gateway's signup-token allowlist,
+ * plus the ASE lookup and the handover that trades the scoped token for a
+ * session.
+ *
+ * These prefer the signup token even when a session exists. Registering on a
+ * device that is still signed in — a mechanic setting up a colleague, or anyone
+ * who ran the flow earlier — would otherwise complete the whole wizard as the
+ * *old* user: the account is created under that session, and the final handover
+ * then fails, because a session token is not a signup token.
+ */
+const SIGNUP_ROUTES: ReadonlyArray<RegExp> = [
+    /^\/api\/photos\/upload$/,
+    /^\/api\/verification\/(session|status)$/,
+    /^\/api\/users$/,
+    /^\/api\/users\/check-email\//,
+    /^\/api\/ase-membership\/verify$/,
+    /^\/api\/auth\/session\/from-signup$/,
+];
+
+function isSignupRoute(endpoint: string): boolean {
+    const path = endpoint.split('?')[0];
+    return SIGNUP_ROUTES.some((route) => route.test(path));
+}
+
+/**
  * Bearer token for outgoing requests.
  *
  * During registration there is no `access_token` yet — the account does not
  * exist — but the setup flow still has to upload a profile picture, run identity
  * verification, and then create the user. Those calls carry the short-lived
- * `signup_token` instead; the gateway accepts it on exactly those routes. A real
- * session always wins over it.
+ * `signup_token` instead; the gateway accepts it on exactly those routes.
+ *
+ * A real session wins everywhere else, but never on a wizard route: there the
+ * signup token is the point, so it goes first whenever one is present.
  */
-async function getAuthHeaders(): Promise<Record<string, string>> {
+async function getAuthHeaders(
+    endpoint: string,
+): Promise<Record<string, string>> {
     try {
+        if (isSignupRoute(endpoint)) {
+            const signupToken = await getSignupToken();
+            if (signupToken) return { Authorization: `Bearer ${signupToken}` };
+        }
+
         const token = await getAccessToken();
         if (token) return { Authorization: `Bearer ${token}` };
 
@@ -207,14 +241,22 @@ async function send<T>(
     init: Omit<RequestInit, 'method'> = {},
 ): Promise<T> {
     await ConfigService.init();
-    const authHeaders = await getAuthHeaders();
+    const authHeaders = await getAuthHeaders(endpoint);
     const url = buildUrl(ConfigService.getApiBaseUrl(), endpoint);
 
-    const response = await fetch(url, {
-        ...init,
-        method,
-        headers: { ...(init.headers ?? {}), ...authHeaders },
-    });
+    console.log(`[apiClient] ${method} ${url} (env=${ConfigService.getEnv()})`);
+
+    let response: Response;
+    try {
+        response = await fetch(url, {
+            ...init,
+            method,
+            headers: { ...(init.headers ?? {}), ...authHeaders },
+        });
+    } catch (error) {
+        console.log(`[apiClient] transport failure for ${url}:`, error);
+        throw error;
+    }
 
     return unwrapResponse<T>(response, method, endpoint);
 }

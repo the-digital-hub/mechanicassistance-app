@@ -68,6 +68,12 @@ export interface MechanicDetail {
     companyInvitation?: string;
     expertiseDetails?: string;
     yearsExperience?: string;
+    /** Travel radius from the base address, in miles (1-50). Absent for
+     *  mechanics who registered before the service-area slider was persisted. */
+    serviceRadiusMiles?: number;
+    /** "pending" until the mechanic verifies their ASE ID. Optional so older
+     *  backend builds, which don't send it, still type-check. */
+    aseStatus?: 'pending' | 'verified';
 }
 
 export interface MechanicAvailability {

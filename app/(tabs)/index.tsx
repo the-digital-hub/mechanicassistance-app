@@ -1,4 +1,5 @@
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
+import { AseStatusBadge } from '@/components/ui/AseStatusBadge';
 import { VerificationBadge } from '@/components/ui/VerificationBadge';
 import { useAppointments } from '@/context/AppointmentsContext';
 import { useUser } from '@/context/UserContext';
@@ -192,13 +193,15 @@ export default function ProfileScreen() {
           </Text>
 
           {/* Role + identity verification badges */}
-          <View className="flex-row items-center gap-2">
+          {/* Wraps: a mechanic can show three pills at once (role, identity, ASE). */}
+          <View className="flex-row flex-wrap items-center justify-center gap-2">
             <View className="px-4 py-2 rounded-full" style={{ backgroundColor: '#E9F1FF' }}>
               <Text className="text-blue-600 font-outfit-semibold text-sm capitalize">
                 {user.role === 'mechanic' ? t('profile.roleMechanic') : t('profile.roleOwner')}
               </Text>
             </View>
             <VerificationBadge />
+            <AseStatusBadge />
           </View>
         </View>
 

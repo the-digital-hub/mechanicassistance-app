@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/Button";
-import { saveSetupProgress } from "@/lib/storage";
+import { getSetupProgress, saveSetupProgress } from "@/lib/storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   FlatList,
@@ -19,39 +19,93 @@ import { MAP_PROVIDER } from "@/lib/maps/provider";
 // ── Types ──────────────────────────────────────────────────────────────────
 type TimePickerField = "from" | "to";
 
+/** `day: null` targets the all-week pair; a day key targets that day's row. */
+type TimePickerTarget = { day: string | null; field: TimePickerField };
+
+type DayHours = { startTime: string; endTime: string };
+
 // ── Helpers ────────────────────────────────────────────────────────────────
+/**
+ * Half-hour slots as "HH:mm", 24-hour.
+ *
+ * The screen used to hold 12-hour strings ("09:00 AM") and send them straight to
+ * the API, which documented — and now enforces — 24-hour. Production ended up
+ * with both formats in the same column. "HH:mm" is the canon on the wire; the
+ * 12-hour form below is presentation only.
+ */
 const TIMES: string[] = (() => {
   const result: string[] = [];
   for (let h = 0; h < 24; h++) {
-    for (const m of [0, 30]) {
-      const period = h < 12 ? "AM" : "PM";
-      const hour = h === 0 ? 12 : h > 12 ? h - 12 : h;
-      const min = m === 0 ? "00" : "30";
-      result.push(`${hour.toString().padStart(2, "0")}:${min} ${period}`);
+    for (const m of ["00", "30"]) {
+      result.push(`${h.toString().padStart(2, "0")}:${m}`);
     }
   }
   return result;
 })();
 
+/** "13:30" → "01:30 PM". Display only — never persisted. */
+function formatTime12h(hhmm: string): string {
+  const [rawHour, minutes] = hhmm.split(":");
+  const h = Number(rawHour);
+  const period = h < 12 ? "AM" : "PM";
+  const hour = h % 12 === 0 ? 12 : h % 12;
+  return `${hour.toString().padStart(2, "0")}:${minutes} ${period}`;
+}
+
+/** Lexicographic order matches chronological order for zero-padded "HH:mm". */
+function isValidRange({ startTime, endTime }: DayHours): boolean {
+  return endTime > startTime;
+}
+
 // ── Constants ──────────────────────────────────────────────────────────────
-const DAYS: { label: string; key: string }[] = [
-  { label: "M", key: "Monday" },
-  { label: "T", key: "Tuesday" },
-  { label: "W", key: "Wednesday" },
-  { label: "T", key: "Thursday" },
-  { label: "F", key: "Friday" },
-  { label: "S", key: "Saturday" },
-  { label: "S", key: "Sunday" },
+const DAYS: string[] = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
 ];
 
 const DEFAULT_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 const RADIUS_MIN = 1;
 const RADIUS_MAX = 50;
+/**
+ * Shown until the address saved in `/setup/address` is read back, and as the
+ * fallback when the wizard skipped that step (or the street was typed by hand,
+ * which drops the coordinates).
+ */
 const BASE_LOCATION = {
   latitude: 33.4484,
   longitude: -112.074,
   address: "2418 Sunset Blvd · Phoenix, AZ",
 };
+
+type StoredAddressEntry = {
+  street?: string;
+  city?: string;
+  state?: string;
+  locationLat?: number;
+  locationLng?: number;
+};
+
+/** Turns the address step's entry into the map centre + the one-line label. */
+function baseLocationFromAddress(address: {
+  type?: string;
+  home?: StoredAddressEntry;
+  work?: StoredAddressEntry;
+}) {
+  const entry = address.type === "work" ? address.work : address.home;
+  if (!entry?.street) return null;
+
+  const cityState = [entry.city, entry.state].filter(Boolean).join(", ");
+  return {
+    latitude: entry.locationLat ?? BASE_LOCATION.latitude,
+    longitude: entry.locationLng ?? BASE_LOCATION.longitude,
+    address: [entry.street, cityState].filter(Boolean).join(" · "),
+  };
+}
 
 // ── Time picker modal ──────────────────────────────────────────────────────
 function TimePickerModal({
@@ -124,7 +178,7 @@ function TimePickerModal({
                       isSelected ? "text-[#0047AB]" : "text-[#0F172A]"
                     }`}
                   >
-                    {item}
+                    {formatTime12h(item)}
                   </Text>
                 </View>
                 {isSelected && (
@@ -146,26 +200,87 @@ export default function AvailabilityScreen() {
 
   const [selectedDays, setSelectedDays] = useState<string[]>(DEFAULT_DAYS);
   const [applySameTime, setApplySameTime] = useState(true);
-  const [startTime, setStartTime] = useState("09:00 AM");
-  const [endTime, setEndTime] = useState("05:00 PM");
-  const [pickerField, setPickerField] = useState<TimePickerField | null>(null);
+  const [startTime, setStartTime] = useState("09:00");
+  const [endTime, setEndTime] = useState("17:00");
+  // Only holds the days the mechanic actually edited; the rest fall back to the
+  // all-week pair, so unticking the checkbox does not blank the whole week.
+  const [perDay, setPerDay] = useState<Record<string, DayHours>>({});
+  const [pickerTarget, setPickerTarget] = useState<TimePickerTarget | null>(
+    null,
+  );
+  const [error, setError] = useState<string | null>(null);
 
   const [serviceRadius, setServiceRadius] = useState(15);
+  const [baseLocation, setBaseLocation] = useState(BASE_LOCATION);
   const trackWidth = useRef(0);
   const trackPageX = useRef(0);
 
+  // The mechanic's own address is the centre of the service area — the constant
+  // is only a placeholder for a wizard that skipped the address step.
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      const progress = await getSetupProgress();
+      const address = progress.address;
+      if (!address) return;
+
+      const resolved = baseLocationFromAddress(address);
+      if (resolved && !cancelled) setBaseLocation(resolved);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const toggleDay = (key: string) => {
+    setError(null);
     setSelectedDays((prev) =>
       prev.includes(key) ? prev.filter((d) => d !== key) : [...prev, key],
     );
   };
 
-  const openPicker = (field: TimePickerField) => setPickerField(field);
-  const closePicker = () => setPickerField(null);
+  /** A day the mechanic never touched inherits the all-week pair. */
+  const hoursFor = (day: string): DayHours =>
+    perDay[day] ?? { startTime, endTime };
+
+  const openPicker = (target: TimePickerTarget) => setPickerTarget(target);
+  const closePicker = () => setPickerTarget(null);
+
   const handleSelectTime = (time: string) => {
-    if (pickerField === "from") setStartTime(time);
-    else setEndTime(time);
+    if (!pickerTarget) return;
+    setError(null);
+
+    const { day, field } = pickerTarget;
+
+    if (day === null) {
+      if (field === "from") setStartTime(time);
+      else setEndTime(time);
+      return;
+    }
+
+    setPerDay((prev) => {
+      const current = prev[day] ?? { startTime, endTime };
+      return {
+        ...prev,
+        [day]: {
+          ...current,
+          ...(field === "from" ? { startTime: time } : { endTime: time }),
+        },
+      };
+    });
   };
+
+  const selectedTime = pickerTarget
+    ? pickerTarget.day === null
+      ? pickerTarget.field === "from"
+        ? startTime
+        : endTime
+      : pickerTarget.field === "from"
+        ? hoursFor(pickerTarget.day).startTime
+        : hoursFor(pickerTarget.day).endTime
+    : startTime;
 
   const updateRadius = (pageX: number) => {
     const x = pageX - trackPageX.current;
@@ -191,12 +306,40 @@ export default function AvailabilityScreen() {
   const mapDelta = Math.max(0.04, (serviceRadius / RADIUS_MAX) * 0.6);
 
   const handleSave = async () => {
+    // Nothing validated this before: an empty week or an end time earlier than
+    // the start went straight to the API and was stored as-is.
+    if (selectedDays.length === 0) {
+      setError(t("setup.availability.errorNoDays"));
+      return;
+    }
+
+    const ranges = applySameTime
+      ? [{ startTime, endTime }]
+      : selectedDays.map(hoursFor);
+
+    if (!ranges.every(isValidRange)) {
+      setError(t("setup.availability.errorEndBeforeStart"));
+      return;
+    }
+
+    setError(null);
+
     await saveSetupProgress("availability", {
       selectedDays,
       startTime,
       endTime,
       applySameTime,
       serviceRadius,
+      // Only sent when the hours actually differ per day; the backend prefers
+      // `schedule` over `selectedDays` whenever it is present.
+      ...(applySameTime
+        ? {}
+        : {
+            schedule: selectedDays.map((day) => ({
+              day,
+              ...hoursFor(day),
+            })),
+          }),
     });
     router.push("/setup/success");
   };
@@ -204,8 +347,8 @@ export default function AvailabilityScreen() {
   return (
     <>
       <TimePickerModal
-        visible={pickerField !== null}
-        selected={pickerField === "from" ? startTime : endTime}
+        visible={pickerTarget !== null}
+        selected={selectedTime}
         onSelect={handleSelectTime}
         onClose={closePicker}
       />
@@ -229,12 +372,12 @@ export default function AvailabilityScreen() {
           <View className="bg-white rounded-2xl p-4">
             {/* Day pills */}
             <View className="flex-row justify-between mb-5">
-              {DAYS.map((day, index) => {
-                const isSelected = selectedDays.includes(day.key);
+              {DAYS.map((day) => {
+                const isSelected = selectedDays.includes(day);
                 return (
                   <TouchableOpacity
-                    key={`${day.key}-${index}`}
-                    onPress={() => toggleDay(day.key)}
+                    key={day}
+                    onPress={() => toggleDay(day)}
                     className={`w-10 h-10 rounded-full items-center justify-center ${
                       isSelected ? "bg-[#0047AB]" : "bg-[#F1F5F9]"
                     }`}
@@ -244,56 +387,124 @@ export default function AvailabilityScreen() {
                         isSelected ? "text-white" : "text-[#94A3B8]"
                       }`}
                     >
-                      {day.label}
+                      {t(`setup.availability.dayInitials.${day}`)}
                     </Text>
                   </TouchableOpacity>
                 );
               })}
             </View>
 
-            {/* FROM / TO */}
-            <View className="flex-row gap-3 mb-4">
-              <View className="flex-1">
-                <Text className="text-[#64748B] font-outfit-medium text-xs mb-1 tracking-widest uppercase">
-                  {t('setup.availability.from')}
-                </Text>
-                <TouchableOpacity
-                  className="bg-[#F8FAFF] flex-row items-center justify-between px-3 h-11 rounded-xl border border-[#E2E8F0]"
-                  onPress={() => openPicker("from")}
-                >
-                  <View className="flex-row items-center gap-2">
-                    <Ionicons name="time-outline" size={16} color="#0047AB" />
-                    <Text className="text-[#0F172A] font-outfit-regular text-sm">
-                      {startTime}
-                    </Text>
-                  </View>
-                  <Ionicons name="chevron-down" size={16} color="#0047AB" />
-                </TouchableOpacity>
-              </View>
+            {/* FROM / TO — the week-wide pair, shown while the hours match */}
+            {applySameTime && (
+              <View className="flex-row gap-3 mb-4">
+                <View className="flex-1">
+                  <Text className="text-[#64748B] font-outfit-medium text-xs mb-1 tracking-widest uppercase">
+                    {t('setup.availability.from')}
+                  </Text>
+                  <TouchableOpacity
+                    className="bg-[#F8FAFF] flex-row items-center justify-between px-3 h-11 rounded-xl border border-[#E2E8F0]"
+                    onPress={() => openPicker({ day: null, field: "from" })}
+                  >
+                    <View className="flex-row items-center gap-2">
+                      <Ionicons name="time-outline" size={16} color="#0047AB" />
+                      <Text className="text-[#0F172A] font-outfit-regular text-sm">
+                        {formatTime12h(startTime)}
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-down" size={16} color="#0047AB" />
+                  </TouchableOpacity>
+                </View>
 
-              <View className="flex-1">
-                <Text className="text-[#64748B] font-outfit-medium text-xs mb-1 tracking-widest uppercase">
-                  {t('setup.availability.to')}
-                </Text>
-                <TouchableOpacity
-                  className="bg-[#F8FAFF] flex-row items-center justify-between px-3 h-11 rounded-xl border border-[#E2E8F0]"
-                  onPress={() => openPicker("to")}
-                >
-                  <View className="flex-row items-center gap-2">
-                    <Ionicons name="time-outline" size={16} color="#0047AB" />
-                    <Text className="text-[#0F172A] font-outfit-regular text-sm">
-                      {endTime}
-                    </Text>
-                  </View>
-                  <Ionicons name="chevron-down" size={16} color="#0047AB" />
-                </TouchableOpacity>
+                <View className="flex-1">
+                  <Text className="text-[#64748B] font-outfit-medium text-xs mb-1 tracking-widest uppercase">
+                    {t('setup.availability.to')}
+                  </Text>
+                  <TouchableOpacity
+                    className="bg-[#F8FAFF] flex-row items-center justify-between px-3 h-11 rounded-xl border border-[#E2E8F0]"
+                    onPress={() => openPicker({ day: null, field: "to" })}
+                  >
+                    <View className="flex-row items-center gap-2">
+                      <Ionicons name="time-outline" size={16} color="#0047AB" />
+                      <Text className="text-[#0F172A] font-outfit-regular text-sm">
+                        {formatTime12h(endTime)}
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-down" size={16} color="#0047AB" />
+                  </TouchableOpacity>
+                </View>
               </View>
-            </View>
+            )}
+
+            {/* Per-day hours — one row per selected day, in week order */}
+            {!applySameTime && (
+              <View className="mb-4">
+                <Text className="text-[#64748B] font-outfit-regular text-sm mb-3">
+                  {t('setup.availability.perDayHint')}
+                </Text>
+
+                {DAYS.filter((day) => selectedDays.includes(day)).map((day) => {
+                  const hours = hoursFor(day);
+                  return (
+                    <View key={day} className="mb-3">
+                      <Text className="text-[#0F172A] font-outfit-medium text-sm mb-1">
+                        {t(`setup.availability.dayNames.${day}`)}
+                      </Text>
+                      <View className="flex-row gap-3">
+                        <TouchableOpacity
+                          className="flex-1 bg-[#F8FAFF] flex-row items-center justify-between px-3 h-11 rounded-xl border border-[#E2E8F0]"
+                          onPress={() => openPicker({ day, field: "from" })}
+                        >
+                          <View className="flex-row items-center gap-2">
+                            <Ionicons
+                              name="time-outline"
+                              size={16}
+                              color="#0047AB"
+                            />
+                            <Text className="text-[#0F172A] font-outfit-regular text-sm">
+                              {formatTime12h(hours.startTime)}
+                            </Text>
+                          </View>
+                          <Ionicons
+                            name="chevron-down"
+                            size={16}
+                            color="#0047AB"
+                          />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          className="flex-1 bg-[#F8FAFF] flex-row items-center justify-between px-3 h-11 rounded-xl border border-[#E2E8F0]"
+                          onPress={() => openPicker({ day, field: "to" })}
+                        >
+                          <View className="flex-row items-center gap-2">
+                            <Ionicons
+                              name="time-outline"
+                              size={16}
+                              color="#0047AB"
+                            />
+                            <Text className="text-[#0F172A] font-outfit-regular text-sm">
+                              {formatTime12h(hours.endTime)}
+                            </Text>
+                          </View>
+                          <Ionicons
+                            name="chevron-down"
+                            size={16}
+                            color="#0047AB"
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            )}
 
             {/* Apply same hours */}
             <TouchableOpacity
               className="flex-row items-center gap-2"
-              onPress={() => setApplySameTime(!applySameTime)}
+              onPress={() => {
+                setError(null);
+                setApplySameTime(!applySameTime);
+              }}
             >
               <View
                 className={`w-5 h-5 rounded-md items-center justify-center ${
@@ -333,8 +544,8 @@ export default function AvailabilityScreen() {
                   provider={MAP_PROVIDER}
                   style={{ height: 180 }}
                   region={{
-                    latitude: BASE_LOCATION.latitude,
-                    longitude: BASE_LOCATION.longitude,
+                    latitude: baseLocation.latitude,
+                    longitude: baseLocation.longitude,
                     latitudeDelta: mapDelta,
                     longitudeDelta: mapDelta,
                   }}
@@ -343,9 +554,9 @@ export default function AvailabilityScreen() {
                   pitchEnabled={false}
                   rotateEnabled={false}
                 >
-                  <Marker coordinate={BASE_LOCATION} pinColor="#0047AB" />
+                  <Marker coordinate={baseLocation} pinColor="#0047AB" />
                   <Circle
-                    center={BASE_LOCATION}
+                    center={baseLocation}
                     radius={serviceRadius * 1609.34}
                     strokeColor="rgba(0, 71, 171, 0.35)"
                     fillColor="rgba(0, 71, 171, 0.12)"
@@ -416,11 +627,11 @@ export default function AvailabilityScreen() {
                       className="text-[#0F172A] font-outfit-medium text-sm"
                       numberOfLines={1}
                     >
-                      {BASE_LOCATION.address}
+                      {baseLocation.address}
                     </Text>
                   </View>
                 </View>
-                <TouchableOpacity>
+                <TouchableOpacity onPress={() => router.push("/setup/address")}>
                   <Text className="text-[#0047AB] font-outfit-bold text-sm">
                     {t('setup.availability.edit')}
                   </Text>
@@ -431,6 +642,15 @@ export default function AvailabilityScreen() {
         </View>
 
         {/* Save */}
+        {error && (
+          <View className="flex-row items-center gap-2 mb-3">
+            <Ionicons name="alert-circle" size={16} color="#EF4444" />
+            <Text className="text-[#EF4444] font-outfit-medium text-sm flex-1">
+              {error}
+            </Text>
+          </View>
+        )}
+
         <Button
           onPress={handleSave}
           size="lg"

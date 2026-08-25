@@ -1,7 +1,8 @@
 import { Input } from '@/components/ui/Input';
-import { AseDAO, AseMechanicData, UserCertificationsData } from '@/lib/dao/AseDAO';
+import { AseDAO, AseVerifyResult, UserCertificationsData } from '@/lib/dao/AseDAO';
 import { useUser } from '@/context/UserContext';
 import { ApiError } from '@/lib/api/types';
+import { formatAseId, isCompleteAseId, toAseIdRaw } from '@/lib/ase-id';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -10,14 +11,14 @@ import { ChevronRight } from 'lucide-react-native';
 
 export default function ASEScreen() {
     const { t } = useTranslation();
-    const { user } = useUser();
+    const { user, updateUser } = useUser();
     const [data, setData] = useState<UserCertificationsData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [notLinked, setNotLinked] = useState(false);
 
     // Input+lookup state (shown when not linked)
     const [aseId, setAseId] = useState('');
-    const [mechanic, setMechanic] = useState<AseMechanicData | null>(null);
+    const [verified, setVerified] = useState<AseVerifyResult | null>(null);
     const [isSearching, setIsSearching] = useState(false);
     const [isAssociating, setIsAssociating] = useState(false);
     const [searchError, setSearchError] = useState<string | null>(null);
@@ -30,23 +31,33 @@ export default function ASEScreen() {
         AseDAO.getUserCertifications(user.id)
             .then(setData)
             .catch((err) => {
-                if (err instanceof ApiError && err.status === 404) {
+                if (err instanceof ApiError && err.statusCode === 404) {
                     setNotLinked(true);
                 }
             })
             .finally(() => setIsLoading(false));
     }, [user?.id]);
 
+    // The ASE record must belong to the name on the account, so an ID that is
+    // registered to somebody else is rejected instead of linked.
+    // `aseId` holds the raw characters; the input renders the masked value.
+    const maskedAseId = formatAseId(aseId);
+    const canSearch = isCompleteAseId(aseId) && !!user?.name?.trim() && !!user?.surname?.trim();
+
     const handleSearch = async () => {
-        if (!aseId.trim()) return;
+        if (!canSearch || !user) return;
         setIsSearching(true);
         setSearchError(null);
-        setMechanic(null);
+        setVerified(null);
         try {
-            const result = await AseDAO.lookupByAseId(aseId.trim());
-            setMechanic(result);
+            const result = await AseDAO.verify(maskedAseId, user.name.trim(), user.surname.trim());
+            if (result.matched) {
+                setVerified(result);
+            } else {
+                setSearchError(t('ase.mismatch'));
+            }
         } catch (err) {
-            if (err instanceof ApiError && err.status === 404) {
+            if (err instanceof ApiError && err.statusCode === 404) {
                 setSearchError(t('ase.notFound'));
             } else {
                 setSearchError(t('ase.searchError'));
@@ -57,11 +68,14 @@ export default function ASEScreen() {
     };
 
     const handleAssociate = async () => {
-        if (!user?.id || !mechanic) return;
+        if (!user?.id || !verified?.aseId) return;
         setIsAssociating(true);
         setSearchError(null);
         try {
-            await AseDAO.associate(user.id, mechanic.aseId);
+            // users-service links the record and flips aseStatus, returning the
+            // refreshed user — which is what clears the profile badge.
+            const updated = await AseDAO.linkForUser(user.id, verified.aseId);
+            await updateUser({ mechanicDetails: updated.mechanicDetails }, false);
             const certifications = await AseDAO.getUserCertifications(user.id);
             setData(certifications);
             setNotLinked(false);
@@ -114,15 +128,17 @@ export default function ASEScreen() {
                         {t('ase.description')}
                     </Text>
 
-                    {!mechanic ? (
+                    {!verified ? (
                         <View>
                             <Text className="font-outfit-medium text-[#0F172A] mb-2">{t('ase.memberIdLabel')}</Text>
                             <Input
                                 placeholder="ASE-XXXX-XXXX"
-                                value={aseId}
-                                onChangeText={(text) => { setAseId(text); setSearchError(null); }}
+                                value={maskedAseId}
+                                onChangeText={(text) => { setAseId(toAseIdRaw(text)); setSearchError(null); }}
                                 containerClassName="bg-white border border-gray-300 rounded-2xl mb-4"
-                                autoCapitalize="characters"
+                                autoCorrect={false}
+                                keyboardType="number-pad"
+                                maxLength={13}
                             />
 
                             {searchError && (
@@ -132,7 +148,7 @@ export default function ASEScreen() {
                             <TouchableOpacity
                                 onPress={handleSearch}
                                 activeOpacity={0.8}
-                                disabled={isSearching || !aseId.trim()}
+                                disabled={isSearching || !canSearch}
                             >
                                 <LinearGradient
                                     colors={['#2B66F8', '#081E72']}
@@ -145,7 +161,7 @@ export default function ASEScreen() {
                                         flexDirection: 'row',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        opacity: isSearching || !aseId.trim() ? 0.6 : 1,
+                                        opacity: isSearching || !canSearch ? 0.6 : 1,
                                     }}
                                 >
                                     {isSearching ? (
@@ -162,16 +178,13 @@ export default function ASEScreen() {
                     ) : (
                         <View>
                             <Text className="font-outfit-medium text-[#0F172A] mb-1">{t('ase.memberIdLabel')}</Text>
-                            <Text className="text-[#0047AB] font-outfit-medium text-base mb-1">{mechanic.aseId}</Text>
-                            <Text className="text-gray-500 font-outfit-regular text-sm mb-6">
-                                {mechanic.firstName} {mechanic.lastName}
-                            </Text>
+                            <Text className="text-[#0047AB] font-outfit-medium text-base mb-6">{verified.aseId}</Text>
 
                             <View className="space-y-4 mb-8">
-                                {mechanic.certifications.length === 0 ? (
+                                {(verified.certifications ?? []).length === 0 ? (
                                     <Text className="text-gray-400 font-outfit-regular text-sm">{t('ase.noCertifications')}</Text>
                                 ) : (
-                                    mechanic.certifications.map((cert) => (
+                                    (verified.certifications ?? []).map((cert) => (
                                         <View key={cert.id} className="bg-blue-50/50 p-4 rounded-xl">
                                             <Text className="font-outfit-bold text-[#0F172A] mb-1">
                                                 {cert.code}{cert.name ? ` - ${cert.name}` : ''}
@@ -189,7 +202,7 @@ export default function ASEScreen() {
                             )}
 
                             <TouchableOpacity
-                                onPress={() => { setMechanic(null); setSearchError(null); }}
+                                onPress={() => { setVerified(null); setSearchError(null); }}
                                 activeOpacity={0.8}
                                 className="mb-3"
                             >

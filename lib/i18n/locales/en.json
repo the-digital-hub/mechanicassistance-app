@@ -46,6 +46,10 @@
       "ok": "OK",
       "uploadFailedTitle": "Upload Failed",
       "uploadFailedMessage": "Could not upload profile photo. Please try again."
+    },
+    "aseBadge": {
+      "pending": "ASE not verified",
+      "cta": "Verify your ASE credential"
     }
   },
   "assistanceCard": {
@@ -861,7 +865,11 @@
       "tryAgain": "Try Again",
       "congratulations": "Congratulations",
       "setupComplete": "Your account has been set-up successfully!",
-      "getStarted": "Get Started"
+      "getStarted": "Get Started",
+      "expiredTitle": "Your verification expired",
+      "expiredMessage": "Phone verification is only valid for 30 minutes and the wizard took longer. Your account was created — sign in to finish.",
+      "expiredRestartMessage": "Phone verification is only valid for 30 minutes and the wizard took longer. Request a new code to start again.",
+      "signIn": "Sign in"
     },
     "vehicleInfo": {
       "invalidVinTitle": "Invalid VIN",
@@ -906,7 +914,10 @@
       "noCertifications": "No certifications found for this ID.",
       "expiration": "Expiration: {{date}}",
       "searchDifferent": "Search a different ID",
-      "validateButton": "Validate Certifications"
+      "validateButton": "Validate Certifications",
+      "mismatch": "That ASE ID is registered to a different name. Check the ID and try again.",
+      "skipButton": "Verify later",
+      "skipHint": "You can add your ASE ID anytime from your profile."
     },
     "availability": {
       "selectTime": "Select time",
@@ -924,7 +935,28 @@
       "milesAbbr": "{{count}} mi",
       "baseLocation": "Base location",
       "edit": "Edit",
-      "saveChanges": "Save changes"
+      "saveChanges": "Save changes",
+      "errorNoDays": "Pick at least one day.",
+      "errorEndBeforeStart": "The end time has to be later than the start time.",
+      "perDayHint": "Set the hours for each day you selected.",
+      "dayNames": {
+        "Monday": "Monday",
+        "Tuesday": "Tuesday",
+        "Wednesday": "Wednesday",
+        "Thursday": "Thursday",
+        "Friday": "Friday",
+        "Saturday": "Saturday",
+        "Sunday": "Sunday"
+      },
+      "dayInitials": {
+        "Monday": "M",
+        "Tuesday": "T",
+        "Wednesday": "W",
+        "Thursday": "T",
+        "Friday": "F",
+        "Saturday": "S",
+        "Sunday": "S"
+      }
     },
     "address": {
       "badge": "YOUR ADDRESS",
@@ -1018,7 +1050,8 @@
     "noCertificationsMembership": "No certifications found for this membership.",
     "expiration": "Expiration: {{date}}",
     "searchDifferent": "Search a different ID",
-    "linkButton": "Link ASE Membership"
+    "linkButton": "Link ASE Membership",
+    "mismatch": "That ASE ID is registered to a different name. Check the ID and try again."
   },
   "promotions": {
     "badge": "PROMOTIONS",
