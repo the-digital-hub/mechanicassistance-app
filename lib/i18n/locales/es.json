@@ -751,7 +751,6 @@
     "sessionExpiredTitle": "Sesión cerrada",
     "sessionExpiredMessage": "Tu sesión expiró. Volvé a iniciar sesión.",
     "countryNotSupportedMessage": "Todavía no aceptamos números de teléfono de ese país.",
-    "devCodeHint": "Build de desarrollo: el código se completó automáticamente.",
     "noCodeHint": "¿No te llegó el código?",
     "noCodeHintDetail": "Puede tardar un minuto. Si no llega, puede que ese número todavía no tenga cuenta."
   },

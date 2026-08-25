@@ -71,7 +71,6 @@ export default function OTPScreen() {
         if (typeof phone.requestId === 'string') setRequestId(phone.requestId);
         if (typeof phone.expiresAtMs === 'number') setExpiresAtMs(phone.expiresAtMs);
         if (typeof phone.resendAtMs === 'number') setResendAtMs(phone.resendAtMs);
-        if (typeof phone.devCode === 'string') setCode(phone.devCode);
     };
 
     const handleKeyPress = (key: string) => {
@@ -126,7 +125,8 @@ export default function OTPScreen() {
             setExpiresAtMs(Date.now() + challenge.expiresIn * 1000);
             setResendAtMs(Date.now() + challenge.resendAfter * 1000);
             setAttemptsLeft(null);
-            setCode(challenge.devCode ?? '');
+            // Cleared so the OS offers the new code instead of the stale one.
+            setCode('');
             showError(t('setup.otp.codeSentTitle'), t('setup.otp.codeSentMessage'), undefined, true);
         } catch (err: unknown) {
             showError(t('setup.otp.errorTitle'), describeAuthError(err, t));
@@ -190,6 +190,9 @@ export default function OTPScreen() {
                                 textContentType="oneTimeCode"
                                 autoComplete={Platform.OS === 'android' ? 'sms-otp' : 'one-time-code'}
                                 maxLength={6}
+                                // Explicit because opacity:0 can make Android skip
+                                // the view when it builds the autofill structure.
+                                importantForAutofill="yes"
                                 style={{ position: 'absolute', width: '100%', height: '100%', opacity: 0 }}
                                 caretHidden={true}
                             />

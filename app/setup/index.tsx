@@ -82,7 +82,6 @@ export default function PhoneNumberScreen() {
         requestId: challenge.requestId,
         expiresAtMs: Date.now() + challenge.expiresIn * 1000,
         resendAtMs: Date.now() + challenge.resendAfter * 1000,
-        devCode: challenge.devCode,
       });
 
       router.push("/setup/otp");

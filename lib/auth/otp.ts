@@ -11,12 +11,6 @@ export interface OtpChallenge {
     /** Seconds before a resend is allowed. */
     resendAfter: number;
     codeLength: number;
-    /**
-     * The code itself, returned only while the backend is simulating SMS.
-     * Present in development so the flow is testable before an AWS origination
-     * identity is approved; never present once real messages are being sent.
-     */
-    devCode?: string;
 }
 
 /**

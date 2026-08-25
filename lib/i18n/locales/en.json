@@ -751,7 +751,6 @@
     "sessionExpiredTitle": "Signed out",
     "sessionExpiredMessage": "Your session expired. Please sign in again.",
     "countryNotSupportedMessage": "We don't support phone numbers from that country yet.",
-    "devCodeHint": "Development build: code filled in automatically.",
     "noCodeHint": "Didn't get the code?",
     "noCodeHintDetail": "It can take a minute. If it never arrives, that number may not have an account yet."
   },

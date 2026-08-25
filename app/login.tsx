@@ -138,7 +138,7 @@ export default function LoginScreen() {
       // message. The "account not found" case surfaces at verify instead.
       const challenge = await requestOtp(e164, "login");
       applyChallenge(challenge);
-      setOtpCode(challenge.devCode ?? "");
+      setOtpCode("");
       setStep("otp");
     } catch (err: unknown) {
       showError(t("login.errorTitle"), describeAuthError(err, t));
@@ -163,7 +163,8 @@ export default function LoginScreen() {
     try {
       const challenge = await resendOtp(requestId, fullPhoneRef.current);
       applyChallenge(challenge);
-      setOtpCode(challenge.devCode ?? "");
+      // Cleared so the OS offers the new code instead of the stale one.
+      setOtpCode("");
     } catch (err: unknown) {
       showError(t("login.errorTitle"), describeAuthError(err, t));
     } finally {
@@ -374,6 +375,9 @@ export default function LoginScreen() {
                     Platform.OS === "android" ? "sms-otp" : "one-time-code"
                   }
                   maxLength={6}
+                  // Explicit because opacity:0 can make Android skip the view
+                  // when it builds the autofill structure.
+                  importantForAutofill="yes"
                   style={{
                     position: "absolute",
                     width: "100%",
