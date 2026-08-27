@@ -341,7 +341,7 @@ export default function AvailabilityScreen() {
             })),
           }),
     });
-    router.push("/setup/success");
+    router.push("/setup/legal-documents");
   };
 
   return (

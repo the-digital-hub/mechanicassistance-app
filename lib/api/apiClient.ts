@@ -244,7 +244,7 @@ async function send<T>(
     const authHeaders = await getAuthHeaders(endpoint);
     const url = buildUrl(ConfigService.getApiBaseUrl(), endpoint);
 
-    console.log(`[apiClient] ${method} ${url} (env=${ConfigService.getEnv()})`);
+    console.log(`[apiClient] ${method} ${url}`);
 
     let response: Response;
     try {

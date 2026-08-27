@@ -30,10 +30,11 @@ const VerificationContext = createContext<VerificationContextType | undefined>(u
 /**
  * Tracks identity verification (KYC) state for the logged-in user.
  *
- * Verification gates actions, not the whole app: an unverified user browses
- * normally but cannot request assistance, and an unverified mechanic cannot
- * offer on a request (both enforced in appointments-service). This context feeds
- * the profile badge and the client-side redirect at those two action points.
+ * Verification gates one action, not the whole app, and only for mechanics: an
+ * unverified mechanic cannot offer on a request (enforced in
+ * appointments-service). For users it is optional — an unverified user requests
+ * assistance normally. This context feeds the mechanic profile badge and the
+ * verification screen.
  *
  * Three things keep it fresh, fastest first:
  *   1. the `verification_update` socket event, published when a Didit webhook

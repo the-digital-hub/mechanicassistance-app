@@ -1,4 +1,3 @@
-import { EnvSelector } from "@/components/EnvSelector";
 import { SmsConsent } from "@/components/SmsConsent";
 import { Button } from "@/components/ui/Button";
 import { GradientLayout } from "@/components/ui/GradientLayout";
@@ -478,7 +477,6 @@ export default function LoginScreen() {
       ) : (
         /* --- Phone Step UI --- */
         <View className="flex-1">
-          <EnvSelector />
           <TouchableWithoutFeedback
             onPress={Keyboard.dismiss}
             accessible={false}

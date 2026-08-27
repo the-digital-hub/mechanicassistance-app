@@ -111,11 +111,8 @@ test('Full user journey: session inject → edit profile → request → accept 
         // Intercept the bootstrap config fetch so ConfigService always gets
         // local endpoints — prevents it from overwriting localStorage with prod URLs.
         const localBootstrap = {
-            allowEnvSwitch: true,
-            defaultEnv: 'dev',
             envs: {
                 prod: { apiBaseUrl: API_URL, wsUrl: API_URL.replace('http', 'ws') },
-                dev:  { apiBaseUrl: API_URL, wsUrl: API_URL.replace('http', 'ws') },
             },
         };
         await page.route('https://bootstrap.mechanicapp.com/config', route =>
@@ -145,17 +142,12 @@ test('Full user journey: session inject → edit profile → request → accept 
                 // Pre-seed the config cache so ConfigService skips the network
                 // fetch even if the route intercept races with app startup.
                 const localConfig = JSON.stringify({
-                    allowEnvSwitch: true,
-                    defaultEnv: 'dev',
                     envs: {
                         prod: { apiBaseUrl: apiUrl, wsUrl: apiUrl.replace('http', 'ws') },
-                        dev:  { apiBaseUrl: apiUrl, wsUrl: apiUrl.replace('http', 'ws') },
                     },
                 });
                 localStorage.setItem('@mechanic:remoteConfigCache', localConfig);
                 localStorage.setItem('@AsyncStorage:@mechanic:remoteConfigCache', localConfig);
-                localStorage.setItem('@mechanic:selectedEnv', 'dev');
-                localStorage.setItem('@AsyncStorage:@mechanic:selectedEnv', 'dev');
             } catch { /* storage blocked — test will fail later with a clear message */ }
         }, { session: session!, apiUrl: API_URL });
     });

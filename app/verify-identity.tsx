@@ -19,10 +19,11 @@ import {
 /**
  * Identity verification screen.
  *
- * Not a blocking destination: an unverified account uses the app normally. This
- * is where the profile badge and the two gated actions (requesting assistance,
- * offering on a request) send the user when verification is what stands in the
- * way. Enforcement itself lives in appointments-service.
+ * Not a blocking destination: an unverified account uses the app normally, and
+ * for users verification is entirely optional. This is where the mechanic
+ * profile badge and the one gated action (offering on a request) send the
+ * mechanic when verification is what stands in the way. Enforcement itself
+ * lives in appointments-service.
  *
  * Approval arrives by webhook, so the screen updates itself — VerificationContext
  * listens for `verification_update` — and then steps out of the way instead of
@@ -82,11 +83,22 @@ export default function VerificationPendingScreen() {
       const result = await startVerification(session.sessionToken, {
         languageCode: i18n.language,
       });
-      if (result.type === "failed") {
-        Alert.alert(
-          t("setup.identity.failedTitle"),
-          t("setup.identity.failedMessage", { reason: result.error.message }),
-        );
+      switch (result.type) {
+        // Backing out is a valid choice, not an error: say so and leave the
+        // user on the screen, which now offers its own way out.
+        case "cancelled":
+          Alert.alert(
+            t("setup.identity.cancelledTitle"),
+            t("setup.identity.cancelledMessage"),
+          );
+          break;
+
+        case "failed":
+          Alert.alert(
+            t("setup.identity.failedTitle"),
+            t("setup.identity.failedMessage", { reason: result.error.message }),
+          );
+          break;
       }
       // Either way the decision comes back by webhook; pull the current status
       // so the screen reflects the new attempt right away.
@@ -119,139 +131,174 @@ export default function VerificationPendingScreen() {
     }
   };
 
+  /**
+   * Leaves the screen. Verification is optional, so there is always a way out;
+   * falls back to the tabs when this was the first route in the stack.
+   */
+  const leave = () => {
+    if (router.canGoBack()) router.back();
+    else router.replace("/(tabs)");
+  };
+
   return (
-    <ScrollView
-      style={{ backgroundColor: "#F4F6FC" }}
-      contentContainerStyle={{
-        padding: 24,
-        paddingTop: 80,
-        paddingBottom: 40,
-        flexGrow: 1,
-      }}
-    >
-      {/* Section badge */}
-      <View
-        className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full"
-        style={{ backgroundColor: "#E9F1FF", alignSelf: "flex-start" }}
+    <View style={{ flex: 1, backgroundColor: "#F4F6FC" }}>
+      {/* Always an exit: an unverified account is a supported state. */}
+      <TouchableOpacity
+        onPress={leave}
+        activeOpacity={0.7}
+        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        accessibilityRole="button"
+        accessibilityLabel={t("verification.notNow")}
+        style={{ position: "absolute", top: 48, left: 16, zIndex: 10 }}
       >
-        <View
-          className="w-1.5 h-1.5 rounded-full"
-          style={{ backgroundColor: "#0047AB" }}
-        />
-        <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-          {t("verification.badge")}
-        </Text>
-      </View>
+        <Ionicons name="close" size={26} color="#0F172A" />
+      </TouchableOpacity>
 
-      <View
-        className="w-16 h-16 rounded-full justify-center items-center mb-6"
-        style={{ backgroundColor: icon.bg }}
+      <ScrollView
+        style={{ backgroundColor: "#F4F6FC" }}
+        contentContainerStyle={{
+          padding: 24,
+          paddingTop: 80,
+          paddingBottom: 40,
+          flexGrow: 1,
+        }}
       >
-        <Ionicons name={icon.name} size={30} color={icon.color} />
-      </View>
-
-      <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
-        {t(`verification.${variant}Title`)}
-      </Text>
-      <Text className="text-gray-500 font-outfit-regular text-base mb-4">
-        {t(`verification.${variant}Body`)}
-      </Text>
-
-      {variant === "declined" && declineReason && (
+        {/* Section badge */}
         <View
-          className="rounded-2xl p-4 mb-6"
-          style={{ backgroundColor: "#FEE2E2" }}
+          className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full"
+          style={{ backgroundColor: "#E9F1FF", alignSelf: "flex-start" }}
         >
-          <Text
-            className="font-outfit-regular text-sm"
-            style={{ color: "#B91C1C" }}
-          >
-            {t("verification.declinedReason", { reason: declineReason })}
+          <View
+            className="w-1.5 h-1.5 rounded-full"
+            style={{ backgroundColor: "#0047AB" }}
+          />
+          <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+            {t("verification.screenBadge")}
           </Text>
         </View>
-      )}
 
-      <View style={{ flex: 1 }} />
-
-      {variant === "approved" && (
-        <TouchableOpacity
-          onPress={() => router.back()}
-          activeOpacity={0.8}
-          className="mb-3"
+        <View
+          className="w-16 h-16 rounded-full justify-center items-center mb-6"
+          style={{ backgroundColor: icon.bg }}
         >
-          <LinearGradient
-            colors={["#10B981", "#047857"]}
-            start={{ x: 0, y: 1 }}
-            end={{ x: 1, y: 0 }}
-            style={{
-              borderRadius: 10,
-              paddingVertical: 16,
-              paddingHorizontal: 16,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Text className="text-white font-outfit-bold text-center">
-              {t("verification.continueButton")}
-            </Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      )}
+          <Ionicons name={icon.name} size={30} color={icon.color} />
+        </View>
 
-      {canRetry && (
-        <TouchableOpacity
-          onPress={handleRetry}
-          activeOpacity={0.8}
-          disabled={isStarting}
-          className="mb-3"
-        >
-          <LinearGradient
-            colors={["#2B66F8", "#081E72"]}
-            start={{ x: 0, y: 1 }}
-            end={{ x: 1, y: 0 }}
-            style={{
-              borderRadius: 10,
-              paddingVertical: 16,
-              paddingHorizontal: 16,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
-              opacity: isStarting ? 0.6 : 1,
-            }}
-          >
-            {isStarting ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <>
-                <Ionicons name="shield-checkmark" size={18} color="white" />
-                <Text className="text-white font-outfit-bold text-center">
-                  {t(
-                    variant === "declined"
-                      ? "verification.retryButton"
-                      : "verification.startButton",
-                  )}
-                </Text>
-              </>
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
-      )}
-
-      <TouchableOpacity
-        onPress={handleRefresh}
-        activeOpacity={0.8}
-        disabled={isRefreshing}
-        className="rounded-[10px] py-4 px-4 flex-row items-center justify-center"
-        style={{ backgroundColor: "#F3F4F6", opacity: isRefreshing ? 0.6 : 1 }}
-      >
-        <Text className="text-gray-700 font-outfit-bold text-center">
-          {isRefreshing
-            ? t("verification.checking")
-            : t("verification.refreshButton")}
+        <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
+          {t(`verification.${variant}Title`)}
         </Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <Text className="text-gray-500 font-outfit-regular text-base mb-4">
+          {t(`verification.${variant}Body`)}
+        </Text>
+
+        {variant === "declined" && declineReason && (
+          <View
+            className="rounded-2xl p-4 mb-6"
+            style={{ backgroundColor: "#FEE2E2" }}
+          >
+            <Text
+              className="font-outfit-regular text-sm"
+              style={{ color: "#B91C1C" }}
+            >
+              {t("verification.declinedReason", { reason: declineReason })}
+            </Text>
+          </View>
+        )}
+
+        <View style={{ flex: 1 }} />
+
+        {variant === "approved" && (
+          <TouchableOpacity
+            onPress={leave}
+            activeOpacity={0.8}
+            className="mb-3"
+          >
+            <LinearGradient
+              colors={["#10B981", "#047857"]}
+              start={{ x: 0, y: 1 }}
+              end={{ x: 1, y: 0 }}
+              style={{
+                borderRadius: 10,
+                paddingVertical: 16,
+                paddingHorizontal: 16,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text className="text-white font-outfit-bold text-center">
+                {t("verification.continueButton")}
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        )}
+
+        {canRetry && (
+          <TouchableOpacity
+            onPress={handleRetry}
+            activeOpacity={0.8}
+            disabled={isStarting}
+            className="mb-3"
+          >
+            <LinearGradient
+              colors={["#2B66F8", "#081E72"]}
+              start={{ x: 0, y: 1 }}
+              end={{ x: 1, y: 0 }}
+              style={{
+                borderRadius: 10,
+                paddingVertical: 16,
+                paddingHorizontal: 16,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                opacity: isStarting ? 0.6 : 1,
+              }}
+            >
+              {isStarting ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <>
+                  <Ionicons name="shield-checkmark" size={18} color="white" />
+                  <Text className="text-white font-outfit-bold text-center">
+                    {t(
+                      variant === "declined"
+                        ? "verification.retryButton"
+                        : "verification.startButton",
+                    )}
+                  </Text>
+                </>
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity
+          onPress={handleRefresh}
+          activeOpacity={0.8}
+          disabled={isRefreshing}
+          className="rounded-[10px] py-4 px-4 flex-row items-center justify-center"
+          style={{ backgroundColor: "#F3F4F6", opacity: isRefreshing ? 0.6 : 1 }}
+        >
+          <Text className="text-gray-700 font-outfit-bold text-center">
+            {isRefreshing
+              ? t("verification.checking")
+              : t("verification.refreshButton")}
+          </Text>
+        </TouchableOpacity>
+
+        {variant !== "approved" && (
+          <TouchableOpacity
+            onPress={leave}
+            activeOpacity={0.7}
+            className="mt-1 py-4 px-4 items-center justify-center"
+          >
+            <Text className="text-gray-500 font-outfit-medium text-center">
+              {t("verification.notNow")}
+            </Text>
+          </TouchableOpacity>
+        )}
+      </ScrollView>
+    </View>
   );
 }

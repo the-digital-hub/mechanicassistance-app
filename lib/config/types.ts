@@ -1,17 +1,11 @@
-export type EnvType = 'prod' | 'dev';
-
 export interface EnvEndpoints {
     apiBaseUrl: string;
     wsUrl: string;
 }
 
 export interface BootstrapConfig {
-    allowEnvSwitch: boolean;
-    defaultEnv: EnvType;
     envs: {
         prod: EnvEndpoints;
-        dev: EnvEndpoints;
-        [key: string]: EnvEndpoints;
     };
     /**
      * Lowest app version the backend still serves, e.g. "1.1.0".

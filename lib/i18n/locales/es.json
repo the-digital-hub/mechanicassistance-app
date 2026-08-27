@@ -27,7 +27,8 @@
       "help": "Centro de ayuda",
       "privacy": "Política de privacidad",
       "settings": "Configuración",
-      "logout": "Cerrar sesión"
+      "logout": "Cerrar sesión",
+      "legalDocuments": "Documentación legal"
     },
     "language": {
       "heading": "Seleccionar idioma",
@@ -1023,6 +1024,33 @@
       "detailsLabel": "¿Hay algún otro detalle que quieras agregar a tu perfil?",
       "saving": "Guardando...",
       "continue": "Continuar"
+    },
+    "legalDocs": {
+      "badge": "DOCUMENTACIÓN LEGAL",
+      "title": "Documentación legal",
+      "subtitle": "Necesitamos validar tus permisos y tu seguro de responsabilidad (liability insurance).",
+      "insurance": "Seguro liability",
+      "businessLicense": "Licencia comercial / local",
+      "dropzone": "Tocá para subir el documento (PDF/JPG)",
+      "replace": "Tocá para reemplazar",
+      "uploading": "Subiendo…",
+      "remove": "Quitar",
+      "statusPending": "En revisión",
+      "statusApproved": "Aprobado",
+      "statusDeclined": "Rechazado",
+      "noticeTitle": "¿No tenés tus documentos digitalizados en este momento?",
+      "noticeBody": "No te preocupes. Podés presionar {{cta}} para completar tu registro hoy mismo. Vas a poder adjuntar o actualizar tus pólizas de seguro y licencias comerciales más adelante desde tu perfil.",
+      "submit": "Finalizar registro y crear cuenta",
+      "back": "Atrás",
+      "errorTooLarge": "El archivo pesa {{size}} MB. El máximo es {{max}} MB.",
+      "errorType": "Solo se aceptan archivos PDF o imágenes.",
+      "errorUpload": "No se pudo subir el documento. Intentá de nuevo.",
+      "profileTitle": "Documentación legal",
+      "profileSubtitle": "Tu seguro de responsabilidad y tu licencia comercial.",
+      "profileEmpty": "Todavía no subiste ningún documento.",
+      "removeConfirmTitle": "Quitar documento",
+      "removeConfirmBody": "Esto quita el archivo de tu perfil. Podés volver a subirlo cuando quieras.",
+      "cancel": "Cancelar"
     }
   },
   "assist": {
@@ -1127,10 +1155,10 @@
     "reviewTitle": "Estamos revisando tu identidad",
     "reviewBody": "Suele tardar unos minutos. Te avisamos en cuanto termine; mientras tanto podés seguir usando la app.",
     "declinedTitle": "La verificación no fue aprobada",
-    "declinedBody": "No pudimos verificar tu identidad, así que todavía no podés pedir asistencia ni tomar trabajos. Podés intentar de nuevo con otro documento o con mejor luz.",
+    "declinedBody": "No pudimos verificar tu identidad, así que todavía no podés tomar trabajos. Podés intentar de nuevo con otro documento o con mejor luz.",
     "declinedReason": "Motivo: {{reason}}",
     "notStartedTitle": "Verificá tu identidad",
-    "notStartedBody": "Pedir asistencia y tomar trabajos necesitan identidad verificada. Todo lo demás funciona sin eso.",
+    "notStartedBody": "Tomar trabajos necesita identidad verificada. Todo lo demás funciona sin eso.",
     "startButton": "Verificar mi identidad",
     "retryButton": "Intentar de nuevo",
     "refreshButton": "Volver a consultar",
@@ -1140,6 +1168,7 @@
     "continueButton": "Continuar",
     "requiredToRequest": "Verificá tu identidad para pedir asistencia.",
     "requiredToOffer": "Verificá tu identidad para tomar trabajos.",
+    "screenBadge": "VERIFICACIÓN",
     "notNow": "Ahora no"
   },
   "common": {

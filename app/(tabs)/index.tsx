@@ -9,7 +9,7 @@ import { setAppLanguage } from '@/lib/i18n';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Award, Camera, Car, ChevronLeft, ChevronRight, Circle, CreditCard, Heart, HelpCircle, Lock, LogOut, MapPin, PlugZap, Settings, User } from 'lucide-react-native';
+import { Award, Camera, Car, ChevronLeft, ChevronRight, Circle, CreditCard, FileText, Heart, HelpCircle, Lock, LogOut, MapPin, PlugZap, Settings, User } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Image, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -276,6 +276,7 @@ export default function ProfileScreen() {
             ] : []),
             ...(user.role === 'mechanic' ? [
               { icon: Award, label: t('profile.menu.ase'), route: '/ase' },
+              { icon: FileText, label: t('profile.menu.legalDocuments'), route: '/legal-documents' },
               { icon: CreditCard, label: t('profile.menu.payments'), route: '/payments' },
               { icon: Heart, label: t('profile.menu.promotions'), route: '/promotions' },
             ] : []),

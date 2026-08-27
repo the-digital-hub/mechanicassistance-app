@@ -27,7 +27,8 @@
       "help": "Help Center",
       "privacy": "Privacy Policy",
       "settings": "Settings",
-      "logout": "Log out"
+      "logout": "Log out",
+      "legalDocuments": "Legal documents"
     },
     "language": {
       "heading": "Select Language",
@@ -1023,6 +1024,33 @@
       "detailsLabel": "Are there any further details you’d like to add to your profile?",
       "saving": "Saving...",
       "continue": "Continue"
+    },
+    "legalDocs": {
+      "badge": "LEGAL DOCUMENTS",
+      "title": "Legal documentation",
+      "subtitle": "We need to validate your permits and your liability insurance.",
+      "insurance": "Liability insurance",
+      "businessLicense": "Business licence",
+      "dropzone": "Tap to upload a document (PDF/JPG)",
+      "replace": "Tap to replace",
+      "uploading": "Uploading…",
+      "remove": "Remove",
+      "statusPending": "Under review",
+      "statusApproved": "Approved",
+      "statusDeclined": "Declined",
+      "noticeTitle": "Don't have your documents scanned right now?",
+      "noticeBody": "No problem. Press {{cta}} to finish signing up today. You can attach or update your insurance policy and business licence later from your profile.",
+      "submit": "Finish sign-up and create account",
+      "back": "Back",
+      "errorTooLarge": "That file is {{size}} MB. The limit is {{max}} MB.",
+      "errorType": "Only PDF or image files are accepted.",
+      "errorUpload": "The document could not be uploaded. Please try again.",
+      "profileTitle": "Legal documentation",
+      "profileSubtitle": "Your liability insurance and business licence.",
+      "profileEmpty": "You haven't uploaded any documents yet.",
+      "removeConfirmTitle": "Remove document",
+      "removeConfirmBody": "This removes the file from your profile. You can upload it again whenever you want.",
+      "cancel": "Cancel"
     }
   },
   "assist": {
@@ -1127,10 +1155,10 @@
     "reviewTitle": "We are reviewing your identity",
     "reviewBody": "This usually takes a few minutes. We will let you know as soon as it finishes — you can keep using the app in the meantime.",
     "declinedTitle": "Verification was not approved",
-    "declinedBody": "We could not verify your identity, so you cannot request assistance or take jobs yet. You can try again with a different document or better lighting.",
+    "declinedBody": "We could not verify your identity, so you cannot take jobs yet. You can try again with a different document or better lighting.",
     "declinedReason": "Reason: {{reason}}",
     "notStartedTitle": "Verify your identity",
-    "notStartedBody": "Requesting assistance and taking jobs need a verified identity. Everything else works without it.",
+    "notStartedBody": "Taking jobs needs a verified identity. Everything else works without it.",
     "startButton": "Verify my identity",
     "retryButton": "Try again",
     "refreshButton": "Check again",
@@ -1140,6 +1168,7 @@
     "continueButton": "Continue",
     "requiredToRequest": "Verify your identity to request assistance.",
     "requiredToOffer": "Verify your identity to take jobs.",
+    "screenBadge": "VERIFICATION",
     "notNow": "Not now"
   },
   "common": {

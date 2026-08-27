@@ -116,11 +116,8 @@ test('Full user journey (PROD): session inject → edit profile → request → 
     // ── 1. Inject session + force Railway API config ────────────────────────
     await test.step('Inject session into localStorage (bypass Firebase)', async () => {
         const prodBootstrap = {
-            allowEnvSwitch: true,
-            defaultEnv: 'prod',
             envs: {
                 prod: { apiBaseUrl: API_URL, wsUrl: API_URL.replace('https', 'wss').replace('http', 'ws') },
-                dev:  { apiBaseUrl: API_URL, wsUrl: API_URL.replace('https', 'wss').replace('http', 'ws') },
             },
         };
         await page.route('https://bootstrap.mechanicapp.com/config', route =>
@@ -146,17 +143,12 @@ test('Full user journey (PROD): session inject → edit profile → request → 
 
                 const wsUrl = apiUrl.replace('https', 'wss').replace('http', 'ws');
                 const prodConfig = JSON.stringify({
-                    allowEnvSwitch: true,
-                    defaultEnv: 'prod',
                     envs: {
                         prod: { apiBaseUrl: apiUrl, wsUrl },
-                        dev:  { apiBaseUrl: apiUrl, wsUrl },
                     },
                 });
                 localStorage.setItem('@mechanic:remoteConfigCache', prodConfig);
                 localStorage.setItem('@AsyncStorage:@mechanic:remoteConfigCache', prodConfig);
-                localStorage.setItem('@mechanic:selectedEnv', 'prod');
-                localStorage.setItem('@AsyncStorage:@mechanic:selectedEnv', 'prod');
             } catch { /* storage blocked — test will fail later with a clear message */ }
         }, { session: session!, apiUrl: API_URL });
     });

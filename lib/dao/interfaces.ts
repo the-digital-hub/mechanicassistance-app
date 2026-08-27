@@ -108,6 +108,40 @@ export interface IdentityVerification {
     verifiedAt?: string;
 }
 
+/** The two legal documents a mechanic files. Mirrors MECHANIC_DOCUMENT_TYPES in users-service. */
+export type LegalDocumentType = 'LIABILITY_INSURANCE' | 'BUSINESS_LICENSE';
+
+export type LegalDocumentStatus = 'pending' | 'approved' | 'declined';
+
+/**
+ * A mechanic's liability insurance policy or business licence.
+ *
+ * The file itself lives in media-service; this is the pointer to it plus the
+ * review outcome. `status` is absent during signup, where nothing has been
+ * reviewed yet.
+ */
+export interface LegalDocument {
+    /** Set once the document exists server-side; absent for a fresh upload during signup. */
+    id?: string;
+    type: LegalDocumentType;
+    fileKey: string;
+    fileUrl: string;
+    originalName?: string;
+    mimeType?: string;
+    sizeBytes?: number;
+    status?: LegalDocumentStatus;
+    declineReason?: string;
+    reviewedAt?: string;
+    createdAt?: string;
+    updatedAt?: string;
+}
+
+export interface IMechanicDocumentsDAO {
+    list(): Promise<LegalDocument[]>;
+    upsert(document: LegalDocument): Promise<LegalDocument>;
+    remove(documentId: string): Promise<void>;
+}
+
 export interface UserData {
     id: string;
     email: string;
@@ -123,6 +157,7 @@ export interface UserData {
     mechanicDetails?: MechanicDetail;
     mechanicAvailabilities?: MechanicAvailability[];
     identityVerification?: IdentityVerification;
+    legalDocuments?: LegalDocument[];
 }
 
 export interface Vehicle {

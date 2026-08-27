@@ -33,7 +33,6 @@ export default function PasswordScreen() {
   // Validation logic
   const hasMinLength = passwords.new.length >= 8;
   const hasSymbolOrNumber = /[0-9!@#$%^&*]/.test(passwords.new);
-  const hasNameOrEmail = false; // Placeholder logic
 
   return (
     <ScrollView style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 24, paddingBottom: 40 }}>
@@ -133,11 +132,6 @@ export default function PasswordScreen() {
 
       {/* Validation Feedback */}
       <View className="mb-10">
-        <Text
-          className={`font-outfit-regular text-xs mb-1 ${!hasNameOrEmail ? "text-red-500" : "text-green-500"}`}
-        >
-          {t('password.ruleNoNameEmail')}
-        </Text>
         <Text
           className={`font-outfit-regular text-xs mb-1 ${!hasMinLength ? "text-red-500" : "text-green-500"}`}
         >

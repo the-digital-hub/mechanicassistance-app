@@ -2,7 +2,7 @@ import { DatePicker } from "@/components/ui/DatePicker";
 import { Input } from "@/components/ui/Input";
 import { useEmailAvailability } from "@/hooks/useEmailAvailability";
 import { mediaDAO } from "@/lib/dao/MediaDAO";
-import { saveSetupProgress } from "@/lib/storage";
+import { getSetupProgress, saveSetupProgress } from "@/lib/storage";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
@@ -81,32 +81,17 @@ export default function BasicInfoScreen() {
   };
 
   // ─── Zod schema (evaluated on every formData change) ───────────────────
-  const passwordSchema = useMemo(() => {
-    const nameParts = [formData.name, formData.surname]
-      .join(" ")
-      .toLowerCase()
-      .split(/\s+/)
-      .filter((p) => p.length > 2);
-    const emailUser = formData.email.split("@")[0].toLowerCase();
-
-    return z
-      .string()
-      .min(8, "At least 8 characters")
-      .regex(
-        /[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/,
-        "Contains a symbol or number",
-      )
-      .refine(
-        (pw) => {
-          const lower = pw.toLowerCase();
-          return (
-            !nameParts.some((p) => lower.includes(p)) &&
-            !lower.includes(emailUser)
-          );
-        },
-        { message: "Must not contain your name or email" },
-      );
-  }, [formData.name, formData.surname, formData.email]);
+  const passwordSchema = useMemo(
+    () =>
+      z
+        .string()
+        .min(8, "At least 8 characters")
+        .regex(
+          /[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/,
+          "Contains a symbol or number",
+        ),
+    [],
+  );
 
   const pwResult = useMemo(
     () => passwordSchema.safeParse(formData.password),
@@ -119,11 +104,6 @@ export default function BasicInfoScreen() {
   const ruleSymbol =
     pwTouched &&
     /[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password);
-  const ruleNameEmail =
-    pwTouched &&
-    !pwResult.error?.issues.some(
-      (i) => i.message === "Must not contain your name or email",
-    );
   const ruleMatch =
     formData.confirmPassword.length > 0 &&
     formData.password === formData.confirmPassword;
@@ -131,7 +111,13 @@ export default function BasicInfoScreen() {
   const handleContinue = async () => {
     if (!pwResult.success || !ruleMatch || emailStatus === 'taken' || emailStatus === 'checking') return;
     await saveSetupProgress("basicInfo", formData);
-    router.push("/setup/identity"); // Navigate to Identity next per user instruction
+
+    // Didit identity verification is required for mechanics and optional for
+    // users, so only mechanics get the step in the wizard. A user can still
+    // verify later from the profile screen. Keep in sync with lib/setup-resume.ts.
+    const progress = await getSetupProgress();
+    const role = progress?.role?.role;
+    router.push(role === "mechanic" ? "/setup/identity" : "/setup/address");
   };
 
   return (
@@ -298,13 +284,6 @@ export default function BasicInfoScreen() {
 
         {/* Password Requirements */}
         <View className="mb-8 pl-2">
-          <Text
-            className={`font-outfit-regular text-sm mb-1 ${
-              ruleNameEmail ? "text-green-600" : "text-gray-600"
-            }`}
-          >
-            • {t("setup.basicInfo.ruleNoNameEmail")}
-          </Text>
           <Text
             className={`font-outfit-regular text-sm mb-1 ${
               ruleLength ? "text-green-600" : "text-gray-600"

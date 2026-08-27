@@ -12,8 +12,9 @@ import { useEffect, useState } from 'react';
  * 3. No session/progress → /onboarding
  *
  * Identity verification deliberately does NOT gate entry: an unverified account
- * uses the app normally and is only stopped at the two gated actions (requesting
- * assistance, offering on a request). See app/verify-identity.tsx.
+ * uses the app normally. It is optional for users, and a mechanic is only
+ * stopped at the one gated action — offering on a request. See
+ * app/verify-identity.tsx.
  */
 export default function Index() {
     const { user, isLoading } = useUser();

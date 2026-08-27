@@ -87,6 +87,20 @@ export default function SetupLayout() {
           title: setupTitle,
           headerRight: () => (
             <TouchableOpacity
+              onPress={() => router.push("/setup/legal-documents")}
+              style={{ backgroundColor: "transparent" }}
+            >
+              <Text className="text-[#0047AB] font-outfit-medium">{t("setup.skip")}</Text>
+            </TouchableOpacity>
+          ),
+        }}
+      />
+      <Stack.Screen
+        name="legal-documents"
+        options={{
+          title: setupTitle,
+          headerRight: () => (
+            <TouchableOpacity
               onPress={() => router.push("/setup/success")}
               style={{ backgroundColor: "transparent" }}
             >

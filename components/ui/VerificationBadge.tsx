@@ -1,3 +1,4 @@
+import { useUser } from '@/context/UserContext';
 import { useVerification } from '@/context/VerificationContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -5,12 +6,13 @@ import { useTranslation } from 'react-i18next';
 import { Text, TouchableOpacity, View } from 'react-native';
 
 /**
- * Identity-verification status pill.
+ * Identity-verification status pill. Mechanics only.
  *
- * Verification gates two actions rather than the whole app (requesting
- * assistance, offering on a request), so this is the only always-visible signal
- * that an account still needs to verify. Every state except approved is tappable
- * and leads to the verification screen.
+ * Verification gates one action rather than the whole app — a mechanic offering
+ * on a request — so this is the only always-visible signal that a mechanic
+ * account still needs to verify. Every state except approved is tappable and
+ * leads to the verification screen. Users see nothing: verification is optional
+ * for them, and an unverified user can request assistance normally.
  *
  * Renders nothing until the status is actually known — see `hasLoaded` in
  * VerificationContext. Showing "Not verified" while the first fetch is still in
@@ -53,8 +55,10 @@ function toneFor(status: string | null): Tone {
 export function VerificationBadge() {
     const { t } = useTranslation();
     const router = useRouter();
+    const { user } = useUser();
     const { status, hasLoaded } = useVerification();
 
+    if (user?.role !== 'mechanic') return null;
     if (!hasLoaded) return null;
 
     const tone = toneFor(status);

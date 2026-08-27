@@ -51,10 +51,9 @@ npm run lint
 ### Config / Endpoints (`lib/config/ConfigService.ts`)
 On startup, fetches config from `https://bootstrap.mechanicapp.com/config`, caches in AsyncStorage, falls back to `DEFAULT_FALLBACK_CONFIG`. All code uses `ConfigService.getApiBaseUrl()` and `ConfigService.getWsUrl()` — never hardcode endpoints.
 
-- PROD defaults: `https://t9smggmz3a.us-east-1.awsapprunner.com` (API + WS)
-- DEV defaults: `http://192.168.1.229:3000` (local LAN — iOS/Android real device) / `http://localhost:3000` (iOS sim) / `http://10.0.2.2:3000` (Android emulator)
+- PROD defaults: `https://t9smggmz3a.us-east-1.awsapprunner.com` (API) / `wss://ws.mechanicassistance.com` (WS)
 
-If the backend returns `allowEnvSwitch: true`, an `EnvSelector` toggle appears on the Login screen. Switching env auto-reconnects the WebSocket (`SocketContext` has a listener).
+There is a single environment: prod. The old DEV/PROD `EnvSelector` on the login screen was removed — to hit a local backend, edit the URLs in `DEFAULT_FALLBACK_CONFIG` by hand. `SocketContext` still listens for config changes and reconnects the WebSocket if the remote bootstrap config changes the prod URL.
 
 ### Mobile Routing (`app/`)
 Expo Router file-based routing. Key entrypoints:

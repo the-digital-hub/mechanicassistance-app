@@ -143,11 +143,13 @@ export class UserDAO implements IUserDAO {
      *
      * Setup progress shape:
      *   { phone, otp, role, basicInfo, address, vehicles, identity,
-     *     credentials, dealerInfo, expertise, availability, lastStep }
+     *     credentials, dealerInfo, expertise, availability, legalDocuments,
+     *     lastStep }
      *
      * Backend CreateUserDto expects top-level fields:
      *   { name, surname, email, phone, dob, profileImage, role, firebaseUid,
-     *     addresses, vehicles, dealerInfo, expertise, credentials, availability, identity }
+     *     addresses, vehicles, dealerInfo, expertise, credentials, availability,
+     *     legalDocuments, identity }
      */
     private buildRegistrationPayload(progress: Record<string, unknown>): Record<string, unknown> {
         const basicInfo = (progress.basicInfo ?? {}) as Record<string, unknown>;
@@ -202,6 +204,26 @@ export class UserDAO implements IUserDAO {
         // Vehicles: strip client-generated `id` — Prisma generates UUIDs server-side
         if (vehiclesData && Array.isArray(vehiclesData) && vehiclesData.length > 0) {
             payload.vehicles = vehiclesData.map(({ id: _clientId, ...vehicleFields }) => vehicleFields);
+        }
+
+        // Legal documents (mechanic liability insurance + business licence).
+        // The step is skippable, so an empty array is the common case and is
+        // omitted rather than sent — same criterion as `credentials`. The files
+        // are already in media-service; these are just the pointers.
+        const legalDocuments = progress.legalDocuments as
+            | Record<string, unknown>[]
+            | undefined;
+        if (Array.isArray(legalDocuments) && legalDocuments.length > 0) {
+            payload.legalDocuments = legalDocuments
+                .filter((doc) => doc?.type && doc?.fileKey && doc?.fileUrl)
+                .map(({ type, fileKey, fileUrl, originalName, mimeType, sizeBytes }) => ({
+                    type,
+                    fileKey,
+                    fileUrl,
+                    ...(originalName !== undefined && { originalName }),
+                    ...(mimeType !== undefined && { mimeType }),
+                    ...(sizeBytes !== undefined && { sizeBytes }),
+                }));
         }
 
         // Identity verification: the account is linked to the Didit verification

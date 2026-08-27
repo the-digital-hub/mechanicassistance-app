@@ -374,6 +374,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="legal-documents"
+        options={{
+          href: null,
+          title: t('tabs.profile'),
+          headerLeft: () => <PersonalInfoHeaderLeft />,
+          headerRight: () => <PersonalInfoHeaderRight />,
+        }}
+      />
+      <Tabs.Screen
         name="payments"
         options={{
           href: null,
