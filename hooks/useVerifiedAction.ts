@@ -4,21 +4,25 @@ import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
 
-/** Which gated action is being attempted — picks the explanatory copy. */
-export type GatedAction = 'request' | 'offer';
+/**
+ * Which gated action is being attempted — picks the explanatory copy.
+ *
+ * Only the mechanic's offer is gated. Requesting assistance used to be too, but
+ * verification is optional for users now, so `'request'` was removed rather than
+ * left as a no-op: a call site still passing it should fail to compile.
+ */
+export type GatedAction = 'offer';
 
 const REASON_KEY: Record<GatedAction, string> = {
-    request: 'verification.requiredToRequest',
     offer: 'verification.requiredToOffer',
 };
 
 /**
  * Wraps an action that needs a verified identity.
  *
- * Two actions are gated: a user requesting assistance, and a mechanic offering
- * on a request. The server is the real enforcement — appointments-service answers
- * 403 VERIFICATION_REQUIRED — and this only moves the redirect ahead of the round
- * trip, to the moment of intent.
+ * One action is gated: a mechanic offering on a request. The server is the real
+ * enforcement — appointments-service answers 403 VERIFICATION_REQUIRED — and this
+ * only moves the redirect ahead of the round trip, to the moment of intent.
  *
  * The button stays enabled on purpose: tapping it opens the verification flow
  * instead of the action, which converts better than a greyed-out control.

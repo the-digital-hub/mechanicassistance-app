@@ -1,5 +1,4 @@
 import { assistanceTypeDAO } from '@/lib/dao/AssistanceTypeDAO';
-import { useVerifiedAction } from '@/hooks/useVerifiedAction';
 import type { AssistanceTypeCatalogItem } from '@/lib/dao/interfaces';
 import { getLanguageId, translatedDescription, translatedName } from '@/lib/i18n/catalogTranslations';
 import { useRouter } from 'expo-router';
@@ -268,7 +267,6 @@ function TypeCard({
 
 export default function RequestAssistanceTypeScreen() {
     const router = useRouter();
-    const gate = useVerifiedAction();
     const { t, i18n } = useTranslation();
     const language = i18n.language;
 
@@ -357,9 +355,9 @@ export default function RequestAssistanceTypeScreen() {
             title: titleFor(item),
             description: descriptionFor(item),
             badge: badgeFor(item),
-            // Requesting assistance needs a verified identity. The card stays
-            // tappable; unverified users land on the verification flow instead.
-            onPress: handler ? gate('request', handler) : handler,
+            // No identity gate: verification is optional for users, so an
+            // unverified account requests assistance like any other.
+            onPress: handler,
         };
     };
 

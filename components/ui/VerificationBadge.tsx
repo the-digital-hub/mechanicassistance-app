@@ -6,13 +6,16 @@ import { useTranslation } from 'react-i18next';
 import { Text, TouchableOpacity, View } from 'react-native';
 
 /**
- * Identity-verification status pill. Mechanics only.
+ * Identity-verification status pill. Shown to both roles.
  *
  * Verification gates one action rather than the whole app — a mechanic offering
  * on a request — so this is the only always-visible signal that a mechanic
  * account still needs to verify. Every state except approved is tappable and
- * leads to the verification screen. Users see nothing: verification is optional
- * for them, and an unverified user can request assistance normally.
+ * leads to the verification screen.
+ *
+ * A user sees it too, but reading "Verification optional": nothing a user does
+ * requires it (an unverified user requests assistance normally), and this pill
+ * is their only way to start it voluntarily.
  *
  * Renders nothing until the status is actually known — see `hasLoaded` in
  * VerificationContext. Showing "Not verified" while the first fetch is still in
@@ -58,12 +61,16 @@ export function VerificationBadge() {
     const { user } = useUser();
     const { status, hasLoaded } = useVerification();
 
-    if (user?.role !== 'mechanic') return null;
     if (!hasLoaded) return null;
 
     const tone = toneFor(status);
     const { bg, fg, icon } = TONES[tone];
     const isVerified = tone === 'verified';
+    // "Not verified" would read as a warning to a user who is not required to
+    // verify at all, so that one state gets softer copy off the mechanic path.
+    // The tone (and therefore the colors) stays the same.
+    const labelKey =
+        tone === 'unverified' && user?.role !== 'mechanic' ? 'optional' : tone;
 
     const content = (
         <View
@@ -72,7 +79,7 @@ export function VerificationBadge() {
         >
             <Ionicons name={icon} size={14} color={fg} />
             <Text className="font-outfit-semibold text-xs" style={{ color: fg }}>
-                {t(`verification.badge.${tone}`)}
+                {t(`verification.badge.${labelKey}`)}
             </Text>
             {!isVerified && <Ionicons name="chevron-forward" size={12} color={fg} />}
         </View>

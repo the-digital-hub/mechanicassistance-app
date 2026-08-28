@@ -1,3 +1,4 @@
+import { useUser } from "@/context/UserContext";
 import { useVerification } from "@/context/VerificationContext";
 import { ApiError } from "@/lib/api/types";
 import { verificationDAO } from "@/lib/dao/VerificationDAO";
@@ -65,12 +66,21 @@ const ICONS: Record<
 export default function VerificationPendingScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
+  const { user } = useUser();
   const { status, declineReason, refresh } = useVerification();
   const [isStarting, setIsStarting] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const variant = variantFor(status);
   const icon = ICONS[variant];
+  // A user arrives here by choice, so the body must not say jobs are blocked —
+  // nothing of theirs is. Only the two variants that talk about consequences
+  // need the softer wording; `review` and `approved` read the same either way.
+  const isMechanic = user?.role === "mechanic";
+  const bodyKey =
+    !isMechanic && (variant === "notStarted" || variant === "declined")
+      ? `verification.${variant}BodyOptional`
+      : `verification.${variant}Body`;
   // Neither "in review" nor "approved" has anything to retry.
   const canRetry = variant === "declined" || variant === "notStarted";
 
@@ -188,7 +198,7 @@ export default function VerificationPendingScreen() {
           {t(`verification.${variant}Title`)}
         </Text>
         <Text className="text-gray-500 font-outfit-regular text-base mb-4">
-          {t(`verification.${variant}Body`)}
+          {t(bodyKey)}
         </Text>
 
         {variant === "declined" && declineReason && (
