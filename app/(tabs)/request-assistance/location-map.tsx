@@ -1,10 +1,12 @@
+import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { Button } from '@/components/ui/Button';
 import MapView, { Marker, Region } from '@/components/ui/Map';
 import { useUser } from '@/context/UserContext';
+import type { ParsedAddress } from '@/lib/places';
 import * as Location from 'expo-location';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronLeft, ChevronRight, Search } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -13,7 +15,7 @@ export default function LocationMapScreen() {
     const router = useRouter();
     const { t } = useTranslation();
     const params = useLocalSearchParams();
-    const { type, vehicleId, description, issues, details, photos, selectedAddress } = params;
+    const { type, vehicleId, description, issues, details, photos } = params;
     const { user } = useUser();
 
     // Helper to find address by type from the addresses array
@@ -26,9 +28,21 @@ export default function LocationMapScreen() {
     const [locationZip, setLocationZip] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [isResolving, setIsResolving] = useState(false);
-    // Block map-pan handler briefly after pin drag to avoid overwriting the dropped position.
-    const dragJustEndedRef = React.useRef(false);
-    const dragCooldownRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    /** Last address picked from the autocomplete — keeps Google's formatted string. */
+    const [selectedFull, setSelectedFull] = useState<ParsedAddress | null>(null);
+    // Block the map-pan handler briefly after we move the pin ourselves (drag or
+    // programmatic recentre), so its reverse-geocode doesn't overwrite the label.
+    const suppressRegionRef = React.useRef(false);
+    const suppressCooldownRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const suppressRegionSync = (ms = 600) => {
+        suppressRegionRef.current = true;
+        if (suppressCooldownRef.current) clearTimeout(suppressCooldownRef.current);
+        suppressCooldownRef.current = setTimeout(() => {
+            suppressRegionRef.current = false;
+        }, ms);
+    };
 
     const getTitle = () => {
         switch (type) {
@@ -74,31 +88,6 @@ export default function LocationMapScreen() {
 
     useEffect(() => {
         (async () => {
-            // Coming back from the address search screen: it already resolved the
-            // coordinates through Google Places, so drop the pin there instead of
-            // asking for the current location.
-            if (selectedAddress) {
-                try {
-                    const parsed = JSON.parse(selectedAddress as string);
-                    if (parsed.lat && parsed.lon) {
-                        const newRegion = {
-                            latitude: parseFloat(parsed.lat),
-                            longitude: parseFloat(parsed.lon),
-                            latitudeDelta: 0.005,
-                            longitudeDelta: 0.005,
-                        };
-                        setRegion(newRegion);
-                        setMarker({ latitude: newRegion.latitude, longitude: newRegion.longitude });
-                        setLocationName(parsed.label || t('requestAssistance.locationMap.selectedLocation'));
-                        setLocationZip(parsed.zip || '');
-                        setIsLoading(false);
-                        return;
-                    }
-                } catch (e) {
-                    // Not JSON or invalid, proceed to current location
-                }
-            }
-
             if (Platform.OS === 'web') {
                 // On web, we might not need explicit permission request in the same way, or it might fail if not https/secure context
                 try {
@@ -130,9 +119,13 @@ export default function LocationMapScreen() {
             let location = await Location.getCurrentPositionAsync({});
             updateRegionFromLocation(location);
         })();
-    }, [selectedAddress]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const resolveLocation = async (coords: { latitude: number; longitude: number }) => {
+        // The pin no longer matches the searched address — drop it so `handleConfirm`
+        // doesn't send a formatted string for a place the user moved away from.
+        setSelectedFull(null);
         setIsResolving(true);
         try {
             const addrs = await Location.reverseGeocodeAsync(coords);
@@ -166,10 +159,24 @@ export default function LocationMapScreen() {
                 longitude: marker.longitude,
                 addressLabel: locationName,
                 locationZip: locationZip,
-                // If we have a full address string from search, pass it, otherwise we use the label
-                finalAddress: typeof selectedAddress === 'string' && selectedAddress.startsWith('{') ? JSON.parse(selectedAddress).label : locationName
+                // Prefer Google's formatted string when the pin came from a search.
+                finalAddress: selectedFull?.formatted ?? locationName
             }
         });
+    };
+
+    /**
+     * A suggestion was picked in the inline search box: move the pin here without
+     * leaving the screen. Places details normally carry coordinates; the rare
+     * result that doesn't falls back to geocoding the address text.
+     */
+    const handleSelectAddress = async (address: ParsedAddress) => {
+        const label =
+            address.formatted ||
+            `${address.street}, ${address.city} ${address.zip}`.trim();
+        setSelectedFull(address);
+        setSearchQuery(label);
+        await geocodeAndSetAddress(address, label);
     };
 
     /**
@@ -184,6 +191,7 @@ export default function LocationMapScreen() {
         if (address.locationLat !== undefined && address.locationLng !== undefined) {
             const latitude = address.locationLat;
             const longitude = address.locationLng;
+            suppressRegionSync();
             setRegion({ latitude, longitude, latitudeDelta: 0.005, longitudeDelta: 0.005 });
             setMarker({ latitude, longitude });
             setLocationName(label);
@@ -202,6 +210,7 @@ export default function LocationMapScreen() {
             const results = await Location.geocodeAsync(query);
             if (results && results.length > 0) {
                 const { latitude, longitude } = results[0];
+                suppressRegionSync();
                 setRegion({ latitude, longitude, latitudeDelta: 0.005, longitudeDelta: 0.005 });
                 setMarker({ latitude, longitude });
                 setLocationName(label);
@@ -230,7 +239,7 @@ export default function LocationMapScreen() {
                 <View className="w-6" />
             </View>
 
-            <ScrollView className="flex-1">
+            <ScrollView className="flex-1" keyboardShouldPersistTaps="handled">
                 <View className="px-6 pt-6">
                     <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                         <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
@@ -245,16 +254,20 @@ export default function LocationMapScreen() {
                         {t('requestAssistance.locationMap.subtitle')}
                     </Text>
 
-                    <TouchableOpacity
-                        onPress={() => router.push({
-                            pathname: '/request-assistance/location-address',
-                            params: params // Pass through existing params
-                        })}
-                        className="bg-white rounded-xl p-3 flex-row items-center shadow-sm border border-gray-200 mb-6"
-                    >
-                        <Search size={20} color="#9CA3AF" className="mr-2" />
-                        <Text className="text-gray-400 font-outfit-regular">{t('requestAssistance.locationMap.searchAddress')}</Text>
-                    </TouchableOpacity>
+                    {/* Inline search: picking a suggestion recentres the map below,
+                        without pushing a separate screen onto the wizard stack. */}
+                    <View className="mb-6 z-50">
+                        <AddressAutocomplete
+                            value={searchQuery}
+                            onChangeText={(text) => {
+                                setSearchQuery(text);
+                                setSelectedFull(null);
+                            }}
+                            onSelect={handleSelectAddress}
+                            placeholder={t('requestAssistance.locationMap.searchAddress')}
+                            containerClassName="bg-white border border-gray-200 rounded-xl"
+                        />
+                    </View>
                 </View>
 
                 {isLoading || !region ? (
@@ -268,7 +281,7 @@ export default function LocationMapScreen() {
                             initialRegion={region}
                             region={region}
                             onRegionChangeComplete={(r) => {
-                                if (dragJustEndedRef.current) return;
+                                if (suppressRegionRef.current) return;
                                 setRegion(r);
                                 setMarker({ latitude: r.latitude, longitude: r.longitude });
                                 resolveLocation({ latitude: r.latitude, longitude: r.longitude });
@@ -283,11 +296,7 @@ export default function LocationMapScreen() {
                                     resolveLocation(coords);
                                     // Lock out the pan handler briefly so it doesn't
                                     // snap the marker back to the map centre.
-                                    dragJustEndedRef.current = true;
-                                    if (dragCooldownRef.current) clearTimeout(dragCooldownRef.current);
-                                    dragCooldownRef.current = setTimeout(() => {
-                                        dragJustEndedRef.current = false;
-                                    }, 600);
+                                    suppressRegionSync();
                                 }}
                             />
                         </MapView>

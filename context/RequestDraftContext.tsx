@@ -5,8 +5,8 @@ import React, { createContext, ReactNode, useContext, useState } from 'react';
  * the current odometer reading and who is in the vehicle to receive assistance.
  *
  * These live in a context rather than in router params because the wizard forwards its
- * params verbatim through six screens (issue-selection → add-details → location-map →
- * location-address → date-time → confirmation) before reaching the screen that submits
+ * params verbatim through five screens (issue-selection → add-details → location-map →
+ * date-time → confirmation) before reaching the screen that submits
  * the request. Threading five more params through every hop would touch all of them.
  */
 export interface VehicleDetailsDraft {

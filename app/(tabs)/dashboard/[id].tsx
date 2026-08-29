@@ -1,3 +1,4 @@
+import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { useAppointments } from '@/context/AppointmentsContext';
 import { useVerifiedAction } from '@/hooks/useVerifiedAction';
 import { useUser } from '@/context/UserContext';
@@ -5,14 +6,13 @@ import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import * as Location from 'expo-location';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Calendar, Clock, Navigation, CheckCircle } from 'lucide-react-native';
+import { Calendar, Clock, Navigation, HelpCircle } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import { MAP_PROVIDER } from '@/lib/maps/provider';
 import { apiClient } from '@/lib/api/apiClient';
-import { LinearGradient } from 'expo-linear-gradient';
 
 function decodePolyline(encoded: string): { latitude: number; longitude: number }[] {
     const points: { latitude: number; longitude: number }[] = [];
@@ -61,7 +61,8 @@ export default function AssistDetailScreen() {
     const reqLng = parseFloat(locationLng as string);
     const hasLocation = !isNaN(reqLat) && !isNaN(reqLng);
 
-    const [showNotification, setShowNotification] = useState(false);
+    const [showConfirm, setShowConfirm] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
     const [etaText, setEtaText] = useState<string | null>(null);
     const [distKm, setDistKm] = useState<number | null>(null);
     const [mechanicCoords, setMechanicCoords] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -121,37 +122,45 @@ export default function AssistDetailScreen() {
     const gate = useVerifiedAction();
 
     // Offering on a request needs a verified identity — see useVerifiedAction.
+    // This only opens the confirmation modal: nothing reaches the backend until
+    // the mechanic confirms, and no timer resolves the modal on its own.
     const handleAccept = gate('offer', async () => {
         if (!isImmediate && (!selectedDate || !selectedTime)) {
             alert(t('requestDetail.selectDateTimeAlert'));
             return;
         }
+        setShowConfirm(true);
+    });
+
+    const handleConfirmAccept = async () => {
+        if (submitting) return;
 
         const appointmentId = Array.isArray(id) ? id[0] : id || '';
+        setSubmitting(true);
 
         try {
             if (user?.role === 'mechanic' && user?.id) {
                 await assistanceDAO.updateStatus(appointmentId, user.id, 'offered', etaText ? { eta: etaText } : undefined);
             }
-            setShowNotification(true);
-            setTimeout(() => {
-                setShowNotification(false);
+            setShowConfirm(false);
 
-                // Navigate to Appointments tab immediately
-                router.replace('/(tabs)/appointments');
+            // Navigate to Appointments tab
+            router.replace('/(tabs)/appointments');
 
-                // Reset the Assist stack to the root (List View)
-                navigation.dispatch(
-                    CommonActions.reset({
-                        index: 0,
-                        routes: [{ name: 'index' }],
-                    })
-                );
-            }, 2000);
+            // Reset the Assist stack to the root (List View)
+            navigation.dispatch(
+                CommonActions.reset({
+                    index: 0,
+                    routes: [{ name: 'index' }],
+                })
+            );
         } catch (error: any) {
+            setShowConfirm(false);
             alert(t('requestDetail.acceptFailed', { error: error.message || 'Unknown error' }));
+        } finally {
+            setSubmitting(false);
         }
-    });
+    };
 
     return (
         <View className="flex-1 bg-white">
@@ -318,62 +327,20 @@ export default function AssistDetailScreen() {
                 </View>
             </ScrollView>
 
-            {/* Notification Modal */}
-            {showNotification && (
-                <View className="absolute top-0 left-0 right-0 bottom-0 justify-center items-center bg-black/50 px-6 z-50">
-                    <View className="bg-white w-full rounded-2xl p-6 items-center" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 8, elevation: 5 }}>
-                        <View className="w-16 h-16 bg-emerald-50 rounded-full justify-center items-center mb-4">
-                            <CheckCircle size={40} color="#10B981" />
-                        </View>
-                        <Text className="text-lg font-outfit-bold text-gray-900 mb-2 text-center">
-                            {t('requestDetail.offerAccepted')}
-                        </Text>
-                        <Text className="text-gray-500 font-outfit-regular text-sm text-center mb-6">
-                            {isImmediate
-                                ? t('requestDetail.acceptedImmediate', { title })
-                                : t('requestDetail.acceptedScheduled', { date: selectedDate, time: selectedTime })
-                            }
-                        </Text>
-                        <View className="w-full flex-row gap-3">
-                            <TouchableOpacity
-                                className="flex-1 py-3 rounded-lg border border-gray-300 bg-white items-center"
-                                onPress={() => setShowNotification(false)}
-                            >
-                                <Text className="text-gray-900 font-outfit-bold text-base">{t('requestDetail.dismiss')}</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                className="flex-1"
-                                onPress={() => {
-                                    setShowNotification(false);
-                                    router.replace('/(tabs)/appointments');
-                                    navigation.dispatch(
-                                        CommonActions.reset({
-                                            index: 0,
-                                            routes: [{ name: 'index' }],
-                                        })
-                                    );
-                                }}
-                                activeOpacity={0.8}
-                            >
-                                <LinearGradient
-                                    colors={['#2B66F8', '#081E72']}
-                                    start={{ x: 0, y: 1 }}
-                                    end={{ x: 1, y: 0 }}
-                                    style={{
-                                        borderRadius: 8,
-                                        paddingVertical: 12,
-                                        paddingHorizontal: 16,
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                    }}
-                                >
-                                    <Text className="text-white font-outfit-bold text-base">{t('requestDetail.ok')}</Text>
-                                </LinearGradient>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-            )}
+            <ConfirmationModal
+                visible={showConfirm}
+                onClose={() => setShowConfirm(false)}
+                onConfirm={handleConfirmAccept}
+                icon={HelpCircle}
+                iconColor="#1E56E3"
+                title={t('requestDetail.confirmOfferTitle')}
+                message={isImmediate
+                    ? t('requestDetail.confirmOfferImmediate', { title })
+                    : t('requestDetail.confirmOfferScheduled', { date: selectedDate, time: selectedTime })
+                }
+                confirmText={submitting ? t('requestDetail.sendingOffer') : t('requestDetail.confirmOffer')}
+                cancelText={t('requestDetail.cancel')}
+            />
         </View>
     );
 }

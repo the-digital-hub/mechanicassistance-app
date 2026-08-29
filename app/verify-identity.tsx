@@ -147,7 +147,7 @@ export default function VerificationPendingScreen() {
    */
   const leave = () => {
     if (router.canGoBack()) router.back();
-    else router.replace("/(tabs)");
+    else router.replace("/(tabs)/dashboard");
   };
 
   return (

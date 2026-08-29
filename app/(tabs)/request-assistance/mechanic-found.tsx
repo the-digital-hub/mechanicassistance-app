@@ -77,7 +77,17 @@ export default function MechanicFoundScreen() {
         router.replace('/(tabs)/assist');
     };
 
-    const refNumber = `FL${Math.floor(10000 + Math.random() * 90000)}-${new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }).replace(/\//g, '-')}-USR${Math.floor(10000 + Math.random() * 90000)}`;
+    // Kept stable for the life of the screen. Regenerating it on every render
+    // changed the text width inside a centered block, so the footer (and with it
+    // the layout) visibly jittered sideways each time a socket event refreshed
+    // the appointments context.
+    const refNumber = React.useMemo(() => {
+        const rand = () => Math.floor(10000 + Math.random() * 90000);
+        const today = new Date()
+            .toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })
+            .replace(/\//g, '-');
+        return `FL${rand()}-${today}-USR${rand()}`;
+    }, []);
 
     // Derive type label and icon from the request
     const typeLabel =

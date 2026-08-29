@@ -75,6 +75,7 @@ interface AppointmentsContextType {
     cancelAppointment: (id: string, reason: string) => Promise<void>;
     refresh: () => Promise<void>;
     getUpcoming: () => Appointment[];
+    getPendingApproval: () => Appointment[];
     getPast: () => Appointment[];
     getActiveRequests: () => Appointment[];
     getAppointmentById: (id: string) => Appointment | undefined;
@@ -190,16 +191,32 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
     // Real-time updates via Socket. Reload on any relevant domain event, and
     // also on (re)connect to catch events missed while the socket was down
     // (events are ephemeral / not replayed). No polling.
+    // The gateway can fan out several events for the same state change (and the
+    // same event more than once). Refetching on every one of them re-rendered
+    // every consumer screen non-stop, so identical and back-to-back events are
+    // collapsed into a single refresh.
+    const lastRefreshKey = useRef<string>('');
+    const lastRefreshAt = useRef<number>(0);
+    const REFRESH_MIN_INTERVAL_MS = 1000;
+
     useEffect(() => {
         if (!lastMessage) return;
         if (
-            lastMessage.type === 'assistance_update' ||
-            lastMessage.type === 'appointment_update' ||
-            lastMessage.type === 'socket_connect'
-        ) {
-            console.log(`[AppointmentsContext] ${lastMessage.type} -> refreshing`);
-            loadAppointments();
-        }
+            lastMessage.type !== 'assistance_update' &&
+            lastMessage.type !== 'appointment_update' &&
+            lastMessage.type !== 'socket_connect'
+        ) return;
+
+        const payload = lastMessage.payload || {};
+        const key = `${lastMessage.type}-${payload.id || payload.requestId || ''}-${payload.status || ''}`;
+        const now = Date.now();
+
+        if (key === lastRefreshKey.current && now - lastRefreshAt.current < REFRESH_MIN_INTERVAL_MS) return;
+
+        lastRefreshKey.current = key;
+        lastRefreshAt.current = now;
+        console.log(`[AppointmentsContext] ${lastMessage.type} -> refreshing`);
+        loadAppointments();
     }, [lastMessage]);
 
     const addAppointment = async (appointment: Appointment): Promise<boolean> => {
@@ -240,15 +257,29 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
         }
     };
 
-    // Only real appointments belong here. A row still sourced from
-    // assistance_requests (pending/offered) has not been accepted by anyone yet,
-    // so it is not an appointment — it shows up on the dashboard instead, via
-    // getActiveRequests().
+    // Only confirmed work belongs here. Anything still waiting for someone's
+    // answer (pending/offered) goes to getPendingApproval() instead, so a row
+    // never shows up in two tabs at once.
     const getUpcoming = () => {
         return appointments.filter(
             (a) => a.source !== 'assistance' &&
-                (a.status === 'scheduled' || a.status === 'started' || a.status === 'pending' || a.status === 'accepted' || a.status === 'offered')
+                (a.status === 'scheduled' || a.status === 'started' || a.status === 'accepted')
         );
+    };
+
+    /**
+     * Requests that are neither confirmed nor closed — they used to be invisible
+     * in the Appointments tab because an `offered` row still lives in
+     * assistance_requests (the appointment is only created once the user
+     * accepts). Mechanics see the offers they are waiting on; users also see
+     * requests still looking for a mechanic.
+     */
+    const getPendingApproval = () => {
+        const statuses: AppointmentStatus[] =
+            user?.role === 'mechanic' ? ['offered'] : ['pending', 'offered'];
+        return appointments
+            .filter((a) => statuses.includes(a.status))
+            .sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''));
     };
 
     const getPast = () => {
@@ -281,6 +312,7 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                 cancelAppointment,
                 refresh: loadAppointments,
                 getUpcoming,
+                getPendingApproval,
                 getPast,
                 getActiveRequests,
                 getAppointmentById

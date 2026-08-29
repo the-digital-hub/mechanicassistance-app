@@ -8,10 +8,10 @@ import { FlatList, Modal, Text, TouchableOpacity, View } from 'react-native';
 
 export default function AppointmentsScreen() {
     const { t } = useTranslation();
-    const { getUpcoming, getPast, refresh, appointments: allAppointments } = useAppointments();
+    const { getUpcoming, getPendingApproval, getPast, refresh, appointments: allAppointments } = useAppointments();
     const router = useRouter();
 
-    const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
+    const [activeTab, setActiveTab] = useState<'upcoming' | 'pending' | 'past'>('upcoming');
     const [cancelModalVisible, setCancelModalVisible] = useState(false);
     const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
 
@@ -22,8 +22,13 @@ export default function AppointmentsScreen() {
     );
 
     const upcomingCount = getUpcoming().length;
+    const pendingCount = getPendingApproval().length;
     const pastCount = getPast().length;
-    const appointments = activeTab === 'upcoming' ? getUpcoming() : getPast();
+    const appointments = activeTab === 'upcoming'
+        ? getUpcoming()
+        : activeTab === 'pending'
+            ? getPendingApproval()
+            : getPast();
 
     const handleCancelRequest = (id: string) => {
         setSelectedAppointmentId(id);
@@ -64,27 +69,33 @@ export default function AppointmentsScreen() {
                         </Text>
 
                         {/* Tab Switcher */}
-                        <View className="flex-row gap-4 p-1 rounded-2xl" style={{ backgroundColor: '#EDF1F7' }}>
-                            <TouchableOpacity
-                                className="flex-1 flex-row items-center justify-center gap-2 py-3 rounded-xl"
-                                style={{ backgroundColor: activeTab === 'upcoming' ? '#FFFFFF' : 'transparent' }}
-                                onPress={() => setActiveTab('upcoming')}
-                            >
-                                <Text className={`font-outfit-bold text-lg`} style={{ color: activeTab === 'upcoming' ? '#1E56E3' : '#9CA3AF' }}>{t('appointments.list.upcoming')}</Text>
-                                <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: activeTab === 'upcoming' ? '#1E56E3' : '#E5E7EB', justifyContent: 'center', alignItems: 'center' }}>
-                                    <Text className={`font-outfit-bold text-sm`} style={{ color: activeTab === 'upcoming' ? '#FFFFFF' : '#9CA3AF', lineHeight: 16 }}>{upcomingCount}</Text>
-                                </View>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                className="flex-1 flex-row items-center justify-center gap-2 py-3 rounded-xl"
-                                style={{ backgroundColor: activeTab === 'past' ? '#FFFFFF' : 'transparent' }}
-                                onPress={() => setActiveTab('past')}
-                            >
-                                <Text className={`font-outfit-bold text-lg`} style={{ color: activeTab === 'past' ? '#1E56E3' : '#9CA3AF' }}>{t('appointments.list.past')}</Text>
-                                <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: activeTab === 'past' ? '#1E56E3' : '#E5E7EB', justifyContent: 'center', alignItems: 'center' }}>
-                                    <Text className={`font-outfit-bold text-sm`} style={{ color: activeTab === 'past' ? '#FFFFFF' : '#9CA3AF', lineHeight: 16 }}>{pastCount}</Text>
-                                </View>
-                            </TouchableOpacity>
+                        <View className="flex-row gap-2 p-1 rounded-2xl" style={{ backgroundColor: '#EDF1F7' }}>
+                            {([
+                                { key: 'upcoming', label: t('appointments.list.upcoming'), count: upcomingCount },
+                                { key: 'pending', label: t('appointments.list.pendingApproval'), count: pendingCount },
+                                { key: 'past', label: t('appointments.list.past'), count: pastCount },
+                            ] as const).map((tab) => {
+                                const isActive = activeTab === tab.key;
+                                return (
+                                    <TouchableOpacity
+                                        key={tab.key}
+                                        className="flex-1 flex-row items-center justify-center gap-1.5 py-3 px-1 rounded-xl"
+                                        style={{ backgroundColor: isActive ? '#FFFFFF' : 'transparent' }}
+                                        onPress={() => setActiveTab(tab.key)}
+                                    >
+                                        <Text
+                                            className="font-outfit-bold text-sm"
+                                            numberOfLines={1}
+                                            style={{ color: isActive ? '#1E56E3' : '#9CA3AF' }}
+                                        >
+                                            {tab.label}
+                                        </Text>
+                                        <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: isActive ? '#1E56E3' : '#E5E7EB', justifyContent: 'center', alignItems: 'center' }}>
+                                            <Text className="font-outfit-bold text-[11px]" style={{ color: isActive ? '#FFFFFF' : '#9CA3AF', lineHeight: 14 }}>{tab.count}</Text>
+                                        </View>
+                                    </TouchableOpacity>
+                                );
+                            })}
                         </View>
                     </View>
                 }
@@ -108,7 +119,11 @@ export default function AppointmentsScreen() {
                 contentContainerStyle={{ paddingBottom: 20 }}
                 ListEmptyComponent={
                     <View className="items-center justify-center py-10">
-                        <Text className="text-gray-400 font-outfit-medium">{activeTab === 'upcoming' ? t('appointments.list.noUpcoming') : t('appointments.list.noPast')}</Text>
+                        <Text className="text-gray-400 font-outfit-medium">{activeTab === 'upcoming'
+                            ? t('appointments.list.noUpcoming')
+                            : activeTab === 'pending'
+                                ? t('appointments.list.noPendingApproval')
+                                : t('appointments.list.noPast')}</Text>
                     </View>
                 }
             />

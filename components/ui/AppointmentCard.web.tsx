@@ -2,6 +2,7 @@ import { Appointment } from '@/context/AppointmentsContext';
 import { useRouter } from 'expo-router';
 import { Calendar, Car, Clock, MapPin, MessageSquare, ShieldCheck, Trash2, Video } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Text, TouchableOpacity, View } from 'react-native';
 // Leaflet CSS is injected via link tag in render
 
@@ -77,6 +78,7 @@ interface AppointmentCardProps {
 
 export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps) {
     const router = useRouter();
+    const { t } = useTranslation();
     const isCanceled = appointment.status === 'canceled';
     const isPending = appointment.status === 'pending';
 
@@ -132,7 +134,7 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
             {isPending && (
                 <View className="bg-orange-50 p-3 items-center border-b border-orange-100">
                     <Text className="text-orange-500 font-outfit-bold text-xs">Status</Text>
-                    <Text className="text-orange-600 font-outfit-bold text-sm uppercase">Waiting for Mechanic</Text>
+                    <Text className="text-orange-600 font-outfit-bold text-sm uppercase">{t('appointments.list.waitingForMechanic')}</Text>
                 </View>
             )}
 
@@ -140,7 +142,7 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
             {appointment.status === 'offered' && (
                 <View className="bg-blue-50 p-3 items-center border-b border-blue-100">
                     <Text className="text-blue-500 font-outfit-bold text-xs">Status</Text>
-                    <Text className="text-blue-600 font-outfit-bold text-sm uppercase">Mechanic Offered</Text>
+                    <Text className="text-blue-600 font-outfit-bold text-sm uppercase">{t('appointments.list.mechanicOffered')}</Text>
                     <Text className="text-blue-400 text-[10px]">Tap to view offer</Text>
                 </View>
             )}

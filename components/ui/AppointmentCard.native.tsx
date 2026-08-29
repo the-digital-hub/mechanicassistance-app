@@ -1,9 +1,11 @@
 import { Appointment } from '@/context/AppointmentsContext';
+import { useUser } from '@/context/UserContext';
 import { haversineDistanceKm } from '@/lib/utils';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { Calendar, Car, ChevronRight, Clock, MapPin, MessageSquare, ShieldCheck, Trash2, Video } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import MapView, { Marker } from 'react-native-maps';
@@ -28,6 +30,8 @@ interface AppointmentCardProps {
 
 export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps) {
     const router = useRouter();
+    const { t } = useTranslation();
+    const { user } = useUser();
     const isCanceled = appointment.status === 'canceled';
     const isPending = appointment.status === 'pending';
 
@@ -91,24 +95,65 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
     const header = getHeaderStyles();
     const Icon = header.icon;
 
+    /**
+     * A row still sourced from assistance_requests has no appointment detail
+     * screen — /appointments/[id] assumes an accepted job. Send each role to the
+     * screen that can actually act on the request.
+     */
+    const openDetail = () => {
+        if (appointment.source === 'assistance') {
+            if (user?.role === 'mechanic') {
+                router.push({
+                    pathname: '/(tabs)/assist/[id]' as any,
+                    params: {
+                        id: appointment.id,
+                        type: appointment.type,
+                        assistanceType: appointment.assistanceType ?? '',
+                        title: appointment.title,
+                        car: appointment.car,
+                        address: appointment.address,
+                        zip: appointment.zip ?? '',
+                        budget: appointment.budget ?? '',
+                        userId: appointment.userId ?? '',
+                        locationLat: appointment.locationLat ?? '',
+                        locationLng: appointment.locationLng ?? '',
+                        vehicleIssues: JSON.stringify(appointment.vehicleIssues ?? []),
+                        status: appointment.status,
+                    },
+                });
+                return;
+            }
+            if (appointment.status === 'offered') {
+                router.push({
+                    pathname: '/request-assistance/mechanic-found' as any,
+                    params: { requestId: appointment.id },
+                });
+                return;
+            }
+            router.push('/request-assistance/searching' as any);
+            return;
+        }
+        router.navigate(`/appointments/${appointment.id}`);
+    };
+
     return (
         <TouchableOpacity
             className="bg-white rounded-xl overflow-hidden"
-            onPress={() => router.navigate(`/appointments/${appointment.id}`)}
+            onPress={openDetail}
             activeOpacity={0.7}
         >
             {/* Pending Banner */}
             {isPending && (
                 <View className="bg-orange-50 p-3 items-center border-b border-orange-100">
-                    <Text className="text-orange-600 font-outfit-bold text-base uppercase">Waiting for Mechanic</Text>
+                    <Text className="text-orange-600 font-outfit-bold text-base uppercase">{t('appointments.list.waitingForMechanic')}</Text>
                 </View>
             )}
 
             {/* Offered Banner */}
             {appointment.status === 'offered' && (
                 <View className="bg-blue-50 p-3 items-center border-b border-blue-100">
-                    <Text className="text-blue-600 font-outfit-bold text-base uppercase">Mechanic Offered</Text>
-                    <Text className="text-blue-400 text-[10px]">Tap to view offer</Text>
+                    <Text className="text-blue-600 font-outfit-bold text-base uppercase">{t('appointments.list.mechanicOffered')}</Text>
+                    <Text className="text-blue-400 text-[10px]">{t('appointments.list.tapToViewOffer')}</Text>
                 </View>
             )}
 

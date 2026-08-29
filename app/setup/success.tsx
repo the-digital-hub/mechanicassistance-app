@@ -104,7 +104,7 @@ export default function SuccessScreen() {
   const handleGetStarted = () => {
     if (isLoggedIn) {
       // User is authenticated — go directly to the app
-      router.replace("/(tabs)" as any);
+      router.replace("/(tabs)/dashboard");
     } else {
       // Fallback: manual login
       router.replace("/login");
