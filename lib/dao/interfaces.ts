@@ -326,6 +326,12 @@ export interface CalculatePricePayload {
     longitude: number;
     zipcode?: string;
     add_on_ids?: string[];
+    /**
+     * ISO instant (with a time of day) the service is priced for. The backend
+     * resolves the night/weekend/holiday surcharge in the timezone of
+     * latitude/longitude at this instant. Omit to price for right now.
+     */
+    service_at?: string;
 }
 
 /** Body for POST /api/pricing/requests/:serviceRequestId/price. */
@@ -334,6 +340,8 @@ export interface PersistRequestPricePayload {
     latitude: number;
     longitude: number;
     zipcode?: string;
+    /** See CalculatePricePayload.service_at. Defaults to the request's own date. */
+    service_at?: string;
 }
 
 /** A vehicle issue previously persisted for a request (GET /api/pricing/requests/:id/issues). */

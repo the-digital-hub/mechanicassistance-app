@@ -54,6 +54,16 @@ export default function ConfirmationScreen() {
     const zipFromAddr = typeof addrForZip === 'string' ? addrForZip.match(/\b\d{5}\b/) : null;
     const zipCode = paramsZip || (zipFromAddr ? zipFromAddr[0] : '');
 
+    // Scheduled requests must be priced for the hour the mechanic actually shows
+    // up, not for the moment the quote is fetched: the backend resolves the
+    // night/weekend/holiday surcharge in the timezone of the service location at
+    // this instant. `date` comes from the date-time step as a full ISO string; a
+    // date-only value carries no time of day, so it is not worth sending.
+    const serviceAt =
+        typeof date === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(date)
+            ? date
+            : '';
+
     // Fetch the price estimate from the pricing service once the request details are
     // known. The first selected issue id is the primary VehicleIssue UUID. Failures
     // fall back to "TBD" and never block submit.
@@ -74,6 +84,7 @@ export default function ConfirmationScreen() {
                     latitude: lat,
                     longitude: lng,
                     ...(zipCode ? { zipcode: zipCode } : {}),
+                    ...(serviceAt ? { service_at: serviceAt } : {}),
                 });
                 if (mounted) setPrice(result?.pricing_breakdown?.final_price ?? null);
             } catch (err) {
@@ -187,6 +198,7 @@ export default function ConfirmationScreen() {
                         latitude: lat,
                         longitude: lng,
                         ...(zipCode ? { zipcode: zipCode } : {}),
+                        ...(serviceAt ? { service_at: serviceAt } : {}),
                     });
                     // The endpoint persists each part best-effort and reports which
                     // ones landed; a partial write still returns 200.
