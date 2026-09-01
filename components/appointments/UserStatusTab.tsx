@@ -1,17 +1,14 @@
-import { ConfigService } from '@/lib/config/ConfigService';
 import React from 'react';
+import { AttachmentStrip } from './AttachmentStrip';
+import { parseAttachments } from '@/lib/media/attachments';
 import { useTranslation } from 'react-i18next';
-import { Image, ScrollView, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 export function UserStatusTab({ appointment }: { appointment: any; mechanicCoords?: { latitude: number; longitude: number } | null; routePolyline?: string | null }) {
     const { t } = useTranslation();
     if (!appointment) return null;
 
-    const photos: string[] = Array.isArray(appointment.photos)
-        ? appointment.photos
-        : typeof appointment.photos === 'string'
-            ? JSON.parse(appointment.photos || '[]')
-            : [];
+    const attachments = parseAttachments(appointment.photos);
 
     const currentStatus = appointment.currentStatus || appointment.status || 'Pending';
     const isEnRoute = currentStatus.toLowerCase().includes('way') || currentStatus.toLowerCase().includes('route');
@@ -45,31 +42,12 @@ export function UserStatusTab({ appointment }: { appointment: any; mechanicCoord
                     </View>
                 ) : null}
 
-                {photos.length > 0 && (
+                {attachments.length > 0 && (
                     <View>
                         <Text className="font-outfit-bold text-blue-900 mb-2">
-                            {t('appointments.userStatus.submittedPhotos', { count: photos.length })}
+                            {t('appointments.userStatus.submittedPhotos', { count: attachments.length })}
                         </Text>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                            {photos.map((uri, index) => {
-                                // Resolve relative paths against the API base URL
-                                const src = uri.startsWith('http') ? uri : `${ConfigService.getApiBaseUrl()}${uri}`;
-                                return (
-                                    <Image
-                                        key={index}
-                                        source={{ uri: src }}
-                                        style={{
-                                            width: 110,
-                                            height: 110,
-                                            borderRadius: 10,
-                                            marginRight: 10,
-                                            backgroundColor: '#F3F4F6',
-                                        }}
-                                        resizeMode="cover"
-                                    />
-                                );
-                            })}
-                        </ScrollView>
+                        <AttachmentStrip photos={appointment.photos} />
                     </View>
                 )}
             </View>

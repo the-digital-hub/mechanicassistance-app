@@ -15,15 +15,10 @@ import { userDAO } from '@/lib/dao/UserDAO';
 import { Ionicons } from '@expo/vector-icons';
 import { useGlobalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
+import { AttachmentStrip } from '@/components/appointments/AttachmentStrip';
+import { parseAttachments } from '@/lib/media/attachments';
 import { useTranslation } from 'react-i18next';
-import {
-    Dimensions,
-    Image,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View
-} from 'react-native';
+import { Dimensions, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -409,19 +404,10 @@ function InfoTab({ appointment, onScanComplete }: { appointment: any, onScanComp
             </View>
 
             {/* Photos */}
-            {appointment.photos && appointment.photos.length > 0 && (
+            {parseAttachments(appointment.photos).length > 0 && (
                 <View>
                     <Text className="text-gray-500 font-outfit-medium text-xs mb-2">Photos</Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} className="gap-2">
-                        {appointment.photos.map((photo: string, index: number) => (
-                            <Image
-                                key={index}
-                                source={{ uri: photo }}
-                                className="w-32 h-32 rounded-lg bg-gray-100"
-                                resizeMode="cover"
-                            />
-                        ))}
-                    </ScrollView>
+                    <AttachmentStrip photos={appointment.photos} size={128} />
                 </View>
             )}
 

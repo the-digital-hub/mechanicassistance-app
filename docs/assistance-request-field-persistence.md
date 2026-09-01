@@ -29,8 +29,9 @@ service escribe el breakdown, el pivot de issues y `budget`/`price`.
 | `vehicleId` | `vehicleId` | ✅ con FK real a `user_vehicles.id` (`ON DELETE SET NULL`) |
 | `vehicleName` | `car` | ✅ |
 | `description` (issue-selection) | `title` | ✅ |
-| `details` (add-details) | `notes` | ✅ |
-| `photos` | `photos` (JSON string) | ✅ subidas a `/api/photos/upload` primero |
+| `details` (vehicle-information) | `notes` | ✅ |
+| `condition` (vehicle-information) | `vehicleCondition` / `vehicle_condition` | ✅ enum: `drivable`, `unsafe_to_drive`, `pushable_only` |
+| `attachments` (vehicle-documentation) | `photos` (JSON string de `{url,type,note}`) | ✅ fotos a `/api/photos/upload`, videos a `/api/videos/upload` primero |
 | `latitude`/`longitude` | `locationLat`/`locationLng` | ✅ requeridos por el DTO |
 | `finalAddress`/`addressLabel` | `address` | ✅ |
 | `locationZip` | `zip` | ✅ fallback regex `\b\d{5}\b` sobre el address |

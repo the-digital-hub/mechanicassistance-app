@@ -25,7 +25,8 @@ export default function RequestAssistanceLayout() {
         {/* Sub-screens: keep stack headers hidden to use their manual headers for now */}
         <Stack.Screen name="select-vehicle" options={{ headerShown: false }} />
         <Stack.Screen name="issue-selection" options={{ headerShown: false }} />
-        <Stack.Screen name="add-details" options={{ headerShown: false }} />
+        <Stack.Screen name="vehicle-information" options={{ headerShown: false }} />
+        <Stack.Screen name="vehicle-documentation" options={{ headerShown: false }} />
         <Stack.Screen name="location-map" options={{ headerShown: false }} />
         <Stack.Screen name="date-time" options={{ headerShown: false }} />
         <Stack.Screen name="searching" options={{ headerShown: false }} />

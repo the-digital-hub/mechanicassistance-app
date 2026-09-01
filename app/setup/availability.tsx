@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/Button";
 import { getSetupProgress, saveSetupProgress } from "@/lib/storage";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -196,6 +196,7 @@ function TimePickerModal({
 // ── Screen ─────────────────────────────────────────────────────────────────
 export default function AvailabilityScreen() {
   const router = useRouter();
+  const navigation = useNavigation();
   const { t } = useTranslation();
 
   const [selectedDays, setSelectedDays] = useState<string[]>(DEFAULT_DAYS);
@@ -212,6 +213,7 @@ export default function AvailabilityScreen() {
 
   const [serviceRadius, setServiceRadius] = useState(15);
   const [baseLocation, setBaseLocation] = useState(BASE_LOCATION);
+  const trackRef = useRef<View>(null);
   const trackWidth = useRef(0);
   const trackPageX = useRef(0);
 
@@ -283,6 +285,7 @@ export default function AvailabilityScreen() {
     : startTime;
 
   const updateRadius = (pageX: number) => {
+    if (trackWidth.current <= 0) return;
     const x = pageX - trackPageX.current;
     const clamped = Math.max(0, Math.min(x, trackWidth.current));
     const value = Math.round(
@@ -291,12 +294,40 @@ export default function AvailabilityScreen() {
     setServiceRadius(value);
   };
 
+  /**
+   * The native stack's swipe-back gesture used to win over this slider: dragging
+   * the thumb near the minimum (the track starts at the screen's 20pt padding,
+   * inside iOS's edge-gesture zone) slid the whole screen to the right. The
+   * capture handlers plus `onPanResponderTerminationRequest: false` keep the
+   * gesture away from the parent ScrollView, and `gestureEnabled` is turned off
+   * for as long as the drag lasts to keep the native recognizer out of it.
+   */
   const sliderPan = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: (e) => updateRadius(e.nativeEvent.pageX),
+      onStartShouldSetPanResponderCapture: () => true,
+      onMoveShouldSetPanResponderCapture: () => true,
+      onPanResponderTerminationRequest: () => false,
+      onShouldBlockNativeResponder: () => true,
+      onPanResponderGrant: (e) => {
+        navigation.setOptions({ gestureEnabled: false });
+        const { pageX } = e.nativeEvent;
+        // Measured here, not once on mount: the ref callback could run before
+        // the final layout and leave the offset at 0, skewing every value.
+        trackRef.current?.measure((_fx, _fy, width, _h, px) => {
+          trackPageX.current = px;
+          trackWidth.current = width;
+          updateRadius(pageX);
+        });
+      },
       onPanResponderMove: (e) => updateRadius(e.nativeEvent.pageX),
+      onPanResponderRelease: () => {
+        navigation.setOptions({ gestureEnabled: true });
+      },
+      onPanResponderTerminate: () => {
+        navigation.setOptions({ gestureEnabled: true });
+      },
     }),
   ).current;
 
@@ -580,11 +611,10 @@ export default function AvailabilityScreen() {
               {/* Slider */}
               <View
                 className="h-10 justify-center"
+                ref={trackRef}
                 onLayout={(e) => {
                   trackWidth.current = e.nativeEvent.layout.width;
-                }}
-                ref={(ref) => {
-                  ref?.measure((_fx, _fy, _w, _h, px) => {
+                  trackRef.current?.measureInWindow((px) => {
                     trackPageX.current = px;
                   });
                 }}

@@ -18,14 +18,23 @@ el registro "aceptado/activo"; `assistance_requests` es la fuente de verdad del
 ciclo de vida del request. `AppointmentsContext` en mobile usa la fila de
 `appointments` cuando existe, filtrando el duplicado de `assistance_requests` por ID.
 
-## Fotos
+## Fotos y videos
 
-Upload devuelve una URL absoluta completa (`http://<host>/api/photos/<uuid>.jpg`),
-guardada como JSON array. El upload mobile es `AssistanceDAO.uploadPhoto(localUri)`
-usando `apiClient.upload()` con `FormData` — el método `upload()` **no** debe setear
-`Content-Type` manual (fetch lo pone con el boundary multipart automáticamente).
-Máximo 3 fotos por request (se enforcea en
-`app/(tabs)/request-assistance/add-details.tsx`).
+El upload devuelve una URL absoluta completa, guardada dentro del JSON de
+`photos`. Los uploads mobile son `AssistanceDAO.uploadPhoto(localUri)`
+(`POST /api/photos/upload`, imágenes, 5 MB) y `AssistanceDAO.uploadVideo(localUri)`
+(`POST /api/videos/upload`, mp4/mov/webm, 50 MB), ambos con `apiClient.upload()` y
+`FormData` — el método `upload()` **no** debe setear `Content-Type` manual (fetch lo
+pone con el boundary multipart automáticamente). Máximo 3 fotos + 1 video por
+request, enforceado en `app/(tabs)/request-assistance/vehicle-documentation.tsx`.
+
+`photos` guarda un array JSON de `{ url, type: 'photo' | 'video', note? }`. Los
+requests creados antes de los videos tienen un array de strings; todo lector pasa
+por `parseAttachments()` (`lib/media/attachments.ts`) y renderiza con
+`components/appointments/AttachmentStrip.tsx`.
+
+`GET /uploads/:filename` responde a `Range` (206) para que el video se pueda
+reproducir en iOS.
 
 ## Mechanic test bot
 

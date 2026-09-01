@@ -2,6 +2,7 @@ import { useRequestDraft } from '@/context/RequestDraftContext';
 import { useUser } from '@/context/UserContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { pricingDAO } from '@/lib/dao/PricingDAO';
+import type { Attachment, PendingAttachment } from '@/lib/media/attachments';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AlertCircle, AlignLeft, Car, CheckCircle2, ChevronLeft, MapPin } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
@@ -26,7 +27,7 @@ export default function ConfirmationScreen() {
     const { user } = useUser();
     const { vehicleDetails } = useRequestDraft();
     const params = useLocalSearchParams();
-    // latitude, longitude, addressLabel, finalAddress, type, vehicleId, vehicleName, description, issues, details, photos, date
+    // latitude, longitude, addressLabel, finalAddress, type, vehicleId, vehicleName, description, issues, details, condition, attachments, date
     const {
         type,
         vehicleId,
@@ -34,7 +35,8 @@ export default function ConfirmationScreen() {
         description,
         issues,
         details,
-        photos,
+        condition,
+        attachments,
         latitude,
         longitude,
         addressLabel,
@@ -132,14 +134,22 @@ export default function ConfirmationScreen() {
 
         setIsSubmitting(true);
         try {
-            // Upload photos to S3, then create the assistance request with permanent URLs
-            const localPhotos: string[] = photos ? JSON.parse(photos as string) : [];
-            const uploadedUrls: string[] = [];
+            // Upload the documentation media to S3, then create the assistance
+            // request with permanent URLs. Photos and videos go to different
+            // media-service routes; the note travels with each file.
+            const pending: PendingAttachment[] = attachments ? JSON.parse(attachments as string) : [];
+            const uploaded: Attachment[] = [];
 
-            for (let i = 0; i < localPhotos.length; i++) {
-                setUploadProgress(t('requestAssistance.confirmation.uploadingPhoto', { current: i + 1, total: localPhotos.length }));
-                const url = await assistanceDAO.uploadPhoto(localPhotos[i]);
-                uploadedUrls.push(url);
+            for (let i = 0; i < pending.length; i++) {
+                setUploadProgress(t('requestAssistance.confirmation.uploadingPhoto', { current: i + 1, total: pending.length }));
+                const url = pending[i].type === 'video'
+                    ? await assistanceDAO.uploadVideo(pending[i].uri)
+                    : await assistanceDAO.uploadPhoto(pending[i].uri);
+                uploaded.push({
+                    url,
+                    type: pending[i].type,
+                    ...(pending[i].note ? { note: pending[i].note } : {}),
+                });
             }
 
             setUploadProgress('');
@@ -161,8 +171,11 @@ export default function ConfirmationScreen() {
                 locationLat: lat,
                 locationLng: lng,
                 status: 'pending',
-                photos: uploadedUrls,
+                photos: uploaded,
                 zip: zipCode,
+                // Answered on the vehicle information step; informational for the
+                // mechanic, the pricing engine does not read it.
+                ...(typeof condition === 'string' && condition ? { vehicleCondition: condition } : {}),
                 ...(typeof date === 'string' && date ? { date } : {}),
                 // Captured on select-vehicle. Spread conditionally so empty values are
                 // omitted rather than sent as nulls, matching how `date` is handled.

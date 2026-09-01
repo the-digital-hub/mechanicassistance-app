@@ -1,3 +1,5 @@
+import type { Attachment } from '../media/attachments';
+
 // Mirrors the `code` column of the assistance type catalog (GET /api/assistance-types).
 // 'towing' exists in the catalog but has no dedicated handling in the request flow yet:
 // the cards that switch on this fall through to their default branch.
@@ -24,7 +26,14 @@ export interface AssistanceRequest {
     status?: 'pending' | 'accepted' | 'canceled' | 'offered';
     locationLat?: number;
     locationLng?: number;
-    photos?: string[];
+    /**
+     * Attachments. New requests carry `{ url, type, note }` objects; older ones
+     * a plain array of URLs, and the API may hand back the raw JSON string.
+     * Always read it through `parseAttachments` (lib/media/attachments.ts).
+     */
+    photos?: string[] | Attachment[] | string;
+    /** How drivable the vehicle is: 'drivable' | 'unsafe_to_drive' | 'pushable_only'. */
+    vehicleCondition?: string;
     vehicleId?: string;
     zip?: string;
     /** Odometer reading when the request was created. Snapshot: `Vehicle.mileage` gets overwritten, this doesn't. */
@@ -208,6 +217,8 @@ export interface IAssistanceDAO {
     getById(id: string): Promise<AssistanceRequest | null>;
     updateStatus(id: string, mechanicId: string, status: string, extra?: { eta?: string; price?: string }): Promise<void>;
     create(request: Partial<AssistanceRequest>): Promise<AssistanceRequest>;
+    uploadPhoto(localUri: string): Promise<string>;
+    uploadVideo(localUri: string): Promise<string>;
 }
 
 export interface IAppointmentDAO {

@@ -212,7 +212,7 @@ export default function IssueSelectionScreen() {
 
     const handleContinue = () => {
         router.push({
-            pathname: '/request-assistance/add-details',
+            pathname: '/request-assistance/vehicle-information',
             params: {
                 type,
                 vehicleId,

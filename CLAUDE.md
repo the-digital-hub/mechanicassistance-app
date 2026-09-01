@@ -118,7 +118,7 @@ Conditional/procedural knowledge lives in skills (loaded on-demand), not here:
 | Chat / realtime | `app/(tabs)/chat/[id].tsx`, `context/SocketContext.tsx` |
 | Video call | `app/(tabs)/video-lobby/[id].tsx`, `app/(tabs)/video-call/[id].tsx`, `lib/video/useDailyCall.ts` |
 | Environment config | `lib/config/ConfigService.ts`, `context/SocketContext.tsx` |
-| Photo upload/display | `app/(tabs)/request-assistance/add-details.tsx`, `lib/dao/AssistanceDAO.ts`, `components/appointments/UserStatusTab.native.tsx` |
+| Photo/video upload/display | `app/(tabs)/request-assistance/vehicle-documentation.tsx`, `lib/dao/AssistanceDAO.ts`, `lib/media/attachments.ts`, `components/appointments/AttachmentStrip.tsx`, `components/appointments/VideoPlayerModal.tsx` (expo-video) |
 | Appointment map | `components/appointments/UserStatusTab.native.tsx` (user), `components/appointments/MechanicAssistanceInfoTab.native.tsx` (mechanic) — both require `locationLat`/`locationLng` from the backend |
 | Translations | `lib/i18n/`, `app/_layout.tsx` (init) |
 | User online tracking (mobile side) | `context/SocketContext.tsx` |

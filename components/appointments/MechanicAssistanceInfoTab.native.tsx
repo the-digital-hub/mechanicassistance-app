@@ -1,7 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import React from 'react';
-import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { AttachmentStrip } from './AttachmentStrip';
+import { parseAttachments } from '@/lib/media/attachments';
+import { Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import { MAP_PROVIDER } from '@/lib/maps/provider';
 import { formatEtaTime, useAppointmentEta } from '@/hooks/useAppointmentEta';
@@ -162,19 +164,10 @@ export function MechanicAssistanceInfoTab({ appointment, onScan }: MechanicAssis
                 </View>
 
                 {/* Photos Carousel */}
-                {appointment.photos && appointment.photos.length > 0 && (
+                {parseAttachments(appointment.photos).length > 0 && (
                     <View>
                         <Text className="font-outfit-bold text-gray-900 text-base mb-2">Photos:</Text>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="gap-2">
-                            {appointment.photos.map((photo: string, index: number) => (
-                                <Image
-                                    key={index}
-                                    source={{ uri: photo }}
-                                    className="w-24 h-24 rounded-lg bg-gray-100"
-                                    resizeMode="cover"
-                                />
-                            ))}
-                        </ScrollView>
+                        <AttachmentStrip photos={appointment.photos} size={96} />
                     </View>
                 )}
 

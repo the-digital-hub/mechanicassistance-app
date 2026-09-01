@@ -37,9 +37,31 @@ export class AssistanceDAO implements IAssistanceDAO {
         formData.append('photo', { uri: localUri, type: mimeType, name: filename } as any);
 
         const result = await apiClient.upload<{ key: string; url: string }>('/api/photos/upload', formData);
-        // Media service returns a relative path (/uploads/filename); make it absolute
+        return this.absoluteUrl(result.url);
+    }
+
+    /**
+     * Uploads a local video URI and returns the permanent URL. Same contract as
+     * `uploadPhoto`, but the media service caps videos at 50 MB and only accepts
+     * mp4 / mov / webm.
+     */
+    async uploadVideo(localUri: string): Promise<string> {
+        const filename = localUri.split('/').pop() || 'video.mp4';
+        const ext = filename.split('.').pop()?.toLowerCase() || 'mp4';
+        const mimeType =
+            ext === 'mov' ? 'video/quicktime' : ext === 'webm' ? 'video/webm' : 'video/mp4';
+
+        const formData = new FormData();
+        formData.append('video', { uri: localUri, type: mimeType, name: filename } as any);
+
+        const result = await apiClient.upload<{ key: string; url: string }>('/api/videos/upload', formData);
+        return this.absoluteUrl(result.url);
+    }
+
+    /** Media service returns a relative path (/uploads/filename); make it absolute. */
+    private absoluteUrl(url: string): string {
         const baseUrl = ConfigService.getApiBaseUrl();
-        return result.url.startsWith('http') ? result.url : `${baseUrl}${result.url}`;
+        return url.startsWith('http') ? url : `${baseUrl}${url}`;
     }
 }
 
