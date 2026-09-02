@@ -11,6 +11,11 @@ export default function SetupLayout() {
   return (
     <Stack
       screenOptions={{
+        // No edge swipe-back anywhere in setup: the availability step's service
+        // radius slider sits a few points from the left edge, and the edge
+        // recognizer stole the drag and slid the screen sideways. Every screen
+        // here has its own back arrow in the header (see headerLeft below).
+        gestureEnabled: false,
         headerStyle: {
           backgroundColor: "#F3F4F6", // bg-gray-100
         },

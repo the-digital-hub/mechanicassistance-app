@@ -84,7 +84,12 @@ function AppShell() {
         <Stack.Screen name="index" />
         <Stack.Screen name="login" />
         <Stack.Screen name="onboarding" />
-        <Stack.Screen name="setup" />
+        {/* The mechanic availability step has a slider a few points from the
+            left edge; the edge swipe-back recognizer stole the drag and slid
+            the screen sideways. Disabling it on the child stack alone just
+            handed the gesture to this one, which popped the whole setup flow.
+            Every setup screen has its own back arrow in the header. */}
+        <Stack.Screen name="setup" options={{ gestureEnabled: false }} />
         <Stack.Screen name="verify-identity" />
         <Stack.Screen
           name="modal"

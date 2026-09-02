@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/Button";
 import { getSetupProgress, saveSetupProgress } from "@/lib/storage";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -71,6 +71,7 @@ const DAYS: string[] = [
 const DEFAULT_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 const RADIUS_MIN = 1;
 const RADIUS_MAX = 50;
+const THUMB_SIZE = 20;
 /**
  * Shown until the address saved in `/setup/address` is read back, and as the
  * fallback when the wizard skipped that step (or the street was typed by hand,
@@ -196,7 +197,6 @@ function TimePickerModal({
 // ── Screen ─────────────────────────────────────────────────────────────────
 export default function AvailabilityScreen() {
   const router = useRouter();
-  const navigation = useNavigation();
   const { t } = useTranslation();
 
   const [selectedDays, setSelectedDays] = useState<string[]>(DEFAULT_DAYS);
@@ -214,6 +214,7 @@ export default function AvailabilityScreen() {
   const [serviceRadius, setServiceRadius] = useState(15);
   const [baseLocation, setBaseLocation] = useState(BASE_LOCATION);
   const trackRef = useRef<View>(null);
+  const [trackW, setTrackW] = useState(0);
   const trackWidth = useRef(0);
   const trackPageX = useRef(0);
 
@@ -295,12 +296,12 @@ export default function AvailabilityScreen() {
   };
 
   /**
-   * The native stack's swipe-back gesture used to win over this slider: dragging
-   * the thumb near the minimum (the track starts at the screen's 20pt padding,
-   * inside iOS's edge-gesture zone) slid the whole screen to the right. The
-   * capture handlers plus `onPanResponderTerminationRequest: false` keep the
-   * gesture away from the parent ScrollView, and `gestureEnabled` is turned off
-   * for as long as the drag lasts to keep the native recognizer out of it.
+   * Two separate things used to drag the whole screen sideways while the thumb
+   * moved: the native stack's swipe-back recognizer, and the parent ScrollView
+   * panning horizontally because the thumb overflowed the content width. The
+   * back gesture is now off for this screen (the header's back arrow stays),
+   * the thumb is clamped inside the track, and these handlers refuse to hand
+   * the gesture over once the drag started.
    */
   const sliderPan = useRef(
     PanResponder.create({
@@ -311,7 +312,6 @@ export default function AvailabilityScreen() {
       onPanResponderTerminationRequest: () => false,
       onShouldBlockNativeResponder: () => true,
       onPanResponderGrant: (e) => {
-        navigation.setOptions({ gestureEnabled: false });
         const { pageX } = e.nativeEvent;
         // Measured here, not once on mount: the ref callback could run before
         // the final layout and leave the offset at 0, skewing every value.
@@ -322,17 +322,19 @@ export default function AvailabilityScreen() {
         });
       },
       onPanResponderMove: (e) => updateRadius(e.nativeEvent.pageX),
-      onPanResponderRelease: () => {
-        navigation.setOptions({ gestureEnabled: true });
-      },
-      onPanResponderTerminate: () => {
-        navigation.setOptions({ gestureEnabled: true });
-      },
     }),
   ).current;
 
-  const thumbPercent =
-    ((serviceRadius - RADIUS_MIN) / (RADIUS_MAX - RADIUS_MIN)) * 100;
+  const radiusFraction =
+    (serviceRadius - RADIUS_MIN) / (RADIUS_MAX - RADIUS_MIN);
+  const thumbPercent = radiusFraction * 100;
+  // In pixels and clamped: a percentage-positioned thumb stuck out past the
+  // content width at the top of the range, which let the vertical ScrollView
+  // pan sideways.
+  const thumbLeft = Math.max(
+    0,
+    Math.min(radiusFraction * trackW, Math.max(0, trackW - THUMB_SIZE)),
+  );
 
   const mapDelta = Math.max(0.04, (serviceRadius / RADIUS_MAX) * 0.6);
 
@@ -614,6 +616,7 @@ export default function AvailabilityScreen() {
                 ref={trackRef}
                 onLayout={(e) => {
                   trackWidth.current = e.nativeEvent.layout.width;
+                  setTrackW(e.nativeEvent.layout.width);
                   trackRef.current?.measureInWindow((px) => {
                     trackPageX.current = px;
                   });
@@ -628,7 +631,7 @@ export default function AvailabilityScreen() {
                 </View>
                 <View
                   className="absolute w-5 h-5 rounded-full bg-white border-2 border-[#0047AB]"
-                  style={{ left: `${thumbPercent}%`, marginLeft: -10, top: 10 }}
+                  style={{ left: thumbLeft, top: 10 }}
                 />
               </View>
 
