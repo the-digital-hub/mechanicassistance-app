@@ -9,28 +9,13 @@ import { useSocket } from '@/context/SocketContext';
 import { useUser } from '@/context/UserContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { AssistanceRequest } from '@/lib/dao/interfaces';
-import * as Location from 'expo-location';
+import { buildMechanicFeedFilters } from '@/lib/mechanic-feed';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Calendar, Video, Zap, MapPin, Wrench, DollarSign, Star, Award, Circle, Clock, Car, Lock } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, ScrollView, Text, TouchableOpacity, View, Modal } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-
-// Mechanics see requests within this radius of their current location.
-const MECHANIC_RADIUS_KM = 1000;
-
-/** Best-effort current GPS coords; null if permission denied or lookup fails. */
-async function getCurrentCoords(): Promise<{ latitude: number; longitude: number } | null> {
-    try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== 'granted') return null;
-        const loc = await Location.getCurrentPositionAsync({});
-        return { latitude: loc.coords.latitude, longitude: loc.coords.longitude };
-    } catch {
-        return null;
-    }
-}
 
 /** Returns a translation key for the current time of day — resolve with t() at the call site. */
 const getTimeGreetingKey = (): string => {
@@ -129,18 +114,10 @@ export default function DashboardScreen() {
         }
         setIsLoadingRequests(true);
         try {
-            const filters: Record<string, string | number> = { status: 'pending' };
-            // Localized filtering: show only requests within MECHANIC_RADIUS_KM
-            // of the mechanic's *current* location (they may be away from home).
-            // Falls back to no geo filter if location permission is denied.
-            const coords = await getCurrentCoords();
-            if (coords) {
-                filters.lat = coords.latitude;
-                filters.lng = coords.longitude;
-                filters.radiusKm = MECHANIC_RADIUS_KM;
-            }
-
-            const data = await assistanceDAO.getAll(filters);
+            // Same filters as the assist tab, so one account cannot see two
+            // different feeds. Falls back to no geo filter if location
+            // permission is denied.
+            const data = await assistanceDAO.getAll(await buildMechanicFeedFilters());
             setRequests(data);
         } catch (error) {
             console.error('Failed to load assistance requests', error);
@@ -162,9 +139,12 @@ export default function DashboardScreen() {
 
     // Live updates: a new request broadcast to mechanics, or any status change,
     // triggers a refetch so the feed stays current without leaving the screen.
+    // 'socket_connect' is included because server events are ephemeral: one
+    // broadcast while this socket was down is never replayed, so the reconnect
+    // itself has to be what re-syncs the feed.
     useEffect(() => {
         if (!lastMessage || !user?.id) return;
-        if (lastMessage.type === 'new_request' || lastMessage.type === 'assistance_update' || lastMessage.type === 'appointment_update') {
+        if (['new_request', 'assistance_update', 'appointment_update', 'socket_connect'].includes(lastMessage.type)) {
             loadRequests();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps

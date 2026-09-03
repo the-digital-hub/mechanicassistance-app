@@ -1,6 +1,7 @@
 import { useSocket } from '@/context/SocketContext';
 import { useUser } from '@/context/UserContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
+import { buildMechanicFeedFilters } from '@/lib/mechanic-feed';
 import { pricingDAO } from '@/lib/dao/PricingDAO';
 import { AssistanceRequest } from '@/lib/dao/interfaces';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -59,7 +60,9 @@ export default function AssistanceRequestsScreen() {
     if (!user?.id) return;
     setIsLoading(true);
     try {
-      const data = await assistanceDAO.getAll({ status: 'pending' });
+      // Shared with the dashboard: both mechanic feeds must ask the backend
+      // the same question, geo center included.
+      const data = await assistanceDAO.getAll(await buildMechanicFeedFilters());
       // Best-effort: vehicle issues live in the pricing service, not on
       // assistance_requests. A failed fetch for one request must not block
       // the rest of the feed from loading.
@@ -83,9 +86,13 @@ export default function AssistanceRequestsScreen() {
 
   useFocusEffect(useCallback(() => { loadRequests(); }, [loadRequests]));
 
+  // 'socket_connect' is in the list on purpose: server events are ephemeral and
+  // never replayed, so a request broadcast while this socket was down (app
+  // backgrounded, token refresh, reconnect) would otherwise stay invisible
+  // until the screen is left and focused again.
   useEffect(() => {
     if (!lastMessage) return;
-    if (['new_request', 'assistance_update', 'appointment_update'].includes(lastMessage.type)) {
+    if (['new_request', 'assistance_update', 'appointment_update', 'socket_connect'].includes(lastMessage.type)) {
       loadRequests();
     }
   }, [lastMessage]);
