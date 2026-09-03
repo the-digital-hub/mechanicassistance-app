@@ -8,8 +8,7 @@ import { mediaDAO } from '@/lib/dao/MediaDAO';
 import { setAppLanguage } from '@/lib/i18n';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Award, Camera, Car, ChevronLeft, ChevronRight, Circle, CreditCard, FileText, Heart, HelpCircle, Lock, LogOut, MapPin, PlugZap, Settings, User } from 'lucide-react-native';
+import { Award, Camera, Car, ChevronLeft, ChevronRight, Circle, CreditCard, FileText, Heart, HelpCircle, Lock, LogOut, MapPin, Settings, User } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Image, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -18,13 +17,9 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { user, isLoading, updateUser, logout } = useUser();
   const { appointments } = useAppointments();
-  const { mechanicStatus, setMechanicStatus } = useMechanicStatus();
+  const { mechanicStatus, setMechanicStatus, isUpdatingStatus } = useMechanicStatus();
   const { t, i18n } = useTranslation();
 
-  const isOnline = user?.isOnline || false;
-
-  const [showOnlineModal, setShowOnlineModal] = useState(false);
-  const [showOfflineModal, setShowOfflineModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [localProfileUri, setLocalProfileUri] = useState<string | null>(null);
@@ -59,13 +54,14 @@ export default function ProfileScreen() {
     }
   }, [isLoading, user, router]);
 
-  const handleStatusToggle = (targetStatus: boolean) => {
-    if (targetStatus) {
-      setShowOnlineModal(true);
-    } else {
-      // Check active appointments
+  const changeStatus = async (status: 'available' | 'busy' | 'offline') => {
+    if (status === mechanicStatus || isUpdatingStatus) return;
+
+    // Going offline mid-job would strand the customer waiting for someone the
+    // feed no longer shows.
+    if (status === 'offline') {
       const hasActiveAppointments = appointments.some(appt =>
-        ['accepted', 'scheduled', 'started'].includes(appt.status) && appt.status !== 'canceled' && appt.status !== 'completed'
+        ['accepted', 'scheduled', 'started'].includes(appt.status)
       );
 
       if (hasActiveAppointments) {
@@ -78,42 +74,21 @@ export default function ProfileScreen() {
             [{ text: t('profile.modals.ok') }]
           );
         }
-      } else {
-        setShowOfflineModal(true);
+        return;
       }
     }
-  };
 
-  const setAvailability = async (isOnline: boolean, closeModal: () => void) => {
     try {
-      await updateUser({ isOnline });
-      closeModal();
+      await setMechanicStatus(status);
     } catch {
       Alert.alert('Update Failed', 'Could not change your availability. Please try again.');
     }
   };
 
-  const confirmOnline = () => setAvailability(true, () => setShowOnlineModal(false));
-
-  const confirmOffline = () => setAvailability(false, () => setShowOfflineModal(false));
-
   const handleLogout = async () => {
     await logout();
     setShowLogoutModal(false);
     router.replace('/login');
-  };
-
-  const getStatusStyles = () => {
-    switch (mechanicStatus) {
-      case 'available':
-        return { bgColor: '#ECFDF5', textColor: '#111827', dotColor: '#10B981' };
-      case 'busy':
-        return { bgColor: '#FEF3C7', textColor: '#111827', dotColor: '#F97316' };
-      case 'offline':
-        return { bgColor: '#F3F4F6', textColor: '#6B7280', dotColor: '#9CA3AF' };
-      default:
-        return { bgColor: '#ECFDF5', textColor: '#111827', dotColor: '#10B981' };
-    }
   };
 
   const getStatusColor = (status: 'available' | 'busy' | 'offline') => {
@@ -238,7 +213,8 @@ export default function ProfileScreen() {
                 return (
                   <TouchableOpacity
                     key={option.id}
-                    onPress={() => setMechanicStatus(option.id)}
+                    onPress={() => changeStatus(option.id)}
+                    disabled={isUpdatingStatus}
                     className="flex-1 py-3 px-4 rounded-2xl flex-row items-center justify-center gap-2"
                     style={{
                       backgroundColor: mechanicStatus === option.id ? optionStyles.bgColor : '#F9FAFB',
@@ -338,90 +314,6 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-      {/* Online Confirmation Modal */}
-      <Modal transparent visible={showOnlineModal} animationType="fade">
-        <View className="flex-1 bg-black/50 justify-center items-center px-6">
-          <View className="bg-white w-full rounded-2xl p-6 items-center">
-            <View className="w-20 h-20 bg-green-500 rounded-full justify-center items-center mb-6">
-              <PlugZap size={40} color="white" />
-            </View>
-            <Text className="text-lg font-outfit-bold text-center text-gray-900 mb-6">
-              {t('profile.modals.goOnlineTitle')}
-            </Text>
-            <View className="flex-row gap-3 w-full">
-              <TouchableOpacity
-                className="flex-1 py-3 rounded-lg border border-gray-300 bg-white"
-                onPress={() => setShowOnlineModal(false)}
-              >
-                <Text className="text-center font-outfit-bold text-gray-900">{t('profile.modals.no')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                className="flex-1"
-                onPress={confirmOnline}
-                activeOpacity={0.8}
-              >
-                <LinearGradient
-                  colors={['#2B66F8', '#081E72']}
-                  start={{ x: 0, y: 1 }}
-                  end={{ x: 1, y: 0 }}
-                  style={{
-                    borderRadius: 8,
-                    paddingVertical: 12,
-                    paddingHorizontal: 16,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Text className="text-center font-outfit-bold text-white">{t('profile.modals.yes')}</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Offline Confirmation Modal */}
-      <Modal transparent visible={showOfflineModal} animationType="fade">
-        <View className="flex-1 bg-black/50 justify-center items-center px-6">
-          <View className="bg-white w-full rounded-2xl p-6 items-center">
-            <View className="w-20 h-20 bg-red-600 rounded-full justify-center items-center mb-6">
-              <PlugZap size={40} color="white" style={{ transform: [{ rotate: '45deg' }] }} />
-            </View>
-            <Text className="text-lg font-outfit-bold text-center text-gray-900 mb-6">
-              {t('profile.modals.goOfflineTitle')}
-            </Text>
-            <View className="flex-row gap-3 w-full">
-              <TouchableOpacity
-                className="flex-1 py-3 rounded-lg border border-gray-300 bg-white"
-                onPress={() => setShowOfflineModal(false)}
-              >
-                <Text className="text-center font-outfit-bold text-gray-900">{t('profile.modals.no')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                className="flex-1"
-                onPress={confirmOffline}
-                activeOpacity={0.8}
-              >
-                <LinearGradient
-                  colors={['#2B66F8', '#081E72']}
-                  start={{ x: 0, y: 1 }}
-                  end={{ x: 1, y: 0 }}
-                  style={{
-                    borderRadius: 8,
-                    paddingVertical: 12,
-                    paddingHorizontal: 16,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Text className="text-center font-outfit-bold text-white">{t('profile.modals.yes')}</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
       {/* Logout Confirmation Modal */}
       <ConfirmationModal
         visible={showLogoutModal}
@@ -450,7 +342,7 @@ export default function ProfileScreen() {
                   <TouchableOpacity
                     key={option.id}
                     onPress={() => {
-                      setMechanicStatus(option.id);
+                      void changeStatus(option.id);
                       setShowStatusModal(false);
                     }}
                     activeOpacity={0.8}

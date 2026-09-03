@@ -6,7 +6,7 @@ import {
     saveCachedUser,
     saveTokens,
 } from '../auth/session';
-import { IUserDAO, PublicUserProfile, UserData } from './interfaces';
+import { IUserDAO, MechanicStatus, PublicUserProfile, UserData } from './interfaces';
 
 export class UserDAO implements IUserDAO {
     async getAll(): Promise<UserData[]> {
@@ -239,6 +239,19 @@ export class UserDAO implements IUserDAO {
 
     async update(id: string, updates: Partial<UserData>): Promise<void> {
         return apiClient.patch(`/api/users/${id}`, updates);
+    }
+
+    /**
+     * Sets the mechanic's live status. Separate from `update` because the
+     * backend owns the outcome: losing every socket forces offline and an
+     * active job forces busy, so the applied status can differ from the one
+     * sent. Use what comes back, not what was requested.
+     */
+    async setPresence(
+        id: string,
+        status: MechanicStatus,
+    ): Promise<{ status: MechanicStatus; isOnline: boolean }> {
+        return apiClient.patch(`/api/users/${id}/presence`, { status });
     }
 }
 

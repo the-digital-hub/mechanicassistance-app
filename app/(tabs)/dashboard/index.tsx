@@ -4,6 +4,7 @@ import { PromotionalCard } from '@/components/ui/PromotionalCard';
 import { UserRequestCard } from '@/components/ui/UserRequestCard';
 import { useAppointments, type Appointment } from '@/context/AppointmentsContext';
 import { useMechanicStatus } from '@/context/MechanicStatusContext';
+import type { MechanicStatus } from '@/lib/dao/interfaces';
 import { useSocket } from '@/context/SocketContext';
 import { useUser } from '@/context/UserContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
@@ -82,7 +83,7 @@ export default function DashboardScreen() {
         return '#9CA3AF';
     };
 
-    const statusOptions: Array<{ id: 'available' | 'busy' | 'offline', label: string, description: string }> = [
+    const statusOptions: Array<{ id: MechanicStatus; label: string; description: string }> = [
         {
             id: 'available',
             label: t('dashboard.mechanic.status.available.label'),
@@ -185,7 +186,7 @@ export default function DashboardScreen() {
 
     // Dashboard for mechanics
     if (user?.role === 'mechanic') {
-        const statusOptions = [
+        const statusOptions: Array<{ id: MechanicStatus; label: string; description: string; color: string }> = [
             { id: 'available', label: t('dashboard.mechanic.status.available.label'), description: t('dashboard.mechanic.status.available.description'), color: '#10B981' },
             { id: 'busy', label: t('dashboard.mechanic.status.busy.label'), description: t('dashboard.mechanic.status.busy.description'), color: '#F97316' },
             { id: 'offline', label: t('dashboard.mechanic.status.offline.label'), description: t('dashboard.mechanic.status.offline.description'), color: '#9CA3AF' },

@@ -2,6 +2,7 @@ import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { Input } from '@/components/ui/Input';
 import { useUser } from '@/context/UserContext';
 import { useMechanicStatus } from '@/context/MechanicStatusContext';
+import type { MechanicStatus } from '@/lib/dao/interfaces';
 import { US_STATES } from '@/lib/address';
 import type { ParsedAddress } from '@/lib/places';
 import { useRouter } from 'expo-router';
@@ -36,9 +37,9 @@ export default function CreateAddressScreen() {
     };
 
     const getStatusLabel = () => {
-        if (mechanicStatus === 'available') return 'Available';
-        if (mechanicStatus === 'busy') return 'Busy';
-        return 'Offline';
+        if (mechanicStatus === 'available') return t('profile.availability.available');
+        if (mechanicStatus === 'busy') return t('profile.availability.busy');
+        return t('profile.availability.offline');
     };
 
     const getStatusColor = (status: 'available' | 'busy' | 'offline') => {
@@ -47,21 +48,21 @@ export default function CreateAddressScreen() {
         return '#9CA3AF';
     };
 
-    const statusOptions: Array<{ id: 'available' | 'busy' | 'offline', label: string, description: string }> = [
+    const statusOptions: Array<{ id: MechanicStatus; label: string; description: string }> = [
         {
             id: 'available',
-            label: 'Available',
-            description: 'Visible to owners and can receive new requests'
+            label: t('profile.availability.available'),
+            description: t('profile.availability.availableDesc')
         },
         {
             id: 'busy',
-            label: 'Busy',
-            description: 'Visible but won\'t receive new requests'
+            label: t('profile.availability.busy'),
+            description: t('profile.availability.busyDesc')
         },
         {
             id: 'offline',
-            label: 'Offline',
-            description: 'Not visible to owners and won\'t receive requests'
+            label: t('profile.availability.offline'),
+            description: t('profile.availability.offlineDesc')
         },
     ];
 

@@ -30,7 +30,7 @@ function toIoUrl(wsUrl: string): string {
 }
 
 // Server-driven domain events the app reacts to (besides chat).
-const SERVER_EVENTS = ['assistance_update', 'appointment_update', 'video_room_ready', 'new_request', 'verification_update'];
+const SERVER_EVENTS = ['assistance_update', 'appointment_update', 'video_room_ready', 'new_request', 'verification_update', 'mechanic_status'];
 
 export function SocketProvider({ children }: { children: ReactNode }) {
     const { user } = useUser();

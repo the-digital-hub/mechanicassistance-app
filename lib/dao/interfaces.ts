@@ -161,6 +161,8 @@ export interface UserData {
     profileImage?: string;
     role: 'mechanic' | 'user';
     isOnline?: boolean;
+    /** Live status of a mechanic. `isOnline` is derived from it. */
+    mechanicStatus?: MechanicStatus;
     addresses?: Address[];
     vehicles?: Vehicle[];
     mechanicDetails?: MechanicDetail;
@@ -168,6 +170,8 @@ export interface UserData {
     identityVerification?: IdentityVerification;
     legalDocuments?: LegalDocument[];
 }
+
+export type MechanicStatus = 'available' | 'busy' | 'offline';
 
 export interface Vehicle {
     id?: string;
@@ -210,6 +214,8 @@ export interface IUserDAO {
     checkEmailExists(email: string): Promise<boolean>;
     register(setupData: any): Promise<any>;
     update(id: string, updates: Partial<UserData>): Promise<void>;
+    /** Sets a mechanic's live status; returns the status the backend applied. */
+    setPresence(id: string, status: MechanicStatus): Promise<{ status: MechanicStatus; isOnline: boolean }>;
 }
 
 export interface IAssistanceDAO {

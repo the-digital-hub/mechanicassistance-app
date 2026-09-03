@@ -127,8 +127,8 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={DefaultTheme}>
       <UserProvider>
-        <MechanicStatusProvider>
-          <SocketProvider>
+        <SocketProvider>
+          <MechanicStatusProvider>
             <VerificationProvider>
               <NotificationsProvider>
                 <AppointmentsProvider>
@@ -136,8 +136,8 @@ export default function RootLayout() {
                 </AppointmentsProvider>
               </NotificationsProvider>
             </VerificationProvider>
-          </SocketProvider>
-        </MechanicStatusProvider>
+          </MechanicStatusProvider>
+        </SocketProvider>
       </UserProvider>
     </ThemeProvider>
   );
