@@ -214,8 +214,8 @@ export default function VehicleDocumentationScreen() {
                             activeOpacity={video ? 1 : 0.8}
                             className="rounded-2xl items-center justify-center"
                             style={video
-                                ? { height: 180, backgroundColor: '#0B1530' }
-                                : { height: 180, borderWidth: 2, borderStyle: 'dashed', borderColor: '#E4EAF5', backgroundColor: '#F4F6FC' }}
+                                ? { width: '85%', alignSelf: 'center', height: 180, backgroundColor: '#0B1530' }
+                                : { width: '85%', alignSelf: 'center', height: 180, borderWidth: 2, borderStyle: 'dashed', borderColor: '#E4EAF5', backgroundColor: '#F4F6FC' }}
                         >
                             {video ? (
                                 <VideoView
