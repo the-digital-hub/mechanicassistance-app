@@ -11,7 +11,16 @@ import {
 import { userDAO } from '@/lib/dao/UserDAO';
 import { UserData } from '@/lib/dao/interfaces';
 import { firebaseSignOut } from '@/lib/firebase/auth';
-import React, { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
+import React, {
+    createContext,
+    ReactNode,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
 
 export type { UserData } from '@/lib/dao/interfaces';
 
@@ -33,6 +42,14 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const [isLoading, setIsLoading] = useState(true);
 
     const bootstrapped = useRef(false);
+
+    // Kept in sync during render so the callbacks below can read the current
+    // user without listing it as a dependency. Without this, `updateUser` got a
+    // new identity on every `setUser`, and any effect depending on it re-ran and
+    // called it again — the "Maximum update depth exceeded" loop that
+    // MechanicStatusContext hit on the `mechanic_status` socket event.
+    const userRef = useRef<UserData | null>(null);
+    userRef.current = user;
 
     /**
      * Restores the session on startup.
@@ -121,7 +138,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     useEffect(() => onSessionExpired(() => setUser(null)), []);
 
     /** Google/Apple sign-in. Phone sign-in uses `adoptSession` instead. */
-    const login = async (firebaseIdToken: string, phone?: string): Promise<boolean> => {
+    const login = useCallback(async (firebaseIdToken: string, phone?: string): Promise<boolean> => {
         try {
             const userData = await userDAO.loginWithFirebase(firebaseIdToken, phone);
             if (userData) {
@@ -134,7 +151,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
             console.error('Login failed', error);
             return false;
         }
-    };
+    }, []);
 
     /**
      * Adopts a session the OTP flow has already established.
@@ -142,12 +159,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
      * `lib/auth/otp.ts` stores the tokens while verifying, because they arrive in
      * the same response. This is what puts the user into React state.
      */
-    const adoptSession = async (userData: UserData): Promise<void> => {
+    const adoptSession = useCallback(async (userData: UserData): Promise<void> => {
         setUser(userData);
         await saveCachedUser(userData);
-    };
+    }, []);
 
-    const logout = async () => {
+    const logout = useCallback(async () => {
         setUser(null);
         // Revokes the whole rotation family server-side, so the refresh token is
         // useless even if it was copied off the device.
@@ -157,15 +174,26 @@ export function UserProvider({ children }: { children: ReactNode }) {
         } catch {
             // Ignore Firebase sign-out errors (e.g. already signed out).
         }
-    };
+    }, []);
 
-    const updateUser = async (updates: Partial<UserData>, syncToBackend: boolean = true) => {
-        if (!user) return;
+    const updateUser = useCallback(async (updates: Partial<UserData>, syncToBackend: boolean = true) => {
+        const current = userRef.current;
+        if (!current) return;
+
+        // A no-op update used to still produce a brand-new user object and
+        // re-render every consumer. Server echoes of the state we already hold
+        // are common (mechanic_status), so bail out instead.
+        const keys = Object.keys(updates) as (keyof UserData)[];
+        const unchanged =
+            !syncToBackend && keys.length > 0 && keys.every((key) => current[key] === updates[key]);
+        if (unchanged) return;
+
         try {
             if (syncToBackend) {
-                await userDAO.update(user.id, updates);
+                await userDAO.update(current.id, updates);
             }
-            const newUser = { ...user, ...updates };
+            const newUser = { ...userRef.current!, ...updates };
+            userRef.current = newUser;
             setUser(newUser);
             await saveCachedUser(newUser);
         } catch (error) {
@@ -175,13 +203,14 @@ export function UserProvider({ children }: { children: ReactNode }) {
             console.error('Failed to update user', error);
             throw error;
         }
-    };
+    }, []);
 
-    return (
-        <UserContext.Provider value={{ user, isLoading, login, adoptSession, logout, updateUser }}>
-            {children}
-        </UserContext.Provider>
+    const value = useMemo(
+        () => ({ user, isLoading, login, adoptSession, logout, updateUser }),
+        [user, isLoading, login, adoptSession, logout, updateUser],
     );
+
+    return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 }
 
 export function useUser() {

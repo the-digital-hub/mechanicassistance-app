@@ -3,7 +3,7 @@ import { appointmentDAO } from '@/lib/dao/AppointmentDAO';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { pricingDAO } from '@/lib/dao/PricingDAO';
 import { AssistanceRequest, AssistanceType, VehicleIssueSnapshot } from '@/lib/dao/interfaces';
-import { ConfigService } from '@/lib/config/ConfigService';
+import { Attachment, parseAttachments } from '@/lib/media/attachments';
 import React, { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
 import { useSocket } from './SocketContext';
 
@@ -49,7 +49,8 @@ export interface Appointment {
     currentStatus?: string;
     userId?: string;
     mechanicId?: string;
-    photos?: string[];
+    /** Legacy rows hold plain URL strings; current ones hold attachment objects. */
+    photos?: string[] | Attachment[];
     zip?: string;
     locationLat?: number;
     locationLng?: number;
@@ -148,11 +149,12 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                     zip: req.zip,
                     mechanicId: req.mechanicId,
                     updatedAt: (req as any).updatedAt,
-                    photos: (() => {
-                        const raw: string[] = typeof req.photos === 'string' ? JSON.parse(req.photos) : req.photos || [];
-                        const base = ConfigService.getApiBaseUrl();
-                        return raw.map((p: string) => p.startsWith('http') ? p : `${base}${p}`);
-                    })(),
+                    // `photos` holds `{url,type,note}` objects now, and plain URL
+                    // strings on older rows. `parseAttachments` is the one reader
+                    // that handles both; hand-rolling it here crashed with
+                    // "p.startsWith is not a function" on the new shape.
+                    // Left relative on purpose — AttachmentStrip absolutizes.
+                    photos: parseAttachments(req.photos),
                     locationLat: req.locationLat,
                     locationLng: req.locationLng,
                     vehicleIssues: issuesById.get(req.id) || [],

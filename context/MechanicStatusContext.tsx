@@ -2,7 +2,15 @@ import { useSocket } from '@/context/SocketContext';
 import { useUser } from '@/context/UserContext';
 import { userDAO } from '@/lib/dao/UserDAO';
 import type { MechanicStatus } from '@/lib/dao/interfaces';
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 export type { MechanicStatus };
 
@@ -26,16 +34,21 @@ export function MechanicStatusProvider({ children }: { children: React.ReactNode
   // meant every app launch claimed the mechanic was available regardless of
   // what they had picked.
   const seededFor = useRef<string | null>(null);
+  // Keyed on the fields actually read, not the whole `user` object, so this
+  // stops re-running on every unrelated profile update.
+  const userId = user?.id ?? null;
+  const seedStatus: MechanicStatus =
+    user?.mechanicStatus ?? (user?.isOnline ? 'available' : 'offline');
   useEffect(() => {
-    if (!user) {
+    if (!userId) {
       seededFor.current = null;
       setStatus('offline');
       return;
     }
-    if (seededFor.current === user.id) return;
-    seededFor.current = user.id;
-    setStatus(user.mechanicStatus ?? (user.isOnline ? 'available' : 'offline'));
-  }, [user]);
+    if (seededFor.current === userId) return;
+    seededFor.current = userId;
+    setStatus(seedStatus);
+  }, [userId, seedStatus]);
 
   // The backend also changes the status on its own — a job starting, another
   // device toggling it — and announces it on this socket event.
@@ -43,11 +56,15 @@ export function MechanicStatusProvider({ children }: { children: React.ReactNode
     if (lastMessage?.type !== 'mechanic_status') return;
     const next = lastMessage.payload?.status as MechanicStatus | undefined;
     if (!next) return;
+    // The backend re-announces the status we already hold all the time. Writing
+    // it back anyway re-rendered UserProvider, which re-ran this very effect —
+    // the "Maximum update depth exceeded" loop.
+    if (next === mechanicStatus) return;
     setStatus(next);
     void updateUser({ mechanicStatus: next, isOnline: next !== 'offline' }, false);
-  }, [lastMessage, updateUser]);
+  }, [lastMessage, mechanicStatus, updateUser]);
 
-  const setMechanicStatus = async (status: MechanicStatus): Promise<MechanicStatus> => {
+  const setMechanicStatus = useCallback(async (status: MechanicStatus): Promise<MechanicStatus> => {
     if (!user) return mechanicStatus;
 
     const previous = mechanicStatus;
@@ -69,12 +86,15 @@ export function MechanicStatusProvider({ children }: { children: React.ReactNode
     } finally {
       setIsUpdatingStatus(false);
     }
-  };
+  }, [user, mechanicStatus, updateUser]);
+
+  const value = useMemo(
+    () => ({ mechanicStatus, setMechanicStatus, isUpdatingStatus }),
+    [mechanicStatus, setMechanicStatus, isUpdatingStatus],
+  );
 
   return (
-    <MechanicStatusContext.Provider
-      value={{ mechanicStatus, setMechanicStatus, isUpdatingStatus }}
-    >
+    <MechanicStatusContext.Provider value={value}>
       {children}
     </MechanicStatusContext.Provider>
   );
