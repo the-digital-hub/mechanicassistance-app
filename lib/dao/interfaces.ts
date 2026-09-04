@@ -106,8 +106,8 @@ export type VerificationStatus =
     | 'Resubmitted';
 
 /**
- * Identity verification (KYC) state. Only the status lives on our side: the
- * document data and images stay with Didit.
+ * Identity verification (KYC) state. The document images stay with Didit; the
+ * fields below are the slice of its decision the backend keeps.
  */
 export interface IdentityVerification {
     verificationId: string;
@@ -115,6 +115,17 @@ export interface IdentityVerification {
     status: VerificationStatus;
     declineReason?: string;
     verifiedAt?: string;
+    /** status === 'Approved'. Optional: builds predate migration 0007. */
+    identityVerified?: boolean;
+    /** Name as read from the identity document. */
+    verifiedName?: string;
+    /** Face-match score, 0-100: the selfie against the document photo. */
+    matchScore?: number;
+    /**
+     * Worst warning Didit raised. Unlike declineReason this can be present on
+     * an approved verification — worth surfacing, never a reason to block.
+     */
+    identityWarning?: string;
 }
 
 /** The two legal documents a mechanic files. Mirrors MECHANIC_DOCUMENT_TYPES in users-service. */
