@@ -170,7 +170,22 @@ export interface UserData {
     phone: string;
     dob: string;
     profileImage?: string;
+    /**
+     * Primary role. Kept as the narrow union because every screen branches on
+     * it — the backend guarantees it stays one of these two for an app user.
+     */
     role: 'mechanic' | 'user';
+    /**
+     * Every role held, when the backend sent them. A person can be both a
+     * mechanic and a fleet_manager, which `role` alone cannot express, so this
+     * is a plain string[] rather than the union above.
+     *
+     * Optional because a session cached before roles existed will not have it,
+     * and because the app itself only ever needs `role`.
+     */
+    roles?: string[];
+    /** Permission codes those roles grant, e.g. 'verification.read.any'. */
+    permissions?: string[];
     isOnline?: boolean;
     /** Live status of a mechanic. `isOnline` is derived from it. */
     mechanicStatus?: MechanicStatus;
