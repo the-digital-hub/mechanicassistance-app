@@ -91,7 +91,13 @@ export default function SuccessScreen() {
         if (isSignupTokenGone(err)) {
           setExpired(accountCreated.current ? "signIn" : "restart");
         } else {
-          setError(err.message || t("setup.success.createAccountFailed"));
+          // `ApiError.message` is built for the logs above: it carries the status
+          // code and the serialized error payload. On screen that reads as a wall
+          // of JSON, so show `apiMessage` — the sentence the backend wrote for a
+          // human.
+          const shown =
+            err instanceof ApiError ? err.apiMessage : (err?.message as string);
+          setError(shown || t("setup.success.createAccountFailed"));
         }
 
         setIsCreating(false);

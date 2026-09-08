@@ -226,9 +226,11 @@ export class UserDAO implements IUserDAO {
                 }));
         }
 
-        // Identity verification: the account is linked to the Didit verification
-        // started on the identity step. Required server-side — there is no path
-        // to an account without one.
+        // Identity verification: links the account to the Didit verification
+        // started on the identity step. Absent when that step was skipped —
+        // "verify later" is allowed for both roles and the account is created
+        // unverified. What stays closed until Didit approves is the mechanic's
+        // offer on a request, which appointments-service enforces.
         const identityData = progress.identity as Record<string, unknown> | undefined;
         if (identityData?.verificationId) {
             payload.verificationId = identityData.verificationId;
