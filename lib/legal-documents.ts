@@ -12,6 +12,26 @@ const ACCEPTED_MIME =
 
 const PICKER_TYPES = ['application/pdf', 'image/*'];
 
+/**
+ * The `type` media-service expects for this kind of document, or nothing.
+ *
+ * Sending it is what gets a document *read*: media-service files the object
+ * under a folder, S3 notifies the document service, and the certificate's fields
+ * are extracted without anybody retyping them. Leaving it out means the file is
+ * simply stored.
+ *
+ * `BUSINESS_LICENSE` therefore returns undefined deliberately — nothing reads a
+ * business licence today, and media-service answers **400** for a type it does
+ * not recognise rather than filing it plain. That refusal is the point: a type
+ * quietly accepted and never read would be a failure nobody could see.
+ *
+ * The names differ on each side because the concerns differ: the app's type is a
+ * legal-document category, media-service's is "which reader handles this".
+ */
+export function uploadTypeFor(type: LegalDocumentType): string | undefined {
+  return type === 'LIABILITY_INSURANCE' ? 'insurance' : undefined;
+}
+
 export type PickLegalDocumentResult =
   | { status: 'cancelled' }
   | { status: 'ok'; document: LegalDocument }
@@ -71,6 +91,7 @@ export async function pickAndUploadLegalDocument(
     const uploaded = await mediaDAO.uploadDocument(asset.uri, {
       name: asset.name,
       mimeType,
+      documentType: uploadTypeFor(type),
     });
 
     return {

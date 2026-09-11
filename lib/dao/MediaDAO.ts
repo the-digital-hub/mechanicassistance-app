@@ -53,30 +53,44 @@ class MediaDAOImpl {
    */
   async uploadDocument(
     localUri: string,
-    options?: { name?: string; mimeType?: string },
+    options?: { name?: string; mimeType?: string; documentType?: string },
   ): Promise<UploadedFile> {
     const filename = options?.name || localUri.split('/').pop() || 'document.pdf';
 
-    return this.upload('/api/documents/upload', 'document', {
-      uri: localUri,
-      name: filename,
-      // The picker usually reports the MIME itself; fall back to the extension.
-      type: options?.mimeType || mimeFor(filename, 'application/pdf'),
-    });
+    return this.upload(
+      '/api/documents/upload',
+      'document',
+      {
+        uri: localUri,
+        name: filename,
+        // The picker usually reports the MIME itself; fall back to the extension.
+        type: options?.mimeType || mimeFor(filename, 'application/pdf'),
+      },
+      options?.documentType,
+    );
   }
 
   /**
    * media-service answers with a relative `/uploads/<key>` url. Absolutize it
    * here so callers can store it and render it without knowing about the API
    * base — which changes with the environment.
+   *
+   * `documentType` is what makes a document get read: with it, media-service
+   * files the object under a folder an S3 event notification can act on, and the
+   * document service picks it up. Without it the file is simply stored. Only
+   * send a type media-service knows — an unrecognised one is a 400, on purpose,
+   * because a typo would otherwise mean "never read this" with nothing to show
+   * for it.
    */
   private async upload(
     endpoint: string,
     field: string,
     file: { uri: string; name: string; type: string },
+    documentType?: string,
   ): Promise<UploadedFile> {
     const formData = new FormData();
     formData.append(field, file as any);
+    if (documentType) formData.append('type', documentType);
 
     const result = await apiClient.upload<UploadedFile>(endpoint, formData);
 

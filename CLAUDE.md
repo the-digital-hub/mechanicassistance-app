@@ -10,7 +10,7 @@ This directory contains the **mobile app** (Expo + React Native + expo-router, T
 
 **The backend lives in the parent monorepo, not in a separate repo.** The old Express +
 SQLite server and the admin portal were removed in commit `502a5ba`, and the backend is
-now 8 NestJS microservices over PostgreSQL + Redis (`appointments-service`,
+now 9 NestJS microservices over PostgreSQL + Redis (`appointments-service`,
 `mechanicassistance-service-price`, `api-gateway`, …) — see the root `CLAUDE.md` for the
 service/port table. Backend changes are made in those sibling directories.
 
