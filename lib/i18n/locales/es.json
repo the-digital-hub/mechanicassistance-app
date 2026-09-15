@@ -1098,7 +1098,8 @@
       "profileEmpty": "Todavía no subiste ningún documento.",
       "removeConfirmTitle": "Quitar documento",
       "removeConfirmBody": "Esto quita el archivo de tu perfil. Podés volver a subirlo cuando quieras.",
-      "cancel": "Cancelar"
+      "cancel": "Cancelar",
+      "insuranceReadNotice": "Cuando termines tu registro vamos a leer los datos de tu póliza y te los vamos a mostrar para que los confirmes."
     }
   },
   "assist": {

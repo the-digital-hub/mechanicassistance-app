@@ -121,6 +121,15 @@ export default function LegalDocumentsScreen() {
           document={documentFor(type)}
           uploading={uploading === type}
           error={errors[type] ?? null}
+          // Only the insurance certificate is ever read, and only once the
+          // account exists — what is picked here is still filed under nobody,
+          // so the promise is in the future tense and there is nothing to show
+          // yet. The licence gets no note because nothing reads it.
+          note={
+            type === 'LIABILITY_INSURANCE' && documentFor(type)
+              ? t('setup.legalDocs.insuranceReadNotice')
+              : null
+          }
           onPick={() => handlePick(type)}
           onRemove={() => handleRemove(type)}
         />

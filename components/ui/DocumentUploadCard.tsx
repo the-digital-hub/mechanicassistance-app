@@ -1,4 +1,4 @@
-import { FileText, Upload } from 'lucide-react-native';
+import { FileText, Info, Upload } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 
@@ -14,6 +14,13 @@ interface DocumentUploadCardProps {
   uploading?: boolean;
   /** Per-card error, so one failed pick does not disturb the other card */
   error?: string | null;
+  /**
+   * A line about what happens to this file next, shown under it once there is
+   * one. The caller decides whether there is anything to say — only the
+   * insurance certificate is ever read, so the same note on the business
+   * licence would promise something that never happens.
+   */
+  note?: string | null;
 }
 
 const STATUS_STYLES: Record<
@@ -52,6 +59,7 @@ export function DocumentUploadCard({
   onRemove,
   uploading = false,
   error = null,
+  note = null,
 }: DocumentUploadCardProps) {
   const { t } = useTranslation();
   const status = document?.status ? STATUS_STYLES[document.status] : null;
@@ -112,6 +120,15 @@ export function DocumentUploadCard({
             </View>
             {uploading && <ActivityIndicator size="small" color="#0047AB" />}
           </TouchableOpacity>
+
+          {note && (
+            <View className="flex-row items-start mt-2">
+              <Info size={13} color="#0047AB" style={{ marginTop: 1 }} />
+              <Text className="font-outfit-regular text-[#0047AB] text-xs ml-1.5 flex-1">
+                {note}
+              </Text>
+            </View>
+          )}
 
           {document.declineReason && (
             <Text className="font-outfit-regular text-red-500 text-xs mt-2">

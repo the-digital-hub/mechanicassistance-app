@@ -1098,7 +1098,8 @@
       "profileEmpty": "You haven't uploaded any documents yet.",
       "removeConfirmTitle": "Remove document",
       "removeConfirmBody": "This removes the file from your profile. You can upload it again whenever you want.",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "insuranceReadNotice": "When you finish signing up we will read your policy details and show them to you to confirm."
     }
   },
   "assist": {
