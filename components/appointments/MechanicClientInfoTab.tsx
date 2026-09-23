@@ -47,8 +47,8 @@ export function MechanicClientInfoTab({
                 </View>
                 <Text className="text-white font-outfit-bold text-lg">
                     {assistanceType === 'witness' ? 'ACCIDENT ASSISTANCE' :
-                        appointmentType === 'immediate' ? 'Immediate Assistance' :
-                            appointmentType === 'videocall' || appointmentType === 'video' ? 'Video Call Assistance' :
+                        (assistanceType ?? appointmentType) === 'immediate' ? 'Immediate Assistance' :
+                            (assistanceType ?? appointmentType) === 'videocall' || appointmentType === 'video' ? 'Video Call Assistance' :
                                 'Scheduled Assistance'}
                 </Text>
             </View>
