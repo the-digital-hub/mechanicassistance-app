@@ -31,10 +31,15 @@ import {
  * stranding the user here.
  */
 
-type Variant = "review" | "declined" | "notStarted" | "approved";
+type Variant = "review" | "inProgress" | "declined" | "notStarted" | "approved";
 
 /**
  * Which copy and affordances to show for the current status.
+ *
+ * `In Progress` and `Awaiting User` are the user's move, not Didit's: the flow
+ * was opened and left unfinished (typically cancelled during sign-up before
+ * "verify later"). Showing them as "we are reviewing" left no button to resume,
+ * stranding the user here. Only `In Review` and `Resubmitted` are truly waiting.
  *
  * `Expired` and `Kyc Expired` fall through to `notStarted` on purpose: both need
  * a fresh session, which is exactly what that variant offers.
@@ -42,13 +47,9 @@ type Variant = "review" | "declined" | "notStarted" | "approved";
 function variantFor(status: string | null): Variant {
   if (status === "Approved") return "approved";
   if (status === "Declined" || status === "Abandoned") return "declined";
-  if (
-    status === "In Review" ||
-    status === "In Progress" ||
-    status === "Resubmitted" ||
-    status === "Awaiting User"
-  ) {
-    return "review";
+  if (status === "In Review" || status === "Resubmitted") return "review";
+  if (status === "In Progress" || status === "Awaiting User") {
+    return "inProgress";
   }
   return "notStarted";
 }
@@ -58,6 +59,7 @@ const ICONS: Record<
   { name: keyof typeof Ionicons.glyphMap; color: string; bg: string }
 > = {
   review: { name: "hourglass-outline", color: "#0047AB", bg: "#E9F1FF" },
+  inProgress: { name: "shield-outline", color: "#0047AB", bg: "#E9F1FF" },
   declined: { name: "alert-circle-outline", color: "#EF4444", bg: "#FEE2E2" },
   notStarted: { name: "shield-outline", color: "#0047AB", bg: "#E9F1FF" },
   approved: { name: "checkmark-circle", color: "#047857", bg: "#D1FAE5" },
@@ -78,11 +80,18 @@ export default function VerificationPendingScreen() {
   // need the softer wording; `review` and `approved` read the same either way.
   const isMechanic = user?.role === "mechanic";
   const bodyKey =
-    !isMechanic && (variant === "notStarted" || variant === "declined")
+    !isMechanic &&
+    (variant === "notStarted" ||
+      variant === "declined" ||
+      variant === "inProgress")
       ? `verification.${variant}BodyOptional`
       : `verification.${variant}Body`;
-  // Neither "in review" nor "approved" has anything to retry.
-  const canRetry = variant === "declined" || variant === "notStarted";
+  // Neither "in review" nor "approved" has anything to retry. An unfinished
+  // flow resumes: the backend hands back the same Didit session.
+  const canRetry =
+    variant === "declined" ||
+    variant === "notStarted" ||
+    variant === "inProgress";
 
   const handleRetry = async () => {
     setIsStarting(true);
@@ -274,7 +283,9 @@ export default function VerificationPendingScreen() {
                     {t(
                       variant === "declined"
                         ? "verification.retryButton"
-                        : "verification.startButton",
+                        : variant === "inProgress"
+                          ? "verification.resumeButton"
+                          : "verification.startButton",
                     )}
                   </Text>
                 </>

@@ -42,10 +42,10 @@ function toneFor(status: string | null): Tone {
     switch (status) {
         case 'Approved':
             return 'verified';
+        // In Progress / Awaiting User are an unfinished flow the user still has
+        // to complete, so they read as unverified rather than pending.
         case 'In Review':
-        case 'In Progress':
         case 'Resubmitted':
-        case 'Awaiting User':
             return 'pending';
         case 'Declined':
         case 'Abandoned':
