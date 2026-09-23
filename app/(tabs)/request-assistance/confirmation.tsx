@@ -34,6 +34,7 @@ export default function ConfirmationScreen() {
         vehicleName,
         description,
         issues,
+        symptomIds,
         details,
         condition,
         attachments,
@@ -208,6 +209,7 @@ export default function ConfirmationScreen() {
                 try {
                     const result = await pricingDAO.persistRequestPrice(response.id, {
                         vehicle_issue_ids: issueIds,
+                        vehicle_issue_symptom_ids: parseIssueIds(symptomIds).filter((id) => UUID_RE.test(id)),
                         latitude: lat,
                         longitude: lng,
                         ...(zipCode ? { zipcode: zipCode } : {}),

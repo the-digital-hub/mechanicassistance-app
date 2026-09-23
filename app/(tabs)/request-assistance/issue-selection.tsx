@@ -74,10 +74,9 @@ export default function IssueSelectionScreen() {
 
     // Issues with no symptoms are selected directly by tapping their row.
     const [directSelectedIssues, setDirectSelectedIssues] = useState<string[]>([]);
-    // Exactly one symptom across the whole screen — the single selection is a UX
-    // rule, the backend imposes no such constraint. Picking a symptom implicitly
-    // selects its parent issue, so it doesn't need its own direct toggle.
-    const [selectedSymptomId, setSelectedSymptomId] = useState<string | null>(null);
+    // Any number of symptoms, from any issue and any category. Picking a symptom
+    // implicitly selects its parent issue, so it doesn't need its own direct toggle.
+    const [selectedSymptomIds, setSelectedSymptomIds] = useState<string[]>([]);
     const [catalog, setCatalog] = useState<VehicleIssueCategory[]>(FALLBACK_CATALOG);
     // Categories and issues expand/collapse independently — several can be open at once.
     const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
@@ -164,7 +163,9 @@ export default function IssueSelectionScreen() {
     };
 
     const toggleSymptom = (symptomId: string) => {
-        setSelectedSymptomId(prev => (prev === symptomId ? null : symptomId));
+        setSelectedSymptomIds(prev =>
+            prev.includes(symptomId) ? prev.filter(item => item !== symptomId) : [...prev, symptomId]
+        );
     };
 
     const toggleSearch = () => {
@@ -199,15 +200,16 @@ export default function IssueSelectionScreen() {
             .filter((category) => category.issues.length > 0)
         : catalog;
 
-    // The issue that owns the single selected symptom, if any — picking a
-    // symptom implicitly selects its parent issue.
-    const symptomOwnerIssueId = catalog
+    // The issues that own the selected symptoms — picking a symptom implicitly
+    // selects its parent issue.
+    const symptomOwnerIssueIds = catalog
         .flatMap(category => category.issues)
-        .find(issue => (issue.symptoms ?? []).some(s => s.id === selectedSymptomId))?.id ?? null;
+        .filter(issue => (issue.symptoms ?? []).some(s => selectedSymptomIds.includes(s.id)))
+        .map(issue => issue.id);
 
     const selectedIssues = Array.from(new Set([
         ...directSelectedIssues,
-        ...(symptomOwnerIssueId ? [symptomOwnerIssueId] : []),
+        ...symptomOwnerIssueIds,
     ]));
 
     const handleContinue = () => {
@@ -218,10 +220,9 @@ export default function IssueSelectionScreen() {
                 vehicleId,
                 vehicleName,
                 issues: selectedIssues.join(','),
-                // TODO: not persisted yet — assistance_requests has no symptom
-                // column. Carried through the wizard so the screens downstream
-                // can show it and so persisting it later is a backend-only change.
-                symptomId: selectedSymptomId ?? '',
+                // Stored by the pricing service on the confirmation step
+                // (assistance_request_symptoms), next to the issues.
+                symptomIds: selectedSymptomIds.join(','),
             }
         });
     };
@@ -301,7 +302,14 @@ export default function IssueSelectionScreen() {
                                     ? t('requestAssistance.issueSelection.otherIssues')
                                     : '';
                             const isCategoryExpanded = normalizedQuery ? true : expandedCategories.has(categoryKey);
-                            const categorySelectedCount = category.issues.filter(issue => selectedIssues.includes(issue.id)).length;
+                            // Every tick in the category: directly selected issues plus selected symptoms.
+                            const categorySelectedCount = category.issues.reduce(
+                                (count, issue) =>
+                                    count +
+                                    (directSelectedIssues.includes(issue.id) ? 1 : 0) +
+                                    (issue.symptoms ?? []).filter(s => selectedSymptomIds.includes(s.id)).length,
+                                0
+                            );
                             const CategoryIcon = iconFor(category.icon, heading || category.issues[0]?.name || '');
                             const CategoryChevron = isCategoryExpanded ? ChevronUp : ChevronDown;
 
@@ -370,7 +378,7 @@ export default function IssueSelectionScreen() {
                                                         {isIssueExpanded && (
                                                             <View>
                                                                 {symptoms.map((symptom) => {
-                                                                    const isSymptomSelected = selectedSymptomId === symptom.id;
+                                                                    const isSymptomSelected = selectedSymptomIds.includes(symptom.id);
                                                                     return (
                                                                         <TouchableOpacity
                                                                             key={symptom.id}

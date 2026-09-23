@@ -380,6 +380,8 @@ export interface CalculatePricePayload {
 /** Body for POST /api/pricing/requests/:serviceRequestId/price. */
 export interface PersistRequestPricePayload {
     vehicle_issue_ids: string[];
+    /** Selected symptom UUIDs, from any of vehicle_issue_ids. Unpriced; stored for the mechanic. */
+    vehicle_issue_symptom_ids?: string[];
     latitude: number;
     longitude: number;
     zipcode?: string;
