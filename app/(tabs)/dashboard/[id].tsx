@@ -100,18 +100,24 @@ export default function AssistDetailScreen() {
                 const loc = await Location.getCurrentPositionAsync({});
                 const { latitude, longitude } = loc.coords;
 
+                // Rough placeholder while the road-based figures load below —
+                // straight-line distance at an assumed average speed.
                 const km = haversineKm(latitude, longitude, reqLat, reqLng);
                 setDistKm(km);
                 const minutes = (km * 1.3 / 25) * 60;
                 setEtaText(formatEta(minutes));
                 setMechanicCoords({ latitude, longitude });
 
-                // Fetch route polyline from backend (Google Directions API).
+                // Fetch the route from backend (Google Directions API) — also
+                // returns the accurate distance/ETA, so use those instead of
+                // the estimate above.
                 const route: any = await apiClient.get(
                     `/api/appointments/route?fromLat=${latitude}&fromLng=${longitude}&toLat=${reqLat}&toLng=${reqLng}`
                 ).catch(() => null);
-                if (route?.available && route?.polyline) {
-                    setRoutePolyline(route.polyline);
+                if (route?.available) {
+                    if (route.polyline) setRoutePolyline(route.polyline);
+                    if (typeof route.distanceKm === 'number') setDistKm(route.distanceKm);
+                    if (typeof route.minutesAway === 'number') setEtaText(formatEta(route.minutesAway));
                 }
             } catch {
                 // no-op: ETA and distance stay null
