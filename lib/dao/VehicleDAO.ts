@@ -1,7 +1,13 @@
 import { apiClient } from '../api/apiClient';
-import { IVehicleDAO, Vehicle } from './interfaces';
+import { IVehicleDAO, Vehicle, VinDecodeResult } from './interfaces';
 
 export class VehicleDAO implements IVehicleDAO {
+    /** Works during sign-up too: the gateway accepts the signup token here. */
+    async decodeVin(vin: string, modelYear?: number): Promise<VinDecodeResult> {
+        const query = modelYear ? `?modelYear=${modelYear}` : '';
+        return apiClient.get(`/api/vehicles/vin/${encodeURIComponent(vin)}${query}`);
+    }
+
     async getByUser(userId: string): Promise<Vehicle[]> {
         return apiClient.get(`/api/vehicles/user/${encodeURIComponent(userId)}`);
     }

@@ -1,5 +1,6 @@
 import { saveSetupProgress } from "@/lib/storage";
 import { Input } from "@/components/ui/Input";
+import type { VehicleDecodedFields } from "@/lib/dao/interfaces";
 import {
   decodeVin,
   fetchMakes,
@@ -27,7 +28,7 @@ import {
   View,
 } from "react-native";
 
-interface Vehicle {
+interface Vehicle extends VehicleDecodedFields {
   id: string;
   make: string;
   model: string;
@@ -44,6 +45,8 @@ export default function VehicleInfoScreen() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [activeModal, setActiveModal] = useState<"make" | "model" | null>(null);
   const [isVinSearching, setIsVinSearching] = useState(false);
+  // What the last VIN lookup decoded; saved with the vehicle, cleared when the VIN changes.
+  const [vinDecoded, setVinDecoded] = useState<VehicleDecodedFields | null>(null);
   const [makes, setMakes] = useState<string[]>([]);
   const [models, setModels] = useState<string[]>([]);
   const [isLoadingMakes, setIsLoadingMakes] = useState(false);
@@ -123,12 +126,13 @@ export default function VehicleInfoScreen() {
     try {
       await decodeVin(
         vin,
-        (make, model) => {
+        (make, model, decoded) => {
           setFormData((prev) => ({
             ...prev,
             make,
             model,
           }));
+          setVinDecoded(decoded);
           Alert.alert(t("setup.vehicleInfo.vinDecodedTitle"), t("setup.vehicleInfo.vinDecodedMessage", { make, model }), [
             { text: t("setup.vehicleInfo.ok") },
           ]);
@@ -146,9 +150,11 @@ export default function VehicleInfoScreen() {
     const newVehicle: Vehicle = {
       id: Date.now().toString(),
       ...formData,
+      ...vinDecoded,
     };
     setVehicles((prev) => [...prev, newVehicle]);
     setIsAdding(false);
+    setVinDecoded(null);
     // Reset form
     setFormData({
       make: "Select",
@@ -309,6 +315,7 @@ export default function VehicleInfoScreen() {
                 <Input
                   value={formData.vin}
                   onChangeText={(text) => {
+                    setVinDecoded(null);
                     // Quick test helper bypass
                     if (text.includes(".")) {
                       setFormData((p) => ({ ...p, vin: "5YJ3E1EB9NF000001" }));

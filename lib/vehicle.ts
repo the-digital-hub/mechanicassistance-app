@@ -1,3 +1,6 @@
+import { ApiError } from './api/types';
+import { vehicleDAO } from './dao/VehicleDAO';
+import type { VehicleDecodedFields, VinDecodeResult } from './dao/interfaces';
 
 export const VEHICLE_COLORS = [
     { name: 'White', hex: '#FFFFFF', border: '#D1D5DB' },
@@ -64,30 +67,61 @@ export const getVehicleLogoUrl = (make: string): string => {
     return `https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/thumb/${slug}.png`;
 };
 
+/**
+ * The part of a VIN lookup that is saved with the vehicle. Fields NHTSA left
+ * empty are omitted rather than sent as null.
+ */
+export const toVehicleDecodedFields = (r: VinDecodeResult): VehicleDecodedFields => {
+    const fields: VehicleDecodedFields = {
+        year: r.year ?? undefined,
+        trim: r.trim ?? undefined,
+        bodyClass: r.bodyClass ?? undefined,
+        nhtsaVehicleType: r.nhtsaVehicleType ?? undefined,
+        manufacturer: r.manufacturer ?? undefined,
+        fuelTypePrimary: r.fuelTypePrimary ?? undefined,
+        electrificationLevel: r.electrificationLevel ?? undefined,
+        engineCylinders: r.engineCylinders ?? undefined,
+        displacementL: r.displacementL ?? undefined,
+        engineHp: r.engineHP ?? undefined,
+        driveType: r.driveType ?? undefined,
+        transmissionStyle: r.transmissionStyle ?? undefined,
+        doors: r.doors ?? undefined,
+        plantCountry: r.plantCountry ?? undefined,
+        engineTypeId: r.suggested?.engineTypeId ?? undefined,
+        vehicleTypeId: r.suggested?.vehicleTypeId ?? undefined,
+        vinDecoded: r.raw,
+    };
+    return Object.fromEntries(
+        Object.entries(fields).filter(([, v]) => v !== undefined),
+    ) as VehicleDecodedFields;
+};
+
+/**
+ * Looks the VIN up through our backend (which asks NHTSA vPIC). `onSuccess`
+ * gets the make and model for the form, plus the decoded fields to send along
+ * when the vehicle is saved.
+ */
 export const decodeVin = async (
     vin: string,
-    onSuccess: (make: string, model: string) => void,
+    onSuccess: (make: string, model: string, decoded: VehicleDecodedFields, result: VinDecodeResult) => void,
     onError: (error: string) => void
 ) => {
     try {
-        const response = await fetch(
-            `https://vpic.nhtsa.dot.gov/api/vehicles/decodevinvalues/${vin}?format=json`
-        );
-        const data = await response.json();
-        const result = data.Results?.[0];
+        const result = await vehicleDAO.decodeVin(vin);
 
-        if (!result || !result.Make) {
-            onError('Could not decode this VIN. Please check and try again.');
+        if (!result.found || !result.make) {
+            onError('We could not find this VIN. Check it, or enter the vehicle manually.');
             return;
         }
 
-        const decodedMake = result.Make;
-        const decodedModel = result.Model || 'Select';
-
-        onSuccess(decodedMake, decodedModel);
+        onSuccess(result.make, result.model || 'Select', toVehicleDecodedFields(result), result);
     } catch (error) {
         console.error('VIN lookup failed:', error);
-        onError('Could not reach the VIN database. Please try again later.');
+        if (error instanceof ApiError && error.statusCode === 400) {
+            onError('This VIN is not valid. It has 17 letters and digits, without I, O or Q.');
+        } else {
+            onError('Could not reach the VIN database. Please try again later, or enter the vehicle manually.');
+        }
     }
 };
 

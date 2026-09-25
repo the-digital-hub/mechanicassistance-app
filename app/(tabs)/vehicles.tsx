@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useUser } from '@/context/UserContext';
 import { vehicleDAO } from '@/lib/dao/VehicleDAO';
-import { Vehicle } from '@/lib/dao/interfaces';
+import { Vehicle, VehicleDecodedFields } from '@/lib/dao/interfaces';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -24,6 +24,8 @@ export default function VehiclesScreen() {
     const [editingVehicleId, setEditingVehicleId] = useState<string | null>(null);
     const [activeModal, setActiveModal] = useState<'make' | 'model' | null>(null);
     const [isVinSearching, setIsVinSearching] = useState(false);
+    // What the last VIN lookup decoded; saved along with the form, cleared when the VIN changes.
+    const [vinDecoded, setVinDecoded] = useState<VehicleDecodedFields | null>(null);
 
     const scrollViewRef = useRef<ScrollView>(null);
     const detailsContainerRef = useRef<View>(null);
@@ -118,11 +120,12 @@ export default function VehiclesScreen() {
 
         try {
             if (editingVehicleId) {
-                await vehicleDAO.update(editingVehicleId, formData);
+                await vehicleDAO.update(editingVehicleId, { ...formData, ...vinDecoded });
             } else {
                 await vehicleDAO.create({
                     userId: user.id,
-                    ...formData
+                    ...formData,
+                    ...vinDecoded,
                 });
             }
             setIsEditing(false);
@@ -157,6 +160,7 @@ export default function VehiclesScreen() {
     };
 
     const resetForm = () => {
+        setVinDecoded(null);
         setFormData({
             make: 'Select',
             model: 'Select',
@@ -178,12 +182,13 @@ export default function VehiclesScreen() {
         try {
             await decodeVin(
                 vin,
-                (make, model) => {
+                (make, model, decoded) => {
                     setFormData(prev => ({
                         ...prev,
                         make,
                         model,
                     }));
+                    setVinDecoded(decoded);
                     Alert.alert(
                         t('vehicles.vinDecodedTitle'),
                         t('vehicles.vinDecodedMessage', { make, model }),
@@ -308,6 +313,7 @@ export default function VehiclesScreen() {
                                     <Input
                                         value={formData.vin}
                                         onChangeText={(text) => {
+                                            setVinDecoded(null);
                                             if (text.includes('.')) {
                                                 setFormData(p => ({ ...p, vin: '5YJ3E1EB9NF000001' }));
                                             } else {

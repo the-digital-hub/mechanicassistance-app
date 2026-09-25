@@ -210,9 +210,77 @@ export interface Vehicle {
     details: string;
     /** Last known odometer reading. Overwritten on every request that reports a newer one. */
     mileage?: number;
+    year?: number;
+}
+
+/**
+ * What GET /api/vehicles/vin/:vin answers. Values come from NHTSA; null means
+ * NHTSA has no data on that field, not that the car lacks it.
+ */
+export interface VinDecodeResult {
+    vin: string;
+    found: boolean;
+    checkDigitValid: boolean;
+    errorCodes: string[];
+    warnings: string[];
+    make: string | null;
+    model: string | null;
+    year: number | null;
+    trim: string | null;
+    series: string | null;
+    manufacturer: string | null;
+    bodyClass: string | null;
+    nhtsaVehicleType: string | null;
+    doors: number | null;
+    seats: number | null;
+    fuelTypePrimary: string | null;
+    fuelTypeSecondary: string | null;
+    electrificationLevel: string | null;
+    engineCylinders: number | null;
+    displacementL: number | null;
+    engineHP: number | null;
+    engineModel: string | null;
+    engineConfiguration: string | null;
+    turbo: string | null;
+    driveType: string | null;
+    transmissionStyle: string | null;
+    transmissionSpeeds: number | null;
+    gvwr: string | null;
+    curbWeightLb: number | null;
+    plantCountry: string | null;
+    plantState: string | null;
+    plantCity: string | null;
+    suggested: { engineTypeId: string | null; vehicleTypeId: string | null };
+    raw: Record<string, string>;
+}
+
+/**
+ * The decoded values a vehicle is saved with (POST /api/vehicles, or each
+ * entry of `vehicles` in POST /api/users). Built from a VinDecodeResult by
+ * `toVehicleDecodedFields` in lib/vehicle.ts; only the fields NHTSA filled in.
+ */
+export interface VehicleDecodedFields {
+    year?: number;
+    trim?: string;
+    bodyClass?: string;
+    nhtsaVehicleType?: string;
+    manufacturer?: string;
+    fuelTypePrimary?: string;
+    electrificationLevel?: string;
+    engineCylinders?: number;
+    displacementL?: number;
+    engineHp?: number;
+    driveType?: string;
+    transmissionStyle?: string;
+    doors?: number;
+    plantCountry?: string;
+    engineTypeId?: string;
+    vehicleTypeId?: string;
+    vinDecoded?: Record<string, string>;
 }
 
 export interface IVehicleDAO {
+    decodeVin(vin: string, modelYear?: number): Promise<VinDecodeResult>;
     getByUser(userId: string): Promise<Vehicle[]>;
     create(vehicle: Omit<Vehicle, 'id'>): Promise<Vehicle>;
     update(id: string, updates: Partial<Vehicle>): Promise<void>;
