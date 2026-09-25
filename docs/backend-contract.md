@@ -36,6 +36,47 @@ por `parseAttachments()` (`lib/media/attachments.ts`) y renderiza con
 `GET /uploads/:filename` responde a `Range` (206) para que el video se pueda
 reproducir en iOS.
 
+### Contrato de URLs (⚠️ este bug ya se repitió)
+
+El bucket S3 de `service-media` es **privado a propósito** — nunca devuelve una
+URL pública de S3. `POST /api/photos/upload` y `/api/videos/upload` devuelven
+siempre una **ruta relativa** (`{ key, url: "/uploads/<filename>" }`), sin
+importar qué cliente la pida. `GET /uploads/:filename` es el propio servicio
+haciendo streaming del archivo — por eso la ruta relativa nunca deja de
+funcionar aunque cambie el hosting.
+
+Esta app **resuelve esa ruta relativa a absoluta en el momento del upload**
+(`AssistanceDAO.uploadPhoto`/`uploadVideo` → `absoluteUrl()`), y guarda la
+**URL ya absoluta** en `photos`. Eso es intencional (por eso el comentario más
+arriba dice "URL absoluta completa") — pero significa que **`getApiBaseUrl()`
+se concatena con la ruta exactamente una vez, acá, en el momento de guardar**.
+
+**El bug (dos veces ya)**: concatenar `${baseUrl}${url}` sin sacar el `/` final
+de `baseUrl` produce `https://host//uploads/x.png` cuando el config remoto
+(`bootstrap.mechanicapp.com/config`, no el fallback hardcodeado) trae la URL
+con `/` al final. Con doble slash, el Gateway (Express detrás de Envoy)
+responde **404** (`Cannot GET //uploads/...`) — Express no colapsa `//` para
+routing, aunque con un solo slash el mismo archivo responde 200 sin problema.
+Esto rompió fotos ya subidas y solo se nota cuando alguien intenta *ver* la
+foto, no al subirla (el upload en sí devuelve 200 siempre).
+
+**La regla, para cualquier lugar que concatene `getApiBaseUrl()` (o el
+equivalente en otro cliente) con una ruta relativa**:
+
+```ts
+// Nunca asumir que baseUrl no termina en '/', venga de donde venga.
+const base = ConfigService.getApiBaseUrl().replace(/\/+$/, '');
+const absolute = url.startsWith('http') ? url : `${base}${url.startsWith('/') ? url : `/${url}`}`;
+```
+
+Puntos donde esto aplica hoy en esta app: `AssistanceDAO.absoluteUrl()`
+(escritura, en el upload) y `AttachmentStrip.tsx` (lectura, por si algún
+`attachment.url` llega relativo). Los otros clientes de la plataforma
+(`mechanicassistance-portal-fleet`, `mechanicassistance-portal`,
+`mechanicassistance-portal-hub`) tienen su propia copia de esta misma regla —
+si tocás la lógica de upload/display de `photos`/`signatureUrl` en cualquiera
+de los cuatro, aplicá el mismo trim ahí también.
+
 ## Mechanic test bot
 
 Simula un mecánico real para el usuario de prueba `+11111111111` (actúa como

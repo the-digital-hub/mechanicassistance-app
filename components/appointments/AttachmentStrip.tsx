@@ -28,9 +28,13 @@ export function AttachmentStrip({ photos, size = 110 }: AttachmentStripProps) {
         <>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {attachments.map((attachment, index) => {
+                // getApiBaseUrl() is not guaranteed free of a trailing slash (it can
+                // come from the remote bootstrap config) — trim it, or a relative
+                // attachment.url starting with '/' produces a double slash that
+                // 404s. See docs/media-url-contract.md.
                 const src = attachment.url.startsWith('http')
                     ? attachment.url
-                    : `${ConfigService.getApiBaseUrl()}${attachment.url}`;
+                    : `${ConfigService.getApiBaseUrl().replace(/\/+$/, '')}${attachment.url}`;
 
                 return (
                     <View key={`${attachment.url}-${index}`} style={{ width: size, marginRight: 10 }}>

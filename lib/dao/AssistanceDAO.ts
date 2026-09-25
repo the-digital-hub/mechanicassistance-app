@@ -58,10 +58,20 @@ export class AssistanceDAO implements IAssistanceDAO {
         return this.absoluteUrl(result.url);
     }
 
-    /** Media service returns a relative path (/uploads/filename); make it absolute. */
+    /**
+     * Media service returns a relative path (/uploads/filename); make it
+     * absolute. `baseUrl` is not guaranteed to be free of a trailing slash
+     * (it can come from the remote bootstrap config, not just the hardcoded
+     * fallback — see ConfigService), so trim it defensively: baseUrl + '/'
+     * + '/uploads/x' has silently produced double-slash URLs before, which
+     * 404 (Express does not collapse '//' for routing) even though the
+     * single-slash form serves fine. See docs/backend-contract.md's "Media
+     * URL contract" section.
+     */
     private absoluteUrl(url: string): string {
-        const baseUrl = ConfigService.getApiBaseUrl();
-        return url.startsWith('http') ? url : `${baseUrl}${url}`;
+        if (url.startsWith('http')) return url;
+        const baseUrl = ConfigService.getApiBaseUrl().replace(/\/+$/, '');
+        return `${baseUrl}${url.startsWith('/') ? url : `/${url}`}`;
     }
 }
 
