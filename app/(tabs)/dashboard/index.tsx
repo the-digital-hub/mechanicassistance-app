@@ -1,4 +1,3 @@
-import { AssistanceType } from '@/components/ui/AssistanceCard';
 import { KPICard } from '@/components/ui/KPICard';
 import { PromotionalCard } from '@/components/ui/PromotionalCard';
 import { UserRequestCard } from '@/components/ui/UserRequestCard';
@@ -6,15 +5,17 @@ import { useAppointments, type Appointment } from '@/context/AppointmentsContext
 import { useMechanicStatus } from '@/context/MechanicStatusContext';
 import type { MechanicStatus } from '@/lib/dao/interfaces';
 import { useSocket } from '@/context/SocketContext';
+import { assistanceTypeRoute, codeFor, i18nKeyFor, iconFor, useAssistanceTypeCatalog } from '@/lib/assistance-types';
 import { useUser } from '@/context/UserContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
-import { AssistanceRequest } from '@/lib/dao/interfaces';
+import { AssistanceRequest, type AssistanceTypeCatalogItem } from '@/lib/dao/interfaces';
+import { translatedName } from '@/lib/i18n/catalogTranslations';
 import { buildMechanicFeedFilters } from '@/lib/mechanic-feed';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Calendar, Video, Zap, MapPin, Wrench, DollarSign, Star, Award, Circle, Clock, Car, Lock } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, FlatList, ScrollView, Text, TouchableOpacity, View, Modal } from 'react-native';
+import { ActivityIndicator, FlatList, ScrollView, Text, TouchableOpacity, View, Modal, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 /** Returns a translation key for the current time of day — resolve with t() at the call site. */
@@ -25,11 +26,86 @@ const getTimeGreetingKey = (): string => {
     return 'dashboard.greeting.night';
 };
 
+// Horizontal padding of the user dashboard (`px-6` on each side) and the grid gap,
+// used to size three buttons per row.
+const DASHBOARD_PADDING_X = 24;
+const TYPE_GRID_GAP = 12;
+const TYPE_GRID_COLUMNS = 3;
+
+type DashboardTypeButtonProps = {
+    item: AssistanceTypeCatalogItem;
+    title: string;
+    subtitle: string | null;
+    featured: boolean;
+    width: number;
+    onPress?: () => void;
+};
+
+/**
+ * One assistance type on the owner dashboard. The first type of the catalog gets the
+ * gradient skin, the rest the white one — the same catalog as the type picker, drawn
+ * as compact buttons instead of a list.
+ */
+function DashboardTypeButton({ item, title, subtitle, featured, width, onPress }: DashboardTypeButtonProps) {
+    const Icon = iconFor(item);
+
+    return (
+        <TouchableOpacity
+            onPress={onPress}
+            disabled={!onPress}
+            className="rounded-3xl overflow-hidden"
+            style={{ width, opacity: onPress ? 1 : 0.5 }}
+            activeOpacity={0.8}
+        >
+            {featured ? (
+                <LinearGradient
+                    colors={['#2B66F8', '#081E72']}
+                    start={{ x: 0, y: 1 }}
+                    end={{ x: 1, y: 0 }}
+                    style={{
+                        borderRadius: 24,
+                        padding: 12,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        minHeight: 120,
+                    }}
+                >
+                    <View className="w-14 h-14 rounded-2xl justify-center items-center mb-3" style={{ backgroundColor: '#4D77EF', borderWidth: 1, borderColor: '#6789F1' }}>
+                        <Icon size={24} color="white" strokeWidth={2} />
+                    </View>
+                    <Text className="text-white font-outfit-semibold text-center" style={{ fontSize: 13 }}>{title}</Text>
+                    {subtitle ? (
+                        <Text className="text-blue-100 font-outfit-semibold text-center" style={{ fontSize: 13 }}>
+                            {subtitle}
+                        </Text>
+                    ) : null}
+                </LinearGradient>
+            ) : (
+                <View className="bg-white rounded-3xl justify-center items-center p-3" style={{ borderWidth: 1.5, borderColor: '#EEF2FA', minHeight: 120 }}>
+                    <View className="w-14 h-14 rounded-2xl justify-center items-center mb-3" style={{ backgroundColor: '#E9F1FF' }}>
+                        <Icon size={24} color="#1E56E3" />
+                    </View>
+                    <Text className="text-gray-900 font-outfit-semibold text-center" style={{ fontSize: 13 }}>{title}</Text>
+                    {subtitle ? (
+                        <Text className="text-gray-600 font-outfit-semibold text-center mt-1" style={{ fontSize: 13 }}>
+                            {subtitle}
+                        </Text>
+                    ) : null}
+                </View>
+            )}
+        </TouchableOpacity>
+    );
+}
+
 export default function DashboardScreen() {
     const router = useRouter();
     const { t } = useTranslation();
     const { user, isLoading: isUserLoading } = useUser();
-    const [filter, setFilter] = useState<AssistanceType | null>(null);
+    const { types: assistanceTypes, languageId } = useAssistanceTypeCatalog();
+    const { width: screenWidth } = useWindowDimensions();
+    const typeButtonWidth =
+        (screenWidth - DASHBOARD_PADDING_X * 2 - TYPE_GRID_GAP * (TYPE_GRID_COLUMNS - 1)) / TYPE_GRID_COLUMNS;
+    const [filter, setFilter] = useState<string | null>(null);
     const [requests, setRequests] = useState<AssistanceRequest[]>([]);
     const [isLoadingRequests, setIsLoadingRequests] = useState(true);
     // Declined requests are hidden locally only — there's no backend support yet
@@ -535,6 +611,33 @@ export default function DashboardScreen() {
         );
     }
 
+    // Catalog translation first; otherwise the short bundled copy for the types the
+    // app has always shipped. A type the app does not know gets its catalog name only.
+    const typeButtonCopy = (item: AssistanceTypeCatalogItem) => {
+        const hasTranslation = item.translations?.some(tr => tr.languageId === languageId);
+        const key = i18nKeyFor(item);
+        if (!hasTranslation && key) {
+            return {
+                title: t(`dashboard.user.cards.${key}Title`),
+                subtitle: t(`dashboard.user.cards.${key}Subtitle`),
+            };
+        }
+        return { title: translatedName(item, languageId), subtitle: null };
+    };
+
+    // Owners start a request; any other role toggles the list filter. A type with no
+    // resolvable code can do neither, so its button renders disabled.
+    const typeButtonPress = (item: AssistanceTypeCatalogItem) => {
+        const code = codeFor(item);
+        if (!code) return undefined;
+        if (user?.role === 'user') {
+            // No identity gate: verification is optional for users.
+            const route = assistanceTypeRoute(item);
+            return route ? () => router.push(route) : undefined;
+        }
+        return () => setFilter(filter === code ? null : code);
+    };
+
     // Everything the user has in flight, narrowed by the visual type filter.
     const filteredRequests = activeRequests.filter(req => {
         if (!filter) return true;
@@ -586,91 +689,18 @@ export default function DashboardScreen() {
                             {t('dashboard.user.subtitle')}
                         </Text>
 
-                        {/* Assistance Type Cards - Horizontal */}
-                        <View className="flex-row gap-3 mb-8 justify-between">
-                            {/* Immediate Assistance - Featured Card */}
-                            <TouchableOpacity
-                                onPress={() => {
-                                    if (user?.role === 'user') {
-                                        // No identity gate: verification is optional for users.
-                                        router.push({ pathname: '/(tabs)/request-assistance/select-vehicle', params: { type: 'immediate' } });
-                                    } else {
-                                        setFilter(filter === 'immediate' ? null : 'immediate');
-                                    }
-                                }}
-                                className="flex-1 rounded-3xl overflow-hidden"
-                                activeOpacity={0.8}
-                            >
-                                <LinearGradient
-                                    colors={['#2B66F8', '#081E72']}
-                                    start={{ x: 0, y: 1 }}
-                                    end={{ x: 1, y: 0 }}
-                                    style={{
-                                        borderRadius: 24,
-                                        padding: 12,
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                        minHeight: 120,
-                                    }}
-                                >
-                                    {/* Icon */}
-                                    <View className="w-14 h-14 rounded-2xl justify-center items-center mb-3" style={{ backgroundColor: '#4D77EF', borderWidth: 1, borderColor: '#6789F1' }}>
-                                        <Zap size={24} color="white" strokeWidth={2} />
-                                    </View>
-
-                                    {/* Content */}
-                                    <Text className="text-white font-outfit-semibold text-center" style={{ fontSize: 13 }}>{t('dashboard.user.cards.immediateTitle')}</Text>
-                                    <Text className="text-blue-100 font-outfit-semibold text-center" style={{ fontSize: 13 }}>
-                                        {t('dashboard.user.cards.immediateSubtitle')}
-                                    </Text>
-                                </LinearGradient>
-                            </TouchableOpacity>
-
-                            {/* Scheduled Assistance */}
-                            <TouchableOpacity
-                                onPress={() => {
-                                    if (user?.role === 'user') {
-                                        router.push({ pathname: '/(tabs)/request-assistance/select-vehicle', params: { type: 'scheduled' } });
-                                    } else {
-                                        setFilter(filter === 'scheduled' ? null : 'scheduled');
-                                    }
-                                }}
-                                className="flex-1 rounded-3xl overflow-hidden"
-                                activeOpacity={0.8}
-                            >
-                                <View className="bg-white rounded-3xl justify-center items-center p-3" style={{ borderWidth: 1.5, borderColor: '#EEF2FA', minHeight: 120 }}>
-                                    <View className="w-14 h-14 rounded-2xl justify-center items-center mb-3" style={{ backgroundColor: '#E9F1FF' }}>
-                                        <Calendar size={24} color="#1E56E3" />
-                                    </View>
-                                    <Text className="text-gray-900 font-outfit-semibold text-center" style={{ fontSize: 13 }}>{t('dashboard.user.cards.scheduledTitle')}</Text>
-                                    <Text className="text-gray-600 font-outfit-semibold text-center mt-1" style={{ fontSize: 13 }}>
-                                        {t('dashboard.user.cards.scheduledSubtitle')}
-                                    </Text>
-                                </View>
-                            </TouchableOpacity>
-
-                            {/* Video Call Assistance */}
-                            <TouchableOpacity
-                                onPress={() => {
-                                    if (user?.role === 'user') {
-                                        router.push({ pathname: '/(tabs)/request-assistance/select-vehicle', params: { type: 'videocall' } });
-                                    } else {
-                                        setFilter(filter === 'videocall' ? null : 'videocall');
-                                    }
-                                }}
-                                className="flex-1 rounded-3xl overflow-hidden"
-                                activeOpacity={0.8}
-                            >
-                                <View className="bg-white rounded-3xl justify-center items-center p-3" style={{ borderWidth: 1.5, borderColor: '#EEF2FA', minHeight: 120 }}>
-                                    <View className="w-14 h-14 rounded-2xl justify-center items-center mb-3" style={{ backgroundColor: '#E9F1FF' }}>
-                                        <Video size={24} color="#1E56E3" />
-                                    </View>
-                                    <Text className="text-gray-900 font-outfit-semibold text-center" style={{ fontSize: 13 }}>{t('dashboard.user.cards.videoCallTitle')}</Text>
-                                    <Text className="text-gray-600 font-outfit-semibold text-center mt-1" style={{ fontSize: 13 }}>
-                                        {t('dashboard.user.cards.videoCallSubtitle')}
-                                    </Text>
-                                </View>
-                            </TouchableOpacity>
+                        {/* Assistance Type Buttons — same catalog as the type picker */}
+                        <View className="flex-row flex-wrap mb-8" style={{ gap: TYPE_GRID_GAP }}>
+                            {assistanceTypes.map((item, index) => (
+                                <DashboardTypeButton
+                                    key={item.id}
+                                    item={item}
+                                    featured={index === 0}
+                                    width={typeButtonWidth}
+                                    {...typeButtonCopy(item)}
+                                    onPress={typeButtonPress(item)}
+                                />
+                            ))}
                         </View>
 
                         {/* Active Request Title */}

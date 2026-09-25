@@ -79,7 +79,9 @@
         "scheduledTitle": "Scheduled",
         "scheduledSubtitle": "Assist",
         "videoCallTitle": "Video Call",
-        "videoCallSubtitle": "DIY"
+        "videoCallSubtitle": "DIY",
+        "accidentTitle": "Accident",
+        "accidentSubtitle": "Support"
       },
       "activeRequestTitle": "Your active request!",
       "noActiveRequests": "No active requests at the moment",

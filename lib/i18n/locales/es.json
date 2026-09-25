@@ -79,7 +79,9 @@
         "scheduledTitle": "Asistencia",
         "scheduledSubtitle": "Programada",
         "videoCallTitle": "Asistencia",
-        "videoCallSubtitle": "Videollamada"
+        "videoCallSubtitle": "Videollamada",
+        "accidentTitle": "Accidente",
+        "accidentSubtitle": "Soporte"
       },
       "activeRequestTitle": "¡Tu solicitud activa!",
       "noActiveRequests": "No hay solicitudes activas por el momento",
