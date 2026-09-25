@@ -28,7 +28,8 @@
       "privacy": "Privacy Policy",
       "settings": "Settings",
       "logout": "Log out",
-      "legalDocuments": "Legal documents"
+      "legalDocuments": "Legal documents",
+      "availability": "Working hours"
     },
     "language": {
       "heading": "Select Language",
@@ -51,6 +52,13 @@
     "aseBadge": {
       "pending": "ASE not verified",
       "cta": "Verify your ASE credential"
+    },
+    "availabilityScreen": {
+      "savedTitle": "Availability updated",
+      "savedMessage": "Your working hours and service area were saved.",
+      "ok": "OK",
+      "saveErrorTitle": "Could not save",
+      "saveErrorMessage": "Your availability was not saved. Check your connection and try again."
     }
   },
   "assistanceCard": {

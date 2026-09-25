@@ -28,7 +28,8 @@
       "privacy": "Política de privacidad",
       "settings": "Configuración",
       "logout": "Cerrar sesión",
-      "legalDocuments": "Documentación legal"
+      "legalDocuments": "Documentación legal",
+      "availability": "Disponibilidad horaria"
     },
     "language": {
       "heading": "Seleccionar idioma",
@@ -51,6 +52,13 @@
     "aseBadge": {
       "pending": "ASE sin verificar",
       "cta": "Verificá tu credencial ASE"
+    },
+    "availabilityScreen": {
+      "savedTitle": "Disponibilidad actualizada",
+      "savedMessage": "Se guardaron tus horarios y tu área de servicio.",
+      "ok": "OK",
+      "saveErrorTitle": "No se pudo guardar",
+      "saveErrorMessage": "Tu disponibilidad no se guardó. Revisá tu conexión e intentá de nuevo."
     }
   },
   "assistanceCard": {

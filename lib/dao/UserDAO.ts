@@ -6,7 +6,7 @@ import {
     saveCachedUser,
     saveTokens,
 } from '../auth/session';
-import { IUserDAO, MechanicStatus, PublicUserProfile, UserData } from './interfaces';
+import { AvailabilityPayload, IUserDAO, MechanicStatus, PublicUserProfile, UserData } from './interfaces';
 
 export class UserDAO implements IUserDAO {
     async getAll(): Promise<UserData[]> {
@@ -241,6 +241,14 @@ export class UserDAO implements IUserDAO {
 
     async update(id: string, updates: Partial<UserData>): Promise<void> {
         return apiClient.patch(`/api/users/${id}`, updates);
+    }
+
+    /**
+     * Replaces the mechanic's whole week and service radius — the same
+     * `availability` block signup sends. Days left out are deleted server-side.
+     */
+    async updateAvailability(id: string, availability: AvailabilityPayload): Promise<void> {
+        return apiClient.patch(`/api/users/${id}`, { availability });
     }
 
     /**

@@ -55,12 +55,20 @@ Two consequences worth knowing before relying on the data:
 If the assist feed should respect the schedule, that is a product decision that
 has not been made, not a bug in this step.
 
-## What the screen does not do
+## Two screens, one form
 
-It never reads existing availability back. `GET /api/users/:id` returns
-`mechanicAvailabilities`, but the screen always re-initialises to Mon–Fri
-09:00–17:00. Re-entering the step therefore shows defaults, not what was saved.
-Hydrating from the API is deliberately unimplemented.
+The form lives in `components/availability/AvailabilityForm.tsx` and is mounted
+twice:
+
+- **Signup step** (`app/setup/availability.tsx`) — never reads anything back:
+  the account does not exist yet, so it always starts at Mon–Fri 09:00–17:00 and
+  writes to AsyncStorage (path 1 above).
+- **Profile → Working hours** (`app/(tabs)/availability.tsx`, mechanics only) —
+  hydrates from a fresh `GET /api/users/:id` (`availabilityFromUser` in
+  `availabilityUtils.ts`: identical hours collapse into the week-wide pair,
+  anything else reopens per day) and saves with `PATCH /api/users/:id`
+  (`UserDAO.updateAvailability`), which replaces the whole week. The map is
+  centred on the account's first address; "Edit" opens My Addresses.
 
 ## History
 

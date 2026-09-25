@@ -365,6 +365,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="availability"
+        options={{
+          href: null,
+          title: t('profile.menu.availability'),
+          headerLeft: () => <PersonalInfoHeaderLeft />,
+          headerRight: () => <PersonalInfoHeaderRight />,
+        }}
+      />
+      <Tabs.Screen
         name="ase"
         options={{
           href: null,

@@ -93,6 +93,20 @@ export interface MechanicAvailability {
 }
 
 /**
+ * The `availability` block of `POST`/`PATCH /api/users`. Times are "HH:mm",
+ * 24-hour; `schedule`, when present, wins over `selectedDays`.
+ */
+export interface AvailabilityPayload {
+    selectedDays: string[];
+    startTime: string;
+    endTime: string;
+    applySameTime: boolean;
+    /** Miles, 1-50. */
+    serviceRadius: number;
+    schedule?: { day: string; startTime: string; endTime: string }[];
+}
+
+/**
  * Every status Didit can report. `Approved` is the only one that unblocks the
  * app — see VerificationContext and the gateway's verification gate.
  */
