@@ -14,8 +14,8 @@ import {
 // ⚠️ This is NOT the iOS CLIENT_ID from GoogleService-Info.plist.
 // Find it in: Firebase Console → Authentication → Sign-in method → Google → Web SDK configuration → Web client ID
 // Or in: Google Cloud Console → APIs & Credentials → OAuth 2.0 Client IDs → "Web client (auto created by Google Service)"
-// TODO: Replace with the actual Web client ID from your Firebase project (mechanic-assistance-f3e3d)
-const WEB_CLIENT_ID = '469009119595-496ja9rs38g7mji9q2gk0qhpdoj4pmad.apps.googleusercontent.com';
+// Firebase project: grand-nimbus-498119-n7 (Mechanic Assistance App, org mechanicassistance.com).
+const WEB_CLIENT_ID = '956195940119-e5fc6h6pe8t807bngmf4htv82tf9jct9.apps.googleusercontent.com';
 
 GoogleSignin.configure({ webClientId: WEB_CLIENT_ID });
 

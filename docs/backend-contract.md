@@ -89,8 +89,13 @@ dispositivo parece lenta o fuera de orden.
 
 ## Video calls
 
-`POST /api/video-room` crea una sala Daily.co; el server notifica al mecánico vía
-evento WS `video_room_ready` (con fallback de polling de 3s). Si el mecánico es el
+`POST /api/video-room` crea una sala Daily.co **privada** (solo entra quien tenga meeting
+token) y devuelve el token de quien la abrió; el server notifica a la otra parte vía
+evento WS `video_room_ready` (`{ appointmentId, roomName, expiry }`, **sin `roomUrl`**)
+con fallback de polling de 3s. La otra parte obtiene URL y su propio token con
+`GET /api/video-room/:id?participantName=…`. Ambos endpoints solo responden al cliente
+o al mecánico del appointment (403 al resto) y deciden el lado (`is_owner` del
+mecánico) por el token, no por el `role` que mande la app. Si el mecánico es el
 test bot, un microservicio video-bot aparte se une a la llamada como participante
 real de Daily.co por ~2 minutos.
 

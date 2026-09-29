@@ -314,8 +314,17 @@ export const apiClient = {
         );
     },
 
-    async delete<T = unknown>(endpoint: string): Promise<T> {
-        return withSession(endpoint, () => send<T>('DELETE', endpoint));
+    /** `data`, when given, is sent as a JSON body (e.g. a push token kept out of the URL). */
+    async delete<T = unknown>(endpoint: string, data?: unknown): Promise<T> {
+        return withSession(endpoint, () =>
+            send<T>(
+                'DELETE',
+                endpoint,
+                data === undefined
+                    ? {}
+                    : { headers: JSON_HEADERS, body: JSON.stringify(data) },
+            ),
+        );
     },
 
     async upload<T = unknown>(endpoint: string, formData: FormData): Promise<T> {

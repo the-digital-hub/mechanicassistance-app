@@ -76,7 +76,7 @@ Expo Router file-based routing. Key entrypoints:
 
 ### Data Layer
 - `lib/api/apiClient.ts` — fetch wrapper (GET/POST/PATCH/DELETE), unwraps the standard `{ success, message, data }` envelope
-- `lib/dao/` — client-side DAOs: `UserDAO`, `VehicleDAO`, `AssistanceDAO`, `AppointmentDAO`, `SetupDAO`, `AddressDAO`, `AseDAO`, `ExpertiseDAO`, `MediaDAO`
+- `lib/dao/` — client-side DAOs: `UserDAO`, `VehicleDAO`, `AssistanceDAO`, `AppointmentDAO`, `SetupDAO`, `AddressDAO`, `AseDAO`, `ExpertiseDAO`, `MediaDAO`, `NotificationDAO` (push device registration)
 - `lib/dao/interfaces.ts` — shared TypeScript interfaces
 
 Screens must use DAOs or Contexts, not raw `fetch`. Adding a new feature that needs backend support means coordinating with the backend repo — this repo alone can't add endpoints.
@@ -121,6 +121,7 @@ Conditional/procedural knowledge lives in skills (loaded on-demand), not here:
 | Photo/video upload/display | `app/(tabs)/request-assistance/vehicle-documentation.tsx`, `lib/dao/AssistanceDAO.ts`, `lib/media/attachments.ts`, `components/appointments/AttachmentStrip.tsx`, `components/appointments/VideoPlayerModal.tsx` (expo-video) |
 | Appointment map | `components/appointments/UserStatusTab.native.tsx` (user), `components/appointments/MechanicAssistanceInfoTab.native.tsx` (mechanic) — both require `locationLat`/`locationLng` from the backend |
 | Translations | `lib/i18n/`, `app/_layout.tsx` (init) |
+| Push notifications | `lib/notifications/push.ts` (permission, FCM token, tap → route), `components/PushNotificationRouter.tsx` (registration + tap handling), `lib/dao/NotificationDAO.ts`, `context/UserContext.tsx` (unregister on logout, before the session is cleared), `firebase.json`, `plugins/withAndroidNotificationChannel.js`, `app.config.js` (`aps-environment`). What gets pushed is decided by the backend's notifications-service |
 | User online tracking (mobile side) | `context/SocketContext.tsx` |
 | DB schema, backend API, admin portal | separate backend repo (not in this workspace) |
 

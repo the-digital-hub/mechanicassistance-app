@@ -1,7 +1,8 @@
 {
   "expo": {
     "name": "Mechanic Assitance V2",
-    "slug": "mechanic-assistance-v2",
+    "slug": "mechanic-assistance",
+    "owner": "elpixel",
     "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/mechanic-icon.png",
@@ -10,7 +11,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.pixel.mechanic",
+      "bundleIdentifier": "com.mechanicassistance.app",
       "googleServicesFile": "./firebase/GoogleService-Info.plist",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
@@ -20,11 +21,12 @@
         "CFBundleURLTypes": [
           {
             "CFBundleURLSchemes": [
-              "com.pixel.mechanic"
+              "com.mechanicassistance.app"
             ]
           }
         ]
-      }
+      },
+      "usesAppleSignIn": true
     },
     "android": {
       "googleServicesFile": "./firebase/google-services.json",
@@ -35,7 +37,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.pixel.mechanic"
+      "package": "com.mechanicassistance.app"
     },
     "web": {
       "output": "static",
@@ -57,6 +59,7 @@
       "expo-video",
       "@react-native-firebase/app",
       "@react-native-firebase/auth",
+      "@react-native-firebase/messaging",
       [
         "@config-plugins/react-native-webrtc",
         {
@@ -68,12 +71,14 @@
         "expo-build-properties",
         {
           "ios": {
-            "useFrameworks": "static"
+            "useFrameworks": "static",
+            "buildReactNativeFromSource": true
           }
         }
       ],
       "./plugins/withFirebasePodfile",
       "./plugins/withFirebaseAuthAPNS",
+      "./plugins/withAndroidNotificationChannel",
       "@react-native-google-signin/google-signin",
       [
         "expo-splash-screen",
@@ -99,7 +104,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "5e19e74e-d50d-4110-bbbb-2edd9eb3f4ee"
+        "projectId": "a0c61658-b62c-4483-9314-1a3d32f9b688"
       }
     }
   }

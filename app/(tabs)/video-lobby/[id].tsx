@@ -116,12 +116,22 @@ export default function VideoLobbyScreen() {
         }
     }, [appointmentId, isUserRole]);
 
-    // Also listen for real-time video_room_ready notifications (WebSocket)
+    // Also listen for real-time video_room_ready notifications (WebSocket).
+    // The event carries no room URL (the room is private and the event also
+    // travels through push/SQS), so fetch the room from the API instead.
     useEffect(() => {
-        if (lastMessage?.type === 'video_room_ready' && lastMessage?.payload?.appointmentId === appointmentId) {
-            setRoomUrl(lastMessage.payload.roomUrl);
-            setRoomExpiry(lastMessage.payload.expiry);
-        }
+        if (lastMessage?.type !== 'video_room_ready' || lastMessage?.payload?.appointmentId !== appointmentId) return;
+        apiClient
+            .get<{ roomUrl: string | null; expiry: number; isExpired: boolean }>(`/api/video-room/${appointmentId}`)
+            .then((data) => {
+                if (data?.roomUrl && !data.isExpired) {
+                    setRoomUrl(data.roomUrl);
+                    setRoomExpiry(data.expiry);
+                }
+            })
+            .catch(() => {
+                // The 3s poll above picks the room up anyway.
+            });
     }, [lastMessage, appointmentId]);
 
     const handleStartCall = useCallback(async () => {

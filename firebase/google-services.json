@@ -1,48 +1,49 @@
 {
   "project_info": {
-    "project_number": "709444677117",
-    "project_id": "my-project-1524418405364",
-    "storage_bucket": "my-project-1524418405364.firebasestorage.app"
+    "project_number": "956195940119",
+    "project_id": "grand-nimbus-498119-n7",
+    "storage_bucket": "grand-nimbus-498119-n7.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:709444677117:android:86a4f83d289ef03c67bd94",
+        "mobilesdk_app_id": "1:956195940119:android:b2a5b574165dd4c2537952",
         "android_client_info": {
-          "package_name": "com.darkseed.mechanic"
+          "package_name": "com.mechanicassistance.app"
         }
       },
       "oauth_client": [
         {
-          "client_id": "709444677117-br03i7lrdf3l8mb5egha7131ft1vqg36.apps.googleusercontent.com",
+          "client_id": "956195940119-r3hiuq72d3pc29fucolr1iftn6114efo.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.darkseed.mechanic",
-            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+            "package_name": "com.mechanicassistance.app",
+            "certificate_hash": "b9bdeb5399117234d3dbda880d8c30b59d814911"
           }
         },
         {
-          "client_id": "709444677117-nq2hk4bfi8q0s1mgo4v3od0s8t2pvk9n.apps.googleusercontent.com",
+          "client_id": "956195940119-e5fc6h6pe8t807bngmf4htv82tf9jct9.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyDE58awL21JKB4blzPYHmm75roqMfwwALs"
+          "current_key": "AIzaSyDRI3TWYct_4XYiBLduuUQKYcJYLVh2LQ0"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "709444677117-nq2hk4bfi8q0s1mgo4v3od0s8t2pvk9n.apps.googleusercontent.com",
+              "client_id": "956195940119-e5fc6h6pe8t807bngmf4htv82tf9jct9.apps.googleusercontent.com",
               "client_type": 3
             },
             {
-              "client_id": "709444677117-r0900ah6ai8kdlqduold3iv3ucsk79tc.apps.googleusercontent.com",
+              "client_id": "956195940119-2j0qfme5qmuefnvdk4t3hg2sq4ao5vmd.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.darkseed.mechanic"
+                "bundle_id": "com.mechanicassistance.app",
+                "app_store_id": "6817447116"
               }
             }
           ]

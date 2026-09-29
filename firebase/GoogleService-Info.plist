@@ -3,21 +3,21 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>469009119595-359amar6s6dstfaoem31gusa1fv8sceq.apps.googleusercontent.com</string>
+	<string>956195940119-2j0qfme5qmuefnvdk4t3hg2sq4ao5vmd.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.469009119595-359amar6s6dstfaoem31gusa1fv8sceq</string>
+	<string>com.googleusercontent.apps.956195940119-2j0qfme5qmuefnvdk4t3hg2sq4ao5vmd</string>
 	<key>API_KEY</key>
-	<string>AIzaSyBVFvRDbNRYVbuq_nG4PpwdKHjnHKK-TeI</string>
+	<string>AIzaSyBF-nEKf2ck0RODLbnWMHopMaVZHMMhrrc</string>
 	<key>GCM_SENDER_ID</key>
-	<string>469009119595</string>
+	<string>956195940119</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.pixel.mechanic</string>
+	<string>com.mechanicassistance.app</string>
 	<key>PROJECT_ID</key>
-	<string>mechanic-assistance-f3e3d</string>
+	<string>grand-nimbus-498119-n7</string>
 	<key>STORAGE_BUCKET</key>
-	<string>mechanic-assistance-f3e3d.firebasestorage.app</string>
+	<string>grand-nimbus-498119-n7.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -29,6 +29,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:469009119595:ios:a1c96b961c42ec48d7342e</string>
+	<string>1:956195940119:ios:a24af5a293c9a99e537952</string>
 </dict>
 </plist>

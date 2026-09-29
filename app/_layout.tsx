@@ -14,6 +14,7 @@ import { useEffect } from "react";
 import "react-native-reanimated";
 
 import { GlobalNotificationListener } from "@/components/GlobalNotificationListener";
+import { PushNotificationRouter } from "@/components/PushNotificationRouter";
 import { AppointmentsProvider } from "@/context/AppointmentsContext";
 import { MechanicStatusProvider } from "@/context/MechanicStatusContext";
 import { NotificationsProvider } from "@/context/NotificationsContext";
@@ -79,6 +80,7 @@ function AppShell() {
   return (
     <UpdateRequiredGate>
       <GlobalNotificationListener />
+      <PushNotificationRouter />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="index" />

@@ -11,6 +11,7 @@ import {
 import { userDAO } from '@/lib/dao/UserDAO';
 import { UserData } from '@/lib/dao/interfaces';
 import { firebaseSignOut } from '@/lib/firebase/auth';
+import { disablePush } from '@/lib/notifications/push';
 import React, {
     createContext,
     ReactNode,
@@ -165,6 +166,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const logout = useCallback(async () => {
+        // First, while the access token still works: this phone must stop
+        // getting the account's notifications once nobody is signed in on it.
+        await disablePush();
         setUser(null);
         // Revokes the whole rotation family server-side, so the refresh token is
         // useless even if it was copied off the device.
