@@ -2,6 +2,7 @@ import { KPICard } from '@/components/ui/KPICard';
 import { PromotionalCard } from '@/components/ui/PromotionalCard';
 import { UserRequestCard } from '@/components/ui/UserRequestCard';
 import { useAppointments, type Appointment } from '@/context/AppointmentsContext';
+import { MechanicFeedStatusBanner } from '@/components/MechanicFeedStatusBanner';
 import { useMechanicStatus } from '@/context/MechanicStatusContext';
 import type { MechanicStatus } from '@/lib/dao/interfaces';
 import { useSocket } from '@/context/SocketContext';
@@ -220,11 +221,18 @@ export default function DashboardScreen() {
     // itself has to be what re-syncs the feed.
     useEffect(() => {
         if (!lastMessage || !user?.id) return;
-        if (['new_request', 'assistance_update', 'appointment_update', 'socket_connect'].includes(lastMessage.type)) {
+        if (['new_request', 'assistance_update', 'appointment_update', 'socket_connect', 'app_resumed'].includes(lastMessage.type)) {
             loadRequests();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastMessage]);
+
+    // Going available again: refetch so every request nobody took while the
+    // mechanic was away is on screen right away.
+    useEffect(() => {
+        if (mechanicStatus === 'available' && user?.role === 'mechanic') loadRequests();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [mechanicStatus]);
 
     useEffect(() => {
         if (!isUserLoading && !user) {
@@ -354,12 +362,12 @@ export default function DashboardScreen() {
                       />
                     </View>
 
-                    {mechanicStatus !== 'offline' && (
-                        <>
                             {/* New Requests Title */}
                             <Text style={{ fontFamily: 'Outfit_600SemiBold', fontSize: 16, color: '#111827' }} className="mt-2 mb-4">
                                 {t('dashboard.mechanic.newRequestsTitle')}
                             </Text>
+
+                            <MechanicFeedStatusBanner />
 
                             {/* Requests List */}
                             {isLoadingRequests ? (
@@ -536,8 +544,6 @@ export default function DashboardScreen() {
                             })}
                             </View>
                         )}
-                        </>
-                    )}
 
                     {/* Promotional Card */}
                     <View className="mt-8 mb-4">

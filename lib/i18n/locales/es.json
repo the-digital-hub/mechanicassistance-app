@@ -12,10 +12,10 @@
       "offline": "Desconectado",
       "availableDesc": "Visible para los dueños y podés recibir nuevas solicitudes",
       "busyDesc": "Visible pero no recibirás nuevas solicitudes",
-      "offlineDesc": "No visible para los dueños y no recibirás solicitudes",
+      "offlineDesc": "No visible para los dueños",
       "descAvailable": "Estás visible para los dueños cercanos y podés recibir nuevas solicitudes.",
       "descBusy": "Estás visible pero no recibirás nuevas solicitudes.",
-      "descOffline": "No estás visible para los dueños y no recibirás solicitudes."
+      "descOffline": "No estás visible para los dueños."
     },
     "menu": {
       "personalInfo": "Información personal",
@@ -43,8 +43,6 @@
       "changeStatus": "Cambiar tu estado",
       "yes": "Sí",
       "no": "No",
-      "cannotGoOfflineTitle": "No podés desconectarte",
-      "cannotGoOfflineMessage": "No podés desconectarte mientras tenés citas activas.",
       "ok": "OK",
       "uploadFailedTitle": "Error al subir",
       "uploadFailedMessage": "No se pudo subir la foto de perfil. Intentá de nuevo."
@@ -128,7 +126,7 @@
       "availableToProvide": "Disponible para brindar servicios",
       "descAvailable": "Sos visible para los propietarios cercanos y podés recibir nuevas solicitudes.",
       "descBusy": "Sos visible pero no vas a recibir nuevas solicitudes.",
-      "descOffline": "No sos visible para los propietarios y no vas a recibir solicitudes.",
+      "descOffline": "No sos visible para los propietarios.",
       "status": {
         "available": {
           "label": "Disponible",
@@ -140,7 +138,7 @@
         },
         "offline": {
           "label": "Desconectado",
-          "description": "No visible para los propietarios y no vas a recibir solicitudes"
+          "description": "No visible para los propietarios"
         }
       },
       "jobsToday": "Trabajos hoy",
@@ -162,7 +160,14 @@
       "changeStatus": "Cambiá tu estado",
       "lookingForMoreWork": "¿Buscás más trabajo?",
       "viewOpportunities": "Ver oportunidades",
-      "budget": "PRESUPUESTO"
+      "budget": "PRESUPUESTO",
+      "feedBanner": {
+        "offlineTitle": "Estás desconectado",
+        "offlineMessage": "No te avisamos de solicitudes nuevas. Estas siguen esperando un mecánico.",
+        "busyTitle": "Estás ocupado",
+        "busyMessage": "No te avisamos de solicitudes nuevas hasta que estés disponible.",
+        "goAvailable": "Ponerme disponible"
+      }
     }
   },
   "requestAssistance": {
@@ -567,7 +572,11 @@
       "date1": "Lunes, 14 de julio",
       "date2": "Martes, 15 de julio",
       "date3": "Miércoles, 16 de julio"
-    }
+    },
+    "offlineOfferTitle": "Ponete disponible para ofertar",
+    "offlineOfferMessage": "Estás desconectado. Para enviar una oferta tenés que estar disponible.",
+    "offlineOfferConfirm": "Ponerme disponible y ofertar",
+    "offlineOfferCancel": "Cancelar"
   },
   "personalInfo": {
     "uploadFailedTitle": "Error al subir",

@@ -91,6 +91,9 @@ export function SocketProvider({ children }: { children: ReactNode }) {
                 // No payload: the gateway re-joins the rooms of the identity it
                 // verified at handshake time.
                 s.emit('register');
+                // Broadcasts sent while backgrounded are never replayed, so
+                // tell consumers to refetch (e.g. the mechanic's request feed).
+                setLastMessage({ type: 'app_resumed', ts: Date.now() });
             }
         };
         const appStateSub = AppState.addEventListener('change', handleAppState);

@@ -50,8 +50,8 @@ export function MechanicStatusProvider({ children }: { children: React.ReactNode
     setStatus(seedStatus);
   }, [userId, seedStatus]);
 
-  // The backend also changes the status on its own — a job starting, another
-  // device toggling it — and announces it on this socket event.
+  // Another of the mechanic's devices changing the status is announced on this
+  // socket event.
   useEffect(() => {
     if (lastMessage?.type !== 'mechanic_status') return;
     const next = lastMessage.payload?.status as MechanicStatus | undefined;
@@ -71,8 +71,8 @@ export function MechanicStatusProvider({ children }: { children: React.ReactNode
     setStatus(status); // optimistic: the pill should react to the tap at once
     setIsUpdatingStatus(true);
     try {
-      // The backend has the last word: with no live socket the mechanic stays
-      // offline, and an active job keeps them busy.
+      // The backend applies the choice as sent; its answer is still what we
+      // store, so every device agrees on one value.
       const applied = await userDAO.setPresence(user.id, status);
       setStatus(applied.status);
       await updateUser(

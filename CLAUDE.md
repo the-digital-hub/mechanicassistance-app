@@ -72,7 +72,7 @@ Expo Router file-based routing. Key entrypoints:
 - `AppointmentsContext.tsx` — appointments list + operations
 - `SocketContext.tsx` — WebSocket connection, `chatHistory`, real-time events
 - `NotificationsContext.tsx` — notification UI state
-- `MechanicStatusContext.tsx` — mechanic Available/Busy/Offline toggle (local-only state, not persisted or synced to the backend — see [docs/](docs/) for known gaps)
+- `MechanicStatusContext.tsx` — mechanic Available/Busy/Offline selector, persisted through `PATCH /users/:id/presence`. The mechanic can pick any status at any time — an active job, closing the app or losing the connection never changes or blocks it
 
 ### Data Layer
 - `lib/api/apiClient.ts` — fetch wrapper (GET/POST/PATCH/DELETE), unwraps the standard `{ success, message, data }` envelope

@@ -1,3 +1,5 @@
+import { MechanicFeedStatusBanner } from '@/components/MechanicFeedStatusBanner';
+import { useMechanicStatus } from '@/context/MechanicStatusContext';
 import { useSocket } from '@/context/SocketContext';
 import { useUser } from '@/context/UserContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
@@ -16,6 +18,7 @@ export default function AssistanceRequestsScreen() {
   const { t } = useTranslation();
   const { user, isLoading: userLoading } = useUser();
   const { lastMessage } = useSocket();
+  const { mechanicStatus } = useMechanicStatus();
   const [requests, setRequests] = useState<AssistanceRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -92,10 +95,17 @@ export default function AssistanceRequestsScreen() {
   // until the screen is left and focused again.
   useEffect(() => {
     if (!lastMessage) return;
-    if (['new_request', 'assistance_update', 'appointment_update', 'socket_connect'].includes(lastMessage.type)) {
+    if (['new_request', 'assistance_update', 'appointment_update', 'socket_connect', 'app_resumed'].includes(lastMessage.type)) {
       loadRequests();
     }
   }, [lastMessage]);
+
+  // Going available again: refetch so every request nobody took while the
+  // mechanic was away is on screen right away.
+  useEffect(() => {
+    if (mechanicStatus === 'available') loadRequests();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mechanicStatus]);
 
   const filterTabs = useMemo(() => {
     const uniqueTypes = [...new Set(visibleRequests.map((req) => req.type))];
@@ -154,6 +164,8 @@ export default function AssistanceRequestsScreen() {
         <Text className="text-gray-500 font-outfit-regular text-base mb-6">
           {t('assist.subtitle')}
         </Text>
+
+        <MechanicFeedStatusBanner />
 
         {/* Search Bar */}
         <View className="flex-row items-center bg-white rounded-2xl px-4 mb-6 border border-gray-200">

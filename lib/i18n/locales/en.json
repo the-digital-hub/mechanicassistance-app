@@ -12,10 +12,10 @@
       "offline": "Offline",
       "availableDesc": "Visible to owners and can receive new requests",
       "busyDesc": "Visible but won't receive new requests",
-      "offlineDesc": "Not visible to owners and won't receive requests",
+      "offlineDesc": "Not visible to owners",
       "descAvailable": "You are visible to nearby owners and can receive new requests.",
       "descBusy": "You are visible but won't receive new requests.",
-      "descOffline": "You are not visible to owners and won't receive requests."
+      "descOffline": "You are not visible to owners."
     },
     "menu": {
       "personalInfo": "Personal information",
@@ -43,8 +43,6 @@
       "changeStatus": "Change your status",
       "yes": "Yes",
       "no": "No",
-      "cannotGoOfflineTitle": "Cannot go offline",
-      "cannotGoOfflineMessage": "You cannot go offline while you have active appointments.",
       "ok": "OK",
       "uploadFailedTitle": "Upload Failed",
       "uploadFailedMessage": "Could not upload profile photo. Please try again."
@@ -128,7 +126,7 @@
       "availableToProvide": "Available to provide services",
       "descAvailable": "You are visible to nearby owners and can receive new requests.",
       "descBusy": "You are visible but won't receive new requests.",
-      "descOffline": "You are not visible to owners and won't receive requests.",
+      "descOffline": "You are not visible to owners.",
       "status": {
         "available": {
           "label": "Available",
@@ -140,7 +138,7 @@
         },
         "offline": {
           "label": "Offline",
-          "description": "Not visible to owners and won't receive requests"
+          "description": "Not visible to owners"
         }
       },
       "jobsToday": "Jobs today",
@@ -162,7 +160,14 @@
       "changeStatus": "Change your status",
       "lookingForMoreWork": "Looking for more work?",
       "viewOpportunities": "View opportunities",
-      "budget": "BUDGET"
+      "budget": "BUDGET",
+      "feedBanner": {
+        "offlineTitle": "You're offline",
+        "offlineMessage": "We won't notify you about new requests. These are still waiting for a mechanic.",
+        "busyTitle": "You're busy",
+        "busyMessage": "We won't notify you about new requests until you're available.",
+        "goAvailable": "Go available"
+      }
     }
   },
   "requestAssistance": {
@@ -567,7 +572,11 @@
       "date1": "Monday, July 14",
       "date2": "Tuesday, July 15",
       "date3": "Wednesday, July 16"
-    }
+    },
+    "offlineOfferTitle": "Go available to offer",
+    "offlineOfferMessage": "You're offline. To send an offer you need to be available.",
+    "offlineOfferConfirm": "Go available and offer",
+    "offlineOfferCancel": "Cancel"
   },
   "personalInfo": {
     "uploadFailedTitle": "Upload Failed",

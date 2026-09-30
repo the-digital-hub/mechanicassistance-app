@@ -1,6 +1,7 @@
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { useUser } from '@/context/UserContext';
 import { useVerifiedAction } from '@/hooks/useVerifiedAction';
+import { useAvailableToOffer } from '@/hooks/useAvailableToOffer';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import * as Location from 'expo-location';
 import { CommonActions, useNavigation } from '@react-navigation/native';
@@ -188,6 +189,7 @@ export default function RequestDetailScreen() {
     }, [locationLat, locationLng]);
 
     const gate = useVerifiedAction();
+    const ensureAvailable = useAvailableToOffer();
 
     // Offering on a request needs a verified identity — see useVerifiedAction.
     // This only opens the confirmation modal: nothing reaches the backend until
@@ -197,6 +199,7 @@ export default function RequestDetailScreen() {
             alert(t('requestDetail.selectDateTimeAlert'));
             return;
         }
+        if (!(await ensureAvailable())) return;
         setShowConfirm(true);
     });
 

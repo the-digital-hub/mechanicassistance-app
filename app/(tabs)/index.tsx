@@ -1,7 +1,6 @@
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { AseStatusBadge } from '@/components/ui/AseStatusBadge';
 import { VerificationBadge } from '@/components/ui/VerificationBadge';
-import { useAppointments } from '@/context/AppointmentsContext';
 import { useUser } from '@/context/UserContext';
 import { useMechanicStatus } from '@/context/MechanicStatusContext';
 import { mediaDAO } from '@/lib/dao/MediaDAO';
@@ -11,12 +10,11 @@ import { useRouter } from 'expo-router';
 import { Award, Camera, Car, ChevronLeft, ChevronRight, Circle, Clock, CreditCard, FileText, Heart, HelpCircle, Lock, LogOut, MapPin, Settings, User } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Image, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, isLoading, updateUser, logout } = useUser();
-  const { appointments } = useAppointments();
   const { mechanicStatus, setMechanicStatus, isUpdatingStatus } = useMechanicStatus();
   const { t, i18n } = useTranslation();
 
@@ -56,27 +54,6 @@ export default function ProfileScreen() {
 
   const changeStatus = async (status: 'available' | 'busy' | 'offline') => {
     if (status === mechanicStatus || isUpdatingStatus) return;
-
-    // Going offline mid-job would strand the customer waiting for someone the
-    // feed no longer shows.
-    if (status === 'offline') {
-      const hasActiveAppointments = appointments.some(appt =>
-        ['accepted', 'scheduled', 'started'].includes(appt.status)
-      );
-
-      if (hasActiveAppointments) {
-        if (Platform.OS === 'web') {
-          window.alert(t('profile.modals.cannotGoOfflineMessage'));
-        } else {
-          Alert.alert(
-            t('profile.modals.cannotGoOfflineTitle'),
-            t('profile.modals.cannotGoOfflineMessage'),
-            [{ text: t('profile.modals.ok') }]
-          );
-        }
-        return;
-      }
-    }
 
     try {
       await setMechanicStatus(status);
