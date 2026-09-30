@@ -31,6 +31,7 @@ export function PushNotificationRouter() {
     const router = useRouter();
     const { user } = useUser();
     const userId = user?.id;
+    const role = user?.role;
     const handledInitial = useRef(false);
 
     // Registration follows the session.
@@ -48,11 +49,12 @@ export function PushNotificationRouter() {
     }, [userId]);
 
     // Tapped pushes. Only for a signed-in person: signed out, the target
-    // screens would bounce to login anyway.
+    // screens would bounce to login anyway. A push meant for another account
+    // (this phone changed hands) is ignored — the app just opens.
     useEffect(() => {
-        if (!userId) return;
+        if (!userId || !role) return;
         const open = (message: RemoteMessage | null) => {
-            const route = routeForPush(message?.data as PushData | undefined);
+            const route = routeForPush(message?.data as PushData | undefined, { id: userId, role });
             if (route) router.push(route);
         };
 
@@ -62,7 +64,7 @@ export function PushNotificationRouter() {
             getInitialNotification(messaging).then(open).catch(() => undefined);
         }
         return onNotificationOpenedApp(messaging, open);
-    }, [userId, router]);
+    }, [userId, role, router]);
 
     return null;
 }

@@ -112,20 +112,58 @@ export async function disablePush(): Promise<void> {
     }
 }
 
+/**
+ * The session died without a logout, so the backend can no longer be told to
+ * drop this phone. Deleting the FCM token locally is the next best thing: the
+ * old token stops working, notifications-service prunes it on its next send,
+ * and whoever signs in next registers a fresh one. Never throws.
+ */
+export async function forgetPushToken(): Promise<void> {
+    try {
+        await deleteToken(getMessaging());
+    } catch (err) {
+        console.warn('[push] token deletion failed:', (err as Error).message);
+    }
+}
+
 /** What notifications-service puts in `data` (all strings, FCM rule). */
 export interface PushData {
     kind?: string;
+    /** Who the push was sent to. Missing on pushes sent before it existed. */
+    recipientId?: string;
     requestId?: string;
     appointmentId?: string;
     status?: string;
 }
 
+/** Who is signed in when a push is tapped. */
+export interface PushViewer {
+    id: string;
+    role: 'mechanic' | 'user';
+}
+
+/**
+ * Kinds that only make sense for one role: their screens assume it. A push
+ * that reached the other role (an older push, from before `recipientId`,
+ * left on a phone that changed accounts) leads nowhere.
+ */
+const ROLE_OF_KIND: Partial<Record<string, PushViewer['role']>> = {
+    new_request: 'mechanic',
+    offer_accepted: 'mechanic',
+    mechanic_found: 'user',
+};
+
 /**
  * Where a tapped push leads. The backend sends the kind and the ids, never a
- * route — routes are this app's business. Unknown kinds lead nowhere.
+ * route — routes are this app's business. Unknown kinds lead nowhere, and so
+ * does a push meant for someone other than `viewer`: a phone can change
+ * accounts while its notifications stay in the tray.
  */
-export function routeForPush(data: PushData | undefined): Href | null {
+export function routeForPush(data: PushData | undefined, viewer: PushViewer): Href | null {
     if (!data?.kind) return null;
+    if (data.recipientId && data.recipientId !== viewer.id) return null;
+    const role = ROLE_OF_KIND[data.kind];
+    if (role && role !== viewer.role) return null;
     const appointmentId = data.appointmentId ?? data.requestId;
     switch (data.kind) {
         case 'new_request':

@@ -59,7 +59,9 @@ export function GlobalNotificationListener() {
         }
 
         // 2. Mechanic Logic: Offer Accepted (Status: accepted)
-        const isMechanicForRequest = user?.id === payload.mechanicId || user?.role === 'mechanic';
+        // Only the assigned mechanic: the same update is also broadcast to the
+        // whole mechanics room to refresh feeds.
+        const isMechanicForRequest = !!user?.id && user.id === payload.mechanicId;
 
         if (isMechanicForRequest && status === 'accepted') {
             notifiedIds.current.add(notificationKey);

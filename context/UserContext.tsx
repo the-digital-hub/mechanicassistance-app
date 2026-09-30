@@ -11,7 +11,7 @@ import {
 import { userDAO } from '@/lib/dao/UserDAO';
 import { UserData } from '@/lib/dao/interfaces';
 import { firebaseSignOut } from '@/lib/firebase/auth';
-import { disablePush } from '@/lib/notifications/push';
+import { disablePush, forgetPushToken } from '@/lib/notifications/push';
 import React, {
     createContext,
     ReactNode,
@@ -136,7 +136,16 @@ export function UserProvider({ children }: { children: ReactNode }) {
      * Tears down local state when the API client reports the session is
      * unrecoverable, so the UI cannot keep rendering as though signed in.
      */
-    useEffect(() => onSessionExpired(() => setUser(null)), []);
+    useEffect(
+        () =>
+            onSessionExpired(() => {
+                setUser(null);
+                // Too late to unregister (no token left), but the phone must
+                // not keep getting this account's pushes after it is gone.
+                void forgetPushToken();
+            }),
+        [],
+    );
 
     /** Google/Apple sign-in. Phone sign-in uses `adoptSession` instead. */
     const login = useCallback(async (firebaseIdToken: string, phone?: string): Promise<boolean> => {

@@ -418,7 +418,11 @@
       "otherOptions": "Otras opciones",
       "immediateEta": "Disponible ahora ETA: 2hs",
       "startingFrom": "Desde: ${{price}}",
-      "videoCallAvailable": "Disponible ahora iniciar llamada"
+      "videoCallAvailable": "Disponible ahora iniciar llamada",
+      "cancelTitle": "¿Cancelar solicitud?",
+      "cancelMessage": "Le avisaremos al mecánico y tu solicitud se cerrará. No se puede deshacer.",
+      "cancelKeep": "Mantener solicitud",
+      "cancelConfirm": "Cancelar solicitud"
     }
   },
   "appointments": {

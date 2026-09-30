@@ -73,8 +73,29 @@ export default function MechanicFoundScreen() {
         }
     };
 
+    // Cancels the whole request, like the searching screen does. Asked first:
+    // the link sits right under the offer and is easy to hit by mistake.
     const handleCancel = () => {
-        router.replace('/(tabs)/assist');
+        if (!requestId) return;
+        Alert.alert(t('requestAssistance.mechanicFound.cancelTitle'), t('requestAssistance.mechanicFound.cancelMessage'), [
+            { text: t('requestAssistance.mechanicFound.cancelKeep'), style: 'cancel' },
+            {
+                text: t('requestAssistance.mechanicFound.cancelConfirm'),
+                style: 'destructive',
+                onPress: async () => {
+                    try {
+                        // Keep the offering mechanic on the request: '' would
+                        // unassign them, and they would never hear it was canceled.
+                        await assistanceDAO.updateStatus(requestId as string, assistanceRequest?.mechanicId ?? '', 'canceled');
+                        await refresh();
+                        router.replace('/(tabs)/dashboard');
+                    } catch (error) {
+                        console.error('Failed to cancel request:', error);
+                        Alert.alert(t('requestAssistance.searching.cancelErrorAlert'));
+                    }
+                },
+            },
+        ]);
     };
 
     // Kept stable for the life of the screen. Regenerating it on every render

@@ -418,7 +418,11 @@
       "otherOptions": "Other options",
       "immediateEta": "Available now ETA: 2hs",
       "startingFrom": "Starting from: ${{price}}",
-      "videoCallAvailable": "Available now start Call"
+      "videoCallAvailable": "Available now start Call",
+      "cancelTitle": "Cancel request?",
+      "cancelMessage": "The mechanic will be told and your request will be closed. This cannot be undone.",
+      "cancelKeep": "Keep request",
+      "cancelConfirm": "Cancel request"
     }
   },
   "appointments": {
