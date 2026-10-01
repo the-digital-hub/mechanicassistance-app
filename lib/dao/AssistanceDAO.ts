@@ -25,6 +25,14 @@ export class AssistanceDAO implements IAssistanceDAO {
     }
 
     /**
+     * Hides a request from the calling mechanic's feed (expires server-side,
+     * 24h by default). The gateway injects the mechanic's identity.
+     */
+    async reject(id: string): Promise<void> {
+        await apiClient.post(`/api/assistance/${id}/reject`, {});
+    }
+
+    /**
      * Uploads a local image URI to S3 and returns the permanent URL.
      * React Native FormData accepts { uri, type, name } as a file object.
      */

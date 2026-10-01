@@ -119,6 +119,7 @@ export default function RequestDetailScreen() {
 
     const [showConfirm, setShowConfirm] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+    const [declining, setDeclining] = useState(false);
     const [etaText, setEtaText] = useState<string | null>(null);
     const [distKm, setDistKm] = useState<number | null>(null);
     const [mechanicCoords, setMechanicCoords] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -226,6 +227,22 @@ export default function RequestDetailScreen() {
             alert(t('requestDetail.acceptFailed', { error: error.message || 'Unknown error' }));
         } finally {
             setSubmitting(false);
+        }
+    };
+
+    // Hides the request from this mechanic's feed (server-side, temporal) and
+    // goes back. The request stays open for other mechanics.
+    const handleDecline = async () => {
+        if (declining || submitting) return;
+        const requestId = Array.isArray(id) ? id[0] : id || '';
+        setDeclining(true);
+        try {
+            await assistanceDAO.reject(requestId);
+            router.back();
+        } catch (error: any) {
+            alert(t('requestDetail.declineFailed', { error: error.message || 'Unknown error' }));
+        } finally {
+            setDeclining(false);
         }
     };
 
@@ -485,10 +502,12 @@ export default function RequestDetailScreen() {
                             <Text className="text-blue-600 font-outfit-bold text-base">{t('requestDetail.waitingClientConfirmation')}</Text>
                         </View>
                     ) : (
+                    <View className="flex-row" style={{ gap: 12 }}>
                     <TouchableOpacity
                         onPress={handleAccept}
-                        disabled={!isImmediate && (!selectedDate || !selectedTime)}
+                        disabled={declining || (!isImmediate && (!selectedDate || !selectedTime))}
                         activeOpacity={0.8}
+                        style={{ flex: 1 }}
                     >
                         {isImmediate || (selectedDate && selectedTime) ? (
                             <LinearGradient
@@ -511,6 +530,16 @@ export default function RequestDetailScreen() {
                             </View>
                         )}
                     </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={handleDecline}
+                        disabled={declining || submitting}
+                        activeOpacity={0.8}
+                        className="rounded-xl items-center justify-center px-6"
+                        style={{ backgroundColor: '#F1F2F7', opacity: declining ? 0.6 : 1 }}
+                    >
+                        <Text className="font-outfit-bold text-base" style={{ color: '#6B7280' }}>{t('requestDetail.decline')}</Text>
+                    </TouchableOpacity>
+                    </View>
                     )}
                 </View>
             </ScrollView>

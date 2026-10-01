@@ -563,6 +563,8 @@
     "ok": "OK",
     "selectDateTimeAlert": "Por favor seleccioná una fecha y una hora.",
     "acceptFailed": "No se pudo aceptar la solicitud: {{error}}",
+    "decline": "Rechazar",
+    "declineFailed": "No se pudo rechazar la solicitud: {{error}}",
     "timeAgo": {
       "justNow": "Recién",
       "minutes": "hace {{count}} min",

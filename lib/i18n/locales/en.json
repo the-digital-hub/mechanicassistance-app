@@ -563,6 +563,8 @@
     "ok": "OK",
     "selectDateTimeAlert": "Please select a date and time.",
     "acceptFailed": "Failed to accept request: {{error}}",
+    "decline": "Decline",
+    "declineFailed": "Failed to decline request: {{error}}",
     "timeAgo": {
       "justNow": "Just now",
       "minutes": "{{count}} min ago",

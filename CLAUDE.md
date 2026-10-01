@@ -131,6 +131,6 @@ Conditional/procedural knowledge lives in skills (loaded on-demand), not here:
 
 - **Deployment**: `npm run upload`/`npm run local`, `k8s/`, `docker-compose.yml`, and `scripts/upload.sh` / `local-deploy.sh` / `sync-users-from-prod.sh` are leftover from the pre-split monorepo and are deprecated — do not use them as a guide to how deployment actually works today. This section needs to be rewritten once the current process is confirmed.
 - `DB.MD` documents the SQLite schema as it existed when the backend was still in this repo — still a useful reference for field names, but the schema itself now lives in the backend repo and may have drifted.
-- Pending product/engineering follow-ups are tracked in [docs/](docs/) (e.g. `docs/PENDING-decline-request-action.md`).
+- Pending product/engineering follow-ups are tracked in [docs/](docs/).
 - Field-by-field persistence of assistance requests (what reaches the DB, what doesn't, and the deployment ordering it implies) is audited in [docs/assistance-request-field-persistence.md](docs/assistance-request-field-persistence.md). `docs/PENDING-persist-assistance-issues.md` is closed — its premise was wrong.
 - The mechanic availability step's contract — `HH:mm` 24-hour times, per-day `schedule`, service radius, and the fact that no service reads the schedule back — is documented in [docs/mechanic-availability-contract.md](docs/mechanic-availability-contract.md).

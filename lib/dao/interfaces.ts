@@ -331,6 +331,7 @@ export interface IAssistanceDAO {
     getById(id: string): Promise<AssistanceRequest | null>;
     updateStatus(id: string, mechanicId: string, status: string, extra?: { eta?: string; price?: string }): Promise<void>;
     create(request: Partial<AssistanceRequest>): Promise<AssistanceRequest>;
+    reject(id: string): Promise<void>;
     uploadPhoto(localUri: string): Promise<string>;
     uploadVideo(localUri: string): Promise<string>;
 }

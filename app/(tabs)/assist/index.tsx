@@ -23,11 +23,19 @@ export default function AssistanceRequestsScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
-  // Declined requests are hidden locally only — there's no backend support yet
-  // to persist a decline, so this resets on reload. See docs/PENDING-decline-request-action.md.
+  // Declining hides the request right away and persists it server-side (the
+  // feed stops returning it to this mechanic until the rejection expires). If
+  // the call fails the request comes back.
   const [declinedIds, setDeclinedIds] = useState<Set<string>>(new Set());
   const handleDecline = useCallback((id: string) => {
     setDeclinedIds((prev) => new Set(prev).add(id));
+    assistanceDAO.reject(id).catch(() => {
+      setDeclinedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+    });
   }, []);
   const visibleRequests = useMemo(
     () => requests.filter((req) => !declinedIds.has(req.id)),
