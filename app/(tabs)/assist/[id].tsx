@@ -9,7 +9,8 @@ import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { Calendar, Clock, Navigation, HelpCircle, ChevronLeft, Zap, Car, Wrench, Lock, ArrowUpRight, DollarSign } from 'lucide-react-native';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import type { AssistanceRequest } from '@/lib/dao/interfaces';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import { MAP_PROVIDER } from '@/lib/maps/provider';
 import { apiClient } from '@/lib/api/apiClient';
@@ -48,7 +49,44 @@ function formatEta(minutes: number): string {
 }
 
 export default function RequestDetailScreen() {
-    const { id, type, assistanceType, title, car, address, zip, budget, price, userId, locationLat, locationLng, vehicleIssues, date, status } = useLocalSearchParams();
+    const params = useLocalSearchParams();
+    const { id, vehicleIssues } = params;
+
+    // The feed and the appointment cards pass the whole request as params; a
+    // tapped push only carries the id. Then the request is loaded here, and each
+    // field falls back to it.
+    const needsFetch = !!id && !params.type;
+    const [fetched, setFetched] = useState<AssistanceRequest | null>(null);
+    const [loadingRequest, setLoadingRequest] = useState(needsFetch);
+    useEffect(() => {
+        if (!needsFetch) return;
+        let cancelled = false;
+        assistanceDAO
+            .getById(String(Array.isArray(id) ? id[0] : id))
+            .then((r) => { if (!cancelled) setFetched(r); })
+            .catch((err) => console.warn('[assist] request load failed:', (err as Error).message))
+            .finally(() => { if (!cancelled) setLoadingRequest(false); });
+        return () => { cancelled = true; };
+    }, [id, needsFetch]);
+
+    const field = (key: keyof AssistanceRequest) => {
+        const fromParams = params[key as string];
+        if (fromParams !== undefined && fromParams !== '') return fromParams;
+        const value = fetched?.[key];
+        return value === undefined || value === null ? undefined : String(value);
+    };
+    const type = field('type');
+    const assistanceType = field('assistanceType');
+    const title = field('title');
+    const car = field('car');
+    const address = field('address');
+    const zip = field('zip');
+    const budget = field('budget');
+    const price = field('price');
+    const locationLat = field('locationLat');
+    const locationLng = field('locationLng');
+    const date = params.date || fetched?.date || fetched?.updatedAt;
+    const status = field('status');
 
     const vehicleIssueNames: string = React.useMemo(() => {
         try {
@@ -79,6 +117,8 @@ export default function RequestDetailScreen() {
     // Reached from the Appointments "Pending" tab, the request may already carry
     // this mechanic's offer — there is nothing left to accept.
     const alreadyOffered = status === 'offered';
+    // Opened from an old push, the request may have been taken or canceled since.
+    const noLongerAvailable = !!status && status !== 'pending' && status !== 'offered';
 
     const isImmediate = type === 'immediate' || type === 'videocall' || type === 'witness' || assistanceType === 'witness';
     const isVideo = type === 'videocall';
@@ -245,6 +285,14 @@ export default function RequestDetailScreen() {
             setDeclining(false);
         }
     };
+
+    if (loadingRequest) {
+        return (
+            <View className="flex-1 justify-center items-center" style={{ backgroundColor: '#F4F6FC' }}>
+                <ActivityIndicator size="large" color="#0047AB" />
+            </View>
+        );
+    }
 
     return (
         <View className="flex-1" style={{ backgroundColor: '#F4F6FC' }}>
@@ -497,7 +545,11 @@ export default function RequestDetailScreen() {
                         </>
                     )}
 
-                    {alreadyOffered ? (
+                    {noLongerAvailable ? (
+                        <View className="w-full py-4 rounded-xl items-center bg-gray-100 border border-gray-200">
+                            <Text className="text-gray-500 font-outfit-bold text-base">{t('requestDetail.noLongerAvailable')}</Text>
+                        </View>
+                    ) : alreadyOffered ? (
                         <View className="w-full py-4 rounded-xl items-center bg-blue-50 border border-blue-100">
                             <Text className="text-blue-600 font-outfit-bold text-base">{t('requestDetail.waitingClientConfirmation')}</Text>
                         </View>

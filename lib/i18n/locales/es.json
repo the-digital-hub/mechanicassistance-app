@@ -582,7 +582,8 @@
     "offlineOfferTitle": "Ponete disponible para ofertar",
     "offlineOfferMessage": "Estás desconectado. Para enviar una oferta tenés que estar disponible.",
     "offlineOfferConfirm": "Ponerme disponible y ofertar",
-    "offlineOfferCancel": "Cancelar"
+    "offlineOfferCancel": "Cancelar",
+    "noLongerAvailable": "Esta solicitud ya no está disponible."
   },
   "personalInfo": {
     "uploadFailedTitle": "Error al subir",

@@ -212,6 +212,16 @@ export default function IssueSelectionScreen() {
         ...symptomOwnerIssueIds,
     ]));
 
+    // Catalog names, untranslated, as the pricing service stores them. Carried
+    // as `description` down to confirmation, which makes it the request title —
+    // the line mechanics read in the new-request push and in their feed.
+    const selectedIssueNames = catalog
+        .flatMap(category => category.issues)
+        .filter(issue => selectedIssues.includes(issue.id))
+        .map(issue => issue.name)
+        .filter(Boolean)
+        .join(', ');
+
     const handleContinue = () => {
         router.push({
             pathname: '/request-assistance/vehicle-information',
@@ -219,6 +229,7 @@ export default function IssueSelectionScreen() {
                 type,
                 vehicleId,
                 vehicleName,
+                ...(selectedIssueNames ? { description: selectedIssueNames } : {}),
                 issues: selectedIssues.join(','),
                 // Stored by the pricing service on the confirmation step
                 // (assistance_request_symptoms), next to the issues.

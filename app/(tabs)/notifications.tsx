@@ -1,4 +1,6 @@
 import { useNotifications } from '@/context/NotificationsContext';
+import { useUser } from '@/context/UserContext';
+import { routeForPush } from '@/lib/notifications/push';
 import { useRouter } from 'expo-router';
 import { Check, MoreHorizontal, X } from 'lucide-react-native';
 import { useState } from 'react';
@@ -10,6 +12,7 @@ export default function NotificationsScreen() {
     const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
     const { notifications, deleteNotification, markAllRead } = useNotifications();
+    const { user } = useUser();
 
     const handleDelete = (id: string) => {
         const performDelete = () => deleteNotification(id);
@@ -41,17 +44,26 @@ export default function NotificationsScreen() {
             case 'mechanic_found': return '🔧';
             case 'offer_accepted': return '✅';
             case 'job_canceled': return '❌';
+            case 'new_request': return '🚗';
+            case 'request_status': return '📍';
+            case 'video_call': return '📹';
             default: return '🔔';
         }
     };
 
+    // Same destination as tapping the push itself.
     const handleNotificationPress = (notif: typeof notifications[0]) => {
-        if (notif.type === 'mechanic_found' && notif.requestId) {
-            router.push({
-                pathname: '/request-assistance/mechanic-found',
-                params: { requestId: notif.requestId }
-            });
-        }
+        if (!user?.id || !user.role) return;
+        const route = routeForPush(
+            {
+                kind: notif.type === 'job_canceled' ? 'request_canceled' : notif.type,
+                requestId: notif.requestId,
+                appointmentId: notif.appointmentId,
+                status: notif.status,
+            },
+            { id: user.id, role: user.role },
+        );
+        if (route) router.push(route);
     };
 
     return (

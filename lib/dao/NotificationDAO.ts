@@ -21,6 +21,28 @@ export interface RegisteredDevice {
     lastSeenAt: string;
 }
 
+/** One notification from the backend inbox (notifications-service). */
+export interface InboxItem {
+    id: string;
+    /** new_request, mechanic_found, offer_accepted, request_status, request_canceled, video_call. */
+    kind: string;
+    title: string;
+    body: string;
+    requestId?: string;
+    appointmentId?: string;
+    status?: string;
+    /** UTC, ISO 8601. */
+    createdAt: string;
+    read: boolean;
+}
+
+export interface InboxPage {
+    /** Newest first. */
+    items: InboxItem[];
+    /** Arrived since the app was last opened — the number on the app icon. */
+    unseen: number;
+}
+
 /**
  * Push notification registration (notifications-service, through the gateway
  * at /api/notifications/devices). The backend decides what to push and when;
@@ -43,6 +65,22 @@ class NotificationDAO {
             { token },
         );
         return result.removed;
+    }
+
+    /** The signed-in person's notifications, newest first, text in `locale`. */
+    async listInbox(opts: { locale?: string; before?: string; limit?: number } = {}): Promise<InboxPage> {
+        return apiClient.get<InboxPage>('/api/notifications/inbox', opts);
+    }
+
+    /** The app was opened: clears the number on the icon for the next push. */
+    async markSeen(): Promise<void> {
+        await apiClient.post('/api/notifications/inbox/seen', {});
+    }
+
+    /** Marks every notification read (and seen). Answers how many changed. */
+    async markRead(): Promise<number> {
+        const result = await apiClient.post<{ marked: number }>('/api/notifications/inbox/read', {});
+        return result.marked;
     }
 }
 

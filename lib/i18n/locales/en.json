@@ -582,7 +582,8 @@
     "offlineOfferTitle": "Go available to offer",
     "offlineOfferMessage": "You're offline. To send an offer you need to be available.",
     "offlineOfferConfirm": "Go available and offer",
-    "offlineOfferCancel": "Cancel"
+    "offlineOfferCancel": "Cancel",
+    "noLongerAvailable": "This request is no longer available."
   },
   "personalInfo": {
     "uploadFailedTitle": "Upload Failed",

@@ -5,12 +5,30 @@ import { useRouter, useSegments } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 
+/** How long the backend takes, roughly, to record a notification after the socket event. */
+const INBOX_LAG_MS = 3000;
+
 export function GlobalNotificationListener() {
     const { user } = useUser();
     const { lastMessage } = useSocket();
     const router = useRouter();
     const segments = useSegments();
-    const { addNotification } = useNotifications();
+    const { refresh, markSeen } = useNotifications();
+
+    // The same event reaches notifications-service through SNS → SQS, a moment
+    // after the socket: reload the inbox once its row exists. The app is open,
+    // so the push it implies is already seen — keep it off the icon.
+    const pendingReload = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const reloadInboxSoon = () => {
+        if (pendingReload.current) clearTimeout(pendingReload.current);
+        pendingReload.current = setTimeout(() => {
+            pendingReload.current = null;
+            void markSeen().then(refresh);
+        }, INBOX_LAG_MS);
+    };
+    useEffect(() => () => {
+        if (pendingReload.current) clearTimeout(pendingReload.current);
+    }, []);
 
     // Track notified IDs to avoid duplicate alerts
     const notifiedIds = useRef<Set<string>>(new Set());
@@ -39,13 +57,8 @@ export function GlobalNotificationListener() {
 
             notifiedIds.current.add(notificationKey);
 
-            // Always add to notifications tab
-            addNotification({
-                type: 'mechanic_found',
-                title: 'Mechanic Found!',
-                body: 'A mechanic has offered to help with your request. Tap to view details.',
-                requestId,
-            });
+            // Always shows up in the notifications tab
+            reloadInboxSoon();
 
             // If user is NOT on the searching/mechanic-found screen, navigate them there
             if (!isSearchingOrFound) {
@@ -65,6 +78,7 @@ export function GlobalNotificationListener() {
 
         if (isMechanicForRequest && status === 'accepted') {
             notifiedIds.current.add(notificationKey);
+            reloadInboxSoon();
 
             // Show custom notification popup for mechanic
             setNotification({
@@ -86,13 +100,8 @@ export function GlobalNotificationListener() {
             if (notifiedIds.current.has(key)) return;
             notifiedIds.current.add(key);
 
-            // Add to notifications tab
-            addNotification({
-                type: 'job_canceled',
-                title: 'Job Canceled',
-                body: 'The user has canceled this request.',
-                requestId,
-            });
+            // Shows up in the notifications tab
+            reloadInboxSoon();
 
             setNotification({
                 title: 'Job Canceled',
