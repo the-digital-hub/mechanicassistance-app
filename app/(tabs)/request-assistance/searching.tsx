@@ -1,11 +1,12 @@
 import { useSocket } from '@/context/SocketContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useIsFocused } from '@react-navigation/native';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft, Clock, Zap, Car, MapPin, DollarSign } from 'lucide-react-native';
 import { AssistanceRequest } from '@/lib/dao/interfaces';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Animated, Easing, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -29,6 +30,20 @@ export default function SearchingScreen() {
     const [elapsedSeconds, setElapsedSeconds] = useState(0);
     const [activeStep, setActiveStep] = useState(0);
     const [requestData, setRequestData] = useState<AssistanceRequest | null>(null);
+    const isFocused = useIsFocused();
+
+    // Hands off to Mechanic Found once. This screen can stay mounted under it
+    // (a tapped push opens Mechanic Found on top), and `replace` acts on the
+    // focused route — repeating it swapped that screen for a fresh one forever.
+    const handedOff = useRef(false);
+    const goToMechanicFound = useCallback(() => {
+        if (handedOff.current || !requestId) return;
+        handedOff.current = true;
+        router.replace({
+            pathname: '/request-assistance/mechanic-found',
+            params: { requestId: requestId as string }
+        });
+    }, [requestId, router]);
 
     const getTitle = () => {
         switch (type) {
@@ -90,44 +105,42 @@ export default function SearchingScreen() {
                 useNativeDriver: true,
             })
         ).start();
+    }, []);
 
-        // Fallback: poll every 5s for status changes (in case WebSocket drops)
-        const checkCurrentStatus = async () => {
-            if (!requestId) return;
-            try {
-                const data = await assistanceDAO.getById(requestId as string);
-                if (data) setRequestData(data);
-                if (data && data.status === 'offered') {
-                    router.replace({
-                        pathname: '/request-assistance/mechanic-found',
-                        params: { requestId: requestId as string }
-                    });
+    // Fallback: poll every 5s for status changes (in case WebSocket drops).
+    // Only while this screen is the one on top.
+    useFocusEffect(
+        useCallback(() => {
+            const checkCurrentStatus = async () => {
+                if (!requestId || handedOff.current) return;
+                try {
+                    const data = await assistanceDAO.getById(requestId as string);
+                    if (data) setRequestData(data);
+                    if (data && data.status === 'offered') goToMechanicFound();
+                } catch (error) {
+                    console.error('Failed to check status:', error);
                 }
-            } catch (error) {
-                console.error('Failed to check status:', error);
-            }
-        };
+            };
 
-        // Check immediately, then every 5 seconds
-        checkCurrentStatus();
-        const interval = setInterval(checkCurrentStatus, 5000);
-        return () => clearInterval(interval);
-    }, [requestId]);
+            // Check immediately, then every 5 seconds
+            checkCurrentStatus();
+            const interval = setInterval(checkCurrentStatus, 5000);
+            return () => clearInterval(interval);
+        }, [requestId, goToMechanicFound])
+    );
 
     // Real-time listener for status updates
     useEffect(() => {
+        if (!isFocused) return;
         if (lastMessage && lastMessage.type === 'assistance_update') {
             const payload = lastMessage.payload;
             // Check if this update is for our current request
             if ((payload.id === requestId || payload.requestId === requestId) && payload.status === 'offered') {
                 console.log('[SearchingScreen] Received offer via socket!');
-                router.replace({
-                    pathname: '/request-assistance/mechanic-found',
-                    params: { requestId: requestId as string }
-                });
+                goToMechanicFound();
             }
         }
-    }, [lastMessage, requestId]);
+    }, [lastMessage, requestId, isFocused, goToMechanicFound]);
 
     const spin = spinValue.interpolate({
         inputRange: [0, 1],
