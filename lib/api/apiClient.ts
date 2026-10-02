@@ -81,6 +81,43 @@ function isAuthEndpoint(endpoint: string): boolean {
  */
 let refreshInFlight: Promise<boolean> | null = null;
 
+/**
+ * Upper bound on one HTTP round trip. RN's fetch has no timeout of its own: a
+ * stalled connection (bad signal, VPN, captive portal) never settles, and the
+ * screen awaiting it keeps its spinner forever. Aborting turns it into an error.
+ */
+const REQUEST_TIMEOUT_MS = 15000;
+
+/** Upper bound on reading the stored tokens before a request. */
+const AUTH_HEADERS_TIMEOUT_MS = 3000;
+
+async function fetchWithTimeout(url: string, init: RequestInit): Promise<Response> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    try {
+        return await fetch(url, { ...init, signal: controller.signal });
+    } finally {
+        clearTimeout(timeoutId);
+    }
+}
+
+/** Resolves to `fallback` if `promise` has not settled within `ms`. */
+function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+    return new Promise((resolve, reject) => {
+        const timeoutId = setTimeout(() => resolve(fallback), ms);
+        promise.then(
+            (value) => {
+                clearTimeout(timeoutId);
+                resolve(value);
+            },
+            (error) => {
+                clearTimeout(timeoutId);
+                reject(error);
+            },
+        );
+    });
+}
+
 /** True if a usable access token is now stored. */
 async function ensureFreshSession(): Promise<boolean> {
     if (refreshInFlight) return refreshInFlight;
@@ -91,7 +128,7 @@ async function ensureFreshSession(): Promise<boolean> {
             if (!refreshToken) return false;
 
             await ConfigService.init();
-            const response = await fetch(
+            const response = await fetchWithTimeout(
                 buildUrl(ConfigService.getApiBaseUrl(), '/api/auth/refresh'),
                 {
                     method: 'POST',
@@ -221,7 +258,12 @@ async function unwrapResponse<T>(response: Response, method: string, endpoint: s
     try {
         body = await response.json();
     } catch {
-        throw new Error(`${method} ${endpoint}: Failed to parse response body (status ${response.status})`);
+        // Still an ApiError: a 429 or 403 from a proxy page is not a network failure.
+        throw new ApiError(
+            response.status,
+            `${method} ${endpoint}: Failed to parse response body (status ${response.status})`,
+            'Unparseable response',
+        );
     }
 
     // The API may return non-2xx with the standard envelope — handle both cases.
@@ -241,14 +283,18 @@ async function send<T>(
     init: Omit<RequestInit, 'method'> = {},
 ): Promise<T> {
     await ConfigService.init();
-    const authHeaders = await getAuthHeaders(endpoint);
+    const authHeaders = await withTimeout(
+        getAuthHeaders(endpoint),
+        AUTH_HEADERS_TIMEOUT_MS,
+        {},
+    );
     const url = buildUrl(ConfigService.getApiBaseUrl(), endpoint);
 
     console.log(`[apiClient] ${method} ${url}`);
 
     let response: Response;
     try {
-        response = await fetch(url, {
+        response = await fetchWithTimeout(url, {
             ...init,
             method,
             headers: { ...(init.headers ?? {}), ...authHeaders },

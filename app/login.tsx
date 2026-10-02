@@ -63,6 +63,7 @@ export default function LoginScreen() {
   const resendIn = useCountdown(resendAtMs);
 
   const fullPhoneRef = useRef("");
+  const sendInFlightRef = useRef(false);
   const otpInputRef = useRef<TextInput>(null);
   const [errorModal, setErrorModal] = useState<{
     visible: boolean;
@@ -92,7 +93,11 @@ export default function LoginScreen() {
     const loadLastPhone = async () => {
       const savedPhone = await getLastPhone();
       if (savedPhone) {
-        setPhoneNumber(formatPhoneNumber(savedPhone));
+        // Older builds saved the number with its country code (11 digits);
+        // the input only holds the 10-digit national number.
+        setPhoneNumber(
+          formatPhoneNumber(savedPhone.replace(/\D/g, "").slice(-10)),
+        );
       }
     };
     loadLastPhone();
@@ -117,6 +122,9 @@ export default function LoginScreen() {
 
   // Step 1: ask our own backend for a code
   const handleSendOTP = async () => {
+    // isLoading only disables the button on the next render; a fast double tap
+    // would otherwise send two requests and burn the per-phone rate limit.
+    if (sendInFlightRef.current) return;
     const cleaned = phoneNumber.replace(/\D/g, "");
     if (cleaned.length < 10) {
       showError(
@@ -128,6 +136,7 @@ export default function LoginScreen() {
 
     const e164 = toE164(cleaned);
     fullPhoneRef.current = e164;
+    sendInFlightRef.current = true;
     setIsLoading(true);
     try {
       // No pre-check any more: it was an account-enumeration oracle, and this
@@ -142,6 +151,7 @@ export default function LoginScreen() {
     } catch (err: unknown) {
       showError(t("login.errorTitle"), describeAuthError(err, t));
     } finally {
+      sendInFlightRef.current = false;
       setIsLoading(false);
     }
   };

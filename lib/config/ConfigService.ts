@@ -24,6 +24,16 @@ const DEFAULT_FALLBACK_CONFIG: BootstrapConfig = {
     },
 };
 
+/**
+ * A config is only adopted if its prod API URL is https. Anything else (a LAN
+ * address cached by an old build, a malformed bootstrap) would send every
+ * request somewhere that never answers.
+ */
+function isUsableConfig(config: BootstrapConfig): boolean {
+    const apiBaseUrl = config?.envs?.prod?.apiBaseUrl;
+    return typeof apiBaseUrl === 'string' && apiBaseUrl.startsWith('https://');
+}
+
 type ConfigListener = () => void;
 
 class ConfigServiceClass {
@@ -67,11 +77,16 @@ class ConfigServiceClass {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
 
-            const response = await fetch(BOOTSTRAP_URL, { signal: controller.signal });
-            clearTimeout(timeoutId);
+            let data: BootstrapConfig | null = null;
+            try {
+                const response = await fetch(BOOTSTRAP_URL, { signal: controller.signal });
+                // Parsed inside the timeout: a body that stalls must not hang init.
+                if (response.ok) data = await response.json();
+            } finally {
+                clearTimeout(timeoutId);
+            }
 
-            if (response.ok) {
-                const data: BootstrapConfig = await response.json();
+            if (data && isUsableConfig(data)) {
                 this.config = data;
                 // Cache it
                 await AsyncStorage.setItem(KEYS.REMOTE_CONFIG_CACHE, JSON.stringify(data));
@@ -85,8 +100,9 @@ class ConfigServiceClass {
         // 2. Fallback to cache
         try {
             const cached = await AsyncStorage.getItem(KEYS.REMOTE_CONFIG_CACHE);
-            if (cached) {
-                this.config = JSON.parse(cached);
+            const parsed: BootstrapConfig | null = cached ? JSON.parse(cached) : null;
+            if (parsed && isUsableConfig(parsed)) {
+                this.config = parsed;
                 console.log('[ConfigService] Loaded config from cache');
                 return;
             }

@@ -33,6 +33,7 @@ export default function PhoneNumberScreen() {
     message: "",
   });
   const inputRef = useRef<TextInput>(null);
+  const submitInFlightRef = useRef(false);
 
   const showError = (title: string, message: string) =>
     setErrorModal({ visible: true, title, message });
@@ -66,6 +67,9 @@ export default function PhoneNumberScreen() {
       return;
     }
 
+    // isChecking only disables the button on the next render; guard double taps.
+    if (submitInFlightRef.current) return;
+    submitInFlightRef.current = true;
     setIsChecking(true);
     try {
       const fullPhone = toE164(phoneNumber);
@@ -88,6 +92,7 @@ export default function PhoneNumberScreen() {
     } catch (error: unknown) {
       showError(t("setup.phone.errorTitle"), describeAuthError(error, t));
     } finally {
+      submitInFlightRef.current = false;
       setIsChecking(false);
     }
   };
