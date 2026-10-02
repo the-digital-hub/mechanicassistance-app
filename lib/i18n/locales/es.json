@@ -475,7 +475,37 @@
       "accepted": "ACEPTADA",
       "onTrip": "En camino a la dirección del cliente",
       "startVideoChat": "Iniciar videollamada",
-      "joinVideoCall": "Unirse a la videollamada"
+      "joinVideoCall": "Unirse a la videollamada",
+      "onTheWayBadge": "EN CAMINO",
+      "onTheWayTitle": "Vas en camino.",
+      "idLabel": "ID: #{{id}}",
+      "types": {
+        "immediate": "Asistencia inmediata",
+        "scheduled": "Asistencia programada",
+        "videocall": "Asistencia por videollamada",
+        "accident": "Asistencia por accidente"
+      },
+      "arrival": {
+        "title": "Cuando llegues al lugar",
+        "subtitle": "Confirmá que estás en el vehículo correcto antes de empezar.",
+        "startCheckIn": "Iniciar check-in",
+        "hint": "Escaneá el QR para hacer check-in o ingresá el PIN",
+        "notice": "Se habilita cuando estés llegando al lugar del servicio."
+      },
+      "info": {
+        "arrivalTime": "Tiempo de llegada",
+        "estimatedArrival": "Llegada estimada",
+        "address": "Dirección",
+        "car": "Auto",
+        "carIssue": "Problema del auto",
+        "notes": "Notas",
+        "calculating": "Calculando...",
+        "minAway": "a {{minutes}} min",
+        "onTheWay": "En camino",
+        "pending": "Pendiente",
+        "noNotes": "Sin notas.",
+        "locationNotAvailable": "Ubicación no disponible"
+      }
     },
     "userTracking": {
       "mechanicMatch": "¡Mecánico encontrado!",
@@ -528,6 +558,23 @@
     },
     "cancellationModal": {
       "message": "¿Estás seguro de que querés cancelar esta solicitud?\nTu mecánico ya está en camino hacia vos."
+    },
+    "checkIn": {
+      "title": "Check-in",
+      "step": "PASO 1 · CHECK-IN",
+      "heading": "Llegaste al lugar del servicio",
+      "subtitle": "Pedile al dueño del vehículo su código QR o PIN y escanealo o ingresalo para verificar el vehículo.",
+      "scanQr": "Escanear QR",
+      "enterPin": "Ingresar PIN",
+      "cameraOff": "La cámara está apagada",
+      "openCamera": "Abrir cámara",
+      "scanning": "Escaneando…",
+      "verifyPin": "Verificar PIN",
+      "secureTip": "Recordá asegurar el lugar del servicio (conos, balizas, freno de mano).",
+      "mismatchLink": "¿No coincide con este vehículo?",
+      "mismatchTitle": "No coincide con este vehículo",
+      "mismatchBody": "Revisá el código QR o el PIN con el cliente y probá de nuevo. Si sigue sin coincidir, contactá a soporte.",
+      "retry": "Reintentar verificación"
     }
   },
   "requestDetail": {

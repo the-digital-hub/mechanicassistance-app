@@ -1,8 +1,7 @@
 import { CancellationModal } from '@/components/appointments/CancellationModal';
 import { MechanicAssistanceInfoTab } from '@/components/appointments/MechanicAssistanceInfoTab';
-import { MechanicBudgetTab } from '@/components/appointments/MechanicBudgetTab';
+import { MechanicArrivalCard, PulseDot } from '@/components/appointments/MechanicArrivalCard';
 import { MechanicClientInfoTab } from '@/components/appointments/MechanicClientInfoTab';
-import { MechanicStatusTab } from '@/components/appointments/MechanicStatusTab';
 import { UserBudgetTab } from '@/components/appointments/UserBudgetTab';
 import { UserMechanicInfoTab } from '@/components/appointments/UserMechanicInfoTab';
 import { UserStatusTab } from '@/components/appointments/UserStatusTab';
@@ -23,6 +22,27 @@ import { Dimensions, ScrollView, Text, TouchableOpacity, View } from 'react-nati
 const { width } = Dimensions.get('window');
 
 type TabType = 'info' | 'client' | 'status' | 'budget';
+
+// Mechanic "Request accepted" palette.
+const MECH = {
+    blue: '#1E56E3',
+    blueSoft: '#EAF1FF',
+    text: '#0B1530',
+    mutedLight: '#8C96AE',
+    border: '#E4EAF5',
+    page: '#F6F8FC',
+    red: '#E53E3E',
+    green: '#10B981',
+    greenSoft: '#E6F7EF',
+};
+
+function assistanceTypeKey(appointment: { assistanceType?: string; type?: string }): string {
+    const kind = appointment.assistanceType ?? appointment.type;
+    if (appointment.assistanceType === 'witness') return 'appointments.detail.types.accident';
+    if (kind === 'immediate') return 'appointments.detail.types.immediate';
+    if (kind === 'videocall' || appointment.type === 'video') return 'appointments.detail.types.videocall';
+    return 'appointments.detail.types.scheduled';
+}
 
 export default function AppointmentDetailScreen() {
     // Switch back to Global params as Local causes context error in full tree
@@ -50,7 +70,6 @@ export default function AppointmentDetailScreen() {
     const [mechanic, setMechanic] = React.useState<any>(null); // State for mechanic details
 
     const [activeTab, setActiveTab] = React.useState<TabType>('info');
-    const [showSuccess, setShowSuccess] = React.useState(false);
     const [showCancelModal, setShowCancelModal] = React.useState(false);
     const [isCanceledFeedback, setIsCanceledFeedback] = React.useState(false);
 
@@ -59,13 +78,6 @@ export default function AppointmentDetailScreen() {
     const [selectedOption, setSelectedOption] = React.useState<string>(appointment?.clientReview?.experienceTags?.[0] || '');
     const [reviewText, setReviewText] = React.useState(appointment?.clientReview?.review || '');
     const [isReviewSubmitted, setIsReviewSubmitted] = React.useState(appointment?.isReviewSubmitted || false);
-
-    // Consistent state for Status Updates (Mechanic View)
-    const [statusUpdate, setStatusUpdate] = React.useState(appointment?.currentStatus || '');
-    const [isStatusUpdated, setIsStatusUpdated] = React.useState(appointment?.isStatusUpdated || false);
-    const [additionalAmount, setAdditionalAmount] = React.useState(appointment?.additionalFunds?.[0]?.amount || '');
-    const [additionalType, setAdditionalType] = React.useState(appointment?.additionalFunds?.[0]?.type || '');
-    const [additionalDetails, setAdditionalDetails] = React.useState(appointment?.additionalFunds?.[0]?.details || '');
 
     // Hydrate mechanic review state once appointment data arrives — AppointmentsContext
     // loads asynchronously, so a cold navigation into this screen can mount before it
@@ -153,21 +165,6 @@ export default function AppointmentDetailScreen() {
         fetchClient();
     }, [isUserRole, appointment?.userId]);
 
-    // Sync status state to context
-    React.useEffect(() => {
-        if (appointment && !isUserRole) {
-            debouncedUpdate({
-                currentStatus: statusUpdate,
-                additionalFunds: [{
-                    amount: additionalAmount,
-                    type: additionalType,
-                    details: additionalDetails,
-                    status: 'pending'
-                }]
-            });
-        }
-    }, [additionalAmount, additionalType, additionalDetails, statusUpdate]);
-
     const tabs: { key: TabType; label: string }[] = React.useMemo(() => isUserRole
         ? [
             { key: 'info', label: t('appointments.detail.tabs.assistanceInfo') },
@@ -178,8 +175,6 @@ export default function AppointmentDetailScreen() {
         : [
             { key: 'info', label: t('appointments.detail.tabs.assistanceInfo') },
             { key: 'client', label: t('appointments.detail.tabs.clientInfo') },
-            { key: 'status', label: t('appointments.detail.tabs.assistStatus') },
-            { key: 'budget', label: t('appointments.detail.tabs.budget') },
         ], [isUserRole, t]);
 
     if (!appointment) {
@@ -224,7 +219,7 @@ export default function AppointmentDetailScreen() {
 
         switch (activeTab) {
             case 'info':
-                return <MechanicAssistanceInfoTab appointment={appointment} onScan={() => setActiveTab('status')} />;
+                return <MechanicAssistanceInfoTab appointment={appointment} />;
             case 'client':
                 return (
                     <MechanicClientInfoTab
@@ -252,112 +247,172 @@ export default function AppointmentDetailScreen() {
                         onMessage={() => router.push(`/chat/${appointment.id}`)}
                     />
                 );
-            case 'status':
-                return (
-                    <MechanicStatusTab
-                        appointment={appointment}
-                        statusUpdate={statusUpdate}
-                        setStatusUpdate={setStatusUpdate}
-                        onUpdateStatus={() => {
-                            if (statusUpdate === 'Assistance completed') {
-                                setActiveTab('budget');
-                            }
-                            setIsStatusUpdated(true);
-                            updateAppointment(appointment.id, {
-                                isStatusUpdated: true,
-                                currentStatus: statusUpdate
-                            });
-                        }}
-                        additionalAmount={additionalAmount}
-                        setAdditionalAmount={setAdditionalAmount}
-                        additionalType={additionalType}
-                        setAdditionalType={setAdditionalType}
-                        onRequestFunds={() => { }}
-                    />
-                );
-            case 'budget':
-                return (
-                    <MechanicBudgetTab
-                        appointment={appointment}
-                        onAskPayment={() => setShowSuccess(true)}
-                    />
-                );
             default:
                 return null;
         }
     };
 
     return (
-        <View className="flex-1 bg-white" testID="appointment-detail-root" nativeID="appointment-detail-root">
+        <View
+            className="flex-1"
+            style={{ backgroundColor: isUserRole ? '#FFFFFF' : MECH.page }}
+            testID="appointment-detail-root"
+            nativeID="appointment-detail-root"
+        >
             {isCanceledFeedback ? (
                 <View><Text>Cancellation Feedback Placeholder</Text></View>
             ) : (
                 <View className="flex-1">
                     <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-                        {/* Title Section */}
-                        <View className="px-6 py-4">
-                            <Text className="font-outfit-bold text-blue-900 text-lg">{t('appointments.detail.assistanceAccepted')}</Text>
-                            <Text className="text-gray-400 text-xs">ID:#{appointment.id.slice(0, 8)}...</Text>
-                        </View>
-
-                        {/* Status Bar - GREEN */}
-                        <View className="px-6 mb-6" testID="status-bar-container" nativeID="status-bar-container">
-                            <View
-                                className="border border-green-100 rounded-lg p-4 items-center bg-green-50"
-                                testID="status-badge"
-                                nativeID="status-badge"
-                            >
-                                <Text className="text-gray-500 font-outfit-medium text-xs mb-1" testID="status-label">{t('appointments.detail.status')}</Text>
-                                <Text className="text-emerald-600 font-outfit-bold text-lg uppercase mb-1" testID="status-value">{t('appointments.detail.accepted')}</Text>
-                                <Text className="text-emerald-600/80 text-[10px]" testID="status-description">{t('appointments.detail.onTrip')}</Text>
+                        {isUserRole ? (
+                            <>
+                            {/* Title Section */}
+                            <View className="px-6 py-4">
+                                <Text className="font-outfit-bold text-blue-900 text-lg">{t('appointments.detail.assistanceAccepted')}</Text>
+                                <Text className="text-gray-400 text-xs">ID:#{appointment.id.slice(0, 8)}...</Text>
                             </View>
-                        </View>
 
-                        {/* Video Call Button - only for videocall type appointments */}
-                        {appointment.type === 'videocall' && (
-                            <View className="px-6 mb-6">
-                                <TouchableOpacity
-                                    onPress={() => router.push({
-                                        pathname: '/video-lobby/[id]' as any,
-                                        params: { id: appointment.id }
-                                    })}
-                                    className="bg-emerald-500 rounded-xl py-4 flex-row items-center justify-center gap-3 shadow-sm"
-                                    activeOpacity={0.8}
+                            {/* Status Bar - GREEN */}
+                            <View className="px-6 mb-6" testID="status-bar-container" nativeID="status-bar-container">
+                                <View
+                                    className="border border-green-100 rounded-lg p-4 items-center bg-green-50"
+                                    testID="status-badge"
+                                    nativeID="status-badge"
                                 >
-                                    <Ionicons name="videocam" size={24} color="white" />
-                                    <Text className="text-white font-outfit-bold text-lg">
-                                        {isUserRole ? t('appointments.detail.startVideoChat') : t('appointments.detail.joinVideoCall')}
-                                    </Text>
-                                </TouchableOpacity>
+                                    <Text className="text-gray-500 font-outfit-medium text-xs mb-1" testID="status-label">{t('appointments.detail.status')}</Text>
+                                    <Text className="text-emerald-600 font-outfit-bold text-lg uppercase mb-1" testID="status-value">{t('appointments.detail.accepted')}</Text>
+                                    <Text className="text-emerald-600/80 text-[10px]" testID="status-description">{t('appointments.detail.onTrip')}</Text>
+                                </View>
                             </View>
-                        )}
 
-                        {/* Tab Navigation - ROUNDED BUTTONS */}
-                        <View className="px-6 mb-6" testID="tab-navigation-container" nativeID="tab-navigation-container">
-                            <View className="flex-row flex-wrap justify-between gap-y-3">
-                                {tabs.map((tab) => (
+                            {/* Video Call Button - only for videocall type appointments */}
+                            {appointment.type === 'videocall' && (
+                                <View className="px-6 mb-6">
                                     <TouchableOpacity
-                                        key={tab.key}
-                                        testID={`tab-button-${tab.key}`}
-                                        className={`py-3 rounded-lg border w-[48%] items-center ${activeTab === tab.key
-                                            ? 'bg-white border-blue-900 border-2'
-                                            : 'bg-white border-gray-200'
-                                            }`}
-                                        onPress={() => setActiveTab(tab.key)}
+                                        onPress={() => router.push({
+                                            pathname: '/video-lobby/[id]' as any,
+                                            params: { id: appointment.id }
+                                        })}
+                                        className="bg-emerald-500 rounded-xl py-4 flex-row items-center justify-center gap-3 shadow-sm"
+                                        activeOpacity={0.8}
                                     >
-                                        <Text className={`font-outfit-bold text-xs ${activeTab === tab.key ? 'text-blue-900' : 'text-gray-900'
-                                            }`}>
-                                            {tab.label}
+                                        <Ionicons name="videocam" size={24} color="white" />
+                                        <Text className="text-white font-outfit-bold text-lg">
+                                            {isUserRole ? t('appointments.detail.startVideoChat') : t('appointments.detail.joinVideoCall')}
                                         </Text>
                                     </TouchableOpacity>
-                                ))}
-                            </View>
-                        </View>
+                                </View>
+                            )}
 
-                        {/* Content Container - REMOVE BLUE HEADER */}
-                        <View className="px-6 pb-10" testID="tab-content-container" nativeID="tab-content-container">
-                            {renderTabContent()}
-                        </View>
+                            {/* Tab Navigation - ROUNDED BUTTONS */}
+                            <View className="px-6 mb-6" testID="tab-navigation-container" nativeID="tab-navigation-container">
+                                <View className="flex-row flex-wrap justify-between gap-y-3">
+                                    {tabs.map((tab) => (
+                                        <TouchableOpacity
+                                            key={tab.key}
+                                            testID={`tab-button-${tab.key}`}
+                                            className={`py-3 rounded-lg border w-[48%] items-center ${activeTab === tab.key
+                                                ? 'bg-white border-blue-900 border-2'
+                                                : 'bg-white border-gray-200'
+                                                }`}
+                                            onPress={() => setActiveTab(tab.key)}
+                                        >
+                                            <Text className={`font-outfit-bold text-xs ${activeTab === tab.key ? 'text-blue-900' : 'text-gray-900'
+                                                }`}>
+                                                {tab.label}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            </View>
+
+                            {/* Content Container - REMOVE BLUE HEADER */}
+                            <View className="px-6 pb-10" testID="tab-content-container" nativeID="tab-content-container">
+                                {renderTabContent()}
+                            </View>
+                            </>
+                        ) : (
+                            <>
+                            {/* Badge + title + assistance type */}
+                            <View className="px-5 pt-5 pb-1">
+                                <View className="flex-row items-center gap-1.5 mb-3 px-2.5 py-1 rounded-full" style={{ backgroundColor: MECH.blueSoft, alignSelf: 'flex-start' }}>
+                                    <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: MECH.blue }} />
+                                    <Text className="font-outfit-bold text-[10.5px] tracking-widest" style={{ color: MECH.blue }}>
+                                        {t('appointments.detail.onTheWayBadge')}
+                                    </Text>
+                                </View>
+                                <Text className="font-outfit-bold text-[22px]" style={{ color: MECH.text }}>
+                                    {t('appointments.detail.onTheWayTitle')}
+                                </Text>
+                                <View className="flex-row items-center flex-wrap gap-2 mt-2">
+                                    <View className="flex-row items-center gap-2">
+                                        <View className="items-center justify-center" style={{ width: 26, height: 26, borderRadius: 9, backgroundColor: 'rgba(229,62,62,0.08)' }}>
+                                            <Ionicons name="flash-outline" size={14} color={MECH.red} />
+                                        </View>
+                                        <Text className="font-outfit-bold text-[13.5px]" style={{ color: MECH.text }}>
+                                            {t(assistanceTypeKey(appointment))}
+                                        </Text>
+                                    </View>
+                                    <Text style={{ color: MECH.border }}>·</Text>
+                                    <Text className="font-outfit-medium text-xs" style={{ color: MECH.mutedLight }}>
+                                        {t('appointments.detail.idLabel', { id: appointment.id.slice(0, 8) })}
+                                    </Text>
+                                </View>
+                            </View>
+
+                            {/* Status card */}
+                            <View className="mx-4 mt-3.5 px-5 py-4 items-center" style={{ borderRadius: 20, backgroundColor: MECH.greenSoft }} testID="status-badge" nativeID="status-badge">
+                                <View className="flex-row items-center gap-2">
+                                    <PulseDot color={MECH.green} />
+                                    <Text className="font-outfit-bold text-[22px]" style={{ color: '#0F8A55' }} testID="status-value">
+                                        {t('appointments.detail.accepted')}
+                                    </Text>
+                                </View>
+                                <Text className="font-outfit-medium text-[13px] mt-1" style={{ color: '#19A368' }} testID="status-description">
+                                    {t('appointments.detail.onTrip')}
+                                </Text>
+                            </View>
+
+                            {/* On-site check-in — the critical next step once the mechanic arrives */}
+                            <View className="mt-3.5">
+                                <MechanicArrivalCard
+                                    onStartCheckIn={() => router.push({
+                                        pathname: '/appointments/check-in/[id]' as any,
+                                        params: { id: appointment.id },
+                                    })}
+                                />
+                            </View>
+
+                            {/* Quick-nav tabs */}
+                            <View className="mx-4 mt-3.5 flex-row gap-2.5" testID="tab-navigation-container" nativeID="tab-navigation-container">
+                                {tabs.map((tab) => {
+                                    const isActive = activeTab === tab.key;
+                                    return (
+                                        <TouchableOpacity
+                                            key={tab.key}
+                                            testID={`tab-button-${tab.key}`}
+                                            className="flex-1 items-center py-3.5"
+                                            style={{
+                                                borderRadius: 14,
+                                                borderWidth: 1.5,
+                                                borderColor: isActive ? MECH.blue : MECH.border,
+                                                backgroundColor: isActive ? MECH.blueSoft : '#FFFFFF',
+                                            }}
+                                            onPress={() => setActiveTab(tab.key)}
+                                        >
+                                            <Text className="font-outfit-bold text-[13px]" style={{ color: isActive ? MECH.blue : MECH.text }}>
+                                                {tab.label}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </View>
+
+                            <View className="px-4 pt-3.5 pb-10" testID="tab-content-container" nativeID="tab-content-container">
+                                {renderTabContent()}
+                            </View>
+                            </>
+                        )}
                     </ScrollView>
                 </View>
             )}

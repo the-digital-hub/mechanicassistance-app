@@ -475,7 +475,37 @@
       "accepted": "ACCEPTED",
       "onTrip": "On trip to client's address",
       "startVideoChat": "Start Video Chat",
-      "joinVideoCall": "Join Video Call"
+      "joinVideoCall": "Join Video Call",
+      "onTheWayBadge": "ON THE WAY",
+      "onTheWayTitle": "You're on the way.",
+      "idLabel": "ID: #{{id}}",
+      "types": {
+        "immediate": "Immediate Assistance",
+        "scheduled": "Scheduled Assistance",
+        "videocall": "Video Call Assistance",
+        "accident": "Accident Assistance"
+      },
+      "arrival": {
+        "title": "When you arrive on-site",
+        "subtitle": "Confirm you're at the right vehicle before starting work.",
+        "startCheckIn": "Start Check-in",
+        "hint": "Scan QR to check in or Enter PIN instead",
+        "notice": "This enables once you're arriving at the service site."
+      },
+      "info": {
+        "arrivalTime": "Arrival time",
+        "estimatedArrival": "Estimated arrival",
+        "address": "Address",
+        "car": "Car",
+        "carIssue": "Car issue",
+        "notes": "Notes",
+        "calculating": "Calculating...",
+        "minAway": "{{minutes}} min away",
+        "onTheWay": "On the way",
+        "pending": "Pending",
+        "noNotes": "No notes provided.",
+        "locationNotAvailable": "Location not available"
+      }
     },
     "userTracking": {
       "mechanicMatch": "Mechanic Match!",
@@ -528,6 +558,23 @@
     },
     "cancellationModal": {
       "message": "Are you sure you'd like to cancel this request?\nYour mechanic is already on their way to you."
+    },
+    "checkIn": {
+      "title": "Check-in",
+      "step": "STEP 1 · CHECK-IN",
+      "heading": "You've arrived at the service site",
+      "subtitle": "Ask the vehicle owner for their QR code or PIN, then scan or enter it to verify the vehicle.",
+      "scanQr": "Scan QR",
+      "enterPin": "Enter PIN",
+      "cameraOff": "Camera is off",
+      "openCamera": "Open camera",
+      "scanning": "Scanning…",
+      "verifyPin": "Verify PIN",
+      "secureTip": "Remember to secure the service site (cones, hazard lights, parking brake).",
+      "mismatchLink": "Doesn't match this vehicle?",
+      "mismatchTitle": "Doesn't match this vehicle",
+      "mismatchBody": "Double-check the QR code or PIN with the client and try again. If it still doesn't match, contact support.",
+      "retry": "Retry verification"
     }
   },
   "requestDetail": {

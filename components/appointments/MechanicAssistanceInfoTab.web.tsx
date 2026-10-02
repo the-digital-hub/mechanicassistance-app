@@ -1,13 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
-import { AttachmentStrip } from './AttachmentStrip';
-import { parseAttachments } from '@/lib/media/attachments';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { Text, View } from 'react-native';
+import { DetailCard, DetailRow } from './DetailCard';
 // Leaflet CSS is injected via link tag in component
 
 interface MechanicAssistanceInfoTabProps {
     appointment: any;
-    onScan: () => void;
 }
 
 const ClientSideMap = ({ appointment }: { appointment: any }) => {
@@ -74,75 +73,35 @@ const ClientSideMap = ({ appointment }: { appointment: any }) => {
     );
 };
 
-export function MechanicAssistanceInfoTab({ appointment, onScan }: MechanicAssistanceInfoTabProps) {
+export function MechanicAssistanceInfoTab({ appointment }: MechanicAssistanceInfoTabProps) {
+    const { t } = useTranslation();
+    const issueValue = appointment.vehicleIssues?.length
+        ? appointment.vehicleIssues.map((i: { name: string }) => i.name).join(', ')
+        : '—';
+
     return (
-        <View className="gap-6">
-            {/* Blue Header Banner */}
-            <View className="bg-blue-600 rounded-xl p-4 flex-row items-center gap-3">
-                <View className="bg-white/20 p-2 rounded-full">
-                    <Ionicons name="construct" size={24} color="white" />
-                </View>
-                <Text className="text-white font-outfit-bold text-lg">
-                    {appointment.assistanceType === 'witness' ? 'ACCIDENT ASSISTANCE' :
-                        (appointment.assistanceType ?? appointment.type) === 'immediate' ? 'Immediate Assistance' :
-                            (appointment.assistanceType ?? appointment.type) === 'videocall' || appointment.type === 'video' ? 'Video Call Assistance' :
-                                'Scheduled Assistance'}
-                </Text>
+        <View className="gap-3.5">
+            {/* Trip logistics — grouped with the map right below */}
+            <DetailCard>
+                <DetailRow icon="location-outline" label={t('appointments.detail.info.address')} value={appointment.address} last />
+            </DetailCard>
+
+            {/* React Leaflet Map for Web */}
+            <View style={{ height: 200, width: '100%', borderRadius: 18, overflow: 'hidden', backgroundColor: '#E5E7EB' }}>
+                <ClientSideMap appointment={appointment} />
             </View>
 
-            {/* Assistance Details */}
-            <View className="gap-4">
-                <View>
-                    <Text className="font-outfit-bold text-gray-900 text-base">Assistance:</Text>
-                    <Text className="text-gray-600 font-outfit-regular">{appointment.title}</Text>
-                </View>
-
-                <View>
-                    <Text className="font-outfit-bold text-gray-900 text-base">Time since accepted:</Text>
-                    <Text className="text-gray-600 font-outfit-regular">02:30 (Simulated)</Text>
-                </View>
-
-                <View>
-                    <Text className="font-outfit-bold text-gray-900 text-base">Car:</Text>
-                    <Text className="text-gray-600 font-outfit-regular">{appointment.car}</Text>
-                </View>
-
-                <View>
-                    <Text className="font-outfit-bold text-gray-900 text-base">Notes:</Text>
-                    <Text className="text-gray-600 font-outfit-regular leading-5">
-                        {appointment.notes || 'No notes provided.'}
-                    </Text>
-                </View>
-
-                {/* Photos Carousel */}
-                {parseAttachments(appointment.photos).length > 0 && (
-                    <View>
-                        <Text className="font-outfit-bold text-gray-900 text-base mb-2">Photos:</Text>
-                        <AttachmentStrip photos={appointment.photos} size={96} />
-                    </View>
-                )}
-
-                <View>
-                    <Text className="font-outfit-bold text-gray-900 text-base">Address:</Text>
-                    <Text className="text-gray-600 font-outfit-regular">{appointment.address}</Text>
-                    {/* React Leaflet Map for Web */}
-                    <View style={{ height: 200, width: '100%', borderRadius: 12, overflow: 'hidden', marginTop: 8, backgroundColor: '#E5E7EB' }}>
-                        <ClientSideMap appointment={appointment} />
-                    </View>
-                </View>
-            </View>
-
-            {/* Scan QR Button */}
-            <View className="mt-2">
-                <Text className="font-outfit-bold text-gray-900 text-base mb-2">When you arrive on-site:</Text>
-                <TouchableOpacity
-                    onPress={onScan}
-                    className="bg-blue-800 w-full py-3 rounded-lg flex-row items-center justify-center gap-2"
-                >
-                    <Ionicons name="qr-code-outline" size={20} color="white" />
-                    <Text className="text-white font-outfit-bold text-base">Scan QR</Text>
-                </TouchableOpacity>
-            </View>
+            {/* Vehicle details */}
+            <DetailCard>
+                <DetailRow icon="car-outline" label={t('appointments.detail.info.car')} value={appointment.car} />
+                <DetailRow icon="construct-outline" label={t('appointments.detail.info.carIssue')} value={issueValue} />
+                <DetailRow
+                    icon="document-text-outline"
+                    label={t('appointments.detail.info.notes')}
+                    value={appointment.notes || t('appointments.detail.info.noNotes')}
+                    last
+                />
+            </DetailCard>
         </View>
     );
 }

@@ -1,9 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import React from 'react';
-import { AttachmentStrip } from './AttachmentStrip';
-import { parseAttachments } from '@/lib/media/attachments';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { Text, View } from 'react-native';
+import { DetailCard, DetailRow } from './DetailCard';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import { MAP_PROVIDER } from '@/lib/maps/provider';
 import { formatEtaTime, useAppointmentEta } from '@/hooks/useAppointmentEta';
@@ -30,10 +30,10 @@ function decodePolyline(encoded: string): { latitude: number; longitude: number 
 
 interface MechanicAssistanceInfoTabProps {
     appointment: any;
-    onScan: () => void;
 }
 
-export function MechanicAssistanceInfoTab({ appointment, onScan }: MechanicAssistanceInfoTabProps) {
+export function MechanicAssistanceInfoTab({ appointment }: MechanicAssistanceInfoTabProps) {
+    const { t } = useTranslation();
     const mapRef = React.useRef<MapView | null>(null);
     const [mechanicCoords, setMechanicCoords] = React.useState<{ latitude: number; longitude: number } | null>(null);
     const { sendMessage } = useSocket();
@@ -103,134 +103,80 @@ export function MechanicAssistanceInfoTab({ appointment, onScan }: MechanicAssis
         fitMarkers();
     }, [fitMarkers]);
 
+    const arrivalValue = etaLoading
+        ? t('appointments.detail.info.calculating')
+        : minutesAway !== null
+            ? t('appointments.detail.info.minAway', { minutes: minutesAway })
+            : t('appointments.detail.info.onTheWay');
+    const etaValue = etaTime ? formatEtaTime(etaTime) : etaLoading ? '—' : t('appointments.detail.info.pending');
+    const issueValue = appointment.vehicleIssues?.length
+        ? appointment.vehicleIssues.map((i: { name: string }) => i.name).join(', ')
+        : '—';
+
     return (
-        <View className="gap-6">
-            {/* Blue Header Banner */}
-            <View className="bg-blue-600 rounded-xl p-4 flex-row items-center gap-3">
-                <View className="bg-white/20 p-2 rounded-full">
-                    <Ionicons name="construct" size={24} color="white" />
-                </View>
-                <Text className="text-white font-outfit-bold text-lg">
-                    {appointment.assistanceType === 'witness' ? 'ACCIDENT ASSISTANCE' :
-                        (appointment.assistanceType ?? appointment.type) === 'immediate' ? 'Immediate Assistance' :
-                            (appointment.assistanceType ?? appointment.type) === 'videocall' || appointment.type === 'video' ? 'Video Call Assistance' :
-                                'Scheduled Assistance'}
-                </Text>
-            </View>
+        <View className="gap-3.5">
+            {/* Trip logistics — grouped with the map right below */}
+            <DetailCard>
+                <DetailRow icon="time-outline" label={t('appointments.detail.info.arrivalTime')} value={arrivalValue} />
+                <DetailRow icon="calendar-outline" label={t('appointments.detail.info.estimatedArrival')} value={etaValue} />
+                <DetailRow icon="location-outline" label={t('appointments.detail.info.address')} value={appointment.address} last />
+            </DetailCard>
 
-            {/* Assistance Details */}
-            <View className="gap-4">
-                <View>
-                    <Text className="font-outfit-bold text-gray-900 text-base">Assistance:</Text>
-                    <Text className="text-gray-600 font-outfit-regular">{appointment.title}</Text>
-                </View>
-
-                {/* Arrival ETA — live, shared with the client */}
-                <View>
-                    <Text className="font-outfit-bold text-gray-900 text-base">Arrival time:</Text>
-                    <Text className="text-gray-600 font-outfit-regular">
-                        {etaLoading
-                            ? 'Calculating...'
-                            : minutesAway !== null
-                                ? `${minutesAway} min away`
-                                : 'On the way'}
-                    </Text>
-                </View>
-
-                <View>
-                    <Text className="font-outfit-bold text-gray-900 text-base">Estimated arrival:</Text>
-                    <Text className="text-gray-600 font-outfit-regular">
-                        {etaTime ? formatEtaTime(etaTime) : etaLoading ? '—' : 'Pending'}
-                    </Text>
-                </View>
-
-                <View>
-                    <Text className="font-outfit-bold text-gray-900 text-base">Car:</Text>
-                    <Text className="text-gray-600 font-outfit-regular">{appointment.car}</Text>
-                </View>
-
-                <View>
-                    <Text className="font-outfit-bold text-gray-900 text-base">Vehicle issue:</Text>
-                    <Text className="text-gray-600 font-outfit-regular">
-                        {appointment.vehicleIssues?.length ? appointment.vehicleIssues.map((i: { name: string }) => i.name).join(', ') : '—'}
-                    </Text>
-                </View>
-
-                <View>
-                    <Text className="font-outfit-bold text-gray-900 text-base">Notes:</Text>
-                    <Text className="text-gray-600 font-outfit-regular leading-5">
-                        {appointment.notes || 'No notes provided.'}
-                    </Text>
-                </View>
-
-                {/* Photos Carousel */}
-                {parseAttachments(appointment.photos).length > 0 && (
-                    <View>
-                        <Text className="font-outfit-bold text-gray-900 text-base mb-2">Photos:</Text>
-                        <AttachmentStrip photos={appointment.photos} size={96} />
+            {/* Map View — request pin (client location) + mechanic pin (own GPS) */}
+            <View className="h-48 overflow-hidden bg-gray-200" style={{ borderRadius: 18, borderWidth: 1, borderColor: '#EEF2FA' }}>
+                {requestCoords ? (
+                    <MapView
+                        provider={MAP_PROVIDER}
+                        ref={mapRef}
+                        style={{ width: '100%', height: '100%' }}
+                        onMapReady={fitMarkers}
+                        initialRegion={{
+                            latitude: requestCoords.latitude,
+                            longitude: requestCoords.longitude,
+                            latitudeDelta: 0.05,
+                            longitudeDelta: 0.05,
+                        }}
+                    >
+                        <Marker
+                            coordinate={requestCoords}
+                            title={appointment.address || 'Request location'}
+                            description="Client location"
+                            pinColor="red"
+                        />
+                        {mechanicCoords && (
+                            <Marker
+                                coordinate={mechanicCoords}
+                                title="Your location"
+                                pinColor="blue"
+                            />
+                        )}
+                        {polyline && (
+                            <Polyline
+                                coordinates={decodePolyline(polyline)}
+                                strokeColor="#2563EB"
+                                strokeWidth={4}
+                            />
+                        )}
+                    </MapView>
+                ) : (
+                    <View className="flex-1 items-center justify-center">
+                        <Ionicons name="map-outline" size={32} color="#9CA3AF" />
+                        <Text className="text-gray-500 font-outfit-regular mt-2">{t('appointments.detail.info.locationNotAvailable')}</Text>
                     </View>
                 )}
-
-                <View>
-                    <Text className="font-outfit-bold text-gray-900 text-base">Address:</Text>
-                    <Text className="text-gray-600 font-outfit-regular">{appointment.address}</Text>
-                    {/* Map View — request pin (client location) + mechanic pin (own GPS) */}
-                    <View className="h-48 rounded-xl mt-2 overflow-hidden bg-gray-200">
-                        {requestCoords ? (
-                            <MapView
-                                provider={MAP_PROVIDER}
-                                ref={mapRef}
-                                style={{ width: '100%', height: '100%' }}
-                                onMapReady={fitMarkers}
-                                initialRegion={{
-                                    latitude: requestCoords.latitude,
-                                    longitude: requestCoords.longitude,
-                                    latitudeDelta: 0.05,
-                                    longitudeDelta: 0.05,
-                                }}
-                            >
-                                <Marker
-                                    coordinate={requestCoords}
-                                    title={appointment.address || 'Request location'}
-                                    description="Client location"
-                                    pinColor="red"
-                                />
-                                {mechanicCoords && (
-                                    <Marker
-                                        coordinate={mechanicCoords}
-                                        title="Your location"
-                                        pinColor="blue"
-                                    />
-                                )}
-                                {polyline && (
-                                    <Polyline
-                                        coordinates={decodePolyline(polyline)}
-                                        strokeColor="#2563EB"
-                                        strokeWidth={4}
-                                    />
-                                )}
-                            </MapView>
-                        ) : (
-                            <View className="flex-1 items-center justify-center">
-                                <Ionicons name="map-outline" size={32} color="#9CA3AF" />
-                                <Text className="text-gray-500 font-outfit-regular mt-2">Location not available</Text>
-                            </View>
-                        )}
-                    </View>
-                </View>
             </View>
 
-            {/* Scan QR Button */}
-            <View className="mt-2">
-                <Text className="font-outfit-bold text-gray-900 text-base mb-2">When you arrive on-site:</Text>
-                <TouchableOpacity
-                    onPress={onScan}
-                    className="bg-blue-800 w-full py-3 rounded-lg flex-row items-center justify-center gap-2"
-                >
-                    <Ionicons name="qr-code-outline" size={20} color="white" />
-                    <Text className="text-white font-outfit-bold text-base">Scan QR</Text>
-                </TouchableOpacity>
-            </View>
+            {/* Vehicle details */}
+            <DetailCard>
+                <DetailRow icon="car-outline" label={t('appointments.detail.info.car')} value={appointment.car} />
+                <DetailRow icon="construct-outline" label={t('appointments.detail.info.carIssue')} value={issueValue} />
+                <DetailRow
+                    icon="document-text-outline"
+                    label={t('appointments.detail.info.notes')}
+                    value={appointment.notes || t('appointments.detail.info.noNotes')}
+                    last
+                />
+            </DetailCard>
         </View>
     );
 }
