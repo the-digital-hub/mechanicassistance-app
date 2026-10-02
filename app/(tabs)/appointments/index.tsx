@@ -61,7 +61,7 @@ export default function AppointmentsScreen() {
                         </View>
 
                         {/* Title */}
-                        <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">{t('appointments.list.title')}</Text>
+                        <Text className="text-gray-900 font-outfit-bold text-3xl mb-3">{t('appointments.list.title')}</Text>
 
                         {/* Subtitle */}
                         <Text className="text-gray-500 font-outfit-regular text-base mb-6">

@@ -427,9 +427,9 @@
   },
   "appointments": {
     "list": {
-      "badge": "TU SOLICITUD",
-      "title": "Tu solicitud, todo en un solo lugar",
-      "subtitle": "Seguí tus solicitudes activas, mirá trabajos pasados y gestioná tu reserva acá.",
+      "badge": "TUS SOLICITUDES",
+      "title": "Tus solicitudes,\ntodo en un solo lugar.",
+      "subtitle": "Seguí tus solicitudes activas, mirá trabajos pasados y gestioná tus reservas desde acá.",
       "upcoming": "Próximas",
       "pendingApproval": "Pendientes",
       "past": "Pasadas",
@@ -442,7 +442,46 @@
       "cancelModalTitle": "Cancelar solicitud",
       "cancelModalMessage": "¿Estás seguro de que querés cancelar esta solicitud?",
       "no": "No",
-      "yesCancel": "Sí, cancelar"
+      "yesCancel": "Sí, cancelar",
+      "card": {
+        "statusLabel": "Estado",
+        "status": {
+          "pending": "Esperando mecánico",
+          "pendingHint": "Estamos buscando un mecánico",
+          "offered": "Mecánico ofertó",
+          "offeredHint": "Tocá para ver la oferta",
+          "enRoute": "Mecánico en camino",
+          "enRouteHint": "El mecánico está en camino",
+          "scheduled": "Agendada",
+          "scheduledHint": "Tu cita está confirmada",
+          "completed": "Completada",
+          "completedHint": "Servicio finalizado",
+          "canceled": "Cancelada",
+          "canceledHint": "La solicitud fue cancelada"
+        },
+        "type": {
+          "immediate": "Asistencia inmediata",
+          "scheduled": "Asistencia agendada",
+          "videocall": "Asistencia por videollamada",
+          "witness": "Asistencia por accidente"
+        },
+        "title": {
+          "pending": "Pendiente – Pendiente",
+          "offered": "Pendiente – Ofertada",
+          "enRoute": "Confirmada – En camino",
+          "scheduled": "Confirmada – Agendada",
+          "completed": "Completada – Resuelta",
+          "canceled": "Cancelada"
+        },
+        "vehicleId": "Vehículo:",
+        "distance": "Distancia: {{km}} Km",
+        "distanceNA": "Distancia: N/D",
+        "locationNotAvailable": "Ubicación no disponible",
+        "budget": "Presupuesto: {{amount}}",
+        "paid": "Pagado: {{amount}}",
+        "message": "Mensaje",
+        "cancelRequest": "Cancelar solicitud"
+      }
     },
     "cancelReason": {
       "badge": "CANCELAR SOLICITUD",

@@ -174,7 +174,7 @@ function MechanicStatusBadge() {
                 <TouchableOpacity
                   key={option.id}
                   onPress={() => {
-                    setMechanicStatus(option.id);
+                    setMechanicStatus(option.id).catch(() => undefined);
                     setShowModal(false);
                   }}
                   activeOpacity={0.8}

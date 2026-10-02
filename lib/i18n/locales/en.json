@@ -427,9 +427,9 @@
   },
   "appointments": {
     "list": {
-      "badge": "YOUR REQUEST",
-      "title": "Your request, all in one place",
-      "subtitle": "Track active requests, view past jobs and manage your booking form here.",
+      "badge": "YOUR REQUESTS",
+      "title": "Your requests,\nall in one place.",
+      "subtitle": "Track active requests, view past jobs, and manage your bookings from here.",
       "upcoming": "Upcoming",
       "pendingApproval": "Pending",
       "past": "Past",
@@ -442,7 +442,46 @@
       "cancelModalTitle": "Cancel Request",
       "cancelModalMessage": "Are you sure you'd like to cancel this request?",
       "no": "No",
-      "yesCancel": "Yes, Cancel"
+      "yesCancel": "Yes, Cancel",
+      "card": {
+        "statusLabel": "Status",
+        "status": {
+          "pending": "Waiting for mechanic",
+          "pendingHint": "We're looking for a mechanic",
+          "offered": "Mechanic offered",
+          "offeredHint": "Tap to view offer",
+          "enRoute": "Mechanic en route",
+          "enRouteHint": "Mechanic is on the way",
+          "scheduled": "Scheduled",
+          "scheduledHint": "Your appointment is confirmed",
+          "completed": "Completed",
+          "completedHint": "Service finished",
+          "canceled": "Cancelled",
+          "canceledHint": "Request was cancelled"
+        },
+        "type": {
+          "immediate": "Immediate Assistance",
+          "scheduled": "Scheduled Assistance",
+          "videocall": "Video Call Assistance",
+          "witness": "Accident Assistance"
+        },
+        "title": {
+          "pending": "Pending – Pending",
+          "offered": "Pending – Offered",
+          "enRoute": "Confirmed – En route",
+          "scheduled": "Confirmed – Scheduled",
+          "completed": "Completed – Resolved",
+          "canceled": "Cancelled"
+        },
+        "vehicleId": "Vehicle ID:",
+        "distance": "Distance: {{km}} Km",
+        "distanceNA": "Distance: N/A",
+        "locationNotAvailable": "Location not available",
+        "budget": "Budget: {{amount}}",
+        "paid": "Paid: {{amount}}",
+        "message": "Message",
+        "cancelRequest": "Cancel request"
+      }
     },
     "cancelReason": {
       "badge": "CANCEL REQUEST",

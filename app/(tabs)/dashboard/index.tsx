@@ -14,7 +14,7 @@ import { translatedName } from '@/lib/i18n/catalogTranslations';
 import { buildMechanicFeedFilters } from '@/lib/mechanic-feed';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Calendar, Video, Zap, MapPin, Wrench, DollarSign, Star, Award, Circle, Clock, Car, Lock } from 'lucide-react-native';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, ScrollView, Text, TouchableOpacity, View, Modal, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -126,7 +126,7 @@ export default function DashboardScreen() {
     const [showStatusModal, setShowStatusModal] = useState(false);
     const { appointments, getActiveRequests, refresh: refreshAppointments, isLoading: isLoadingAppointments } = useAppointments();
     const { lastMessage } = useSocket();
-    const { mechanicStatus, setMechanicStatus } = useMechanicStatus();
+    const { mechanicStatus, setMechanicStatus, isUpdatingStatus } = useMechanicStatus();
 
     const getStatusStyles = () => {
         switch (mechanicStatus) {
@@ -192,18 +192,23 @@ export default function DashboardScreen() {
     // Mechanic-only feed. The user's own requests come from AppointmentsContext
     // (see activeRequests below), which already merges assistance_requests with
     // appointments and keeps the appointment's status when both exist.
+    // The spinner is only for the first load. A refetch (status change, socket
+    // event) keeps the current list on screen until the new one lands, instead
+    // of swapping it for a spinner and back — that read as the screen flashing.
+    const hasLoadedRequests = useRef(false);
     const loadRequests = async () => {
         if (!user?.id || user.role !== 'mechanic') {
             setIsLoadingRequests(false);
             return;
         }
-        setIsLoadingRequests(true);
+        if (!hasLoadedRequests.current) setIsLoadingRequests(true);
         try {
             // Same filters as the assist tab, so one account cannot see two
             // different feeds. Falls back to no geo filter if location
             // permission is denied.
             const data = await assistanceDAO.getAll(await buildMechanicFeedFilters());
             setRequests(data);
+            hasLoadedRequests.current = true;
         } catch (error) {
             console.error('Failed to load assistance requests', error);
         } finally {
@@ -318,7 +323,8 @@ export default function DashboardScreen() {
                                 return (
                                     <TouchableOpacity
                                         key={option.id}
-                                        onPress={() => setMechanicStatus(option.id)}
+                                        onPress={() => { setMechanicStatus(option.id).catch(() => undefined); }}
+                                        disabled={isUpdatingStatus}
                                         className="flex-1 py-3 px-4 rounded-2xl flex-row items-center justify-center gap-2"
                                         style={{
                                             backgroundColor: mechanicStatus === option.id ? optionStyles.bgColor : '#F9FAFB',
@@ -580,7 +586,7 @@ export default function DashboardScreen() {
                                         <TouchableOpacity
                                             key={option.id}
                                             onPress={() => {
-                                                setMechanicStatus(option.id);
+                                                setMechanicStatus(option.id).catch(() => undefined);
                                                 setShowStatusModal(false);
                                             }}
                                             activeOpacity={0.8}

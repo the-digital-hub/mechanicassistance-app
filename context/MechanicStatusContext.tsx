@@ -50,25 +50,41 @@ export function MechanicStatusProvider({ children }: { children: React.ReactNode
     setStatus(seedStatus);
   }, [userId, seedStatus]);
 
+  // Read through refs so neither the socket effect nor setMechanicStatus has to
+  // depend on the status itself.
+  const statusRef = useRef(mechanicStatus);
+  statusRef.current = mechanicStatus;
+  const inFlightRef = useRef(false);
+  const handledMessageRef = useRef<unknown>(null);
+
   // Another of the mechanic's devices changing the status is announced on this
   // socket event.
   useEffect(() => {
+    // Each message is handled once. `lastMessage` keeps holding the previous
+    // echo, so re-running on a status change used to re-apply that stale value
+    // over the one just picked — the pill bounced back and forth on every tap.
+    if (lastMessage === handledMessageRef.current) return;
+    handledMessageRef.current = lastMessage;
     if (lastMessage?.type !== 'mechanic_status') return;
     const next = lastMessage.payload?.status as MechanicStatus | undefined;
     if (!next) return;
+    // While our own change is in flight its HTTP answer is authoritative; an
+    // echo arriving now may belong to an earlier tap.
+    if (inFlightRef.current) return;
     // The backend re-announces the status we already hold all the time. Writing
     // it back anyway re-rendered UserProvider, which re-ran this very effect —
     // the "Maximum update depth exceeded" loop.
-    if (next === mechanicStatus) return;
+    if (next === statusRef.current) return;
     setStatus(next);
     void updateUser({ mechanicStatus: next, isOnline: next !== 'offline' }, false);
-  }, [lastMessage, mechanicStatus, updateUser]);
+  }, [lastMessage, updateUser]);
 
   const setMechanicStatus = useCallback(async (status: MechanicStatus): Promise<MechanicStatus> => {
-    if (!user) return mechanicStatus;
+    if (!user) return statusRef.current;
 
-    const previous = mechanicStatus;
+    const previous = statusRef.current;
     setStatus(status); // optimistic: the pill should react to the tap at once
+    inFlightRef.current = true;
     setIsUpdatingStatus(true);
     try {
       // The backend applies the choice as sent; its answer is still what we
@@ -84,9 +100,10 @@ export function MechanicStatusProvider({ children }: { children: React.ReactNode
       setStatus(previous);
       throw error;
     } finally {
+      inFlightRef.current = false;
       setIsUpdatingStatus(false);
     }
-  }, [user, mechanicStatus, updateUser]);
+  }, [user, updateUser]);
 
   const value = useMemo(
     () => ({ mechanicStatus, setMechanicStatus, isUpdatingStatus }),
