@@ -37,6 +37,21 @@ describe('routeForPush', () => {
         expect(routeForPush({ kind: 'offer_accepted', requestId: 'req-1' }, mechanic)).toEqual(expected);
     });
 
+    it('opens the appointment when a visit closed without a fix', () => {
+        expect(routeForPush({ kind: 'service_redirected', appointmentId: 'req-1' }, customer)).toEqual({
+            pathname: '/appointments/[id]',
+            params: { id: 'req-1' },
+        });
+    });
+
+    it('opens the on-site flow for an OBD reminder, for the mechanic only', () => {
+        expect(routeForPush({ kind: 'obd_reminder', appointmentId: 'req-1' }, mechanic)).toEqual({
+            pathname: '/appointments/check-in/[id]',
+            params: { id: 'req-1' },
+        });
+        expect(routeForPush({ kind: 'obd_reminder', appointmentId: 'req-1' }, customer)).toBeNull();
+    });
+
     it('opens the appointments list for a cancellation', () => {
         expect(routeForPush({ kind: 'request_canceled', requestId: 'req-1' }, customer)).toBe('/appointments');
     });

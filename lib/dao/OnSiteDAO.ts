@@ -27,6 +27,16 @@ export interface OnSiteMedia {
     createdAt: string;
 }
 
+export interface ObdCode {
+    code: string;
+    severity: 'High' | 'Medium' | 'Low' | null;
+    description: { en: string; es: string } | null;
+    suggestion: { en: string; es: string } | null;
+}
+
+/** none → no report; processing → being read; ready → codes read; failed → unreadable; manual → typed in. */
+export type ObdStatus = 'none' | 'processing' | 'ready' | 'failed' | 'manual';
+
 export interface OnSiteVisit {
     appointmentId: string;
     step: OnSiteStep;
@@ -41,7 +51,9 @@ export interface OnSiteVisit {
     redirectNote: string | null;
     exitSkipped: boolean;
     closedAt: string | null;
-    obdStatus: string;
+    obdStatus: ObdStatus;
+    obdDocumentKey: string | null;
+    obdCodes: ObdCode[];
     serviceAmount: string | null;
     media: OnSiteMedia[];
 }
@@ -139,6 +151,26 @@ class OnSiteDAOImpl {
             ...(reason ? { reason } : {}),
             ...(note ? { note } : {}),
         });
+    }
+
+    /**
+     * Uploads an OBD scanner report (PDF or photo) and attaches it to the visit.
+     * The codes are read in the background; an `obd_update` socket event says
+     * when they are in.
+     */
+    async attachObdReport(
+        appointmentId: string,
+        localUri: string,
+        name?: string,
+        mimeType?: string,
+    ): Promise<OnSiteVisit> {
+        const uploaded = await mediaDAO.uploadDocument(localUri, { name, mimeType, documentType: 'obd' });
+        return apiClient.post(`${base(appointmentId)}/on-site/obd`, { documentKey: uploaded.key });
+    }
+
+    /** Codes typed in by the mechanic; replaces the visit's list. */
+    setObdCodes(appointmentId: string, codes: string[]): Promise<OnSiteVisit> {
+        return apiClient.put(`${base(appointmentId)}/on-site/obd/codes`, { codes });
     }
 
     reviewClient(appointmentId: string, rating: number, review?: string): Promise<unknown> {

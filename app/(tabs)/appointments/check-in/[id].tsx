@@ -1,4 +1,5 @@
 import { useAppointments } from '@/context/AppointmentsContext';
+import { useSocket } from '@/context/SocketContext';
 import { userDAO } from '@/lib/dao/UserDAO';
 import { onSiteDAO, OnSiteStep, OnSiteVisit, RedirectReasonId } from '@/lib/dao/OnSiteDAO';
 import { OnSiteCaptureProvider } from '@/components/on-site/MediaSlot';
@@ -15,7 +16,8 @@ import { Alert, KeyboardAvoidingView, Platform, Text, View } from 'react-native'
 // Assistance V2"), backed by appointments-service's on-site endpoints: the
 // check-in is verified server-side, captures are uploaded, progress is saved
 // so the flow resumes where it was left, and the close-out completes the job.
-// Still simulated: the OBD codes (phase 2) and the "buy parts" branch.
+// OBD codes are read off the uploaded scanner report by the document service
+// (an `obd_update` socket event says when). Still simulated: the "buy parts" branch.
 
 type Screen = 'checkin' | 'retry' | OnSiteStep;
 
@@ -71,7 +73,6 @@ export default function OnSiteFlowScreen() {
     const [visit, setVisit] = React.useState<OnSiteVisit | null>(null);
     const [screen, setScreen] = React.useState<Screen>('checkin');
     const [doneVariant, setDoneVariant] = React.useState<DoneVariant>('completed');
-    const [obdFilled, setObdFilled] = React.useState(false);
     const [partsOrder, setPartsOrder] = React.useState<PartsOrder | null>(null);
     const [redirectReason, setRedirectReason] = React.useState<RedirectReason | null>(null);
     const [clientName, setClientName] = React.useState('—');
@@ -106,6 +107,15 @@ export default function OnSiteFlowScreen() {
             .catch(() => { /* keep the placeholder */ });
         return () => { cancelled = true; };
     }, [appointment?.userId]);
+
+    // The scanner report is read in the background; refresh when it is in.
+    const { lastMessage } = useSocket();
+    React.useEffect(() => {
+        if (lastMessage?.type !== 'obd_update' || lastMessage?.payload?.id !== id) return;
+        onSiteDAO.get(id).then((v) => v && setVisit(v)).catch(() => { /* next event retries */ });
+    }, [lastMessage, id]);
+
+    const obdFilled = visit?.obdStatus === 'ready' || visit?.obdStatus === 'manual';
 
     const captureContext = React.useMemo(() => ({ appointmentId: id, media: visit?.media ?? [] }), [id, visit?.media]);
 
@@ -182,7 +192,9 @@ export default function OnSiteFlowScreen() {
         case 'checkin': body = <ScreenCheckIn onSubmit={checkIn} onMismatch={() => setScreen('retry')} />; break;
         case 'retry': body = <ScreenRetry onRetry={() => setScreen('checkin')} />; break;
         case 'incident': body = <ScreenIncidentDetails appointment={appointment} clientName={clientName} onNext={() => go('diagnostics-obd')} />; break;
-        case 'diagnostics-obd': body = <ScreenDiagnosticsObd onNext={() => go('diagnostics-photos')} onFilledChange={setObdFilled} />; break;
+        case 'diagnostics-obd':
+            body = <ScreenDiagnosticsObd appointmentId={id} visit={visit} onVisit={setVisit} onNext={() => go('diagnostics-photos')} />;
+            break;
         case 'diagnostics-photos': body = <ScreenDiagnosticsPhotos onNext={() => go('validating')} />; break;
         case 'validating':
             body = (
@@ -200,6 +212,7 @@ export default function OnSiteFlowScreen() {
             body = (
                 <ScreenFeasibility
                     appointment={appointment}
+                    obdCodes={visit?.obdCodes ?? []}
                     onYes={() => chooseFeasibility('yes', 'resolve')}
                     onNeedParts={() => chooseFeasibility('parts', 'buy-parts')}
                     onNo={() => chooseFeasibility('no', 'options-checkin')}
@@ -231,7 +244,9 @@ export default function OnSiteFlowScreen() {
         case 'video-out':
             body = (
                 <ScreenVideoOut
-                    obdPending={!obdFilled}
+                    appointmentId={id}
+                    visit={visit}
+                    onVisit={setVisit}
                     onNext={(skipped) => {
                         save({ exitSkipped: skipped });
                         go('close');
@@ -256,6 +271,8 @@ export default function OnSiteFlowScreen() {
                 <ScreenDone
                     variant={doneVariant}
                     appointmentId={appointment.id}
+                    visit={visit}
+                    onVisit={setVisit}
                     clientName={clientName}
                     alreadyRated={hasRating(appointment.clientReview)}
                     onSubmitReview={async (rating, comment) => {

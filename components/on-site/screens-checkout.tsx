@@ -2,7 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Text, TouchableOpacity, View } from 'react-native';
+import type { OnSiteVisit } from '@/lib/dao/OnSiteDAO';
 import { MediaSlot, PhotoList, useExistingCaptures } from './MediaSlot';
+import { ObdPanel } from './ObdPanel';
 import type { RedirectReason } from './screens-execution';
 import { ActionBar, Body, Card, Eyebrow, InfoRow, Intro, NoteInput, OS, PrimaryButton, Segmented, Tip, cardShadow } from './ui';
 
@@ -12,7 +14,12 @@ import { ActionBar, Body, Card, Eyebrow, InfoRow, Intro, NoteInput, OS, PrimaryB
 export type DoneVariant = 'completed' | 'redirected';
 
 // ─────────── Check-out capture ───────────
-export function ScreenVideoOut({ obdPending, onNext }: { obdPending: boolean; onNext: (skipped: boolean) => void }) {
+export function ScreenVideoOut({ appointmentId, visit, onVisit, onNext }: {
+    appointmentId: string;
+    visit: OnSiteVisit | null;
+    onVisit: (v: OnSiteVisit) => void;
+    onNext: (skipped: boolean) => void;
+}) {
     const { t } = useTranslation();
     const k = 'appointments.onSite.videoOut';
     const walkaround = useExistingCaptures('walkaround_out');
@@ -20,6 +27,8 @@ export function ScreenVideoOut({ obdPending, onNext }: { obdPending: boolean; on
     const [videoFilled, setVideoFilled] = React.useState(false);
     const [photoFilled, setPhotoFilled] = React.useState(false);
     const ready = videoFilled || photoFilled;
+    // Only offer the OBD report here while there is no usable one yet.
+    const [obdPending] = React.useState(() => visit?.obdStatus === 'none' || visit?.obdStatus === 'failed');
 
     return (
         <>
@@ -35,9 +44,7 @@ export function ScreenVideoOut({ obdPending, onNext }: { obdPending: boolean; on
                             </Text>
                             <Text className="font-outfit-regular text-[12.5px] mt-1" style={{ color: OS.muted }}>{t(`${k}.obdSub`)}</Text>
                         </View>
-                        <Card>
-                            <MediaSlot kind="file" height={140} placeholder={t('appointments.onSite.obd.placeholder')} />
-                        </Card>
+                        <ObdPanel appointmentId={appointmentId} visit={visit} onVisit={onVisit} />
                     </>
                 ) : null}
 
@@ -184,9 +191,11 @@ function initials(name: string): string {
     return parts.slice(0, 2).map((p) => p[0]!.toUpperCase()).join('');
 }
 
-export function ScreenDone({ variant, appointmentId, clientName, alreadyRated, onSubmitReview, onBackToDashboard }: {
+export function ScreenDone({ variant, appointmentId, visit, onVisit, clientName, alreadyRated, onSubmitReview, onBackToDashboard }: {
     variant: DoneVariant;
     appointmentId: string;
+    visit: OnSiteVisit | null;
+    onVisit: (v: OnSiteVisit) => void;
     clientName: string;
     alreadyRated: boolean;
     onSubmitReview: (rating: number, comment: string) => Promise<void>;
@@ -198,6 +207,8 @@ export function ScreenDone({ variant, appointmentId, clientName, alreadyRated, o
     const [rating, setRating] = React.useState(0);
     const [comment, setComment] = React.useState('');
     const [sent, setSent] = React.useState(alreadyRated);
+    // The OBD report can still be uploaded after the close-out (the reminder push leads here).
+    const [obdPending] = React.useState(() => visit?.obdStatus === 'none' || visit?.obdStatus === 'failed' || visit?.obdStatus === 'processing');
     const [sending, setSending] = React.useState(false);
 
     const submit = async () => {
@@ -227,6 +238,15 @@ export function ScreenDone({ variant, appointmentId, clientName, alreadyRated, o
                         {completed ? t(`${k}.completedBody`) : t(`${k}.finishedBody`)}
                     </Text>
                 </View>
+
+                {obdPending ? (
+                    <View className="w-full mt-6" style={{ marginHorizontal: -16 }}>
+                        <Text className="font-outfit-bold text-[15px] mx-4" style={{ color: OS.text }}>
+                            {t('appointments.onSite.videoOut.obdTitle')}
+                        </Text>
+                        <ObdPanel appointmentId={appointmentId} visit={visit} onVisit={onVisit} />
+                    </View>
+                ) : null}
 
                 {!sent ? (
                     <View className="w-full mt-7 px-4 py-5" style={cardShadow}>

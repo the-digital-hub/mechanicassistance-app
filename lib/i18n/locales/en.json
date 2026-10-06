@@ -729,7 +729,18 @@
           "P0301": "Likely a fouled spark plug or failing ignition coil on cylinder 1. Check plug condition and coil resistance before replacing.",
           "P0171": "Check for a vacuum leak or a dirty MAF sensor first — both are common causes of a lean Bank 1 reading.",
           "P0455": "Inspect the gas cap seal and EVAP hoses for a loose or cracked connection — the most common source of a large leak code."
-        }
+        },
+        "processing": "Reading the codes from the scan…",
+        "failed": "We couldn't read any codes from this file. Type them in below.",
+        "manualTitle": "Codes typed in",
+        "manualHint": "Add a code by hand",
+        "manualPh": "e.g. P0301",
+        "add": "Add",
+        "invalid": "Use the format P0301 (P, B, C or U, then 4 characters).",
+        "noDescription": "No description for this code yet.",
+        "remove": "Remove",
+        "reminderTip": "If you don't upload the OBD file today, you'll get a reminder tomorrow.",
+        "attached": "Scan file attached"
       },
       "photos": {
         "eyebrow": "STEP 3 · PHOTOS",
@@ -758,7 +769,8 @@
         "findingsMock": "Battery voltage low (11.2V)\nSerpentine belt shows visible wear\nNo critical fault codes",
         "yes": "Yes, I can work it",
         "needParts": "I can do the job, but I need to buy auto parts",
-        "no": "No, I can't"
+        "no": "No, I can't",
+        "noCodes": "No OBD codes recorded."
       },
       "buyParts": {
         "eyebrow": "PARTS NEEDED",

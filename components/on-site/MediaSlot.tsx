@@ -44,11 +44,16 @@ interface MediaSlotProps {
     note?: boolean;
     onDeleteSlot?: () => void;
     padded?: boolean;
+    /** Uploads the picked file another way than as a visit capture (e.g. the OBD report). */
+    customUpload?: (file: Picked) => Promise<void>;
+    /** A file already uploaded through `customUpload`, shown as done. */
+    existingFileName?: string;
 }
 
-interface Picked {
+export interface Picked {
     uri: string;
     name?: string;
+    mimeType?: string;
     isVideo: boolean;
 }
 
@@ -64,16 +69,22 @@ export function MediaSlot({
     note,
     onDeleteSlot,
     padded = true,
+    customUpload,
+    existingFileName,
 }: MediaSlotProps) {
     const { t } = useTranslation();
     const ctx = React.useContext(OnSiteCaptureContext);
-    const uploads = !!(ctx && captureKind && kind !== 'file');
+    const uploads = !!customUpload || !!(ctx && captureKind && kind !== 'file');
 
     const [picked, setPicked] = React.useState<Picked | null>(() =>
-        existing ? { uri: absoluteMediaUrl(existing.url), isVideo: existing.mediaType === 'video' } : null,
+        existing
+            ? { uri: absoluteMediaUrl(existing.url), isVideo: existing.mediaType === 'video' }
+            : existingFileName
+                ? { uri: '', name: existingFileName, isVideo: false }
+                : null,
     );
     const [mediaId, setMediaId] = React.useState<string | null>(existing?.id ?? null);
-    const [state, setState] = React.useState<UploadState>(existing ? 'done' : 'local');
+    const [state, setState] = React.useState<UploadState>(existing || existingFileName ? 'done' : 'local');
     const [text, setText] = React.useState('');
 
     const onChangeRef = React.useRef(onChange);
@@ -84,6 +95,16 @@ export function MediaSlot({
     }, [filled]);
 
     const upload = async (p: Picked) => {
+        if (customUpload) {
+            setState('uploading');
+            try {
+                await customUpload(p);
+                setState('done');
+            } catch {
+                setState('error');
+            }
+            return;
+        }
         if (!uploads || !ctx || !captureKind) return;
         setState('uploading');
         try {
@@ -107,17 +128,17 @@ export function MediaSlot({
         const perm = await ImagePicker.requestCameraPermissionsAsync();
         if (!perm.granted) return;
         const res = await ImagePicker.launchCameraAsync({ mediaTypes, quality: 0.5, videoMaxDuration: 120 });
-        if (!res.canceled) accept({ uri: res.assets[0].uri, name: res.assets[0].fileName ?? undefined, isVideo: kind === 'video' });
+        if (!res.canceled) accept({ uri: res.assets[0].uri, name: res.assets[0].fileName ?? undefined, mimeType: res.assets[0].mimeType, isVideo: kind === 'video' });
     };
 
     const fromLibrary = async () => {
         const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes, quality: 0.5 });
-        if (!res.canceled) accept({ uri: res.assets[0].uri, name: res.assets[0].fileName ?? undefined, isVideo: kind === 'video' });
+        if (!res.canceled) accept({ uri: res.assets[0].uri, name: res.assets[0].fileName ?? undefined, mimeType: res.assets[0].mimeType, isVideo: kind === 'video' });
     };
 
     const fromFiles = async () => {
         const res = await DocumentPicker.getDocumentAsync({ copyToCacheDirectory: true });
-        if (!res.canceled) accept({ uri: res.assets[0].uri, name: res.assets[0].name, isVideo: false });
+        if (!res.canceled) accept({ uri: res.assets[0].uri, name: res.assets[0].name, mimeType: res.assets[0].mimeType, isVideo: false });
     };
 
     const pick = () => {
@@ -146,7 +167,7 @@ export function MediaSlot({
     };
 
     const isImagePreview =
-        picked && !picked.isVideo && (kind !== 'file' || /\.(jpe?g|png|heic|webp)$/i.test(picked.name ?? picked.uri));
+        picked && picked.uri && !picked.isVideo && (kind !== 'file' || /\.(jpe?g|png|heic|webp)$/i.test(picked.name ?? picked.uri));
 
     const statusText =
         state === 'uploading'

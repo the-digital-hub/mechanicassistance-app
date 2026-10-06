@@ -3,6 +3,8 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import type { ObdCode, OnSiteVisit } from '@/lib/dao/OnSiteDAO';
+import { ObdPanel } from './ObdPanel';
 import { MediaSlot, PhotoList, useExistingCaptures } from './MediaSlot';
 import {
     ActionBar, Body, Card, CardTitle, GhostButton, InfoRow, Intro, OS, PrimaryButton, Segmented, Spinner, Tip, cardShadow,
@@ -204,75 +206,23 @@ export function ScreenIncidentDetails({ appointment, clientName, onNext }: { app
 }
 
 // ─────────── OBD scan ───────────
-// Mock codes: there is no OBD reader integration yet.
-export const OBD_CODES: { code: string; severity: 'High' | 'Medium' | 'Low' }[] = [
-    { code: 'P0301', severity: 'High' },
-    { code: 'P0171', severity: 'Medium' },
-    { code: 'P0455', severity: 'Low' },
-];
-
-const SEVERITY_STYLE = {
-    High: { color: '#B4231E', bg: '#FDECEC' },
-    Medium: { color: OS.orangeText, bg: OS.orangeSoft },
-    Low: { color: OS.muted, bg: OS.page },
-};
-
-export function ScreenDiagnosticsObd({ onNext, onFilledChange }: { onNext: () => void; onFilledChange: (v: boolean) => void }) {
+export function ScreenDiagnosticsObd({ appointmentId, visit, onVisit, onNext }: {
+    appointmentId: string;
+    visit: OnSiteVisit | null;
+    onVisit: (v: OnSiteVisit) => void;
+    onNext: () => void;
+}) {
     const { t } = useTranslation();
     const k = 'appointments.onSite.obd';
-    const [filled, setFilled] = React.useState(false);
-    const [aiOpen, setAiOpen] = React.useState(false);
-
-    const handleFilled = (v: boolean) => {
-        setFilled(v);
-        if (!v) setAiOpen(false);
-        onFilledChange(v);
-    };
+    const status = visit?.obdStatus ?? 'none';
 
     return (
         <>
             <Body>
                 <Intro eyebrow={t(`${k}.eyebrow`)} title={t(`${k}.title`)} subtitle={t(`${k}.subtitle`)} />
                 <Tip>{t(`${k}.tipLater`)}</Tip>
-                <Card>
-                    <CardTitle title={t(`${k}.file`)} optional />
-                    <MediaSlot kind="file" height={160} placeholder={t(`${k}.placeholder`)} onChange={handleFilled} />
-                </Card>
-                {filled ? (
-                    <Card>
-                        <Text className="font-outfit-bold text-xs px-4 pt-3.5 pb-1" style={{ color: OS.text }}>{t(`${k}.codesFound`)}</Text>
-                        {OBD_CODES.map((c, i) => (
-                            <View key={c.code} className="px-4 py-3" style={i > 0 ? { borderTopWidth: 1, borderTopColor: OS.borderSoft } : undefined}>
-                                <View className="flex-row items-center justify-between">
-                                    <Text className="font-outfit-bold text-[13px]" style={{ color: OS.text }}>{c.code}</Text>
-                                    <View className="px-2.5 py-0.5 rounded-full" style={{ backgroundColor: SEVERITY_STYLE[c.severity].bg }}>
-                                        <Text className="font-outfit-bold text-[10.5px]" style={{ color: SEVERITY_STYLE[c.severity].color }}>{t(`${k}.severity.${c.severity}`)}</Text>
-                                    </View>
-                                </View>
-                                <Text className="font-outfit-regular text-[12.5px] mt-1" style={{ color: OS.muted }}>{t(`${k}.codes.${c.code}`)}</Text>
-                                {aiOpen ? (
-                                    <View className="mt-2 px-3 py-2.5 rounded-xl" style={{ backgroundColor: OS.blueSofter }}>
-                                        <Text className="font-outfit-bold text-[11px] mb-0.5" style={{ color: OS.blueDark }}>{t(`${k}.aiFix`)}</Text>
-                                        <Text className="font-outfit-regular text-[12.5px] leading-5" style={{ color: OS.text }}>{t(`${k}.fixes.${c.code}`)}</Text>
-                                    </View>
-                                ) : null}
-                            </View>
-                        ))}
-                        <View className="px-4 pt-1 pb-3.5">
-                            <TouchableOpacity
-                                onPress={() => setAiOpen((v) => !v)}
-                                className="items-center py-3 rounded-xl"
-                                style={{ backgroundColor: aiOpen ? OS.page : OS.blue }}
-                            >
-                                <Text className="font-outfit-bold text-[13px]" style={{ color: aiOpen ? OS.text : '#FFFFFF' }}>
-                                    {aiOpen ? t(`${k}.hideSuggestions`) : t(`${k}.showSuggestions`)}
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-                    </Card>
-                ) : (
-                    <Tip tone="orange">{t(`${k}.smsTip`)}</Tip>
-                )}
+                <ObdPanel appointmentId={appointmentId} visit={visit} onVisit={onVisit} />
+                {status === 'none' ? <Tip tone="orange">{t(`${k}.reminderTip`)}</Tip> : null}
             </Body>
             <ActionBar>
                 <PrimaryButton label={t('appointments.onSite.common.continue')} onPress={onNext} />
@@ -364,11 +314,19 @@ export function ScreenValidating({ run, onDone, onFail }: {
 }
 
 // ─────────── Feasibility ───────────
-export function ScreenFeasibility({ appointment, onYes, onNeedParts, onNo }: {
-    appointment: OnSiteAppointment; onYes: () => void; onNeedParts: () => void; onNo: () => void;
+export function ScreenFeasibility({ appointment, obdCodes, onYes, onNeedParts, onNo }: {
+    appointment: OnSiteAppointment;
+    obdCodes: ObdCode[];
+    onYes: () => void;
+    onNeedParts: () => void;
+    onNo: () => void;
 }) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const k = 'appointments.onSite.feasibility';
+    const lang: 'en' | 'es' = i18n.language?.startsWith('en') ? 'en' : 'es';
+    const findings = obdCodes.length
+        ? obdCodes.map((c) => (c.description ? `${c.code} — ${c.description[lang]}` : c.code)).join('\n')
+        : t(`${k}.noCodes`);
     return (
         <>
             <Body>
@@ -379,7 +337,7 @@ export function ScreenFeasibility({ appointment, onYes, onNeedParts, onNo }: {
                     <InfoRow
                         icon="construct-outline"
                         label={t(`${k}.findings`)}
-                        value={<Text className="font-outfit-bold text-[13px] mt-1 leading-6" style={{ color: OS.text }}>{t(`${k}.findingsMock`)}</Text>}
+                        value={<Text className="font-outfit-bold text-[13px] mt-1 leading-6" style={{ color: OS.text }}>{findings}</Text>}
                         last
                     />
                 </View>

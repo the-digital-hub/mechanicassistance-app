@@ -150,6 +150,7 @@ export interface PushViewer {
 const ROLE_OF_KIND: Partial<Record<string, PushViewer['role']>> = {
     new_request: 'mechanic',
     offer_accepted: 'mechanic',
+    obd_reminder: 'mechanic',
     mechanic_found: 'user',
 };
 
@@ -182,6 +183,11 @@ export function routeForPush(data: PushData | undefined, viewer: PushViewer): Hr
                 : '/appointments';
         case 'request_canceled':
             return '/appointments';
+        case 'obd_reminder':
+            // The closed visit reopens on its final screen, where the report can be uploaded.
+            return appointmentId
+                ? { pathname: '/appointments/check-in/[id]', params: { id: appointmentId } }
+                : '/appointments';
         case 'video_call':
             return appointmentId
                 ? { pathname: '/video-lobby/[id]', params: { id: appointmentId } }

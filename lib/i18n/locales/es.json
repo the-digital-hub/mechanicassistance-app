@@ -729,7 +729,18 @@
           "P0301": "Probablemente una bujía sucia o una bobina fallando en el cilindro 1. Revisá la bujía y la resistencia de la bobina antes de cambiar.",
           "P0171": "Buscá primero una pérdida de vacío o un sensor MAF sucio — son las causas más comunes de mezcla pobre en el banco 1.",
           "P0455": "Revisá el sello de la tapa de combustible y las mangueras EVAP por conexiones flojas o rotas — es la causa más común."
-        }
+        },
+        "processing": "Leyendo los códigos del escaneo…",
+        "failed": "No pudimos leer códigos de este archivo. Cargalos abajo.",
+        "manualTitle": "Códigos cargados",
+        "manualHint": "Agregá un código a mano",
+        "manualPh": "ej. P0301",
+        "add": "Agregar",
+        "invalid": "Usá el formato P0301 (P, B, C o U, y 4 caracteres).",
+        "noDescription": "Todavía no hay descripción para este código.",
+        "remove": "Quitar",
+        "reminderTip": "Si no subís el archivo OBD hoy, mañana te llega un recordatorio.",
+        "attached": "Archivo del escaneo adjunto"
       },
       "photos": {
         "eyebrow": "PASO 3 · FOTOS",
@@ -758,7 +769,8 @@
         "findingsMock": "Voltaje de batería bajo (11,2V)\nCorrea de accesorios con desgaste visible\nSin códigos de falla críticos",
         "yes": "Sí, puedo hacerlo",
         "needParts": "Puedo hacerlo, pero necesito comprar repuestos",
-        "no": "No, no puedo"
+        "no": "No, no puedo",
+        "noCodes": "No hay códigos OBD registrados."
       },
       "buyParts": {
         "eyebrow": "REPUESTOS NECESARIOS",

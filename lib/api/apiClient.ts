@@ -360,6 +360,15 @@ export const apiClient = {
         );
     },
 
+    async put<T = unknown>(endpoint: string, data: unknown): Promise<T> {
+        return withSession(endpoint, () =>
+            send<T>('PUT', endpoint, {
+                headers: JSON_HEADERS,
+                body: JSON.stringify(data),
+            }),
+        );
+    },
+
     /** `data`, when given, is sent as a JSON body (e.g. a push token kept out of the URL). */
     async delete<T = unknown>(endpoint: string, data?: unknown): Promise<T> {
         return withSession(endpoint, () =>
