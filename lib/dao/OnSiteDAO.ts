@@ -55,6 +55,14 @@ export interface OnSiteVisit {
     obdDocumentKey: string | null;
     obdCodes: ObdCode[];
     serviceAmount: string | null;
+    /** Last time the owner was asked for a review (ISO); null if never. */
+    reviewRequestedAt: string | null;
+    /** The owner has reviewed the mechanic for this job. */
+    ownerReviewSubmitted: boolean;
+    /** Score the mechanic gave the owner, once rated. */
+    clientRating: number | null;
+    /** Estimated payout date (closed + 7 days). Informative: no payments yet. */
+    estimatedPayoutAt: string | null;
     media: OnSiteMedia[];
 }
 
@@ -171,6 +179,25 @@ class OnSiteDAOImpl {
     /** Codes typed in by the mechanic; replaces the visit's list. */
     setObdCodes(appointmentId: string, codes: string[]): Promise<OnSiteVisit> {
         return apiClient.put(`${base(appointmentId)}/on-site/obd/codes`, { codes });
+    }
+
+    /**
+     * Asks the vehicle owner, by push, to review the job. At most once every
+     * 12 hours: a 429 comes back as `{ ok: false, retryAt }`.
+     */
+    async requestOwnerReview(
+        appointmentId: string,
+    ): Promise<{ ok: true; visit: OnSiteVisit } | { ok: false; retryAt: string | null }> {
+        try {
+            const visit = await apiClient.post<OnSiteVisit>(`${base(appointmentId)}/review-request`, {});
+            return { ok: true, visit };
+        } catch (e) {
+            if (e instanceof ApiError && e.statusCode === 429) {
+                const match = e.apiMessage.match(/\d{4}-\d{2}-\d{2}T[\d:.]+Z/);
+                return { ok: false, retryAt: match ? match[0] : null };
+            }
+            throw e;
+        }
     }
 
     reviewClient(appointmentId: string, rating: number, review?: string): Promise<unknown> {

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, Text, TouchableOpacity, View } from 'react-native';
 import { formatEtaTime } from '@/hooks/useAppointmentEta';
 import { CheckInCodeCard } from './CheckInCodeCard';
+import { OwnerReviewCard } from './OwnerReviewCard';
 
 interface UserTrackingTabProps {
     onCancel: () => void;
@@ -31,6 +32,9 @@ export function UserTrackingTab({ onCancel, onMessage, mechanic, appointmentType
 
             {/* Check-in code the mechanic scans on arrival (only while accepted) */}
             {appointment?.id ? <CheckInCodeCard appointmentId={appointment.id} status={appointment.status} /> : null}
+
+            {/* Rate the mechanic once the job is completed (only until reviewed) */}
+            {appointment?.id ? <OwnerReviewCard appointmentId={appointment.id} status={appointment.status} /> : null}
 
             {/* Blue Type Banner */}
             <View style={{

@@ -52,6 +52,14 @@ describe('routeForPush', () => {
         expect(routeForPush({ kind: 'obd_reminder', appointmentId: 'req-1' }, customer)).toBeNull();
     });
 
+    it('opens the review screen when the mechanic asks the customer to rate them', () => {
+        expect(routeForPush({ kind: 'review_requested', appointmentId: 'req-1' }, customer)).toEqual({
+            pathname: '/appointments/review/[id]',
+            params: { id: 'req-1' },
+        });
+        expect(routeForPush({ kind: 'review_requested', appointmentId: 'req-1' }, mechanic)).toBeNull();
+    });
+
     it('opens the appointments list for a cancellation', () => {
         expect(routeForPush({ kind: 'request_canceled', requestId: 'req-1' }, customer)).toBe('/appointments');
     });

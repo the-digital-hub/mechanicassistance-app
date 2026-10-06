@@ -152,6 +152,7 @@ const ROLE_OF_KIND: Partial<Record<string, PushViewer['role']>> = {
     offer_accepted: 'mechanic',
     obd_reminder: 'mechanic',
     mechanic_found: 'user',
+    review_requested: 'user',
 };
 
 /**
@@ -183,6 +184,12 @@ export function routeForPush(data: PushData | undefined, viewer: PushViewer): Hr
                 : '/appointments';
         case 'request_canceled':
             return '/appointments';
+        case 'review_requested':
+            // The mechanic asked the customer to rate them, from the close-out screen.
+            return appointmentId
+                // Typed routes regenerate on the next dev-server start; until then the new route is unknown.
+                ? { pathname: '/appointments/review/[id]' as never, params: { id: appointmentId } }
+                : '/appointments';
         case 'obd_reminder':
             // The closed visit reopens on its final screen, where the report can be uploaded.
             return appointmentId

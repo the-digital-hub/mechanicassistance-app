@@ -4,7 +4,8 @@ import { userDAO } from '@/lib/dao/UserDAO';
 import { onSiteDAO, OnSiteStep, OnSiteVisit, RedirectReasonId } from '@/lib/dao/OnSiteDAO';
 import { OnSiteCaptureProvider } from '@/components/on-site/MediaSlot';
 import { reportedIssue, ScreenCheckIn, ScreenDiagnosticsObd, ScreenDiagnosticsPhotos, ScreenFeasibility, ScreenIncidentDetails, ScreenRetry, ScreenValidating } from '@/components/on-site/screens-checkin';
-import { DoneVariant, ScreenCloseService, ScreenDone, ScreenVideoOut } from '@/components/on-site/screens-checkout';
+import { DoneVariant, ScreenCloseService, ScreenVideoOut } from '@/components/on-site/screens-checkout';
+import { ScreenCloseout } from '@/components/on-site/screens-closeout';
 import { PartsOrder, RedirectReason, ScreenBuyParts, ScreenEvaluateOptions, ScreenResolveIncident } from '@/components/on-site/screens-execution';
 import { FlowHeader, OS, Phase, PhaseBar, Spinner } from '@/components/on-site/ui';
 import { useGlobalSearchParams, useRouter } from 'expo-router';
@@ -49,16 +50,6 @@ function resumeScreen(visit: OnSiteVisit): Screen {
     // "Validating" is a transient check; rerun it from the photos.
     if (visit.step === 'validating') return 'diagnostics-photos';
     return visit.step;
-}
-
-function hasRating(clientReview: unknown): boolean {
-    if (!clientReview) return false;
-    try {
-        const parsed = typeof clientReview === 'string' ? JSON.parse(clientReview) : clientReview;
-        return !!(parsed as { rating?: number })?.rating;
-    } catch {
-        return false;
-    }
 }
 
 export default function OnSiteFlowScreen() {
@@ -111,7 +102,8 @@ export default function OnSiteFlowScreen() {
     // The scanner report is read in the background; refresh when it is in.
     const { lastMessage } = useSocket();
     React.useEffect(() => {
-        if (lastMessage?.type !== 'obd_update' || lastMessage?.payload?.id !== id) return;
+        const refreshes = lastMessage?.type === 'obd_update' || lastMessage?.type === 'owner_review_submitted';
+        if (!refreshes || lastMessage?.payload?.id !== id) return;
         onSiteDAO.get(id).then((v) => v && setVisit(v)).catch(() => { /* next event retries */ });
     }, [lastMessage, id]);
 
@@ -183,7 +175,11 @@ export default function OnSiteFlowScreen() {
         }
     };
 
-    const back = screen === 'checkin' ? () => router.back() : BACK_OF[screen] ? () => go(BACK_OF[screen]!) : undefined;
+    const back = screen === 'checkin'
+        ? () => router.back()
+        : screen === 'done'
+            ? () => router.replace('/(tabs)/appointments')
+            : BACK_OF[screen] ? () => go(BACK_OF[screen]!) : undefined;
     const checklist = visit?.maintenanceChecklist ?? {};
     const saveChecklist = (c: Record<string, boolean>) => save({ maintenanceChecklist: c });
 
@@ -267,26 +263,23 @@ export default function OnSiteFlowScreen() {
             );
             break;
         case 'done':
-            body = (
-                <ScreenDone
-                    variant={doneVariant}
-                    appointmentId={appointment.id}
+            body = visit ? (
+                <ScreenCloseout
                     visit={visit}
                     onVisit={setVisit}
-                    clientName={clientName}
-                    alreadyRated={hasRating(appointment.clientReview)}
-                    onSubmitReview={async (rating, comment) => {
-                        await onSiteDAO.reviewClient(id, rating, comment || undefined);
-                    }}
                     onBackToDashboard={() => router.replace('/(tabs)/appointments')}
                 />
-            );
+            ) : null;
             break;
     }
 
     return (
         <KeyboardAvoidingView className="flex-1" style={{ backgroundColor: OS.page }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-            <FlowHeader title={t(`appointments.onSite.titles.${TITLE_KEY[screen]}`)} onBack={loading ? () => router.back() : back} />
+            <FlowHeader
+                title={screen === 'done' ? t('appointments.closeout.title') : t(`appointments.onSite.titles.${TITLE_KEY[screen]}`)}
+                onBack={loading ? () => router.back() : back}
+                closeIcon={screen === 'done'}
+            />
             {loading ? (
                 <View className="flex-1 items-center justify-center"><Spinner /></View>
             ) : (

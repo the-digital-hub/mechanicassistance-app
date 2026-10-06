@@ -56,7 +56,7 @@ export function PhaseBar({ phase }: { phase: Phase }) {
     );
 }
 
-export function FlowHeader({ title, onBack }: { title: string; onBack?: () => void }) {
+export function FlowHeader({ title, onBack, closeIcon }: { title: string; onBack?: () => void; closeIcon?: boolean }) {
     return (
         <View className="flex-row items-center gap-3 px-4 pt-2 pb-3" style={{ borderBottomWidth: 1, borderBottomColor: 'rgba(14,47,138,0.05)' }}>
             <TouchableOpacity
@@ -69,7 +69,7 @@ export function FlowHeader({ title, onBack }: { title: string; onBack?: () => vo
                 }}
                 testID="on-site-back"
             >
-                <Ionicons name="chevron-back" size={18} color="#111111" />
+                <Ionicons name={closeIcon ? 'close' : 'chevron-back'} size={18} color="#111111" />
             </TouchableOpacity>
             <Text className="flex-1 text-center font-outfit-medium text-[15px]" style={{ color: '#1A1A1A' }}>{title}</Text>
             <View style={{ width: 38 }} />
