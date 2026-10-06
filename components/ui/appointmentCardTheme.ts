@@ -12,6 +12,7 @@ export function getCardState(status: Appointment['status']): CardState {
             return 'offered';
         case 'accepted':
         case 'started':
+        case 'in_progress':
             return 'enRoute';
         case 'completed':
             return 'completed';

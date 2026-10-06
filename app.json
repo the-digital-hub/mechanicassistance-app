@@ -57,6 +57,12 @@
     "plugins": [
       "expo-router",
       "expo-video",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera for video calls, to verify your identity by scanning your ID document, and to scan the customer's check-in QR code when you arrive."
+        }
+      ],
       "@react-native-firebase/app",
       "@react-native-firebase/auth",
       "@react-native-firebase/messaging",

@@ -3,20 +3,44 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Image, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Text, TouchableOpacity, View } from 'react-native';
+import { absoluteMediaUrl, MediaKind, onSiteDAO, OnSiteMedia } from '@/lib/dao/OnSiteDAO';
 import { NoteInput, OS } from './ui';
 
-// Capture slot for the on-site flow. Keeps the picked file on the device only —
-// nothing is uploaded yet (the on-site flow has no backend).
+// Capture slot for the on-site flow. Inside an OnSiteCaptureProvider, a slot with
+// a `captureKind` uploads what is picked to media-service and attaches it to the
+// visit; without one (OBD file, until phase 2) the file stays on the device.
 
-export type MediaKind = 'image' | 'video' | 'file';
+interface CaptureContext {
+    appointmentId: string;
+    /** Captures already on the visit, for resuming a flow that was left mid-way. */
+    media: OnSiteMedia[];
+}
+
+const OnSiteCaptureContext = React.createContext<CaptureContext | null>(null);
+
+export function OnSiteCaptureProvider({ value, children }: { value: CaptureContext; children: React.ReactNode }) {
+    return <OnSiteCaptureContext.Provider value={value}>{children}</OnSiteCaptureContext.Provider>;
+}
+
+/** Captures of one kind already attached to the visit. */
+export function useExistingCaptures(kind?: MediaKind): OnSiteMedia[] {
+    const ctx = React.useContext(OnSiteCaptureContext);
+    return React.useMemo(() => (kind && ctx ? ctx.media.filter((m) => m.kind === kind) : []), [ctx, kind]);
+}
+
+export type MediaKindPicker = 'image' | 'video' | 'file';
 
 interface MediaSlotProps {
-    kind?: MediaKind;
+    kind?: MediaKindPicker;
+    /** What the capture is for on the visit; enables upload. */
+    captureKind?: MediaKind;
+    /** A capture already on the visit, shown instead of an empty slot. */
+    existing?: OnSiteMedia;
     height?: number;
     placeholder: string;
     onChange?: (filled: boolean) => void;
-    /** Show a note box once something has been captured. */
+    /** Show a note box once something has been captured (local only). */
     note?: boolean;
     onDeleteSlot?: () => void;
     padded?: boolean;
@@ -28,14 +52,53 @@ interface Picked {
     isVideo: boolean;
 }
 
-export function MediaSlot({ kind = 'image', height = 170, placeholder, onChange, note, onDeleteSlot, padded = true }: MediaSlotProps) {
+type UploadState = 'local' | 'uploading' | 'done' | 'error';
+
+export function MediaSlot({
+    kind = 'image',
+    captureKind,
+    existing,
+    height = 170,
+    placeholder,
+    onChange,
+    note,
+    onDeleteSlot,
+    padded = true,
+}: MediaSlotProps) {
     const { t } = useTranslation();
-    const [picked, setPicked] = React.useState<Picked | null>(null);
+    const ctx = React.useContext(OnSiteCaptureContext);
+    const uploads = !!(ctx && captureKind && kind !== 'file');
+
+    const [picked, setPicked] = React.useState<Picked | null>(() =>
+        existing ? { uri: absoluteMediaUrl(existing.url), isVideo: existing.mediaType === 'video' } : null,
+    );
+    const [mediaId, setMediaId] = React.useState<string | null>(existing?.id ?? null);
+    const [state, setState] = React.useState<UploadState>(existing ? 'done' : 'local');
     const [text, setText] = React.useState('');
 
-    const set = (p: Picked | null) => {
+    const onChangeRef = React.useRef(onChange);
+    onChangeRef.current = onChange;
+    const filled = !!picked && (!uploads || state === 'done');
+    React.useEffect(() => {
+        onChangeRef.current?.(filled);
+    }, [filled]);
+
+    const upload = async (p: Picked) => {
+        if (!uploads || !ctx || !captureKind) return;
+        setState('uploading');
+        try {
+            const media = await onSiteDAO.addCapture(ctx.appointmentId, captureKind, p.uri, p.isVideo ? 'video' : 'image');
+            setMediaId(media.id);
+            setState('done');
+        } catch {
+            setState('error');
+        }
+    };
+
+    const accept = (p: Picked) => {
         setPicked(p);
-        onChange?.(!!p);
+        setState(uploads ? 'uploading' : 'local');
+        void upload(p);
     };
 
     const mediaTypes: ImagePicker.MediaType[] = kind === 'video' ? ['videos'] : ['images'];
@@ -44,17 +107,17 @@ export function MediaSlot({ kind = 'image', height = 170, placeholder, onChange,
         const perm = await ImagePicker.requestCameraPermissionsAsync();
         if (!perm.granted) return;
         const res = await ImagePicker.launchCameraAsync({ mediaTypes, quality: 0.5, videoMaxDuration: 120 });
-        if (!res.canceled) set({ uri: res.assets[0].uri, name: res.assets[0].fileName ?? undefined, isVideo: kind === 'video' });
+        if (!res.canceled) accept({ uri: res.assets[0].uri, name: res.assets[0].fileName ?? undefined, isVideo: kind === 'video' });
     };
 
     const fromLibrary = async () => {
         const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes, quality: 0.5 });
-        if (!res.canceled) set({ uri: res.assets[0].uri, name: res.assets[0].fileName ?? undefined, isVideo: kind === 'video' });
+        if (!res.canceled) accept({ uri: res.assets[0].uri, name: res.assets[0].fileName ?? undefined, isVideo: kind === 'video' });
     };
 
     const fromFiles = async () => {
         const res = await DocumentPicker.getDocumentAsync({ copyToCacheDirectory: true });
-        if (!res.canceled) set({ uri: res.assets[0].uri, name: res.assets[0].name, isVideo: false });
+        if (!res.canceled) accept({ uri: res.assets[0].uri, name: res.assets[0].name, isVideo: false });
     };
 
     const pick = () => {
@@ -67,7 +130,33 @@ export function MediaSlot({ kind = 'image', height = 170, placeholder, onChange,
         Alert.alert(placeholder, undefined, options);
     };
 
-    const isImagePreview = picked && !picked.isVideo && (kind !== 'file' || /\.(jpe?g|png|heic|webp)$/i.test(picked.name ?? picked.uri));
+    const remove = async () => {
+        if (mediaId && ctx) {
+            try {
+                await onSiteDAO.removeCapture(ctx.appointmentId, mediaId);
+            } catch {
+                Alert.alert(t('appointments.onSite.common.error'));
+                return;
+            }
+        }
+        setPicked(null);
+        setMediaId(null);
+        setState('local');
+        setText('');
+    };
+
+    const isImagePreview =
+        picked && !picked.isVideo && (kind !== 'file' || /\.(jpe?g|png|heic|webp)$/i.test(picked.name ?? picked.uri));
+
+    const statusText =
+        state === 'uploading'
+            ? t('appointments.onSite.common.uploading')
+            : state === 'error'
+                ? t('appointments.onSite.common.uploadFailed')
+                : picked
+                    ? t('appointments.onSite.common.captured')
+                    : t('appointments.onSite.common.pending');
+    const statusColor = state === 'error' ? OS.red : filled ? OS.greenDark : OS.mutedLight;
 
     return (
         <View className={padded ? 'p-4' : ''}>
@@ -100,23 +189,35 @@ export function MediaSlot({ kind = 'image', height = 170, placeholder, onChange,
                         </Text>
                     </View>
                 )}
+                {state === 'uploading' ? (
+                    <View className="absolute inset-0 items-center justify-center" style={{ backgroundColor: 'rgba(11,21,48,0.45)' }}>
+                        <ActivityIndicator color="#FFFFFF" />
+                    </View>
+                ) : null}
             </TouchableOpacity>
 
             <View className="flex-row items-center justify-between mt-2.5">
                 <View className="flex-row items-center gap-2 flex-1">
-                    <Ionicons name={picked ? 'checkmark' : 'camera-outline'} size={14} color={picked ? OS.green : OS.mutedLight} />
-                    <Text className="font-outfit-bold text-xs" style={{ color: picked ? OS.greenDark : OS.mutedLight }} numberOfLines={1}>
-                        {picked ? t('appointments.onSite.common.captured') : t('appointments.onSite.common.pending')}
-                    </Text>
+                    <Ionicons
+                        name={state === 'error' ? 'alert-circle-outline' : filled ? 'checkmark' : 'camera-outline'}
+                        size={14}
+                        color={statusColor}
+                    />
+                    <Text className="font-outfit-bold text-xs" style={{ color: statusColor }} numberOfLines={1}>{statusText}</Text>
                 </View>
                 <View className="flex-row items-center gap-3.5">
-                    {picked ? (
-                        <TouchableOpacity onPress={() => { set(null); setText(''); }}>
+                    {state === 'error' && picked ? (
+                        <TouchableOpacity onPress={() => void upload(picked)}>
+                            <Text className="font-outfit-bold text-[11.5px]" style={{ color: OS.blue }}>{t('appointments.onSite.common.retry')}</Text>
+                        </TouchableOpacity>
+                    ) : null}
+                    {picked && state !== 'uploading' ? (
+                        <TouchableOpacity onPress={() => void remove()}>
                             <Text className="font-outfit-bold text-[11.5px]" style={{ color: OS.red }}>{t('appointments.onSite.common.remove')}</Text>
                         </TouchableOpacity>
                     ) : null}
-                    {onDeleteSlot ? (
-                        <TouchableOpacity onPress={onDeleteSlot}>
+                    {onDeleteSlot && state !== 'uploading' ? (
+                        <TouchableOpacity onPress={() => void (mediaId ? remove().then(onDeleteSlot) : onDeleteSlot())}>
                             <Text className="font-outfit-bold text-[11.5px]" style={{ color: OS.red }}>{t('appointments.onSite.common.deletePhoto')}</Text>
                         </TouchableOpacity>
                     ) : null}
@@ -131,32 +232,50 @@ export function MediaSlot({ kind = 'image', height = 170, placeholder, onChange,
 }
 
 /** A growing list of optional photo slots ("+ Add another photo"). */
-export function PhotoList({ placeholder, height = 120, onAnyFilled }: { placeholder: string; height?: number; onAnyFilled?: (v: boolean) => void }) {
+export function PhotoList({
+    placeholder,
+    captureKind,
+    height = 120,
+    onAnyFilled,
+}: {
+    placeholder: string;
+    captureKind?: MediaKind;
+    height?: number;
+    onAnyFilled?: (v: boolean) => void;
+}) {
     const { t } = useTranslation();
-    const nextId = React.useRef(1);
-    const [ids, setIds] = React.useState<number[]>([0]);
+    const existing = useExistingCaptures(captureKind);
+    const nextId = React.useRef(existing.length + 1);
+    // Slots: one per capture already on the visit, else a single empty slot.
+    const [slots, setSlots] = React.useState<{ id: number; existing?: OnSiteMedia }[]>(() =>
+        existing.length ? existing.map((m, i) => ({ id: i, existing: m })) : [{ id: 0 }],
+    );
     const [fills, setFills] = React.useState<Record<number, boolean>>({});
 
+    const onAnyFilledRef = React.useRef(onAnyFilled);
+    onAnyFilledRef.current = onAnyFilled;
     React.useEffect(() => {
-        onAnyFilled?.(ids.some((id) => fills[id]));
-    }, [ids, fills, onAnyFilled]);
+        onAnyFilledRef.current?.(slots.some((s) => fills[s.id]));
+    }, [slots, fills]);
 
     return (
         <View>
-            {ids.map((id, i) => (
-                <View key={id}>
+            {slots.map((slot, i) => (
+                <View key={slot.id}>
                     <MediaSlot
                         height={height}
                         placeholder={placeholder}
-                        onChange={(v) => setFills((f) => ({ ...f, [id]: v }))}
-                        onDeleteSlot={i > 0 ? () => setIds((list) => list.filter((x) => x !== id)) : undefined}
+                        captureKind={captureKind}
+                        existing={slot.existing}
+                        onChange={(v) => setFills((f) => ({ ...f, [slot.id]: v }))}
+                        onDeleteSlot={i > 0 ? () => setSlots((list) => list.filter((x) => x.id !== slot.id)) : undefined}
                     />
                     <View className="px-4 -mt-2 pb-2">
                         <NoteInput placeholder={t('appointments.onSite.common.photoNote')} />
                     </View>
                 </View>
             ))}
-            <TouchableOpacity onPress={() => setIds((list) => [...list, nextId.current++])} className="px-4 pb-4">
+            <TouchableOpacity onPress={() => setSlots((list) => [...list, { id: nextId.current++ }])} className="px-4 pb-4">
                 <Text className="font-outfit-bold text-xs" style={{ color: OS.blue }}>{t('appointments.onSite.common.addAnotherPhoto')}</Text>
             </TouchableOpacity>
         </View>

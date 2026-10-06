@@ -529,7 +529,8 @@
         "subtitle": "Confirm you're at the right vehicle before starting work.",
         "startCheckIn": "Start Check-in",
         "hint": "Scan QR to check in or Enter PIN instead",
-        "notice": "This enables once you're arriving at the service site."
+        "notice": "This enables once you're arriving at the service site.",
+        "continueVisit": "Continue visit"
       },
       "info": {
         "arrivalTime": "Arrival time",
@@ -613,7 +614,12 @@
       "mismatchLink": "Doesn't match this vehicle?",
       "mismatchTitle": "Doesn't match this vehicle",
       "mismatchBody": "Double-check the QR code or PIN with the client and try again. If it still doesn't match, contact support.",
-      "retry": "Retry verification"
+      "retry": "Retry verification",
+      "locked": "Too many wrong codes. Wait 15 minutes and try again.",
+      "cameraPermission": "Allow camera access to scan the customer's QR code.",
+      "allowCamera": "Allow camera",
+      "scanHint": "Point the camera at the customer's QR code",
+      "checking": "Checking…"
     },
     "onSite": {
       "titles": {
@@ -656,7 +662,11 @@
         "camera": "Take with camera",
         "library": "Choose from library",
         "files": "Choose a file",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "uploading": "Uploading…",
+        "uploadFailed": "Couldn't upload. Tap Retry.",
+        "retry": "Retry",
+        "error": "Something went wrong. Please try again."
       },
       "maintenance": {
         "title": "Maintenance checklist",
@@ -736,7 +746,8 @@
       },
       "validating": {
         "title": "Validating the reported diagnostic…",
-        "subtitle": "Processing the information captured."
+        "subtitle": "Processing the information captured.",
+        "missing": "Add the license plate and dashboard photos to continue."
       },
       "feasibility": {
         "eyebrow": "DIAGNOSTIC READY",
@@ -854,7 +865,9 @@
         "chargesEyebrow": "CHARGES",
         "serviceValue": "Service value",
         "total": "Total to charge",
-        "finish": "Finish Service"
+        "finish": "Finish Service",
+        "minutes": "{{minutes}} min",
+        "closing": "Closing…"
       },
       "done": {
         "completed": "Service completed",
@@ -870,6 +883,12 @@
         "payment": "Payment is on its way to be charged — you'll be notified once it clears.",
         "back": "Back to dashboard"
       }
+    },
+    "customerCheckIn": {
+      "title": "Your check-in code",
+      "subtitle": "Show this to your mechanic when they arrive. They will scan the QR or type the PIN.",
+      "pin": "PIN",
+      "unavailable": "Couldn't load your check-in code."
     }
   },
   "requestDetail": {

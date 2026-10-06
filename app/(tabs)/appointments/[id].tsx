@@ -374,14 +374,17 @@ export default function AppointmentDetailScreen() {
                             </View>
 
                             {/* On-site check-in — the critical next step once the mechanic arrives */}
-                            <View className="mt-3.5">
-                                <MechanicArrivalCard
-                                    onStartCheckIn={() => router.push({
-                                        pathname: '/appointments/check-in/[id]' as any,
-                                        params: { id: appointment.id },
-                                    })}
-                                />
-                            </View>
+                            {appointment.status !== 'completed' ? (
+                                <View className="mt-3.5">
+                                    <MechanicArrivalCard
+                                        inProgress={appointment.status === 'in_progress'}
+                                        onStartCheckIn={() => router.push({
+                                            pathname: '/appointments/check-in/[id]' as any,
+                                            params: { id: appointment.id },
+                                        })}
+                                    />
+                                </View>
+                            ) : null}
 
                             {/* Quick-nav tabs */}
                             <View className="mx-4 mt-3.5 flex-row gap-2.5" testID="tab-navigation-container" nativeID="tab-navigation-container">

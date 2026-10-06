@@ -176,6 +176,7 @@ export function routeForPush(data: PushData | undefined, viewer: PushViewer): Hr
                 : null;
         case 'offer_accepted':
         case 'request_status':
+        case 'service_redirected':
             return appointmentId
                 ? { pathname: '/appointments/[id]', params: { id: appointmentId } }
                 : '/appointments';

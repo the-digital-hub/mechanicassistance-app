@@ -3,6 +3,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, Text, TouchableOpacity, View } from 'react-native';
 import { formatEtaTime } from '@/hooks/useAppointmentEta';
+import { CheckInCodeCard } from './CheckInCodeCard';
 
 interface UserTrackingTabProps {
     onCancel: () => void;
@@ -27,6 +28,9 @@ export function UserTrackingTab({ onCancel, onMessage, mechanic, appointmentType
 
     return (
         <View style={{ gap: 20 }}>
+
+            {/* Check-in code the mechanic scans on arrival (only while accepted) */}
+            {appointment?.id ? <CheckInCodeCard appointmentId={appointment.id} status={appointment.status} /> : null}
 
             {/* Blue Type Banner */}
             <View style={{

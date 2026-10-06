@@ -2,7 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { MediaSlot, PhotoList } from './MediaSlot';
+import { CameraView, useCameraPermissions } from 'expo-camera';
+import { MediaSlot, PhotoList, useExistingCaptures } from './MediaSlot';
 import {
     ActionBar, Body, Card, CardTitle, GhostButton, InfoRow, Intro, OS, PrimaryButton, Segmented, Spinner, Tip, cardShadow,
 } from './ui';
@@ -18,31 +19,53 @@ export interface OnSiteAppointment {
     vehicleIssues?: { name: string }[];
 }
 
+/**
+ * The "I need to buy parts" branch is still simulated (no parts catalog or
+ * payments yet). Set to false to hide it from mechanics.
+ */
+export const ON_SITE_PARTS_ENABLED = true;
+
 export function reportedIssue(appointment: OnSiteAppointment): string {
     if (appointment.vehicleIssues?.length) return appointment.vehicleIssues.map((i) => i.name).join(', ');
     return appointment.title || '—';
 }
 
 // ─────────── Check-in (Scan QR / Enter PIN) ───────────
-export function ScreenCheckIn({ onMatch, onMismatch }: { onMatch: () => void; onMismatch: () => void }) {
+export function ScreenCheckIn({ onSubmit, onMismatch }: {
+    onSubmit: (method: 'pin' | 'qr', code: string) => Promise<void>;
+    onMismatch: () => void;
+}) {
     const { t } = useTranslation();
     const [mode, setMode] = React.useState<'qr' | 'pin'>('qr');
     const [cameraOpen, setCameraOpen] = React.useState(false);
-    const [scanning, setScanning] = React.useState(false);
+    const [submitting, setSubmitting] = React.useState(false);
     const [pin, setPin] = React.useState('');
-    const scanTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [permission, requestPermission] = useCameraPermissions();
+    const handled = React.useRef(false);
 
-    React.useEffect(() => () => {
-        if (scanTimer.current) clearTimeout(scanTimer.current);
-    }, []);
+    const submit = async (method: 'pin' | 'qr', code: string) => {
+        setSubmitting(true);
+        try {
+            await onSubmit(method, code);
+        } finally {
+            setSubmitting(false);
+            handled.current = false;
+        }
+    };
 
-    // Simulated: there is no QR scanner in the app yet.
-    const scan = () => {
-        setScanning(true);
-        scanTimer.current = setTimeout(() => {
-            setScanning(false);
-            onMatch();
-        }, 1400);
+    const openCamera = async () => {
+        if (!permission?.granted) {
+            const res = await requestPermission();
+            if (!res.granted) return;
+        }
+        setCameraOpen(true);
+    };
+
+    // The scanner fires repeatedly while the code is in view; act on the first read only.
+    const onScanned = ({ data }: { data: string }) => {
+        if (handled.current || submitting) return;
+        handled.current = true;
+        void submit('qr', data);
     };
 
     return (
@@ -65,32 +88,45 @@ export function ScreenCheckIn({ onMatch, onMismatch }: { onMatch: () => void; on
                     <View
                         className="items-center justify-center overflow-hidden"
                         style={{
-                            height: 220, borderRadius: 16,
+                            height: 260, borderRadius: 16,
                             backgroundColor: cameraOpen ? OS.text : OS.page,
                             borderWidth: cameraOpen ? 0 : 2, borderStyle: 'dashed', borderColor: OS.border,
                         }}
                     >
                         {!cameraOpen ? (
-                            <View className="items-center gap-3">
+                            <View className="items-center gap-3 px-4">
                                 <Ionicons name="scan-outline" size={40} color={OS.mutedLight} />
-                                <Text className="font-outfit-bold text-xs" style={{ color: OS.mutedLight }}>{t('appointments.checkIn.cameraOff')}</Text>
+                                <Text className="font-outfit-bold text-xs text-center" style={{ color: OS.mutedLight }}>
+                                    {permission && !permission.granted && !permission.canAskAgain
+                                        ? t('appointments.checkIn.cameraPermission')
+                                        : t('appointments.checkIn.cameraOff')}
+                                </Text>
                             </View>
-                        ) : scanning ? (
-                            <ActivityIndicator size="large" color="#FFFFFF" />
                         ) : (
                             <>
-                                <View style={{ position: 'absolute', top: 24, right: 24, bottom: 24, left: 24, borderWidth: 2, borderColor: 'rgba(255,255,255,0.55)', borderRadius: 18 }} />
-                                <Ionicons name="scan-outline" size={60} color="rgba(255,255,255,0.7)" />
+                                <CameraView
+                                    style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }}
+                                    facing="back"
+                                    barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+                                    onBarcodeScanned={submitting ? undefined : onScanned}
+                                />
+                                <View pointerEvents="none" style={{ position: 'absolute', top: 24, right: 24, bottom: 24, left: 24, borderWidth: 2, borderColor: 'rgba(255,255,255,0.55)', borderRadius: 18 }} />
+                                {submitting ? <ActivityIndicator size="large" color="#FFFFFF" /> : null}
                             </>
                         )}
                     </View>
-                    <View className="flex-row mt-3.5">
-                        <PrimaryButton
-                            label={scanning ? t('appointments.checkIn.scanning') : cameraOpen ? t('appointments.checkIn.scanQr') : t('appointments.checkIn.openCamera')}
-                            onPress={cameraOpen ? scan : () => setCameraOpen(true)}
-                            disabled={scanning}
-                        />
-                    </View>
+                    {cameraOpen ? (
+                        <Text className="font-outfit-medium text-xs text-center mt-3" style={{ color: OS.muted }}>
+                            {submitting ? t('appointments.checkIn.checking') : t('appointments.checkIn.scanHint')}
+                        </Text>
+                    ) : (
+                        <View className="flex-row mt-3.5">
+                            <PrimaryButton
+                                label={permission && !permission.granted && !permission.canAskAgain ? t('appointments.checkIn.allowCamera') : t('appointments.checkIn.openCamera')}
+                                onPress={() => void openCamera()}
+                            />
+                        </View>
+                    )}
                 </Card>
             ) : (
                 <Card style={{ padding: 24 }}>
@@ -106,7 +142,11 @@ export function ScreenCheckIn({ onMatch, onMismatch }: { onMatch: () => void; on
                         testID="check-in-pin"
                     />
                     <View className="flex-row mt-4">
-                        <PrimaryButton label={t('appointments.checkIn.verifyPin')} onPress={onMatch} disabled={pin.length !== 4} />
+                        <PrimaryButton
+                            label={submitting ? t('appointments.checkIn.checking') : t('appointments.checkIn.verifyPin')}
+                            onPress={() => void submit('pin', pin)}
+                            disabled={pin.length !== 4 || submitting}
+                        />
                     </View>
                 </Card>
             )}
@@ -245,6 +285,9 @@ export function ScreenDiagnosticsObd({ onNext, onFilledChange }: { onNext: () =>
 export function ScreenDiagnosticsPhotos({ onNext }: { onNext: () => void }) {
     const { t } = useTranslation();
     const k = 'appointments.onSite.photos';
+    const plate = useExistingCaptures('plate');
+    const dashboard = useExistingCaptures('dashboard');
+    const walkaround = useExistingCaptures('walkaround_in');
     const [plateFilled, setPlateFilled] = React.useState(false);
     const [dashFilled, setDashFilled] = React.useState(false);
     const [tab, setTab] = React.useState<'video' | 'photos'>('video');
@@ -255,11 +298,11 @@ export function ScreenDiagnosticsPhotos({ onNext }: { onNext: () => void }) {
                 <Intro eyebrow={t(`${k}.eyebrow`)} title={t(`${k}.title`)} subtitle={t(`${k}.subtitle`)} />
                 <Card>
                     <CardTitle title={t(`${k}.plate`)} />
-                    <MediaSlot height={130} placeholder={t(`${k}.platePh`)} onChange={setPlateFilled} />
+                    <MediaSlot height={130} placeholder={t(`${k}.platePh`)} captureKind="plate" existing={plate[0]} onChange={setPlateFilled} />
                 </Card>
                 <Card>
                     <CardTitle title={t(`${k}.dash`)} />
-                    <MediaSlot height={130} placeholder={t(`${k}.dashPh`)} onChange={setDashFilled} />
+                    <MediaSlot height={130} placeholder={t(`${k}.dashPh`)} captureKind="dashboard" existing={dashboard[0]} onChange={setDashFilled} />
                 </Card>
 
                 <Text className="font-outfit-bold text-xs mx-4 mt-3.5" style={{ color: OS.text }}>
@@ -278,9 +321,9 @@ export function ScreenDiagnosticsPhotos({ onNext }: { onNext: () => void }) {
                 </View>
                 <Card>
                     {tab === 'video' ? (
-                        <MediaSlot kind="video" height={170} placeholder={t(`${k}.videoPh`)} />
+                        <MediaSlot kind="video" height={170} placeholder={t(`${k}.videoPh`)} captureKind="walkaround_in" existing={walkaround[0]} />
                     ) : (
-                        <PhotoList placeholder={t(`${k}.extraPh`)} />
+                        <PhotoList placeholder={t(`${k}.extraPh`)} captureKind="extra_in" />
                     )}
                 </Card>
             </Body>
@@ -292,14 +335,25 @@ export function ScreenDiagnosticsPhotos({ onNext }: { onNext: () => void }) {
 }
 
 // ─────────── Validating ───────────
-export function ScreenValidating({ onDone }: { onDone: () => void }) {
+export function ScreenValidating({ run, onDone, onFail }: {
+    run: () => Promise<void>;
+    onDone: () => void;
+    onFail: (message: string) => void;
+}) {
     const { t } = useTranslation();
-    const done = React.useRef(onDone);
-    done.current = onDone;
+    const handlers = React.useRef({ run, onDone, onFail });
+    handlers.current = { run, onDone, onFail };
     React.useEffect(() => {
-        const id = setTimeout(() => done.current(), 1600);
-        return () => clearTimeout(id);
-    }, []);
+        let cancelled = false;
+        // Keep the spinner up briefly so the step reads as a step, not a flicker.
+        const minDelay = new Promise((r) => setTimeout(r, 900));
+        Promise.all([handlers.current.run(), minDelay])
+            .then(() => !cancelled && handlers.current.onDone())
+            .catch(() => !cancelled && handlers.current.onFail(t('appointments.onSite.validating.missing')));
+        return () => {
+            cancelled = true;
+        };
+    }, [t]);
     return (
         <View className="flex-1 items-center justify-center gap-4 px-8">
             <Spinner />
@@ -334,7 +388,7 @@ export function ScreenFeasibility({ appointment, onYes, onNeedParts, onNo }: {
                 <View className="flex-row">
                     <PrimaryButton label={t(`${k}.yes`)} onPress={onYes} tone="green" />
                 </View>
-                <GhostButton label={t(`${k}.needParts`)} onPress={onNeedParts} />
+                {ON_SITE_PARTS_ENABLED ? <GhostButton label={t(`${k}.needParts`)} onPress={onNeedParts} /> : null}
                 <GhostButton label={t(`${k}.no`)} onPress={onNo} />
             </ActionBar>
         </>

@@ -291,11 +291,22 @@ export function Spinner({ color = OS.blue }: { color?: string }) {
 
 const MAINTENANCE_ITEMS = ['m1', 'm2', 'm3', 'm4', 'm5', 'm6', 'm7'];
 
-export function useMaintenanceItems() {
-    const [checked, setChecked] = React.useState<Record<string, boolean>>({});
+/**
+ * Checklist state. `initial` restores what the visit already saved; `onChange`
+ * receives every new state (the flow autosaves it).
+ */
+export function useMaintenanceItems(
+    initial?: Record<string, boolean>,
+    onChange?: (checked: Record<string, boolean>) => void,
+) {
+    const [checked, setChecked] = React.useState<Record<string, boolean>>(initial ?? {});
     const allChecked = MAINTENANCE_ITEMS.every((id) => checked[id]);
-    const toggle = (id: string) => setChecked((c) => ({ ...c, [id]: !c[id] }));
-    const toggleAll = () => setChecked(Object.fromEntries(MAINTENANCE_ITEMS.map((id) => [id, !allChecked])));
+    const update = (next: Record<string, boolean>) => {
+        setChecked(next);
+        onChange?.(next);
+    };
+    const toggle = (id: string) => update({ ...checked, [id]: !checked[id] });
+    const toggleAll = () => update(Object.fromEntries(MAINTENANCE_ITEMS.map((id) => [id, !allChecked])));
     return { checked, allChecked, toggle, toggleAll };
 }
 

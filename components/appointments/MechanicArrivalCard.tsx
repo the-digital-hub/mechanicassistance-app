@@ -30,9 +30,11 @@ export function PulseDot({ color, size = 8 }: { color: string; size?: number }) 
 
 interface MechanicArrivalCardProps {
     onStartCheckIn: () => void;
+    /** Already checked in: the button resumes the visit instead of starting it. */
+    inProgress?: boolean;
 }
 
-export function MechanicArrivalCard({ onStartCheckIn }: MechanicArrivalCardProps) {
+export function MechanicArrivalCard({ onStartCheckIn, inProgress }: MechanicArrivalCardProps) {
     const { t } = useTranslation();
 
     return (
@@ -77,21 +79,25 @@ export function MechanicArrivalCard({ onStartCheckIn }: MechanicArrivalCardProps
                     >
                         <Ionicons name="location-outline" size={20} color="white" />
                         <Text className="text-white font-outfit-bold text-base">
-                            {t('appointments.detail.arrival.startCheckIn')}
+                            {inProgress ? t('appointments.detail.arrival.continueVisit') : t('appointments.detail.arrival.startCheckIn')}
                         </Text>
                     </LinearGradient>
                 </TouchableOpacity>
 
-                <Text className="text-center mt-3 font-outfit-regular text-[13px]" style={{ color: '#6B7490' }}>
-                    {t('appointments.detail.arrival.hint')}
-                </Text>
+                {!inProgress ? (
+                    <>
+                        <Text className="text-center mt-3 font-outfit-regular text-[13px]" style={{ color: '#6B7490' }}>
+                            {t('appointments.detail.arrival.hint')}
+                        </Text>
 
-                <View className="flex-row items-start gap-2 mt-3 px-3 py-2.5 rounded-xl" style={{ backgroundColor: '#F4F8FF' }}>
-                    <Ionicons name="information-circle-outline" size={15} color={BLUE} style={{ marginTop: 1 }} />
-                    <Text className="flex-1 font-outfit-medium text-[11px] leading-4" style={{ color: BLUE }}>
-                        {t('appointments.detail.arrival.notice')}
-                    </Text>
-                </View>
+                        <View className="flex-row items-start gap-2 mt-3 px-3 py-2.5 rounded-xl" style={{ backgroundColor: '#F4F8FF' }}>
+                            <Ionicons name="information-circle-outline" size={15} color={BLUE} style={{ marginTop: 1 }} />
+                            <Text className="flex-1 font-outfit-medium text-[11px] leading-4" style={{ color: BLUE }}>
+                                {t('appointments.detail.arrival.notice')}
+                            </Text>
+                        </View>
+                    </>
+                ) : null}
             </View>
         </View>
     );

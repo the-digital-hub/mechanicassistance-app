@@ -7,7 +7,8 @@ import { Attachment, parseAttachments } from '@/lib/media/attachments';
 import React, { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
 import { useSocket } from './SocketContext';
 
-export type AppointmentStatus = 'scheduled' | 'canceled' | 'started' | 'completed' | 'pending' | 'accepted' | 'offered';
+// 'in_progress' = the mechanic checked in at the vehicle (appointments-service on-site flow).
+export type AppointmentStatus = 'scheduled' | 'canceled' | 'started' | 'in_progress' | 'completed' | 'pending' | 'accepted' | 'offered';
 
 export interface AdditionalFunds {
     amount: string;
@@ -265,7 +266,7 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
     const getUpcoming = () => {
         return appointments.filter(
             (a) => a.source !== 'assistance' &&
-                (a.status === 'scheduled' || a.status === 'started' || a.status === 'accepted')
+                (a.status === 'scheduled' || a.status === 'started' || a.status === 'in_progress' || a.status === 'accepted')
         );
     };
 
@@ -294,7 +295,7 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
      * dashboard's "active request" section.
      */
     const getActiveRequests = () => {
-        const ACTIVE: AppointmentStatus[] = ['pending', 'offered', 'accepted', 'started'];
+        const ACTIVE: AppointmentStatus[] = ['pending', 'offered', 'accepted', 'started', 'in_progress'];
         return appointments
             .filter((a) => ACTIVE.includes(a.status))
             .sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''));

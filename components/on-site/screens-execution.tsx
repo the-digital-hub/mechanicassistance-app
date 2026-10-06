@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { MAP_PROVIDER } from '@/lib/maps/provider';
-import { MediaSlot } from './MediaSlot';
+import type { OnSiteMedia } from '@/lib/dao/OnSiteDAO';
+import { MediaSlot, useExistingCaptures } from './MediaSlot';
 import {
     ActionBar, Body, Card, CardTitle, Checkbox, Eyebrow, GhostButton, Intro, MaintenanceChecklist, NoteInput, OS,
     PrimaryButton, Tip, useMaintenanceItems,
@@ -202,12 +203,17 @@ export function ScreenBuyParts({ obdFilled, onDone }: { obdFilled: boolean; onDo
 // ─────────── Evaluate options (can't resolve) ───────────
 const REASONS = ['notReported', 'obdFlag', 'noParts', 'needsShop', 'other'];
 
-export function ScreenEvaluateOptions({ context, onSelect }: { context: 'checkin' | 'execution'; onSelect: (r: RedirectReason) => void }) {
+export function ScreenEvaluateOptions({ context, onSelect, checklist: initialChecklist, onChecklistChange }: {
+    context: 'checkin' | 'execution';
+    onSelect: (r: RedirectReason) => void;
+    checklist?: Record<string, boolean>;
+    onChecklistChange?: (c: Record<string, boolean>) => void;
+}) {
     const { t } = useTranslation();
     const k = 'appointments.onSite.options';
     const [reason, setReason] = React.useState<string | null>(null);
     const [note, setNote] = React.useState('');
-    const checklist = useMaintenanceItems();
+    const checklist = useMaintenanceItems(initialChecklist, onChecklistChange);
     const label = (id: string) => t(`${k}.reasons.${id}`);
 
     return (
@@ -275,21 +281,46 @@ export function ScreenEvaluateOptions({ context, onSelect }: { context: 'checkin
 }
 
 // ─────────── Resolve the issue ───────────
-export function ScreenResolveIncident({ issue, partsOrder, onResolved, onNotResolved }: {
-    issue: string; partsOrder: PartsOrder | null; onResolved: () => void; onNotResolved: () => void;
+export function ScreenResolveIncident({
+    issue, partsOrder, workStartedAt, workNotes, onWorkNotesChange, checklist: initialChecklist, onChecklistChange,
+    onResolved, onNotResolved,
+}: {
+    issue: string;
+    partsOrder: PartsOrder | null;
+    /** When the repair started, per the server (ISO); the timer counts from it. */
+    workStartedAt: string | null;
+    workNotes: string;
+    onWorkNotesChange: (notes: string) => void;
+    checklist?: Record<string, boolean>;
+    onChecklistChange?: (c: Record<string, boolean>) => void;
+    onResolved: () => void;
+    onNotResolved: () => void;
 }) {
     const { t } = useTranslation();
     const k = 'appointments.onSite.resolve';
-    const [seconds, setSeconds] = React.useState(0);
-    const [notes, setNotes] = React.useState('');
-    const nextPhoto = React.useRef(0);
-    const [photos, setPhotos] = React.useState<number[]>([]);
-    const checklist = useMaintenanceItems();
+    const existingProof = useExistingCaptures('proof');
+    const startedAt = React.useMemo(() => (workStartedAt ? new Date(workStartedAt).getTime() : Date.now()), [workStartedAt]);
+    const [seconds, setSeconds] = React.useState(() => Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
+    const [notes, setNotes] = React.useState(workNotes);
+    const nextPhoto = React.useRef(existingProof.length);
+    const [photos, setPhotos] = React.useState<{ id: number; existing?: OnSiteMedia }[]>(() =>
+        existingProof.map((m, i) => ({ id: i, existing: m })),
+    );
+    const checklist = useMaintenanceItems(initialChecklist, onChecklistChange);
 
     React.useEffect(() => {
-        const id = setInterval(() => setSeconds((s) => s + 1), 1000);
+        const id = setInterval(() => setSeconds(Math.max(0, Math.floor((Date.now() - startedAt) / 1000))), 1000);
         return () => clearInterval(id);
-    }, []);
+    }, [startedAt]);
+
+    // Save the notes once the mechanic stops typing.
+    const saveNotes = React.useRef(onWorkNotesChange);
+    saveNotes.current = onWorkNotesChange;
+    React.useEffect(() => {
+        if (notes === workNotes) return;
+        const id = setTimeout(() => saveNotes.current(notes), 800);
+        return () => clearTimeout(id);
+    }, [notes, workNotes]);
     const mm = String(Math.floor(seconds / 60)).padStart(2, '0');
     const ss = String(seconds % 60).padStart(2, '0');
 
@@ -373,14 +404,21 @@ export function ScreenResolveIncident({ issue, partsOrder, onResolved, onNotReso
                         title={t(`${k}.proof`)}
                         optional
                         right={
-                            <TouchableOpacity onPress={() => setPhotos((p) => [...p, nextPhoto.current++])}>
+                            <TouchableOpacity onPress={() => setPhotos((p) => [...p, { id: nextPhoto.current++ }])}>
                                 <Text className="font-outfit-bold text-xs" style={{ color: OS.blue }}>{t(`${k}.addPhoto`)}</Text>
                             </TouchableOpacity>
                         }
                     />
-                    {photos.map((id) => (
-                        <View key={id}>
-                            <MediaSlot height={150} placeholder={t(`${k}.proofPh`)} note onDeleteSlot={() => setPhotos((p) => p.filter((x) => x !== id))} />
+                    {photos.map((photo) => (
+                        <View key={photo.id}>
+                            <MediaSlot
+                                height={150}
+                                placeholder={t(`${k}.proofPh`)}
+                                captureKind="proof"
+                                existing={photo.existing}
+                                note
+                                onDeleteSlot={() => setPhotos((p) => p.filter((x) => x.id !== photo.id))}
+                            />
                         </View>
                     ))}
                     <View className="px-4 pb-4 pt-1">

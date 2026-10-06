@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Text, TouchableOpacity, View } from 'react-native';
-import { MediaSlot, PhotoList } from './MediaSlot';
+import { Alert, Text, TouchableOpacity, View } from 'react-native';
+import { MediaSlot, PhotoList, useExistingCaptures } from './MediaSlot';
 import type { RedirectReason } from './screens-execution';
 import { ActionBar, Body, Card, Eyebrow, InfoRow, Intro, NoteInput, OS, PrimaryButton, Segmented, Tip, cardShadow } from './ui';
 
@@ -12,9 +12,10 @@ import { ActionBar, Body, Card, Eyebrow, InfoRow, Intro, NoteInput, OS, PrimaryB
 export type DoneVariant = 'completed' | 'redirected';
 
 // ─────────── Check-out capture ───────────
-export function ScreenVideoOut({ obdPending, onNext }: { obdPending: boolean; onNext: () => void }) {
+export function ScreenVideoOut({ obdPending, onNext }: { obdPending: boolean; onNext: (skipped: boolean) => void }) {
     const { t } = useTranslation();
     const k = 'appointments.onSite.videoOut';
+    const walkaround = useExistingCaptures('walkaround_out');
     const [tab, setTab] = React.useState<'video' | 'photos'>('video');
     const [videoFilled, setVideoFilled] = React.useState(false);
     const [photoFilled, setPhotoFilled] = React.useState(false);
@@ -60,34 +61,57 @@ export function ScreenVideoOut({ obdPending, onNext }: { obdPending: boolean; on
                 <Card>
                     {tab === 'video' ? (
                         <>
-                            <MediaSlot kind="video" height={220} placeholder={t('appointments.onSite.photos.videoPh')} onChange={setVideoFilled} />
+                            <MediaSlot kind="video" height={220} placeholder={t('appointments.onSite.photos.videoPh')} captureKind="walkaround_out" existing={walkaround[0]} onChange={setVideoFilled} />
                             <View className="px-4 pb-4 -mt-2">
                                 <NoteInput placeholder={t(`${k}.videoNotePh`)} />
                             </View>
                         </>
                     ) : (
-                        <PhotoList placeholder={t(`${k}.photoPh`)} height={150} onAnyFilled={setPhotoFilled} />
+                        <PhotoList placeholder={t(`${k}.photoPh`)} captureKind="exit_photo" height={150} onAnyFilled={setPhotoFilled} />
                     )}
                 </Card>
 
                 <Tip tone="green">{t(`${k}.tip`)}</Tip>
             </Body>
             <ActionBar>
-                <PrimaryButton label={ready ? t('appointments.onSite.common.continue') : t(`${k}.skip`)} onPress={onNext} />
+                <PrimaryButton label={ready ? t('appointments.onSite.common.continue') : t(`${k}.skip`)} onPress={() => onNext(!ready)} />
             </ActionBar>
         </>
     );
 }
 
 // ─────────── Close-out summary ───────────
-const SERVICE_FEE = 85; // mock — pricing for on-site close-out is not wired yet
+function formatAmount(amount: string | null): string {
+    if (!amount) return '—';
+    const n = Number(String(amount).replace(/[^0-9.]/g, ''));
+    return Number.isFinite(n) && n > 0 ? `$${n.toFixed(2)}` : amount;
+}
 
-export function ScreenCloseService({ variant, partsCost, redirectReason, onClose }: {
-    variant: DoneVariant; partsCost: number; redirectReason: RedirectReason | null; onClose: () => void;
+export function ScreenCloseService({ variant, partsCost, redirectReason, serviceAmount, checkedInAt, onClose }: {
+    variant: DoneVariant;
+    partsCost: number;
+    redirectReason: RedirectReason | null;
+    /** Price agreed when the job was accepted, as the server stores it. */
+    serviceAmount: string | null;
+    checkedInAt: string | null;
+    onClose: () => Promise<void>;
 }) {
     const { t } = useTranslation();
     const k = 'appointments.onSite.close';
     const completed = variant === 'completed';
+    const [closing, setClosing] = React.useState(false);
+    const minutesOnSite = checkedInAt ? Math.max(1, Math.round((Date.now() - new Date(checkedInAt).getTime()) / 60000)) : null;
+    const timeValue = minutesOnSite !== null ? t(`${k}.minutes`, { minutes: minutesOnSite }) : '—';
+    const amount = formatAmount(serviceAmount);
+
+    const finish = async () => {
+        setClosing(true);
+        try {
+            await onClose();
+        } finally {
+            setClosing(false);
+        }
+    };
 
     return (
         <>
@@ -98,7 +122,7 @@ export function ScreenCloseService({ variant, partsCost, redirectReason, onClose
                         <>
                             <InfoRow icon="checkmark" label={t(`${k}.issue`)} value={t(`${k}.resolved`)} />
                             <InfoRow icon="list-outline" label={t(`${k}.checklist`)} value={t(`${k}.checklistValue`)} />
-                            <InfoRow icon="time-outline" label={t(`${k}.time`)} value={t(`${k}.timeCompleted`)} last />
+                            <InfoRow icon="time-outline" label={t(`${k}.time`)} value={timeValue} last />
                         </>
                     ) : (
                         <>
@@ -117,7 +141,7 @@ export function ScreenCloseService({ variant, partsCost, redirectReason, onClose
                                     }
                                 />
                             ) : null}
-                            <InfoRow icon="time-outline" label={t(`${k}.time`)} value={t(`${k}.timeRedirected`)} last />
+                            <InfoRow icon="time-outline" label={t(`${k}.time`)} value={timeValue} last />
                         </>
                     )}
                 </Card>
@@ -138,16 +162,16 @@ export function ScreenCloseService({ variant, partsCost, redirectReason, onClose
                 <View className="mx-4" style={cardShadow}>
                     <View className="flex-row justify-between px-4 py-3" style={{ borderBottomWidth: 1, borderBottomColor: OS.borderSoft }}>
                         <Text className="font-outfit-medium text-[12.5px]" style={{ color: OS.muted }}>{t(`${k}.serviceValue`)}</Text>
-                        <Text className="font-outfit-bold text-[13px]" style={{ color: OS.text }}>${SERVICE_FEE}</Text>
+                        <Text className="font-outfit-bold text-[13px]" style={{ color: OS.text }}>{amount}</Text>
                     </View>
                     <View className="flex-row justify-between px-4 py-3">
                         <Text className="font-outfit-bold text-[13px]" style={{ color: OS.text }}>{t(`${k}.total`)}</Text>
-                        <Text className="font-outfit-bold text-[15px]" style={{ color: OS.blueDark }}>${SERVICE_FEE}</Text>
+                        <Text className="font-outfit-bold text-[15px]" style={{ color: OS.blueDark }}>{amount}</Text>
                     </View>
                 </View>
             </Body>
             <ActionBar>
-                <PrimaryButton label={t(`${k}.finish`)} onPress={onClose} tone="green" />
+                <PrimaryButton label={closing ? t(`${k}.closing`) : t(`${k}.finish`)} onPress={() => void finish()} disabled={closing} tone="green" />
             </ActionBar>
         </>
     );
@@ -160,15 +184,33 @@ function initials(name: string): string {
     return parts.slice(0, 2).map((p) => p[0]!.toUpperCase()).join('');
 }
 
-export function ScreenDone({ variant, appointmentId, clientName, onBackToDashboard }: {
-    variant: DoneVariant; appointmentId: string; clientName: string; onBackToDashboard: () => void;
+export function ScreenDone({ variant, appointmentId, clientName, alreadyRated, onSubmitReview, onBackToDashboard }: {
+    variant: DoneVariant;
+    appointmentId: string;
+    clientName: string;
+    alreadyRated: boolean;
+    onSubmitReview: (rating: number, comment: string) => Promise<void>;
+    onBackToDashboard: () => void;
 }) {
     const { t } = useTranslation();
     const k = 'appointments.onSite.done';
     const completed = variant === 'completed';
     const [rating, setRating] = React.useState(0);
     const [comment, setComment] = React.useState('');
-    const [sent, setSent] = React.useState(false);
+    const [sent, setSent] = React.useState(alreadyRated);
+    const [sending, setSending] = React.useState(false);
+
+    const submit = async () => {
+        setSending(true);
+        try {
+            await onSubmitReview(rating, comment);
+            setSent(true);
+        } catch {
+            Alert.alert(t('appointments.onSite.common.error'));
+        } finally {
+            setSending(false);
+        }
+    };
 
     return (
         <Body>
@@ -206,10 +248,10 @@ export function ScreenDone({ variant, appointmentId, clientName, onBackToDashboa
                         </View>
                         <NoteInput value={comment} onChangeText={setComment} placeholder={t(`${k}.commentPh`)} rows={3} />
                         <TouchableOpacity
-                            onPress={() => setSent(true)}
-                            disabled={!rating}
+                            onPress={() => void submit()}
+                            disabled={!rating || sending}
                             className="items-center py-3 mt-3.5 rounded-xl"
-                            style={{ backgroundColor: rating ? OS.blue : OS.blueIce }}
+                            style={{ backgroundColor: rating && !sending ? OS.blue : OS.blueIce }}
                         >
                             <Text className="text-white font-outfit-bold text-[13.5px]">{t(`${k}.submit`)}</Text>
                         </TouchableOpacity>
