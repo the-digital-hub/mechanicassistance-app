@@ -454,7 +454,7 @@ export default function DashboardScreen() {
                                             </View>
 
                                             {/* Budget */}
-                                            <View className="flex-row items-center px-5 py-4 border-b border-gray-100">
+                                            <View className="flex-row items-center px-5 py-4 border-b border-gray-100" onLayout={(e) => console.log("[ROWH] DashboardBudget", e.nativeEvent.layout.height)}>
                                                 <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
                                                     <DollarSign size={20} color="#0047AB" />
                                                 </View>

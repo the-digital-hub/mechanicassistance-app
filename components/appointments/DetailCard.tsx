@@ -36,20 +36,21 @@ interface DetailRowProps {
 export function DetailRow({ icon, label, value, last }: DetailRowProps) {
     return (
         <View
-            className="flex-row items-center gap-3 px-4 py-3"
-            style={last ? undefined : { borderBottomWidth: 1, borderBottomColor: '#EEF2FA' }}
+            className="flex-row items-center px-5 py-4"
+            onLayout={(e) => console.log("[ROWH] DetailRow", label, e.nativeEvent.layout.height)}
+            style={[{ minHeight: 77 }, last ? undefined : { borderBottomWidth: 1, borderBottomColor: '#EEF2FA' }]}
         >
             <View
-                className="items-center justify-center"
-                style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: '#EAF1FF' }}
+                className="items-center justify-center mr-4"
+                style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#EAF1FF' }}
             >
-                <Ionicons name={icon} size={18} color="#1E56E3" />
+                <Ionicons name={icon} size={20} color="#1E56E3" />
             </View>
             <View className="flex-1">
-                <Text className="font-outfit-medium text-[11px] uppercase mb-0.5" style={{ color: '#6B7490' }}>
+                <Text className="font-outfit-semibold text-xs tracking-widest uppercase mb-0.5" style={{ color: '#6B7490' }}>
                     {label}
                 </Text>
-                <Text className="font-outfit-bold text-[15px] leading-5" style={{ color: '#0B1530' }}>
+                <Text className="font-outfit-bold text-base" style={{ color: '#0B1530' }}>
                     {value}
                 </Text>
             </View>

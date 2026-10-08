@@ -256,20 +256,21 @@ export default function ConfirmationScreen() {
     /** Icon + label/value row of the white summary card. */
     const SummaryRow = ({ icon, label, value, last }: { icon: React.ReactNode; label: string; value: string; last?: boolean }) => (
         <View
-            className="flex-row items-start py-4"
-            style={{ gap: 12, borderBottomWidth: last ? 0 : 1, borderBottomColor: '#E5E9F5' }}
+            className="flex-row items-center py-4"
+            onLayout={(e) => console.log("[ROWH] SummaryRow", label, e.nativeEvent.layout.height)}
+            style={{ gap: 16, minHeight: 77, borderBottomWidth: last ? 0 : 1, borderBottomColor: '#E5E9F5' }}
         >
             <View
                 className="items-center justify-center"
-                style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: 'rgba(30,86,227,0.08)' }}
+                style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(30,86,227,0.08)' }}
             >
                 {icon}
             </View>
             <View className="flex-1">
-                <Text className="font-outfit-bold text-[11px] tracking-wide mb-0.5" style={{ color: '#A8B2C7' }}>
+                <Text className="font-outfit-semibold text-xs tracking-widest mb-0.5" style={{ color: '#A8B2C7' }}>
                     {label.toUpperCase()}
                 </Text>
-                <Text className="text-gray-900 font-outfit-semibold text-base">{value}</Text>
+                <Text className="text-gray-900 font-outfit-bold text-base">{value}</Text>
             </View>
         </View>
     );
@@ -365,23 +366,23 @@ export default function ConfirmationScreen() {
                     style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 3, elevation: 2 }}
                 >
                     <SummaryRow
-                        icon={<Car size={18} color="#1E56E3" />}
+                        icon={<Car size={20} color="#1E56E3" />}
                         label={t('requestAssistance.confirmation.car')}
                         value={vehicleStr}
                     />
                     <SummaryRow
-                        icon={<AlertCircle size={18} color="#1E56E3" />}
+                        icon={<AlertCircle size={20} color="#1E56E3" />}
                         label={t('requestAssistance.confirmation.carIssue')}
                         value={(description as string) || t('requestAssistance.confirmation.noDescription')}
                     />
                     <SummaryRow
-                        icon={<MapPin size={18} color="#1E56E3" />}
+                        icon={<MapPin size={20} color="#1E56E3" />}
                         label={t('requestAssistance.confirmation.location')}
                         value={((finalAddress || addressLabel) as string) || ''}
                     />
                     <SummaryRow
                         last
-                        icon={<AlignLeft size={18} color="#1E56E3" />}
+                        icon={<AlignLeft size={20} color="#1E56E3" />}
                         label={t('requestAssistance.confirmation.notes')}
                         value={(details as string) || t('requestAssistance.confirmation.none')}
                     />

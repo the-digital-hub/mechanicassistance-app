@@ -1,6 +1,7 @@
 import {
     Outfit_400Regular,
     Outfit_500Medium,
+    Outfit_600SemiBold,
     Outfit_700Bold,
 } from "@expo-google-fonts/outfit";
 import { LogBox } from "react-native";
@@ -115,6 +116,7 @@ export default function RootLayout() {
   const [loaded, error] = useFonts({
     Outfit_400Regular,
     Outfit_500Medium,
+    Outfit_600SemiBold,
     Outfit_700Bold,
   });
 

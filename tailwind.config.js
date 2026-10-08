@@ -7,6 +7,7 @@ module.exports = {
       fontFamily: {
         'outfit-regular': ['Outfit_400Regular'],
         'outfit-medium': ['Outfit_500Medium'],
+        'outfit-semibold': ['Outfit_600SemiBold'],
         'outfit-bold': ['Outfit_700Bold'],
       }
     },
