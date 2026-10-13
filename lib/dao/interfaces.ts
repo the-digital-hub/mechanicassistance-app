@@ -350,6 +350,13 @@ export interface AssistanceOfferSummary {
         servicesCount: number;
         aseCertified: boolean;
         idVerified: boolean;
+        /** Optional: older backends don't send these. */
+        about?: string | null;
+        yearsExperience?: string | null;
+        /** ISO date the mechanic joined. */
+        memberSince?: string | null;
+        specialties?: string[];
+        aseCodes?: string[];
     };
     /** Dollar amounts as strings ("180.00"); null when the request has no stored breakdown. */
     breakdown: { service: string; fees: string; taxes: string; total: string } | null;

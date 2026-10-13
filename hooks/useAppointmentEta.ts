@@ -20,7 +20,7 @@ export interface AppointmentEta {
  * - It then listens for `eta_update` WebSocket events (emitted to BOTH the
  *   client and the mechanic) and refreshes as the mechanic moves.
  *
- * Used by both UserTrackingTab (client) and MechanicAssistanceInfoTab (mechanic)
+ * Used by both the owner's OwnerEtaCard (client) and MechanicAssistanceInfoTab (mechanic)
  * so the two roles show the same arrival time and arrival hour.
  */
 export function useAppointmentEta(

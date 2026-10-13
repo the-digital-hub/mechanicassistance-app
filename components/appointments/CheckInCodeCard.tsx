@@ -42,24 +42,29 @@ export function CheckInCodeCard({ appointmentId, status }: { appointmentId: stri
 
     return (
         <View
-            className="bg-white items-center px-5 py-5"
+            className="bg-white"
             style={{
                 borderRadius: 20,
+                paddingHorizontal: 16,
+                paddingTop: 18,
+                paddingBottom: 20,
                 borderWidth: 1,
                 borderColor: '#EEF2FA',
-                shadowColor: '#1E56E3',
-                shadowOffset: { width: 0, height: 8 },
-                shadowOpacity: 0.15,
-                shadowRadius: 16,
-                elevation: 5,
+                shadowColor: '#0E2F8A',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.06,
+                shadowRadius: 14,
+                elevation: 3,
             }}
             testID="check-in-code-card"
         >
-            <View className="flex-row items-center gap-2 self-start">
-                <Ionicons name="qr-code-outline" size={16} color="#1E56E3" />
-                <Text className="font-outfit-bold text-[15px]" style={{ color: '#0B1530' }}>{t('appointments.customerCheckIn.title')}</Text>
+            <View className="flex-row items-center" style={{ gap: 10 }}>
+                <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: '#EAF1FF', alignItems: 'center', justifyContent: 'center' }}>
+                    <Ionicons name="qr-code-outline" size={18} color="#1E56E3" />
+                </View>
+                <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#0B1530', letterSpacing: -0.3 }}>{t('appointments.customerCheckIn.title')}</Text>
             </View>
-            <Text className="font-outfit-regular text-xs mt-1 self-start" style={{ color: '#6B7490' }}>
+            <Text className="font-outfit-regular" style={{ fontSize: 12.5, color: '#6B7490', lineHeight: 18, marginTop: 8 }}>
                 {t('appointments.customerCheckIn.subtitle')}
             </Text>
 
@@ -70,15 +75,19 @@ export function CheckInCodeCard({ appointmentId, status }: { appointmentId: stri
             ) : state === 'error' || !code ? (
                 <Text className="font-outfit-medium text-xs mt-4" style={{ color: '#E53E3E' }}>{t('appointments.customerCheckIn.unavailable')}</Text>
             ) : (
-                <>
-                    <View className="mt-4 p-3 rounded-2xl" style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E4EAF5' }}>
-                        <QRCode value={code.qrPayload} size={180} color="#0B1530" backgroundColor="#FFFFFF" />
+                <View className="items-center">
+                    <View style={{ marginTop: 16, padding: 12, borderRadius: 16, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E4EAF5' }}>
+                        <QRCode value={code.qrPayload} size={184} color="#0B1530" backgroundColor="#FFFFFF" />
                     </View>
-                    <Text className="font-outfit-medium text-[11px] uppercase mt-4" style={{ color: '#8C96AE' }}>{t('appointments.customerCheckIn.pin')}</Text>
-                    <Text className="font-outfit-bold mt-1" style={{ color: '#0B1530', fontSize: 34, letterSpacing: 12 }} testID="check-in-pin-value">
-                        {code.pin}
-                    </Text>
-                </>
+                    <Text className="font-outfit-bold" style={{ marginTop: 14, fontSize: 11, letterSpacing: 1.4, color: '#8C96AE' }}>{t('appointments.customerCheckIn.pin')}</Text>
+                    <View className="flex-row" style={{ gap: 8, marginTop: 6 }} testID="check-in-pin-value" accessibilityLabel={code.pin}>
+                        {code.pin.split('').map((digit, i) => (
+                            <View key={i} style={{ width: 46, height: 54, borderRadius: 12, backgroundColor: '#F4F8FF', borderWidth: 1, borderColor: '#EAF1FF', alignItems: 'center', justifyContent: 'center' }}>
+                                <Text className="font-outfit-bold" style={{ fontSize: 26, color: '#0B1530' }}>{digit}</Text>
+                            </View>
+                        ))}
+                    </View>
+                </View>
             )}
         </View>
     );

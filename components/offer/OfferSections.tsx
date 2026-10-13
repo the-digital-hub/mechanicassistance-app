@@ -26,9 +26,9 @@ export const AO = {
     star: '#F5A524',
 };
 
-type IconName = React.ComponentProps<typeof Ionicons>['name'];
+export type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
-const card = {
+export const card = {
     borderRadius: 18,
     backgroundColor: '#fff',
     borderWidth: 1,
@@ -40,10 +40,10 @@ const card = {
     elevation: 3,
 } as const;
 
-function IconTile({ name, size = 17 }: { name: IconName; size?: number }) {
+export function IconTile({ name, size = 17, tone = 'blue' }: { name: IconName; size?: number; tone?: 'blue' | 'green' }) {
     return (
-        <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: AO.blueSoft, alignItems: 'center', justifyContent: 'center' }}>
-            <Ionicons name={name} size={size} color={AO.blue} />
+        <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: tone === 'green' ? AO.greenSoft : AO.blueSoft, alignItems: 'center', justifyContent: 'center' }}>
+            <Ionicons name={name} size={size} color={tone === 'green' ? AO.greenText : AO.blue} />
         </View>
     );
 }
@@ -63,7 +63,7 @@ export function OfferHoldPill({ secondsLeft }: { secondsLeft: number }) {
     );
 }
 
-function Stars({ rating, size = 11 }: { rating: number; size?: number }) {
+export function Stars({ rating, size = 11 }: { rating: number; size?: number }) {
     return (
         <View className="flex-row" style={{ gap: 1.5 }}>
             {[0, 1, 2, 3, 4].map((i) => {
@@ -212,6 +212,8 @@ export interface SummaryRow {
     icon: IconName;
     label: string;
     value: React.ReactNode;
+    tone?: 'blue' | 'green';
+    strong?: boolean;
 }
 
 export function RequestSummaryRows({ rows }: { rows: SummaryRow[] }) {
@@ -223,11 +225,11 @@ export function RequestSummaryRows({ rows }: { rows: SummaryRow[] }) {
                     className="flex-row items-center"
                     style={{ gap: 12, paddingHorizontal: 14, paddingVertical: 11, borderBottomWidth: i < rows.length - 1 ? 1 : 0, borderBottomColor: AO.borderSoft }}
                 >
-                    <IconTile name={r.icon} />
+                    <IconTile name={r.icon} tone={r.tone} />
                     <Text className="font-outfit-medium" style={{ width: 80, fontSize: 12, color: AO.muted }}>{r.label}</Text>
                     <View style={{ flex: 1, minWidth: 0, alignItems: 'flex-end' }}>
                         {typeof r.value === 'string' ? (
-                            <Text className="font-outfit-bold" style={{ fontSize: 13, color: AO.text, textAlign: 'right', lineHeight: 18 }}>{r.value}</Text>
+                            <Text className="font-outfit-bold" style={{ fontSize: r.strong ? 14 : 13, color: r.tone === 'green' ? AO.greenText : AO.text, textAlign: 'right', lineHeight: 18 }}>{r.value}</Text>
                         ) : (
                             r.value
                         )}

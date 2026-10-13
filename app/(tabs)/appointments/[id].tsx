@@ -2,14 +2,25 @@ import { CancellationModal } from '@/components/appointments/CancellationModal';
 import { MechanicAssistanceInfoTab } from '@/components/appointments/MechanicAssistanceInfoTab';
 import { MechanicArrivalCard, PulseDot } from '@/components/appointments/MechanicArrivalCard';
 import { MechanicClientInfoTab } from '@/components/appointments/MechanicClientInfoTab';
-import { UserBudgetTab } from '@/components/appointments/UserBudgetTab';
-import { UserMechanicInfoTab } from '@/components/appointments/UserMechanicInfoTab';
-import { UserStatusTab } from '@/components/appointments/UserStatusTab';
-import { UserTrackingTab } from '@/components/appointments/UserTrackingTab';
+import { CheckInCodeCard } from '@/components/appointments/CheckInCodeCard';
+import { OwnerReviewCard } from '@/components/appointments/OwnerReviewCard';
+import {
+    AcceptedHeader,
+    CheckInBanner,
+    OwnerBudgetPanel,
+    OwnerEtaCard,
+    OwnerMechanicCard,
+    OwnerTab,
+    OwnerTabs,
+    OwnerTechnicianPanel,
+} from '@/components/appointments/owner/OwnerSections';
+import { AO, RequestSummaryRows } from '@/components/offer/OfferSections';
 import { useAppointments } from '@/context/AppointmentsContext';
 import { useUser } from '@/context/UserContext';
 import { useAppointmentEta } from '@/hooks/useAppointmentEta';
 import { useMechanicLocationBroadcast } from '@/hooks/useMechanicLocationBroadcast';
+import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
+import type { AssistanceOfferSummary } from '@/lib/dao/interfaces';
 import { userDAO } from '@/lib/dao/UserDAO';
 import { Ionicons } from '@expo/vector-icons';
 import { useGlobalSearchParams, useRouter } from 'expo-router';
@@ -21,7 +32,7 @@ import { Dimensions, ScrollView, Text, TouchableOpacity, View } from 'react-nati
 
 const { width } = Dimensions.get('window');
 
-type TabType = 'info' | 'client' | 'status' | 'budget';
+type TabType = 'info' | 'client';
 
 // Mechanic "Request accepted" palette.
 const MECH = {
@@ -67,9 +78,15 @@ export default function AppointmentDetailScreen() {
         isUserRole ? appointment?.id : undefined,
         isUserRole ? appointment?.status : undefined,
     );
-    const [mechanic, setMechanic] = React.useState<any>(null); // State for mechanic details
+    const [offer, setOffer] = React.useState<AssistanceOfferSummary | null>(null);
 
     const [activeTab, setActiveTab] = React.useState<TabType>('info');
+    const [ownerTab, setOwnerTab] = React.useState<OwnerTab>('status');
+    const [checkInSeen, setCheckInSeen] = React.useState(false);
+    const openOwnerTab = (tab: OwnerTab) => {
+        if (tab === 'checkin') setCheckInSeen(true);
+        setOwnerTab(tab);
+    };
     const [showCancelModal, setShowCancelModal] = React.useState(false);
     const [isCanceledFeedback, setIsCanceledFeedback] = React.useState(false);
 
@@ -134,20 +151,19 @@ export default function AppointmentDetailScreen() {
         }
     }, [rating, selectedOption, reviewText]);
 
-    // Fetch mechanic details if appointment exists
+    // Owner: who the mechanic is and what the job costs — the same summary the offer screen used.
+    // The appointment id is the request id.
     React.useEffect(() => {
-        const fetchMechanic = async () => {
-            if (appointment?.mechanicId) {
-                try {
-                    const mechData = await userDAO.getPublicProfile(appointment.mechanicId);
-                    setMechanic(mechData);
-                } catch (error) {
-                    console.error('Error fetching mechanic:', error);
-                }
-            }
+        if (!isUserRole || !appointment?.id || !appointment?.mechanicId) return;
+        let cancelled = false;
+        assistanceDAO
+            .getOfferSummary(appointment.id)
+            .then((summary) => !cancelled && setOffer(summary))
+            .catch((error) => console.error('Error fetching offer summary:', error));
+        return () => {
+            cancelled = true;
         };
-        fetchMechanic();
-    }, [appointment?.mechanicId]);
+    }, [isUserRole, appointment?.id, appointment?.mechanicId]);
 
     // Fetch client details if user is mechanic
     const [client, setClient] = React.useState<any>(null);
@@ -165,17 +181,10 @@ export default function AppointmentDetailScreen() {
         fetchClient();
     }, [isUserRole, appointment?.userId]);
 
-    const tabs: { key: TabType; label: string }[] = React.useMemo(() => isUserRole
-        ? [
-            { key: 'info', label: t('appointments.detail.tabs.assistanceInfo') },
-            { key: 'client', label: t('appointments.detail.tabs.mechanicInfo') },
-            { key: 'status', label: t('appointments.detail.tabs.assistStatus') },
-            { key: 'budget', label: t('appointments.detail.tabs.budget') },
-        ]
-        : [
-            { key: 'info', label: t('appointments.detail.tabs.assistanceInfo') },
-            { key: 'client', label: t('appointments.detail.tabs.clientInfo') },
-        ], [isUserRole, t]);
+    const tabs: { key: TabType; label: string }[] = React.useMemo(() => [
+        { key: 'info', label: t('appointments.detail.tabs.assistanceInfo') },
+        { key: 'client', label: t('appointments.detail.tabs.clientInfo') },
+    ], [t]);
 
     if (!appointment) {
         return (
@@ -189,34 +198,62 @@ export default function AppointmentDetailScreen() {
         );
     }
 
-    // Restore renderTabContent
-    const renderTabContent = () => {
-        if (isUserRole) {
-            switch (activeTab) {
-                case 'info':
-                    return (
-                        <UserTrackingTab
-                            onCancel={() => setShowCancelModal(true)}
-                            onMessage={() => router.push(`/chat/${appointment.id}`)}
-                            mechanic={mechanic}
-                            appointmentType={appointment.type}
-                            appointment={appointment}
+    const ownerDestination =
+        appointment.locationLat != null && appointment.locationLng != null
+            ? { latitude: appointment.locationLat, longitude: appointment.locationLng }
+            : null;
+    const ownerMechanicName = offer?.mechanic.displayName ?? t('requestAssistance.mechanicFound.technicianFallback');
+
+    const renderOwnerPanel = () => {
+        switch (ownerTab) {
+            case 'status':
+                return (
+                    <View style={{ gap: 16 }}>
+                        <OwnerReviewCard appointmentId={appointment.id} status={appointment.status} />
+                        <OwnerEtaCard
+                            status={appointment.status}
                             minutesAway={minutesAway}
                             etaTime={etaTime}
-                            etaLoading={etaLoading}
+                            loading={etaLoading}
+                            mechanicName={ownerMechanicName}
+                            destination={ownerDestination}
+                            mechanicCoords={mechanicCoords}
+                            polyline={polyline}
                         />
-                    );
-                case 'client':
-                    return <UserMechanicInfoTab mechanic={mechanic} />;
-                case 'status':
-                    return <UserStatusTab appointment={appointment} mechanicCoords={mechanicCoords} routePolyline={polyline} />;
-                case 'budget':
-                    return <UserBudgetTab appointment={appointment} />;
-                default:
-                    return null;
+                    </View>
+                );
+            case 'checkin':
+                return appointment.status === 'accepted' ? (
+                    <CheckInCodeCard appointmentId={appointment.id} status={appointment.status} />
+                ) : (
+                    <RequestSummaryRows rows={[{ icon: 'checkmark-circle-outline', label: t('appointments.ownerAccepted.tabs.checkin'), value: t('appointments.ownerAccepted.checkInDone'), tone: 'green' }]} />
+                );
+            case 'info': {
+                const issues = appointment.vehicleIssues?.map((i) => i.name).join(', ');
+                const posted = [appointment.date, appointment.time].filter(Boolean).join(' · ');
+                const rows = [
+                    { icon: 'flash-outline' as const, label: t('appointments.ownerAccepted.rows.service'), value: t(assistanceTypeKey(appointment)) },
+                    appointment.car ? { icon: 'car-outline' as const, label: t('appointments.ownerAccepted.rows.vehicle'), value: appointment.car } : null,
+                    issues ? { icon: 'construct-outline' as const, label: t('appointments.ownerAccepted.rows.issue'), value: issues } : null,
+                    appointment.notes ? { icon: 'document-text-outline' as const, label: t('appointments.ownerAccepted.rows.notes'), value: appointment.notes } : null,
+                    appointment.address ? { icon: 'location-outline' as const, label: t('appointments.ownerAccepted.rows.location'), value: appointment.address } : null,
+                    posted ? { icon: 'calendar-outline' as const, label: t('appointments.ownerAccepted.rows.posted'), value: posted } : null,
+                ].filter((r): r is NonNullable<typeof r> => r !== null);
+                return (
+                    <View style={{ gap: 12 }}>
+                        <RequestSummaryRows rows={rows} />
+                        {parseAttachments(appointment.photos).length > 0 && <AttachmentStrip photos={appointment.photos} />}
+                    </View>
+                );
             }
+            case 'mechanic':
+                return <OwnerTechnicianPanel mechanic={offer?.mechanic ?? null} />;
+            case 'budget':
+                return <OwnerBudgetPanel total={(offer?.breakdown?.total ?? offer?.price ?? appointment.budget ?? '').replace(/^\$/, '') || null} />;
         }
+    };
 
+    const renderTabContent = () => {
         switch (activeTab) {
             case 'info':
                 return <MechanicAssistanceInfoTab appointment={appointment} />;
@@ -255,7 +292,7 @@ export default function AppointmentDetailScreen() {
     return (
         <View
             className="flex-1"
-            style={{ backgroundColor: isUserRole ? '#FFFFFF' : MECH.page }}
+            style={{ backgroundColor: MECH.page }}
             testID="appointment-detail-root"
             nativeID="appointment-detail-root"
         >
@@ -265,72 +302,44 @@ export default function AppointmentDetailScreen() {
                 <View className="flex-1">
                     <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
                         {isUserRole ? (
-                            <>
-                            {/* Title Section */}
-                            <View className="px-6 py-4">
-                                <Text className="font-outfit-bold text-blue-900 text-lg">{t('appointments.detail.assistanceAccepted')}</Text>
-                                <Text className="text-gray-400 text-xs">ID:#{appointment.id.slice(0, 8)}...</Text>
-                            </View>
+                            <View style={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 32, gap: 16 }} testID="owner-accepted">
+                                <AcceptedHeader id={appointment.id} />
 
-                            {/* Status Bar - GREEN */}
-                            <View className="px-6 mb-6" testID="status-bar-container" nativeID="status-bar-container">
-                                <View
-                                    className="border border-green-100 rounded-lg p-4 items-center bg-green-50"
-                                    testID="status-badge"
-                                    nativeID="status-badge"
-                                >
-                                    <Text className="text-gray-500 font-outfit-medium text-xs mb-1" testID="status-label">{t('appointments.detail.status')}</Text>
-                                    <Text className="text-emerald-600 font-outfit-bold text-lg uppercase mb-1" testID="status-value">{t('appointments.detail.accepted')}</Text>
-                                    <Text className="text-emerald-600/80 text-[10px]" testID="status-description">{t('appointments.detail.onTrip')}</Text>
-                                </View>
-                            </View>
+                                <OwnerMechanicCard
+                                    mechanic={offer?.mechanic ?? null}
+                                    onMessage={() => router.push(`/chat/${appointment.id}`)}
+                                    onCall={() => router.push({ pathname: '/video-lobby/[id]' as any, params: { id: appointment.id } })}
+                                />
 
-                            {/* Video Call Button - only for videocall type appointments */}
-                            {appointment.type === 'videocall' && (
-                                <View className="px-6 mb-6">
+                                {appointment.type === 'videocall' && (
                                     <TouchableOpacity
-                                        onPress={() => router.push({
-                                            pathname: '/video-lobby/[id]' as any,
-                                            params: { id: appointment.id }
-                                        })}
-                                        className="bg-emerald-500 rounded-xl py-4 flex-row items-center justify-center gap-3 shadow-sm"
+                                        onPress={() => router.push({ pathname: '/video-lobby/[id]' as any, params: { id: appointment.id } })}
+                                        className="bg-emerald-500 rounded-xl py-4 flex-row items-center justify-center gap-3"
                                         activeOpacity={0.8}
                                     >
-                                        <Ionicons name="videocam" size={24} color="white" />
-                                        <Text className="text-white font-outfit-bold text-lg">
-                                            {isUserRole ? t('appointments.detail.startVideoChat') : t('appointments.detail.joinVideoCall')}
-                                        </Text>
+                                        <Ionicons name="videocam" size={22} color="white" />
+                                        <Text className="text-white font-outfit-bold text-base">{t('appointments.detail.startVideoChat')}</Text>
                                     </TouchableOpacity>
-                                </View>
-                            )}
+                                )}
 
-                            {/* Tab Navigation - ROUNDED BUTTONS */}
-                            <View className="px-6 mb-6" testID="tab-navigation-container" nativeID="tab-navigation-container">
-                                <View className="flex-row flex-wrap justify-between gap-y-3">
-                                    {tabs.map((tab) => (
-                                        <TouchableOpacity
-                                            key={tab.key}
-                                            testID={`tab-button-${tab.key}`}
-                                            className={`py-3 rounded-lg border w-[48%] items-center ${activeTab === tab.key
-                                                ? 'bg-white border-blue-900 border-2'
-                                                : 'bg-white border-gray-200'
-                                                }`}
-                                            onPress={() => setActiveTab(tab.key)}
-                                        >
-                                            <Text className={`font-outfit-bold text-xs ${activeTab === tab.key ? 'text-blue-900' : 'text-gray-900'
-                                                }`}>
-                                                {tab.label}
-                                            </Text>
-                                        </TouchableOpacity>
-                                    ))}
-                                </View>
-                            </View>
+                                <OwnerTabs
+                                    active={ownerTab}
+                                    onChange={openOwnerTab}
+                                    checkInDot={appointment.status === 'accepted' && !checkInSeen}
+                                />
 
-                            {/* Content Container - REMOVE BLUE HEADER */}
-                            <View className="px-6 pb-10" testID="tab-content-container" nativeID="tab-content-container">
-                                {renderTabContent()}
+                                {ownerTab === 'status' && appointment.status === 'accepted' && (
+                                    <CheckInBanner onPress={() => openOwnerTab('checkin')} />
+                                )}
+
+                                <View testID="tab-content-container">{renderOwnerPanel()}</View>
+
+                                {(appointment.status === 'accepted' || appointment.status === 'pending') && (
+                                    <TouchableOpacity onPress={() => setShowCancelModal(true)} style={{ alignItems: 'center', paddingVertical: 6 }} testID="owner-cancel">
+                                        <Text className="font-outfit-bold" style={{ fontSize: 14, color: AO.red }}>{t('appointments.ownerAccepted.cancel')}</Text>
+                                    </TouchableOpacity>
+                                )}
                             </View>
-                            </>
                         ) : (
                             <>
                             {/* Badge + title + assistance type */}
