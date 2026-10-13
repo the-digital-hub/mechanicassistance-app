@@ -61,8 +61,16 @@ export interface OnSiteVisit {
     ownerReviewSubmitted: boolean;
     /** Score the mechanic gave the owner, once rated. */
     clientRating: number | null;
-    /** Estimated payout date (closed + 7 days). Informative: no payments yet. */
+    /** Payout date: from Billing when `payoutStatus` is set, otherwise estimated (closed + 7 days). */
     estimatedPayoutAt: string | null;
+    /** What the mechanic is paid: the net once charged, else the agreed price. Optional for older backends. */
+    payoutAmount?: string | null;
+    /** null = no charge to go by, so amount and date are estimates. */
+    payoutStatus?: 'pending' | 'ready' | 'settled' | null;
+    /** When the payout was sent (ISO), once settled. */
+    fundsTransferredAt?: string | null;
+    /** When the owner's review closed out the visit (ISO). */
+    closeoutCompletedAt?: string | null;
     media: OnSiteMedia[];
 }
 

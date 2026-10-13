@@ -9,10 +9,42 @@ import { ActionBar, Body, Card, NoteInput, OS, PrimaryButton, cardShadow } from 
 // The last screen of the on-site flow, after "Finish Service" (design:
 // "Assistance Closeout"). Confirms the charge was requested, shows the payout
 // estimate, lets the mechanic ask the owner for a review and rate the owner,
-// and tracks the close-out steps. The payout is informative: the platform does
-// not process payments yet.
+// and tracks the close-out steps. The payout comes from Billing once the job is
+// charged (`payoutStatus`); otherwise it is an estimate. The owner's review
+// closes the assistance out (`closeoutCompletedAt`).
 
 const REVIEW_COOLDOWN_MS = 12 * 60 * 60 * 1000;
+
+/** A dot that breathes, for "waiting on someone" states (design: pr-pulse-dot). */
+function PulseDot({ size, color }: { size: number; color: string }) {
+    const pulse = React.useRef(new Animated.Value(0)).current;
+    React.useEffect(() => {
+        const loop = Animated.loop(Animated.sequence([
+            Animated.timing(pulse, { toValue: 1, duration: 800, useNativeDriver: true }),
+            Animated.timing(pulse, { toValue: 0, duration: 800, useNativeDriver: true }),
+        ]));
+        loop.start();
+        return () => loop.stop();
+    }, [pulse]);
+    const ring = size * 2.4;
+    return (
+        <View className="items-center justify-center" style={{ width: size, height: size }}>
+            <Animated.View
+                style={{
+                    position: 'absolute', width: ring, height: ring, borderRadius: ring / 2, backgroundColor: color,
+                    opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.35, 0] }),
+                    transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.4, 1] }) }],
+                }}
+            />
+            <Animated.View
+                style={{
+                    width: size, height: size, borderRadius: size / 2, backgroundColor: color,
+                    opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 0.7] }),
+                }}
+            />
+        </View>
+    );
+}
 
 function formatAmount(amount: string | null, fallback: string): string {
     if (!amount) return fallback;
@@ -66,10 +98,13 @@ function Payout({ visit }: { visit: OnSiteVisit }) {
     const { t } = useTranslation();
     const k = 'appointments.closeout';
     const fmt = useFormatters();
+    const settled = visit.payoutStatus === 'settled';
+    const payoutDate = visit.fundsTransferredAt ?? visit.estimatedPayoutAt;
+    const dateLabel = settled ? t(`${k}.arrivedOn`) : visit.payoutStatus ? t(`${k}.arrivesBy`) : t(`${k}.arrivesByEst`);
     const steps = [
         { label: t(`${k}.stepRequested`), state: 'done' as const },
         { label: t(`${k}.stepReview`), state: visit.ownerReviewSubmitted ? ('done' as const) : ('active' as const) },
-        { label: t(`${k}.stepFunds`), state: 'pending' as const },
+        { label: t(`${k}.stepFunds`), state: settled ? ('done' as const) : ('pending' as const) },
     ];
     return (
         <Card style={{ padding: 16 }}>
@@ -77,13 +112,13 @@ function Payout({ visit }: { visit: OnSiteVisit }) {
                 <View>
                     <Text className="font-outfit-bold text-[11px] tracking-widest" style={{ color: OS.muted }}>{t(`${k}.payoutLabel`)}</Text>
                     <Text className="font-outfit-bold mt-0.5" style={{ fontSize: 26, color: OS.blueDark }}>
-                        {formatAmount(visit.serviceAmount, t(`${k}.unknownAmount`))}
+                        {formatAmount(visit.payoutAmount ?? visit.serviceAmount, t(`${k}.unknownAmount`))}
                     </Text>
                 </View>
-                {visit.estimatedPayoutAt ? (
-                    <View className="items-end px-3 py-2 rounded-xl" style={{ backgroundColor: OS.blueSofter }}>
-                        <Text className="font-outfit-bold text-[10px]" style={{ color: OS.muted }}>{t(`${k}.arrivesBy`)}</Text>
-                        <Text className="font-outfit-bold text-[13.5px] mt-0.5" style={{ color: OS.blueDark }}>{fmt.date(visit.estimatedPayoutAt)}</Text>
+                {payoutDate ? (
+                    <View className="items-end px-3 py-2 rounded-xl" style={{ backgroundColor: settled ? OS.greenSoft : OS.blueSofter }}>
+                        <Text className="font-outfit-bold text-[10px] tracking-wide" style={{ color: OS.muted }}>{dateLabel}</Text>
+                        <Text className="font-outfit-bold text-[13.5px] mt-0.5" style={{ color: settled ? OS.greenDark : OS.blueDark }}>{fmt.date(payoutDate)}</Text>
                     </View>
                 ) : null}
             </View>
@@ -102,7 +137,7 @@ function Payout({ visit }: { visit: OnSiteVisit }) {
                                 {s.state === 'done' ? (
                                     <Ionicons name="checkmark" size={13} color={OS.green} />
                                 ) : s.state === 'active' ? (
-                                    <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: OS.blue }} />
+                                    <PulseDot size={7} color={OS.blue} />
                                 ) : (
                                     <Ionicons name="time-outline" size={12} color={OS.mutedLight} />
                                 )}
@@ -172,7 +207,7 @@ function ReviewRequest({ visit, onVisit }: { visit: OnSiteVisit; onVisit: (v: On
                 ) : requestedAt !== null && !canAsk ? (
                     <View className="px-3.5 py-3 rounded-xl" style={{ backgroundColor: OS.greenSoft }}>
                         <View className="flex-row items-center gap-2.5">
-                            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: OS.green }} />
+                            <PulseDot size={8} color={OS.green} />
                             <Text className="flex-1 font-outfit-bold text-[12.5px]" style={{ color: OS.greenDark }}>{t(`${k}.reviewSent`)}</Text>
                         </View>
                         {nextAllowed ? (
@@ -241,7 +276,7 @@ function RateOwner({ visit, onVisit }: { visit: OnSiteVisit; onVisit: (v: OnSite
                     </View>
                 ) : (
                     <>
-                        <View className="flex-row justify-center gap-2 mb-1">
+                        <View className="flex-row justify-center gap-2" style={{ marginBottom: 14 }}>
                             {[1, 2, 3, 4, 5].map((n) => (
                                 <TouchableOpacity key={n} onPress={() => setRating(n)} testID={`closeout-rate-${n}`} className="p-0.5">
                                     <Ionicons name={n <= rating ? 'star' : 'star-outline'} size={30} color={n <= rating ? OS.orange : OS.border} />
@@ -270,14 +305,13 @@ function RateOwner({ visit, onVisit }: { visit: OnSiteVisit; onVisit: (v: OnSite
 function Checklist({ visit }: { visit: OnSiteVisit }) {
     const { t } = useTranslation();
     const k = 'appointments.closeout';
-    const kinds = new Set(visit.media.map((m) => m.kind));
     const items = [
-        { label: t(`${k}.itemDiagnosis`), done: kinds.has('plate') && kinds.has('dashboard') },
+        { label: t(`${k}.itemDiagnosis`), done: visit.obdStatus === 'ready' || visit.obdStatus === 'manual' },
         { label: t(`${k}.itemPayment`), done: !!visit.closedAt },
         visit.ownerReviewSubmitted
             ? { label: t(`${k}.itemReviewReceived`), done: true }
             : { label: t(`${k}.itemReviewRequested`), done: !!visit.reviewRequestedAt },
-        { label: t(`${k}.itemFunds`), done: false },
+        { label: t(`${k}.itemFunds`), done: visit.payoutStatus === 'settled' },
     ];
     const doneCount = items.filter((i) => i.done).length;
     return (
@@ -329,7 +363,9 @@ export function ScreenCloseout({ visit, onVisit, onBackToDashboard }: {
                     </View>
                 ) : null}
                 <Checklist visit={visit} />
-                <Text className="font-outfit-regular text-[11.5px] text-center mx-5 mt-4 leading-4" style={{ color: OS.mutedLight }}>{t(`${k}.footer`)}</Text>
+                <Text className="font-outfit-regular text-[11.5px] text-center mx-5 mt-4 leading-4" style={{ color: visit.closeoutCompletedAt ? OS.greenDark : OS.mutedLight }}>
+                    {visit.closeoutCompletedAt ? t(`${k}.footerClosed`) : t(`${k}.footer`)}
+                </Text>
             </Body>
             <ActionBar>
                 <PrimaryButton label={t(`${k}.back`)} onPress={onBackToDashboard} testID="closeout-back" />
