@@ -1,75 +1,150 @@
+import {
+    AO,
+    OfferBreakdown,
+    OfferHoldPill,
+    PaymentValue,
+    ProtectionBox,
+    RequestSummaryRows,
+    TechnicianCard,
+} from '@/components/offer/OfferSections';
 import { useAppointments } from '@/context/AppointmentsContext';
-import { useUser } from '@/context/UserContext';
+import { useSocket } from '@/context/SocketContext';
+import { ApiError } from '@/lib/api/types';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
+import type { AssistanceOfferSummary, AssistanceRequest, VehicleIssueSnapshot } from '@/lib/dao/interfaces';
+import { pricingDAO } from '@/lib/dao/PricingDAO';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+/** Minutes in an ETA the mechanic typed ("5 min", "1h", "2hs", "20"), or null when it can't be read. */
+function etaMinutes(eta?: string | null): number | null {
+    if (!eta) return null;
+    const hours = eta.match(/(\d+(?:\.\d+)?)\s*h/i);
+    if (hours) return Math.round(parseFloat(hours[1]) * 60);
+    const mins = eta.match(/(\d+)/);
+    return mins ? parseInt(mins[1], 10) : null;
+}
+
+const formatMoney = (amount?: string | null) => (amount ? `$${Number(amount).toFixed(2)}` : null);
+
+type ConfirmState = 'idle' | 'loading' | 'done';
 
 export default function MechanicFoundScreen() {
     const router = useRouter();
+    const insets = useSafeAreaInsets();
     const { t } = useTranslation();
-    const { user } = useUser();
-    const params = useLocalSearchParams();
-    const { requestId } = params;
-    const { addAppointment, refresh } = useAppointments();
+    const k = 'requestAssistance.mechanicFound';
+    const { requestId } = useLocalSearchParams<{ requestId: string }>();
+    const { refresh } = useAppointments();
+    const { lastMessage } = useSocket();
 
-    const [assistanceRequest, setAssistanceRequest] = useState<any>(null);
+    const [request, setRequest] = useState<AssistanceRequest | null>(null);
+    const [offer, setOffer] = useState<AssistanceOfferSummary | null>(null);
+    const [issues, setIssues] = useState<VehicleIssueSnapshot[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [isConfirming, setIsConfirming] = useState(false);
-    const [isConfirmed, setIsConfirmed] = useState(false);
+    const [confirmState, setConfirmState] = useState<ConfirmState>('idle');
+    const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
 
-    // Fetch the assistance request details
+    // Phone clock minus server clock, so the countdown follows the server's hold.
+    const clockSkew = useRef(0);
+    const expiredHandled = useRef(false);
+
     useEffect(() => {
-        const fetchRequest = async () => {
-            if (!requestId) {
-                setIsLoading(false);
-                return;
-            }
+        if (!requestId) {
+            setIsLoading(false);
+            return;
+        }
+        let cancelled = false;
+        (async () => {
             try {
-                const data = await assistanceDAO.getById(requestId as string);
-                setAssistanceRequest(data);
-                // If already accepted, disable the button immediately
-                if (data?.status === 'accepted') {
-                    setIsConfirmed(true);
-                }
+                const [req, summary, reqIssues] = await Promise.all([
+                    assistanceDAO.getById(requestId),
+                    assistanceDAO.getOfferSummary(requestId).catch((error) => {
+                        console.error('Failed to fetch offer summary:', error);
+                        return null;
+                    }),
+                    pricingDAO.getRequestIssues(requestId).catch(() => [] as VehicleIssueSnapshot[]),
+                ]);
+                if (cancelled) return;
+                setRequest(req);
+                setOffer(summary);
+                setIssues(reqIssues ?? []);
+                if (summary) clockSkew.current = Date.now() - new Date(summary.serverNow).getTime();
+                if (req?.status === 'accepted') setConfirmState('done');
             } catch (error) {
                 console.error('Failed to fetch assistance request:', error);
             } finally {
-                setIsLoading(false);
+                if (!cancelled) setIsLoading(false);
             }
+        })();
+        return () => {
+            cancelled = true;
         };
-        fetchRequest();
     }, [requestId]);
 
-    const handleConfirm = async () => {
-        if (!requestId) return;
+    // The offer lapsed (timer, socket or a late confirm): tell the owner and go
+    // back to searching, where the next offer will land.
+    const handleExpired = useCallback(() => {
+        if (expiredHandled.current || !requestId) return;
+        expiredHandled.current = true;
+        Alert.alert(t(`${k}.expiredTitle`), t(`${k}.expiredMessage`));
+        router.replace({ pathname: '/request-assistance/searching', params: { requestId } });
+    }, [requestId, router, t]);
 
-        setIsConfirming(true);
+    const offerExpiresAt = offer?.offerExpiresAt ?? null;
+    useEffect(() => {
+        if (!offerExpiresAt || confirmState !== 'idle') {
+            setSecondsLeft(null);
+            return;
+        }
+        const expiresAt = new Date(offerExpiresAt).getTime();
+        const tick = () => {
+            const left = Math.max(0, Math.round((expiresAt - (Date.now() - clockSkew.current)) / 1000));
+            setSecondsLeft(left);
+            if (left === 0) handleExpired();
+        };
+        tick();
+        const id = setInterval(tick, 1000);
+        return () => clearInterval(id);
+    }, [offerExpiresAt, confirmState, handleExpired]);
+
+    // The server put the request back to pending (the hold ran out).
+    useEffect(() => {
+        if (lastMessage?.type !== 'assistance_update') return;
+        const payload = lastMessage.payload ?? {};
+        if ((payload.id ?? payload.requestId) !== requestId) return;
+        if (payload.status === 'pending' && confirmState !== 'done') handleExpired();
+    }, [lastMessage, requestId, confirmState, handleExpired]);
+
+    const handleConfirm = async () => {
+        if (!requestId || !request?.mechanicId || confirmState !== 'idle') return;
+        setConfirmState('loading');
         try {
-            const acceptedMechanicId = assistanceRequest.mechanicId || 'mech-1';
-            await assistanceDAO.updateStatus(requestId as string, acceptedMechanicId, 'accepted');
+            await assistanceDAO.updateStatus(requestId, request.mechanicId, 'accepted');
             await refresh();
-            setIsConfirmed(true);
+            setConfirmState('done');
 
             // For videocall type, redirect to video lobby instead of appointment detail
-            if (assistanceRequest?.type === 'videocall' || assistanceRequest?.type === 'video') {
-                router.replace({
-                    pathname: '/video-lobby/[id]' as any,
-                    params: { id: requestId as string }
-                });
+            const requestType = request.type as string;
+            if (requestType === 'videocall' || requestType === 'video') {
+                router.replace({ pathname: '/video-lobby/[id]' as any, params: { id: requestId } });
             } else {
-                router.replace({
-                    pathname: '/appointments/[id]',
-                    params: { id: requestId as string }
-                });
+                router.replace({ pathname: '/appointments/[id]', params: { id: requestId } });
             }
         } catch (error) {
+            const code = error instanceof ApiError ? (error.apiError as { code?: string } | null)?.code : undefined;
+            if (code === 'OFFER_EXPIRED') {
+                handleExpired();
+                return;
+            }
             console.error('Failed to confirm appointment:', error);
-            Alert.alert(t('requestAssistance.mechanicFound.errorTitle'), t('requestAssistance.mechanicFound.errorMessage'));
-        } finally {
-            setIsConfirming(false);
+            setConfirmState('idle');
+            Alert.alert(t(`${k}.errorTitle`), t(`${k}.errorMessage`));
         }
     };
 
@@ -77,16 +152,16 @@ export default function MechanicFoundScreen() {
     // the link sits right under the offer and is easy to hit by mistake.
     const handleCancel = () => {
         if (!requestId) return;
-        Alert.alert(t('requestAssistance.mechanicFound.cancelTitle'), t('requestAssistance.mechanicFound.cancelMessage'), [
-            { text: t('requestAssistance.mechanicFound.cancelKeep'), style: 'cancel' },
+        Alert.alert(t(`${k}.cancelTitle`), t(`${k}.cancelMessage`), [
+            { text: t(`${k}.cancelKeep`), style: 'cancel' },
             {
-                text: t('requestAssistance.mechanicFound.cancelConfirm'),
+                text: t(`${k}.cancelConfirm`),
                 style: 'destructive',
                 onPress: async () => {
                     try {
                         // Keep the offering mechanic on the request: '' would
                         // unassign them, and they would never hear it was canceled.
-                        await assistanceDAO.updateStatus(requestId as string, assistanceRequest?.mechanicId ?? '', 'canceled');
+                        await assistanceDAO.updateStatus(requestId, request?.mechanicId ?? '', 'canceled');
                         await refresh();
                         router.replace('/(tabs)/dashboard');
                     } catch (error) {
@@ -98,219 +173,130 @@ export default function MechanicFoundScreen() {
         ]);
     };
 
-    // Kept stable for the life of the screen. Regenerating it on every render
-    // changed the text width inside a centered block, so the footer (and with it
-    // the layout) visibly jittered sideways each time a socket event refreshed
-    // the appointments context.
-    const refNumber = React.useMemo(() => {
-        const rand = () => Math.floor(10000 + Math.random() * 90000);
-        const today = new Date()
-            .toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })
-            .replace(/\//g, '-');
-        return `FL${rand()}-${today}-USR${rand()}`;
-    }, []);
-
-    // Derive type label and icon from the request
-    const typeLabel =
-        assistanceRequest?.assistanceType === 'witness' ? t('requestAssistance.badge.accident') :
-            assistanceRequest?.type === 'immediate' ? t('requestAssistance.badge.immediate') :
-                assistanceRequest?.type === 'video' ? t('requestAssistance.badge.videoCall') :
-                    t('requestAssistance.badge.scheduled');
-
-    const typeIcon: any =
-        assistanceRequest?.type === 'immediate' ? 'construct-outline' :
-            assistanceRequest?.type === 'video' ? 'videocam-outline' :
-                'calendar-outline';
-
-    const typeSubtitle =
-        assistanceRequest?.type === 'immediate'
-            ? t('requestAssistance.mechanicFound.availableEta', { eta: assistanceRequest?.eta || '2hs' })
-            : assistanceRequest?.type === 'video' ? t('requestAssistance.mechanicFound.availableStartCall')
-                : t('requestAssistance.mechanicFound.availableDateTime', { date: assistanceRequest?.date || '', time: assistanceRequest?.time || '' }).trim();
-
     if (isLoading) {
         return (
-            <View className="flex-1 bg-white justify-center items-center">
-                <ActivityIndicator size="large" color="#0047AB" />
-                <Text className="text-gray-500 font-outfit-medium mt-4">{t('requestAssistance.mechanicFound.loading')}</Text>
+            <View className="flex-1 justify-center items-center" style={{ backgroundColor: AO.page }}>
+                <ActivityIndicator size="large" color={AO.blue} />
+                <Text className="text-gray-500 font-outfit-medium mt-4">{t(`${k}.loading`)}</Text>
             </View>
         );
     }
 
+    const type = request?.type as string | undefined;
+    const typeLabel =
+        request?.assistanceType === 'witness' ? t('requestAssistance.badge.accident') :
+            type === 'immediate' ? t('requestAssistance.badge.immediate') :
+                type === 'video' || type === 'videocall' ? t('requestAssistance.badge.videoCall') :
+                    t('requestAssistance.badge.scheduled');
+    const includedKey =
+        request?.assistanceType === 'witness' ? 'witness' :
+            type === 'immediate' ? 'immediate' :
+                type === 'video' || type === 'videocall' ? 'video' :
+                    type === 'scheduled' ? 'scheduled' : 'default';
+    const included = t(`${k}.included.${includedKey}`, { returnObjects: true }) as string[];
+
+    const eta = offer?.eta ?? request?.eta ?? null;
+    const minutes = etaMinutes(eta);
+    const arrival = minutes !== null && type === 'immediate'
+        ? t(`${k}.aroundTime`, {
+            time: new Date(Date.now() + minutes * 60_000).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
+        })
+        : undefined;
+    const etaValue = minutes !== null && /^\s*\d+\s*$/.test(eta ?? '') ? `${minutes} min` : eta ?? '—';
+
+    const breakdown = offer?.breakdown ?? null;
+    const price = formatMoney(breakdown?.total ?? offer?.price ?? request?.price ?? request?.budget) ?? t(`${k}.tbd`);
+    const lines = breakdown
+        ? [
+            { label: t(`${k}.lineService`, { type: typeLabel }), amount: formatMoney(breakdown.service)! },
+            { label: t(`${k}.linePlatformFee`), amount: formatMoney(breakdown.fees)! },
+            { label: t(`${k}.lineTaxes`), amount: formatMoney(breakdown.taxes)! },
+        ]
+        : [];
+
+    const vehicle = [request?.vehicle?.make, request?.vehicle?.model].filter(Boolean).join(' ') || request?.car || '—';
+    const issueText = issues.map((i) => i.name).filter(Boolean).join(', ') || request?.title || '—';
+
     return (
-        <View className="flex-1 bg-gray-50">
+        <View className="flex-1" style={{ backgroundColor: AO.page }}>
             {/* Header */}
-            <View className="bg-white px-6 pt-14 pb-4 border-b border-gray-100 flex-row items-center">
-                <TouchableOpacity onPress={() => router.back()} className="mr-4">
-                    <Ionicons name="chevron-back" size={24} color="#0F172A" />
+            <View
+                className="flex-row items-center"
+                style={{ paddingTop: insets.top + 8, paddingHorizontal: 16, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: 'rgba(14,47,138,0.07)' }}
+            >
+                <TouchableOpacity
+                    onPress={() => router.back()}
+                    style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 3, elevation: 2 }}
+                >
+                    <Ionicons name="chevron-back" size={18} color={AO.text} />
                 </TouchableOpacity>
-                <Text className="text-xl font-outfit-bold text-[#0F172A] flex-1 text-center mr-8">
-                    {t('requestAssistance.mechanicFound.headerTitle')}
+                <Text className="font-outfit-bold flex-1 text-center" style={{ fontSize: 17, color: AO.text, marginRight: 38 }}>
+                    {t(`${k}.headerTitle`)}
                 </Text>
             </View>
 
-            <ScrollView className="flex-1" contentContainerStyle={{ padding: 24, paddingBottom: 40 }}>
-                {/* Title Section */}
-                <Text className="text-blue-600 font-outfit-bold text-lg mb-1">{t('requestAssistance.mechanicFound.requestAMechanic')}</Text>
-                <Text className="text-gray-800 font-outfit-medium text-sm mb-6">{t('requestAssistance.mechanicFound.selectBestMatch')}</Text>
-
-                {/* Main Card */}
-                <View
-                    style={{
-                        borderWidth: 2,
-                        borderColor: '#2563EB',
-                        borderRadius: 16,
-                        backgroundColor: 'white',
-                        padding: 20,
-                        marginBottom: 20,
-                    }}
-                >
-                    {/* Type Badge */}
-                    <View className="flex-row items-center mb-4">
-                        <View className="bg-blue-100 p-2 rounded-lg mr-3">
-                            <Ionicons name={typeIcon} size={22} color="#2563EB" />
-                        </View>
-                        <View>
-                            <Text className="font-outfit-bold text-[#0F172A] text-sm tracking-widest uppercase">
-                                {typeLabel}
-                            </Text>
-                            <Text className="font-outfit-medium text-blue-600 text-sm">
-                                {typeSubtitle}
-                            </Text>
-                        </View>
-                    </View>
-
-                    {/* Cost — prefers mechanic's proposed price, falls back to budget */}
-                    <View className="mb-4">
-                        <Text className="font-outfit-bold text-[#0F172A] text-base">
-                            {t('requestAssistance.mechanicFound.costLabel')}
-                        </Text>
-                        <Text className="font-outfit-bold text-blue-600 text-2xl">
-                            {assistanceRequest?.price
-                                ? `$${assistanceRequest.price}`
-                                : assistanceRequest?.budget
-                                    ? `$${assistanceRequest.budget}`
-                                    : t('requestAssistance.mechanicFound.tbd')}
-                        </Text>
-                    </View>
-
-                    {/* Payment Method */}
-                    <View className="mb-4">
-                        <Text className="font-outfit-bold text-[#0F172A] text-base mb-2">{t('requestAssistance.mechanicFound.paymentMethod')}</Text>
-                        <View className="flex-row items-center justify-between">
-                            <View className="flex-row items-center">
-                                <View className="bg-blue-900 rounded-md px-3 py-1 mr-2">
-                                    <Text className="text-white font-outfit-bold text-xs tracking-wider">
-                                        P<Text style={{ fontStyle: 'italic' }}>Pay</Text>Pal
-                                    </Text>
-                                </View>
-                            </View>
-                            <TouchableOpacity>
-                                <Text className="text-blue-600 font-outfit-bold text-sm">{t('requestAssistance.mechanicFound.change')}</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-
-                    {/* Disclaimer */}
-                    <Text className="text-blue-500 font-outfit-regular text-xs">
-                        {t('requestAssistance.confirmation.feesInfo')}
+            <ScrollView className="flex-1" contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 20, gap: 14 }}>
+                <View>
+                    {secondsLeft !== null && <OfferHoldPill secondsLeft={secondsLeft} />}
+                    <Text className="font-outfit-bold" style={{ fontSize: 24, color: AO.text, letterSpacing: -0.6, marginTop: 10 }}>
+                        {t(`${k}.title`)}
+                    </Text>
+                    <Text className="font-outfit-regular" style={{ fontSize: 13.5, color: AO.muted, marginTop: 4, lineHeight: 19 }}>
+                        {t(`${k}.subtitle`)}
                     </Text>
                 </View>
 
-                {/* Confirm Button */}
-                <TouchableOpacity
-                    onPress={!isConfirming && !isConfirmed ? handleConfirm : undefined}
-                    disabled={isConfirming || isConfirmed}
-                    style={{
-                        backgroundColor: isConfirmed ? '#9CA3AF' : isConfirming ? '#6B7280' : '#0F172A',
-                        borderRadius: 12,
-                        paddingVertical: 16,
-                        alignItems: 'center',
-                        marginBottom: 24,
-                        opacity: isConfirmed || isConfirming ? 0.7 : 1,
-                    }}
-                >
-                    {isConfirming ? (
-                        <ActivityIndicator size="small" color="white" />
-                    ) : (
-                        <Text style={{ color: 'white', fontFamily: 'Outfit_700Bold', fontSize: 16 }}>
-                            {isConfirmed ? t('requestAssistance.mechanicFound.requestConfirmed') : t('requestAssistance.confirmation.confirmAndRequest')}
-                        </Text>
-                    )}
-                </TouchableOpacity>
+                <TechnicianCard mechanic={offer?.mechanic ?? null} eta={etaValue} etaCaption={arrival} price={price} />
 
-                {/* Other Options */}
-                <Text className="text-gray-800 font-outfit-bold text-base mb-4">{t('requestAssistance.mechanicFound.otherOptions')}</Text>
+                <OfferBreakdown included={included} lines={lines} total={breakdown ? formatMoney(breakdown.total) : null} />
 
-                {/* Immediate Assistance Option */}
-                <TouchableOpacity
-                    style={{
-                        backgroundColor: '#F0F7FF',
-                        borderRadius: 16,
-                        padding: 20,
-                        marginBottom: 12,
-                    }}
-                >
-                    <View className="flex-row items-center">
-                        <View className="bg-blue-100 p-2.5 rounded-lg mr-3">
-                            <Ionicons name="construct-outline" size={22} color="#2563EB" />
-                        </View>
-                        <View className="flex-1">
-                            <Text className="font-outfit-bold text-[#0F172A] text-sm tracking-widest uppercase">
-                                {t('requestAssistance.badge.immediate')}
-                            </Text>
-                            <Text className="font-outfit-medium text-blue-600 text-sm">
-                                {t('requestAssistance.mechanicFound.immediateEta')}
-                            </Text>
-                            <Text className="font-outfit-bold text-blue-600 text-sm">
-                                {t('requestAssistance.mechanicFound.startingFrom', { price: 350 })}
-                            </Text>
-                        </View>
-                    </View>
-                </TouchableOpacity>
-
-                {/* Video Call Assistance Option */}
-                <TouchableOpacity
-                    style={{
-                        backgroundColor: '#F0F7FF',
-                        borderRadius: 16,
-                        padding: 20,
-                        marginBottom: 20,
-                    }}
-                >
-                    <View className="flex-row items-center">
-                        <View className="bg-blue-100 p-2.5 rounded-lg mr-3">
-                            <Ionicons name="videocam-outline" size={22} color="#2563EB" />
-                        </View>
-                        <View className="flex-1">
-                            <Text className="font-outfit-bold text-[#0F172A] text-sm tracking-widest uppercase">
-                                {t('requestAssistance.badge.videoCall')}
-                            </Text>
-                            <Text className="font-outfit-medium text-blue-600 text-sm">
-                                {t('requestAssistance.mechanicFound.videoCallAvailable')}
-                            </Text>
-                            <Text className="font-outfit-bold text-blue-600 text-sm">
-                                {t('requestAssistance.mechanicFound.startingFrom', { price: 50 })}
-                            </Text>
-                        </View>
-                    </View>
-                </TouchableOpacity>
-
-                {/* Cancel Request */}
-                <TouchableOpacity onPress={handleCancel} className="items-center mb-6">
-                    <Text className="text-red-500 font-outfit-bold text-base">{t('requestAssistance.searching.cancelRequest')}</Text>
-                </TouchableOpacity>
-
-                {/* Reference Footer */}
-                <View className="items-center mt-2">
-                    <Text className="text-gray-400 font-outfit-regular text-[10px]">
-                        {t('requestAssistance.searching.footer')}
+                <View style={{ gap: 8 }}>
+                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: AO.text, letterSpacing: -0.2, marginTop: 2 }}>
+                        {t(`${k}.yourRequest`)}
                     </Text>
-                    <Text className="text-gray-400 font-outfit-regular text-[10px]">
-                        {refNumber}
-                    </Text>
+                    <RequestSummaryRows
+                        rows={[
+                            { icon: 'flash-outline', label: t(`${k}.rowService`), value: typeLabel },
+                            { icon: 'car-outline', label: t(`${k}.rowVehicle`), value: vehicle },
+                            { icon: 'construct-outline', label: t(`${k}.rowIssue`), value: issueText },
+                            { icon: 'location-outline', label: t(`${k}.rowLocation`), value: request?.address || '—' },
+                            { icon: 'card-outline', label: t(`${k}.rowPayment`), value: <PaymentValue /> },
+                        ]}
+                    />
                 </View>
+
+                <ProtectionBox />
+
+                {!!requestId && (
+                    <Text className="text-center font-outfit-regular" style={{ fontSize: 11, color: AO.mutedLight, lineHeight: 16 }}>
+                        {t(`${k}.requestNumber`)}
+                        <Text style={{ fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }}>{requestId.slice(0, 8).toUpperCase()}</Text>
+                    </Text>
+                )}
             </ScrollView>
+
+            {/* Sticky footer */}
+            <View
+                style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 10, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: AO.borderSoft, shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: -8 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 8 }}
+            >
+                <TouchableOpacity onPress={handleConfirm} disabled={confirmState !== 'idle' || !request?.mechanicId} activeOpacity={0.85}>
+                    <LinearGradient
+                        colors={confirmState === 'done' ? [AO.green, AO.green] : [AO.blue, AO.blueDark]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={{ borderRadius: 14, paddingVertical: 15, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                    >
+                        {confirmState === 'done' && <Ionicons name="checkmark" size={16} color="#fff" />}
+                        {confirmState === 'loading' && <ActivityIndicator size="small" color="#fff" />}
+                        <Text className="font-outfit-bold" style={{ color: '#fff', fontSize: 15.5 }}>
+                            {confirmState === 'done' ? t(`${k}.requestConfirmed`) : confirmState === 'loading' ? t(`${k}.confirming`) : t(`${k}.confirm`)}
+                        </Text>
+                    </LinearGradient>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleCancel} disabled={confirmState !== 'idle'} style={{ paddingTop: 10, paddingBottom: 2, alignItems: 'center' }}>
+                    <Text className="font-outfit-bold" style={{ fontSize: 13.5, color: AO.red }}>{t('requestAssistance.searching.cancelRequest')}</Text>
+                </TouchableOpacity>
+            </View>
         </View>
     );
 }

@@ -47,6 +47,10 @@ export interface AssistanceRequest {
     price?: string;
     /** Mechanic's estimated arrival time, e.g. "20 min" */
     eta?: string;
+    /** While `offered`: when the offer stops being held (ISO). Then the request goes back to `pending`. */
+    offerExpiresAt?: string | null;
+    /** The saved vehicle, included by GET /api/assistance/:id. */
+    vehicle?: { make?: string | null; model?: string | null } | null;
     /** ISO date string of the last update (used e.g. as cancellation date) */
     updatedAt?: string;
     /** Vehicle issues selected for this request (from GET /api/pricing/requests/:id/issues) */
@@ -326,9 +330,35 @@ export interface IUserDAO {
     setPresence(id: string, status: MechanicStatus): Promise<{ status: MechanicStatus; isOnline: boolean }>;
 }
 
+/** What the owner sees before confirming a mechanic's offer (GET /api/assistance/:id/offer-summary). */
+export interface AssistanceOfferSummary {
+    requestId: string;
+    status: string | null;
+    /** When the offer stops being held (ISO), null when there is no running hold. */
+    offerExpiresAt: string | null;
+    /** Server clock when the answer was built (ISO) — count down against this, not the phone clock. */
+    serverNow: string;
+    price: string | null;
+    eta: string | null;
+    mechanic: {
+        id: string;
+        displayName: string | null;
+        initials: string | null;
+        profileImage: string | null;
+        avgRating: number | null;
+        ratingCount: number;
+        servicesCount: number;
+        aseCertified: boolean;
+        idVerified: boolean;
+    };
+    /** Dollar amounts as strings ("180.00"); null when the request has no stored breakdown. */
+    breakdown: { service: string; fees: string; taxes: string; total: string } | null;
+}
+
 export interface IAssistanceDAO {
     getAll(filters?: { userId?: string; mechanicId?: string; status?: string; zip?: string; lat?: number; lng?: number; radiusKm?: number }): Promise<AssistanceRequest[]>;
     getById(id: string): Promise<AssistanceRequest | null>;
+    getOfferSummary(id: string): Promise<AssistanceOfferSummary>;
     updateStatus(id: string, mechanicId: string, status: string, extra?: { eta?: string; price?: string }): Promise<void>;
     create(request: Partial<AssistanceRequest>): Promise<AssistanceRequest>;
     reject(id: string): Promise<void>;

@@ -49,6 +49,13 @@ export function GlobalNotificationListener() {
         const notificationKey = `${requestId}-${status}`;
         if (notifiedIds.current.has(notificationKey)) return;
 
+        // An offer the owner let lapse (the request is back to pending): forget
+        // that it was announced, so the next offer on it opens the screen again.
+        if (user?.role === 'user' && status === 'pending' && payload.reason === 'offer_expired') {
+            notifiedIds.current.delete(`${requestId}-offered`);
+            return;
+        }
+
         // 1. User Logic: Mechanic Found (Status: offered)
         // Instead of showing a popup, add to notifications section
         if (user?.role === 'user' && status === 'offered') {

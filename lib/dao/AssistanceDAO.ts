@@ -1,6 +1,6 @@
 import { apiClient } from '../api/apiClient';
 import { ConfigService } from '../config/ConfigService';
-import { AssistanceRequest, IAssistanceDAO } from './interfaces';
+import { AssistanceOfferSummary, AssistanceRequest, IAssistanceDAO } from './interfaces';
 
 export class AssistanceDAO implements IAssistanceDAO {
     async getAll(filters?: { userId?: string; mechanicId?: string; status?: string; zip?: string; lat?: number; lng?: number; radiusKm?: number }): Promise<AssistanceRequest[]> {
@@ -14,6 +14,11 @@ export class AssistanceDAO implements IAssistanceDAO {
 
     async getById(id: string): Promise<AssistanceRequest | null> {
         return apiClient.get(`/api/assistance/${id}`);
+    }
+
+    /** The mechanic's offer as the owner reviews it: who, how much, and until when it is held. */
+    async getOfferSummary(id: string): Promise<AssistanceOfferSummary> {
+        return apiClient.get(`/api/assistance/${id}/offer-summary`);
     }
 
     async updateStatus(id: string, mechanicId: string, status: string, extra?: { eta?: string; price?: string }): Promise<void> {
