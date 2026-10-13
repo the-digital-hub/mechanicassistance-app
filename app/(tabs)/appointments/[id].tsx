@@ -24,6 +24,7 @@ import type { AssistanceOfferSummary } from '@/lib/dao/interfaces';
 import { userDAO } from '@/lib/dao/UserDAO';
 import { Ionicons } from '@expo/vector-icons';
 import { useGlobalSearchParams, useRouter } from 'expo-router';
+import { goBackOr } from '@/lib/navigation/goBackOr';
 import React from 'react';
 import { AttachmentStrip } from '@/components/appointments/AttachmentStrip';
 import { parseAttachments } from '@/lib/media/attachments';
@@ -191,7 +192,7 @@ export default function AppointmentDetailScreen() {
             <View className="flex-1 bg-white justify-center items-center p-6">
                 <Text className="font-outfit-bold text-lg text-gray-900">{t('appointments.detail.notFound')}</Text>
                 <Text className="text-gray-500 mt-2">ID: {JSON.stringify(id)}</Text>
-                <TouchableOpacity onPress={() => router.back()} className="mt-4">
+                <TouchableOpacity onPress={() => goBackOr(router, '/(tabs)/appointments')} className="mt-4">
                     <Text className="text-blue-600 font-outfit-medium">{t('appointments.detail.goBack')}</Text>
                 </TouchableOpacity>
             </View>

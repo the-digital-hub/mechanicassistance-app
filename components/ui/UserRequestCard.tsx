@@ -60,13 +60,30 @@ export function UserRequestCard({
     const getStatusBadge = () => {
         switch (status) {
             case 'offered':
-                return { label: t('dashboard.user.requestStatus.offered'), bg: '#EAF1FF', color: '#1E56E3' };
+                return {
+                    label: t('dashboard.user.requestStatus.offered'),
+                    detail: t('dashboard.user.requestStatusDetail.offered'),
+                    bg: '#EAF1FF', color: '#1E56E3', dot: '#1E56E3',
+                };
             case 'accepted':
-                return { label: t('dashboard.user.requestStatus.accepted'), bg: '#E7F8F1', color: '#0E8A5F' };
+                return {
+                    label: t('dashboard.user.requestStatus.accepted'),
+                    detail: t('dashboard.user.requestStatusDetail.accepted'),
+                    bg: '#E7F8F1', color: '#0E8A5F', dot: '#10B981',
+                };
             case 'started':
-                return { label: t('dashboard.user.requestStatus.started'), bg: '#E7F8F1', color: '#0E8A5F' };
+            case 'in_progress':
+                return {
+                    label: t('dashboard.user.requestStatus.started'),
+                    detail: t('dashboard.user.requestStatusDetail.started'),
+                    bg: '#E7F8F1', color: '#0E8A5F', dot: '#10B981',
+                };
             default:
-                return { label: t('dashboard.user.requestStatus.pending'), bg: '#FEF3C7', color: '#B45309' };
+                return {
+                    label: t('dashboard.user.requestStatus.pending'),
+                    detail: t('dashboard.user.requestStatusDetail.pending'),
+                    bg: '#FEF3C7', color: '#B45309', dot: '#F59E0B',
+                };
         }
     };
 
@@ -113,11 +130,24 @@ export function UserRequestCard({
                         {title}
                     </Text>
                 </View>
-                <View className="px-2.5 py-1 rounded-full ml-2" style={{ backgroundColor: badge.bg }}>
-                    <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 0.8, color: badge.color }}>
-                        {badge.label.toUpperCase()}
-                    </Text>
-                </View>
+            </View>
+
+            {/* Status strip */}
+            <View
+                className="flex-row items-center"
+                style={{ marginTop: 12, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 12, backgroundColor: badge.bg }}
+            >
+                <View style={{ width: 7, height: 7, borderRadius: 3.5, backgroundColor: badge.dot, marginRight: 8 }} />
+                <Text className="font-outfit-bold" style={{ fontSize: 11, letterSpacing: 0.8, color: badge.color }}>
+                    {badge.label.toUpperCase()}
+                </Text>
+                <Text
+                    className="font-outfit-regular"
+                    style={{ flex: 1, fontSize: 12, color: badge.color, marginLeft: 8 }}
+                    numberOfLines={1}
+                >
+                    · {badge.detail}
+                </Text>
             </View>
 
             {/* Info block */}

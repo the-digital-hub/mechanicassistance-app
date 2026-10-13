@@ -1,6 +1,7 @@
 import { useAppointments } from '@/context/AppointmentsContext';
 import { useSocket } from '@/context/SocketContext';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { goBackOr } from '@/lib/navigation/goBackOr';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight, Circle, Info } from 'lucide-react-native';
 import React, { useState } from 'react';
@@ -118,7 +119,7 @@ export default function CancelReasonScreen() {
 
                         {/* Keep Request Button */}
                         <TouchableOpacity
-                            onPress={() => router.back()}
+                            onPress={() => goBackOr(router, '/(tabs)/appointments')}
                             activeOpacity={0.8}
                         >
                             <View

@@ -1,5 +1,10 @@
 import { Stack } from 'expo-router';
 
+// Keeps the list under a detail entered from another tab or a notification, so
+// back and swipe-back have somewhere to go. Only applies to navigations made with
+// `{ withAnchor: true }` and to deep links.
+export const unstable_settings = { anchor: 'index' };
+
 export default function AppointmentsLayout() {
     return (
         <Stack

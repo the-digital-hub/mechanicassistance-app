@@ -3,6 +3,7 @@ import { useUser } from '@/context/UserContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { userDAO } from '@/lib/dao/UserDAO';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { goBackOr } from '@/lib/navigation/goBackOr';
 import { ChevronLeft, Paperclip, Phone, Send } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -85,7 +86,7 @@ export default function ChatScreen() {
         >
             {/* Header */}
             <View className="bg-blue-600 px-4 pt-12 pb-4 flex-row items-center border-b border-blue-500 shadow-sm">
-                <TouchableOpacity onPress={() => router.back()} className="mr-3">
+                <TouchableOpacity onPress={() => goBackOr(router, { pathname: '/appointments/[id]', params: { id: String(id) } })} className="mr-3">
                     <ChevronLeft size={24} color="white" />
                 </TouchableOpacity>
                 <View className="flex-row items-center flex-1">

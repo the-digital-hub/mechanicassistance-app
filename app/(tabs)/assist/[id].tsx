@@ -6,6 +6,7 @@ import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import * as Location from 'expo-location';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
+import { goBackOr } from '@/lib/navigation/goBackOr';
 import { Calendar, Clock, Navigation, HelpCircle, ChevronLeft, Zap, Car, Wrench, Lock, ArrowUpRight, DollarSign } from 'lucide-react-native';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -106,7 +107,7 @@ export default function RequestDetailScreen() {
             navigation.setOptions({
                 title: t('requestDetail.headerTitle'),
                 headerLeft: () => (
-                    <TouchableOpacity onPress={() => router.back()} style={{ marginLeft: 16 }}>
+                    <TouchableOpacity onPress={() => goBackOr(router, '/(tabs)/assist')} style={{ marginLeft: 16 }}>
                         <ChevronLeft size={24} color="#0047AB" />
                     </TouchableOpacity>
                 ),
@@ -278,7 +279,7 @@ export default function RequestDetailScreen() {
         setDeclining(true);
         try {
             await assistanceDAO.reject(requestId);
-            router.back();
+            goBackOr(router, '/(tabs)/assist');
         } catch (error: any) {
             alert(t('requestDetail.declineFailed', { error: error.message || 'Unknown error' }));
         } finally {

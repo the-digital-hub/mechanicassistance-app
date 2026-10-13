@@ -129,12 +129,16 @@ export default function MechanicFoundScreen() {
             await refresh();
             setConfirmState('done');
 
+            // The wizard is finished: empty its stack so neither back nor the tab
+            // history lands on this screen again, then open the appointment with
+            // the list under it.
+            if (router.canDismiss()) router.dismissAll();
             // For videocall type, redirect to video lobby instead of appointment detail
             const requestType = request.type as string;
             if (requestType === 'videocall' || requestType === 'video') {
-                router.replace({ pathname: '/video-lobby/[id]' as any, params: { id: requestId } });
+                router.push({ pathname: '/video-lobby/[id]' as any, params: { id: requestId } });
             } else {
-                router.replace({ pathname: '/appointments/[id]', params: { id: requestId } });
+                router.push({ pathname: '/appointments/[id]', params: { id: requestId } }, { withAnchor: true });
             }
         } catch (error) {
             const code = error instanceof ApiError ? (error.apiError as { code?: string } | null)?.code : undefined;

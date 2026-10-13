@@ -96,7 +96,7 @@ export function GlobalNotificationListener() {
                     router.push({
                         pathname: '/appointments/[id]',
                         params: { id: requestId }
-                    });
+                    }, { withAnchor: true });
                 }
             });
         }
@@ -115,7 +115,7 @@ export function GlobalNotificationListener() {
                 body: 'The user has canceled this request.',
                 action: () => {
                     setNotification(null);
-                    router.replace('/(tabs)/appointments');
+                    router.navigate('/(tabs)/appointments');
                 }
             });
         }

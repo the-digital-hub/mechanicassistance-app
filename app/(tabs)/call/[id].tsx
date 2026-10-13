@@ -1,4 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { goBackOr } from '@/lib/navigation/goBackOr';
 import { Bluetooth, MicOff, Pause, PhoneOff, UserPlus, Video, Volume2, X } from 'lucide-react-native';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 
@@ -10,7 +11,7 @@ export default function CallScreen() {
         <View className="flex-1 bg-white">
             {/* Header */}
             <View className="px-6 pt-12 pb-4 flex-row items-center justify-between">
-                <TouchableOpacity onPress={() => router.back()}>
+                <TouchableOpacity onPress={() => goBackOr(router, { pathname: '/appointments/[id]', params: { id: String(id) } })}>
                     <X size={24} color="#0047AB" />
                 </TouchableOpacity>
                 <Text className="text-blue-900 font-outfit-bold text-lg">Notifications</Text>
@@ -85,7 +86,7 @@ export default function CallScreen() {
 
                     <TouchableOpacity
                         className="w-20 h-20 rounded-full bg-red-500 items-center justify-center shadow-lg shadow-red-200"
-                        onPress={() => router.back()}
+                        onPress={() => goBackOr(router, { pathname: '/appointments/[id]', params: { id: String(id) } })}
                     >
                         <PhoneOff size={32} color="white" />
                     </TouchableOpacity>

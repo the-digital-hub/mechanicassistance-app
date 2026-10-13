@@ -55,7 +55,7 @@ export function PushNotificationRouter() {
         if (!userId || !role) return;
         const open = (message: RemoteMessage | null) => {
             const route = routeForPush(message?.data as PushData | undefined, { id: userId, role });
-            if (route) router.push(route);
+            if (route) router.push(route, { withAnchor: true });
         };
 
         const messaging = getMessaging();

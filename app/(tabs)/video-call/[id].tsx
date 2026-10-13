@@ -6,10 +6,13 @@ import { MediaStream } from '@daily-co/react-native-webrtc';
 import { CallControls } from '@/components/video/CallControls';
 import { VideoTile } from '@/components/video/VideoTile';
 import { useDailyCall } from '@/lib/video/useDailyCall';
+import { goBackOr } from '@/lib/navigation/goBackOr';
 
 export default function VideoCallScreen() {
-  const { roomUrl, token, expiry } = useGlobalSearchParams();
+  const { id, roomUrl, token, expiry } = useGlobalSearchParams();
   const router = useRouter();
+  const appointmentId = Array.isArray(id) ? id[0] : id || '';
+  const appointmentHref = { pathname: '/appointments/[id]' as const, params: { id: appointmentId } };
   const urlStr = Array.isArray(roomUrl) ? roomUrl[0] : roomUrl || '';
   const tokenStr = Array.isArray(token) ? token[0] : token || '';
   const expiryTs = Number(Array.isArray(expiry) ? expiry[0] : expiry || 0);
@@ -37,7 +40,9 @@ export default function VideoCallScreen() {
 
   const handleHangUp = async () => {
     await leave();
-    router.back();
+    // Back to the appointment, not to the lobby (rejoining from there is one tap
+    // away on the detail) and not to whatever tab happened to be underneath.
+    router.navigate(appointmentHref, { withAnchor: true });
   };
 
   const buildStream = (p: typeof localParticipant) => {
@@ -55,7 +60,7 @@ export default function VideoCallScreen() {
           <Ionicons name="warning" size={64} color="#EF4444" />
           <Text style={styles.errorTitle}>Connection Error</Text>
           <Text style={styles.errorSubtitle}>{errorMessage || 'The video room is not available.'}</Text>
-          <TouchableOpacity style={styles.goBackButton} onPress={() => router.back()}>
+          <TouchableOpacity style={styles.goBackButton} onPress={() => goBackOr(router, appointmentHref)}>
             <Text style={styles.goBackText}>Go Back</Text>
           </TouchableOpacity>
           {urlStr ? (

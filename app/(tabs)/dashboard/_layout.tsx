@@ -2,6 +2,9 @@ import { Stack, useRouter } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import { TouchableOpacity } from "react-native";
 
+// See app/(tabs)/appointments/_layout.tsx.
+export const unstable_settings = { anchor: "index" };
+
 export default function DashboardLayout() {
   const router = useRouter();
 

@@ -1,6 +1,9 @@
 import { useUser } from '@/context/UserContext';
 import { Redirect, Stack } from 'expo-router';
 
+// See app/(tabs)/appointments/_layout.tsx.
+export const unstable_settings = { anchor: 'index' };
+
 export default function AssistLayout() {
   const { user } = useUser();
 

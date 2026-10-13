@@ -92,10 +92,16 @@
       "activeRequestTitle": "Your active request!",
       "noActiveRequests": "No active requests at the moment",
       "requestStatus": {
-        "pending": "Looking for a mechanic",
-        "offered": "Mechanic found",
+        "pending": "Searching",
+        "offered": "Offer received",
         "accepted": "Accepted",
         "started": "In progress"
+      },
+      "requestStatusDetail": {
+        "pending": "Looking for a mechanic",
+        "offered": "Mechanic found",
+        "accepted": "Technician assigned",
+        "started": "Service underway"
       },
       "viewRequest": "View request",
       "cancelRequest": "Cancel",

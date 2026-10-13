@@ -9,6 +9,7 @@ import { ScreenCloseout } from '@/components/on-site/screens-closeout';
 import { PartsOrder, RedirectReason, ScreenBuyParts, ScreenEvaluateOptions, ScreenResolveIncident } from '@/components/on-site/screens-execution';
 import { FlowHeader, OS, Phase, PhaseBar, Spinner } from '@/components/on-site/ui';
 import { useGlobalSearchParams, useRouter } from 'expo-router';
+import { goBackOr } from '@/lib/navigation/goBackOr';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, KeyboardAvoidingView, Platform, Text, View } from 'react-native';
@@ -176,7 +177,7 @@ export default function OnSiteFlowScreen() {
     };
 
     const back = screen === 'checkin'
-        ? () => router.back()
+        ? () => goBackOr(router, { pathname: '/appointments/[id]', params: { id } })
         : screen === 'done'
             ? () => router.replace('/(tabs)/appointments')
             : BACK_OF[screen] ? () => go(BACK_OF[screen]!) : undefined;
@@ -277,7 +278,7 @@ export default function OnSiteFlowScreen() {
         <KeyboardAvoidingView className="flex-1" style={{ backgroundColor: OS.page }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
             <FlowHeader
                 title={screen === 'done' ? t('appointments.closeout.title') : t(`appointments.onSite.titles.${TITLE_KEY[screen]}`)}
-                onBack={loading ? () => router.back() : back}
+                onBack={loading ? () => goBackOr(router, { pathname: '/appointments/[id]', params: { id } }) : back}
                 closeIcon={screen === 'done'}
             />
             {loading ? (

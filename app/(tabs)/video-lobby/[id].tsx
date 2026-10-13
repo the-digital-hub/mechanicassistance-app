@@ -6,6 +6,7 @@ import { ApiError } from '@/lib/api/types';
 import { userDAO } from '@/lib/dao/UserDAO';
 import { Ionicons } from '@expo/vector-icons';
 import { useGlobalSearchParams, useRouter } from 'expo-router';
+import { goBackOr } from '@/lib/navigation/goBackOr';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
     ActivityIndicator,
@@ -186,7 +187,7 @@ export default function VideoLobbyScreen() {
             <View style={styles.container}>
                 <View style={styles.centerContent}>
                     <Text style={styles.errorTitle}>Appointment not found</Text>
-                    <TouchableOpacity onPress={() => router.back()} style={styles.backLink}>
+                    <TouchableOpacity onPress={() => goBackOr(router, '/(tabs)/appointments')} style={styles.backLink}>
                         <Text style={styles.backLinkText}>Go back</Text>
                     </TouchableOpacity>
                 </View>
@@ -209,7 +210,7 @@ export default function VideoLobbyScreen() {
         <View style={styles.container}>
             {/* Header */}
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}>
+                <TouchableOpacity onPress={() => goBackOr(router, { pathname: '/appointments/[id]', params: { id: appointmentId } })} hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}>
                     <Ionicons name="chevron-back" size={24} color="#0047AB" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Video Assistance</Text>

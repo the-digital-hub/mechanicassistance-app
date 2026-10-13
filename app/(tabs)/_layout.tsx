@@ -1,6 +1,6 @@
 import { useUser } from "@/context/UserContext";
 import { useMechanicStatus } from "@/context/MechanicStatusContext";
-import { Tabs, useNavigation, useRouter, usePathname } from "expo-router";
+import { Tabs, useRouter, usePathname } from "expo-router";
 import {
   Bell,
   Calendar,
@@ -17,6 +17,7 @@ import { LinearGradient } from "expo-linear-gradient";
 
 import { HapticTab } from "@/components/haptic-tab";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { goBackOr } from "@/lib/navigation/goBackOr";
 import { useTranslation } from "react-i18next";
 
 function MechanicStatusHeaderLeft() {
@@ -240,16 +241,22 @@ function ProfileTabIcon({ color }: { color: string }) {
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const navigation = useNavigation();
   const router = useRouter();
   const { t } = useTranslation();
   const { user } = useUser();
   const pathname = usePathname();
 
   const isRequestAssistanceRoot = pathname === "/request-assistance" || pathname === "/request-assistance/";
+  // Only the appointment detail itself (/appointments/<id>) borrows the tab
+  // header's back button: check-in, review and cancel-reason draw their own.
+  const isAppointmentDetail =
+    /^\/appointments\/[^/]+$/.test(pathname) && pathname !== "/appointments/cancel-reason";
 
   return (
     <Tabs
+      // Back follows the order the user actually visited tabs in. The default
+      // ("firstRoute") sends every cross-tab back to Dashboard.
+      backBehavior="history"
       screenOptions={{
         tabBarActiveTintColor: "#0047AB",
         tabBarInactiveTintColor: "#8E8E93",
@@ -274,7 +281,7 @@ export default function TabLayout() {
         },
         headerLeft: () => (
           <TouchableOpacity
-            onPress={() => navigation.goBack()}
+            onPress={() => goBackOr(router, "/(tabs)/dashboard")}
             style={{ marginLeft: 16 }}
           >
             <ChevronLeft size={24} color="#0047AB" />
@@ -330,9 +337,29 @@ export default function TabLayout() {
         options={{
           title: t('tabs.appointments'),
           tabBarIcon: ({ color }) => <Calendar size={24} color={color} />,
-          headerLeft: () => <MechanicStatusHeaderLeft />,
+          headerLeft: () =>
+            isAppointmentDetail ? (
+              <TouchableOpacity
+                onPress={() => goBackOr(router, "/(tabs)/appointments")}
+                style={{ marginLeft: 16 }}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                testID="appointment-detail-back"
+              >
+                <ChevronLeft size={24} color="#0047AB" />
+              </TouchableOpacity>
+            ) : (
+              <MechanicStatusHeaderLeft />
+            ),
           headerRight: () => <NotificationHeaderRight />,
         }}
+        listeners={({ navigation }) => ({
+          // Tapping the tab always shows the list, even when the stack was
+          // entered straight on a detail from another tab or a notification.
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.navigate('appointments', { screen: 'index' });
+          },
+        })}
       />
       <Tabs.Screen
         name="notifications"

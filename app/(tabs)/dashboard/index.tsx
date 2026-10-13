@@ -706,7 +706,7 @@ export default function DashboardScreen() {
             });
             return;
         }
-        router.push(`/(tabs)/appointments/${req.id}` as any);
+        router.push(`/(tabs)/appointments/${req.id}` as any, { withAnchor: true });
     };
 
     const cancelRequest = async (id: string) => {

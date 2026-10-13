@@ -63,7 +63,7 @@ export default function NotificationsScreen() {
             },
             { id: user.id, role: user.role },
         );
-        if (route) router.push(route);
+        if (route) router.push(route, { withAnchor: true });
     };
 
     return (
