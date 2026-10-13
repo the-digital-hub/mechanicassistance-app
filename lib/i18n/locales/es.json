@@ -91,20 +91,6 @@
       },
       "activeRequestTitle": "¡Tu solicitud activa!",
       "noActiveRequests": "No hay solicitudes activas por el momento",
-      "watchTutorial": "Ver tutorial DIY",
-      "diy1": {
-        "title": "Cambiar las escobillas del limpiaparabrisas",
-        "description": "DIY rápido de 5 minutos · No requiere herramientas."
-      },
-      "diy2": {
-        "title": "Cambiar las pastillas de freno",
-        "description": "DIY intermedio · 30 min · Herramientas básicas"
-      },
-      "referEarn": {
-        "badge": "REFERÍ Y GANÁ",
-        "title": "Aplicá ahora y recibí $20",
-        "button": "Empezar a ganar"
-      },
       "requestStatus": {
         "pending": "Buscando mecánico",
         "offered": "Mecánico encontrado",
@@ -112,7 +98,9 @@
         "started": "En curso"
       },
       "viewRequest": "Ver solicitud",
-      "cancelRequest": "Cancelar"
+      "cancelRequest": "Cancelar",
+      "requestVehicleLabel": "Vehículo",
+      "requestLocationLabel": "Ubicación"
     },
     "timeAgo": {
       "justNow": "Recién",

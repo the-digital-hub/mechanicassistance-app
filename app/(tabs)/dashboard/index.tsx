@@ -27,72 +27,86 @@ const getTimeGreetingKey = (): string => {
     return 'dashboard.greeting.night';
 };
 
-// Horizontal padding of the user dashboard (`px-6` on each side) and the grid gap,
+// Horizontal padding of the user dashboard (20 on each side) and the grid gap,
 // used to size three buttons per row.
-const DASHBOARD_PADDING_X = 24;
-const TYPE_GRID_GAP = 12;
+const DASHBOARD_PADDING_X = 20;
+const TYPE_GRID_GAP = 10;
 const TYPE_GRID_COLUMNS = 3;
+// How long a tapped type shows its selected skin before the wizard opens.
+const TYPE_SELECT_DELAY_MS = 150;
 
 type DashboardTypeButtonProps = {
     item: AssistanceTypeCatalogItem;
     title: string;
     subtitle: string | null;
-    featured: boolean;
+    selected: boolean;
     width: number;
     onPress?: () => void;
 };
 
 /**
- * One assistance type on the owner dashboard. The first type of the catalog gets the
- * gradient skin, the rest the white one — the same catalog as the type picker, drawn
- * as compact buttons instead of a list.
+ * One assistance type on the owner dashboard. The selected type (the first of the
+ * catalog until the owner taps another) gets the gradient skin, the rest the white
+ * one — the same catalog as the type picker, drawn as compact buttons.
  */
-function DashboardTypeButton({ item, title, subtitle, featured, width, onPress }: DashboardTypeButtonProps) {
+function DashboardTypeButton({ item, title, subtitle, selected, width, onPress }: DashboardTypeButtonProps) {
     const Icon = iconFor(item);
+    const label = subtitle ? `${title}\n${subtitle}` : title;
+
+    const content = (
+        <>
+            <View
+                className="justify-center items-center mb-2.5"
+                style={{
+                    width: 42,
+                    height: 42,
+                    borderRadius: 12,
+                    backgroundColor: selected ? 'rgba(255,255,255,0.18)' : '#EAF1FF',
+                }}
+            >
+                <Icon size={22} color={selected ? '#FFFFFF' : '#1E56E3'} strokeWidth={1.8} />
+            </View>
+            <Text
+                className="font-outfit-bold text-center"
+                style={{ fontSize: 12, lineHeight: 15, color: selected ? '#FFFFFF' : '#0B1530' }}
+            >
+                {label}
+            </Text>
+        </>
+    );
+
+    const tileStyle = {
+        borderRadius: 18,
+        minHeight: 112,
+        paddingVertical: 14,
+        paddingHorizontal: 6,
+        justifyContent: 'center' as const,
+        alignItems: 'center' as const,
+    };
 
     return (
         <TouchableOpacity
             onPress={onPress}
             disabled={!onPress}
-            className="rounded-3xl overflow-hidden"
-            style={{ width, opacity: onPress ? 1 : 0.5 }}
             activeOpacity={0.8}
+            style={{
+                width,
+                opacity: onPress ? 1 : 0.5,
+                borderRadius: 18,
+                backgroundColor: selected ? '#1E56E3' : '#FFFFFF',
+                shadowColor: selected ? '#1E56E3' : '#0E2F8A',
+                shadowOffset: { width: 0, height: selected ? 8 : 2 },
+                shadowOpacity: selected ? 0.35 : 0.05,
+                shadowRadius: selected ? 12 : 6,
+                elevation: selected ? 6 : 1,
+            }}
         >
-            {featured ? (
-                <LinearGradient
-                    colors={['#2B66F8', '#081E72']}
-                    start={{ x: 0, y: 1 }}
-                    end={{ x: 1, y: 0 }}
-                    style={{
-                        borderRadius: 24,
-                        padding: 12,
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        minHeight: 120,
-                    }}
-                >
-                    <View className="w-14 h-14 rounded-2xl justify-center items-center mb-3" style={{ backgroundColor: '#4D77EF', borderWidth: 1, borderColor: '#6789F1' }}>
-                        <Icon size={24} color="white" strokeWidth={2} />
-                    </View>
-                    <Text className="text-white font-outfit-semibold text-center" style={{ fontSize: 13 }}>{title}</Text>
-                    {subtitle ? (
-                        <Text className="text-blue-100 font-outfit-semibold text-center" style={{ fontSize: 13 }}>
-                            {subtitle}
-                        </Text>
-                    ) : null}
+            {selected ? (
+                <LinearGradient colors={['#1E56E3', '#0B2A8E']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={tileStyle}>
+                    {content}
                 </LinearGradient>
             ) : (
-                <View className="bg-white rounded-3xl justify-center items-center p-3" style={{ borderWidth: 1.5, borderColor: '#EEF2FA', minHeight: 120 }}>
-                    <View className="w-14 h-14 rounded-2xl justify-center items-center mb-3" style={{ backgroundColor: '#E9F1FF' }}>
-                        <Icon size={24} color="#1E56E3" />
-                    </View>
-                    <Text className="text-gray-900 font-outfit-semibold text-center" style={{ fontSize: 13 }}>{title}</Text>
-                    {subtitle ? (
-                        <Text className="text-gray-600 font-outfit-semibold text-center mt-1" style={{ fontSize: 13 }}>
-                            {subtitle}
-                        </Text>
-                    ) : null}
-                </View>
+                <View style={[tileStyle, { borderWidth: 1, borderColor: '#EEF2FA' }]}>{content}</View>
             )}
         </TouchableOpacity>
     );
@@ -107,6 +121,9 @@ export default function DashboardScreen() {
     const typeButtonWidth =
         (screenWidth - DASHBOARD_PADDING_X * 2 - TYPE_GRID_GAP * (TYPE_GRID_COLUMNS - 1)) / TYPE_GRID_COLUMNS;
     const [filter, setFilter] = useState<string | null>(null);
+    // Owner's tapped assistance type; null falls back to the first of the catalog.
+    const [selectedTypeId, setSelectedTypeId] = useState<string | null>(null);
+    const typeSelectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [requests, setRequests] = useState<AssistanceRequest[]>([]);
     const [isLoadingRequests, setIsLoadingRequests] = useState(true);
     // Declining hides the request right away and persists it server-side (the
@@ -219,6 +236,7 @@ export default function DashboardScreen() {
     useFocusEffect(
         useCallback(() => {
             if (!user) return;
+            setSelectedTypeId(null);
             if (user.role === 'mechanic') {
                 loadRequests();
             } else {
@@ -226,6 +244,10 @@ export default function DashboardScreen() {
             }
         }, [filter, user?.id, user?.addresses])
     );
+
+    useEffect(() => () => {
+        if (typeSelectTimer.current) clearTimeout(typeSelectTimer.current);
+    }, []);
 
     // Live updates: a new request broadcast to mechanics, or any status change,
     // triggers a refetch so the feed stays current without leaving the screen.
@@ -653,9 +675,17 @@ export default function DashboardScreen() {
         if (user?.role === 'user') {
             // No identity gate: verification is optional for users.
             const route = assistanceTypeRoute(item);
-            return route ? () => router.push(route) : undefined;
+            if (!route) return undefined;
+            return () => {
+                setSelectedTypeId(item.id);
+                if (typeSelectTimer.current) clearTimeout(typeSelectTimer.current);
+                typeSelectTimer.current = setTimeout(() => router.push(route), TYPE_SELECT_DELAY_MS);
+            };
         }
-        return () => setFilter(filter === code ? null : code);
+        return () => {
+            setSelectedTypeId(item.id);
+            setFilter(filter === code ? null : code);
+        };
     };
 
     // Everything the user has in flight, narrowed by the visual type filter.
@@ -688,34 +718,38 @@ export default function DashboardScreen() {
         }
     };
 
+    const selectedId = selectedTypeId ?? assistanceTypes[0]?.id;
+
     return (
-        <View className="flex-1 px-6 pt-4" style={{ backgroundColor: '#F6F8FC' }}>
+        <View className="flex-1" style={{ backgroundColor: '#F6F8FC', paddingHorizontal: DASHBOARD_PADDING_X, paddingTop: 18 }}>
             <FlatList
                 ListHeaderComponent={
-                    <View className="mb-4">
+                    <View>
                         {/* Section Badge */}
-                        <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
-                            <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
-                            <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+                        <View className="flex-row items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#EAF1FF', alignSelf: 'flex-start', marginBottom: 12 }}>
+                            <View className="rounded-full" style={{ width: 5, height: 5, backgroundColor: '#1E56E3' }} />
+                            <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 1.3, color: '#1E56E3' }}>
                                 {user?.role?.toLowerCase() === 'mechanic' ? 'FIND JOBS' : t(getTimeGreetingKey())}
                             </Text>
                         </View>
 
                         {/* Title */}
-                        <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">{t('dashboard.user.title')}{user?.name ? `, ${user.name.split(' ')[0]}` : ''}</Text>
+                        <Text className="font-outfit-bold" style={{ fontSize: 28, lineHeight: 32, letterSpacing: -0.7, color: '#0B1530' }}>
+                            {t('dashboard.user.title')}{user?.name ? `, ${user.name.split(' ')[0]}` : ''}
+                        </Text>
 
                         {/* Subtitle */}
-                        <Text className="text-gray-500 font-outfit-regular text-base mb-8">
+                        <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, marginTop: 8, color: '#6B7490' }}>
                             {t('dashboard.user.subtitle')}
                         </Text>
 
                         {/* Assistance Type Buttons — same catalog as the type picker */}
-                        <View className="flex-row flex-wrap mb-8" style={{ gap: TYPE_GRID_GAP }}>
-                            {assistanceTypes.map((item, index) => (
+                        <View className="flex-row flex-wrap" style={{ gap: TYPE_GRID_GAP, marginTop: 18 }}>
+                            {assistanceTypes.map(item => (
                                 <DashboardTypeButton
                                     key={item.id}
                                     item={item}
-                                    featured={index === 0}
+                                    selected={item.id === selectedId}
                                     width={typeButtonWidth}
                                     {...typeButtonCopy(item)}
                                     onPress={typeButtonPress(item)}
@@ -724,11 +758,13 @@ export default function DashboardScreen() {
                         </View>
 
                         {/* Active Request Title */}
-                        <Text className="text-gray-900 font-outfit-medium text-lg mb-3" style={{ fontSize: 18 }}>{t('dashboard.user.activeRequestTitle')}</Text>
+                        <Text className="font-outfit-bold" style={{ fontSize: 18, letterSpacing: -0.3, color: '#0B1530', marginTop: 24, marginBottom: 12 }}>
+                            {t('dashboard.user.activeRequestTitle')}
+                        </Text>
 
                         {/* Empty State Message (only when no active requests) */}
                         {filteredRequests.length === 0 && (
-                            <Text className="text-gray-500 font-outfit-regular text-base mb-2">
+                            <Text className="font-outfit-regular mb-2" style={{ fontSize: 14, color: '#6B7490' }}>
                                 {t('dashboard.user.noActiveRequests')}
                             </Text>
                         )}
@@ -749,108 +785,6 @@ export default function DashboardScreen() {
                         onCancel={() => cancelRequest(item.id)}
                     />
                 )}
-                ListFooterComponent={
-                    <View className="mt-4">
-                        {/* DIY Tutorial Card 1 */}
-                        <View className="bg-white rounded-3xl p-5 mb-6 flex-row items-center gap-4" style={{ borderWidth: 1.5, borderColor: '#EEF2FA' }}>
-                            {/* Icon - Left Column */}
-                            <View className="w-16 h-16 rounded-2xl justify-center items-center" style={{ backgroundColor: '#F0F4FB' }}>
-                                <Text style={{ fontSize: 32 }}>🚗</Text>
-                            </View>
-
-                            {/* Right Column */}
-                            <View className="flex-1">
-                                {/* Title */}
-                                <Text className="text-gray-900 font-outfit-medium mb-1" style={{ fontSize: 17 }}>{t('dashboard.user.diy1.title')}</Text>
-
-                                {/* Description */}
-                                <Text className="text-gray-500 font-outfit-regular text-sm mb-3">
-                                    {t('dashboard.user.diy1.description')}
-                                </Text>
-
-                                {/* Button */}
-                                <TouchableOpacity
-                                    className="rounded-full px-4 py-2.5 flex-row items-center gap-2"
-                                    style={{ backgroundColor: '#2B66F8', alignSelf: 'flex-start' }}
-                                >
-                                    <Text style={{ fontSize: 14, color: '#FFFFFF' }}>▶</Text>
-                                    <Text className="text-white font-outfit-semibold" style={{ fontSize: 14 }}>{t('dashboard.user.watchTutorial')}</Text>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-
-                        {/* Promo Card - Refer & Earn */}
-                        <View className="bg-white rounded-3xl p-5 mb-6 flex-row items-center gap-4" style={{ borderWidth: 1.5, borderColor: '#EEF2FA' }}>
-                            {/* Left Column */}
-                            <View className="flex-1">
-                                {/* Subtitle */}
-                                <Text className="text-blue-600 font-outfit-semibold text-xs mb-1" style={{ fontSize: 11, letterSpacing: 1 }}>
-                                    {t('dashboard.user.referEarn.badge')}
-                                </Text>
-
-                                {/* Title */}
-                                <Text className="text-gray-900 font-outfit-medium mb-3" style={{ fontSize: 17 }}>{t('dashboard.user.referEarn.title')}</Text>
-
-                                {/* Button */}
-                                <TouchableOpacity
-                                    className="rounded-full px-4 py-2.5 flex-row items-center gap-1.5"
-                                    style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}
-                                >
-                                    <Text className="font-outfit-semibold" style={{ fontSize: 14, color: '#0047AB' }}>{t('dashboard.user.referEarn.button')}</Text>
-                                    <Text style={{ fontSize: 14, color: '#0047AB' }}>→</Text>
-                                </TouchableOpacity>
-                            </View>
-
-                            {/* Icon - Right Column */}
-                            <View className="w-16 h-16 rounded-2xl justify-center items-center" style={{ backgroundColor: '#F0F4FB' }}>
-                                <Text style={{ fontSize: 32 }}>💰</Text>
-                            </View>
-                        </View>
-
-                        {/* DIY Tutorial Card 2 */}
-                        <View className="bg-white rounded-3xl p-5 mb-6 flex-row items-center gap-4" style={{ borderWidth: 1.5, borderColor: '#EEF2FA' }}>
-                            {/* Icon - Left Column */}
-                            <View className="w-16 h-16 rounded-2xl justify-center items-center" style={{ backgroundColor: '#F0F4FB' }}>
-                                <Text style={{ fontSize: 32 }}>🔧</Text>
-                            </View>
-
-                            {/* Right Column */}
-                            <View className="flex-1">
-                                {/* Title */}
-                                <Text className="text-gray-900 font-outfit-medium mb-1" style={{ fontSize: 17 }}>{t('dashboard.user.diy2.title')}</Text>
-
-                                {/* Description */}
-                                <Text className="text-gray-500 font-outfit-regular text-sm mb-3">
-                                    {t('dashboard.user.diy2.description')}
-                                </Text>
-
-                                {/* Button */}
-                                <TouchableOpacity
-                                    className="rounded-full px-4 py-2.5 flex-row items-center gap-2"
-                                    style={{ backgroundColor: '#2B66F8', alignSelf: 'flex-start' }}
-                                >
-                                    <Text style={{ fontSize: 14, color: '#FFFFFF' }}>▶</Text>
-                                    <Text className="text-white font-outfit-semibold" style={{ fontSize: 14 }}>{t('dashboard.user.watchTutorial')}</Text>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-
-                        {/* Promo Banner - Only for Mechanics */}
-                        {user?.role?.toLowerCase().trim() === 'mechanic' && (
-                            <View className="bg-blue-50 rounded-xl p-4 flex-row items-center mb-6 border border-blue-100">
-                                <View className="flex-1">
-                                    <Text className="text-blue-900 font-outfit-semibold text-lg mb-2">{t('dashboard.mechanic.lookingForMoreWork')}</Text>
-                                    <TouchableOpacity
-                                        className="bg-blue-600 w-full py-2 rounded-lg"
-                                    >
-                                        <Text className="text-white font-outfit-semibold text-center text-xs">{t('dashboard.mechanic.viewOpportunities')}</Text>
-                                    </TouchableOpacity>
-                                </View>
-                                <View className="w-16 h-16 bg-blue-200 rounded-full ml-4" />
-                            </View>
-                        )}
-                    </View>
-                }
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: 20 }}
             />

@@ -50,21 +50,21 @@ export function UserRequestCard({
     };
 
     const getTypeIcon = () => {
-        if (isWitness) return <ShieldCheck size={20} color="#0047AB" />;
+        if (isWitness) return <ShieldCheck size={20} color="#1E56E3" />;
         switch (type) {
-            case 'scheduled': return <ClipboardList size={20} color="#0047AB" />;
-            default: return <Clock size={20} color="#0047AB" />;
+            case 'scheduled': return <ClipboardList size={20} color="#1E56E3" />;
+            default: return <Clock size={20} color="#1E56E3" />;
         }
     };
 
     const getStatusBadge = () => {
         switch (status) {
             case 'offered':
-                return { label: t('dashboard.user.requestStatus.offered'), bg: '#E9F1FF', color: '#0047AB' };
+                return { label: t('dashboard.user.requestStatus.offered'), bg: '#EAF1FF', color: '#1E56E3' };
             case 'accepted':
-                return { label: t('dashboard.user.requestStatus.accepted'), bg: '#ECFDF5', color: '#047857' };
+                return { label: t('dashboard.user.requestStatus.accepted'), bg: '#E7F8F1', color: '#0E8A5F' };
             case 'started':
-                return { label: t('dashboard.user.requestStatus.started'), bg: '#ECFDF5', color: '#047857' };
+                return { label: t('dashboard.user.requestStatus.started'), bg: '#E7F8F1', color: '#0E8A5F' };
             default:
                 return { label: t('dashboard.user.requestStatus.pending'), bg: '#FEF3C7', color: '#B45309' };
         }
@@ -72,82 +72,117 @@ export function UserRequestCard({
 
     const badge = getStatusBadge();
 
+    const infoRows = [
+        car ? { key: 'vehicle', Icon: Car, label: t('dashboard.user.requestVehicleLabel'), value: car } : null,
+        address ? { key: 'location', Icon: MapPin, label: t('dashboard.user.requestLocationLabel'), value: address } : null,
+    ].filter((row): row is NonNullable<typeof row> => row !== null);
+
     return (
         <View
-            className="bg-white rounded-3xl mb-4 p-5"
+            className="bg-white"
             style={{
-                borderWidth: 1.5,
+                borderRadius: 20,
+                padding: 16,
+                marginBottom: 20,
+                borderWidth: 1,
                 borderColor: '#EEF2FA',
-                shadowColor: '#000',
+                shadowColor: '#0E2F8A',
                 shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.12,
-                shadowRadius: 8,
-                elevation: 6,
+                shadowOpacity: 0.06,
+                shadowRadius: 14,
+                elevation: 3,
             }}
         >
             {/* Type + status */}
-            <View className="flex-row items-center mb-4">
+            <View className="flex-row items-center">
                 <View
-                    className="w-11 h-11 rounded-2xl justify-center items-center mr-3"
-                    style={{ backgroundColor: '#E9F1FF' }}
+                    className="justify-center items-center mr-3"
+                    style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#EAF1FF' }}
                 >
                     {getTypeIcon()}
                 </View>
                 <View className="flex-1">
-                    <Text className="text-gray-500 font-outfit-semibold text-xs tracking-widest">
+                    <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 1, color: '#6B7490' }}>
                         {getTypeTitle().toUpperCase()}
                     </Text>
-                    <Text className="text-gray-900 font-outfit-medium" style={{ fontSize: 17 }} numberOfLines={1}>
+                    <Text
+                        className="font-outfit-bold"
+                        style={{ fontSize: 18, letterSpacing: -0.3, color: '#0B1530', marginTop: 1 }}
+                        numberOfLines={1}
+                    >
                         {title}
                     </Text>
                 </View>
                 <View className="px-2.5 py-1 rounded-full ml-2" style={{ backgroundColor: badge.bg }}>
-                    <Text className="font-outfit-semibold text-[10px] tracking-widest" style={{ color: badge.color }}>
+                    <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 0.8, color: badge.color }}>
                         {badge.label.toUpperCase()}
                     </Text>
                 </View>
             </View>
 
             {/* Info block */}
-            {(!!car || !!address) && (
-                <View className="rounded-2xl mb-4" style={{ backgroundColor: '#F4F8FF' }}>
-                    {!!car && (
+            {infoRows.length > 0 && (
+                <View style={{ marginTop: 14, borderRadius: 14, borderWidth: 1, borderColor: '#EEF2FA', overflow: 'hidden' }}>
+                    {infoRows.map(({ key, Icon, label, value }, index) => (
                         <View
-                            className="flex-row items-center px-4 py-3"
-                            style={address ? { borderBottomWidth: 1, borderBottomColor: '#E1EAFB' } : undefined}
+                            key={key}
+                            className="flex-row items-center"
+                            style={{
+                                paddingVertical: 11,
+                                paddingHorizontal: 14,
+                                borderBottomWidth: index < infoRows.length - 1 ? 1 : 0,
+                                borderBottomColor: '#EEF2FA',
+                            }}
                         >
-                            <Car size={14} color="#4B5563" />
-                            <Text className="text-gray-700 font-outfit-regular text-sm ml-2 flex-1" numberOfLines={1}>
-                                {car}
+                            <View
+                                className="justify-center items-center"
+                                style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: '#EAF1FF', marginRight: 12 }}
+                            >
+                                <Icon size={17} color="#1E56E3" />
+                            </View>
+                            <Text className="font-outfit-medium" style={{ fontSize: 12, color: '#6B7490', width: 60 }}>
+                                {label}
+                            </Text>
+                            <Text
+                                className="font-outfit-bold flex-1"
+                                style={{ fontSize: 13, lineHeight: 17, color: '#0B1530', textAlign: 'right' }}
+                                numberOfLines={2}
+                            >
+                                {value}
                             </Text>
                         </View>
-                    )}
-                    {!!address && (
-                        <View className="flex-row items-center px-4 py-3">
-                            <MapPin size={14} color="#4B5563" />
-                            <Text className="text-gray-700 font-outfit-regular text-sm ml-2 flex-1" numberOfLines={2}>
-                                {address}
-                            </Text>
-                        </View>
-                    )}
+                    ))}
                 </View>
             )}
 
             {/* Actions */}
-            <View className="flex-row gap-3">
-                <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={{ flex: canCancel ? 0.7 : 1 }}>
+            <View className="flex-row gap-3" style={{ marginTop: 14 }}>
+                <TouchableOpacity
+                    onPress={onPress}
+                    activeOpacity={0.85}
+                    style={{
+                        flex: canCancel ? 0.7 : 1,
+                        borderRadius: 14,
+                        backgroundColor: '#1E56E3',
+                        shadowColor: '#1E56E3',
+                        shadowOffset: { width: 0, height: 6 },
+                        shadowOpacity: 0.3,
+                        shadowRadius: 10,
+                        elevation: 4,
+                    }}
+                >
                     <LinearGradient
-                        colors={['#2B66F8', '#081E72']}
-                        start={{ x: 0, y: 1 }}
+                        colors={['#1E56E3', '#0B2A8E']}
+                        start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
                         style={{
-                            borderRadius: 10,
+                            borderRadius: 14,
                             paddingVertical: 14,
                             alignItems: 'center',
                             justifyContent: 'center',
                         }}
                     >
-                        <Text className="text-white font-outfit-bold text-center">
+                        <Text className="text-white font-outfit-bold text-center" style={{ fontSize: 15 }}>
                             {t('dashboard.user.viewRequest')}
                         </Text>
                     </LinearGradient>
@@ -158,7 +193,7 @@ export function UserRequestCard({
                         onPress={onCancel}
                         activeOpacity={0.85}
                         className="items-center justify-center border-2"
-                        style={{ flex: 0.3, borderRadius: 10, borderColor: '#FCA5A5', backgroundColor: '#FEF0F0' }}
+                        style={{ flex: 0.3, borderRadius: 14, borderColor: '#FCA5A5', backgroundColor: '#FEF0F0' }}
                     >
                         <Text className="text-red-500 font-outfit-bold text-sm">
                             {t('dashboard.user.cancelRequest')}
@@ -167,7 +202,9 @@ export function UserRequestCard({
                 )}
             </View>
 
-            <Text className="text-gray-400 font-mono text-[10px] mt-3 text-right">#{id.slice(0, 8)}</Text>
+            <Text className="font-mono text-right" style={{ fontSize: 11, letterSpacing: 0.5, color: '#8C96AE', marginTop: 10 }}>
+                #{id.slice(0, 8)}
+            </Text>
         </View>
     );
 }
