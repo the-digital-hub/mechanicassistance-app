@@ -2,6 +2,7 @@ import { useAppointments } from '@/context/AppointmentsContext';
 import { useSocket } from '@/context/SocketContext';
 import { useUser } from '@/context/UserContext';
 import { apiClient } from '@/lib/api/apiClient';
+import { ApiError } from '@/lib/api/types';
 import { userDAO } from '@/lib/dao/UserDAO';
 import { Ionicons } from '@expo/vector-icons';
 import { useGlobalSearchParams, useRouter } from 'expo-router';
@@ -94,7 +95,12 @@ export default function VideoLobbyScreen() {
                     return true; // Room found
                 }
             } catch (e) {
-                // 404 = no room yet, that's fine
+                // 404 = no room yet, that's fine. 401/403 will not change by
+                // polling: say so instead of waiting forever.
+                if (e instanceof ApiError && (e.statusCode === 401 || e.statusCode === 403)) {
+                    Alert.alert('Error', 'You are not on this appointment, so you cannot join its video call.');
+                    return true; // Stop polling
+                }
             } finally {
                 setIsCheckingRoom(false);
             }
@@ -103,17 +109,16 @@ export default function VideoLobbyScreen() {
 
         if (!appointmentId) return;
 
-        // Initial check
-        checkExistingRoom();
+        let interval: ReturnType<typeof setInterval> | undefined;
 
-        // Poll every 3 seconds if mechanic is waiting for room
-        if (!isUserRole) {
-            const interval = setInterval(async () => {
-                const found = await checkExistingRoom();
-                if (found) clearInterval(interval);
+        // Initial check, then poll every 3 seconds if mechanic is waiting for room
+        checkExistingRoom().then((done) => {
+            if (done || isUserRole) return;
+            interval = setInterval(async () => {
+                if (await checkExistingRoom()) clearInterval(interval);
             }, 3000);
-            return () => clearInterval(interval);
-        }
+        });
+        return () => clearInterval(interval);
     }, [appointmentId, isUserRole]);
 
     // Also listen for real-time video_room_ready notifications (WebSocket).
