@@ -133,9 +133,9 @@ export default function MechanicFoundScreen() {
             // history lands on this screen again, then open the appointment with
             // the list under it.
             if (router.canDismiss()) router.dismissAll();
-            // For videocall type, redirect to video lobby instead of appointment detail
-            const requestType = request.type as string;
-            if (requestType === 'videocall' || requestType === 'video') {
+            // A video call asked for now starts right away, in the lobby; a booked
+            // one opens its appointment, which has "Join video call" for later.
+            if (request.type === 'videocall' && request.startNow) {
                 router.push({ pathname: '/video-lobby/[id]' as any, params: { id: requestId } });
             } else {
                 router.push({ pathname: '/appointments/[id]', params: { id: requestId } }, { withAnchor: true });
@@ -190,12 +190,12 @@ export default function MechanicFoundScreen() {
     const typeLabel =
         request?.assistanceType === 'witness' ? t('requestAssistance.badge.accident') :
             type === 'immediate' ? t('requestAssistance.badge.immediate') :
-                type === 'video' || type === 'videocall' ? t('requestAssistance.badge.videoCall') :
+                type === 'videocall' ? t('requestAssistance.badge.videoCall') :
                     t('requestAssistance.badge.scheduled');
     const includedKey =
         request?.assistanceType === 'witness' ? 'witness' :
             type === 'immediate' ? 'immediate' :
-                type === 'video' || type === 'videocall' ? 'video' :
+                type === 'videocall' ? 'video' :
                     type === 'scheduled' ? 'scheduled' : 'default';
     const included = t(`${k}.included.${includedKey}`, { returnObjects: true }) as string[];
 

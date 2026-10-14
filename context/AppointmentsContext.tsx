@@ -8,7 +8,22 @@ import React, { createContext, ReactNode, useContext, useEffect, useRef, useStat
 import { useSocket } from './SocketContext';
 
 // 'in_progress' = the mechanic checked in at the vehicle (appointments-service on-site flow).
-export type AppointmentStatus = 'scheduled' | 'canceled' | 'started' | 'in_progress' | 'completed' | 'pending' | 'accepted' | 'offered';
+// 'awaiting_confirmation' / 'disputed' = video calls only: the mechanic finished it and the
+// owner has to confirm it, or reported it as not resolved and support decides. Both are active.
+export type AppointmentStatus =
+    | 'scheduled'
+    | 'canceled'
+    | 'started'
+    | 'in_progress'
+    | 'completed'
+    | 'pending'
+    | 'accepted'
+    | 'offered'
+    | 'awaiting_confirmation'
+    | 'disputed';
+
+/** Confirmed work that is not over yet — shown as active, never as past. */
+export const IN_FLIGHT_STATUSES: AppointmentStatus[] = ['scheduled', 'accepted', 'started', 'in_progress', 'awaiting_confirmation', 'disputed'];
 
 export interface AdditionalFunds {
     amount: string;
@@ -266,7 +281,7 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
     const getUpcoming = () => {
         return appointments.filter(
             (a) => a.source !== 'assistance' &&
-                (a.status === 'scheduled' || a.status === 'started' || a.status === 'in_progress' || a.status === 'accepted')
+                IN_FLIGHT_STATUSES.includes(a.status)
         );
     };
 
@@ -295,7 +310,7 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
      * dashboard's "active request" section.
      */
     const getActiveRequests = () => {
-        const ACTIVE: AppointmentStatus[] = ['pending', 'offered', 'accepted', 'started', 'in_progress'];
+        const ACTIVE: AppointmentStatus[] = ['pending', 'offered', 'accepted', 'started', 'in_progress', 'awaiting_confirmation', 'disputed'];
         return appointments
             .filter((a) => ACTIVE.includes(a.status))
             .sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''));

@@ -195,6 +195,15 @@ export function routeForPush(data: PushData | undefined, viewer: PushViewer): Hr
             return appointmentId
                 ? { pathname: '/appointments/check-in/[id]', params: { id: appointmentId } }
                 : '/appointments';
+        case 'video_call_finished':
+        case 'video_call_confirmed':
+        case 'video_call_disputed':
+        case 'video_call_resolved':
+        case 'video_call_reminder':
+            // Video call close-out: the detail screen shows the confirm / dispute / outcome card.
+            return appointmentId
+                ? { pathname: '/appointments/[id]', params: { id: appointmentId } }
+                : '/appointments';
         case 'video_call':
             return appointmentId
                 ? { pathname: '/video-lobby/[id]', params: { id: appointmentId } }

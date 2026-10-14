@@ -72,7 +72,9 @@ export default function VehicleInformationScreen() {
         if (!condition) return;
 
         router.push({
-            pathname: '/request-assistance/vehicle-documentation',
+            // A video call is remote: no photos or location, it ends on "When".
+            // Typed routes regenerate on the next dev-server start; until then "when" is unknown.
+            pathname: (type === 'videocall' ? '/request-assistance/when' : '/request-assistance/vehicle-documentation') as never,
             params: {
                 ...params,
                 issues,

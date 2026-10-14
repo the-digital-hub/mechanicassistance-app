@@ -5,6 +5,14 @@ import { MechanicClientInfoTab } from '@/components/appointments/MechanicClientI
 import { CheckInCodeCard } from '@/components/appointments/CheckInCodeCard';
 import { OwnerReviewCard } from '@/components/appointments/OwnerReviewCard';
 import {
+    GradientButton,
+    JoinVideoCallButton,
+    MechanicVideoCallStatusCard,
+    NoteSheet,
+    OwnerVideoCallStatusCard,
+    VideoCallWhenCard,
+} from '@/components/appointments/VideoCallSections';
+import {
     AcceptedHeader,
     CheckInBanner,
     OwnerBudgetPanel,
@@ -19,6 +27,11 @@ import { useAppointments } from '@/context/AppointmentsContext';
 import { useUser } from '@/context/UserContext';
 import { useAppointmentEta } from '@/hooks/useAppointmentEta';
 import { useMechanicLocationBroadcast } from '@/hooks/useMechanicLocationBroadcast';
+import { useVideoCallState } from '@/hooks/useVideoCallState';
+import { ApiError } from '@/lib/api/types';
+import { onSiteDAO } from '@/lib/dao/OnSiteDAO';
+import { videoCallDAO } from '@/lib/dao/VideoCallDAO';
+import { formatLocalDateTime } from '@/lib/video/videoCallTime';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import type { AssistanceOfferSummary } from '@/lib/dao/interfaces';
 import { userDAO } from '@/lib/dao/UserDAO';
@@ -29,7 +42,7 @@ import React from 'react';
 import { AttachmentStrip } from '@/components/appointments/AttachmentStrip';
 import { parseAttachments } from '@/lib/media/attachments';
 import { useTranslation } from 'react-i18next';
-import { Dimensions, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Dimensions, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -52,7 +65,7 @@ function assistanceTypeKey(appointment: { assistanceType?: string; type?: string
     const kind = appointment.assistanceType ?? appointment.type;
     if (appointment.assistanceType === 'witness') return 'appointments.detail.types.accident';
     if (kind === 'immediate') return 'appointments.detail.types.immediate';
-    if (kind === 'videocall' || appointment.type === 'video') return 'appointments.detail.types.videocall';
+    if (kind === 'videocall') return 'appointments.detail.types.videocall';
     return 'appointments.detail.types.scheduled';
 }
 
@@ -61,24 +74,40 @@ export default function AppointmentDetailScreen() {
     const { id } = useGlobalSearchParams();
     // const { id } = useLocalSearchParams();
     const router = useRouter();
-    const { t } = useTranslation();
-    const { getAppointmentById, updateAppointment } = useAppointments();
+    const { t, i18n } = useTranslation();
+    const { getAppointmentById, updateAppointment, refresh: refreshAppointments } = useAppointments();
 
     const appointment = getAppointmentById(Array.isArray(id) ? id[0] : id || '');
 
     const { user } = useUser();
     const isUserRole = user?.role === 'user';
+    // A video call is remote: no GPS, ETA, check-in or on-site close-out.
+    const isVideoCall = (appointment?.assistanceType ?? appointment?.type) === 'videocall';
     useMechanicLocationBroadcast({
         appointmentId: appointment?.id ?? '',
         status: appointment?.status ?? 'pending',
         role: user?.role,
+        isVideoCall,
     });
 
     // Lifted here so the socket listener stays alive regardless of active tab.
     const { minutesAway, etaTime, loading: etaLoading, mechanicCoords, polyline } = useAppointmentEta(
-        isUserRole ? appointment?.id : undefined,
-        isUserRole ? appointment?.status : undefined,
+        isUserRole && !isVideoCall ? appointment?.id : undefined,
+        isUserRole && !isVideoCall ? appointment?.status : undefined,
     );
+
+    // Video call close-out (finish → confirm / dispute). Reloaded on focus, on
+    // appointment_update and whenever the appointments list refreshes this row.
+    const { state: videoState, setState: setVideoState } = useVideoCallState(
+        appointment?.id,
+        isVideoCall,
+        `${appointment?.status ?? ''}-${appointment?.updatedAt ?? ''}`,
+    );
+    const videoStatus = videoState?.status ?? appointment?.status;
+    const videoCallLive = videoStatus === 'accepted' || videoStatus === 'in_progress';
+    const [videoBusy, setVideoBusy] = React.useState(false);
+    const [showDisputeSheet, setShowDisputeSheet] = React.useState(false);
+    const [showFinishSheet, setShowFinishSheet] = React.useState(false);
     const [offer, setOffer] = React.useState<AssistanceOfferSummary | null>(null);
 
     const [activeTab, setActiveTab] = React.useState<TabType>('info');
@@ -166,6 +195,62 @@ export default function AppointmentDetailScreen() {
         };
     }, [isUserRole, appointment?.id, appointment?.mechanicId]);
 
+    const videoError = (error: unknown, fallbackKey: string) => {
+        // The server's message says why (e.g. 409: the call was never started).
+        const message = error instanceof ApiError && error.apiMessage ? error.apiMessage : t(fallbackKey);
+        Alert.alert(t('appointments.videoCall.errorTitle'), message);
+    };
+
+    const openVideoLobby = () => {
+        if (appointment) router.push({ pathname: '/video-lobby/[id]' as never, params: { id: appointment.id } });
+    };
+
+    // Owner: it was resolved — charged now; then offer the mechanic review.
+    const confirmVideoCall = async () => {
+        if (!appointment || videoBusy) return;
+        setVideoBusy(true);
+        try {
+            setVideoState(await videoCallDAO.confirm(appointment.id));
+            refreshAppointments();
+            router.push({ pathname: '/appointments/review/[id]' as never, params: { id: appointment.id } });
+        } catch (error) {
+            videoError(error, 'appointments.videoCall.owner.confirmFailed');
+        } finally {
+            setVideoBusy(false);
+        }
+    };
+
+    // Owner: it was not resolved — nothing is charged until support decides.
+    const disputeVideoCall = async (reason: string) => {
+        if (!appointment || videoBusy) return;
+        setVideoBusy(true);
+        try {
+            setVideoState(await videoCallDAO.dispute(appointment.id, reason));
+            setShowDisputeSheet(false);
+            refreshAppointments();
+        } catch (error) {
+            videoError(error, 'appointments.videoCall.dispute.failed');
+        } finally {
+            setVideoBusy(false);
+        }
+    };
+
+    // Mechanic: the help is done; the owner is asked to confirm.
+    const finishVideoCall = async (note: string) => {
+        if (!appointment || videoBusy) return;
+        setVideoBusy(true);
+        try {
+            setVideoState(await videoCallDAO.finish(appointment.id, note || undefined));
+            setShowFinishSheet(false);
+            refreshAppointments();
+        } catch (error) {
+            setShowFinishSheet(false);
+            videoError(error, 'appointments.videoCall.mechanic.finishFailed');
+        } finally {
+            setVideoBusy(false);
+        }
+    };
+
     // Fetch client details if user is mechanic
     const [client, setClient] = React.useState<any>(null);
     React.useEffect(() => {
@@ -208,6 +293,12 @@ export default function AppointmentDetailScreen() {
     const renderOwnerPanel = () => {
         switch (ownerTab) {
             case 'status':
+                if (isVideoCall) {
+                    // No ETA on a remote call; a "not resolved" one was not charged, so nothing to rate.
+                    return videoState?.currentStatus === 'not_resolved' ? null : (
+                        <OwnerReviewCard appointmentId={appointment.id} status={videoStatus} />
+                    );
+                }
                 return (
                     <View style={{ gap: 16 }}>
                         <OwnerReviewCard appointmentId={appointment.id} status={appointment.status} />
@@ -272,6 +363,21 @@ export default function AppointmentDetailScreen() {
                         setReviewText={setReviewText}
                         isSubmitted={isReviewSubmitted}
                         onSubmit={() => {
+                            if (isVideoCall) {
+                                // POST /appointments/:id/client-review — allowed once the video call is completed.
+                                if (videoStatus !== 'completed') {
+                                    Alert.alert(t('appointments.videoCall.mechanic.reviewAfterCompleted'));
+                                    return;
+                                }
+                                onSiteDAO
+                                    .reviewClient(appointment.id, rating, reviewText.trim() || undefined)
+                                    .then(() => setIsReviewSubmitted(true))
+                                    .catch((error) => {
+                                        if (error instanceof ApiError && error.statusCode === 409) setIsReviewSubmitted(true);
+                                        else videoError(error, 'appointments.videoCall.mechanic.reviewFailed');
+                                    });
+                                return;
+                            }
                             setIsReviewSubmitted(true);
                             updateAppointment(appointment.id, {
                                 isReviewSubmitted: true,
@@ -309,27 +415,33 @@ export default function AppointmentDetailScreen() {
                                 <OwnerMechanicCard
                                     mechanic={offer?.mechanic ?? null}
                                     onMessage={() => router.push(`/chat/${appointment.id}`)}
-                                    onCall={() => router.push({ pathname: '/video-lobby/[id]' as any, params: { id: appointment.id } })}
+                                    onCall={isVideoCall ? undefined : () => router.push({ pathname: '/video-lobby/[id]' as any, params: { id: appointment.id } })}
                                 />
 
-                                {appointment.type === 'videocall' && (
-                                    <TouchableOpacity
-                                        onPress={() => router.push({ pathname: '/video-lobby/[id]' as any, params: { id: appointment.id } })}
-                                        className="bg-emerald-500 rounded-xl py-4 flex-row items-center justify-center gap-3"
-                                        activeOpacity={0.8}
-                                    >
-                                        <Ionicons name="videocam" size={22} color="white" />
-                                        <Text className="text-white font-outfit-bold text-base">{t('appointments.detail.startVideoChat')}</Text>
-                                    </TouchableOpacity>
+                                {isVideoCall && (
+                                    <>
+                                        <VideoCallWhenCard date={appointment.date} />
+                                        {videoCallLive && <JoinVideoCallButton onPress={openVideoLobby} />}
+                                        {videoState && (
+                                            <OwnerVideoCallStatusCard
+                                                state={videoState}
+                                                mechanicName={ownerMechanicName}
+                                                busy={videoBusy}
+                                                onConfirm={confirmVideoCall}
+                                                onNotResolved={() => setShowDisputeSheet(true)}
+                                            />
+                                        )}
+                                    </>
                                 )}
 
                                 <OwnerTabs
                                     active={ownerTab}
                                     onChange={openOwnerTab}
-                                    checkInDot={appointment.status === 'accepted' && !checkInSeen}
+                                    checkInDot={!isVideoCall && appointment.status === 'accepted' && !checkInSeen}
+                                    hideCheckIn={isVideoCall}
                                 />
 
-                                {ownerTab === 'status' && appointment.status === 'accepted' && (
+                                {!isVideoCall && ownerTab === 'status' && appointment.status === 'accepted' && (
                                     <CheckInBanner onPress={() => openOwnerTab('checkin')} />
                                 )}
 
@@ -348,11 +460,11 @@ export default function AppointmentDetailScreen() {
                                 <View className="flex-row items-center gap-1.5 mb-3 px-2.5 py-1 rounded-full" style={{ backgroundColor: MECH.blueSoft, alignSelf: 'flex-start' }}>
                                     <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: MECH.blue }} />
                                     <Text className="font-outfit-bold text-[10.5px] tracking-widest" style={{ color: MECH.blue }}>
-                                        {t('appointments.detail.onTheWayBadge')}
+                                        {isVideoCall ? t('appointments.videoCall.badge') : t('appointments.detail.onTheWayBadge')}
                                     </Text>
                                 </View>
                                 <Text className="font-outfit-bold text-[22px]" style={{ color: MECH.text }}>
-                                    {t('appointments.detail.onTheWayTitle')}
+                                    {isVideoCall ? t('appointments.videoCall.mechanic.title') : t('appointments.detail.onTheWayTitle')}
                                 </Text>
                                 <View className="flex-row items-center flex-wrap gap-2 mt-2">
                                     <View className="flex-row items-center gap-2">
@@ -370,7 +482,8 @@ export default function AppointmentDetailScreen() {
                                 </View>
                             </View>
 
-                            {/* Status card */}
+                            {/* Status card — a finished video call shows its close-out card instead */}
+                            {(!isVideoCall || videoCallLive) && (
                             <View className="mx-4 mt-3.5 px-5 py-4 items-center" style={{ borderRadius: 20, backgroundColor: MECH.greenSoft }} testID="status-badge" nativeID="status-badge">
                                 <View className="flex-row items-center gap-2">
                                     <PulseDot color={MECH.green} />
@@ -379,12 +492,41 @@ export default function AppointmentDetailScreen() {
                                     </Text>
                                 </View>
                                 <Text className="font-outfit-medium text-[13px] mt-1" style={{ color: '#19A368' }} testID="status-description">
-                                    {t('appointments.detail.onTrip')}
+                                    {isVideoCall
+                                        ? appointment.date && formatLocalDateTime(appointment.date, i18n.language)
+                                            ? t('appointments.videoCall.scheduledAt', { date: formatLocalDateTime(appointment.date, i18n.language) })
+                                            : t('appointments.videoCall.remoteHint')
+                                        : t('appointments.detail.onTrip')}
                                 </Text>
                             </View>
+                            )}
+
+                            {/* Video call: join / finish, then the owner's answer */}
+                            {isVideoCall ? (
+                                <View className="mx-4 mt-3.5" style={{ gap: 10 }}>
+                                    {videoCallLive ? (
+                                        <>
+                                            <JoinVideoCallButton onPress={openVideoLobby} />
+                                            <GradientButton
+                                                label={t('appointments.videoCall.mechanic.finish')}
+                                                icon="checkmark-done"
+                                                colors={['#10B981', '#047857']}
+                                                loading={videoBusy}
+                                                onPress={() => setShowFinishSheet(true)}
+                                                testID="mechanic-video-finish"
+                                            />
+                                        </>
+                                    ) : videoState ? (
+                                        <MechanicVideoCallStatusCard
+                                            state={videoState}
+                                            onRateClient={videoStatus === 'completed' && !isReviewSubmitted ? () => setActiveTab('client') : undefined}
+                                        />
+                                    ) : null}
+                                </View>
+                            ) : null}
 
                             {/* On-site check-in — the critical next step once the mechanic arrives */}
-                            {appointment.status !== 'completed' ? (
+                            {!isVideoCall && appointment.status !== 'completed' ? (
                                 <View className="mt-3.5">
                                     <MechanicArrivalCard
                                         inProgress={appointment.status === 'in_progress'}
@@ -440,6 +582,34 @@ export default function AppointmentDetailScreen() {
                 }}
             />
             */}
+
+            {/* Video call: owner reports it as not resolved */}
+            <NoteSheet
+                visible={showDisputeSheet}
+                title={t('appointments.videoCall.dispute.title')}
+                body={t('appointments.videoCall.dispute.body')}
+                placeholder={t('appointments.videoCall.dispute.placeholder')}
+                confirmLabel={t('appointments.videoCall.dispute.submit')}
+                minLength={10}
+                maxLength={1000}
+                danger
+                submitting={videoBusy}
+                onClose={() => setShowDisputeSheet(false)}
+                onSubmit={disputeVideoCall}
+            />
+
+            {/* Video call: mechanic finishes it, with an optional note */}
+            <NoteSheet
+                visible={showFinishSheet}
+                title={t('appointments.videoCall.mechanic.finishTitle')}
+                body={t('appointments.videoCall.mechanic.finishBody')}
+                placeholder={t('appointments.videoCall.mechanic.notePlaceholder')}
+                confirmLabel={t('appointments.videoCall.mechanic.finishConfirm')}
+                maxLength={1000}
+                submitting={videoBusy}
+                onClose={() => setShowFinishSheet(false)}
+                onSubmit={finishVideoCall}
+            />
 
             {/* Cancellation Overlay */}
             <CancellationModal

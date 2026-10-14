@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import { DetailCard, DetailRow } from './DetailCard';
+import { formatLocalDateTime } from '@/lib/video/videoCallTime';
 // Leaflet CSS is injected via link tag in component
 
 interface MechanicAssistanceInfoTabProps {
@@ -74,22 +75,33 @@ const ClientSideMap = ({ appointment }: { appointment: any }) => {
 };
 
 export function MechanicAssistanceInfoTab({ appointment }: MechanicAssistanceInfoTabProps) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+    // A video call is remote: no address or map, just when it is booked for.
+    const isVideoCall = (appointment?.assistanceType ?? appointment?.type) === 'videocall';
     const issueValue = appointment.vehicleIssues?.length
         ? appointment.vehicleIssues.map((i: { name: string }) => i.name).join(', ')
         : '—';
 
     return (
         <View className="gap-3.5">
-            {/* Trip logistics — grouped with the map right below */}
-            <DetailCard>
-                <DetailRow icon="location-outline" label={t('appointments.detail.info.address')} value={appointment.address} last />
-            </DetailCard>
+            {isVideoCall ? (
+                <DetailCard>
+                    <DetailRow icon="videocam-outline" label={t('appointments.ownerAccepted.rows.service')} value={t('appointments.detail.types.videocall')} />
+                    <DetailRow icon="calendar-outline" label={t('appointments.videoCall.scheduledFor')} value={formatLocalDateTime(appointment.date, i18n.language) || '—'} last />
+                </DetailCard>
+            ) : (
+                <>
+                    {/* Trip logistics — grouped with the map right below */}
+                    <DetailCard>
+                        <DetailRow icon="location-outline" label={t('appointments.detail.info.address')} value={appointment.address} last />
+                    </DetailCard>
 
-            {/* React Leaflet Map for Web */}
-            <View style={{ height: 200, width: '100%', borderRadius: 18, overflow: 'hidden', backgroundColor: '#E5E7EB' }}>
-                <ClientSideMap appointment={appointment} />
-            </View>
+                    {/* React Leaflet Map for Web */}
+                    <View style={{ height: 200, width: '100%', borderRadius: 18, overflow: 'hidden', backgroundColor: '#E5E7EB' }}>
+                        <ClientSideMap appointment={appointment} />
+                    </View>
+                </>
+            )}
 
             {/* Vehicle details */}
             <DetailCard>

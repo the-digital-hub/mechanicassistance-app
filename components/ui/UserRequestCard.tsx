@@ -78,6 +78,18 @@ export function UserRequestCard({
                     detail: t('dashboard.user.requestStatusDetail.started'),
                     bg: '#E7F8F1', color: '#0E8A5F', dot: '#10B981',
                 };
+            case 'awaiting_confirmation':
+                return {
+                    label: t('dashboard.user.requestStatus.awaitingConfirmation'),
+                    detail: t('dashboard.user.requestStatusDetail.awaitingConfirmation'),
+                    bg: '#FFF4E8', color: '#EA580C', dot: '#F59E0B',
+                };
+            case 'disputed':
+                return {
+                    label: t('dashboard.user.requestStatus.disputed'),
+                    detail: t('dashboard.user.requestStatusDetail.disputed'),
+                    bg: '#FDECEC', color: '#C53030', dot: '#E53E3E',
+                };
             default:
                 return {
                     label: t('dashboard.user.requestStatus.pending'),

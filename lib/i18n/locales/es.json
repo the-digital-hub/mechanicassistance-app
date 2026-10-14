@@ -95,13 +95,17 @@
         "pending": "En búsqueda",
         "offered": "Oferta recibida",
         "accepted": "Aceptado",
-        "started": "En curso"
+        "started": "En curso",
+        "awaitingConfirmation": "Confirmala",
+        "disputed": "En revisión"
       },
       "requestStatusDetail": {
         "pending": "Buscando mecánico",
         "offered": "Mecánico encontrado",
         "accepted": "Técnico asignado",
-        "started": "Servicio en marcha"
+        "started": "Servicio en marcha",
+        "awaitingConfirmation": "El mecánico finalizó — confirmala",
+        "disputed": "Soporte lo está revisando"
       },
       "viewRequest": "Ver solicitud",
       "cancelRequest": "Cancelar",
@@ -471,6 +475,49 @@
       "cancelMessage": "Le avisaremos al mecánico y tu solicitud se cerrará. No se puede deshacer.",
       "cancelKeep": "Mantener solicitud",
       "cancelConfirm": "Cancelar solicitud"
+    },
+    "when": {
+      "headerTitle": "Videollamada",
+      "badge": "CUÁNDO",
+      "title": "¿Cuándo la necesitás?",
+      "subtitle": "Hablá con un técnico ahora mismo, o reservá un horario que te quede cómodo.",
+      "nowTitle": "Ahora",
+      "online_one": "{{count}} en línea",
+      "online_other": "{{count}} en línea",
+      "nowSubtitle_one": "Te conectás en aproximadamente {{count}} minuto",
+      "nowSubtitle_other": "Te conectás en aproximadamente {{count}} minutos",
+      "nowSubtitleNoWait": "Te conectás apenas se una un técnico",
+      "nowNobody": "No hay técnicos en línea ahora — reservá un horario",
+      "scheduleTitle": "Agendar",
+      "scheduleSubtitle": "Elegí día y hora",
+      "day": "Día",
+      "time": "Hora",
+      "today": "Hoy",
+      "tomorrow": "Mañana",
+      "periods": {
+        "morning": "Mañana",
+        "afternoon": "Tarde",
+        "evening": "Noche"
+      },
+      "noSlots": "No quedan horarios este día. Elegí otro día.",
+      "footnote": "Horarios en tu hora local ({{zone}}). Los tachados ya están tomados.",
+      "summary": "Resumen",
+      "service": "Servicio",
+      "whenLabel": "Cuándo",
+      "nowSummary": "Ahora · apenas se una un técnico",
+      "wait": "Espera",
+      "waitValue_one": "Aprox. {{count}} min",
+      "waitValue_other": "Aprox. {{count}} min",
+      "pickTime": "Elegí un horario",
+      "price": "Precio",
+      "priceTbd": "A definir",
+      "ctaNow": "Empezar videollamada ahora",
+      "ctaSchedule": "Agendar para las {{time}}",
+      "ctaPickTime": "Elegí un horario para seguir",
+      "loadFailed": "No pudimos cargar los horarios disponibles.",
+      "retry": "Reintentar",
+      "slotGoneTitle": "Ese horario se acaba de ocupar",
+      "slotGoneMessage": "Alguien lo reservó hace un momento. Elegí otro horario."
     }
   },
   "appointments": {
@@ -505,7 +552,13 @@
           "completed": "Completada",
           "completedHint": "Servicio finalizado",
           "canceled": "Cancelada",
-          "canceledHint": "La solicitud fue cancelada"
+          "canceledHint": "La solicitud fue cancelada",
+          "awaitingConfirmation": "Esperando confirmación",
+          "awaitingConfirmationHint": "El mecánico finalizó la videollamada",
+          "disputed": "En revisión",
+          "disputedHint": "Soporte lo está revisando",
+          "notCharged": "Sin cargo",
+          "notChargedHint": "No resuelta — sin cargo"
         },
         "type": {
           "immediate": "Asistencia inmediata",
@@ -519,7 +572,10 @@
           "enRoute": "Confirmada – En camino",
           "scheduled": "Confirmada – Agendada",
           "completed": "Completada – Resuelta",
-          "canceled": "Cancelada"
+          "canceled": "Cancelada",
+          "awaitingConfirmation": "Finalizada – Esperando confirmación",
+          "disputed": "En disputa – En revisión",
+          "notCharged": "Completada – Sin cargo"
         },
         "vehicleId": "Vehículo:",
         "distance": "Distancia: {{km}} Km",
@@ -1060,6 +1116,60 @@
       "idChecked": "Identidad verificada",
       "partsOnlyWithApproval": "Solo con tu aprobación",
       "cancel": "Cancelar solicitud"
+    },
+    "videoCall": {
+      "badge": "VIDEOLLAMADA",
+      "scheduledFor": "Programada para",
+      "scheduledAt": "Programada para el {{date}}",
+      "remoteHint": "Asistencia remota por videollamada",
+      "join": "Unirse a la videollamada",
+      "confirmsAutomatically": "Se confirma automáticamente el {{date}}",
+      "errorTitle": "Algo salió mal",
+      "cancel": "Cancelar",
+      "minChars": "{{current}}/{{count}} caracteres mínimo",
+      "status": {
+        "awaitingConfirmation": "Esperando confirmación",
+        "disputed": "En revisión",
+        "notCharged": "Sin cargo"
+      },
+      "owner": {
+        "awaitingTitle": "¿La videollamada resolvió tu problema?",
+        "awaitingBody": "{{name}} marcó la asistencia como finalizada. Confirmala para completar el servicio.",
+        "mechanicNote": "Nota del mecánico",
+        "confirm": "Confirmar",
+        "notResolved": "No se resolvió",
+        "confirmFailed": "No pudimos confirmar la asistencia. Intentá de nuevo.",
+        "disputedTitle": "Soporte lo está revisando",
+        "disputedBody": "Reportaste que el problema no se resolvió. No se te cobrará hasta que soporte decida.",
+        "notChargedTitle": "Sin cargo",
+        "notChargedBody": "Soporte determinó que el problema no se resolvió, así que no se te cobró."
+      },
+      "dispute": {
+        "title": "¿Qué no se resolvió?",
+        "body": "Contanos qué pasó. Soporte lo va a revisar y no se te cobrará hasta que decida.",
+        "placeholder": "Describí el problema (mínimo 10 caracteres)",
+        "submit": "Enviar reporte",
+        "failed": "No pudimos enviar tu reporte. Intentá de nuevo."
+      },
+      "mechanic": {
+        "title": "Asistencia remota",
+        "finish": "Finalizar asistencia",
+        "finishTitle": "¿Finalizar la asistencia?",
+        "finishBody": "Se le pedirá al cliente que confirme que el problema se resolvió. Podés dejarle una nota.",
+        "notePlaceholder": "Nota opcional para el cliente",
+        "finishConfirm": "Finalizar",
+        "finishFailed": "No pudimos finalizar la asistencia. Intentá de nuevo.",
+        "awaitingTitle": "Esperando la confirmación del cliente",
+        "yourNote": "Tu nota",
+        "disputedTitle": "Reportada como no resuelta",
+        "disputedBody": "El cliente reportó que no se resolvió — soporte lo va a revisar.",
+        "completedTitle": "Asistencia completada",
+        "completedBody": "El cliente confirmó la asistencia.",
+        "notResolvedBody": "Soporte determinó que el problema no se resolvió, así que no se le cobró al cliente.",
+        "rateClient": "Calificar al cliente",
+        "reviewAfterCompleted": "Vas a poder calificar al cliente cuando se confirme la asistencia.",
+        "reviewFailed": "No pudimos enviar tu calificación. Intentá de nuevo."
+      }
     }
   },
   "requestDetail": {
@@ -1115,7 +1225,9 @@
     "offlineOfferMessage": "Estás desconectado. Para enviar una oferta tenés que estar disponible.",
     "offlineOfferConfirm": "Ponerme disponible y ofertar",
     "offlineOfferCancel": "Cancelar",
-    "noLongerAvailable": "Esta solicitud ya no está disponible."
+    "noLongerAvailable": "Esta solicitud ya no está disponible.",
+    "videoCallWhen": "CUÁNDO",
+    "videoCallNow": "Ahora"
   },
   "personalInfo": {
     "uploadFailedTitle": "Error al subir",

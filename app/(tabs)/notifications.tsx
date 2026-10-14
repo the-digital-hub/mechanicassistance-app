@@ -47,6 +47,11 @@ export default function NotificationsScreen() {
             case 'new_request': return '🚗';
             case 'request_status': return '📍';
             case 'video_call': return '📹';
+            case 'video_call_finished': return '🏁';
+            case 'video_call_confirmed': return '✅';
+            case 'video_call_disputed': return '⚠️';
+            case 'video_call_resolved': return '⚖️';
+            case 'video_call_reminder': return '⏰';
             default: return '🔔';
         }
     };

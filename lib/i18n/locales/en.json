@@ -95,13 +95,17 @@
         "pending": "Searching",
         "offered": "Offer received",
         "accepted": "Accepted",
-        "started": "In progress"
+        "started": "In progress",
+        "awaitingConfirmation": "Confirm it",
+        "disputed": "Under review"
       },
       "requestStatusDetail": {
         "pending": "Looking for a mechanic",
         "offered": "Mechanic found",
         "accepted": "Technician assigned",
-        "started": "Service underway"
+        "started": "Service underway",
+        "awaitingConfirmation": "The mechanic finished — confirm it",
+        "disputed": "Support is reviewing it"
       },
       "viewRequest": "View request",
       "cancelRequest": "Cancel",
@@ -471,6 +475,49 @@
       "cancelMessage": "The mechanic will be told and your request will be closed. This cannot be undone.",
       "cancelKeep": "Keep request",
       "cancelConfirm": "Cancel request"
+    },
+    "when": {
+      "headerTitle": "Video call",
+      "badge": "WHEN",
+      "title": "When do you need it?",
+      "subtitle": "Talk to a technician right away, or book a time that works for you.",
+      "nowTitle": "Now",
+      "online_one": "{{count}} online",
+      "online_other": "{{count}} online",
+      "nowSubtitle_one": "Connect in about {{count}} minute",
+      "nowSubtitle_other": "Connect in about {{count}} minutes",
+      "nowSubtitleNoWait": "Connect as soon as a technician joins",
+      "nowNobody": "No technicians online right now — book a time",
+      "scheduleTitle": "Schedule",
+      "scheduleSubtitle": "Choose a day and time",
+      "day": "Day",
+      "time": "Time",
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "periods": {
+        "morning": "Morning",
+        "afternoon": "Afternoon",
+        "evening": "Evening"
+      },
+      "noSlots": "No times left on this day. Pick another day.",
+      "footnote": "Times shown in your local time ({{zone}}). Crossed-out slots are taken.",
+      "summary": "Summary",
+      "service": "Service",
+      "whenLabel": "When",
+      "nowSummary": "Now · as soon as a technician joins",
+      "wait": "Wait",
+      "waitValue_one": "About {{count}} min",
+      "waitValue_other": "About {{count}} min",
+      "pickTime": "Pick a time",
+      "price": "Price",
+      "priceTbd": "TBD",
+      "ctaNow": "Start video call now",
+      "ctaSchedule": "Schedule for {{time}}",
+      "ctaPickTime": "Pick a time to continue",
+      "loadFailed": "We couldn't load the available times.",
+      "retry": "Try again",
+      "slotGoneTitle": "That time was just taken",
+      "slotGoneMessage": "Someone booked it a moment ago. Pick another time."
     }
   },
   "appointments": {
@@ -505,7 +552,13 @@
           "completed": "Completed",
           "completedHint": "Service finished",
           "canceled": "Cancelled",
-          "canceledHint": "Request was cancelled"
+          "canceledHint": "Request was cancelled",
+          "awaitingConfirmation": "Awaiting confirmation",
+          "awaitingConfirmationHint": "Mechanic finished the video call",
+          "disputed": "Under review",
+          "disputedHint": "Support is reviewing it",
+          "notCharged": "Not charged",
+          "notChargedHint": "Not resolved — no charge"
         },
         "type": {
           "immediate": "Immediate Assistance",
@@ -519,7 +572,10 @@
           "enRoute": "Confirmed – En route",
           "scheduled": "Confirmed – Scheduled",
           "completed": "Completed – Resolved",
-          "canceled": "Cancelled"
+          "canceled": "Cancelled",
+          "awaitingConfirmation": "Finished – Awaiting confirmation",
+          "disputed": "Disputed – Under review",
+          "notCharged": "Completed – Not charged"
         },
         "vehicleId": "Vehicle ID:",
         "distance": "Distance: {{km}} Km",
@@ -1060,6 +1116,60 @@
       "idChecked": "ID checked",
       "partsOnlyWithApproval": "Only with your approval",
       "cancel": "Cancel request"
+    },
+    "videoCall": {
+      "badge": "VIDEO CALL",
+      "scheduledFor": "Scheduled for",
+      "scheduledAt": "Scheduled for {{date}}",
+      "remoteHint": "Remote assistance by video call",
+      "join": "Join video call",
+      "confirmsAutomatically": "Confirms automatically on {{date}}",
+      "errorTitle": "Something went wrong",
+      "cancel": "Cancel",
+      "minChars": "{{current}}/{{count}} characters minimum",
+      "status": {
+        "awaitingConfirmation": "Waiting for confirmation",
+        "disputed": "Under review",
+        "notCharged": "Not charged"
+      },
+      "owner": {
+        "awaitingTitle": "Did the video call solve your problem?",
+        "awaitingBody": "{{name}} marked the assistance as finished. Confirm it to complete the service.",
+        "mechanicNote": "Mechanic's note",
+        "confirm": "Confirm",
+        "notResolved": "It wasn't resolved",
+        "confirmFailed": "We couldn't confirm the assistance. Please try again.",
+        "disputedTitle": "Support is reviewing it",
+        "disputedBody": "You reported that the problem wasn't resolved. You won't be charged until support decides.",
+        "notChargedTitle": "Not charged",
+        "notChargedBody": "Support found the problem wasn't resolved, so you weren't charged."
+      },
+      "dispute": {
+        "title": "What wasn't resolved?",
+        "body": "Tell us what happened. Support will review it, and you won't be charged until they decide.",
+        "placeholder": "Describe the problem (at least 10 characters)",
+        "submit": "Send report",
+        "failed": "We couldn't send your report. Please try again."
+      },
+      "mechanic": {
+        "title": "Remote assistance",
+        "finish": "Finish assistance",
+        "finishTitle": "Finish the assistance?",
+        "finishBody": "The owner will be asked to confirm the problem was resolved. You can leave them a note.",
+        "notePlaceholder": "Optional note for the owner",
+        "finishConfirm": "Finish",
+        "finishFailed": "We couldn't finish the assistance. Please try again.",
+        "awaitingTitle": "Waiting for the owner to confirm",
+        "yourNote": "Your note",
+        "disputedTitle": "Reported as not resolved",
+        "disputedBody": "The owner reported it as not resolved — support will review it.",
+        "completedTitle": "Assistance completed",
+        "completedBody": "The owner confirmed the assistance.",
+        "notResolvedBody": "Support ruled the problem wasn't resolved, so the owner was not charged.",
+        "rateClient": "Rate the customer",
+        "reviewAfterCompleted": "You can rate the customer once the assistance is confirmed.",
+        "reviewFailed": "We couldn't send your rating. Please try again."
+      }
     }
   },
   "requestDetail": {
@@ -1115,7 +1225,9 @@
     "offlineOfferMessage": "You're offline. To send an offer you need to be available.",
     "offlineOfferConfirm": "Go available and offer",
     "offlineOfferCancel": "Cancel",
-    "noLongerAvailable": "This request is no longer available."
+    "noLongerAvailable": "This request is no longer available.",
+    "videoCallWhen": "WHEN",
+    "videoCallNow": "Now"
   },
   "personalInfo": {
     "uploadFailedTitle": "Upload Failed",

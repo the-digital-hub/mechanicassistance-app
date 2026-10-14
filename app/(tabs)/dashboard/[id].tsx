@@ -14,6 +14,7 @@ import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import { MAP_PROVIDER } from '@/lib/maps/provider';
 import { apiClient } from '@/lib/api/apiClient';
+import { videoCallStartLabel } from '@/lib/video/videoCallTime';
 
 function decodePolyline(encoded: string): { latitude: number; longitude: number }[] {
     const points: { latitude: number; longitude: number }[] = [];
@@ -48,10 +49,10 @@ function formatEta(minutes: number): string {
 }
 
 export default function AssistDetailScreen() {
-    const { id, type, assistanceType, title, car, address, zip, budget, userId, locationLat, locationLng } = useLocalSearchParams();
+    const { id, type, assistanceType, title, car, address, zip, budget, userId, locationLat, locationLng, date } = useLocalSearchParams();
     const router = useRouter();
     const navigation = useNavigation();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { user } = useUser();
     const { appointments } = useAppointments();
 
@@ -92,7 +93,8 @@ export default function AssistDetailScreen() {
     // Calculate distance + ETA from mechanic's current location to the request location,
     // then fetch the Google Directions route polyline for the map.
     useEffect(() => {
-        if (!hasLocation) return;
+        // A video call is remote: no route, distance or ETA to work out.
+        if (!hasLocation || isVideo) return;
 
         (async () => {
             try {
@@ -124,7 +126,7 @@ export default function AssistDetailScreen() {
                 // no-op: ETA and distance stay null
             }
         })();
-    }, [locationLat, locationLng]);
+    }, [locationLat, locationLng, isVideo]);
 
     const gate = useVerifiedAction();
     const ensureAvailable = useAvailableToOffer();
@@ -149,7 +151,8 @@ export default function AssistDetailScreen() {
 
         try {
             if (user?.role === 'mechanic' && user?.id) {
-                await assistanceDAO.updateStatus(appointmentId, user.id, 'offered', etaText ? { eta: etaText } : undefined);
+                // A video call has no arrival time: the backend ignores `eta` on one anyway.
+                await assistanceDAO.updateStatus(appointmentId, user.id, 'offered', etaText && !isVideo ? { eta: etaText } : undefined);
             }
             setShowConfirm(false);
 
@@ -200,7 +203,15 @@ export default function AssistDetailScreen() {
                             <Text className="font-outfit-bold text-gray-900 mb-1">{t('dashboardDetail.estimatedPrice')}</Text>
                             <Text className="font-outfit-bold text-blue-600 text-lg">{budget}</Text>
                         </View>
-                        {(etaText || distKm !== null) && (
+                        {isVideo && (
+                            <View className="flex-row items-center gap-2 bg-blue-50 rounded-xl px-4 py-3" testID="video-call-when">
+                                <Clock size={16} color="#0047AB" />
+                                <Text className="font-outfit-bold text-blue-900">
+                                    {t('requestDetail.videoCallWhen')}: {videoCallStartLabel(typeof date === 'string' ? date : undefined, i18n.language) ?? t('requestDetail.videoCallNow')}
+                                </Text>
+                            </View>
+                        )}
+                        {!isVideo && (etaText || distKm !== null) && (
                             <View className="flex-row items-center gap-2 bg-blue-50 rounded-xl px-4 py-3">
                                 <Navigation size={16} color="#0047AB" />
                                 {distKm !== null && (
@@ -214,7 +225,7 @@ export default function AssistDetailScreen() {
                     </View>
 
                     {/* Route map: client pin (red) + mechanic pin (blue) + polyline */}
-                    {hasLocation && (
+                    {hasLocation && !isVideo && (
                         <View className="mb-6 rounded-xl overflow-hidden" style={{ height: 200 }}>
                             <MapView
                                 provider={MAP_PROVIDER}

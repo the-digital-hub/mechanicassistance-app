@@ -7,10 +7,13 @@ export function useMechanicLocationBroadcast({
   appointmentId,
   status,
   role,
+  isVideoCall = false,
 }: {
   appointmentId: string;
   status: AppointmentStatus;
   role: string | undefined;
+  /** A video call is remote: the mechanic's position is never shared. */
+  isVideoCall?: boolean;
 }): void {
   const { sendMessage } = useSocket();
   const subscriptionRef = useRef<Location.LocationSubscription | null>(null);
@@ -20,7 +23,7 @@ export function useMechanicLocationBroadcast({
     subscriptionRef.current?.remove();
     subscriptionRef.current = null;
 
-    if (role !== 'mechanic' || (status !== 'started' && status !== 'accepted')) return;
+    if (isVideoCall || role !== 'mechanic' || (status !== 'started' && status !== 'accepted')) return;
 
     let cancelled = false;
 
@@ -55,5 +58,5 @@ export function useMechanicLocationBroadcast({
       subscriptionRef.current?.remove();
       subscriptionRef.current = null;
     };
-  }, [appointmentId, status, role]);
+  }, [appointmentId, status, role, isVideoCall]);
 }

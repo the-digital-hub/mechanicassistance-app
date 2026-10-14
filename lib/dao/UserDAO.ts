@@ -7,6 +7,7 @@ import {
     saveTokens,
 } from '../auth/session';
 import { AvailabilityPayload, IUserDAO, MechanicStatus, PublicUserProfile, UserData } from './interfaces';
+import { deviceTimeZone } from './VideoCallDAO';
 
 export class UserDAO implements IUserDAO {
     async getAll(): Promise<UserData[]> {
@@ -199,7 +200,8 @@ export class UserDAO implements IUserDAO {
         if (credentialsData?.validated && credentialsData.aseId) {
             payload.credentials = { aseId: credentialsData.aseId };
         }
-        if (progress.availability) payload.availability = progress.availability;
+        // The week's times are local to the mechanic: say which zone they are in.
+        if (progress.availability) payload.availability = { ...progress.availability, timezone: deviceTimeZone() };
 
         // Vehicles: strip client-generated `id` — Prisma generates UUIDs server-side
         if (vehiclesData && Array.isArray(vehiclesData) && vehiclesData.length > 0) {
@@ -248,7 +250,7 @@ export class UserDAO implements IUserDAO {
      * `availability` block signup sends. Days left out are deleted server-side.
      */
     async updateAvailability(id: string, availability: AvailabilityPayload): Promise<void> {
-        return apiClient.patch(`/api/users/${id}`, { availability });
+        return apiClient.patch(`/api/users/${id}`, { availability: { ...availability, timezone: deviceTimeZone() } });
     }
 
     /**

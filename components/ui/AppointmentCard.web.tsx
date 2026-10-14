@@ -81,7 +81,7 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
     const router = useRouter();
     const { t } = useTranslation();
     const isPending = appointment.status === 'pending';
-    const state = getCardState(appointment.status);
+    const state = getCardState(appointment);
     const isPast = isPastState(state);
     const banner = BANNER_COLORS[state];
     const typeBar = getTypeBar(appointment);

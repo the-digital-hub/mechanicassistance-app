@@ -15,6 +15,7 @@ import type { AssistanceRequest } from '@/lib/dao/interfaces';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import { MAP_PROVIDER } from '@/lib/maps/provider';
 import { apiClient } from '@/lib/api/apiClient';
+import { videoCallStartLabel } from '@/lib/video/videoCallTime';
 import { LinearGradient } from 'expo-linear-gradient';
 
 function decodePolyline(encoded: string): { latitude: number; longitude: number }[] {
@@ -100,7 +101,7 @@ export default function RequestDetailScreen() {
     const router = useRouter();
     const navigation = useNavigation();
     const { user } = useUser();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
 
     useFocusEffect(
         useCallback(() => {
@@ -196,7 +197,8 @@ export default function RequestDetailScreen() {
     }, [mechanicCoords, distKm]);
 
     useEffect(() => {
-        if (!hasLocation) return;
+        // A video call is remote: no route, distance or ETA to work out.
+        if (!hasLocation || isVideo) return;
 
         (async () => {
             try {
@@ -228,7 +230,7 @@ export default function RequestDetailScreen() {
                 // no-op: ETA and distance stay null
             }
         })();
-    }, [locationLat, locationLng]);
+    }, [locationLat, locationLng, isVideo]);
 
     const gate = useVerifiedAction();
     const ensureAvailable = useAvailableToOffer();
@@ -253,7 +255,8 @@ export default function RequestDetailScreen() {
 
         try {
             if (user?.role === 'mechanic' && user?.id) {
-                await assistanceDAO.updateStatus(appointmentId, user.id, 'offered', etaText ? { eta: etaText } : undefined);
+                // A video call has no arrival time: the backend ignores `eta` on one anyway.
+                await assistanceDAO.updateStatus(appointmentId, user.id, 'offered', etaText && !isVideo ? { eta: etaText } : undefined);
             }
             setShowConfirm(false);
             router.replace('/(tabs)/appointments');
@@ -412,7 +415,7 @@ export default function RequestDetailScreen() {
                         </View>
 
                         {/* Address map — client pin (+ own GPS pin / route once available) */}
-                        {hasLocation && (
+                        {hasLocation && !isVideo && (
                             <View className="mx-5 mb-5 rounded-xl overflow-hidden" style={{ height: 160 }}>
                                 <MapView
                                     provider={MAP_PROVIDER}
@@ -461,8 +464,23 @@ export default function RequestDetailScreen() {
                         )}
                     </View>
 
+                    {/* Video call: when it is booked for, instead of distance / ETA */}
+                    {isVideo && (
+                        <View className="flex-row items-center rounded-2xl mb-4 p-4" style={{ backgroundColor: '#E9F1FF', borderWidth: 1, borderColor: '#C7D7F5' }} testID="video-call-when">
+                            <View className="w-11 h-11 rounded-xl bg-white justify-center items-center mr-3">
+                                <Clock size={20} color="#0047AB" />
+                            </View>
+                            <View className="flex-1">
+                                <Text className="font-outfit-semibold text-xs tracking-widest text-blue-500 mb-0.5">{t('requestDetail.videoCallWhen')}</Text>
+                                <Text className="font-outfit-bold text-lg text-gray-900">
+                                    {videoCallStartLabel(typeof date === 'string' ? date : undefined, i18n.language) ?? t('requestDetail.videoCallNow')}
+                                </Text>
+                            </View>
+                        </View>
+                    )}
+
                     {/* Distance / ETA Card */}
-                    {(etaText || distKm !== null) && (
+                    {!isVideo && (etaText || distKm !== null) && (
                         <View className="flex-row rounded-2xl mb-4 overflow-hidden" style={{ backgroundColor: '#E9F1FF', borderWidth: 1, borderColor: '#C7D7F5' }}>
                             <View className="flex-1 flex-row items-center p-4">
                                 <View className="w-11 h-11 rounded-xl bg-white justify-center items-center mr-3">

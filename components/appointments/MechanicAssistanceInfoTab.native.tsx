@@ -8,6 +8,7 @@ import MapView, { Marker, Polyline } from 'react-native-maps';
 import { MAP_PROVIDER } from '@/lib/maps/provider';
 import { formatEtaTime, useAppointmentEta } from '@/hooks/useAppointmentEta';
 import { useSocket } from '@/context/SocketContext';
+import { formatLocalDateTime } from '@/lib/video/videoCallTime';
 
 function decodePolyline(encoded: string): { latitude: number; longitude: number }[] {
     const points: { latitude: number; longitude: number }[] = [];
@@ -33,7 +34,9 @@ interface MechanicAssistanceInfoTabProps {
 }
 
 export function MechanicAssistanceInfoTab({ appointment }: MechanicAssistanceInfoTabProps) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+    // A video call is remote: no GPS, map, route or ETA.
+    const isVideoCall = (appointment?.assistanceType ?? appointment?.type) === 'videocall';
     const mapRef = React.useRef<MapView | null>(null);
     const [mechanicCoords, setMechanicCoords] = React.useState<{ latitude: number; longitude: number } | null>(null);
     const { sendMessage } = useSocket();
@@ -47,12 +50,13 @@ export function MechanicAssistanceInfoTab({ appointment }: MechanicAssistanceInf
 
     // Live ETA / arrival hour (shared with the client via the same hook).
     const { minutesAway, etaTime, loading: etaLoading, polyline } = useAppointmentEta(
-        appointment?.id,
-        appointment?.status,
+        isVideoCall ? undefined : appointment?.id,
+        isVideoCall ? undefined : appointment?.status,
     );
 
     // Track mechanic's live position — watch continuously so the marker moves as they drive.
     React.useEffect(() => {
+        if (isVideoCall) return;
         let sub: Location.LocationSubscription | null = null;
         let cancelled = false;
         (async () => {
@@ -83,7 +87,7 @@ export function MechanicAssistanceInfoTab({ appointment }: MechanicAssistanceInf
             cancelled = true;
             sub?.remove();
         };
-    }, []);
+    }, [isVideoCall]);
 
     // Frame both pins (mechanic + request) once we have them.
     const fitMarkers = React.useCallback(() => {
@@ -112,6 +116,28 @@ export function MechanicAssistanceInfoTab({ appointment }: MechanicAssistanceInf
     const issueValue = appointment.vehicleIssues?.length
         ? appointment.vehicleIssues.map((i: { name: string }) => i.name).join(', ')
         : '—';
+
+    if (isVideoCall) {
+        const scheduled = formatLocalDateTime(appointment.date, i18n.language);
+        return (
+            <View className="gap-3.5">
+                <DetailCard>
+                    <DetailRow icon="videocam-outline" label={t('appointments.ownerAccepted.rows.service')} value={t('appointments.detail.types.videocall')} />
+                    <DetailRow icon="calendar-outline" label={t('appointments.videoCall.scheduledFor')} value={scheduled || '—'} last />
+                </DetailCard>
+                <DetailCard>
+                    <DetailRow icon="car-outline" label={t('appointments.detail.info.car')} value={appointment.car} />
+                    <DetailRow icon="construct-outline" label={t('appointments.detail.info.carIssue')} value={issueValue} />
+                    <DetailRow
+                        icon="document-text-outline"
+                        label={t('appointments.detail.info.notes')}
+                        value={appointment.notes || t('appointments.detail.info.noNotes')}
+                        last
+                    />
+                </DetailCard>
+            </View>
+        );
+    }
 
     return (
         <View className="gap-3.5">

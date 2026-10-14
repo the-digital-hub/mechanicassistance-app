@@ -34,7 +34,8 @@ export function AcceptedHeader({ id }: { id: string }) {
     );
 }
 
-export function OwnerMechanicCard({ mechanic, onMessage, onCall }: { mechanic: Mechanic | null; onMessage: () => void; onCall: () => void }) {
+/** `onCall` omitted (video calls, which get their own "Join video call" button) hides the call button. */
+export function OwnerMechanicCard({ mechanic, onMessage, onCall }: { mechanic: Mechanic | null; onMessage: () => void; onCall?: () => void }) {
     const { t } = useTranslation();
     return (
         <View style={[card, { borderRadius: 16, padding: 10, paddingLeft: 12, flexDirection: 'row', alignItems: 'center', gap: 10 }]} testID="owner-mechanic-card">
@@ -61,9 +62,11 @@ export function OwnerMechanicCard({ mechanic, onMessage, onCall }: { mechanic: M
             <TouchableOpacity onPress={onMessage} accessibilityLabel={t(`${K}.message`)} style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: AO.blueSoft, alignItems: 'center', justifyContent: 'center' }} testID="owner-message-button">
                 <Ionicons name="chatbubble-ellipses-outline" size={18} color={AO.blue} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={onCall} accessibilityLabel={t(`${K}.call`)} style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: AO.blue, alignItems: 'center', justifyContent: 'center', shadowColor: AO.blue, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 8, elevation: 4 }} testID="owner-call-button">
-                <Ionicons name="call-outline" size={18} color="#fff" />
-            </TouchableOpacity>
+            {onCall && (
+                <TouchableOpacity onPress={onCall} accessibilityLabel={t(`${K}.call`)} style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: AO.blue, alignItems: 'center', justifyContent: 'center', shadowColor: AO.blue, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 8, elevation: 4 }} testID="owner-call-button">
+                    <Ionicons name="call-outline" size={18} color="#fff" />
+                </TouchableOpacity>
+            )}
         </View>
     );
 }
@@ -76,11 +79,12 @@ const TABS: { id: OwnerTab; icon: IconName }[] = [
     { id: 'budget', icon: 'cash-outline' },
 ];
 
-export function OwnerTabs({ active, onChange, checkInDot }: { active: OwnerTab; onChange: (tab: OwnerTab) => void; checkInDot: boolean }) {
+/** `hideCheckIn`: video calls are remote and have no check-in. */
+export function OwnerTabs({ active, onChange, checkInDot, hideCheckIn = false }: { active: OwnerTab; onChange: (tab: OwnerTab) => void; checkInDot: boolean; hideCheckIn?: boolean }) {
     const { t } = useTranslation();
     return (
         <View className="flex-row" style={{ gap: 4, padding: 4, borderRadius: 16, backgroundColor: '#fff', borderWidth: 1, borderColor: AO.border }}>
-            {TABS.map((tab) => {
+            {TABS.filter((tab) => !(hideCheckIn && tab.id === 'checkin')).map((tab) => {
                 const on = active === tab.id;
                 return (
                     <TouchableOpacity

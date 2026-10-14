@@ -21,6 +21,8 @@ export interface AssistanceRequest {
     budget: string;
     distance?: string;
     date?: string;
+    /** Video calls only: asked for "now" rather than booked; the server dates it. */
+    startNow?: boolean;
     userId?: string;
     mechanicId?: string;
     status?: 'pending' | 'accepted' | 'canceled' | 'offered';
@@ -108,6 +110,8 @@ export interface AvailabilityPayload {
     /** Miles, 1-50. */
     serviceRadius: number;
     schedule?: { day: string; startTime: string; endTime: string }[];
+    /** IANA zone the times are in, one for the whole week, e.g. "America/New_York". */
+    timezone?: string;
 }
 
 /**
@@ -484,9 +488,13 @@ export interface AssistanceTypeCatalogItem {
 
 /** Body for POST /api/pricing/calculate. Jurisdiction is resolved server-side from `zipcode`. */
 export interface CalculatePricePayload {
-    vehicle_issue_id: string;
-    latitude: number;
-    longitude: number;
+    /** Required except for a video call, which is a flat fee. */
+    vehicle_issue_id?: string;
+    /** Required except for a video call (remote: no location). */
+    latitude?: number;
+    longitude?: number;
+    /** "videocall" prices the flat video-call fee: no issue, location or tax. */
+    assistance_type?: string;
     zipcode?: string;
     add_on_ids?: string[];
     /**
@@ -502,8 +510,11 @@ export interface PersistRequestPricePayload {
     vehicle_issue_ids: string[];
     /** Selected symptom UUIDs, from any of vehicle_issue_ids. Unpriced; stored for the mechanic. */
     vehicle_issue_symptom_ids?: string[];
-    latitude: number;
-    longitude: number;
+    /** Required except for a video call (remote: no location). */
+    latitude?: number;
+    longitude?: number;
+    /** "videocall" persists the flat video-call fee. */
+    assistance_type?: string;
     zipcode?: string;
     /** See CalculatePricePayload.service_at. Defaults to the request's own date. */
     service_at?: string;
