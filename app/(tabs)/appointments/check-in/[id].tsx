@@ -69,10 +69,19 @@ export default function OnSiteFlowScreen() {
     const [redirectReason, setRedirectReason] = React.useState<RedirectReason | null>(null);
     const [clientName, setClientName] = React.useState('—');
 
+    // A request not accepted yet has no appointment, and a video call has no
+    // visit: asking would only earn a 404/409 from the server.
+    const hasVisit =
+        !!appointment && (appointment.assistanceType ?? appointment.type) !== 'videocall';
+
     // Resume a visit already checked in (the app may have been closed mid-way).
     React.useEffect(() => {
-        if (!id) return;
+        if (!id || !hasVisit) {
+            setLoading(false);
+            return;
+        }
         let cancelled = false;
+        setLoading(true);
         onSiteDAO
             .get(id)
             .then((v) => {
@@ -86,7 +95,7 @@ export default function OnSiteFlowScreen() {
         return () => {
             cancelled = true;
         };
-    }, [id, t]);
+    }, [id, hasVisit, t]);
 
     React.useEffect(() => {
         if (!appointment?.userId) return;
@@ -104,9 +113,9 @@ export default function OnSiteFlowScreen() {
     const { lastMessage } = useSocket();
     React.useEffect(() => {
         const refreshes = lastMessage?.type === 'obd_update' || lastMessage?.type === 'owner_review_submitted';
-        if (!refreshes || lastMessage?.payload?.id !== id) return;
+        if (!refreshes || !hasVisit || lastMessage?.payload?.id !== id) return;
         onSiteDAO.get(id).then((v) => v && setVisit(v)).catch(() => { /* next event retries */ });
-    }, [lastMessage, id]);
+    }, [lastMessage, id, hasVisit]);
 
     const obdFilled = visit?.obdStatus === 'ready' || visit?.obdStatus === 'manual';
 

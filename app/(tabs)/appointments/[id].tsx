@@ -98,9 +98,12 @@ export default function AppointmentDetailScreen() {
 
     // Video call close-out (finish → confirm / dispute). Reloaded on focus, on
     // appointment_update and whenever the appointments list refreshes this row.
+    // Not asked while still pending or once canceled: there is no close-out to show.
+    const videoStateRelevant =
+        isVideoCall && !['pending', 'canceled', 'cancelled'].includes(appointment?.status ?? 'pending');
     const { state: videoState, setState: setVideoState } = useVideoCallState(
         appointment?.id,
-        isVideoCall,
+        videoStateRelevant,
         `${appointment?.status ?? ''}-${appointment?.updatedAt ?? ''}`,
     );
     const videoStatus = videoState?.status ?? appointment?.status;
