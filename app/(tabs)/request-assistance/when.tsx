@@ -76,6 +76,7 @@ export default function VideoCallWhenScreen() {
     const [loading, setLoading] = useState(true);
     const [loadFailed, setLoadFailed] = useState(false);
     const [price, setPrice] = useState<number | null>(null);
+    const [priceLoading, setPriceLoading] = useState(true);
     const [mode, setMode] = useState<Mode>('now');
     const [dayIndex, setDayIndex] = useState(0);
     const [slot, setSlot] = useState<VideoCallSlot | null>(null);
@@ -104,19 +105,33 @@ export default function VideoCallWhenScreen() {
         load();
     }, [load]);
 
-    // The flat video-call fee. Failures show "TBD" and never block the request.
+    // The video-call price is a base × the time band of the moment it happens:
+    // re-quoted for "Now" or the picked slot. Failures show "TBD" and never
+    // block the request.
+    const serviceAt = mode === 'schedule' ? slot?.start : undefined;
     useEffect(() => {
         let mounted = true;
+        setPriceLoading(true);
         pricingDAO
-            .calculatePrice({ assistance_type: 'videocall' })
+            .calculatePrice({
+                assistance_type: 'videocall',
+                timezone,
+                ...(serviceAt ? { service_at: serviceAt } : {}),
+            })
             .then((r) => {
                 if (mounted) setPrice(r?.pricing_breakdown?.final_price ?? null);
             })
-            .catch((err) => console.warn('[when] price failed; showing TBD', err));
+            .catch((err) => {
+                console.warn('[when] price failed; showing TBD', err);
+                if (mounted) setPrice(null);
+            })
+            .finally(() => {
+                if (mounted) setPriceLoading(false);
+            });
         return () => {
             mounted = false;
         };
-    }, []);
+    }, [timezone, serviceAt]);
 
     // ─── Formatting (in the phone's own zone and language) ───
 
@@ -179,11 +194,14 @@ export default function VideoCallWhenScreen() {
                 ...(vehicleDetails.driverPhone ? { driverPhone: vehicleDetails.driverPhone } : {}),
             });
 
-            // Records the flat fee and the issues on the request. The request
-            // already exists, so a failure here must not undo it — but say so.
+            // Records the price and the issues on the request, for the same
+            // instant and zone the owner was quoted. The request already
+            // exists, so a failure here must not undo it — but say so.
             try {
                 await pricingDAO.persistRequestPrice(response.id, {
                     assistance_type: 'videocall',
+                    timezone,
+                    ...(mode === 'schedule' && slot ? { service_at: slot.start } : {}),
                     vehicle_issue_ids: parseIds(issues),
                     vehicle_issue_symptom_ids: parseIds(symptomIds),
                 });
@@ -328,7 +346,11 @@ export default function VideoCallWhenScreen() {
 
     const online = now?.mechanicsOnline ?? 0;
     const wait = now?.estimatedWaitMinutes ?? null;
-    const priceLabel = price != null ? `$${price.toFixed(2)}` : t('requestAssistance.when.priceTbd');
+    const priceLabel = priceLoading
+        ? '…'
+        : price != null
+            ? `$${price.toFixed(2)}`
+            : t('requestAssistance.when.priceTbd');
 
     const ctaLabel =
         mode === 'now'
