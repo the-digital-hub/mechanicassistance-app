@@ -4,7 +4,7 @@ import { haversineDistanceKm } from '@/lib/utils';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { Car, MapPin, MessageSquare, Trash2, Video } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -12,6 +12,7 @@ import MapView, { Marker } from 'react-native-maps';
 import { MAP_PROVIDER } from '@/lib/maps/provider';
 import { videoCallBookedLabel } from '@/lib/video/videoCallTime';
 import { BANNER_COLORS, TYPE_BAR_ACTIVE, TYPE_BAR_PAST, getCardState, getTypeBar, isPastState } from './appointmentCardTheme';
+import { ScrollPressGuardContext } from '@/hooks/useScrollPressGuard';
 
 interface AppointmentCardProps {
     appointment: Appointment;
@@ -20,6 +21,7 @@ interface AppointmentCardProps {
 
 export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps) {
     const router = useRouter();
+    const guardPress = useContext(ScrollPressGuardContext);
     const { t, i18n } = useTranslation();
     const { user } = useUser();
     const isPending = appointment.status === 'pending';
@@ -93,7 +95,7 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
     return (
         <TouchableOpacity
             className="bg-white rounded-2xl overflow-hidden"
-            onPress={openDetail}
+            onPress={guardPress(openDetail)}
             activeOpacity={0.7}
         >
             {/* Status banner */}
@@ -208,7 +210,7 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                             </View>
 
                             <TouchableOpacity
-                                onPress={() => !isPending && router.push(`/chat/${appointment.id}`)}
+                                onPress={guardPress(() => !isPending && router.push(`/chat/${appointment.id}`))}
                                 activeOpacity={0.8}
                                 disabled={isPending}
                                 className="flex-1"
@@ -234,7 +236,7 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                             </TouchableOpacity>
                         </View>
 
-                        <TouchableOpacity onPress={() => onCancel(appointment.id)} className="mt-4 items-center flex-row justify-center">
+                        <TouchableOpacity onPress={guardPress(() => onCancel(appointment.id))} className="mt-4 items-center flex-row justify-center">
                             <Trash2 size={12} color="#9CA3AF" />
                             <Text className="text-gray-400 font-outfit-medium text-xs ml-1">{t('appointments.list.card.cancelRequest')}</Text>
                         </TouchableOpacity>

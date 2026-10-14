@@ -16,6 +16,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { Calendar, Video, Zap, MapPin, Wrench, DollarSign, Star, Award, Circle, Clock, Car, Lock } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useScrollPressGuard } from '@/hooks/useScrollPressGuard';
 import { ActivityIndicator, FlatList, ScrollView, Text, TouchableOpacity, View, Modal, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -114,6 +115,7 @@ function DashboardTypeButton({ item, title, subtitle, selected, width, onPress }
 
 export default function DashboardScreen() {
     const router = useRouter();
+    const { scrollProps, guard } = useScrollPressGuard();
     const { t } = useTranslation();
     const { user, isLoading: isUserLoading } = useUser();
     const { types: assistanceTypes, languageId } = useAssistanceTypeCatalog();
@@ -293,7 +295,7 @@ export default function DashboardScreen() {
 
         return (
             <View className="flex-1">
-                <ScrollView style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ paddingBottom: 40 }}>
+                <ScrollView {...scrollProps} style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ paddingBottom: 40 }}>
                     <View className="px-6 pt-4">
                     {/* Section Badge */}
                     <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
@@ -529,7 +531,7 @@ export default function DashboardScreen() {
                                             <View className="flex-row gap-3 px-5 py-4 border-t border-gray-100">
                                                 <TouchableOpacity
                                                     style={{ flex: 0.65 }}
-                                                    onPress={() => router.push({
+                                                    onPress={guard(() => router.push({
                                                         pathname: `/assist/${request.id}` as any,
                                                         params: {
                                                             type: request.type,
@@ -545,7 +547,7 @@ export default function DashboardScreen() {
                                                             locationLng: request.locationLng ?? '',
                                                             date: request.date || request.updatedAt || '',
                                                         }
-                                                    })}
+                                                    }))}
                                                     activeOpacity={0.8}
                                                 >
                                                     <LinearGradient
@@ -569,7 +571,7 @@ export default function DashboardScreen() {
                                                     className="py-3 rounded-2xl items-center justify-center"
                                                     style={{ flex: 0.35, backgroundColor: '#F3F4F6' }}
                                                     activeOpacity={0.8}
-                                                    onPress={() => handleDecline(request.id)}
+                                                    onPress={guard(() => handleDecline(request.id))}
                                                 >
                                                     <Text className="text-gray-600 font-outfit-semibold text-lg">
                                                         {t('dashboard.mechanic.decline')}
@@ -725,6 +727,7 @@ export default function DashboardScreen() {
     return (
         <View className="flex-1" style={{ backgroundColor: '#F6F8FC', paddingHorizontal: DASHBOARD_PADDING_X, paddingTop: 18 }}>
             <FlatList
+                {...scrollProps}
                 ListHeaderComponent={
                     <View>
                         {/* Section Badge */}
@@ -783,8 +786,8 @@ export default function DashboardScreen() {
                         car={item.car}
                         address={item.address}
                         status={item.status}
-                        onPress={() => openRequest(item)}
-                        onCancel={() => cancelRequest(item.id)}
+                        onPress={guard(() => openRequest(item))}
+                        onCancel={guard(() => cancelRequest(item.id))}
                     />
                 )}
                 showsVerticalScrollIndicator={false}

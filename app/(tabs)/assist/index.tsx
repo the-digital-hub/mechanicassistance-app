@@ -11,10 +11,12 @@ import { Search, Zap, Video, Calendar, Clock, Car, Wrench, Lock, DollarSign } fr
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useScrollPressGuard } from '@/hooks/useScrollPressGuard';
 import { ActivityIndicator, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function AssistanceRequestsScreen() {
   const router = useRouter();
+  const { scrollProps, guard } = useScrollPressGuard();
   const { t } = useTranslation();
   const { user, isLoading: userLoading } = useUser();
   const { lastMessage } = useSocket();
@@ -154,7 +156,7 @@ export default function AssistanceRequestsScreen() {
 
   return (
     <View className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 24, paddingBottom: 40 }}>
+      <ScrollView {...scrollProps} contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 24, paddingBottom: 40 }}>
         {/* Section Badge */}
         <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
           <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
@@ -342,7 +344,7 @@ export default function AssistanceRequestsScreen() {
                     <View className="flex-row gap-3 px-5 py-4 border-t border-gray-100">
                       <TouchableOpacity
                         style={{ flex: 0.65 }}
-                        onPress={() => router.push({
+                        onPress={guard(() => router.push({
                           pathname: `/assist/${request.id}` as any,
                           params: {
                             type: request.type,
@@ -360,7 +362,7 @@ export default function AssistanceRequestsScreen() {
                             vehicleIssues: JSON.stringify(request.vehicleIssues || []),
                             date: request.date || request.updatedAt || '',
                           }
-                        })}
+                        }))}
                         activeOpacity={0.8}
                       >
                         <LinearGradient
@@ -384,7 +386,7 @@ export default function AssistanceRequestsScreen() {
                         className="py-3 rounded-2xl items-center justify-center"
                         style={{ flex: 0.35, backgroundColor: '#F3F4F6' }}
                         activeOpacity={0.8}
-                        onPress={() => handleDecline(request.id)}
+                        onPress={guard(() => handleDecline(request.id))}
                       >
                         <Text className="text-gray-600 font-outfit-semibold text-lg">
                           {t('dashboard.mechanic.decline')}

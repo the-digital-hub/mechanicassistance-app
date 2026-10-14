@@ -1,5 +1,6 @@
 import { AppointmentCard } from '@/components/ui/AppointmentCard';
 import { useAppointments } from '@/context/AppointmentsContext';
+import { ScrollPressGuardContext, useScrollPressGuard } from '@/hooks/useScrollPressGuard';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { X } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
@@ -10,6 +11,7 @@ export default function AppointmentsScreen() {
     const { t } = useTranslation();
     const { getUpcoming, getPendingApproval, getPast, refresh, appointments: allAppointments } = useAppointments();
     const router = useRouter();
+    const { scrollProps, guard } = useScrollPressGuard();
 
     const [activeTab, setActiveTab] = useState<'upcoming' | 'pending' | 'past'>('upcoming');
     const [cancelModalVisible, setCancelModalVisible] = useState(false);
@@ -46,8 +48,10 @@ export default function AppointmentsScreen() {
     };
 
     return (
+        <ScrollPressGuardContext.Provider value={guard}>
         <View className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
             <FlatList
+                {...scrollProps}
                 data={appointments}
                 keyExtractor={(item) => item.id}
                 ListHeaderComponent={
@@ -164,5 +168,6 @@ export default function AppointmentsScreen() {
                 </View>
             </Modal>
         </View>
+        </ScrollPressGuardContext.Provider>
     );
 }

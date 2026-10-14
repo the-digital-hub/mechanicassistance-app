@@ -503,6 +503,8 @@ export interface CalculatePricePayload {
      * latitude/longitude at this instant. Omit to price for right now.
      */
     service_at?: string;
+    /** IANA zone of the phone; prices a video call (no location) in its local time band. */
+    timezone?: string;
 }
 
 /** Body for POST /api/pricing/requests/:serviceRequestId/price. */
@@ -518,6 +520,8 @@ export interface PersistRequestPricePayload {
     zipcode?: string;
     /** See CalculatePricePayload.service_at. Defaults to the request's own date. */
     service_at?: string;
+    /** IANA zone of the phone; prices a video call (no location) in its local time band. */
+    timezone?: string;
 }
 
 /** A vehicle issue previously persisted for a request (GET /api/pricing/requests/:id/issues). */
