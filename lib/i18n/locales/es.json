@@ -383,6 +383,8 @@
       "step3Title": "Revisando ofertas",
       "step3Subtitle": "Esperando a que el mejor match acepte...",
       "cancelledAlert": "Búsqueda de asistencia cancelada.",
+      "expiredAlert": "Ningún mecánico tomó tu solicitud en 45 minutos, así que se canceló. Podés volver a pedirla.",
+      "maxWait": "Seguimos buscando hasta 45 minutos",
       "cancelErrorAlert": "Error al cancelar la solicitud. Intentá de nuevo.",
       "badge": "BUSCANDO UN MECÁNICO",
       "title": "Esperá un momento — estamos buscando tu mecánico",

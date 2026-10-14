@@ -12,6 +12,9 @@ import { Animated, Easing, ScrollView, Text, TouchableOpacity, View } from 'reac
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faWrench } from '@fortawesome/free-solid-svg-icons';
 
+/** Matches ASSISTANCE_SEARCH_TIMEOUT_MINUTES (default 45) in appointments-service. */
+const SEARCH_TIMEOUT_SECONDS = 45 * 60;
+
 export default function SearchingScreen() {
     const router = useRouter();
     const { t } = useTranslation();
@@ -65,13 +68,55 @@ export default function SearchingScreen() {
         }
     };
 
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setElapsedSeconds(prev => prev + 1);
-        }, 1000);
+    // Counted from the request's createdAt, not from when this screen mounted,
+    // so leaving and coming back does not restart it. Immediate requests and
+    // video calls asked for now are capped: the backend's SearchExpiryService
+    // cancels them once SEARCH_TIMEOUT_SECONDS pass with nobody taking them.
+    const startedAtMs = requestData?.createdAt ? new Date(requestData.createdAt).getTime() : null;
+    const isTimeBoxed =
+        requestData?.assistanceType === 'immediate' ||
+        (requestData?.assistanceType === 'videocall' && requestData?.startNow === true);
 
+    useEffect(() => {
+        if (startedAtMs === null || Number.isNaN(startedAtMs)) return;
+        const tick = () => {
+            const seconds = Math.max(0, Math.floor((Date.now() - startedAtMs) / 1000));
+            setElapsedSeconds(isTimeBoxed ? Math.min(seconds, SEARCH_TIMEOUT_SECONDS) : seconds);
+        };
+        tick();
+        const timer = setInterval(tick, 1000);
         return () => clearInterval(timer);
-    }, []);
+    }, [startedAtMs, isTimeBoxed]);
+
+    // Out of time, or already canceled by the backend: tell the owner once and
+    // leave. If the sweep has not run yet, cancel it from here.
+    const expiredHandled = useRef(false);
+    const handleExpired = useCallback(async (alreadyCanceled: boolean) => {
+        if (expiredHandled.current || handedOff.current || !requestId) return;
+        expiredHandled.current = true;
+        if (!alreadyCanceled) {
+            try {
+                const latest = await assistanceDAO.getById(requestId as string);
+                if (latest?.status === 'offered') {
+                    expiredHandled.current = false;
+                    goToMechanicFound();
+                    return;
+                }
+                if (latest?.status === 'pending') {
+                    await assistanceDAO.updateStatus(requestId as string, '', 'canceled');
+                }
+            } catch (error) {
+                console.error('Failed to cancel expired request:', error);
+            }
+        }
+        clearChatHistory(requestId as string);
+        alert(t('requestAssistance.searching.expiredAlert'));
+        router.replace('/(tabs)/dashboard');
+    }, [requestId, goToMechanicFound, clearChatHistory, router, t]);
+
+    useEffect(() => {
+        if (isTimeBoxed && elapsedSeconds >= SEARCH_TIMEOUT_SECONDS && isFocused) handleExpired(false);
+    }, [isTimeBoxed, elapsedSeconds, isFocused, handleExpired]);
 
     useEffect(() => {
         const stepTimer = setInterval(() => {
@@ -117,6 +162,11 @@ export default function SearchingScreen() {
                     const data = await assistanceDAO.getById(requestId as string);
                     if (data) setRequestData(data);
                     if (data && data.status === 'offered') goToMechanicFound();
+                    // Canceled by the backend's 45-minute sweep while we were away.
+                    if (data && data.status === 'canceled' && data.createdAt &&
+                        Date.now() - new Date(data.createdAt).getTime() >= SEARCH_TIMEOUT_SECONDS * 1000) {
+                        handleExpired(true);
+                    }
                 } catch (error) {
                     console.error('Failed to check status:', error);
                 }
@@ -126,7 +176,7 @@ export default function SearchingScreen() {
             checkCurrentStatus();
             const interval = setInterval(checkCurrentStatus, 5000);
             return () => clearInterval(interval);
-        }, [requestId, goToMechanicFound])
+        }, [requestId, goToMechanicFound, handleExpired])
     );
 
     // Real-time listener for status updates
@@ -139,8 +189,11 @@ export default function SearchingScreen() {
                 console.log('[SearchingScreen] Received offer via socket!');
                 goToMechanicFound();
             }
+            if ((payload.id === requestId || payload.requestId === requestId) && payload.reason === 'search_expired') {
+                handleExpired(true);
+            }
         }
-    }, [lastMessage, requestId, isFocused, goToMechanicFound]);
+    }, [lastMessage, requestId, isFocused, goToMechanicFound, handleExpired]);
 
     const spin = spinValue.interpolate({
         inputRange: [0, 1],
@@ -233,6 +286,11 @@ export default function SearchingScreen() {
                         <Text className="text-white text-center font-outfit-regular text-base mb-6">
                             {t('requestAssistance.searching.averageMatchTime')}
                         </Text>
+                        {isTimeBoxed && (
+                            <Text className="text-white text-center font-outfit-regular text-sm mb-6" style={{ marginTop: -16, opacity: 0.8 }}>
+                                {t('requestAssistance.searching.maxWait')}
+                            </Text>
+                        )}
 
                         {/* Mechanics notified */}
                         <View className="flex-row items-center justify-center px-3 py-1.5 rounded-full self-center" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.3)' }}>

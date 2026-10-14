@@ -383,6 +383,8 @@
       "step3Title": "Reviewing offers",
       "step3Subtitle": "Waiting for the best match to accept...",
       "cancelledAlert": "Assistance search cancelled.",
+      "expiredAlert": "No mechanic took your request within 45 minutes, so it was cancelled. You can request again.",
+      "maxWait": "We keep searching for up to 45 minutes",
       "cancelErrorAlert": "Error cancelling request. Please try again.",
       "badge": "FINDING A MECHANIC",
       "title": "Hang tight — we're finding your mechanic",

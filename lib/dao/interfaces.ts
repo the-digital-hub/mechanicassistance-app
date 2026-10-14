@@ -53,6 +53,8 @@ export interface AssistanceRequest {
     offerExpiresAt?: string | null;
     /** The saved vehicle, included by GET /api/assistance/:id. */
     vehicle?: { make?: string | null; model?: string | null } | null;
+    /** ISO date string of when the request was made; the searching timer counts from it */
+    createdAt?: string;
     /** ISO date string of the last update (used e.g. as cancellation date) */
     updatedAt?: string;
     /** Vehicle issues selected for this request (from GET /api/pricing/requests/:id/issues) */

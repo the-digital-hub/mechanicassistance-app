@@ -85,7 +85,10 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                 });
                 return;
             }
-            router.push('/request-assistance/searching' as any);
+            router.push({
+                pathname: '/request-assistance/searching' as any,
+                params: { requestId: appointment.id, type: appointment.type },
+            });
             return;
         }
         router.navigate(`/appointments/${appointment.id}`);
