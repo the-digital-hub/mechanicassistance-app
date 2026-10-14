@@ -7,7 +7,7 @@ import * as Location from 'expo-location';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { goBackOr } from '@/lib/navigation/goBackOr';
-import { Calendar, Clock, Navigation, HelpCircle, ChevronLeft, Zap, Car, Wrench, Lock, ArrowUpRight, DollarSign } from 'lucide-react-native';
+import { Calendar, Clock, Navigation, HelpCircle, ChevronLeft, Zap, Car, Wrench, Lock, ArrowUpRight, DollarSign, Video } from 'lucide-react-native';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -331,7 +331,11 @@ export default function RequestDetailScreen() {
                             className="w-14 h-14 rounded-2xl justify-center items-center mr-4"
                             style={{ backgroundColor: isUrgent ? '#FEE2E2' : '#E9F1FF' }}
                         >
-                            <Zap size={26} color={isUrgent ? '#EF4444' : '#0047AB'} fill={isUrgent ? '#EF4444' : '#0047AB'} />
+                            {isVideo ? (
+                                <Video size={26} color="#0047AB" />
+                            ) : (
+                                <Zap size={26} color={isUrgent ? '#EF4444' : '#0047AB'} fill={isUrgent ? '#EF4444' : '#0047AB'} />
+                            )}
                         </View>
                         <View className="flex-1">
                             <View className="flex-row items-center gap-2">
@@ -390,7 +394,7 @@ export default function RequestDetailScreen() {
                         )}
 
                         {/* Assistance needed */}
-                        <View className="flex-row items-center px-5 py-4 border-b border-gray-100">
+                        <View className={`flex-row items-center px-5 py-4 ${isVideo ? '' : 'border-b border-gray-100'}`}>
                             <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
                                 <Wrench size={20} color="#0047AB" />
                             </View>
@@ -400,7 +404,8 @@ export default function RequestDetailScreen() {
                             </View>
                         </View>
 
-                        {/* Address */}
+                        {/* Address — a video call is remote, it has none */}
+                        {!isVideo && (
                         <View className="flex-row px-5 py-4">
                             <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
                                 <Lock size={20} color="#0047AB" />
@@ -413,6 +418,7 @@ export default function RequestDetailScreen() {
                                 <Text className="font-outfit-regular text-sm text-gray-400 mt-0.5">{t('requestDetail.addressUnlock')}</Text>
                             </View>
                         </View>
+                        )}
 
                         {/* Address map — client pin (+ own GPS pin / route once available) */}
                         {hasLocation && !isVideo && (
@@ -622,7 +628,9 @@ export default function RequestDetailScreen() {
                 icon={HelpCircle}
                 iconColor="#1E56E3"
                 title={t('requestDetail.confirmOfferTitle')}
-                message={isImmediate
+                message={isVideo
+                    ? t('requestDetail.confirmOfferVideoCall', { title })
+                    : isImmediate
                     ? t('requestDetail.confirmOfferImmediate', { title })
                     : t('requestDetail.confirmOfferScheduled', { date: selectedDate, time: selectedTime })
                 }

@@ -19,15 +19,16 @@ type Mechanic = AssistanceOfferSummary['mechanic'];
 
 export type OwnerTab = 'status' | 'checkin' | 'info' | 'mechanic' | 'budget';
 
-export function AcceptedHeader({ id }: { id: string }) {
+/** `title`/`icon`/`color` override the default "Assistance accepted" (a video call reflects its close-out state). */
+export function AcceptedHeader({ id, title, icon = 'checkmark', color = AO.green }: { id: string; title?: string; icon?: IconName; color?: string }) {
     const { t } = useTranslation();
     return (
         <View className="flex-row items-center" style={{ gap: 12 }}>
-            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: AO.green, alignItems: 'center', justifyContent: 'center', shadowColor: AO.green, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.45, shadowRadius: 8, elevation: 4 }}>
-                <Ionicons name="checkmark" size={20} color="#fff" />
+            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: color, alignItems: 'center', justifyContent: 'center', shadowColor: color, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.45, shadowRadius: 8, elevation: 4 }}>
+                <Ionicons name={icon} size={20} color="#fff" />
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>
-                <Text className="font-outfit-bold" style={{ fontSize: 22, color: AO.text, letterSpacing: -0.6 }}>{t(`${K}.title`)}</Text>
+                <Text className="font-outfit-bold" style={{ fontSize: 22, color: AO.text, letterSpacing: -0.6 }} testID="owner-accepted-title">{title ?? t(`${K}.title`)}</Text>
                 <Text style={{ fontSize: 12, color: AO.mutedLight, marginTop: 2, fontFamily: 'Menlo' }}>ID: #{id.slice(0, 8)}</Text>
             </View>
         </View>

@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import { DetailCard, DetailRow } from './DetailCard';
-import { formatLocalDateTime } from '@/lib/video/videoCallTime';
+import { videoCallBookedLabel } from '@/lib/video/videoCallTime';
 // Leaflet CSS is injected via link tag in component
 
 interface MechanicAssistanceInfoTabProps {
@@ -87,7 +87,7 @@ export function MechanicAssistanceInfoTab({ appointment }: MechanicAssistanceInf
             {isVideoCall ? (
                 <DetailCard>
                     <DetailRow icon="videocam-outline" label={t('appointments.ownerAccepted.rows.service')} value={t('appointments.detail.types.videocall')} />
-                    <DetailRow icon="calendar-outline" label={t('appointments.videoCall.scheduledFor')} value={formatLocalDateTime(appointment.date, i18n.language) || '—'} last />
+                    <DetailRow icon="calendar-outline" label={t('appointments.videoCall.scheduledFor')} value={videoCallBookedLabel(appointment, i18n.language) ?? t('requestDetail.videoCallNow')} last />
                 </DetailCard>
             ) : (
                 <>

@@ -13,6 +13,7 @@ import { ApiError } from '@/lib/api/types';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import type { AssistanceOfferSummary, AssistanceRequest, VehicleIssueSnapshot } from '@/lib/dao/interfaces';
 import { pricingDAO } from '@/lib/dao/PricingDAO';
+import { videoCallBookedLabel } from '@/lib/video/videoCallTime';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -37,7 +38,7 @@ type ConfirmState = 'idle' | 'loading' | 'done';
 export default function MechanicFoundScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const k = 'requestAssistance.mechanicFound';
     const { requestId } = useLocalSearchParams<{ requestId: string }>();
     const { refresh } = useAppointments();
@@ -207,6 +208,9 @@ export default function MechanicFoundScreen() {
         })
         : undefined;
     const etaValue = minutes !== null && /^\s*\d+\s*$/.test(eta ?? '') ? `${minutes} min` : eta ?? '—';
+    // A video call has no arrival: show when it happens — "Now" or the booked slot.
+    const isVideoCall = type === 'videocall';
+    const videoWhen = isVideoCall ? videoCallBookedLabel(request, i18n.language) ?? t('requestDetail.videoCallNow') : null;
 
     const breakdown = offer?.breakdown ?? null;
     const price = formatMoney(breakdown?.total ?? offer?.price ?? request?.price ?? request?.budget) ?? t(`${k}.tbd`);
@@ -246,11 +250,15 @@ export default function MechanicFoundScreen() {
                         {t(`${k}.title`)}
                     </Text>
                     <Text className="font-outfit-regular" style={{ fontSize: 13.5, color: AO.muted, marginTop: 4, lineHeight: 19 }}>
-                        {t(`${k}.subtitle`)}
+                        {t(isVideoCall ? `${k}.subtitleVideoCall` : `${k}.subtitle`)}
                     </Text>
                 </View>
 
-                <TechnicianCard mechanic={offer?.mechanic ?? null} eta={etaValue} etaCaption={arrival} price={price} />
+                {videoWhen !== null ? (
+                    <TechnicianCard mechanic={offer?.mechanic ?? null} eta={videoWhen} etaLabel={t(`${k}.when`)} etaIcon="calendar-outline" price={price} />
+                ) : (
+                    <TechnicianCard mechanic={offer?.mechanic ?? null} eta={etaValue} etaCaption={arrival} price={price} />
+                )}
 
                 <OfferBreakdown included={included} lines={lines} total={breakdown ? formatMoney(breakdown.total) : null} />
 
@@ -260,10 +268,11 @@ export default function MechanicFoundScreen() {
                     </Text>
                     <RequestSummaryRows
                         rows={[
-                            { icon: 'flash-outline', label: t(`${k}.rowService`), value: typeLabel },
+                            { icon: isVideoCall ? ('videocam-outline' as const) : ('flash-outline' as const), label: t(`${k}.rowService`), value: typeLabel },
                             { icon: 'car-outline', label: t(`${k}.rowVehicle`), value: vehicle },
                             { icon: 'construct-outline', label: t(`${k}.rowIssue`), value: issueText },
-                            { icon: 'location-outline', label: t(`${k}.rowLocation`), value: request?.address || '—' },
+                            // A video call is remote: it has no location.
+                            ...(isVideoCall ? [] : [{ icon: 'location-outline' as const, label: t(`${k}.rowLocation`), value: request?.address || '—' }]),
                             { icon: 'card-outline', label: t(`${k}.rowPayment`), value: <PaymentValue /> },
                         ]}
                     />

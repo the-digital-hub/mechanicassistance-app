@@ -3,13 +3,14 @@ import { useUser } from '@/context/UserContext';
 import { haversineDistanceKm } from '@/lib/utils';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
-import { Car, MapPin, MessageSquare, Trash2 } from 'lucide-react-native';
+import { Car, MapPin, MessageSquare, Trash2, Video } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import MapView, { Marker } from 'react-native-maps';
 import { MAP_PROVIDER } from '@/lib/maps/provider';
+import { videoCallBookedLabel } from '@/lib/video/videoCallTime';
 import { BANNER_COLORS, TYPE_BAR_ACTIVE, TYPE_BAR_PAST, getCardState, getTypeBar, isPastState } from './appointmentCardTheme';
 
 interface AppointmentCardProps {
@@ -19,14 +20,15 @@ interface AppointmentCardProps {
 
 export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps) {
     const router = useRouter();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { user } = useUser();
     const isPending = appointment.status === 'pending';
+    const isVideoCall = (appointment.assistanceType ?? appointment.type) === 'videocall';
 
     const [distanceKm, setDistanceKm] = useState<number | null>(null);
 
     useEffect(() => {
-        if (!appointment.locationLat || !appointment.locationLng) return;
+        if (isVideoCall || !appointment.locationLat || !appointment.locationLng) return;
         Location.getLastKnownPositionAsync().then((pos) => {
             if (pos) {
                 const km = haversineDistanceKm(
@@ -38,7 +40,7 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                 setDistanceKm(km);
             }
         }).catch(() => { /* permission not granted yet — leave null */ });
-    }, [appointment.locationLat, appointment.locationLng]);
+    }, [isVideoCall, appointment.locationLat, appointment.locationLng]);
 
     const state = getCardState(appointment);
     const isPast = isPastState(state);
@@ -130,6 +132,16 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                     <Text className="text-gray-800 text-sm font-outfit-bold flex-shrink" numberOfLines={1}>{appointment.car}</Text>
                 </View>
 
+                {/* Video call: remote, no map or distance — when it happens instead */}
+                {isVideoCall ? (
+                <View className="flex-row items-center mb-4" testID="appointment-card-video-when">
+                    <Video size={14} color="#0047AB" />
+                    <Text className="text-gray-900 text-sm font-outfit-bold ml-2">
+                        {videoCallBookedLabel(appointment, i18n.language) ?? t('requestDetail.videoCallNow')}
+                    </Text>
+                </View>
+                ) : (
+                <>
                 {/* Map View */}
                 <View className="h-32 bg-gray-100 rounded-xl mb-3 relative overflow-hidden border border-gray-200">
                     {appointment.locationLat && appointment.locationLng ? (
@@ -171,6 +183,8 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                             : t('appointments.list.card.distanceNA')}
                     </Text>
                 </View>
+                </>
+                )}
 
                 {isPast ? (
                     <View

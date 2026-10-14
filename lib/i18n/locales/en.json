@@ -474,7 +474,9 @@
       "cancelTitle": "Cancel request?",
       "cancelMessage": "The mechanic will be told and your request will be closed. This cannot be undone.",
       "cancelKeep": "Keep request",
-      "cancelConfirm": "Cancel request"
+      "cancelConfirm": "Cancel request",
+      "subtitleVideoCall": "Review the offer and confirm to start your video call.",
+      "when": "When"
     },
     "when": {
       "headerTitle": "Video call",
@@ -1169,6 +1171,11 @@
         "rateClient": "Rate the customer",
         "reviewAfterCompleted": "You can rate the customer once the assistance is confirmed.",
         "reviewFailed": "We couldn't send your rating. Please try again."
+      },
+      "header": {
+        "booked": "Video call booked",
+        "ready": "Video call ready",
+        "confirm": "Confirm your video call"
       }
     }
   },
@@ -1227,7 +1234,8 @@
     "offlineOfferCancel": "Cancel",
     "noLongerAvailable": "This request is no longer available.",
     "videoCallWhen": "WHEN",
-    "videoCallNow": "Now"
+    "videoCallNow": "Now",
+    "confirmOfferVideoCall": "You are about to offer a video call for {{title}}. The client still has to accept it."
   },
   "personalInfo": {
     "uploadFailedTitle": "Upload Failed",

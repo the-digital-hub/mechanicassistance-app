@@ -500,7 +500,7 @@ export default function DashboardScreen() {
                                             </View>
 
                                             {/* Assistance needed */}
-                                            <View className="flex-row items-center px-5 py-4 border-b border-gray-100">
+                                            <View className={`flex-row items-center px-5 py-4 ${iconType === 'video' ? '' : 'border-b border-gray-100'}`}>
                                                 <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
                                                     <Wrench size={20} color="#0047AB" />
                                                 </View>
@@ -510,7 +510,8 @@ export default function DashboardScreen() {
                                                 </View>
                                             </View>
 
-                                            {/* Address (blurred street, city/state shown) */}
+                                            {/* Address (blurred street, city/state shown) — none for a remote video call */}
+                                            {iconType !== 'video' && (
                                             <View className="flex-row px-5 py-4">
                                                 <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
                                                     <Lock size={20} color="#0047AB" />
@@ -522,6 +523,7 @@ export default function DashboardScreen() {
                                                     <Text className="font-outfit-regular text-sm text-gray-400 mt-0.5">{t('dashboard.mechanic.addressUnlock')}</Text>
                                                 </View>
                                             </View>
+                                            )}
 
                                             {/* Buttons Row (inside card) */}
                                             <View className="flex-row gap-3 px-5 py-4 border-t border-gray-100">

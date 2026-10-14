@@ -8,7 +8,7 @@ import MapView, { Marker, Polyline } from 'react-native-maps';
 import { MAP_PROVIDER } from '@/lib/maps/provider';
 import { formatEtaTime, useAppointmentEta } from '@/hooks/useAppointmentEta';
 import { useSocket } from '@/context/SocketContext';
-import { formatLocalDateTime } from '@/lib/video/videoCallTime';
+import { videoCallBookedLabel } from '@/lib/video/videoCallTime';
 
 function decodePolyline(encoded: string): { latitude: number; longitude: number }[] {
     const points: { latitude: number; longitude: number }[] = [];
@@ -118,12 +118,13 @@ export function MechanicAssistanceInfoTab({ appointment }: MechanicAssistanceInf
         : '—';
 
     if (isVideoCall) {
-        const scheduled = formatLocalDateTime(appointment.date, i18n.language);
+        // A call asked for "now" (or with no date on the row) reads "Now".
+        const scheduled = videoCallBookedLabel(appointment, i18n.language) ?? t('requestDetail.videoCallNow');
         return (
             <View className="gap-3.5">
                 <DetailCard>
                     <DetailRow icon="videocam-outline" label={t('appointments.ownerAccepted.rows.service')} value={t('appointments.detail.types.videocall')} />
-                    <DetailRow icon="calendar-outline" label={t('appointments.videoCall.scheduledFor')} value={scheduled || '—'} last />
+                    <DetailRow icon="calendar-outline" label={t('appointments.videoCall.scheduledFor')} value={scheduled} last />
                 </DetailCard>
                 <DetailCard>
                     <DetailRow icon="car-outline" label={t('appointments.detail.info.car')} value={appointment.car} />

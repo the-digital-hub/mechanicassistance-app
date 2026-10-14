@@ -89,10 +89,13 @@ function Stat({ icon, label, value, caption, valueColor }: { icon: IconName; lab
     );
 }
 
-export function TechnicianCard({ mechanic, eta, etaCaption, price }: {
+/** `etaLabel`/`etaIcon` relabel the arrival tile (a video call shows "When" instead). */
+export function TechnicianCard({ mechanic, eta, etaCaption, etaLabel, etaIcon = 'time-outline', price }: {
     mechanic: AssistanceOfferSummary['mechanic'] | null;
     eta: string;
     etaCaption?: string;
+    etaLabel?: string;
+    etaIcon?: IconName;
     price: string;
 }) {
     const { t } = useTranslation();
@@ -150,7 +153,7 @@ export function TechnicianCard({ mechanic, eta, etaCaption, price }: {
             )}
 
             <View className="flex-row" style={{ gap: 10, marginTop: 14 }}>
-                <Stat icon="time-outline" label={t(`${k}.estimatedArrival`)} value={eta} caption={etaCaption} valueColor={AO.text} />
+                <Stat icon={etaIcon} label={etaLabel ?? t(`${k}.estimatedArrival`)} value={eta} caption={etaCaption} valueColor={AO.text} />
                 <Stat icon="card-outline" label={t(`${k}.serviceCost`)} value={price} caption={t(`${k}.fixedPrice`)} valueColor={AO.blue} />
             </View>
         </View>

@@ -1,6 +1,6 @@
 import { AO, card } from '@/components/offer/OfferSections';
 import type { VideoCallState } from '@/lib/dao/VideoCallDAO';
-import { formatLocalDateTime } from '@/lib/video/videoCallTime';
+import { formatLocalDateTime, videoCallBookedLabel } from '@/lib/video/videoCallTime';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
@@ -16,18 +16,18 @@ const K = 'appointments.videoCall';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
-/** "Scheduled for <local date time>". Renders nothing without a parseable date. */
-export function VideoCallWhenCard({ date }: { date?: string | null }) {
+/** "Scheduled for <local date time>"; "When: Now" for a call asked for now or with no usable date. */
+export function VideoCallWhenCard({ date, startNow }: { date?: string | null; startNow?: boolean }) {
     const { t, i18n } = useTranslation();
-    const label = formatLocalDateTime(date, i18n.language);
-    if (!label) return null;
+    const booked = videoCallBookedLabel({ date, startNow }, i18n.language);
+    const label = booked ?? t('requestDetail.videoCallNow');
     return (
         <View style={[card, { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14 }]} testID="video-call-when">
             <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: AO.blueSoft, alignItems: 'center', justifyContent: 'center' }}>
                 <Ionicons name="calendar-outline" size={19} color={AO.blue} />
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>
-                <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 0.8, color: AO.muted }}>{t(`${K}.scheduledFor`).toUpperCase()}</Text>
+                <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 0.8, color: AO.muted }}>{booked ? t(`${K}.scheduledFor`).toUpperCase() : t('requestDetail.videoCallWhen')}</Text>
                 <Text className="font-outfit-bold" style={{ fontSize: 15, color: AO.text, marginTop: 2 }}>{label}</Text>
             </View>
         </View>

@@ -195,10 +195,12 @@ export default function AssistDetailScreen() {
                             <Text className="font-outfit-bold text-gray-900 mb-1">{t('dashboardDetail.car')}</Text>
                             <Text className="font-outfit-regular text-gray-600">{car}</Text>
                         </View>
-                        <View>
-                            <Text className="font-outfit-bold text-gray-900 mb-1">{t('dashboardDetail.address')}</Text>
-                            <Text className="font-outfit-regular text-gray-600">{address}</Text>
-                        </View>
+                        {!isVideo && (
+                            <View>
+                                <Text className="font-outfit-bold text-gray-900 mb-1">{t('dashboardDetail.address')}</Text>
+                                <Text className="font-outfit-regular text-gray-600">{address}</Text>
+                            </View>
+                        )}
                         <View>
                             <Text className="font-outfit-bold text-gray-900 mb-1">{t('dashboardDetail.estimatedPrice')}</Text>
                             <Text className="font-outfit-bold text-blue-600 text-lg">{budget}</Text>
@@ -354,7 +356,9 @@ export default function AssistDetailScreen() {
                 icon={HelpCircle}
                 iconColor="#1E56E3"
                 title={t('requestDetail.confirmOfferTitle')}
-                message={isImmediate
+                message={isVideo
+                    ? t('requestDetail.confirmOfferVideoCall', { title })
+                    : isImmediate
                     ? t('requestDetail.confirmOfferImmediate', { title })
                     : t('requestDetail.confirmOfferScheduled', { date: selectedDate, time: selectedTime })
                 }

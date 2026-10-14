@@ -474,7 +474,9 @@
       "cancelTitle": "¿Cancelar solicitud?",
       "cancelMessage": "Le avisaremos al mecánico y tu solicitud se cerrará. No se puede deshacer.",
       "cancelKeep": "Mantener solicitud",
-      "cancelConfirm": "Cancelar solicitud"
+      "cancelConfirm": "Cancelar solicitud",
+      "subtitleVideoCall": "Revisá la oferta y confirmá para empezar tu videollamada.",
+      "when": "Cuándo"
     },
     "when": {
       "headerTitle": "Videollamada",
@@ -1169,6 +1171,11 @@
         "rateClient": "Calificar al cliente",
         "reviewAfterCompleted": "Vas a poder calificar al cliente cuando se confirme la asistencia.",
         "reviewFailed": "No pudimos enviar tu calificación. Intentá de nuevo."
+      },
+      "header": {
+        "booked": "Videollamada agendada",
+        "ready": "Videollamada lista",
+        "confirm": "Confirmá tu videollamada"
       }
     }
   },
@@ -1227,7 +1234,8 @@
     "offlineOfferCancel": "Cancelar",
     "noLongerAvailable": "Esta solicitud ya no está disponible.",
     "videoCallWhen": "CUÁNDO",
-    "videoCallNow": "Ahora"
+    "videoCallNow": "Ahora",
+    "confirmOfferVideoCall": "Vas a ofrecer una videollamada para {{title}}. El cliente todavía tiene que aceptarla."
   },
   "personalInfo": {
     "uploadFailedTitle": "Error al subir",

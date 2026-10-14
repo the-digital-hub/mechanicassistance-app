@@ -53,6 +53,8 @@ export interface Appointment {
     notes?: string;
     budget: string;
     status: AppointmentStatus;
+    /** Video calls only: asked for "now" rather than booked (then `date` is only its creation time). */
+    startNow?: boolean;
     cancelReason?: string;
     acceptedAt?: string;
     startedAt?: string;
@@ -161,6 +163,7 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                     notes: req.notes,
                     budget: req.budget,
                     status: (req.status as AppointmentStatus) || 'pending',
+                    startNow: req.startNow,
                     userId: req.userId,
                     zip: req.zip,
                     mechanicId: req.mechanicId,
@@ -190,6 +193,11 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                     locationLat: appt.locationLat ?? ar?.locationLat,
                     locationLng: appt.locationLng ?? ar?.locationLng,
                     time: appt.time || ar?.eta || 'Pending',
+                    // A video call's slot (or its "now") lives on the request; the
+                    // appointment row may not carry it.
+                    ...((appt.assistanceType ?? appt.type) === 'videocall'
+                        ? { date: appt.date || ar?.date, startNow: appt.startNow ?? ar?.startNow }
+                        : {}),
                     vehicleIssues: issuesById.get(appt.id) || [],
                     source: 'appointment' as const,
                 };

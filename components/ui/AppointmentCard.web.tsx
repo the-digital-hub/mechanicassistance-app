@@ -1,9 +1,10 @@
 import { Appointment } from '@/context/AppointmentsContext';
 import { useRouter } from 'expo-router';
-import { Car, MapPin, MessageSquare, Trash2 } from 'lucide-react-native';
+import { Car, MapPin, MessageSquare, Trash2, Video } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, TouchableOpacity, View } from 'react-native';
+import { videoCallBookedLabel } from '@/lib/video/videoCallTime';
 import { BANNER_COLORS, TYPE_BAR_ACTIVE, TYPE_BAR_PAST, getCardState, getTypeBar, isPastState } from './appointmentCardTheme';
 // Leaflet CSS is injected via link tag in render
 
@@ -79,8 +80,9 @@ interface AppointmentCardProps {
 
 export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps) {
     const router = useRouter();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const isPending = appointment.status === 'pending';
+    const isVideoCall = (appointment.assistanceType ?? appointment.type) === 'videocall';
     const state = getCardState(appointment);
     const isPast = isPastState(state);
     const banner = BANNER_COLORS[state];
@@ -129,6 +131,16 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                     <Text className="text-gray-800 text-sm font-outfit-bold flex-shrink" numberOfLines={1}>{appointment.car}</Text>
                 </View>
 
+                {/* Video call: remote, no map or distance — when it happens instead */}
+                {isVideoCall ? (
+                <View className="flex-row items-center mb-4" testID="appointment-card-video-when">
+                    <Video size={14} color="#0047AB" />
+                    <Text className="text-gray-900 text-sm font-outfit-bold ml-2">
+                        {videoCallBookedLabel(appointment, i18n.language) ?? t('requestDetail.videoCallNow')}
+                    </Text>
+                </View>
+                ) : (
+                <>
                 {/* React Leaflet Map for Web */}
                 <View style={{ height: 128, width: '100%', borderRadius: 12, overflow: 'hidden', marginBottom: 12, backgroundColor: '#F3F4F6', position: 'relative' }}>
                     <ClientSideMap appointment={appointment} emptyLabel={t('appointments.list.card.locationNotAvailable')} />
@@ -139,6 +151,8 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                     <MapPin size={12} color="#6B7280" />
                     <Text className="text-gray-500 text-xs ml-1">{t('appointments.list.card.distanceNA')}</Text>
                 </View>
+                </>
+                )}
 
                 {isPast ? (
                     <View className="self-start bg-gray-100 border border-gray-200 rounded-lg py-2 px-4 items-center justify-center">

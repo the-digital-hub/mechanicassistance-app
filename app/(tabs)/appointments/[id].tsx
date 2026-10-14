@@ -22,7 +22,7 @@ import {
     OwnerTabs,
     OwnerTechnicianPanel,
 } from '@/components/appointments/owner/OwnerSections';
-import { AO, RequestSummaryRows } from '@/components/offer/OfferSections';
+import { AO, IconName, RequestSummaryRows } from '@/components/offer/OfferSections';
 import { useAppointments } from '@/context/AppointmentsContext';
 import { useUser } from '@/context/UserContext';
 import { useAppointmentEta } from '@/hooks/useAppointmentEta';
@@ -31,7 +31,7 @@ import { useVideoCallState } from '@/hooks/useVideoCallState';
 import { ApiError } from '@/lib/api/types';
 import { onSiteDAO } from '@/lib/dao/OnSiteDAO';
 import { videoCallDAO } from '@/lib/dao/VideoCallDAO';
-import { formatLocalDateTime } from '@/lib/video/videoCallTime';
+import { videoCallBookedLabel } from '@/lib/video/videoCallTime';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import type { AssistanceOfferSummary } from '@/lib/dao/interfaces';
 import { userDAO } from '@/lib/dao/UserDAO';
@@ -108,6 +108,17 @@ export default function AppointmentDetailScreen() {
     );
     const videoStatus = videoState?.status ?? appointment?.status;
     const videoCallLive = videoStatus === 'accepted' || videoStatus === 'in_progress';
+    // Owner header for a video call: follows the close-out state, not just "accepted".
+    const videoCallHeader: { title: string; icon: IconName; color: string } =
+        videoStatus === 'awaiting_confirmation'
+            ? { title: t('appointments.videoCall.header.confirm'), icon: 'help', color: AO.orange }
+            : videoStatus === 'disputed'
+                ? { title: t('appointments.videoCall.status.disputed'), icon: 'hourglass-outline', color: AO.orange }
+                : videoStatus === 'completed'
+                    ? (videoState?.currentStatus ?? appointment?.currentStatus) === 'not_resolved'
+                        ? { title: t('appointments.videoCall.status.notCharged'), icon: 'close', color: AO.mutedLight }
+                        : { title: t('appointments.videoCall.mechanic.completedTitle'), icon: 'checkmark', color: AO.green }
+                    : { title: t(appointment?.startNow ? 'appointments.videoCall.header.ready' : 'appointments.videoCall.header.booked'), icon: 'videocam', color: AO.blue };
     const [videoBusy, setVideoBusy] = React.useState(false);
     const [showDisputeSheet, setShowDisputeSheet] = React.useState(false);
     const [showFinishSheet, setShowFinishSheet] = React.useState(false);
@@ -327,7 +338,7 @@ export default function AppointmentDetailScreen() {
                 const issues = appointment.vehicleIssues?.map((i) => i.name).join(', ');
                 const posted = [appointment.date, appointment.time].filter(Boolean).join(' · ');
                 const rows = [
-                    { icon: 'flash-outline' as const, label: t('appointments.ownerAccepted.rows.service'), value: t(assistanceTypeKey(appointment)) },
+                    { icon: isVideoCall ? 'videocam-outline' as const : 'flash-outline' as const, label: t('appointments.ownerAccepted.rows.service'), value: t(assistanceTypeKey(appointment)) },
                     appointment.car ? { icon: 'car-outline' as const, label: t('appointments.ownerAccepted.rows.vehicle'), value: appointment.car } : null,
                     issues ? { icon: 'construct-outline' as const, label: t('appointments.ownerAccepted.rows.issue'), value: issues } : null,
                     appointment.notes ? { icon: 'document-text-outline' as const, label: t('appointments.ownerAccepted.rows.notes'), value: appointment.notes } : null,
@@ -413,7 +424,7 @@ export default function AppointmentDetailScreen() {
                     <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
                         {isUserRole ? (
                             <View style={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 32, gap: 16 }} testID="owner-accepted">
-                                <AcceptedHeader id={appointment.id} />
+                                <AcceptedHeader id={appointment.id} {...(isVideoCall ? videoCallHeader : {})} />
 
                                 <OwnerMechanicCard
                                     mechanic={offer?.mechanic ?? null}
@@ -423,7 +434,7 @@ export default function AppointmentDetailScreen() {
 
                                 {isVideoCall && (
                                     <>
-                                        <VideoCallWhenCard date={appointment.date} />
+                                        <VideoCallWhenCard date={appointment.date} startNow={appointment.startNow} />
                                         {videoCallLive && <JoinVideoCallButton onPress={openVideoLobby} />}
                                         {videoState && (
                                             <OwnerVideoCallStatusCard
@@ -471,8 +482,8 @@ export default function AppointmentDetailScreen() {
                                 </Text>
                                 <View className="flex-row items-center flex-wrap gap-2 mt-2">
                                     <View className="flex-row items-center gap-2">
-                                        <View className="items-center justify-center" style={{ width: 26, height: 26, borderRadius: 9, backgroundColor: 'rgba(229,62,62,0.08)' }}>
-                                            <Ionicons name="flash-outline" size={14} color={MECH.red} />
+                                        <View className="items-center justify-center" style={{ width: 26, height: 26, borderRadius: 9, backgroundColor: isVideoCall ? MECH.blueSoft : 'rgba(229,62,62,0.08)' }}>
+                                            <Ionicons name={isVideoCall ? 'videocam-outline' : 'flash-outline'} size={14} color={isVideoCall ? MECH.blue : MECH.red} />
                                         </View>
                                         <Text className="font-outfit-bold text-[13.5px]" style={{ color: MECH.text }}>
                                             {t(assistanceTypeKey(appointment))}
@@ -496,8 +507,8 @@ export default function AppointmentDetailScreen() {
                                 </View>
                                 <Text className="font-outfit-medium text-[13px] mt-1" style={{ color: '#19A368' }} testID="status-description">
                                     {isVideoCall
-                                        ? appointment.date && formatLocalDateTime(appointment.date, i18n.language)
-                                            ? t('appointments.videoCall.scheduledAt', { date: formatLocalDateTime(appointment.date, i18n.language) })
+                                        ? videoCallBookedLabel(appointment, i18n.language)
+                                            ? t('appointments.videoCall.scheduledAt', { date: videoCallBookedLabel(appointment, i18n.language) })
                                             : t('appointments.videoCall.remoteHint')
                                         : t('appointments.detail.onTrip')}
                                 </Text>
