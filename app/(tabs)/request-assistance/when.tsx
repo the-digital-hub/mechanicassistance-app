@@ -146,14 +146,24 @@ export default function VideoCallWhenScreen() {
         [i18n.language, timezone],
     );
 
+    // A named abbreviation when the engine has one ("EDT"); otherwise the real
+    // offset ("GMT-3"). Hermes answers a bare "GMT" for most zones, which read
+    // as UTC. `timezone` is the device's own zone, so its offset is the device's.
     const zoneLabel = useMemo(() => {
+        const minutes = -new Date().getTimezoneOffset();
+        const sign = minutes < 0 ? '-' : '+';
+        const abs = Math.abs(minutes);
+        const offset =
+            minutes === 0
+                ? 'GMT'
+                : `GMT${sign}${Math.floor(abs / 60)}${abs % 60 ? `:${String(abs % 60).padStart(2, '0')}` : ''}`;
         try {
-            const part = new Intl.DateTimeFormat('en-US', { timeZone: timezone, timeZoneName: 'short' })
+            const name = new Intl.DateTimeFormat('en-US', { timeZone: timezone, timeZoneName: 'short' })
                 .formatToParts(new Date())
-                .find((p) => p.type === 'timeZoneName');
-            return part?.value ?? timezone;
+                .find((p) => p.type === 'timeZoneName')?.value;
+            return name && /^[A-Z]{2,5}$/.test(name) && !/^(GMT|UTC)$/.test(name) ? name : offset;
         } catch {
-            return timezone;
+            return offset;
         }
     }, [timezone]);
 

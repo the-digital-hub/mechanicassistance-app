@@ -16,6 +16,7 @@ import { pricingDAO } from '@/lib/dao/PricingDAO';
 import { videoCallBookedLabel } from '@/lib/video/videoCallTime';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useIsFocused } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -90,14 +91,20 @@ export default function MechanicFoundScreen() {
 
     // The offer lapsed (timer, socket or a late confirm): tell the owner and go
     // back to searching, where the next offer will land.
+    // Only while this screen is the one on screen: `replace` acts on the focused
+    // route, so firing from a copy left in the stack swapped whatever screen the
+    // owner was on for the searching screen of an old request.
+    const isFocused = useIsFocused();
     const handleExpired = useCallback(() => {
-        if (expiredHandled.current || !requestId) return;
+        if (expiredHandled.current || !requestId || !isFocused) return;
         expiredHandled.current = true;
         Alert.alert(t(`${k}.expiredTitle`), t(`${k}.expiredMessage`));
         router.replace({ pathname: '/request-assistance/searching', params: { requestId } });
-    }, [requestId, router, t]);
+    }, [requestId, router, t, isFocused]);
 
-    const offerExpiresAt = offer?.offerExpiresAt ?? null;
+    // A hold only counts while the request is still offered: a canceled or
+    // accepted request can carry a stale timestamp that would read as expired.
+    const offerExpiresAt = request?.status === 'offered' ? (offer?.offerExpiresAt ?? null) : null;
     useEffect(() => {
         if (!offerExpiresAt || confirmState !== 'idle') {
             setSecondsLeft(null);
