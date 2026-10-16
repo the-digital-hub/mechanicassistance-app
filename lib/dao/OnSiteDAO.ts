@@ -98,6 +98,11 @@ class OnSiteDAOImpl {
         return apiClient.get(`${base(appointmentId)}/check-in/code`);
     }
 
+    /** Mechanic: "Head out" — the owner is notified and can follow the ETA. Idempotent. */
+    depart(appointmentId: string): Promise<{ appointmentId: string; departedAt: string; currentStatus: string }> {
+        return apiClient.post(`${base(appointmentId)}/depart`, {});
+    }
+
     /** Mechanic: check in with the typed PIN or the scanned QR text. */
     async checkIn(appointmentId: string, method: 'pin' | 'qr', code: string): Promise<CheckInResult> {
         try {

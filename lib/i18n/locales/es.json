@@ -653,7 +653,17 @@
         "pending": "Pendiente",
         "noNotes": "Sin notas.",
         "locationNotAvailable": "Ubicación no disponible"
-      }
+      },
+      "readyBadge": "LISTO PARA SALIR",
+      "acceptedTitle": "Solicitud aceptada.",
+      "headOutPrompt": "Sal hacia el cliente cuando estés listo",
+      "headOut": "Salir hacia la asistencia",
+      "headOutHint": "Tócalo cuando salgas hacia el trabajo. Avisaremos al cliente y podrá seguir tu llegada.",
+      "leftAt": "En camino · saliste a las {{time}}",
+      "clientNotified": "Le avisamos al cliente que vas en camino.",
+      "headOutFailed": "No pudimos iniciar el viaje. Revisa tu conexión e inténtalo de nuevo.",
+      "locationNeededTitle": "Se necesita tu ubicación",
+      "locationNeeded": "Permite el acceso a la ubicación para que el cliente pueda seguirte en el mapa."
     },
     "userTracking": {
       "mechanicMatch": "¡Mecánico encontrado!",
@@ -1119,7 +1129,10 @@
       "years": "{{years}} años",
       "idChecked": "Identidad verificada",
       "partsOnlyWithApproval": "Solo con tu aprobación",
-      "cancel": "Cancelar solicitud"
+      "cancel": "Cancelar solicitud",
+      "preparing": "PREPARÁNDOSE",
+      "preparingTitle": "{{name}} se está preparando",
+      "preparingHint": "Lo verás en el mapa cuando salga hacia ti."
     },
     "videoCall": {
       "badge": "VIDEOLLAMADA",

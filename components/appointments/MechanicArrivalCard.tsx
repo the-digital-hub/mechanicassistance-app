@@ -32,15 +32,21 @@ interface MechanicArrivalCardProps {
     onStartCheckIn: () => void;
     /** Already checked in: the button resumes the visit instead of starting it. */
     inProgress?: boolean;
+    /** Not headed out yet: shown dimmed, and check-in cannot start. */
+    disabled?: boolean;
 }
 
-export function MechanicArrivalCard({ onStartCheckIn, inProgress }: MechanicArrivalCardProps) {
+export function MechanicArrivalCard({ onStartCheckIn, inProgress, disabled }: MechanicArrivalCardProps) {
     const { t } = useTranslation();
 
     return (
         <View
             className="mx-4 bg-white"
+            pointerEvents={disabled ? 'none' : 'auto'}
+            accessibilityState={{ disabled: !!disabled }}
+            testID="mechanic-arrival-card"
             style={{
+                opacity: disabled ? 0.45 : 1,
                 borderRadius: 20,
                 borderWidth: 1,
                 borderColor: '#EEF2FA',

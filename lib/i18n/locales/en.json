@@ -653,7 +653,17 @@
         "pending": "Pending",
         "noNotes": "No notes provided.",
         "locationNotAvailable": "Location not available"
-      }
+      },
+      "readyBadge": "READY TO GO",
+      "acceptedTitle": "Request accepted.",
+      "headOutPrompt": "Head out to the client when you're ready",
+      "headOut": "Head out for the assistance",
+      "headOutHint": "Tap when you leave for the job. The client will be notified and can follow your ETA.",
+      "leftAt": "On your way · left at {{time}}",
+      "clientNotified": "The client was notified you're on the way.",
+      "headOutFailed": "Couldn't start the trip. Check your connection and try again.",
+      "locationNeededTitle": "Location needed",
+      "locationNeeded": "Allow location access so the client can follow you on the map."
     },
     "userTracking": {
       "mechanicMatch": "Mechanic Match!",
@@ -1119,7 +1129,10 @@
       "years": "{{years}} years",
       "idChecked": "ID checked",
       "partsOnlyWithApproval": "Only with your approval",
-      "cancel": "Cancel request"
+      "cancel": "Cancel request",
+      "preparing": "GETTING READY",
+      "preparingTitle": "{{name}} is getting ready",
+      "preparingHint": "You'll see them on the map once they head out."
     },
     "videoCall": {
       "badge": "VIDEO CALL",

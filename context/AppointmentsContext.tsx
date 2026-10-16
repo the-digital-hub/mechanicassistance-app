@@ -59,6 +59,8 @@ export interface Appointment {
     acceptedAt?: string;
     startedAt?: string;
     completedAt?: string;
+    /** When the mechanic tapped "Head out" (ISO). Until then the owner sees no live map. */
+    departedAt?: string | null;
     updatedAt?: string;
     additionalFunds?: AdditionalFunds[];
     clientReview?: ClientReview;

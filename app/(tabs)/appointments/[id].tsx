@@ -25,7 +25,7 @@ import {
 import { AO, IconName, RequestSummaryRows } from '@/components/offer/OfferSections';
 import { useAppointments } from '@/context/AppointmentsContext';
 import { useUser } from '@/context/UserContext';
-import { useAppointmentEta } from '@/hooks/useAppointmentEta';
+import { formatEtaTime, useAppointmentEta } from '@/hooks/useAppointmentEta';
 import { useMechanicLocationBroadcast } from '@/hooks/useMechanicLocationBroadcast';
 import { useVideoCallState } from '@/hooks/useVideoCallState';
 import { ApiError } from '@/lib/api/types';
@@ -36,13 +36,15 @@ import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import type { AssistanceOfferSummary } from '@/lib/dao/interfaces';
 import { userDAO } from '@/lib/dao/UserDAO';
 import { Ionicons } from '@expo/vector-icons';
+import * as Location from 'expo-location';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useGlobalSearchParams, useRouter } from 'expo-router';
 import { goBackOr } from '@/lib/navigation/goBackOr';
 import React from 'react';
 import { AttachmentStrip } from '@/components/appointments/AttachmentStrip';
 import { parseAttachments } from '@/lib/media/attachments';
 import { useTranslation } from 'react-i18next';
-import { Alert, Dimensions, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Dimensions, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -53,6 +55,7 @@ const MECH = {
     blue: '#1E56E3',
     blueSoft: '#EAF1FF',
     text: '#0B1530',
+    muted: '#6B7490',
     mutedLight: '#8C96AE',
     border: '#E4EAF5',
     page: '#F6F8FC',
@@ -83,18 +86,50 @@ export default function AppointmentDetailScreen() {
     const isUserRole = user?.role === 'user';
     // A video call is remote: no GPS, ETA, check-in or on-site close-out.
     const isVideoCall = (appointment?.assistanceType ?? appointment?.type) === 'videocall';
+
+    // "Head out": the mechanic left for the vehicle. Until then the job is
+    // accepted but nobody follows them — no position shared, no live ETA.
+    // `departedNow` covers the gap until the refreshed appointment arrives.
+    const [departedNow, setDepartedNow] = React.useState<string | null>(null);
+    const departedAt = appointment?.departedAt ?? departedNow;
+    const departed = !!departedAt;
+    const [headingOut, setHeadingOut] = React.useState(false);
+
     useMechanicLocationBroadcast({
         appointmentId: appointment?.id ?? '',
         status: appointment?.status ?? 'pending',
         role: user?.role,
         isVideoCall,
+        departed,
     });
 
     // Lifted here so the socket listener stays alive regardless of active tab.
+    // An accepted job is only tracked once the mechanic heads out.
+    const ownerTracks = isUserRole && !isVideoCall && (appointment?.status !== 'accepted' || departed);
     const { minutesAway, etaTime, loading: etaLoading, mechanicCoords, polyline } = useAppointmentEta(
-        isUserRole && !isVideoCall ? appointment?.id : undefined,
-        isUserRole && !isVideoCall ? appointment?.status : undefined,
+        ownerTracks ? appointment?.id : undefined,
+        ownerTracks ? appointment?.status : undefined,
     );
+
+    const headOut = async () => {
+        if (!appointment || headingOut) return;
+        setHeadingOut(true);
+        try {
+            // Ask now, while the mechanic is looking: the broadcast starts as soon as departedAt is set.
+            const { status: perm } = await Location.requestForegroundPermissionsAsync();
+            if (perm !== 'granted') {
+                Alert.alert(t('appointments.detail.locationNeededTitle'), t('appointments.detail.locationNeeded'));
+            }
+            const res = await onSiteDAO.depart(appointment.id);
+            setDepartedNow(res.departedAt);
+            refreshAppointments();
+        } catch (error) {
+            const message = error instanceof ApiError && error.apiMessage ? error.apiMessage : t('appointments.detail.headOutFailed');
+            Alert.alert(t('appointments.videoCall.errorTitle'), message);
+        } finally {
+            setHeadingOut(false);
+        }
+    };
 
     // Video call close-out (finish → confirm / dispute). Reloaded on focus, on
     // appointment_update and whenever the appointments list refreshes this row.
@@ -303,6 +338,7 @@ export default function AppointmentDetailScreen() {
             ? { latitude: appointment.locationLat, longitude: appointment.locationLng }
             : null;
     const ownerMechanicName = offer?.mechanic.displayName ?? t('requestAssistance.mechanicFound.technicianFallback');
+    const awaitingHeadOut = !isVideoCall && appointment.status === 'accepted' && !departed;
 
     const renderOwnerPanel = () => {
         switch (ownerTab) {
@@ -318,6 +354,7 @@ export default function AppointmentDetailScreen() {
                         <OwnerReviewCard appointmentId={appointment.id} status={appointment.status} />
                         <OwnerEtaCard
                             status={appointment.status}
+                            departed={departed}
                             minutesAway={minutesAway}
                             etaTime={etaTime}
                             loading={etaLoading}
@@ -474,11 +511,19 @@ export default function AppointmentDetailScreen() {
                                 <View className="flex-row items-center gap-1.5 mb-3 px-2.5 py-1 rounded-full" style={{ backgroundColor: MECH.blueSoft, alignSelf: 'flex-start' }}>
                                     <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: MECH.blue }} />
                                     <Text className="font-outfit-bold text-[10.5px] tracking-widest" style={{ color: MECH.blue }}>
-                                        {isVideoCall ? t('appointments.videoCall.badge') : t('appointments.detail.onTheWayBadge')}
+                                        {isVideoCall
+                                            ? t('appointments.videoCall.badge')
+                                            : awaitingHeadOut
+                                                ? t('appointments.detail.readyBadge')
+                                                : t('appointments.detail.onTheWayBadge')}
                                     </Text>
                                 </View>
                                 <Text className="font-outfit-bold text-[22px]" style={{ color: MECH.text }}>
-                                    {isVideoCall ? t('appointments.videoCall.mechanic.title') : t('appointments.detail.onTheWayTitle')}
+                                    {isVideoCall
+                                        ? t('appointments.videoCall.mechanic.title')
+                                        : awaitingHeadOut
+                                            ? t('appointments.detail.acceptedTitle')
+                                            : t('appointments.detail.onTheWayTitle')}
                                 </Text>
                                 <View className="flex-row items-center flex-wrap gap-2 mt-2">
                                     <View className="flex-row items-center gap-2">
@@ -510,10 +555,70 @@ export default function AppointmentDetailScreen() {
                                         ? videoCallBookedLabel(appointment, i18n.language)
                                             ? t('appointments.videoCall.scheduledAt', { date: videoCallBookedLabel(appointment, i18n.language) })
                                             : t('appointments.videoCall.remoteHint')
-                                        : t('appointments.detail.onTrip')}
+                                        : awaitingHeadOut
+                                            ? t('appointments.detail.headOutPrompt')
+                                            : t('appointments.detail.onTrip')}
                                 </Text>
                             </View>
                             )}
+
+                            {/* Head out — starts the owner's live map and ETA */}
+                            {!isVideoCall && appointment.status === 'accepted' ? (
+                                <View className="mx-4 mt-3">
+                                    {awaitingHeadOut ? (
+                                        <>
+                                            <TouchableOpacity onPress={headOut} disabled={headingOut} activeOpacity={0.85} testID="head-out" accessibilityRole="button">
+                                                <LinearGradient
+                                                    colors={[MECH.blue, '#0B2A8E']}
+                                                    start={{ x: 0, y: 0 }}
+                                                    end={{ x: 1, y: 0 }}
+                                                    style={{
+                                                        borderRadius: 14,
+                                                        paddingVertical: 15,
+                                                        flexDirection: 'row',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        gap: 10,
+                                                        shadowColor: MECH.blue,
+                                                        shadowOffset: { width: 0, height: 8 },
+                                                        shadowOpacity: 0.35,
+                                                        shadowRadius: 12,
+                                                        elevation: 5,
+                                                    }}
+                                                >
+                                                    {headingOut ? (
+                                                        <ActivityIndicator color="#fff" />
+                                                    ) : (
+                                                        <Ionicons name="navigate-outline" size={18} color="#fff" />
+                                                    )}
+                                                    <Text className="text-white font-outfit-bold text-[15.5px]">
+                                                        {t('appointments.detail.headOut')}
+                                                    </Text>
+                                                </LinearGradient>
+                                            </TouchableOpacity>
+                                            <Text className="text-center mt-2 font-outfit-regular text-[11.5px] leading-4" style={{ color: MECH.muted }}>
+                                                {t('appointments.detail.headOutHint')}
+                                            </Text>
+                                        </>
+                                    ) : (
+                                        <View
+                                            className="flex-row items-center bg-white"
+                                            style={{ gap: 10, paddingVertical: 11, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1, borderColor: '#EEF2FA' }}
+                                            testID="departed-row"
+                                        >
+                                            <Ionicons name="navigate-outline" size={18} color={MECH.blue} />
+                                            <View className="flex-1">
+                                                <Text className="font-outfit-bold text-[13px]" style={{ color: MECH.text }}>
+                                                    {t('appointments.detail.leftAt', { time: departedAt ? formatEtaTime(departedAt) : '--' })}
+                                                </Text>
+                                                <Text className="font-outfit-regular text-[11.5px] mt-0.5" style={{ color: MECH.muted }}>
+                                                    {t('appointments.detail.clientNotified')}
+                                                </Text>
+                                            </View>
+                                        </View>
+                                    )}
+                                </View>
+                            ) : null}
 
                             {/* Video call: join / finish, then the owner's answer */}
                             {isVideoCall ? (
@@ -544,6 +649,7 @@ export default function AppointmentDetailScreen() {
                                 <View className="mt-3.5">
                                     <MechanicArrivalCard
                                         inProgress={appointment.status === 'in_progress'}
+                                        disabled={awaitingHeadOut}
                                         onStartCheckIn={() => router.push({
                                             pathname: '/appointments/check-in/[id]' as any,
                                             params: { id: appointment.id },

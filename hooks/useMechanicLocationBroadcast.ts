@@ -8,12 +8,15 @@ export function useMechanicLocationBroadcast({
   status,
   role,
   isVideoCall = false,
+  departed = false,
 }: {
   appointmentId: string;
   status: AppointmentStatus;
   role: string | undefined;
   /** A video call is remote: the mechanic's position is never shared. */
   isVideoCall?: boolean;
+  /** Tapped "Head out". An accepted job shares no position before that. */
+  departed?: boolean;
 }): void {
   const { sendMessage } = useSocket();
   const subscriptionRef = useRef<Location.LocationSubscription | null>(null);
@@ -23,7 +26,8 @@ export function useMechanicLocationBroadcast({
     subscriptionRef.current?.remove();
     subscriptionRef.current = null;
 
-    if (isVideoCall || role !== 'mechanic' || (status !== 'started' && status !== 'accepted')) return;
+    if (isVideoCall || role !== 'mechanic') return;
+    if (status !== 'started' && !(status === 'accepted' && departed)) return;
 
     let cancelled = false;
 
@@ -58,5 +62,5 @@ export function useMechanicLocationBroadcast({
       subscriptionRef.current?.remove();
       subscriptionRef.current = null;
     };
-  }, [appointmentId, status, role, isVideoCall]);
+  }, [appointmentId, status, role, isVideoCall, departed]);
 }

@@ -137,8 +137,10 @@ function EtaRing({ progress, children }: { progress: number; children: React.Rea
     );
 }
 
-export function OwnerEtaCard({ status, minutesAway, etaTime, loading, mechanicName, destination, mechanicCoords, polyline }: {
+export function OwnerEtaCard({ status, departed, minutesAway, etaTime, loading, mechanicName, destination, mechanicCoords, polyline }: {
     status: string;
+    /** The mechanic tapped "Head out". Before that there is no live position or ETA to show. */
+    departed: boolean;
     minutesAway: number | null;
     etaTime: string | null;
     loading: boolean;
@@ -153,15 +155,20 @@ export function OwnerEtaCard({ status, minutesAway, etaTime, loading, mechanicNa
     if (minutesAway !== null && (startRef.current === null || minutesAway > startRef.current)) startRef.current = minutesAway;
     const start = startRef.current;
 
-    const enRoute = status === 'accepted';
+    // Accepted but not yet headed out: the mechanic is getting ready.
+    const preparing = status === 'accepted' && !departed;
+    const enRoute = status === 'accepted' && departed;
     const onSite = status === 'started';
-    const progress = !enRoute ? 1 : minutesAway === null || !start ? 0.05 : Math.min(1, Math.max(0.05, 1 - minutesAway / start));
+    const progress = preparing ? 0.05 : !enRoute ? 1 : minutesAway === null || !start ? 0.05 : Math.min(1, Math.max(0.05, 1 - minutesAway / start));
 
-    const pill = enRoute ? t(`${K}.enRoute`) : onSite ? t(`${K}.onSite`) : t(`${K}.done`);
-    const pillColor = enRoute ? AO.blue : AO.greenText;
-    const pillBg = enRoute ? AO.blueSoft : AO.greenSoft;
+    const pill = preparing ? t(`${K}.preparing`) : enRoute ? t(`${K}.enRoute`) : onSite ? t(`${K}.onSite`) : t(`${K}.done`);
+    const live = enRoute || preparing;
+    const pillColor = live ? AO.blue : AO.greenText;
+    const pillBg = live ? AO.blueSoft : AO.greenSoft;
 
-    const headline = enRoute
+    const headline = preparing
+        ? t(`${K}.preparingTitle`, { name: mechanicName })
+        : enRoute
         ? loading
             ? t(`${K}.calculating`)
             : minutesAway !== null
@@ -181,7 +188,7 @@ export function OwnerEtaCard({ status, minutesAway, etaTime, loading, mechanicNa
                             <Text className="font-outfit-bold" style={{ fontSize: 11, color: AO.muted }}>{t(`${K}.min`)}</Text>
                         </>
                     ) : (
-                        <Ionicons name={enRoute ? 'time-outline' : 'checkmark'} size={30} color={enRoute ? AO.blue : AO.greenText} />
+                        <Ionicons name={live ? 'time-outline' : 'checkmark'} size={30} color={live ? AO.blue : AO.greenText} />
                     )}
                 </EtaRing>
                 <View style={{ flex: 1, minWidth: 0 }}>
@@ -190,6 +197,11 @@ export function OwnerEtaCard({ status, minutesAway, etaTime, loading, mechanicNa
                         <Text className="font-outfit-bold" style={{ fontSize: 10, letterSpacing: 1, color: pillColor }}>{pill}</Text>
                     </View>
                     <Text className="font-outfit-bold" style={{ fontSize: 19, color: AO.text, letterSpacing: -0.4, marginTop: 8 }}>{headline}</Text>
+                    {preparing && (
+                        <Text className="font-outfit-regular" style={{ fontSize: 13, color: AO.muted, marginTop: 2 }} testID="owner-eta-preparing">
+                            {t(`${K}.preparingHint`)}
+                        </Text>
+                    )}
                     {enRoute && (
                         <Text className="font-outfit-regular" style={{ fontSize: 13, color: AO.muted, marginTop: 2 }}>
                             {t(`${K}.eta`)}{' '}
@@ -199,7 +211,7 @@ export function OwnerEtaCard({ status, minutesAway, etaTime, loading, mechanicNa
                 </View>
             </View>
             <View style={{ marginTop: 14 }}>
-                <OwnerRouteMap destination={destination} mechanic={mechanicCoords} polyline={polyline} />
+                <OwnerRouteMap destination={destination} mechanic={preparing ? null : mechanicCoords} polyline={preparing ? null : polyline} />
             </View>
             <View className="flex-row items-center" style={{ gap: 10, marginTop: 10 }}>
                 <View className="flex-row items-center" style={{ gap: 6 }}>
