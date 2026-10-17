@@ -12,7 +12,8 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { MakeType, VEHICLE_COLORS, VEHICLE_DATA, decodeVin } from '@/lib/vehicle';
+import { VehicleColorSelect } from '@/components/vehicles/VehicleColorSelect';
+import { MakeType, VEHICLE_DATA, decodeVin } from '@/lib/vehicle';
 
 export default function VehiclesScreen() {
     const router = useRouter();
@@ -45,6 +46,7 @@ export default function VehiclesScreen() {
         make: 'Select',
         model: 'Select',
         color: '',
+        colorId: null as string | null,
         plate: '',
         vin: '',
         details: ''
@@ -142,6 +144,7 @@ export default function VehiclesScreen() {
             make: vehicle.make,
             model: vehicle.model,
             color: vehicle.color,
+            colorId: vehicle.colorId ?? null,
             plate: vehicle.plate,
             vin: vehicle.vin,
             details: vehicle.details
@@ -165,6 +168,7 @@ export default function VehiclesScreen() {
             make: 'Select',
             model: 'Select',
             color: '',
+            colorId: null,
             plate: '',
             vin: '',
             details: ''
@@ -267,34 +271,11 @@ export default function VehiclesScreen() {
 
                         <View>
                             <Text className="font-outfit-medium text-[#0F172A] mb-2">{t('vehicles.color')}</Text>
-                            <View className="flex-row gap-3">
-                                {VEHICLE_COLORS.map((c) => {
-                                    const isSelected = formData.color === c.name;
-                                    return (
-                                        <TouchableOpacity
-                                            key={c.name}
-                                            onPress={() => setFormData(p => ({ ...p, color: c.name }))}
-                                            style={{
-                                                width: 48,
-                                                height: 48,
-                                                borderRadius: 12,
-                                                backgroundColor: c.hex,
-                                                borderWidth: isSelected ? 3 : 1,
-                                                borderColor: isSelected ? '#0047AB' : c.border,
-                                            }}
-                                        >
-                                            {isSelected && (
-                                                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                                                    <Ionicons name="checkmark" size={24} color={c.name === 'White' ? '#0047AB' : '#FFFFFF'} />
-                                                </View>
-                                            )}
-                                        </TouchableOpacity>
-                                    );
-                                })}
-                            </View>
-                            {formData.color ? (
-                                <Text className="text-xs font-outfit-medium text-blue-600 mt-2">{formData.color}</Text>
-                            ) : null}
+                            <VehicleColorSelect
+                                colorId={formData.colorId}
+                                legacyColor={formData.color}
+                                onChange={(c) => setFormData(p => ({ ...p, colorId: c.id, color: c.label }))}
+                            />
                         </View>
 
                         <View>

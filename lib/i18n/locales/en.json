@@ -1328,7 +1328,12 @@
     "vinDecodedTitle": "VIN Decoded",
     "vinDecodedMessage": "Found: {{make}} {{model}}",
     "ok": "OK",
-    "vinNotFoundTitle": "VIN Not Found"
+    "vinNotFoundTitle": "VIN Not Found",
+    "selectColor": "Select color",
+    "searchColor": "Search color",
+    "noColorsFound": "No colors match your search",
+    "colorsLoadError": "Could not load the colors.",
+    "retry": "Retry"
   },
   "privacy": {
     "badge": "PRIVACY & SECURITY",
@@ -1951,5 +1956,39 @@
       "message": "This version of the app is no longer supported. Update to keep going.",
       "action": "Update now"
     }
+  },
+  "vehicleColors": {
+    "white": "White",
+    "pearl_white": "Pearl White",
+    "black": "Black",
+    "jet_black": "Jet Black / Obsidian",
+    "matte_black": "Matte Black",
+    "gray": "Gray",
+    "charcoal_gray": "Charcoal / Graphite Gray",
+    "silver": "Silver",
+    "blue": "Blue",
+    "navy_blue": "Navy Blue",
+    "metallic_blue": "Metallic Blue",
+    "sky_blue": "Light / Sky Blue",
+    "red": "Red",
+    "crimson_red": "Crimson / Metallic Red",
+    "burgundy_wine": "Burgundy / Wine Red",
+    "green": "Green",
+    "forest_green": "Olive / Forest Green",
+    "beige_cream": "Beige / Cream",
+    "champagne": "Champagne",
+    "brown": "Brown",
+    "gold": "Gold",
+    "bronze": "Bronze",
+    "copper": "Copper",
+    "yellow": "Yellow",
+    "orange": "Orange",
+    "purple_violet": "Purple / Violet",
+    "teal_turquoise": "Teal / Turquoise",
+    "titanium": "Titanium",
+    "two_tone": "Two-Tone / Dual Tone",
+    "pink": "Pink",
+    "ivory": "Ivory",
+    "camouflage": "Camouflage / Custom"
   }
 }

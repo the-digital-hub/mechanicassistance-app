@@ -2,14 +2,6 @@ import { ApiError } from './api/types';
 import { vehicleDAO } from './dao/VehicleDAO';
 import type { VehicleDecodedFields, VinDecodeResult } from './dao/interfaces';
 
-export const VEHICLE_COLORS = [
-    { name: 'White', hex: '#FFFFFF', border: '#D1D5DB' },
-    { name: 'Black', hex: '#1F2937', border: '#1F2937' },
-    { name: 'Red', hex: '#EF4444', border: '#EF4444' },
-    { name: 'Blue', hex: '#3B82F6', border: '#3B82F6' },
-    { name: 'Gray', hex: '#9CA3AF', border: '#9CA3AF' },
-];
-
 export const VEHICLE_DATA = {
     'Toyota': ['Corolla', 'Camry', 'RAV4', 'Prius', 'Tacoma', 'Highlander', '4Runner', 'Sienna'],
     'Honda': ['Civic', 'Accord', 'CR-V', 'Pilot', 'Odyssey', 'Ridgeline', 'Fit', 'HR-V'],

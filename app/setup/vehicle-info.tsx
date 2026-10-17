@@ -6,8 +6,8 @@ import {
   fetchMakes,
   fetchModelsByMake,
   getVehicleLogoUrl,
-  VEHICLE_COLORS,
 } from "@/lib/vehicle";
+import { VehicleColorSelect } from "@/components/vehicles/VehicleColorSelect";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { ChevronRight } from "lucide-react-native";
@@ -33,6 +33,8 @@ interface Vehicle extends VehicleDecodedFields {
   make: string;
   model: string;
   color: string;
+  /** Catalog color (vehicle_colors.id); POST /api/users stores it on the vehicle. */
+  colorId: string | null;
   plate: string;
   vin: string;
   details: string;
@@ -76,6 +78,7 @@ export default function VehicleInfoScreen() {
     make: "Select",
     model: "Select",
     color: "",
+    colorId: null as string | null,
     plate: "",
     vin: "",
     details: "",
@@ -160,6 +163,7 @@ export default function VehicleInfoScreen() {
       make: "Select",
       model: "Select",
       color: "",
+      colorId: null,
       plate: "",
       vin: "",
       details: "",
@@ -411,48 +415,13 @@ export default function VehicleInfoScreen() {
             <Text className="font-outfit-medium text-[#0F172A] mb-2">
               {t("setup.vehicleInfo.color")}
             </Text>
-            <View className="flex-row gap-3">
-              {VEHICLE_COLORS.map((c) => {
-                const isSelected = formData.color === c.name;
-                return (
-                  <TouchableOpacity
-                    key={c.name}
-                    onPress={() =>
-                      setFormData((p) => ({ ...p, color: c.name }))
-                    }
-                    style={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: 12,
-                      backgroundColor: c.hex,
-                      borderWidth: isSelected ? 3 : 1,
-                      borderColor: isSelected ? "#0047AB" : c.border,
-                    }}
-                  >
-                    {isSelected && (
-                      <View
-                        style={{
-                          flex: 1,
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <Ionicons
-                          name="checkmark"
-                          size={24}
-                          color={c.name === "White" ? "#0047AB" : "#FFFFFF"}
-                        />
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-            {formData.color ? (
-              <Text className="text-xs font-outfit-medium text-blue-600 mt-2">
-                {formData.color}
-              </Text>
-            ) : null}
+            <VehicleColorSelect
+              colorId={formData.colorId}
+              legacyColor={formData.color}
+              onChange={(c) =>
+                setFormData((p) => ({ ...p, colorId: c.id, color: c.label }))
+              }
+            />
           </View>
 
           <View>

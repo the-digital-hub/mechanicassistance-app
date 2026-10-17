@@ -223,12 +223,31 @@ export interface UserData {
 
 export type MechanicStatus = 'available' | 'busy' | 'offline';
 
+/**
+ * One entry of the vehicle color catalog (users-service, GET /api/vehicle-colors).
+ * `label` is English; the app shows `vehicleColors.<code>` from i18n and falls
+ * back to `label` for codes it has no translation for.
+ */
+export interface VehicleColor {
+    id: string;
+    code: string;
+    label: string;
+    hex?: string | null;
+    sortOrder?: number | null;
+    isActive: boolean;
+}
+
 export interface Vehicle {
     id?: string;
     userId?: string;
     make: string;
     model: string;
+    /** Free-text color kept for older records and readers. Sent as the catalog label. */
     color: string;
+    /** Catalog color (vehicle_colors.id). Wins over `color` for display. */
+    colorId?: string | null;
+    /** The catalog entry behind `colorId`, as the API returns it. */
+    colorCatalog?: VehicleColor | null;
     plate: string;
     vin: string;
     details: string;

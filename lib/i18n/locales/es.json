@@ -1328,7 +1328,12 @@
     "vinDecodedTitle": "VIN decodificado",
     "vinDecodedMessage": "Encontrado: {{make}} {{model}}",
     "ok": "OK",
-    "vinNotFoundTitle": "VIN no encontrado"
+    "vinNotFoundTitle": "VIN no encontrado",
+    "selectColor": "Seleccionar color",
+    "searchColor": "Buscar color",
+    "noColorsFound": "Ningún color coincide con la búsqueda",
+    "colorsLoadError": "No se pudieron cargar los colores.",
+    "retry": "Reintentar"
   },
   "privacy": {
     "badge": "PRIVACIDAD Y SEGURIDAD",
@@ -1951,5 +1956,39 @@
       "message": "Esta versión de la app ya no está soportada. Actualizá para seguir.",
       "action": "Actualizar ahora"
     }
+  },
+  "vehicleColors": {
+    "white": "Blanco",
+    "pearl_white": "Blanco perla",
+    "black": "Negro",
+    "jet_black": "Negro azabache / Obsidiana",
+    "matte_black": "Negro mate",
+    "gray": "Gris",
+    "charcoal_gray": "Gris carbón / Grafito",
+    "silver": "Plateado",
+    "blue": "Azul",
+    "navy_blue": "Azul marino",
+    "metallic_blue": "Azul metalizado",
+    "sky_blue": "Celeste",
+    "red": "Rojo",
+    "crimson_red": "Rojo carmesí / Metalizado",
+    "burgundy_wine": "Bordó / Rojo vino",
+    "green": "Verde",
+    "forest_green": "Verde oliva / Bosque",
+    "beige_cream": "Beige / Crema",
+    "champagne": "Champagne",
+    "brown": "Marrón",
+    "gold": "Dorado",
+    "bronze": "Bronce",
+    "copper": "Cobre",
+    "yellow": "Amarillo",
+    "orange": "Naranja",
+    "purple_violet": "Púrpura / Violeta",
+    "teal_turquoise": "Verde azulado / Turquesa",
+    "titanium": "Titanio",
+    "two_tone": "Bicolor",
+    "pink": "Rosa",
+    "ivory": "Marfil",
+    "camouflage": "Camuflado / Personalizado"
   }
 }
