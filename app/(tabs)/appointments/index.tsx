@@ -73,34 +73,43 @@ export default function AppointmentsScreen() {
                         </Text>
 
                         {/* Tab Switcher */}
-                        <View className="flex-row gap-2 p-1 rounded-2xl" style={{ backgroundColor: '#EDF1F7' }}>
+                        <View className="flex-row gap-1 p-1 rounded-2xl" style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E4EAF5' }}>
                             {([
                                 { key: 'upcoming', label: t('appointments.list.upcoming'), count: upcomingCount },
                                 { key: 'pending', label: t('appointments.list.pendingApproval'), count: pendingCount },
                                 { key: 'past', label: t('appointments.list.past'), count: pastCount },
                             ] as const).map((tab) => {
                                 const isActive = activeTab === tab.key;
+                                // Pending asks for a decision: its count stays red while unselected.
+                                const badgeBg = isActive ? 'rgba(255,255,255,0.22)' : tab.key === 'pending' ? '#E53E3E' : '#E4EAF5';
+                                const badgeFg = isActive || tab.key === 'pending' ? '#FFFFFF' : '#6B7490';
                                 return (
                                     <TouchableOpacity
                                         key={tab.key}
-                                        className="flex-1 flex-row items-center justify-center gap-1.5 py-3 px-1 rounded-xl"
-                                        style={{ backgroundColor: isActive ? '#FFFFFF' : 'transparent' }}
+                                        className="flex-1 flex-row items-center justify-center gap-1.5 py-2.5 px-1 rounded-xl"
+                                        style={{ backgroundColor: isActive ? '#1E56E3' : 'transparent' }}
                                         onPress={() => setActiveTab(tab.key)}
                                     >
                                         <Text
                                             className="font-outfit-bold text-sm"
                                             numberOfLines={1}
-                                            style={{ color: isActive ? '#1E56E3' : '#9CA3AF' }}
+                                            style={{ color: isActive ? '#FFFFFF' : '#6B7490' }}
                                         >
                                             {tab.label}
                                         </Text>
-                                        <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: isActive ? '#1E56E3' : '#E5E7EB', justifyContent: 'center', alignItems: 'center' }}>
-                                            <Text className="font-outfit-bold text-[11px]" style={{ color: isActive ? '#FFFFFF' : '#9CA3AF', lineHeight: 14 }}>{tab.count}</Text>
-                                        </View>
+                                        {tab.count > 0 && (
+                                            <View style={{ minWidth: 18, height: 18, paddingHorizontal: 5, borderRadius: 9, backgroundColor: badgeBg, justifyContent: 'center', alignItems: 'center' }}>
+                                                <Text className="font-outfit-bold text-[10.5px]" style={{ color: badgeFg, lineHeight: 13 }}>{tab.count}</Text>
+                                            </View>
+                                        )}
                                     </TouchableOpacity>
                                 );
                             })}
                         </View>
+
+                        <Text className="font-outfit-regular text-[12.5px] mt-2.5" style={{ color: '#6B7490' }}>
+                            {t(`appointments.list.hint.${activeTab}`)}
+                        </Text>
                     </View>
                 }
                 renderItem={({ item }) => (

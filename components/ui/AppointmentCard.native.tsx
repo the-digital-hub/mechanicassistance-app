@@ -1,22 +1,124 @@
 import { Appointment } from '@/context/AppointmentsContext';
 import { useUser } from '@/context/UserContext';
 import { haversineDistanceKm } from '@/lib/utils';
+import { approximateArea, coarseAddress } from '@/lib/maps/approximateLocation';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
-import { Car, MapPin, MessageSquare, Trash2, Video } from 'lucide-react-native';
+import { Calendar, Car, LucideIcon, MapPin, MessageSquare, Route } from 'lucide-react-native';
 import { useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Image, Platform, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import MapView, { Marker } from 'react-native-maps';
-import { MAP_PROVIDER } from '@/lib/maps/provider';
-import { videoCallBookedLabel } from '@/lib/video/videoCallTime';
-import { BANNER_COLORS, TYPE_BAR_ACTIVE, TYPE_BAR_PAST, getCardState, getTypeBar, isPastState } from './appointmentCardTheme';
+import { formatLocalDateTime, videoCallBookedLabel } from '@/lib/video/videoCallTime';
+import { BANNER_COLORS, getCardState, getTypeBar, isPastState } from './appointmentCardTheme';
+import { FixedLocationMap } from './FixedLocationMap';
 import { ScrollPressGuardContext } from '@/hooks/useScrollPressGuard';
+import { AppointmentMechanic, useAppointmentMechanic } from '@/hooks/useAppointmentMechanic';
+import { Stars } from '@/components/offer/OfferSections';
 
 interface AppointmentCardProps {
     appointment: Appointment;
     onCancel: (id: string) => void;
+}
+
+const C = {
+    blue: '#1E56E3',
+    blueSoft: '#EAF1FF',
+    blueSofter: '#F4F8FF',
+    text: '#0B1530',
+    muted: '#6B7490',
+    mutedLight: '#8C96AE',
+    borderSoft: '#EEF2FA',
+    page: '#F6F8FC',
+    red: '#E53E3E',
+    pastTile: '#EEF1F6',
+};
+
+const MONO = Platform.select({ ios: 'Menlo', default: 'monospace' });
+
+function InfoRows({ rows }: { rows: { icon: LucideIcon; label: string; value: string }[] }) {
+    return (
+        <View style={{ borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: C.borderSoft }}>
+            {rows.map((r, i) => {
+                const RowIcon = r.icon;
+                return (
+                    <View
+                        key={r.label}
+                        className="flex-row items-center"
+                        style={{
+                            gap: 12,
+                            paddingVertical: 9,
+                            paddingHorizontal: 12,
+                            borderBottomWidth: i < rows.length - 1 ? 1 : 0,
+                            borderBottomColor: C.borderSoft,
+                        }}
+                    >
+                        <View className="items-center justify-center" style={{ width: 30, height: 30, borderRadius: 9, backgroundColor: C.blueSoft }}>
+                            <RowIcon size={16} color={C.blue} />
+                        </View>
+                        <Text className="font-outfit-medium text-xs" style={{ color: C.muted, width: 66 }}>{r.label}</Text>
+                        <Text className="flex-1 font-outfit-bold text-[13px] text-right" style={{ color: C.text }} numberOfLines={2}>
+                            {r.value}
+                        </Text>
+                    </View>
+                );
+            })}
+        </View>
+    );
+}
+
+function TechnicianRow({ mechanic, label, onMessage, messageLabel }: {
+    mechanic: AppointmentMechanic;
+    label: string;
+    onMessage?: () => void;
+    messageLabel: string;
+}) {
+    const { t } = useTranslation();
+    return (
+        <View className="flex-row items-center bg-white" style={{ gap: 10, borderRadius: 14, paddingVertical: 8, paddingLeft: 10, paddingRight: 8, borderWidth: 1, borderColor: C.borderSoft }}>
+            {mechanic.profileImage ? (
+                <Image source={{ uri: mechanic.profileImage }} style={{ width: 38, height: 38, borderRadius: 19 }} />
+            ) : (
+                <LinearGradient
+                    colors={['#4A7BFF', '#0B2A8E']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={{ width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' }}
+                >
+                    <Text className="font-outfit-bold text-[13px] text-white">{mechanic.initials ?? '?'}</Text>
+                </LinearGradient>
+            )}
+            <View className="flex-1">
+                <Text className="font-outfit-bold text-[10.5px] uppercase tracking-wider" style={{ color: C.muted }}>{label}</Text>
+                <View className="flex-row items-center" style={{ gap: 6, marginTop: 1 }}>
+                    <Text className="font-outfit-bold text-[14.5px] flex-shrink" style={{ color: C.text }} numberOfLines={1}>
+                        {mechanic.displayName ?? t('requestAssistance.mechanicFound.technicianFallback')}
+                    </Text>
+                    {mechanic.avgRating != null ? (
+                        <View className="flex-row items-center" style={{ gap: 4 }}>
+                            <Stars rating={mechanic.avgRating} />
+                            <Text className="font-outfit-semibold text-[11px]" style={{ color: C.muted }}>
+                                {t('appointments.list.card.ratingValue', { rating: mechanic.avgRating.toFixed(1), count: mechanic.ratingCount })}
+                            </Text>
+                        </View>
+                    ) : (
+                        <Text className="font-outfit-semibold text-[11px]" style={{ color: C.muted }}>{t('appointments.list.card.noRatings')}</Text>
+                    )}
+                </View>
+            </View>
+            {onMessage && (
+                <TouchableOpacity
+                    accessibilityLabel={messageLabel}
+                    onPress={onMessage}
+                    activeOpacity={0.8}
+                    className="items-center justify-center"
+                    style={{ width: 38, height: 38, borderRadius: 11, backgroundColor: C.blueSoft }}
+                >
+                    <MessageSquare size={17} color={C.blue} />
+                </TouchableOpacity>
+            )}
+        </View>
+    );
 }
 
 export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps) {
@@ -24,31 +126,31 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
     const guardPress = useContext(ScrollPressGuardContext);
     const { t, i18n } = useTranslation();
     const { user } = useUser();
-    const isPending = appointment.status === 'pending';
+    const isMechanic = user?.role === 'mechanic';
     const isVideoCall = (appointment.assistanceType ?? appointment.type) === 'videocall';
+    const hasLocation = !!appointment.locationLat && !!appointment.locationLng;
 
     const [distanceKm, setDistanceKm] = useState<number | null>(null);
 
+    // A mechanic's distance is measured to the approximate zone, not the real
+    // point: an exact distance from a known position would give it back.
     useEffect(() => {
-        if (isVideoCall || !appointment.locationLat || !appointment.locationLng) return;
+        if (isVideoCall || !hasLocation) return;
+        const target = isMechanic
+            ? approximateArea(appointment.locationLat!, appointment.locationLng!, appointment.id)
+            : { latitude: appointment.locationLat!, longitude: appointment.locationLng! };
         Location.getLastKnownPositionAsync().then((pos) => {
             if (pos) {
-                const km = haversineDistanceKm(
-                    pos.coords.latitude,
-                    pos.coords.longitude,
-                    appointment.locationLat!,
-                    appointment.locationLng!,
-                );
-                setDistanceKm(km);
+                setDistanceKm(haversineDistanceKm(pos.coords.latitude, pos.coords.longitude, target.latitude, target.longitude));
             }
         }).catch(() => { /* permission not granted yet — leave null */ });
-    }, [isVideoCall, appointment.locationLat, appointment.locationLng]);
+    }, [isVideoCall, hasLocation, isMechanic, appointment.id, appointment.locationLat, appointment.locationLng]);
 
     const state = getCardState(appointment);
     const isPast = isPastState(state);
-    const banner = BANNER_COLORS[state];
+    const status = BANNER_COLORS[state];
     const typeBar = getTypeBar(appointment);
-    const Icon = typeBar.icon;
+    const TypeIcon = typeBar.icon;
 
     /**
      * A row still sourced from assistance_requests has no appointment detail
@@ -57,7 +159,7 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
      */
     const openDetail = () => {
         if (appointment.source === 'assistance') {
-            if (user?.role === 'mechanic') {
+            if (isMechanic) {
                 router.push({
                     pathname: '/(tabs)/assist/[id]' as any,
                     params: {
@@ -94,156 +196,183 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
         router.navigate(`/appointments/${appointment.id}`);
     };
 
+    const whenLabel = (() => {
+        if (isVideoCall) return videoCallBookedLabel(appointment, i18n.language) ?? t('requestDetail.videoCallNow');
+        if (appointment.date?.includes('T')) return formatLocalDateTime(appointment.date, i18n.language);
+        const parts = [appointment.date, appointment.time].filter((v) => v && v !== 'Pending');
+        return parts.length ? parts.join(' · ') : t('appointments.list.card.notAvailable');
+    })();
+
+    // The mechanic gets the area only (city / zip); the owner keeps their own address.
+    const locationLabel = isMechanic
+        ? coarseAddress(appointment.address, appointment.zip) || t('appointments.list.card.notAvailable')
+        : appointment.address;
+
+    const rows = [
+        { icon: Car, label: t('appointments.list.card.rows.vehicle'), value: appointment.car },
+        ...(isVideoCall
+            ? []
+            : [
+                { icon: MapPin, label: t('appointments.list.card.rows.location'), value: locationLabel },
+                {
+                    icon: Route,
+                    label: t('appointments.list.card.rows.distance'),
+                    value: distanceKm != null
+                        ? t(isMechanic ? 'appointments.list.card.distanceApprox' : 'appointments.list.card.distanceExact', { km: distanceKm.toFixed(1) })
+                        : t('appointments.list.card.notAvailable'),
+                },
+            ]),
+        { icon: Calendar, label: t(isPast ? 'appointments.list.card.rows.date' : 'appointments.list.card.rows.when'), value: whenLabel },
+    ];
+
+    const notCharged = state === 'canceled' || state === 'notCharged';
+    const amountLabel = !isPast
+        ? t('appointments.list.card.budgetLabel')
+        : notCharged
+            ? t('appointments.list.card.chargedLabel')
+            : t('appointments.list.card.paidLabel');
+    const amount = notCharged ? '$0' : appointment.budget;
+
+    const ctaLabel = state === 'offered' && !isMechanic
+        ? t('appointments.list.card.viewOffer')
+        : state === 'completed'
+            ? t('appointments.list.card.viewReceipt')
+            : t('appointments.list.card.viewDetails');
+
+    const canMessage = !isPast && appointment.source === 'appointment';
+    const openChat = guardPress(() => router.push(`/chat/${appointment.id}`));
+
+    // The offer summary is owner-only, and needs a mechanic on the request.
+    const mechanic = useAppointmentMechanic(appointment.id, !isMechanic && !!appointment.mechanicId);
 
     return (
         <TouchableOpacity
-            className="bg-white rounded-2xl overflow-hidden"
+            className="bg-white"
+            style={{ borderRadius: 20, padding: 14, borderWidth: 1, borderColor: C.borderSoft }}
             onPress={guardPress(openDetail)}
             activeOpacity={0.7}
         >
-            {/* Status banner */}
-            <View className="px-3 py-3 items-center" style={{ backgroundColor: banner.bg }}>
-                <Text className="font-outfit-bold text-[10px] uppercase tracking-widest" style={{ color: banner.label }}>
-                    {t('appointments.list.card.statusLabel')}
-                </Text>
-                <Text className="font-outfit-bold text-base uppercase" style={{ color: banner.title }}>
-                    {t(`appointments.list.card.status.${state}`)}
-                </Text>
-                <Text className="font-outfit-medium text-xs" style={{ color: banner.hint }}>
-                    {t(`appointments.list.card.status.${state}Hint`)}
-                </Text>
-            </View>
-
-            {/* Type bar */}
-            <View
-                className="px-4 py-3 flex-row items-center justify-between"
-                style={{ backgroundColor: isPast ? TYPE_BAR_PAST : TYPE_BAR_ACTIVE }}
-            >
-                <View className="flex-row items-center gap-2">
-                    <Icon size={16} color="white" />
-                    <Text className="text-white font-outfit-bold text-base">{t(typeBar.labelKey)}</Text>
+            {/* Service type + issue */}
+            <View className="flex-row items-center" style={{ gap: 12 }}>
+                <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: isPast ? C.pastTile : C.blueSoft }}>
+                    <TypeIcon size={20} color={isPast ? C.muted : C.blue} />
                 </View>
-                <Text className="text-white/80 font-outfit-medium text-xs">#{appointment.id.slice(0, 8)}</Text>
-            </View>
-
-            <View className="px-4 pt-4 pb-4">
-                <Text className="text-xl font-outfit-bold text-gray-900 mb-1">
-                    {t(`appointments.list.card.title.${state}`)}
-                </Text>
-
-                <View className="flex-row items-center mb-3">
-                    <Car size={14} color="#9CA3AF" />
-                    <Text className="text-gray-400 text-sm font-outfit-regular ml-2">{t('appointments.list.card.vehicleId')} </Text>
-                    <Text className="text-gray-800 text-sm font-outfit-bold flex-shrink" numberOfLines={1}>{appointment.car}</Text>
-                </View>
-
-                {/* Video call: remote, no map or distance — when it happens instead */}
-                {isVideoCall ? (
-                <View className="flex-row items-center mb-4" testID="appointment-card-video-when">
-                    <Video size={14} color="#0047AB" />
-                    <Text className="text-gray-900 text-sm font-outfit-bold ml-2">
-                        {videoCallBookedLabel(appointment, i18n.language) ?? t('requestDetail.videoCallNow')}
+                <View className="flex-1">
+                    <Text className="font-outfit-bold text-[10.5px] uppercase tracking-widest" style={{ color: C.muted }}>
+                        {t(typeBar.labelKey)}
+                    </Text>
+                    <Text className="font-outfit-bold text-[17px]" style={{ color: C.text }} numberOfLines={1}>
+                        {appointment.title || t(`appointments.list.card.title.${state}`)}
                     </Text>
                 </View>
-                ) : (
-                <>
-                {/* Map View */}
-                <View className="h-32 bg-gray-100 rounded-xl mb-3 relative overflow-hidden border border-gray-200">
-                    {appointment.locationLat && appointment.locationLng ? (
-                        <MapView
-                            provider={MAP_PROVIDER}
-                            style={{ flex: 1 }}
-                            initialRegion={{
-                                latitude: appointment.locationLat,
-                                longitude: appointment.locationLng,
-                                latitudeDelta: 0.01,
-                                longitudeDelta: 0.01,
-                            }}
-                            scrollEnabled={false}
-                            zoomEnabled={false}
-                            rotateEnabled={false}
-                            pitchEnabled={false}
-                        >
-                            <Marker
-                                coordinate={{
-                                    latitude: appointment.locationLat,
-                                    longitude: appointment.locationLng,
-                                }}
+            </View>
+
+            {/* Status pill */}
+            <View className="flex-row items-center mt-3" style={{ gap: 8, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 12, backgroundColor: status.bg }}>
+                <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: status.title }} />
+                <Text className="font-outfit-bold text-[11px] uppercase tracking-wider" style={{ color: status.title }}>
+                    {t(`appointments.list.card.status.${state}`)}
+                </Text>
+            </View>
+
+            {/* Fixed map: the owner sees their own pin, a mechanic only the zone */}
+            {!isPast && !isVideoCall && (
+                <View className="mt-3">
+                    {hasLocation ? (
+                        <>
+                            <FixedLocationMap
+                                latitude={appointment.locationLat!}
+                                longitude={appointment.locationLng!}
+                                approximate={isMechanic}
+                                seed={appointment.id}
                             />
-                        </MapView>
+                            {isMechanic && (
+                                <Text className="font-outfit-medium text-[11px] mt-1.5" style={{ color: C.mutedLight }}>
+                                    {t('appointments.list.card.approximateArea')}
+                                </Text>
+                            )}
+                        </>
                     ) : (
-                        <View className="flex-1 items-center justify-center">
-                            <MapPin size={24} color="#9CA3AF" />
-                            <Text className="text-gray-400 font-outfit-regular text-xs mt-1">{t('appointments.list.card.locationNotAvailable')}</Text>
+                        <View className="items-center justify-center" style={{ height: 120, borderRadius: 14, backgroundColor: C.page, borderWidth: 1, borderColor: C.borderSoft }}>
+                            <MapPin size={24} color={C.mutedLight} />
+                            <Text className="font-outfit-regular text-xs mt-1" style={{ color: C.mutedLight }}>
+                                {t('appointments.list.card.locationNotAvailable')}
+                            </Text>
                         </View>
                     )}
                 </View>
+            )}
 
-                <Text className="text-base font-outfit-bold text-gray-900 mb-1">{appointment.address}</Text>
-                <View className="flex-row items-center mb-4">
-                    <MapPin size={12} color="#6B7280" />
-                    <Text className="text-gray-500 text-xs ml-1">
-                        {distanceKm != null
-                            ? t('appointments.list.card.distance', { km: distanceKm.toFixed(1) })
-                            : t('appointments.list.card.distanceNA')}
-                    </Text>
+            {mechanic && (
+                <View className="mt-3">
+                    <TechnicianRow
+                        mechanic={mechanic}
+                        label={t(isPast ? 'appointments.list.card.technician' : 'appointments.list.card.assignedTechnician')}
+                        onMessage={canMessage ? openChat : undefined}
+                        messageLabel={t('appointments.list.card.message')}
+                    />
                 </View>
-                </>
-                )}
+            )}
 
-                {isPast ? (
-                    <View
-                        className="self-start rounded-[10px] py-3 px-4 items-center justify-center"
-                        style={{ backgroundColor: '#F3F4F6', borderWidth: 1, borderColor: '#E5E7EB' }}
-                    >
-                        <Text className="text-gray-900 font-outfit-bold text-sm">
-                            {t('appointments.list.card.paid', { amount: appointment.budget })}
-                        </Text>
-                    </View>
-                ) : (
-                    <>
-                        <View className="flex-row gap-3">
-                            <View
-                                className="w-1/3 rounded-[10px] py-3 items-center justify-center"
-                                style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E5E7EB' }}
-                            >
-                                <Text className="font-outfit-bold text-sm" style={{ color: '#081E72' }} numberOfLines={1}>
-                                    {t('appointments.list.card.budget', { amount: appointment.budget })}
-                                </Text>
-                            </View>
+            <View className="mt-3">
+                <InfoRows rows={rows} />
+            </View>
 
-                            <TouchableOpacity
-                                onPress={guardPress(() => !isPending && router.push(`/chat/${appointment.id}`))}
-                                activeOpacity={0.8}
-                                disabled={isPending}
-                                className="flex-1"
-                            >
-                                <LinearGradient
-                                    colors={isPending ? ['#D1D5DB', '#D1D5DB'] : ['#2B66F8', '#081E72']}
-                                    start={{ x: 0, y: 1 }}
-                                    end={{ x: 1, y: 0 }}
-                                    style={{
-                                        borderRadius: 10,
-                                        paddingVertical: 12,
-                                        paddingHorizontal: 12,
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                    }}
-                                >
-                                    <MessageSquare size={16} color={isPending ? '#9CA3AF' : 'white'} />
-                                    <Text className="font-outfit-bold text-sm ml-2" style={{ color: isPending ? '#9CA3AF' : 'white' }}>
-                                        {t('appointments.list.card.message')}
-                                    </Text>
-                                </LinearGradient>
-                            </TouchableOpacity>
+            {/* Amount + action */}
+            <View className="flex-row mt-3" style={{ gap: 10 }}>
+                <View
+                    style={{
+                        minWidth: 96,
+                        paddingVertical: 8,
+                        paddingHorizontal: 12,
+                        borderRadius: 13,
+                        backgroundColor: isPast ? C.page : C.blueSofter,
+                        borderWidth: 1,
+                        borderColor: isPast ? C.borderSoft : C.blueSoft,
+                    }}
+                >
+                    <Text className="font-outfit-bold text-[10.5px] uppercase tracking-wide" style={{ color: C.muted }}>{amountLabel}</Text>
+                    <Text className="font-outfit-bold text-xl" style={{ color: isPast ? C.text : C.blue }} numberOfLines={1}>{amount}</Text>
+                </View>
+
+                <TouchableOpacity className="flex-1" activeOpacity={0.8} onPress={guardPress(openDetail)}>
+                    {isPast ? (
+                        <View className="flex-1 items-center justify-center" style={{ borderRadius: 13, backgroundColor: C.blueSoft }}>
+                            <Text className="font-outfit-bold text-[14.5px]" style={{ color: C.blue }}>{ctaLabel}</Text>
                         </View>
+                    ) : (
+                        <LinearGradient
+                            colors={['#2B66F8', '#081E72']}
+                            start={{ x: 0, y: 1 }}
+                            end={{ x: 1, y: 0 }}
+                            style={{ flex: 1, borderRadius: 13, alignItems: 'center', justifyContent: 'center' }}
+                        >
+                            <Text className="font-outfit-bold text-[14.5px] text-white">{ctaLabel}</Text>
+                        </LinearGradient>
+                    )}
+                </TouchableOpacity>
 
-                        <TouchableOpacity onPress={guardPress(() => onCancel(appointment.id))} className="mt-4 items-center flex-row justify-center">
-                            <Trash2 size={12} color="#9CA3AF" />
-                            <Text className="text-gray-400 font-outfit-medium text-xs ml-1">{t('appointments.list.card.cancelRequest')}</Text>
-                        </TouchableOpacity>
-                    </>
+                {/* Chat sits in the technician row when that row is shown */}
+                {canMessage && !mechanic && (
+                    <TouchableOpacity
+                        accessibilityLabel={t('appointments.list.card.message')}
+                        onPress={openChat}
+                        activeOpacity={0.8}
+                        className="items-center justify-center"
+                        style={{ width: 52, borderRadius: 13, backgroundColor: C.blueSoft }}
+                    >
+                        <MessageSquare size={18} color={C.blue} />
+                    </TouchableOpacity>
+                )}
+            </View>
+
+            {/* Footer: id + cancel */}
+            <View className="flex-row items-center justify-between mt-2.5">
+                <Text style={{ fontFamily: MONO, fontSize: 11, color: C.mutedLight }}>#{appointment.id.slice(0, 8)}</Text>
+                {!isPast && (
+                    <TouchableOpacity onPress={guardPress(() => onCancel(appointment.id))} hitSlop={8}>
+                        <Text className="font-outfit-bold text-xs" style={{ color: C.red }}>{t('appointments.list.card.cancelRequest')}</Text>
+                    </TouchableOpacity>
                 )}
             </View>
         </TouchableOpacity>

@@ -8,30 +8,15 @@ import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { goBackOr } from '@/lib/navigation/goBackOr';
 import { Calendar, Clock, Navigation, HelpCircle, ChevronLeft, Zap, Car, Wrench, Lock, ArrowUpRight, DollarSign, Video } from 'lucide-react-native';
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import type { AssistanceRequest } from '@/lib/dao/interfaces';
-import MapView, { Marker, Polyline } from 'react-native-maps';
-import { MAP_PROVIDER } from '@/lib/maps/provider';
+import { FixedLocationMap } from '@/components/ui/FixedLocationMap';
+import { approximateArea } from '@/lib/maps/approximateLocation';
 import { apiClient } from '@/lib/api/apiClient';
 import { videoCallStartLabel } from '@/lib/video/videoCallTime';
 import { LinearGradient } from 'expo-linear-gradient';
-
-function decodePolyline(encoded: string): { latitude: number; longitude: number }[] {
-    const points: { latitude: number; longitude: number }[] = [];
-    let index = 0, lat = 0, lng = 0;
-    while (index < encoded.length) {
-        let b: number, shift = 0, result = 0;
-        do { b = encoded.charCodeAt(index++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
-        lat += result & 1 ? ~(result >> 1) : result >> 1;
-        shift = 0; result = 0;
-        do { b = encoded.charCodeAt(index++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
-        lng += result & 1 ? ~(result >> 1) : result >> 1;
-        points.push({ latitude: lat / 1e5, longitude: lng / 1e5 });
-    }
-    return points;
-}
 
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
     const R = 6371;
@@ -164,9 +149,6 @@ export default function RequestDetailScreen() {
     const [declining, setDeclining] = useState(false);
     const [etaText, setEtaText] = useState<string | null>(null);
     const [distKm, setDistKm] = useState<number | null>(null);
-    const [mechanicCoords, setMechanicCoords] = useState<{ latitude: number; longitude: number } | null>(null);
-    const [routePolyline, setRoutePolyline] = useState<string | null>(null);
-    const mapRef = useRef<MapView | null>(null);
 
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
     const [isDateOpen, setIsDateOpen] = useState(false);
@@ -181,21 +163,6 @@ export default function RequestDetailScreen() {
     ];
     const TIMES = ['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '04:00 PM'];
 
-    // Only zoom out to fit both pins when the mechanic is actually in the
-    // request's vicinity — otherwise (e.g. testing far from the request city)
-    // fitting both points zooms the small embedded map out to a whole
-    // country/continent, which isn't useful. Past that distance we just keep
-    // the map centered on the request location.
-    const NEARBY_KM_THRESHOLD = 100;
-    useEffect(() => {
-        if (!mechanicCoords || !hasLocation) return;
-        if (distKm === null || distKm > NEARBY_KM_THRESHOLD) return;
-        mapRef.current?.fitToCoordinates(
-            [{ latitude: reqLat, longitude: reqLng }, mechanicCoords],
-            { edgePadding: { top: 20, right: 20, bottom: 20, left: 20 }, animated: true },
-        );
-    }, [mechanicCoords, distKm]);
-
     useEffect(() => {
         // A video call is remote: no route, distance or ETA to work out.
         if (!hasLocation || isVideo) return;
@@ -207,22 +174,24 @@ export default function RequestDetailScreen() {
                 const loc = await Location.getCurrentPositionAsync({});
                 const { latitude, longitude } = loc.coords;
 
+                // Measured to the approximate zone, not the client's real point:
+                // an exact distance from a known position would give it back.
+                // The request is not accepted yet, so the mechanic gets the area only.
+                const zone = approximateArea(reqLat, reqLng, String(id));
+
                 // Rough placeholder while the road-based figures load below —
                 // straight-line distance at an assumed average speed.
-                const km = haversineKm(latitude, longitude, reqLat, reqLng);
+                const km = haversineKm(latitude, longitude, zone.latitude, zone.longitude);
                 setDistKm(km);
                 const minutes = (km * 1.3 / 25) * 60;
                 setEtaText(formatEta(minutes));
-                setMechanicCoords({ latitude, longitude });
 
-                // Backend asks Google Directions for the real road route — same
-                // call already used to draw the polyline, also returns the
-                // accurate distance/ETA, so use those instead of the estimate above.
+                // Backend asks Google Directions for the real road route, which
+                // returns a more accurate distance/ETA than the estimate above.
                 const route: any = await apiClient.get(
-                    `/api/appointments/route?fromLat=${latitude}&fromLng=${longitude}&toLat=${reqLat}&toLng=${reqLng}`
+                    `/api/appointments/route?fromLat=${latitude}&fromLng=${longitude}&toLat=${zone.latitude}&toLng=${zone.longitude}`
                 ).catch(() => null);
                 if (route?.available) {
-                    if (route.polyline) setRoutePolyline(route.polyline);
                     if (typeof route.distanceKm === 'number') setDistKm(route.distanceKm);
                     if (typeof route.minutesAway === 'number') setEtaText(formatEta(route.minutesAway));
                 }
@@ -420,52 +389,19 @@ export default function RequestDetailScreen() {
                         </View>
                         )}
 
-                        {/* Address map — client pin (+ own GPS pin / route once available) */}
+                        {/* Client's area only — like the street line, the exact point unlocks after accept */}
                         {hasLocation && !isVideo && (
-                            <View className="mx-5 mb-5 rounded-xl overflow-hidden" style={{ height: 160 }}>
-                                <MapView
-                                    provider={MAP_PROVIDER}
-                                    ref={mapRef}
-                                    style={{ flex: 1 }}
-                                    initialRegion={{
-                                        latitude: reqLat,
-                                        longitude: reqLng,
-                                        latitudeDelta: 0.09,
-                                        longitudeDelta: 0.09,
-                                    }}
-                                    onMapReady={() => {
-                                        // Only fit the mechanic's pin in too if they're actually nearby —
-                                        // see the effect above for why.
-                                        if (!mechanicCoords || distKm === null || distKm > NEARBY_KM_THRESHOLD) return;
-                                        mapRef.current?.fitToCoordinates(
-                                            [{ latitude: reqLat, longitude: reqLng }, mechanicCoords],
-                                            {
-                                                edgePadding: { top: 20, right: 20, bottom: 20, left: 20 },
-                                                animated: false,
-                                            }
-                                        );
-                                    }}
-                                >
-                                    <Marker
-                                        coordinate={{ latitude: reqLat, longitude: reqLng }}
-                                        title={t('requestDetail.clientLocation')}
-                                        pinColor="red"
-                                    />
-                                    {mechanicCoords && (
-                                        <Marker
-                                            coordinate={mechanicCoords}
-                                            title={t('requestDetail.yourLocation')}
-                                            pinColor="blue"
-                                        />
-                                    )}
-                                    {routePolyline && (
-                                        <Polyline
-                                            coordinates={decodePolyline(routePolyline)}
-                                            strokeColor="#2563EB"
-                                            strokeWidth={4}
-                                        />
-                                    )}
-                                </MapView>
+                            <View className="mx-5 mb-5">
+                                <FixedLocationMap
+                                    latitude={reqLat}
+                                    longitude={reqLng}
+                                    approximate
+                                    seed={String(id)}
+                                    height={160}
+                                />
+                                <Text className="font-outfit-medium text-[11px] mt-1.5" style={{ color: '#8C96AE' }}>
+                                    {t('appointments.list.card.approximateArea')}
+                                </Text>
                             </View>
                         )}
                     </View>

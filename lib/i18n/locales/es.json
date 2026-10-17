@@ -588,7 +588,33 @@
         "budget": "Presupuesto: {{amount}}",
         "paid": "Pagado: {{amount}}",
         "message": "Mensaje",
-        "cancelRequest": "Cancelar solicitud"
+        "cancelRequest": "Cancelar solicitud",
+        "rows": {
+          "vehicle": "Vehículo",
+          "location": "Ubicación",
+          "distance": "Distancia",
+          "when": "Cuándo",
+          "date": "Fecha"
+        },
+        "notAvailable": "—",
+        "distanceApprox": "~{{km}} km",
+        "approximateArea": "Zona aproximada — no se muestra la ubicación exacta",
+        "budgetLabel": "Presupuesto",
+        "paidLabel": "Pagado",
+        "chargedLabel": "Cobrado",
+        "viewOffer": "Ver oferta",
+        "viewDetails": "Ver detalles",
+        "viewReceipt": "Ver recibo",
+        "assignedTechnician": "Técnico asignado",
+        "technician": "Técnico",
+        "ratingValue": "{{rating}} ({{count}})",
+        "noRatings": "Sin calificaciones",
+        "distanceExact": "{{km}} km"
+      },
+      "hint": {
+        "upcoming": "Servicios confirmados con un técnico asignado.",
+        "pending": "Solicitudes que esperan tu decisión o un técnico.",
+        "past": "Servicios completados y cancelados."
       }
     },
     "cancelReason": {

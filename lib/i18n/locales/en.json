@@ -588,7 +588,33 @@
         "budget": "Budget: {{amount}}",
         "paid": "Paid: {{amount}}",
         "message": "Message",
-        "cancelRequest": "Cancel request"
+        "cancelRequest": "Cancel request",
+        "rows": {
+          "vehicle": "Vehicle",
+          "location": "Location",
+          "distance": "Distance",
+          "when": "When",
+          "date": "Date"
+        },
+        "notAvailable": "—",
+        "distanceApprox": "~{{km}} km",
+        "approximateArea": "Approximate area — the exact location is not shown",
+        "budgetLabel": "Budget",
+        "paidLabel": "Paid",
+        "chargedLabel": "Charged",
+        "viewOffer": "View offer",
+        "viewDetails": "View details",
+        "viewReceipt": "View receipt",
+        "assignedTechnician": "Assigned technician",
+        "technician": "Technician",
+        "ratingValue": "{{rating}} ({{count}})",
+        "noRatings": "No ratings yet",
+        "distanceExact": "{{km}} km"
+      },
+      "hint": {
+        "upcoming": "Confirmed services with an assigned technician.",
+        "pending": "Requests waiting for your decision or a technician match.",
+        "past": "Completed and cancelled services."
       }
     },
     "cancelReason": {
