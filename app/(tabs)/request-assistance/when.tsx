@@ -1,8 +1,11 @@
+import { CardPickerModal } from '@/components/payments/CardPickerModal';
 import { useRequestDraft } from '@/context/RequestDraftContext';
 import { useUser } from '@/context/UserContext';
 import { ApiError } from '@/lib/api/types';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { pricingDAO } from '@/lib/dao/PricingDAO';
+import { cardLabel } from '@/lib/payments/cardLabel';
+import { usePaymentCards } from '@/lib/payments/usePaymentCards';
 import {
     deviceTimeZone,
     videoCallDAO,
@@ -18,6 +21,7 @@ import {
     Check,
     ChevronLeft,
     Clock,
+    CreditCard,
     DollarSign,
     Moon,
     Sun,
@@ -81,6 +85,11 @@ export default function VideoCallWhenScreen() {
     const [dayIndex, setDayIndex] = useState(0);
     const [slot, setSlot] = useState<VideoCallSlot | null>(null);
     const [submitting, setSubmitting] = useState(false);
+    // The card this request is charged to: the default one until the user picks another.
+    const { cards, defaultCard } = usePaymentCards();
+    const [pickedCardId, setPickedCardId] = useState<string | null>(null);
+    const [cardPickerOpen, setCardPickerOpen] = useState(false);
+    const selectedCard = (pickedCardId && cards.find((c) => c.id === pickedCardId)) || defaultCard;
 
     const load = useCallback(async () => {
         setLoadFailed(false);
@@ -202,6 +211,7 @@ export default function VideoCallWhenScreen() {
                 ...(vehicleDetails.driverFirstName ? { driverFirstName: vehicleDetails.driverFirstName } : {}),
                 ...(vehicleDetails.driverLastName ? { driverLastName: vehicleDetails.driverLastName } : {}),
                 ...(vehicleDetails.driverPhone ? { driverPhone: vehicleDetails.driverPhone } : {}),
+                ...(selectedCard ? { paymentMethodId: selectedCard.id } : {}),
             });
 
             // Records the price and the issues on the request, for the same
@@ -325,7 +335,7 @@ export default function VideoCallWhenScreen() {
         );
     };
 
-    const SummaryRow = ({ Icon, label, value, last }: { Icon: typeof Zap; label: string; value: string; last?: boolean }) => (
+    const SummaryRow = ({ Icon, label, value, last, action }: { Icon: typeof Zap; label: string; value: string; last?: boolean; action?: React.ReactNode }) => (
         <View
             style={{
                 flexDirection: 'row',
@@ -345,6 +355,7 @@ export default function VideoCallWhenScreen() {
             <Text className="font-outfit-bold" style={{ flex: 1, textAlign: 'right', fontSize: 13, color: C.ink }}>
                 {value}
             </Text>
+            {action}
         </View>
     );
 
@@ -376,6 +387,16 @@ export default function VideoCallWhenScreen() {
 
     return (
         <View className="flex-1" style={{ backgroundColor: C.page }}>
+            <CardPickerModal
+                visible={cardPickerOpen}
+                cards={cards}
+                selectedId={selectedCard?.id ?? null}
+                onSelect={(card) => {
+                    setPickedCardId(card.id);
+                    setCardPickerOpen(false);
+                }}
+                onClose={() => setCardPickerOpen(false)}
+            />
             {/* Header — same as the other wizard steps */}
             <View
                 className="px-6 pt-20 pb-2 flex-row items-center justify-between"
@@ -579,7 +600,20 @@ export default function VideoCallWhenScreen() {
                                     <SummaryRow Icon={Clock} label={t('requestAssistance.when.time')} value={slot ? slotLabel(slot) : t('requestAssistance.when.pickTime')} />
                                 </>
                             )}
-                            <SummaryRow last Icon={DollarSign} label={t('requestAssistance.when.price')} value={priceLabel} />
+                            <SummaryRow Icon={DollarSign} label={t('requestAssistance.when.price')} value={priceLabel} />
+                            <SummaryRow
+                                last
+                                Icon={CreditCard}
+                                label={t('requestAssistance.mechanicFound.rowPayment')}
+                                value={selectedCard ? cardLabel(selectedCard) : t('paymentCards.noCard')}
+                                action={
+                                    <TouchableOpacity onPress={() => setCardPickerOpen(true)} hitSlop={8}>
+                                        <Text className="font-outfit-bold" style={{ fontSize: 12.5, color: C.blue }}>
+                                            {t('requestAssistance.mechanicFound.change')}
+                                        </Text>
+                                    </TouchableOpacity>
+                                }
+                            />
                         </View>
                     </>
                 )}

@@ -45,6 +45,11 @@ export interface AssistanceRequest {
     driverFirstName?: string;
     driverLastName?: string;
     driverPhone?: string;
+    /**
+     * Saved card (`PaymentCard.id`) this request is charged to, or `'wallet'`
+     * for the prepaid wallet. Null on requests made before the app sent it.
+     */
+    paymentMethodId?: string | null;
     /** Mechanic's proposed price for this service (set when mechanic makes an offer) */
     price?: string;
     /** Mechanic's estimated arrival time, e.g. "20 min" */
@@ -422,6 +427,7 @@ export interface IAssistanceDAO {
     updateStatus(id: string, mechanicId: string, status: string, extra?: { eta?: string; price?: string }): Promise<void>;
     create(request: Partial<AssistanceRequest>): Promise<AssistanceRequest>;
     reject(id: string): Promise<void>;
+    setPaymentMethod(id: string, paymentMethodId: string): Promise<void>;
     uploadPhoto(localUri: string): Promise<string>;
     uploadVideo(localUri: string): Promise<string>;
 }

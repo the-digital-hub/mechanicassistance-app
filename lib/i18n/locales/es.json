@@ -351,7 +351,7 @@
       "address": "Dirección",
       "notes": "Notas",
       "none": "Ninguna",
-      "feesInfo": "No se cobrará ningún CARGO a tu cuenta hasta que el trabajo esté hecho y aprobado.",
+      "feesInfo": "No se cobra nada hasta que el trabajo esté hecho y aprobado. Al confirmar el técnico retenemos el monto en tu método de pago; si se cancela, se libera.",
       "confirmAndRequest": "Confirmar y Solicitar",
       "scheduledFor": "Agendado para",
       "pricingUnavailableTitle": "Precio pendiente",
@@ -364,7 +364,8 @@
       "location": "Ubicación",
       "includedTitle": "También incluido en este servicio",
       "includedChecklist": "Checklist de mantenimiento",
-      "includedScanner": "Reporte de escáner"
+      "includedScanner": "Reporte de escáner",
+      "payment": "Pago"
     },
     "dateTime": {
       "header": "Elegí fecha y hora",
@@ -479,7 +480,19 @@
       "cancelKeep": "Mantener solicitud",
       "cancelConfirm": "Cancelar solicitud",
       "subtitleVideoCall": "Revisá la oferta y confirmá para empezar tu videollamada.",
-      "when": "Cuándo"
+      "when": "Cuándo",
+      "cardDeclinedTitle": "Tarjeta rechazada",
+      "cardDeclinedMessage": "Tu banco rechazó la retención del monto. Elegí otra tarjeta y confirmá de nuevo.",
+      "changeCard": "Cambiar tarjeta",
+      "insufficientFundsTitle": "Saldo insuficiente",
+      "insufficientFundsMessage": "Tu saldo no alcanza para reservar el monto de este servicio. Elegí otro método de pago y confirmá de nuevo.",
+      "changeMethod": "Cambiar método",
+      "holdFailedTitle": "No pudimos retener el pago",
+      "holdFailedMessage": "No pudimos retener el pago, probá de nuevo en unos segundos.",
+      "paymentErrorDismiss": "Ahora no",
+      "holdNoticeCard": "Al confirmar retendremos {{amount}} en tu tarjeta. Se cobra cuando el trabajo esté terminado y aprobado; si se cancela, se libera.",
+      "holdNoticeWallet": "Al confirmar reservaremos {{amount}} de tu saldo. Se cobra cuando el trabajo esté terminado y aprobado; si se cancela, se libera.",
+      "holdNoticeLater": "Retendremos {{amount}} 24 h antes del servicio. Se cobra cuando el trabajo esté terminado y aprobado; si se cancela, se libera."
     },
     "when": {
       "headerTitle": "Videollamada",
@@ -1918,7 +1931,17 @@
     "retry": "Reintentar",
     "unavailable": "Los pagos con tarjeta no están disponibles en este momento.",
     "securityNote": "Los datos de la tarjeta los maneja Stripe. Solo guardamos marca, últimos 4 dígitos y vencimiento.",
-    "returnBanner": "Agregá una tarjeta para continuar con tu pedido."
+    "returnBanner": "Agregá una tarjeta para continuar con tu pedido.",
+    "wallet": "Billetera prepaga",
+    "noCard": "Sin tarjeta",
+    "changeFailedTitle": "No se pudo cambiar la tarjeta",
+    "changeFailedMessage": "La solicitud sigue con la tarjeta anterior. Probá de nuevo en un momento.",
+    "picker": {
+      "title": "Pagar con",
+      "default": "Tarjeta predeterminada",
+      "expired": "Vencida",
+      "manage": "Agregar o gestionar tarjetas"
+    }
   },
   "payments": {
     "badge": "CUENTA BANCARIA",

@@ -23,6 +23,7 @@ import {
     OwnerTechnicianPanel,
 } from '@/components/appointments/owner/OwnerSections';
 import { AO, IconName, RequestSummaryRows } from '@/components/offer/OfferSections';
+import { PaymentCardValue } from '@/components/payments/PaymentCardValue';
 import { useAppointments } from '@/context/AppointmentsContext';
 import { useUser } from '@/context/UserContext';
 import { formatEtaTime, useAppointmentEta } from '@/hooks/useAppointmentEta';
@@ -43,6 +44,7 @@ import { goBackOr } from '@/lib/navigation/goBackOr';
 import React from 'react';
 import { AttachmentStrip } from '@/components/appointments/AttachmentStrip';
 import { parseAttachments } from '@/lib/media/attachments';
+import { usePaymentCards } from '@/lib/payments/usePaymentCards';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Dimensions, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
@@ -84,6 +86,7 @@ export default function AppointmentDetailScreen() {
 
     const { user } = useUser();
     const isUserRole = user?.role === 'user';
+    const { resolve: resolvePaymentCard } = usePaymentCards(isUserRole);
     // A video call is remote: no GPS, ETA, check-in or on-site close-out.
     const isVideoCall = (appointment?.assistanceType ?? appointment?.type) === 'videocall';
 
@@ -158,6 +161,8 @@ export default function AppointmentDetailScreen() {
     const [showDisputeSheet, setShowDisputeSheet] = React.useState(false);
     const [showFinishSheet, setShowFinishSheet] = React.useState(false);
     const [offer, setOffer] = React.useState<AssistanceOfferSummary | null>(null);
+    // Owner: the card the request is charged to (null = made before the app sent one → default card).
+    const [paymentMethodId, setPaymentMethodId] = React.useState<string | null>(null);
 
     const [activeTab, setActiveTab] = React.useState<TabType>('info');
     const [ownerTab, setOwnerTab] = React.useState<OwnerTab>('status');
@@ -239,6 +244,12 @@ export default function AppointmentDetailScreen() {
             .getOfferSummary(appointment.id)
             .then((summary) => !cancelled && setOffer(summary))
             .catch((error) => console.error('Error fetching offer summary:', error));
+        assistanceDAO
+            .getById(appointment.id)
+            .then((req) => {
+                if (!cancelled) setPaymentMethodId(req?.paymentMethodId ?? null);
+            })
+            .catch((error) => console.error('Error fetching request payment method:', error));
         return () => {
             cancelled = true;
         };
@@ -392,7 +403,12 @@ export default function AppointmentDetailScreen() {
             case 'mechanic':
                 return <OwnerTechnicianPanel mechanic={offer?.mechanic ?? null} />;
             case 'budget':
-                return <OwnerBudgetPanel total={(offer?.breakdown?.total ?? offer?.price ?? appointment.budget ?? '').replace(/^\$/, '') || null} />;
+                return (
+                    <OwnerBudgetPanel
+                        total={(offer?.breakdown?.total ?? offer?.price ?? appointment.budget ?? '').replace(/^\$/, '') || null}
+                        payment={<PaymentCardValue paymentMethodId={paymentMethodId} card={resolvePaymentCard(paymentMethodId)} />}
+                    />
+                );
         }
     };
 

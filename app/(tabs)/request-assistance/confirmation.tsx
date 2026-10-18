@@ -1,10 +1,13 @@
+import { CardPickerModal } from '@/components/payments/CardPickerModal';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { useRequestDraft } from '@/context/RequestDraftContext';
 import { useUser } from '@/context/UserContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { pricingDAO } from '@/lib/dao/PricingDAO';
 import type { Attachment, PendingAttachment } from '@/lib/media/attachments';
+import { cardLabel } from '@/lib/payments/cardLabel';
 import { isPaymentMethodRequired, RETURN_TO_BACK } from '@/lib/payments/cardRequired';
+import { usePaymentCards } from '@/lib/payments/usePaymentCards';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AlertCircle, AlignLeft, Car, CheckCircle2, ChevronLeft, CreditCard, MapPin } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
@@ -52,6 +55,11 @@ export default function ConfirmationScreen() {
     const [price, setPrice] = useState<number | null>(null);
     const [priceLoading, setPriceLoading] = useState(true);
     const [cardRequired, setCardRequired] = useState(false);
+    // The card this request is charged to: the default one until the user picks another.
+    const { cards, defaultCard } = usePaymentCards();
+    const [pickedCardId, setPickedCardId] = useState<string | null>(null);
+    const [cardPickerOpen, setCardPickerOpen] = useState(false);
+    const selectedCard = (pickedCardId && cards.find((c) => c.id === pickedCardId)) || defaultCard;
 
     // Resolve the ZIP once (from the passed locationZip or parsed from the address);
     // the pricing service uses it to derive the tax jurisdiction (state + county).
@@ -187,7 +195,8 @@ export default function ConfirmationScreen() {
                 driverIsOwner: vehicleDetails.driverIsOwner,
                 ...(vehicleDetails.driverFirstName ? { driverFirstName: vehicleDetails.driverFirstName } : {}),
                 ...(vehicleDetails.driverLastName ? { driverLastName: vehicleDetails.driverLastName } : {}),
-                ...(vehicleDetails.driverPhone ? { driverPhone: vehicleDetails.driverPhone } : {})
+                ...(vehicleDetails.driverPhone ? { driverPhone: vehicleDetails.driverPhone } : {}),
+                ...(selectedCard ? { paymentMethodId: selectedCard.id } : {})
             });
 
             // Price + persist the created request server-side (breakdown + issue
@@ -263,7 +272,7 @@ export default function ConfirmationScreen() {
     };
 
     /** Icon + label/value row of the white summary card. */
-    const SummaryRow = ({ icon, label, value, last }: { icon: React.ReactNode; label: string; value: string; last?: boolean }) => (
+    const SummaryRow = ({ icon, label, value, last, action }: { icon: React.ReactNode; label: string; value: string; last?: boolean; action?: React.ReactNode }) => (
         <View
             className="flex-row items-center py-4"
             onLayout={(e) => console.log("[ROWH] SummaryRow", label, e.nativeEvent.layout.height)}
@@ -281,6 +290,7 @@ export default function ConfirmationScreen() {
                 </Text>
                 <Text className="text-gray-900 font-outfit-bold text-base">{value}</Text>
             </View>
+            {action}
         </View>
     );
 
@@ -301,6 +311,16 @@ export default function ConfirmationScreen() {
                     router.push({ pathname: '/payment-cards', params: { returnTo: RETURN_TO_BACK } });
                 }}
                 onClose={() => setCardRequired(false)}
+            />
+            <CardPickerModal
+                visible={cardPickerOpen}
+                cards={cards}
+                selectedId={selectedCard?.id ?? null}
+                onSelect={(card) => {
+                    setPickedCardId(card.id);
+                    setCardPickerOpen(false);
+                }}
+                onClose={() => setCardPickerOpen(false)}
             />
             {/* Custom Header */}
             <View className="px-6 pt-20 pb-2 flex-row items-center justify-between" style={{ backgroundColor: '#F4F5FA', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 3, elevation: 3, borderBottomWidth: 0.5, borderBottomColor: '#D1D5DB' }}>
@@ -404,6 +424,18 @@ export default function ConfirmationScreen() {
                         icon={<MapPin size={20} color="#1E56E3" />}
                         label={t('requestAssistance.confirmation.location')}
                         value={((finalAddress || addressLabel) as string) || ''}
+                    />
+                    <SummaryRow
+                        icon={<CreditCard size={20} color="#1E56E3" />}
+                        label={t('requestAssistance.confirmation.payment')}
+                        value={selectedCard ? cardLabel(selectedCard) : t('paymentCards.noCard')}
+                        action={
+                            <TouchableOpacity onPress={() => setCardPickerOpen(true)} hitSlop={8}>
+                                <Text className="font-outfit-bold text-[13px]" style={{ color: '#1E56E3' }}>
+                                    {t('requestAssistance.mechanicFound.change')}
+                                </Text>
+                            </TouchableOpacity>
+                        }
                     />
                     <SummaryRow
                         last

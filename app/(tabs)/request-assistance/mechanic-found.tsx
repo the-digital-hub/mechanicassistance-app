@@ -2,20 +2,24 @@ import {
     AO,
     OfferBreakdown,
     OfferHoldPill,
-    PaymentValue,
     ProtectionBox,
     RequestSummaryRows,
     TechnicianCard,
 } from '@/components/offer/OfferSections';
+import { CardPickerModal } from '@/components/payments/CardPickerModal';
+import { PaymentCardValue } from '@/components/payments/PaymentCardValue';
+import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { useAppointments } from '@/context/AppointmentsContext';
 import { useSocket } from '@/context/SocketContext';
-import { ApiError } from '@/lib/api/types';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import type { AssistanceOfferSummary, AssistanceRequest, VehicleIssueSnapshot } from '@/lib/dao/interfaces';
 import { pricingDAO } from '@/lib/dao/PricingDAO';
+import { apiErrorCode, isPaymentMethodRequired, RETURN_TO_BACK } from '@/lib/payments/cardRequired';
+import { usePaymentCards } from '@/lib/payments/usePaymentCards';
 import { videoCallBookedLabel } from '@/lib/video/videoCallTime';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { CreditCard } from 'lucide-react-native';
 import { useIsFocused } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -36,6 +40,9 @@ const formatMoney = (amount?: string | null) => (amount ? `$${Number(amount).toF
 
 type ConfirmState = 'idle' | 'loading' | 'done';
 
+/** A booked service whose hold is placed later: billing holds the amount 24 h before it starts. */
+const HOLD_LEAD_MS = 24 * 60 * 60_000;
+
 export default function MechanicFoundScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
@@ -51,6 +58,24 @@ export default function MechanicFoundScreen() {
     const [isLoading, setIsLoading] = useState(true);
     const [confirmState, setConfirmState] = useState<ConfirmState>('idle');
     const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
+    const { cards, resolve } = usePaymentCards();
+    const [cardPickerOpen, setCardPickerOpen] = useState(false);
+    const [cardRequired, setCardRequired] = useState(false);
+    const paymentCard = resolve(request?.paymentMethodId);
+
+    // Switches the card this request is charged to. Only before accepting: once
+    // accepted, billing already holds the amount on the card that was named.
+    const changeCard = async (cardId: string) => {
+        setCardPickerOpen(false);
+        if (!requestId || cardId === paymentCard?.id) return;
+        try {
+            await assistanceDAO.setPaymentMethod(requestId, cardId);
+            setRequest((prev) => (prev ? { ...prev, paymentMethodId: cardId } : prev));
+        } catch (error) {
+            console.error('Failed to change payment card:', error);
+            Alert.alert(t('paymentCards.changeFailedTitle'), t('paymentCards.changeFailedMessage'));
+        }
+    };
 
     // Phone clock minus server clock, so the countdown follows the server's hold.
     const clockSkew = useRef(0);
@@ -149,15 +174,40 @@ export default function MechanicFoundScreen() {
                 router.push({ pathname: '/appointments/[id]', params: { id: requestId } }, { withAnchor: true });
             }
         } catch (error) {
-            const code = error instanceof ApiError ? (error.apiError as { code?: string } | null)?.code : undefined;
+            const code = apiErrorCode(error);
             if (code === 'OFFER_EXPIRED') {
                 handleExpired();
                 return;
             }
             console.error('Failed to confirm appointment:', error);
             setConfirmState('idle');
-            Alert.alert(t(`${k}.errorTitle`), t(`${k}.errorMessage`));
+            // The accept was rolled back because the amount could not be held.
+            // Nothing is retried: the owner picks another method and confirms again.
+            if (isPaymentMethodRequired(error)) {
+                openPaymentChoice();
+            } else if (code === 'card_declined') {
+                Alert.alert(t(`${k}.cardDeclinedTitle`), t(`${k}.cardDeclinedMessage`), [
+                    { text: t(`${k}.paymentErrorDismiss`), style: 'cancel' },
+                    { text: t(`${k}.changeCard`), onPress: openPaymentChoice },
+                ]);
+            } else if (code === 'insufficient_funds') {
+                Alert.alert(t(`${k}.insufficientFundsTitle`), t(`${k}.insufficientFundsMessage`), [
+                    { text: t(`${k}.paymentErrorDismiss`), style: 'cancel' },
+                    { text: t(`${k}.changeMethod`), onPress: openPaymentChoice },
+                ]);
+            } else if (code === 'payment_pending' || code === 'payment_unavailable') {
+                Alert.alert(t(`${k}.holdFailedTitle`), t(`${k}.holdFailedMessage`));
+            } else {
+                Alert.alert(t(`${k}.errorTitle`), t(`${k}.errorMessage`));
+            }
         }
+    };
+
+    // Another way to pay: the saved cards if there are any, otherwise the
+    // "add a card" popup that leads to /payment-cards and back here.
+    const openPaymentChoice = () => {
+        if (cards.length) setCardPickerOpen(true);
+        else setCardRequired(true);
     };
 
     // Cancels the whole request, like the searching screen does. Asked first:
@@ -229,11 +279,44 @@ export default function MechanicFoundScreen() {
         ]
         : [];
 
+    // What confirming does to the payment method. A booked service further
+    // than 24 h away is held later, 24 h before it starts.
+    const startsAt = type === 'scheduled' || (isVideoCall && !request?.startNow) ? new Date(request?.date ?? '').getTime() : NaN;
+    const holdLater = !isNaN(startsAt) && startsAt - Date.now() > HOLD_LEAD_MS;
+    const holdNotice = !request?.paymentMethodId
+        ? null
+        : holdLater
+            ? t(`${k}.holdNoticeLater`, { amount: price })
+            : request.paymentMethodId === 'wallet'
+                ? t(`${k}.holdNoticeWallet`, { amount: price })
+                : t(`${k}.holdNoticeCard`, { amount: price });
+
     const vehicle = [request?.vehicle?.make, request?.vehicle?.model].filter(Boolean).join(' ') || request?.car || '—';
     const issueText = issues.map((i) => i.name).filter(Boolean).join(', ') || request?.title || '—';
 
     return (
         <View className="flex-1" style={{ backgroundColor: AO.page }}>
+            <CardPickerModal
+                visible={cardPickerOpen}
+                cards={cards}
+                selectedId={paymentCard?.id ?? null}
+                onSelect={(card) => changeCard(card.id)}
+                onClose={() => setCardPickerOpen(false)}
+            />
+            <ConfirmationModal
+                visible={cardRequired}
+                title={t('requestAssistance.cardRequired.title')}
+                message={t('requestAssistance.cardRequired.message')}
+                icon={CreditCard}
+                iconColor="#0047AB"
+                confirmText={t('requestAssistance.cardRequired.confirm')}
+                cancelText={t('requestAssistance.cardRequired.cancel')}
+                onConfirm={() => {
+                    setCardRequired(false);
+                    router.push({ pathname: '/payment-cards', params: { returnTo: RETURN_TO_BACK } });
+                }}
+                onClose={() => setCardRequired(false)}
+            />
             {/* Header */}
             <View
                 className="flex-row items-center"
@@ -280,9 +363,21 @@ export default function MechanicFoundScreen() {
                             { icon: 'construct-outline', label: t(`${k}.rowIssue`), value: issueText },
                             // A video call is remote: it has no location.
                             ...(isVideoCall ? [] : [{ icon: 'location-outline' as const, label: t(`${k}.rowLocation`), value: request?.address || '—' }]),
-                            { icon: 'card-outline', label: t(`${k}.rowPayment`), value: <PaymentValue /> },
+                            { icon: 'card-outline', label: t(`${k}.rowPayment`), value: (
+                                    <PaymentCardValue
+                                        paymentMethodId={request?.paymentMethodId}
+                                        card={paymentCard}
+                                        onChange={confirmState === 'idle' ? () => setCardPickerOpen(true) : undefined}
+                                    />
+                                ) },
                         ]}
                     />
+                    {holdNotice !== null && confirmState !== 'done' && (
+                        <View className="flex-row items-start" style={{ gap: 8, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, backgroundColor: AO.blueSofter, borderWidth: 1, borderColor: AO.border }}>
+                            <Ionicons name="lock-closed-outline" size={14} color={AO.blue} style={{ marginTop: 2 }} />
+                            <Text className="font-outfit-regular" style={{ flex: 1, fontSize: 12, color: AO.muted, lineHeight: 17 }}>{holdNotice}</Text>
+                        </View>
+                    )}
                 </View>
 
                 <ProtectionBox />

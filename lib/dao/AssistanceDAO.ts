@@ -37,6 +37,11 @@ export class AssistanceDAO implements IAssistanceDAO {
         await apiClient.post(`/api/assistance/${id}/reject`, {});
     }
 
+    /** Changes the card (or `'wallet'`) the request is charged to. Only its owner may. */
+    async setPaymentMethod(id: string, paymentMethodId: string): Promise<void> {
+        await apiClient.post(`/api/assistance/${id}/payment-method`, { paymentMethodId });
+    }
+
     /**
      * Uploads a local image URI to S3 and returns the permanent URL.
      * React Native FormData accepts { uri, type, name } as a file object.

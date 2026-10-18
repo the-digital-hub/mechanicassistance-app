@@ -351,7 +351,7 @@
       "address": "Address",
       "notes": "Notes",
       "none": "None",
-      "feesInfo": "No FEES will be charged to your account until work is done and approved.",
+      "feesInfo": "Nothing is charged until the work is done and approved. When you confirm the technician we hold the amount on your payment method; if it is canceled, the hold is released.",
       "confirmAndRequest": "Confirm and Request",
       "scheduledFor": "Scheduled for",
       "pricingUnavailableTitle": "Price pending",
@@ -364,7 +364,8 @@
       "location": "Location",
       "includedTitle": "Also included with this service",
       "includedChecklist": "Maintenance checklist",
-      "includedScanner": "Scanner report"
+      "includedScanner": "Scanner report",
+      "payment": "Payment"
     },
     "dateTime": {
       "header": "Pick a date and time",
@@ -479,7 +480,19 @@
       "cancelKeep": "Keep request",
       "cancelConfirm": "Cancel request",
       "subtitleVideoCall": "Review the offer and confirm to start your video call.",
-      "when": "When"
+      "when": "When",
+      "cardDeclinedTitle": "Card declined",
+      "cardDeclinedMessage": "Your bank declined the hold for this amount. Pick another card and confirm again.",
+      "changeCard": "Change card",
+      "insufficientFundsTitle": "Insufficient balance",
+      "insufficientFundsMessage": "Your balance is not enough to reserve the amount of this service. Pick another payment method and confirm again.",
+      "changeMethod": "Change method",
+      "holdFailedTitle": "We couldn't hold the payment",
+      "holdFailedMessage": "We couldn't hold the payment. Please try again in a few seconds.",
+      "paymentErrorDismiss": "Not now",
+      "holdNoticeCard": "When you confirm, we'll hold {{amount}} on your card. It's charged once the work is done and approved; if it's canceled, the hold is released.",
+      "holdNoticeWallet": "When you confirm, we'll reserve {{amount}} from your balance. It's charged once the work is done and approved; if it's canceled, it's released.",
+      "holdNoticeLater": "We'll hold {{amount}} 24 h before the service. It's charged once the work is done and approved; if it's canceled, the hold is released."
     },
     "when": {
       "headerTitle": "Video call",
@@ -1918,7 +1931,17 @@
     "retry": "Retry",
     "unavailable": "Card payments are not available right now.",
     "securityNote": "Card details are handled by Stripe. We only keep the brand, last 4 digits and expiry.",
-    "returnBanner": "Add a card to continue your request."
+    "returnBanner": "Add a card to continue your request.",
+    "wallet": "Prepaid wallet",
+    "noCard": "No card",
+    "changeFailedTitle": "Couldn't change the card",
+    "changeFailedMessage": "The request keeps the previous card. Try again in a moment.",
+    "picker": {
+      "title": "Pay with",
+      "default": "Default card",
+      "expired": "Expired",
+      "manage": "Add or manage cards"
+    }
   },
   "payments": {
     "badge": "BANK ACCOUNT",

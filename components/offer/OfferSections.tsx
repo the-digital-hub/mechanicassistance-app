@@ -243,21 +243,6 @@ export function RequestSummaryRows({ rows }: { rows: SummaryRow[] }) {
     );
 }
 
-/** PayPal is the only method today; "Change" is shown as in the design but does nothing yet. */
-export function PaymentValue() {
-    const { t } = useTranslation();
-    return (
-        <View className="flex-row items-center" style={{ gap: 8 }}>
-            <View style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, backgroundColor: '#003087' }}>
-                <Text className="font-outfit-bold" style={{ color: '#fff', fontSize: 11.5 }}>PayPal</Text>
-            </View>
-            <TouchableOpacity disabled>
-                <Text className="font-outfit-bold" style={{ color: AO.blue, fontSize: 12.5 }}>{t('requestAssistance.mechanicFound.change')}</Text>
-            </TouchableOpacity>
-        </View>
-    );
-}
-
 export function ProtectionBox() {
     const { t } = useTranslation();
     const k = 'requestAssistance.mechanicFound';

@@ -7,12 +7,20 @@ import { ApiError } from '@/lib/api/types';
  */
 export const RETURN_TO_BACK = 'back';
 
-/** True for the 402 appointments-service answers when the customer has no saved card. */
-export function isPaymentMethodRequired(error: unknown): boolean {
-    if (!(error instanceof ApiError) || error.statusCode !== 402) return false;
+/**
+ * The machine-readable `code` of an API error (`OFFER_EXPIRED`,
+ * `card_declined`, `payment_pending`…), or undefined for anything else.
+ */
+export function apiErrorCode(error: unknown): string | undefined {
+    if (!(error instanceof ApiError)) return undefined;
     const payload =
         error.apiError !== null && typeof error.apiError === 'object'
             ? (error.apiError as Record<string, unknown>)
             : null;
-    return payload?.code === 'payment_method_required';
+    return typeof payload?.code === 'string' ? payload.code : undefined;
+}
+
+/** True for the 402 appointments-service answers when the customer has no saved card. */
+export function isPaymentMethodRequired(error: unknown): boolean {
+    return error instanceof ApiError && error.statusCode === 402 && apiErrorCode(error) === 'payment_method_required';
 }

@@ -10,6 +10,7 @@ import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { ApiError } from '@/lib/api/types';
 import type { PaymentCard } from '@/lib/dao/interfaces';
 import { paymentMethodDAO } from '@/lib/dao/PaymentMethodDAO';
+import { brandName, isExpired } from '@/lib/payments/cardLabel';
 import { RETURN_TO_BACK } from '@/lib/payments/cardRequired';
 
 /** Matches `scheme` in app.json: Stripe returns here after a 3-D Secure check. */
@@ -22,28 +23,6 @@ const CARD_SHADOW = {
   shadowRadius: 8,
   elevation: 6,
 };
-
-const BRAND_NAMES: Record<string, string> = {
-  visa: 'Visa',
-  mastercard: 'Mastercard',
-  amex: 'American Express',
-  discover: 'Discover',
-  diners: 'Diners Club',
-  jcb: 'JCB',
-  unionpay: 'UnionPay',
-};
-
-function brandName(brand: string | null) {
-  if (!brand) return '';
-  return BRAND_NAMES[brand] ?? brand.charAt(0).toUpperCase() + brand.slice(1);
-}
-
-function isExpired(card: PaymentCard) {
-  if (!card.expMonth || !card.expYear) return false;
-  const now = new Date();
-  return card.expYear < now.getFullYear()
-    || (card.expYear === now.getFullYear() && card.expMonth < now.getMonth() + 1);
-}
 
 /**
  * "Mis tarjetas" for the customer: the cards billing has on file, and a form to
