@@ -54,6 +54,10 @@ export interface OnSiteVisit {
     obdStatus: ObdStatus;
     obdDocumentKey: string | null;
     obdCodes: ObdCode[];
+    /** VIN the OBD reading carried (report or typed in); null if none. */
+    obdVin: string | null;
+    /** true when that VIN is not the request vehicle's; null when not compared. */
+    obdVinMismatch: boolean | null;
     serviceAmount: string | null;
     /** Last time the owner was asked for a review (ISO); null if never. */
     reviewRequestedAt: string | null;
@@ -189,9 +193,12 @@ class OnSiteDAOImpl {
         return apiClient.post(`${base(appointmentId)}/on-site/obd`, { documentKey: uploaded.key });
     }
 
-    /** Codes typed in by the mechanic; replaces the visit's list. */
-    setObdCodes(appointmentId: string, codes: string[]): Promise<OnSiteVisit> {
-        return apiClient.put(`${base(appointmentId)}/on-site/obd/codes`, { codes });
+    /**
+     * Codes typed in by the mechanic; replaces the visit's list. `vin`, when
+     * given, is checked against the request's vehicle by the backend.
+     */
+    setObdCodes(appointmentId: string, codes: string[], vin?: string): Promise<OnSiteVisit> {
+        return apiClient.put(`${base(appointmentId)}/on-site/obd/codes`, vin ? { codes, vin } : { codes });
     }
 
     /**

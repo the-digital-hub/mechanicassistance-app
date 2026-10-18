@@ -11,6 +11,7 @@ import { Card, CardTitle, OS, Tip } from './ui';
 
 /** SAE J2012 trouble code: P/B/C/U, a digit 0-3, three hex digits. */
 const OBD_CODE = /^[PBCU][0-3][0-9A-F]{3}$/;
+const VIN = /^[A-HJ-NPR-Z0-9]{17}$/;
 
 const SEVERITY_STYLE: Record<string, { color: string; bg: string }> = {
     High: { color: '#B4231E', bg: '#FDECEC' },
@@ -35,6 +36,8 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true }: 
     const [input, setInput] = React.useState('');
     const [inputError, setInputError] = React.useState<string | null>(null);
     const [saving, setSaving] = React.useState(false);
+    const [vin, setVin] = React.useState(visit?.obdVin ?? '');
+    const [vinError, setVinError] = React.useState<string | null>(null);
 
     const status = visit?.obdStatus ?? 'none';
     const codes: ObdCode[] = visit?.obdCodes ?? [];
@@ -46,10 +49,10 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true }: 
         onVisit(updated);
     };
 
-    const saveCodes = async (list: string[]) => {
+    const saveCodes = async (list: string[], withVin?: string) => {
         setSaving(true);
         try {
-            onVisit(await onSiteDAO.setObdCodes(appointmentId, list));
+            onVisit(await onSiteDAO.setObdCodes(appointmentId, list, withVin));
         } catch {
             Alert.alert(t('appointments.onSite.common.error'));
         } finally {
@@ -67,6 +70,18 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true }: 
         setInput('');
         if (codes.some((c) => c.code === code)) return;
         void saveCodes([...codes.map((c) => c.code), code]);
+    };
+
+    // The VIN is compared with the request's vehicle on the backend; a mismatch
+    // is only recorded there, the mechanic is not stopped.
+    const saveVin = () => {
+        const value = vin.replace(/[\s-]/g, '').toUpperCase();
+        if (!VIN.test(value)) {
+            setVinError(t(`${k}.vinInvalid`));
+            return;
+        }
+        setVinError(null);
+        void saveCodes(codes.map((c) => c.code), value);
     };
 
     const removeCode = (code: string) => void saveCodes(codes.filter((c) => c.code !== code).map((c) => c.code));
@@ -177,6 +192,34 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true }: 
                 </View>
                 {inputError ? (
                     <Text className="font-outfit-medium text-[11px] px-4 pb-3 -mt-1" style={{ color: OS.red }}>{inputError}</Text>
+                ) : null}
+                <Text className="font-outfit-bold text-xs px-4 pt-1" style={{ color: OS.text }}>{t(`${k}.vinHint`)}</Text>
+                <View className="flex-row gap-2 px-4 pt-2 pb-3">
+                    <TextInput
+                        value={vin}
+                        onChangeText={(v) => setVin(v.toUpperCase())}
+                        onSubmitEditing={saveVin}
+                        placeholder={t(`${k}.vinPh`)}
+                        placeholderTextColor={OS.mutedLight}
+                        autoCapitalize="characters"
+                        autoCorrect={false}
+                        maxLength={20}
+                        returnKeyType="done"
+                        className="flex-1 font-outfit-bold text-[13px] px-3 py-2.5"
+                        style={{ borderRadius: 12, borderWidth: 1.5, borderColor: vinError ? OS.red : OS.border, backgroundColor: OS.page, color: OS.text }}
+                        testID="obd-vin-input"
+                    />
+                    <TouchableOpacity
+                        onPress={saveVin}
+                        disabled={saving || !vin.trim()}
+                        className="justify-center px-3.5 rounded-xl"
+                        style={{ backgroundColor: OS.blueSoft, opacity: saving || !vin.trim() ? 0.6 : 1 }}
+                    >
+                        <Text className="font-outfit-bold text-[12.5px]" style={{ color: OS.blue }}>{t(`${k}.vinSave`)}</Text>
+                    </TouchableOpacity>
+                </View>
+                {vinError ? (
+                    <Text className="font-outfit-medium text-[11px] px-4 pb-3 -mt-1" style={{ color: OS.red }}>{vinError}</Text>
                 ) : null}
             </Card>
         </>
