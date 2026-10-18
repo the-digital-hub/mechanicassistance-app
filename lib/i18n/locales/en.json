@@ -110,6 +110,12 @@
       },
       "viewRequest": "View request",
       "cancelRequest": "Cancel",
+      "cancelConfirmTitle": "Cancel this request?",
+      "cancelConfirmMessage": "Mechanics stop seeing it and it cannot be reopened.",
+      "cancelConfirmYes": "Yes, cancel",
+      "cancelConfirmNo": "No",
+      "cancelFailedTitle": "Could not cancel",
+      "cancelFailedMessage": "Please try again in a moment.",
       "requestVehicleLabel": "Vehicle",
       "requestLocationLabel": "Location"
     },

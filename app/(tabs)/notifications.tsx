@@ -39,11 +39,14 @@ export default function NotificationsScreen() {
 
     const unreadCount = notifications.filter(n => n.unread).length;
 
-    const getIcon = (type: string) => {
-        switch (type) {
+    const getIcon = (kind: string) => {
+        switch (kind) {
             case 'mechanic_found': return '🔧';
             case 'offer_accepted': return '✅';
-            case 'job_canceled': return '❌';
+            case 'request_canceled': return '❌';
+            case 'service_redirected': return '↪️';
+            case 'obd_reminder': return '🔍';
+            case 'review_requested': return '⭐';
             case 'new_request': return '🚗';
             case 'request_status': return '📍';
             case 'video_call': return '📹';
@@ -61,7 +64,7 @@ export default function NotificationsScreen() {
         if (!user?.id || !user.role) return;
         const route = routeForPush(
             {
-                kind: notif.type === 'job_canceled' ? 'request_canceled' : notif.type,
+                kind: notif.kind,
                 requestId: notif.requestId,
                 appointmentId: notif.appointmentId,
                 status: notif.status,
@@ -143,7 +146,7 @@ export default function NotificationsScreen() {
                                 {/* Icon */}
                                 <View className="relative">
                                     <View className="w-10 h-10 rounded-full items-center justify-center bg-blue-50 border border-blue-100">
-                                        <Text className="text-lg">{getIcon(notif.type)}</Text>
+                                        <Text className="text-lg">{getIcon(notif.kind)}</Text>
                                     </View>
                                     {notif.unread && (
                                         <View className="absolute -left-1 top-3 w-2 h-2 bg-blue-600 rounded-full border border-white" />

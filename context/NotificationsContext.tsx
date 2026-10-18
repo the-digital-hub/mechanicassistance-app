@@ -16,6 +16,8 @@ export interface AppNotification {
         | 'job_canceled'
         | 'video_call'
         | 'general';
+    /** The backend kind, untouched — what `routeForPush` needs to pick a screen. */
+    kind: string;
     title: string;
     body: string;
     time: string; // e.g. "2m", "now"
@@ -66,6 +68,7 @@ function toAppNotification(item: InboxItem): AppNotification {
     return {
         id: item.id,
         type,
+        kind: item.kind,
         title: item.title,
         body: item.body,
         time: formatTime(createdAt),

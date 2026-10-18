@@ -17,7 +17,8 @@ import { Calendar, Video, Zap, MapPin, Wrench, DollarSign, Star, Award, Circle, 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useScrollPressGuard } from '@/hooks/useScrollPressGuard';
-import { ActivityIndicator, FlatList, ScrollView, Text, TouchableOpacity, View, Modal, useWindowDimensions } from 'react-native';
+import { ApiError } from '@/lib/api/types';
+import { ActivityIndicator, Alert, FlatList, Platform, ScrollView, Text, TouchableOpacity, View, Modal, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 /** Returns a translation key for the current time of day — resolve with t() at the call site. */
@@ -713,13 +714,33 @@ export default function DashboardScreen() {
         router.push(`/(tabs)/appointments/${req.id}` as any, { withAnchor: true });
     };
 
-    const cancelRequest = async (id: string) => {
+    const doCancelRequest = async (id: string) => {
         try {
             await assistanceDAO.updateStatus(id, '', 'canceled');
-            await refreshAppointments();
         } catch (error) {
+            // A failure used to be swallowed here: the card just stayed put and the
+            // user had no way to tell why. The backend's reason goes under the message.
             console.error('Failed to cancel assistance request', error);
+            const reason = error instanceof ApiError ? error.message : '';
+            const message = [t('dashboard.user.cancelFailedMessage'), reason].filter(Boolean).join('\n\n');
+            if (Platform.OS === 'web') window.alert(`${t('dashboard.user.cancelFailedTitle')}\n\n${message}`);
+            else Alert.alert(t('dashboard.user.cancelFailedTitle'), message);
+        } finally {
+            // Also on failure: a request already gone (404) or canceled before a
+            // later step failed must not linger on the dashboard.
+            await refreshAppointments();
         }
+    };
+
+    const cancelRequest = (id: string) => {
+        if (Platform.OS === 'web') {
+            if (window.confirm(t('dashboard.user.cancelConfirmTitle'))) void doCancelRequest(id);
+            return;
+        }
+        Alert.alert(t('dashboard.user.cancelConfirmTitle'), t('dashboard.user.cancelConfirmMessage'), [
+            { text: t('dashboard.user.cancelConfirmNo'), style: 'cancel' },
+            { text: t('dashboard.user.cancelConfirmYes'), style: 'destructive', onPress: () => void doCancelRequest(id) },
+        ]);
     };
 
     const selectedId = selectedTypeId ?? assistanceTypes[0]?.id;

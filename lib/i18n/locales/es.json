@@ -110,6 +110,12 @@
       },
       "viewRequest": "Ver solicitud",
       "cancelRequest": "Cancelar",
+      "cancelConfirmTitle": "¿Cancelar la solicitud?",
+      "cancelConfirmMessage": "Los mecánicos dejan de verla y no se puede reabrir.",
+      "cancelConfirmYes": "Sí, cancelar",
+      "cancelConfirmNo": "No",
+      "cancelFailedTitle": "No se pudo cancelar",
+      "cancelFailedMessage": "Probá de nuevo en un momento.",
       "requestVehicleLabel": "Vehículo",
       "requestLocationLabel": "Ubicación"
     },
