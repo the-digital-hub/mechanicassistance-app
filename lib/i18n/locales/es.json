@@ -1248,6 +1248,19 @@
         "ready": "Videollamada lista",
         "confirm": "Confirmá tu videollamada"
       },
+      "live": {
+        "live": "En vivo",
+        "timeUp": "Tiempo cumplido",
+        "roomExpired": "Sala expirada",
+        "connecting": "Conectando…",
+        "waiting": "Esperando al otro participante…",
+        "connectionError": "Error de conexión",
+        "roomUnavailable": "La sala de video no está disponible.",
+        "goBack": "Volver",
+        "retry": "Reintentar",
+        "you": "Vos",
+        "participant": "Participante"
+      },
       "timer": {
         "inProgress": "Llamada en curso",
         "elapsed": "transcurrido",

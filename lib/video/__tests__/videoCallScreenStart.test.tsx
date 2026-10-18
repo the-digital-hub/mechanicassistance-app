@@ -4,7 +4,8 @@ import VideoCallScreen from '@/app/(tabs)/video-call/[id]';
 import { videoCallDAO } from '@/lib/dao/VideoCallDAO';
 
 // The session timer starts when the other participant first shows up: the
-// screen reports it once, however many participant updates follow.
+// screen reports it once, however many participant updates follow, and counts
+// the 30-minute session down from there.
 
 const mockCall = {
     callState: 'joined' as string,
@@ -15,6 +16,9 @@ jest.mock('@expo/vector-icons', () => ({ Ionicons: 'Ionicons' }));
 jest.mock('@daily-co/react-native-webrtc', () => ({ MediaStream: jest.fn() }));
 jest.mock('@/components/video/CallControls', () => ({ CallControls: () => null }));
 jest.mock('@/components/video/VideoTile', () => ({ VideoTile: () => null }));
+jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
+jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }) }));
+jest.mock('expo-linear-gradient', () => ({ LinearGradient: 'LinearGradient' }));
 jest.mock('expo-router', () => ({
     useGlobalSearchParams: () => ({ id: 'appt-1', roomUrl: 'https://x.daily.co/r', token: 't', expiry: '0' }),
     useRouter: () => ({ navigate: jest.fn(), back: jest.fn() }),
@@ -45,10 +49,11 @@ describe('VideoCallScreen session start', () => {
         mockCall.remoteParticipant = null;
     });
 
-    it('does not report a start while alone in the room', () => {
-        const { queryByTestId } = render(<VideoCallScreen />);
+    it('does not report a start while alone in the room, and shows a full session', () => {
+        const { getByTestId } = render(<VideoCallScreen />);
         expect(markStarted).not.toHaveBeenCalled();
-        expect(queryByTestId('call-elapsed')).toBeNull();
+        expect(getByTestId('call-remaining').props.children).toBe('30:00');
+        expect(getByTestId('call-status').props.children).toBe('appointments.videoCall.live.live');
     });
 
     it('reports it once when the other participant joins, then shows the elapsed time', async () => {
@@ -62,7 +67,16 @@ describe('VideoCallScreen session start', () => {
 
         await waitFor(() => expect(markStarted).toHaveBeenCalledTimes(1));
         expect(markStarted).toHaveBeenCalledWith('appt-1');
-        expect((await findByTestId('call-elapsed')).props.children).toBe('01:05');
+        await waitFor(async () => expect((await findByTestId('call-remaining')).props.children).toBe('28:55'));
+    });
+
+    it('stops at 00:00 and says time is up once the session is spent', async () => {
+        markStarted.mockResolvedValue({ startedAtLocalMs: Date.now() - 31 * 60_000 });
+        mockCall.remoteParticipant = { user_name: 'Client', tracks: {} };
+
+        const { findByTestId, getByTestId } = render(<VideoCallScreen />);
+        await waitFor(async () => expect((await findByTestId('call-remaining')).props.children).toBe('00:00'));
+        expect(getByTestId('call-status').props.children).toBe('appointments.videoCall.live.timeUp');
     });
 
     it('still counts locally if the server cannot be reached', async () => {
@@ -71,7 +85,8 @@ describe('VideoCallScreen session start', () => {
         mockCall.remoteParticipant = { user_name: 'Client', tracks: {} };
 
         const { findByTestId } = render(<VideoCallScreen />);
-        expect((await findByTestId('call-elapsed')).props.children).toBe('00:00');
+        await waitFor(() => expect(markStarted).toHaveBeenCalledTimes(1));
+        expect((await findByTestId('call-remaining')).props.children).toBe('30:00');
         warn.mockRestore();
     });
 });

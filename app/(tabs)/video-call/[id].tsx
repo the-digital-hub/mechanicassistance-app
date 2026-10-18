@@ -1,16 +1,25 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useGlobalSearchParams, useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MediaStream } from '@daily-co/react-native-webrtc';
 import { CallControls } from '@/components/video/CallControls';
+import { CallTopBar, VC, type CallStatus } from '@/components/video/CallTopBar';
 import { VideoTile } from '@/components/video/VideoTile';
+import { VIDEO_SESSION_SECONDS } from '@/components/appointments/VideoCallTimerCard';
 import { useDailyCall } from '@/lib/video/useDailyCall';
 import { goBackOr } from '@/lib/navigation/goBackOr';
 import { videoCallDAO } from '@/lib/dao/VideoCallDAO';
-import { formatElapsed, useElapsedSeconds } from '@/hooks/useElapsedSeconds';
+import { useElapsedSeconds } from '@/hooks/useElapsedSeconds';
+
+const K = 'appointments.videoCall.live';
 
 export default function VideoCallScreen() {
+  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const { id, roomUrl, token, expiry } = useGlobalSearchParams();
   const router = useRouter();
   const appointmentId = Array.isArray(id) ? id[0] : id || '';
@@ -59,8 +68,9 @@ export default function VideoCallScreen() {
   }, [callState, hasRemote, appointmentId]);
 
   const elapsed = useElapsedSeconds(startedAtMs);
-
-  const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
+  // Counts down the session once the other person is in; a full session until then.
+  const remaining = startedAtMs === null ? VIDEO_SESSION_SECONDS : Math.max(0, VIDEO_SESSION_SECONDS - elapsed);
+  const status: CallStatus = timeLeft <= 0 ? 'expired' : remaining === 0 ? 'timeUp' : 'live';
 
   const handleHangUp = async () => {
     await leave();
@@ -81,15 +91,15 @@ export default function VideoCallScreen() {
     return (
       <View style={styles.container}>
         <View style={styles.center}>
-          <Ionicons name="warning" size={64} color="#EF4444" />
-          <Text style={styles.errorTitle}>Connection Error</Text>
-          <Text style={styles.errorSubtitle}>{errorMessage || 'The video room is not available.'}</Text>
+          <Ionicons name="warning" size={64} color={VC.red} />
+          <Text style={styles.errorTitle}>{t(`${K}.connectionError`)}</Text>
+          <Text style={styles.errorSubtitle}>{errorMessage || t(`${K}.roomUnavailable`)}</Text>
           <TouchableOpacity style={styles.goBackButton} onPress={() => goBackOr(router, appointmentHref)}>
-            <Text style={styles.goBackText}>Go Back</Text>
+            <Text style={styles.goBackText}>{t(`${K}.goBack`)}</Text>
           </TouchableOpacity>
           {urlStr ? (
             <TouchableOpacity style={styles.retryButton} onPress={() => join(urlStr, tokenStr)}>
-              <Text style={styles.retryText}>Retry</Text>
+              <Text style={styles.retryText}>{t(`${K}.retry`)}</Text>
             </TouchableOpacity>
           ) : null}
         </View>
@@ -99,42 +109,33 @@ export default function VideoCallScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.timerBar}>
-        <View style={styles.timerLeft}>
-          <View style={[styles.liveDot, timeLeft <= 0 && styles.liveDotExpired]} />
-          <Text style={styles.timerLabel}>{timeLeft <= 0 ? 'Room Expired' : 'Live'}</Text>
-          {startedAtMs !== null && (
-            <Text style={styles.elapsedText} testID="call-elapsed">{formatElapsed(elapsed)}</Text>
-          )}
-        </View>
-        {timeLeft > 0 && (
-          <Text style={[styles.timerText, timeLeft <= 60 && styles.timerTextWarning]}>{formatTime(timeLeft)}</Text>
-        )}
-      </View>
+      <CallTopBar remaining={remaining} limit={VIDEO_SESSION_SECONDS} status={status} topInset={insets.top} />
 
-      <View style={styles.stage}>
+      <LinearGradient colors={[VC.navy2, '#2A3550']} style={styles.stage}>
         {callState !== 'joined' && (
           <View style={styles.loadingOverlay}>
-            <ActivityIndicator size="large" color="#0047AB" />
-            <Text style={styles.loadingText}>Connecting…</Text>
+            <ActivityIndicator size="large" color={VC.cyan} />
+            <Text style={styles.loadingText}>{t(`${K}.connecting`)}</Text>
           </View>
         )}
         {remoteParticipant ? (
           <VideoTile
             stream={remoteStream}
-            name={remoteParticipant.user_name || 'Participant'}
+            name={remoteParticipant.user_name || t(`${K}.participant`)}
             isCameraOff={remoteParticipant.tracks?.video?.state !== 'playable'}
             isLocal={false}
           />
         ) : (
           <View style={styles.center}>
-            <Text style={styles.waitingText}>Waiting for the other participant…</Text>
+            <Text style={styles.waitingText}>{t(`${K}.waiting`)}</Text>
           </View>
         )}
         <View style={styles.pip}>
-          <VideoTile stream={localStream} name="You" isCameraOff={isCameraOff} isLocal />
+          <View style={styles.pipInner}>
+            <VideoTile stream={localStream} name={t(`${K}.you`)} isCameraOff={isCameraOff} isLocal />
+          </View>
         </View>
-      </View>
+      </LinearGradient>
 
       <CallControls
         isAudioMuted={isAudioMuted}
@@ -143,38 +144,33 @@ export default function VideoCallScreen() {
         onToggleCamera={toggleCamera}
         onSwitchCamera={switchCamera}
         onHangUp={handleHangUp}
+        bottomInset={insets.bottom}
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#111827' },
-  timerBar: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 20, paddingTop: Platform.OS === 'ios' ? 56 : 36, paddingBottom: 10,
-    backgroundColor: '#1F2937',
-  },
-  timerLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  liveDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#22C55E' },
-  liveDotExpired: { backgroundColor: '#EF4444' },
-  timerLabel: { fontFamily: 'Outfit_700Bold', fontSize: 14, color: '#FFFFFF' },
-  elapsedText: { fontFamily: 'Outfit_600SemiBold', fontSize: 14, color: '#D1D5DB', fontVariant: ['tabular-nums'] },
-  timerText: { fontFamily: 'Outfit_700Bold', fontSize: 16, color: '#FFFFFF' },
-  timerTextWarning: { color: '#EF4444' },
+  container: { flex: 1, backgroundColor: VC.navy },
   stage: { flex: 1, position: 'relative' },
+  // Outer view carries the shadow, inner one clips the video to the radius.
   pip: {
-    position: 'absolute', top: 16, right: 16, width: 100, height: 150,
-    borderRadius: 12, overflow: 'hidden', borderWidth: 2, borderColor: '#374151',
+    position: 'absolute', top: 14, right: 14, width: 104, height: 144, borderRadius: 16, zIndex: 3,
+    shadowColor: '#000000', shadowOpacity: 0.35, shadowRadius: 12, shadowOffset: { width: 0, height: 10 },
+    elevation: 10,
   },
-  loadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: '#111827', alignItems: 'center', justifyContent: 'center', zIndex: 10 },
-  loadingText: { fontFamily: 'Outfit_500Medium', fontSize: 14, color: '#9CA3AF', marginTop: 12 },
-  waitingText: { fontFamily: 'Outfit_500Medium', fontSize: 14, color: '#9CA3AF' },
+  pipInner: {
+    flex: 1, borderRadius: 16, overflow: 'hidden', backgroundColor: VC.navy2,
+    borderWidth: 2, borderColor: 'rgba(255,255,255,0.25)',
+  },
+  loadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: VC.navy, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
+  loadingText: { fontFamily: 'Outfit_500Medium', fontSize: 14, color: 'rgba(255,255,255,0.7)', marginTop: 12 },
+  waitingText: { fontFamily: 'Outfit_500Medium', fontSize: 14, color: 'rgba(255,255,255,0.7)', textAlign: 'center' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
   errorTitle: { fontFamily: 'Outfit_700Bold', fontSize: 20, color: '#FFFFFF', marginTop: 16 },
-  errorSubtitle: { fontFamily: 'Outfit_400Regular', fontSize: 14, color: '#9CA3AF', textAlign: 'center', marginTop: 8 },
-  goBackButton: { marginTop: 24, backgroundColor: '#374151', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 },
+  errorSubtitle: { fontFamily: 'Outfit_400Regular', fontSize: 14, color: 'rgba(255,255,255,0.7)', textAlign: 'center', marginTop: 8 },
+  goBackButton: { marginTop: 24, backgroundColor: VC.blue, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 },
   goBackText: { fontFamily: 'Outfit_700Bold', fontSize: 14, color: '#FFFFFF' },
   retryButton: { marginTop: 12, paddingHorizontal: 24, paddingVertical: 12 },
-  retryText: { fontFamily: 'Outfit_500Medium', fontSize: 14, color: '#60A5FA' },
+  retryText: { fontFamily: 'Outfit_500Medium', fontSize: 14, color: VC.cyan },
 });

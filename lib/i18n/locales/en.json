@@ -1248,6 +1248,19 @@
         "ready": "Video call ready",
         "confirm": "Confirm your video call"
       },
+      "live": {
+        "live": "Live",
+        "timeUp": "Time's up",
+        "roomExpired": "Room expired",
+        "connecting": "Connecting…",
+        "waiting": "Waiting for the other participant…",
+        "connectionError": "Connection error",
+        "roomUnavailable": "The video room is not available.",
+        "goBack": "Go back",
+        "retry": "Retry",
+        "you": "You",
+        "participant": "Participant"
+      },
       "timer": {
         "inProgress": "Call in progress",
         "elapsed": "elapsed",

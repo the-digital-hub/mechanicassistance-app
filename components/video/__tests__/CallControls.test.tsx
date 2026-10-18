@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { CallControls } from '../CallControls';
 
@@ -25,5 +26,12 @@ describe('CallControls', () => {
     expect(props.onToggleCamera).toHaveBeenCalledTimes(1);
     expect(props.onSwitchCamera).toHaveBeenCalledTimes(1);
     expect(props.onHangUp).toHaveBeenCalledTimes(1);
+  });
+
+  it('turns a switched-off control white so its state reads at a glance', () => {
+    const { getByTestId } = render(<CallControls {...baseProps} isAudioMuted isCameraOff={false} />);
+    const bg = (id: string) => StyleSheet.flatten(getByTestId(id).props.style).backgroundColor;
+    expect(bg('ctrl-audio')).toBe('#FFFFFF');
+    expect(bg('ctrl-camera')).not.toBe('#FFFFFF');
   });
 });

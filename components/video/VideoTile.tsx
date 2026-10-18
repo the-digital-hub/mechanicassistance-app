@@ -36,10 +36,10 @@ export function VideoTile({ stream, name, isCameraOff, isLocal }: VideoTileProps
 }
 
 const styles = StyleSheet.create({
-  tile: { flex: 1, backgroundColor: '#111827' },
+  tile: { flex: 1, backgroundColor: '#1A2438' },
   placeholder: { alignItems: 'center', justifyContent: 'center', gap: 12 },
   avatar: {
-    width: 80, height: 80, borderRadius: 40, backgroundColor: '#374151',
+    width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(255,255,255,0.12)',
     alignItems: 'center', justifyContent: 'center',
   },
   avatarText: { fontFamily: 'Outfit_700Bold', fontSize: 32, color: '#FFFFFF' },
