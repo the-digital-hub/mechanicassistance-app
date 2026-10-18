@@ -52,6 +52,7 @@
     "@react-navigation/bottom-tabs": "^7.4.0",
     "@react-navigation/elements": "^2.6.3",
     "@react-navigation/native": "^7.1.8",
+    "@stripe/stripe-react-native": "0.63.0",
     "@supabase/supabase-js": "^2.95.3",
     "@types/leaflet": "^1.9.21",
     "clsx": "^2.1.1",

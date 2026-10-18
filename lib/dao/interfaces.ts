@@ -237,6 +237,34 @@ export interface VehicleColor {
     isActive: boolean;
 }
 
+/**
+ * A card saved by the signed-in customer (billing-service,
+ * /api/payment-methods/me). Only what Stripe reports back — never the number.
+ */
+export interface PaymentCard {
+    id: string;
+    type: string;
+    brand: string | null;
+    last4: string | null;
+    expMonth: number | null;
+    expYear: number | null;
+    label: string | null;
+    isDefault: boolean;
+    createdAt: string;
+}
+
+/** Answer of POST /api/payment-methods/me/setup-intent — confirmed by the card form. */
+export interface CardSetupIntent {
+    clientSecret: string;
+    setupIntentId: string;
+    publishableKey: string | null;
+}
+
+/** `publishableKey` is null when the backend has no Stripe configured. */
+export interface StripeConfig {
+    publishableKey: string | null;
+}
+
 export interface Vehicle {
     id?: string;
     userId?: string;

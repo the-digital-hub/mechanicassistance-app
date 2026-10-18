@@ -4,12 +4,14 @@ import {
     iconFor,
     useAssistanceTypeCatalog,
 } from '@/lib/assistance-types';
+import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import type { AssistanceTypeCatalogItem } from '@/lib/dao/interfaces';
+import { paymentMethodDAO } from '@/lib/dao/PaymentMethodDAO';
 import { translatedDescription, translatedName } from '@/lib/i18n/catalogTranslations';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight, Clock } from 'lucide-react-native';
-import React from 'react';
+import { ChevronRight, Clock, CreditCard } from 'lucide-react-native';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
@@ -19,16 +21,18 @@ type CardProps = {
     description: string | null;
     badge: string | null;
     onPress?: () => void;
+    /** The card check for this type is running: show a spinner and ignore taps. */
+    checking?: boolean;
 };
 
 /** The first `normal` type: same gradient as the others, larger and with more room. */
-function FeaturedTypeCard({ item, title, description, badge, onPress }: CardProps) {
+function FeaturedTypeCard({ item, title, description, badge, onPress, checking }: CardProps) {
     const Icon = iconFor(item);
 
     return (
         <TouchableOpacity
             onPress={onPress}
-            disabled={!onPress}
+            disabled={!onPress || checking}
             className="rounded-2xl"
             style={{ opacity: onPress ? 1 : 0.5 }}
             activeOpacity={0.8}
@@ -67,7 +71,11 @@ function FeaturedTypeCard({ item, title, description, badge, onPress }: CardProp
                 </View>
 
                 <View className="w-10 h-10 bg-white rounded-full justify-center items-center ml-3">
-                    <ChevronRight size={20} color="#1D4ED8" strokeWidth={3} />
+                    {checking ? (
+                        <ActivityIndicator size="small" color="#1D4ED8" />
+                    ) : (
+                        <ChevronRight size={20} color="#1D4ED8" strokeWidth={3} />
+                    )}
                 </View>
             </LinearGradient>
         </TouchableOpacity>
@@ -84,6 +92,7 @@ function TypeCard({
     description,
     badge,
     onPress,
+    checking,
     variant,
 }: CardProps & { variant: 'gradient' | 'plain' }) {
     const Icon = iconFor(item);
@@ -145,7 +154,11 @@ function TypeCard({
                 className="w-10 h-10 rounded-full justify-center items-center"
                 style={{ backgroundColor: isGradient ? '#FFFFFF' : '#F4F8FF' }}
             >
-                <ChevronRight size={20} color={isGradient ? '#1D4ED8' : '#6B7280'} strokeWidth={isGradient ? 3 : 2} />
+                {checking ? (
+                    <ActivityIndicator size="small" color={isGradient ? '#1D4ED8' : '#6B7280'} />
+                ) : (
+                    <ChevronRight size={20} color={isGradient ? '#1D4ED8' : '#6B7280'} strokeWidth={isGradient ? 3 : 2} />
+                )}
             </View>
         </>
     );
@@ -153,7 +166,7 @@ function TypeCard({
     return (
         <TouchableOpacity
             onPress={onPress}
-            disabled={!onPress}
+            disabled={!onPress || checking}
             className={isGradient ? 'rounded-2xl' : 'bg-white rounded-2xl px-4 py-4 flex-row items-center'}
             style={
                 isGradient
@@ -188,6 +201,10 @@ export default function RequestAssistanceTypeScreen() {
     const router = useRouter();
     const { t } = useTranslation();
     const { types, loading, languageId } = useAssistanceTypeCatalog();
+    // Id of the type whose card check is running; blocks every card meanwhile.
+    const [checkingId, setCheckingId] = useState<string | null>(null);
+    // Where to resume once a card is saved; set while the card-required popup is open.
+    const [cardRequiredReturnTo, setCardRequiredReturnTo] = useState<string | null>(null);
 
     // Catalog first, bundled copy second — the display columns are still empty in
     // production, and a type the app does not know about simply renders less chrome.
@@ -213,9 +230,29 @@ export default function RequestAssistanceTypeScreen() {
 
     // A type with no resolvable code cannot be navigated — render it disabled rather
     // than half-broken. That only happens for a type the app has never heard of.
+    //
+    // A customer needs a saved card to request assistance. The check runs here so
+    // they learn it before filling the wizard; if it cannot run, let them through —
+    // the backend decides on create and the confirmation step handles its answer.
     const pressHandler = (item: AssistanceTypeCatalogItem) => {
         const route = assistanceTypeRoute(item);
-        return route ? () => router.push(route) : undefined;
+        if (!route) return undefined;
+        return async () => {
+            if (checkingId) return;
+            setCheckingId(item.id);
+            try {
+                const cards = await paymentMethodDAO.list();
+                if (cards.length === 0) {
+                    setCardRequiredReturnTo(`${route.pathname}?type=${encodeURIComponent(route.params.type)}`);
+                    return;
+                }
+            } catch (err) {
+                console.warn('[request-assistance] card check failed; letting the backend decide', err);
+            } finally {
+                setCheckingId(null);
+            }
+            router.push(route);
+        };
     };
 
     // Rows already come ordered by sortOrder — keep that order. Types with no `type`
@@ -231,14 +268,30 @@ export default function RequestAssistanceTypeScreen() {
             title: titleFor(item),
             description: descriptionFor(item),
             badge: badgeFor(item),
-            // No identity gate: verification is optional for users, so an
-            // unverified account requests assistance like any other.
+            // Gated on a saved card (see pressHandler), not on identity:
+            // verification stays optional for users.
             onPress: handler,
+            checking: checkingId === item.id,
         };
     };
 
     return (
         <View className="flex-1 bg-white">
+            <ConfirmationModal
+                visible={cardRequiredReturnTo !== null}
+                title={t('requestAssistance.cardRequired.title')}
+                message={t('requestAssistance.cardRequired.message')}
+                icon={CreditCard}
+                iconColor="#0047AB"
+                confirmText={t('requestAssistance.cardRequired.confirm')}
+                cancelText={t('requestAssistance.cardRequired.cancel')}
+                onConfirm={() => {
+                    const returnTo = cardRequiredReturnTo;
+                    setCardRequiredReturnTo(null);
+                    if (returnTo) router.push({ pathname: '/payment-cards', params: { returnTo } });
+                }}
+                onClose={() => setCardRequiredReturnTo(null)}
+            />
             <ScrollView className="flex-1 px-6 pt-6">
                 {/* Section Badge */}
                 <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>

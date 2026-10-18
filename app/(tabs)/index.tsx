@@ -226,6 +226,7 @@ export default function ProfileScreen() {
             { icon: MapPin, label: t('profile.menu.addresses'), route: '/(tabs)/addresses' },
             ...(user.role?.toLowerCase().trim() !== 'mechanic' ? [
               { icon: Car || User, label: t('profile.menu.vehicles'), route: '/vehicles' },
+              { icon: CreditCard, label: t('profile.menu.paymentCards'), route: '/payment-cards' },
             ] : []),
             ...(user.role === 'mechanic' ? [
               { icon: Clock, label: t('profile.menu.availability'), route: '/availability' },

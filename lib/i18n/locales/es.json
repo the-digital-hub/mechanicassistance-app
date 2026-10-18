@@ -29,7 +29,8 @@
       "settings": "Configuración",
       "logout": "Cerrar sesión",
       "legalDocuments": "Documentación legal",
-      "availability": "Disponibilidad horaria"
+      "availability": "Disponibilidad horaria",
+      "paymentCards": "Mis tarjetas"
     },
     "language": {
       "heading": "Seleccionar idioma",
@@ -522,6 +523,12 @@
       "retry": "Reintentar",
       "slotGoneTitle": "Ese horario se acaba de ocupar",
       "slotGoneMessage": "Alguien lo reservó hace un momento. Elegí otro horario."
+    },
+    "cardRequired": {
+      "title": "Agregá una tarjeta",
+      "message": "Necesitás una tarjeta guardada para pedir asistencia. Agregala y volvés directo a tu pedido.",
+      "confirm": "Agregar tarjeta",
+      "cancel": "Ahora no"
     }
   },
   "appointments": {
@@ -1884,6 +1891,34 @@
     "zipCode": "Código postal",
     "typeOfIssue": "Tipo de problema",
     "applyFilter": "Aplicar filtro"
+  },
+  "paymentCards": {
+    "badge": "TARJETAS",
+    "title": "Mis tarjetas",
+    "subtitle": "Tarjetas con las que pagás la asistencia. Cobramos la predeterminada salvo que elijas otra.",
+    "emptyTitle": "Todavía no tenés tarjetas",
+    "emptySubtitle": "Agregá una tarjeta para pagar la asistencia desde la app.",
+    "addCard": "Agregar tarjeta",
+    "formTitle": "Nueva tarjeta",
+    "formHint": "Número, vencimiento, CVC y código postal.",
+    "saveCard": "Guardar tarjeta",
+    "cancel": "Cancelar",
+    "defaultBadge": "PREDETERMINADA",
+    "makeDefault": "Hacer predeterminada",
+    "delete": "Eliminar",
+    "expires": "Vence {{date}}",
+    "expired": "Venció {{date}}",
+    "deleteTitle": "¿Eliminar tarjeta?",
+    "deleteMessage": "La tarjeta terminada en {{last4}} se quitará de tu cuenta.",
+    "deleteInUse": "Esta tarjeta respalda un servicio en curso. Vas a poder eliminarla cuando ese servicio esté pago.",
+    "deleteError": "No pudimos eliminar la tarjeta. Probá de nuevo.",
+    "setDefaultError": "No pudimos cambiar tu tarjeta predeterminada. Probá de nuevo.",
+    "addError": "No pudimos guardar la tarjeta. Probá de nuevo.",
+    "loadError": "No pudimos cargar tus tarjetas.",
+    "retry": "Reintentar",
+    "unavailable": "Los pagos con tarjeta no están disponibles en este momento.",
+    "securityNote": "Los datos de la tarjeta los maneja Stripe. Solo guardamos marca, últimos 4 dígitos y vencimiento.",
+    "returnBanner": "Agregá una tarjeta para continuar con tu pedido."
   },
   "payments": {
     "badge": "CUENTA BANCARIA",

@@ -29,7 +29,8 @@
       "settings": "Settings",
       "logout": "Log out",
       "legalDocuments": "Legal documents",
-      "availability": "Working hours"
+      "availability": "Working hours",
+      "paymentCards": "My cards"
     },
     "language": {
       "heading": "Select Language",
@@ -522,6 +523,12 @@
       "retry": "Try again",
       "slotGoneTitle": "That time was just taken",
       "slotGoneMessage": "Someone booked it a moment ago. Pick another time."
+    },
+    "cardRequired": {
+      "title": "Add a card",
+      "message": "You need a saved card to request assistance. Add one and you will go right back to your request.",
+      "confirm": "Add card",
+      "cancel": "Not now"
     }
   },
   "appointments": {
@@ -1884,6 +1891,34 @@
     "zipCode": "Zip code",
     "typeOfIssue": "Type of issue",
     "applyFilter": "Apply Filter"
+  },
+  "paymentCards": {
+    "badge": "CARDS",
+    "title": "My cards",
+    "subtitle": "Cards you pay for assistance with. We charge the default one unless you pick another.",
+    "emptyTitle": "No cards yet",
+    "emptySubtitle": "Add a card to pay for assistance from the app.",
+    "addCard": "Add card",
+    "formTitle": "New card",
+    "formHint": "Number, expiry, CVC and ZIP code.",
+    "saveCard": "Save card",
+    "cancel": "Cancel",
+    "defaultBadge": "DEFAULT",
+    "makeDefault": "Make default",
+    "delete": "Delete",
+    "expires": "Expires {{date}}",
+    "expired": "Expired {{date}}",
+    "deleteTitle": "Delete card?",
+    "deleteMessage": "The card ending in {{last4}} will be removed from your account.",
+    "deleteInUse": "This card is backing a service in progress. You can delete it once that service is paid.",
+    "deleteError": "We couldn't delete the card. Please try again.",
+    "setDefaultError": "We couldn't change your default card. Please try again.",
+    "addError": "We couldn't save the card. Please try again.",
+    "loadError": "We couldn't load your cards.",
+    "retry": "Retry",
+    "unavailable": "Card payments are not available right now.",
+    "securityNote": "Card details are handled by Stripe. We only keep the brand, last 4 digits and expiry.",
+    "returnBanner": "Add a card to continue your request."
   },
   "payments": {
     "badge": "BANK ACCOUNT",

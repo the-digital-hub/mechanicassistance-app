@@ -1,10 +1,12 @@
+import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { useRequestDraft } from '@/context/RequestDraftContext';
 import { useUser } from '@/context/UserContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { pricingDAO } from '@/lib/dao/PricingDAO';
 import type { Attachment, PendingAttachment } from '@/lib/media/attachments';
+import { isPaymentMethodRequired, RETURN_TO_BACK } from '@/lib/payments/cardRequired';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { AlertCircle, AlignLeft, Car, CheckCircle2, ChevronLeft, MapPin } from 'lucide-react-native';
+import { AlertCircle, AlignLeft, Car, CheckCircle2, ChevronLeft, CreditCard, MapPin } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
@@ -49,6 +51,7 @@ export default function ConfirmationScreen() {
     const [uploadProgress, setUploadProgress] = useState('');
     const [price, setPrice] = useState<number | null>(null);
     const [priceLoading, setPriceLoading] = useState(true);
+    const [cardRequired, setCardRequired] = useState(false);
 
     // Resolve the ZIP once (from the passed locationZip or parsed from the address);
     // the pricing service uses it to derive the tax jurisdiction (state + county).
@@ -245,8 +248,14 @@ export default function ConfirmationScreen() {
                 params: { requestId: response.id, type }
             });
         } catch (error) {
-            console.error(error);
             setUploadProgress('');
+            // The card the customer had when they started the wizard is gone (or the
+            // pre-check could not run). Same popup as the type screen.
+            if (isPaymentMethodRequired(error)) {
+                setCardRequired(true);
+                return;
+            }
+            console.error(error);
             Alert.alert(t('requestAssistance.confirmation.errorTitle'), t('requestAssistance.confirmation.errorMessage'));
         } finally {
             setIsSubmitting(false);
@@ -277,6 +286,22 @@ export default function ConfirmationScreen() {
 
     return (
         <View className="flex-1" style={{ backgroundColor: '#F4F6FC' }}>
+            {/* The wizard lives in this screen's params, so /payment-cards comes back
+                with router.back() (this screen stays mounted) instead of a fresh route. */}
+            <ConfirmationModal
+                visible={cardRequired}
+                title={t('requestAssistance.cardRequired.title')}
+                message={t('requestAssistance.cardRequired.message')}
+                icon={CreditCard}
+                iconColor="#0047AB"
+                confirmText={t('requestAssistance.cardRequired.confirm')}
+                cancelText={t('requestAssistance.cardRequired.cancel')}
+                onConfirm={() => {
+                    setCardRequired(false);
+                    router.push({ pathname: '/payment-cards', params: { returnTo: RETURN_TO_BACK } });
+                }}
+                onClose={() => setCardRequired(false)}
+            />
             {/* Custom Header */}
             <View className="px-6 pt-20 pb-2 flex-row items-center justify-between" style={{ backgroundColor: '#F4F5FA', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 3, elevation: 3, borderBottomWidth: 0.5, borderBottomColor: '#D1D5DB' }}>
                 <TouchableOpacity onPress={() => router.back()}>

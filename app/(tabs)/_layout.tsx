@@ -401,6 +401,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="payment-cards"
+        options={{
+          href: null,
+          title: t('profile.menu.paymentCards'),
+          headerLeft: () => <PersonalInfoHeaderLeft />,
+          headerRight: () => <PersonalInfoHeaderRight />,
+        }}
+      />
+      <Tabs.Screen
         name="ase"
         options={{
           href: null,

@@ -253,6 +253,10 @@ function withQuery(endpoint: string, params?: QueryParams): string {
  * receives clean domain data without knowing about the envelope.
  */
 async function unwrapResponse<T>(response: Response, method: string, endpoint: string): Promise<T> {
+    // 204 No Content (e.g. billing's DELETE /payment-methods/me/:id) has no
+    // envelope to unwrap — it is a success with nothing in `data`.
+    if (response.status === 204) return undefined as T;
+
     let body: ApiResponse<T>;
 
     try {
