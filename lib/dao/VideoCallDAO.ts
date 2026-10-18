@@ -60,6 +60,26 @@ export interface VideoCallState {
     disputeReason: string | null;
     resolvedAt: string | null;
     resolution: 'capture' | 'release' | null;
+    /** When both sides were first connected in the call; null until then. */
+    callStartedAt: string | null;
+    /** Seconds since callStartedAt, measured by the server when it answered. */
+    elapsedSeconds: number | null;
+    /**
+     * callStartedAt on this phone's clock (epoch ms), derived from
+     * elapsedSeconds when the answer arrived, so a phone whose clock is off
+     * still counts the same time as the other side. Null until started.
+     */
+    startedAtLocalMs: number | null;
+}
+
+type VideoCallStateResponse = Omit<VideoCallState, 'startedAtLocalMs'>;
+
+function withLocalStart(state: VideoCallStateResponse): VideoCallState {
+    const elapsed = state.elapsedSeconds;
+    return {
+        ...state,
+        startedAtLocalMs: typeof elapsed === 'number' ? Date.now() - elapsed * 1000 : null,
+    };
 }
 
 /** The device's IANA zone, e.g. "America/New_York". */
@@ -80,23 +100,31 @@ export class VideoCallDAO {
         return apiClient.get('/api/video-call/slots', { timezone, days });
     }
 
-    getState(appointmentId: string): Promise<VideoCallState> {
-        return apiClient.get(`/api/appointments/${appointmentId}/video`);
+    async getState(appointmentId: string): Promise<VideoCallState> {
+        return withLocalStart(await apiClient.get<VideoCallStateResponse>(`/api/appointments/${appointmentId}/video`));
+    }
+
+    /**
+     * Either side: the other participant is now in the call. Records when the
+     * session started; the first call wins, so both phones may send it.
+     */
+    async markStarted(appointmentId: string): Promise<VideoCallState> {
+        return withLocalStart(await apiClient.post<VideoCallStateResponse>(`/api/appointments/${appointmentId}/video/started`, {}));
     }
 
     /** Mechanic: the help is done; the owner is asked to confirm. */
-    finish(appointmentId: string, note?: string): Promise<VideoCallState> {
-        return apiClient.post(`/api/appointments/${appointmentId}/video/finish`, note ? { note } : {});
+    async finish(appointmentId: string, note?: string): Promise<VideoCallState> {
+        return withLocalStart(await apiClient.post<VideoCallStateResponse>(`/api/appointments/${appointmentId}/video/finish`, note ? { note } : {}));
     }
 
     /** Owner: confirms; the payment is charged. */
-    confirm(appointmentId: string): Promise<VideoCallState> {
-        return apiClient.post(`/api/appointments/${appointmentId}/video/confirm`, {});
+    async confirm(appointmentId: string): Promise<VideoCallState> {
+        return withLocalStart(await apiClient.post<VideoCallStateResponse>(`/api/appointments/${appointmentId}/video/confirm`, {}));
     }
 
     /** Owner: it was not resolved; nothing is charged until support decides. */
-    dispute(appointmentId: string, reason: string): Promise<VideoCallState> {
-        return apiClient.post(`/api/appointments/${appointmentId}/video/dispute`, { reason });
+    async dispute(appointmentId: string, reason: string): Promise<VideoCallState> {
+        return withLocalStart(await apiClient.post<VideoCallStateResponse>(`/api/appointments/${appointmentId}/video/dispute`, { reason }));
     }
 }
 

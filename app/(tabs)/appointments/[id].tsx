@@ -4,6 +4,7 @@ import { MechanicArrivalCard, PulseDot } from '@/components/appointments/Mechani
 import { MechanicClientInfoTab } from '@/components/appointments/MechanicClientInfoTab';
 import { CheckInCodeCard } from '@/components/appointments/CheckInCodeCard';
 import { OwnerReviewCard } from '@/components/appointments/OwnerReviewCard';
+import { VideoCallTimerCard } from '@/components/appointments/VideoCallTimerCard';
 import {
     GradientButton,
     JoinVideoCallButton,
@@ -46,7 +47,7 @@ import { AttachmentStrip } from '@/components/appointments/AttachmentStrip';
 import { parseAttachments } from '@/lib/media/attachments';
 import { usePaymentCards } from '@/lib/payments/usePaymentCards';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Dimensions, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Dimensions, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -157,6 +158,10 @@ export default function AppointmentDetailScreen() {
                         ? { title: t('appointments.videoCall.status.notCharged'), icon: 'close', color: AO.mutedLight }
                         : { title: t('appointments.videoCall.mechanic.completedTitle'), icon: 'checkmark', color: AO.green }
                     : { title: t(appointment?.startNow ? 'appointments.videoCall.header.ready' : 'appointments.videoCall.header.booked'), icon: 'videocam', color: AO.blue };
+    // Started = the other person joined the call (both phones report it).
+    const videoStartedAtMs = videoState?.startedAtLocalMs ?? null;
+    // "Extend more time" only moves the limit on this screen for now: no charge, not saved.
+    const [videoExtensions, setVideoExtensions] = React.useState(0);
     const [videoBusy, setVideoBusy] = React.useState(false);
     const [showDisputeSheet, setShowDisputeSheet] = React.useState(false);
     const [showFinishSheet, setShowFinishSheet] = React.useState(false);
@@ -534,12 +539,29 @@ export default function AppointmentDetailScreen() {
                                                 : t('appointments.detail.onTheWayBadge')}
                                     </Text>
                                 </View>
+                                {isVideoCall ? (
+                                    <View className="flex-row items-center" style={{ gap: 12 }} testID="video-call-accepted-header">
+                                        <View
+                                            className="items-center justify-center"
+                                            style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: MECH.green, shadowColor: MECH.green, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.45, shadowRadius: 8, elevation: 4 }}
+                                        >
+                                            <Ionicons name="checkmark" size={20} color="#fff" />
+                                        </View>
+                                        <View className="flex-1">
+                                            <Text className="font-outfit-bold text-[22px] leading-6" style={{ color: MECH.text, letterSpacing: -0.6 }}>
+                                                {t('appointments.videoCall.mechanic.title')}
+                                            </Text>
+                                            <Text className="text-xs mt-0.5" style={{ color: MECH.mutedLight, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }}>
+                                                {t('appointments.detail.idLabel', { id: appointment.id.slice(0, 8) })}
+                                            </Text>
+                                        </View>
+                                    </View>
+                                ) : (
+                                <>
                                 <Text className="font-outfit-bold text-[22px]" style={{ color: MECH.text }}>
-                                    {isVideoCall
-                                        ? t('appointments.videoCall.mechanic.title')
-                                        : awaitingHeadOut
-                                            ? t('appointments.detail.acceptedTitle')
-                                            : t('appointments.detail.onTheWayTitle')}
+                                    {awaitingHeadOut
+                                        ? t('appointments.detail.acceptedTitle')
+                                        : t('appointments.detail.onTheWayTitle')}
                                 </Text>
                                 <View className="flex-row items-center flex-wrap gap-2 mt-2">
                                     <View className="flex-row items-center gap-2">
@@ -555,10 +577,12 @@ export default function AppointmentDetailScreen() {
                                         {t('appointments.detail.idLabel', { id: appointment.id.slice(0, 8) })}
                                     </Text>
                                 </View>
+                                </>
+                                )}
                             </View>
 
                             {/* Status card — a finished video call shows its close-out card instead */}
-                            {(!isVideoCall || videoCallLive) && (
+                            {!isVideoCall && (
                             <View className="mx-4 mt-3.5 px-5 py-4 items-center" style={{ borderRadius: 20, backgroundColor: MECH.greenSoft }} testID="status-badge" nativeID="status-badge">
                                 <View className="flex-row items-center gap-2">
                                     <PulseDot color={MECH.green} />
@@ -641,7 +665,30 @@ export default function AppointmentDetailScreen() {
                                 <View className="mx-4 mt-3.5" style={{ gap: 10 }}>
                                     {videoCallLive ? (
                                         <>
-                                            <JoinVideoCallButton onPress={openVideoLobby} />
+                                            {videoStartedAtMs !== null && (
+                                                <VideoCallTimerCard
+                                                    startedAtMs={videoStartedAtMs}
+                                                    extensions={videoExtensions}
+                                                    onExtend={() => setVideoExtensions((n) => n + 1)}
+                                                />
+                                            )}
+                                            {videoStartedAtMs === null ? (
+                                                <JoinVideoCallButton onPress={openVideoLobby} />
+                                            ) : (
+                                                <TouchableOpacity
+                                                    onPress={openVideoLobby}
+                                                    activeOpacity={0.85}
+                                                    className="flex-row items-center justify-center"
+                                                    style={{ gap: 10, paddingVertical: 15, borderRadius: 14, backgroundColor: MECH.blueSoft }}
+                                                    testID="return-to-video-call"
+                                                    accessibilityRole="button"
+                                                >
+                                                    <Ionicons name="videocam" size={20} color={MECH.blue} />
+                                                    <Text className="font-outfit-bold text-[15.5px]" style={{ color: MECH.blue }}>
+                                                        {t('appointments.videoCall.timer.returnToCall')}
+                                                    </Text>
+                                                </TouchableOpacity>
+                                            )}
                                             <GradientButton
                                                 label={t('appointments.videoCall.mechanic.finish')}
                                                 icon="checkmark-done"
@@ -650,6 +697,11 @@ export default function AppointmentDetailScreen() {
                                                 onPress={() => setShowFinishSheet(true)}
                                                 testID="mechanic-video-finish"
                                             />
+                                            {videoStartedAtMs === null && (
+                                                <Text className="text-center font-outfit-regular text-[11.5px] leading-4" style={{ color: MECH.muted }}>
+                                                    {t('appointments.videoCall.timer.startsOnJoin')}
+                                                </Text>
+                                            )}
                                         </>
                                     ) : videoState ? (
                                         <MechanicVideoCallStatusCard
@@ -675,9 +727,37 @@ export default function AppointmentDetailScreen() {
                             ) : null}
 
                             {/* Quick-nav tabs */}
-                            <View className="mx-4 mt-3.5 flex-row gap-2.5" testID="tab-navigation-container" nativeID="tab-navigation-container">
+                            <View
+                                className="mx-4 mt-3.5 flex-row gap-2.5"
+                                style={isVideoCall ? { gap: 4, padding: 4, borderRadius: 14, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: MECH.border } : undefined}
+                                testID="tab-navigation-container"
+                                nativeID="tab-navigation-container"
+                            >
                                 {tabs.map((tab) => {
                                     const isActive = activeTab === tab.key;
+                                    if (isVideoCall) {
+                                        return (
+                                            <TouchableOpacity
+                                                key={tab.key}
+                                                testID={`tab-button-${tab.key}`}
+                                                className="flex-1 items-center py-2.5"
+                                                style={{
+                                                    borderRadius: 11,
+                                                    backgroundColor: isActive ? MECH.blue : 'transparent',
+                                                    shadowColor: MECH.blue,
+                                                    shadowOffset: { width: 0, height: 6 },
+                                                    shadowOpacity: isActive ? 0.35 : 0,
+                                                    shadowRadius: 8,
+                                                    elevation: isActive ? 3 : 0,
+                                                }}
+                                                onPress={() => setActiveTab(tab.key)}
+                                            >
+                                                <Text className="font-outfit-bold text-[13.5px]" style={{ color: isActive ? '#FFFFFF' : MECH.muted }}>
+                                                    {tab.label}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        );
+                                    }
                                     return (
                                         <TouchableOpacity
                                             key={tab.key}

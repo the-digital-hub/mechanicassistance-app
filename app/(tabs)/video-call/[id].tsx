@@ -1,12 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useGlobalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { MediaStream } from '@daily-co/react-native-webrtc';
 import { CallControls } from '@/components/video/CallControls';
 import { VideoTile } from '@/components/video/VideoTile';
 import { useDailyCall } from '@/lib/video/useDailyCall';
 import { goBackOr } from '@/lib/navigation/goBackOr';
+import { videoCallDAO } from '@/lib/dao/VideoCallDAO';
+import { formatElapsed, useElapsedSeconds } from '@/hooks/useElapsedSeconds';
 
 export default function VideoCallScreen() {
   const { id, roomUrl, token, expiry } = useGlobalSearchParams();
@@ -35,6 +37,28 @@ export default function VideoCallScreen() {
     const interval = setInterval(() => setTimeLeft(calcTimeLeft(expiryTs)), 1000);
     return () => clearInterval(interval);
   }, [expiryTs]);
+
+  // The session starts when the other participant first shows up. Both phones
+  // report it; the server keeps the first time, and answers with how long ago
+  // that was, so both sides count the same elapsed time.
+  const [startedAtMs, setStartedAtMs] = useState<number | null>(null);
+  const startReported = useRef(false);
+  const hasRemote = remoteParticipant !== null;
+
+  useEffect(() => {
+    if (callState !== 'joined' || !hasRemote || startReported.current || !appointmentId) return;
+    startReported.current = true;
+    const fallbackStart = Date.now();
+    videoCallDAO
+      .markStarted(appointmentId)
+      .then((state) => setStartedAtMs(state.startedAtLocalMs ?? fallbackStart))
+      .catch((err) => {
+        console.warn('[VideoCall] markStarted failed:', (err as Error).message);
+        setStartedAtMs(fallbackStart);
+      });
+  }, [callState, hasRemote, appointmentId]);
+
+  const elapsed = useElapsedSeconds(startedAtMs);
 
   const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
 
@@ -79,6 +103,9 @@ export default function VideoCallScreen() {
         <View style={styles.timerLeft}>
           <View style={[styles.liveDot, timeLeft <= 0 && styles.liveDotExpired]} />
           <Text style={styles.timerLabel}>{timeLeft <= 0 ? 'Room Expired' : 'Live'}</Text>
+          {startedAtMs !== null && (
+            <Text style={styles.elapsedText} testID="call-elapsed">{formatElapsed(elapsed)}</Text>
+          )}
         </View>
         {timeLeft > 0 && (
           <Text style={[styles.timerText, timeLeft <= 60 && styles.timerTextWarning]}>{formatTime(timeLeft)}</Text>
@@ -132,6 +159,7 @@ const styles = StyleSheet.create({
   liveDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#22C55E' },
   liveDotExpired: { backgroundColor: '#EF4444' },
   timerLabel: { fontFamily: 'Outfit_700Bold', fontSize: 14, color: '#FFFFFF' },
+  elapsedText: { fontFamily: 'Outfit_600SemiBold', fontSize: 14, color: '#D1D5DB', fontVariant: ['tabular-nums'] },
   timerText: { fontFamily: 'Outfit_700Bold', fontSize: 16, color: '#FFFFFF' },
   timerTextWarning: { color: '#EF4444' },
   stage: { flex: 1, position: 'relative' },

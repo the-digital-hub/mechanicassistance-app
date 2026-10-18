@@ -1247,6 +1247,22 @@
         "booked": "Video call booked",
         "ready": "Video call ready",
         "confirm": "Confirm your video call"
+      },
+      "timer": {
+        "inProgress": "Call in progress",
+        "elapsed": "elapsed",
+        "overtime": "overtime",
+        "session": "Session of {{minutes}} minutes.",
+        "warn": "Less than 5 minutes left. Extend or start wrapping up.",
+        "over": "Session time is up. Extend or finish the assistance.",
+        "extend": "Extend more time",
+        "extendTitle": "Extend the session time?",
+        "extendBody": "The client pays the extension in the platform. The timer extends once it's confirmed.",
+        "cancel": "Cancel",
+        "confirm": "Confirm extension",
+        "added": "+{{minutes}} min added",
+        "startsOnJoin": "A 30-minute session timer starts when the client joins the call.",
+        "returnToCall": "Return to call"
       }
     }
   },

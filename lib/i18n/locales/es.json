@@ -1247,6 +1247,22 @@
         "booked": "Videollamada agendada",
         "ready": "Videollamada lista",
         "confirm": "Confirmá tu videollamada"
+      },
+      "timer": {
+        "inProgress": "Llamada en curso",
+        "elapsed": "transcurrido",
+        "overtime": "tiempo extra",
+        "session": "Sesión de {{minutes}} minutos.",
+        "warn": "Quedan menos de 5 minutos. Extendé o empezá a cerrar.",
+        "over": "Se terminó el tiempo de la sesión. Extendé o finalizá la asistencia.",
+        "extend": "Extender tiempo",
+        "extendTitle": "¿Extender el tiempo de la sesión?",
+        "extendBody": "El cliente paga la extensión en la plataforma. El timer se extiende cuando se confirma.",
+        "cancel": "Cancelar",
+        "confirm": "Confirmar extensión",
+        "added": "+{{minutes}} min agregados",
+        "startsOnJoin": "Cuando el cliente se une a la llamada empieza una sesión de 30 minutos.",
+        "returnToCall": "Volver a la llamada"
       }
     }
   },

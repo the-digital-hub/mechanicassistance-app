@@ -124,15 +124,18 @@ export function MechanicAssistanceInfoTab({ appointment }: MechanicAssistanceInf
             <View className="gap-3.5">
                 <DetailCard>
                     <DetailRow icon="videocam-outline" label={t('appointments.ownerAccepted.rows.service')} value={t('appointments.detail.types.videocall')} />
-                    <DetailRow icon="calendar-outline" label={t('appointments.videoCall.scheduledFor')} value={scheduled} last />
-                </DetailCard>
-                <DetailCard>
+                    <DetailRow icon="calendar-outline" label={t('appointments.videoCall.scheduledFor')} value={scheduled} />
                     <DetailRow icon="car-outline" label={t('appointments.detail.info.car')} value={appointment.car} />
                     <DetailRow icon="construct-outline" label={t('appointments.detail.info.carIssue')} value={issueValue} />
                     <DetailRow
                         icon="document-text-outline"
                         label={t('appointments.detail.info.notes')}
                         value={appointment.notes || t('appointments.detail.info.noNotes')}
+                    />
+                    <DetailRow
+                        icon="cash-outline"
+                        label={t('appointments.ownerAccepted.rows.serviceValue')}
+                        value={appointment.budget ? `$${appointment.budget}` : '—'}
                         last
                     />
                 </DetailCard>
