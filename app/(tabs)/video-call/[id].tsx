@@ -14,7 +14,7 @@ import { useUser } from '@/context/UserContext';
 import { useDailyCall } from '@/lib/video/useDailyCall';
 import { goBackOr } from '@/lib/navigation/goBackOr';
 import { videoCallDAO } from '@/lib/dao/VideoCallDAO';
-import { contractedSeconds } from '@/lib/video/callLength';
+import { contractedSeconds, GRACE_SECONDS } from '@/lib/video/callLength';
 import { useElapsedSeconds } from '@/hooks/useElapsedSeconds';
 import { useVideoCallState } from '@/hooks/useVideoCallState';
 
@@ -89,6 +89,18 @@ export default function VideoCallScreen() {
     // away on the detail) and not to whatever tab happened to be underneath.
     router.navigate(appointmentHref, { withAnchor: true });
   };
+
+  // The server ends the call when the grace after the time is up runs out; this
+  // phone leaves at the same moment instead of waiting for the room to eject it.
+  // An extension bought meanwhile raises limitSeconds and cancels this.
+  const autoLeft = useRef(false);
+  const graceOver = startedAtMs !== null && elapsed >= limitSeconds + GRACE_SECONDS;
+  useEffect(() => {
+    if (!graceOver || autoLeft.current) return;
+    autoLeft.current = true;
+    void handleHangUp();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [graceOver]);
 
   const buildStream = (p: typeof localParticipant) => {
     const track = p?.tracks?.video?.persistentTrack;

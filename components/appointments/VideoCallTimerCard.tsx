@@ -29,9 +29,11 @@ const TONES: Record<TimerTone, { fg: string; bg: string }> = {
     over: { fg: AO.red, bg: '#FDECEC' },
 };
 
-const RING = 104;
+const RING = 112;
 const STROKE = 9;
-const RADIUS = 44;
+const RADIUS = (RING - STROKE) / 2;
+/** Widest the digits may be: the inside of the ring, minus some air. */
+const DIGITS_WIDTH = RING - 2 * STROKE - 12;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 /**
@@ -53,7 +55,9 @@ export function VideoCallTimerCard({ startedAtMs, limitSeconds = VIDEO_SESSION_S
     const limit = limitSeconds;
     const tone = timerTone(elapsed, limit);
     const { fg, bg } = TONES[tone];
-    const progress = Math.min(elapsed / limit, 1);
+    const remaining = Math.max(0, limit - elapsed);
+    // The ring empties as the time runs out.
+    const progress = limit > 0 ? remaining / limit : 0;
 
     return (
         <View style={[card, { padding: 16 }]} testID="video-call-timer">
@@ -77,13 +81,16 @@ export function VideoCallTimerCard({ startedAtMs, limitSeconds = VIDEO_SESSION_S
                     <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' }}>
                         <Text
                             className="font-outfit-bold"
-                            style={{ fontSize: 24, color: fg, letterSpacing: -0.5, fontVariant: ['tabular-nums'] }}
+                            style={{ fontSize: 20, width: DIGITS_WIDTH, textAlign: 'center', color: fg, letterSpacing: -0.5, fontVariant: ['tabular-nums'] }}
+                            numberOfLines={1}
+                            adjustsFontSizeToFit
+                            minimumFontScale={0.7}
                             testID="video-call-timer-elapsed"
                         >
-                            {formatElapsed(elapsed)}
+                            {formatElapsed(remaining)}
                         </Text>
-                        <Text className="font-outfit-bold" style={{ fontSize: 10.5, color: AO.muted, marginTop: 3 }} testID="video-call-timer-label">
-                            {t(tone === 'over' ? `${K}.overtime` : `${K}.elapsed`)}
+                        <Text className="font-outfit-bold" style={{ fontSize: 10, color: AO.muted, marginTop: 3 }} testID="video-call-timer-label">
+                            {t(tone === 'over' ? `${K}.timeUp` : `${K}.remaining`)}
                         </Text>
                     </View>
                 </View>

@@ -31,26 +31,34 @@ describe('VideoCallTimerCard', () => {
 
     const startedSecondsAgo = (s: number) => Date.now() - s * 1000;
 
-    it('shows the elapsed time since the other person joined', () => {
+    it('counts down the time left since the other person joined', () => {
         const { getByTestId } = render(<VideoCallTimerCard startedAtMs={startedSecondsAgo(125)} />);
-        expect(getByTestId('video-call-timer-elapsed').props.children).toBe('02:05');
-        expect(getByTestId('video-call-timer-label').props.children).toBe(`${K}.elapsed`);
+        expect(getByTestId('video-call-timer-elapsed').props.children).toBe('42:55');
+        expect(getByTestId('video-call-timer-label').props.children).toBe(`${K}.remaining`);
     });
 
-    it('labels it overtime past the time the call has', () => {
+    it('stops at 00:00 and says time is up once the call has no time left', () => {
         const { getByTestId, getByText } = render(
             <VideoCallTimerCard startedAtMs={startedSecondsAgo(46 * 60)} limitSeconds={45 * 60} />,
         );
-        expect(getByTestId('video-call-timer-elapsed').props.children).toBe('46:00');
-        expect(getByTestId('video-call-timer-label').props.children).toBe(`${K}.overtime`);
+        expect(getByTestId('video-call-timer-elapsed').props.children).toBe('00:00');
+        expect(getByTestId('video-call-timer-label').props.children).toBe(`${K}.timeUp`);
         expect(getByText(`${K}.over`)).toBeTruthy();
     });
 
-    it('time the owner bought moves the limit, so the same time is no longer overtime', () => {
+    it('keeps the digits on one line and shrinks them to fit the ring', () => {
+        const { getByTestId } = render(<VideoCallTimerCard startedAtMs={startedSecondsAgo(10)} />);
+        const digits = getByTestId('video-call-timer-elapsed');
+        expect(digits.props.numberOfLines).toBe(1);
+        expect(digits.props.adjustsFontSizeToFit).toBe(true);
+    });
+
+    it('time the owner bought moves the limit, so the same time still has minutes left', () => {
         const { getByTestId } = render(
             <VideoCallTimerCard startedAtMs={startedSecondsAgo(46 * 60)} limitSeconds={60 * 60} addedMinutes={15} />,
         );
-        expect(getByTestId('video-call-timer-label').props.children).toBe(`${K}.elapsed`);
+        expect(getByTestId('video-call-timer-elapsed').props.children).toBe('14:00');
+        expect(getByTestId('video-call-timer-label').props.children).toBe(`${K}.remaining`);
         expect(getByTestId('video-call-timer-added').props.children).toBe(`${K}.added {"minutes":15}`);
     });
 
