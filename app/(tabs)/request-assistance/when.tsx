@@ -4,8 +4,8 @@ import { useUser } from '@/context/UserContext';
 import { ApiError } from '@/lib/api/types';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { pricingDAO } from '@/lib/dao/PricingDAO';
-import { cardLabel } from '@/lib/payments/cardLabel';
-import { usePaymentCards } from '@/lib/payments/usePaymentCards';
+import { WALLET_METHOD } from '@/lib/payments/cardLabel';
+import { usePaymentChoice } from '@/lib/payments/usePaymentChoice';
 import {
     deviceTimeZone,
     videoCallDAO,
@@ -85,11 +85,10 @@ export default function VideoCallWhenScreen() {
     const [dayIndex, setDayIndex] = useState(0);
     const [slot, setSlot] = useState<VideoCallSlot | null>(null);
     const [submitting, setSubmitting] = useState(false);
-    // The card this request is charged to: the default one until the user picks another.
-    const { cards, defaultCard } = usePaymentCards();
-    const [pickedCardId, setPickedCardId] = useState<string | null>(null);
+    // How this request is paid: the wallet when its balance covers the price,
+    // else the default card — until the user picks another.
+    const { cards, wallet, selectedId: paymentMethodId, selectedLabel: paymentLabel, pick: pickPayment } = usePaymentChoice(price);
     const [cardPickerOpen, setCardPickerOpen] = useState(false);
-    const selectedCard = (pickedCardId && cards.find((c) => c.id === pickedCardId)) || defaultCard;
 
     const load = useCallback(async () => {
         setLoadFailed(false);
@@ -211,7 +210,7 @@ export default function VideoCallWhenScreen() {
                 ...(vehicleDetails.driverFirstName ? { driverFirstName: vehicleDetails.driverFirstName } : {}),
                 ...(vehicleDetails.driverLastName ? { driverLastName: vehicleDetails.driverLastName } : {}),
                 ...(vehicleDetails.driverPhone ? { driverPhone: vehicleDetails.driverPhone } : {}),
-                ...(selectedCard ? { paymentMethodId: selectedCard.id } : {}),
+                ...(paymentMethodId ? { paymentMethodId } : {}),
             });
 
             // Records the price and the issues on the request, for the same
@@ -390,11 +389,17 @@ export default function VideoCallWhenScreen() {
             <CardPickerModal
                 visible={cardPickerOpen}
                 cards={cards}
-                selectedId={selectedCard?.id ?? null}
+                selectedId={paymentMethodId}
                 onSelect={(card) => {
-                    setPickedCardId(card.id);
+                    pickPayment(card.id);
                     setCardPickerOpen(false);
                 }}
+                onSelectWallet={() => {
+                    pickPayment(WALLET_METHOD);
+                    setCardPickerOpen(false);
+                }}
+                wallet={wallet}
+                amount={price}
                 onClose={() => setCardPickerOpen(false)}
             />
             {/* Header — same as the other wizard steps */}
@@ -605,7 +610,7 @@ export default function VideoCallWhenScreen() {
                                 last
                                 Icon={CreditCard}
                                 label={t('requestAssistance.mechanicFound.rowPayment')}
-                                value={selectedCard ? cardLabel(selectedCard) : t('paymentCards.noCard')}
+                                value={paymentLabel}
                                 action={
                                     <TouchableOpacity onPress={() => setCardPickerOpen(true)} hitSlop={8}>
                                         <Text className="font-outfit-bold" style={{ fontSize: 12.5, color: C.blue }}>

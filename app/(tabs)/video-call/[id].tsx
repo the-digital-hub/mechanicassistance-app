@@ -9,11 +9,14 @@ import { MediaStream } from '@daily-co/react-native-webrtc';
 import { CallControls } from '@/components/video/CallControls';
 import { CallTopBar, VC, type CallStatus } from '@/components/video/CallTopBar';
 import { VideoTile } from '@/components/video/VideoTile';
-import { VIDEO_SESSION_SECONDS } from '@/components/appointments/VideoCallTimerCard';
+import { ExtendCallSheet } from '@/components/video/ExtendCallSheet';
+import { useUser } from '@/context/UserContext';
 import { useDailyCall } from '@/lib/video/useDailyCall';
 import { goBackOr } from '@/lib/navigation/goBackOr';
 import { videoCallDAO } from '@/lib/dao/VideoCallDAO';
+import { contractedSeconds } from '@/lib/video/callLength';
 import { useElapsedSeconds } from '@/hooks/useElapsedSeconds';
+import { useVideoCallState } from '@/hooks/useVideoCallState';
 
 const K = 'appointments.videoCall.live';
 
@@ -26,7 +29,15 @@ export default function VideoCallScreen() {
   const appointmentHref = { pathname: '/appointments/[id]' as const, params: { id: appointmentId } };
   const urlStr = Array.isArray(roomUrl) ? roomUrl[0] : roomUrl || '';
   const tokenStr = Array.isArray(token) ? token[0] : token || '';
-  const expiryTs = Number(Array.isArray(expiry) ? expiry[0] : expiry || 0);
+  const { user } = useUser();
+  // Only the vehicle owner buys extra time; the mechanic's timer follows it.
+  const isOwner = user?.role === 'user';
+  const [extendOpen, setExtendOpen] = useState(false);
+  // How long the call may run (base + extensions) and when the room closes,
+  // refreshed when either side extends it (video_call_update "extended").
+  const { state: callTime, reload: reloadCallTime } = useVideoCallState(appointmentId || undefined, !!appointmentId);
+  const limitSeconds = contractedSeconds(callTime);
+  const expiryTs = callTime?.roomExpiryUnixSec ?? Number(Array.isArray(expiry) ? expiry[0] : expiry || 0);
 
   const {
     callState, localParticipant, remoteParticipant, isAudioMuted, isCameraOff, errorMessage,
@@ -69,7 +80,7 @@ export default function VideoCallScreen() {
 
   const elapsed = useElapsedSeconds(startedAtMs);
   // Counts down the session once the other person is in; a full session until then.
-  const remaining = startedAtMs === null ? VIDEO_SESSION_SECONDS : Math.max(0, VIDEO_SESSION_SECONDS - elapsed);
+  const remaining = startedAtMs === null ? limitSeconds : Math.max(0, limitSeconds - elapsed);
   const status: CallStatus = timeLeft <= 0 ? 'expired' : remaining === 0 ? 'timeUp' : 'live';
 
   const handleHangUp = async () => {
@@ -109,7 +120,15 @@ export default function VideoCallScreen() {
 
   return (
     <View style={styles.container}>
-      <CallTopBar remaining={remaining} limit={VIDEO_SESSION_SECONDS} status={status} topInset={insets.top} />
+      <CallTopBar remaining={remaining} limit={limitSeconds} status={status} topInset={insets.top} />
+      {isOwner && (
+        <ExtendCallSheet
+          visible={extendOpen}
+          appointmentId={appointmentId}
+          onClose={() => setExtendOpen(false)}
+          onExtended={() => reloadCallTime()}
+        />
+      )}
 
       <LinearGradient colors={[VC.navy2, '#2A3550']} style={styles.stage}>
         {callState !== 'joined' && (
@@ -129,6 +148,18 @@ export default function VideoCallScreen() {
           <View style={styles.center}>
             <Text style={styles.waitingText}>{t(`${K}.waiting`)}</Text>
           </View>
+        )}
+        {isOwner && callState === 'joined' && (
+          <TouchableOpacity
+            style={styles.addTime}
+            onPress={() => setExtendOpen(true)}
+            activeOpacity={0.85}
+            testID="call-add-time"
+            accessibilityRole="button"
+          >
+            <Ionicons name="time-outline" size={16} color="#FFFFFF" />
+            <Text style={styles.addTimeText}>{t(`${K}.addTime`)}</Text>
+          </TouchableOpacity>
         )}
         <View style={styles.pip}>
           <View style={styles.pipInner}>
@@ -163,6 +194,11 @@ const styles = StyleSheet.create({
     flex: 1, borderRadius: 16, overflow: 'hidden', backgroundColor: VC.navy2,
     borderWidth: 2, borderColor: 'rgba(255,255,255,0.25)',
   },
+  addTime: {
+    position: 'absolute', top: 14, left: 14, zIndex: 3, flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 12, paddingVertical: 8, borderRadius: 100, backgroundColor: 'rgba(30,86,227,0.9)',
+  },
+  addTimeText: { fontFamily: 'Outfit_700Bold', fontSize: 13, color: '#FFFFFF' },
   loadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: VC.navy, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
   loadingText: { fontFamily: 'Outfit_500Medium', fontSize: 14, color: 'rgba(255,255,255,0.7)', marginTop: 12 },
   waitingText: { fontFamily: 'Outfit_500Medium', fontSize: 14, color: 'rgba(255,255,255,0.7)', textAlign: 'center' },

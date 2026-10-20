@@ -5,6 +5,7 @@ import { MechanicClientInfoTab } from '@/components/appointments/MechanicClientI
 import { CheckInCodeCard } from '@/components/appointments/CheckInCodeCard';
 import { OwnerReviewCard } from '@/components/appointments/OwnerReviewCard';
 import { VideoCallTimerCard } from '@/components/appointments/VideoCallTimerCard';
+import { ExtendCallSheet } from '@/components/video/ExtendCallSheet';
 import {
     GradientButton,
     JoinVideoCallButton,
@@ -33,6 +34,7 @@ import { useVideoCallState } from '@/hooks/useVideoCallState';
 import { ApiError } from '@/lib/api/types';
 import { onSiteDAO } from '@/lib/dao/OnSiteDAO';
 import { videoCallDAO } from '@/lib/dao/VideoCallDAO';
+import { contractedSeconds } from '@/lib/video/callLength';
 import { videoCallBookedLabel } from '@/lib/video/videoCallTime';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import type { AssistanceOfferSummary } from '@/lib/dao/interfaces';
@@ -140,7 +142,7 @@ export default function AppointmentDetailScreen() {
     // Not asked while still pending or once canceled: there is no close-out to show.
     const videoStateRelevant =
         isVideoCall && !['pending', 'canceled', 'cancelled'].includes(appointment?.status ?? 'pending');
-    const { state: videoState, setState: setVideoState } = useVideoCallState(
+    const { state: videoState, setState: setVideoState, reload: reloadVideoState } = useVideoCallState(
         appointment?.id,
         videoStateRelevant,
         `${appointment?.status ?? ''}-${appointment?.updatedAt ?? ''}`,
@@ -160,8 +162,11 @@ export default function AppointmentDetailScreen() {
                     : { title: t(appointment?.startNow ? 'appointments.videoCall.header.ready' : 'appointments.videoCall.header.booked'), icon: 'videocam', color: AO.blue };
     // Started = the other person joined the call (both phones report it).
     const videoStartedAtMs = videoState?.startedAtLocalMs ?? null;
-    // "Extend more time" only moves the limit on this screen for now: no charge, not saved.
-    const [videoExtensions, setVideoExtensions] = React.useState(0);
+    // The time the call has (base + what the owner bought), as the server counts it.
+    const videoLimitSeconds = contractedSeconds(videoState);
+    const videoAddedMinutes = Math.max(0, (videoState?.contractedMinutes ?? 0) - (videoState?.baseMinutes ?? 0));
+    // Owner only: the paid "Add time" sheet.
+    const [showExtendSheet, setShowExtendSheet] = React.useState(false);
     const [videoBusy, setVideoBusy] = React.useState(false);
     const [showDisputeSheet, setShowDisputeSheet] = React.useState(false);
     const [showFinishSheet, setShowFinishSheet] = React.useState(false);
@@ -494,6 +499,22 @@ export default function AppointmentDetailScreen() {
                                     <>
                                         <VideoCallWhenCard date={appointment.date} startNow={appointment.startNow} />
                                         {videoCallLive && <JoinVideoCallButton onPress={openVideoLobby} />}
+                                        {videoCallLive && videoStartedAtMs !== null && (
+                                            <>
+                                                <VideoCallTimerCard
+                                                    startedAtMs={videoStartedAtMs}
+                                                    limitSeconds={videoLimitSeconds}
+                                                    addedMinutes={videoAddedMinutes}
+                                                    onExtend={() => setShowExtendSheet(true)}
+                                                />
+                                                <ExtendCallSheet
+                                                    visible={showExtendSheet}
+                                                    appointmentId={appointment.id}
+                                                    onClose={() => setShowExtendSheet(false)}
+                                                    onExtended={() => reloadVideoState()}
+                                                />
+                                            </>
+                                        )}
                                         {videoState && (
                                             <OwnerVideoCallStatusCard
                                                 state={videoState}
@@ -668,8 +689,8 @@ export default function AppointmentDetailScreen() {
                                             {videoStartedAtMs !== null && (
                                                 <VideoCallTimerCard
                                                     startedAtMs={videoStartedAtMs}
-                                                    extensions={videoExtensions}
-                                                    onExtend={() => setVideoExtensions((n) => n + 1)}
+                                                    limitSeconds={videoLimitSeconds}
+                                                    addedMinutes={videoAddedMinutes}
                                                 />
                                             )}
                                             {videoStartedAtMs === null ? (
@@ -699,7 +720,7 @@ export default function AppointmentDetailScreen() {
                                             />
                                             {videoStartedAtMs === null && (
                                                 <Text className="text-center font-outfit-regular text-[11.5px] leading-4" style={{ color: MECH.muted }}>
-                                                    {t('appointments.videoCall.timer.startsOnJoin')}
+                                                    {t('appointments.videoCall.timer.startsOnJoin', { minutes: (videoState?.baseMinutes ?? 45) })}
                                                 </Text>
                                             )}
                                         </>

@@ -7,7 +7,7 @@ import { mediaDAO } from '@/lib/dao/MediaDAO';
 import { setAppLanguage } from '@/lib/i18n';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import { Award, Camera, Car, ChevronLeft, ChevronRight, Circle, Clock, CreditCard, FileText, Heart, HelpCircle, Lock, LogOut, MapPin, Settings, User } from 'lucide-react-native';
+import { Award, Camera, Car, ChevronLeft, ChevronRight, Circle, Clock, CreditCard, FileText, Heart, HelpCircle, Lock, LogOut, MapPin, Settings, User, Wallet } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Image, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -226,7 +226,7 @@ export default function ProfileScreen() {
             { icon: MapPin, label: t('profile.menu.addresses'), route: '/(tabs)/addresses' },
             ...(user.role?.toLowerCase().trim() !== 'mechanic' ? [
               { icon: Car || User, label: t('profile.menu.vehicles'), route: '/vehicles' },
-              { icon: CreditCard, label: t('profile.menu.paymentCards'), route: '/payment-cards' },
+              { icon: Wallet, label: t('profile.menu.paymentCards'), route: '/payment-cards' },
             ] : []),
             ...(user.role === 'mechanic' ? [
               { icon: Clock, label: t('profile.menu.availability'), route: '/availability' },

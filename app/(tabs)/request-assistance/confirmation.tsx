@@ -5,9 +5,9 @@ import { useUser } from '@/context/UserContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { pricingDAO } from '@/lib/dao/PricingDAO';
 import type { Attachment, PendingAttachment } from '@/lib/media/attachments';
-import { cardLabel } from '@/lib/payments/cardLabel';
+import { WALLET_METHOD } from '@/lib/payments/cardLabel';
 import { isPaymentMethodRequired, RETURN_TO_BACK } from '@/lib/payments/cardRequired';
-import { usePaymentCards } from '@/lib/payments/usePaymentCards';
+import { usePaymentChoice } from '@/lib/payments/usePaymentChoice';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AlertCircle, AlignLeft, Car, CheckCircle2, ChevronLeft, CreditCard, MapPin } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
@@ -55,11 +55,10 @@ export default function ConfirmationScreen() {
     const [price, setPrice] = useState<number | null>(null);
     const [priceLoading, setPriceLoading] = useState(true);
     const [cardRequired, setCardRequired] = useState(false);
-    // The card this request is charged to: the default one until the user picks another.
-    const { cards, defaultCard } = usePaymentCards();
-    const [pickedCardId, setPickedCardId] = useState<string | null>(null);
+    // How this request is paid: the wallet when its balance covers the price,
+    // else the default card — until the user picks another.
+    const { cards, wallet, selectedId: paymentMethodId, selectedLabel: paymentLabel, pick: pickPayment } = usePaymentChoice(price);
     const [cardPickerOpen, setCardPickerOpen] = useState(false);
-    const selectedCard = (pickedCardId && cards.find((c) => c.id === pickedCardId)) || defaultCard;
 
     // Resolve the ZIP once (from the passed locationZip or parsed from the address);
     // the pricing service uses it to derive the tax jurisdiction (state + county).
@@ -196,7 +195,7 @@ export default function ConfirmationScreen() {
                 ...(vehicleDetails.driverFirstName ? { driverFirstName: vehicleDetails.driverFirstName } : {}),
                 ...(vehicleDetails.driverLastName ? { driverLastName: vehicleDetails.driverLastName } : {}),
                 ...(vehicleDetails.driverPhone ? { driverPhone: vehicleDetails.driverPhone } : {}),
-                ...(selectedCard ? { paymentMethodId: selectedCard.id } : {})
+                ...(paymentMethodId ? { paymentMethodId } : {})
             });
 
             // Price + persist the created request server-side (breakdown + issue
@@ -315,11 +314,17 @@ export default function ConfirmationScreen() {
             <CardPickerModal
                 visible={cardPickerOpen}
                 cards={cards}
-                selectedId={selectedCard?.id ?? null}
+                selectedId={paymentMethodId}
                 onSelect={(card) => {
-                    setPickedCardId(card.id);
+                    pickPayment(card.id);
                     setCardPickerOpen(false);
                 }}
+                onSelectWallet={() => {
+                    pickPayment(WALLET_METHOD);
+                    setCardPickerOpen(false);
+                }}
+                wallet={wallet}
+                amount={price}
                 onClose={() => setCardPickerOpen(false)}
             />
             {/* Custom Header */}
@@ -428,7 +433,7 @@ export default function ConfirmationScreen() {
                     <SummaryRow
                         icon={<CreditCard size={20} color="#1E56E3" />}
                         label={t('requestAssistance.confirmation.payment')}
-                        value={selectedCard ? cardLabel(selectedCard) : t('paymentCards.noCard')}
+                        value={paymentLabel}
                         action={
                             <TouchableOpacity onPress={() => setCardPickerOpen(true)} hitSlop={8}>
                                 <Text className="font-outfit-bold text-[13px]" style={{ color: '#1E56E3' }}>

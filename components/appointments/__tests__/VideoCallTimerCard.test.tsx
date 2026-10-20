@@ -14,10 +14,11 @@ const K = 'appointments.videoCall.timer';
 
 describe('timerTone', () => {
     it('is normal, then warn for the last 5 minutes, then over', () => {
+        expect(VIDEO_SESSION_SECONDS).toBe(45 * 60);
         expect(timerTone(0, VIDEO_SESSION_SECONDS)).toBe('normal');
-        expect(timerTone(24 * 60 + 59, VIDEO_SESSION_SECONDS)).toBe('normal');
-        expect(timerTone(25 * 60, VIDEO_SESSION_SECONDS)).toBe('warn');
-        expect(timerTone(30 * 60, VIDEO_SESSION_SECONDS)).toBe('over');
+        expect(timerTone(39 * 60 + 59, VIDEO_SESSION_SECONDS)).toBe('normal');
+        expect(timerTone(40 * 60, VIDEO_SESSION_SECONDS)).toBe('warn');
+        expect(timerTone(45 * 60, VIDEO_SESSION_SECONDS)).toBe('over');
     });
 });
 
@@ -31,43 +32,37 @@ describe('VideoCallTimerCard', () => {
     const startedSecondsAgo = (s: number) => Date.now() - s * 1000;
 
     it('shows the elapsed time since the other person joined', () => {
-        const { getByTestId } = render(
-            <VideoCallTimerCard startedAtMs={startedSecondsAgo(125)} extensions={0} onExtend={jest.fn()} />,
-        );
+        const { getByTestId } = render(<VideoCallTimerCard startedAtMs={startedSecondsAgo(125)} />);
         expect(getByTestId('video-call-timer-elapsed').props.children).toBe('02:05');
         expect(getByTestId('video-call-timer-label').props.children).toBe(`${K}.elapsed`);
     });
 
-    it('labels it overtime past the session limit', () => {
+    it('labels it overtime past the time the call has', () => {
         const { getByTestId, getByText } = render(
-            <VideoCallTimerCard startedAtMs={startedSecondsAgo(31 * 60)} extensions={0} onExtend={jest.fn()} />,
+            <VideoCallTimerCard startedAtMs={startedSecondsAgo(46 * 60)} limitSeconds={45 * 60} />,
         );
-        expect(getByTestId('video-call-timer-elapsed').props.children).toBe('31:00');
+        expect(getByTestId('video-call-timer-elapsed').props.children).toBe('46:00');
         expect(getByTestId('video-call-timer-label').props.children).toBe(`${K}.overtime`);
         expect(getByText(`${K}.over`)).toBeTruthy();
     });
 
-    it('an extension moves the limit, so the same time is no longer overtime', () => {
+    it('time the owner bought moves the limit, so the same time is no longer overtime', () => {
         const { getByTestId } = render(
-            <VideoCallTimerCard startedAtMs={startedSecondsAgo(31 * 60)} extensions={1} onExtend={jest.fn()} />,
+            <VideoCallTimerCard startedAtMs={startedSecondsAgo(46 * 60)} limitSeconds={60 * 60} addedMinutes={15} />,
         );
         expect(getByTestId('video-call-timer-label').props.children).toBe(`${K}.elapsed`);
-        expect(getByTestId('video-call-timer-added').props.children).toBe(`${K}.added {"minutes":30}`);
+        expect(getByTestId('video-call-timer-added').props.children).toBe(`${K}.added {"minutes":15}`);
     });
 
-    it('asks for confirmation before extending', () => {
+    it('offers "Add time" only when the screen gives it a handler (the owner)', () => {
         const onExtend = jest.fn();
-        const { getByTestId, queryByTestId } = render(
-            <VideoCallTimerCard startedAtMs={startedSecondsAgo(10)} extensions={0} onExtend={onExtend} />,
-        );
-
+        const { getByTestId } = render(<VideoCallTimerCard startedAtMs={startedSecondsAgo(10)} onExtend={onExtend} />);
         fireEvent.press(getByTestId('video-call-extend'));
-        fireEvent.press(getByTestId('video-call-extend-cancel'));
-        expect(onExtend).not.toHaveBeenCalled();
-
-        fireEvent.press(getByTestId('video-call-extend'));
-        fireEvent.press(getByTestId('video-call-extend-confirm'));
         expect(onExtend).toHaveBeenCalledTimes(1);
-        expect(queryByTestId('video-call-extend-confirm')).toBeNull();
+    });
+
+    it('shows no "Add time" to the mechanic', () => {
+        const { queryByTestId } = render(<VideoCallTimerCard startedAtMs={startedSecondsAgo(10)} />);
+        expect(queryByTestId('video-call-extend')).toBeNull();
     });
 });

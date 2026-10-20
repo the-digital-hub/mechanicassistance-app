@@ -30,7 +30,7 @@
       "logout": "Cerrar sesión",
       "legalDocuments": "Documentación legal",
       "availability": "Disponibilidad horaria",
-      "paymentCards": "Mis tarjetas"
+      "paymentCards": "Wallet y pagos"
     },
     "language": {
       "heading": "Seleccionar idioma",
@@ -1259,22 +1259,20 @@
         "goBack": "Volver",
         "retry": "Reintentar",
         "you": "Vos",
-        "participant": "Participante"
+        "participant": "Participante",
+        "addTime": "Agregar tiempo"
       },
       "timer": {
         "inProgress": "Llamada en curso",
         "elapsed": "transcurrido",
         "overtime": "tiempo extra",
         "session": "Sesión de {{minutes}} minutos.",
-        "warn": "Quedan menos de 5 minutos. Extendé o empezá a cerrar.",
-        "over": "Se terminó el tiempo de la sesión. Extendé o finalizá la asistencia.",
-        "extend": "Extender tiempo",
-        "extendTitle": "¿Extender el tiempo de la sesión?",
-        "extendBody": "El cliente paga la extensión en la plataforma. El timer se extiende cuando se confirma.",
+        "warn": "Quedan menos de 5 minutos. Agregá tiempo o empezá a cerrar.",
+        "over": "Se terminó el tiempo de la sesión. Agregá tiempo o finalizá la asistencia.",
+        "extend": "Agregar más tiempo",
         "cancel": "Cancelar",
-        "confirm": "Confirmar extensión",
         "added": "+{{minutes}} min agregados",
-        "startsOnJoin": "Cuando el cliente se une a la llamada empieza una sesión de 30 minutos.",
+        "startsOnJoin": "Cuando el cliente se une a la llamada empieza una sesión de {{minutes}} minutos. Solo el cliente puede agregar más tiempo.",
         "returnToCall": "Volver a la llamada"
       }
     }
@@ -1945,9 +1943,9 @@
     "applyFilter": "Aplicar filtro"
   },
   "paymentCards": {
-    "badge": "TARJETAS",
-    "title": "Mis tarjetas",
-    "subtitle": "Tarjetas con las que pagás la asistencia. Cobramos la predeterminada salvo que elijas otra.",
+    "badge": "WALLET Y PAGOS",
+    "title": "Wallet y pagos",
+    "subtitle": "Tu saldo prepago y las tarjetas con las que pagás.",
     "emptyTitle": "Todavía no tenés tarjetas",
     "emptySubtitle": "Agregá una tarjeta para pagar la asistencia desde la app.",
     "addCard": "Agregar tarjeta",
@@ -1979,8 +1977,13 @@
       "title": "Pagar con",
       "default": "Tarjeta predeterminada",
       "expired": "Vencida",
-      "manage": "Agregar o gestionar tarjetas"
-    }
+      "manage": "Agregar o gestionar tarjetas",
+      "walletAvailable": "Disponible: {{available}}",
+      "walletShort": "Saldo insuficiente ({{available}}) — podés agregar saldo al pagar",
+      "walletUnknown": "Saldo prepago"
+    },
+    "cardsHeading": "Tarjetas",
+    "walletWithBalance": "Wallet · {{available}}"
   },
   "payments": {
     "badge": "CUENTA BANCARIA",
@@ -2087,5 +2090,67 @@
     "pink": "Rosa",
     "ivory": "Marfil",
     "camouflage": "Camuflado / Personalizado"
+  },
+  "videoCall": {
+    "extend": {
+      "title": "Agregar tiempo a la llamada",
+      "body": "Elegí cuánto tiempo más necesitás. El monto se retiene ahora y se cobra junto con la llamada cuando la confirmes.",
+      "minutes": "min",
+      "remaining": "Podés extender esta llamada {{left}} vez/veces más.",
+      "payWith": "Pagar con",
+      "change": "Cambiar",
+      "sameAsCall": "Igual que la llamada",
+      "cancel": "Cancelar",
+      "confirm": "Agregar {{minutes}} min · {{price}}",
+      "confirmEmpty": "Agregar tiempo",
+      "limit": "Esta llamada ya tiene el máximo de extensiones ({{max}}).",
+      "unavailable": "Solo se puede agregar tiempo mientras la llamada está en curso.",
+      "loadFailed": "No se pudieron cargar las opciones. Intentá de nuevo en un momento.",
+      "cardDeclined": "La tarjeta fue rechazada. Elegí otra tarjeta.",
+      "notNow": "No se puede agregar tiempo ahora. Puede que la llamada haya terminado o llegado al límite.",
+      "notOwner": "Solo el cliente puede agregar tiempo a la llamada.",
+      "failed": "No se pudo agregar el tiempo. Intentá de nuevo."
+    }
+  },
+  "wallet": {
+    "available": "Saldo disponible",
+    "held": "{{amount}} retenidos por servicios en curso",
+    "addFunds": "Agregar saldo",
+    "howItWorks": "Los servicios se pagan con tu wallet cuando el saldo alcanza; si no, con tu tarjeta predeterminada. Podés cambiarlo en cada pago.",
+    "movements": "Movimientos recientes",
+    "noMovements": "Todavía no hay movimientos.",
+    "movementType": {
+      "deposit": "Carga de saldo",
+      "deduction": "Pago de servicio",
+      "refund": "Reintegro",
+      "auto_replenish": "Recarga automática",
+      "adjustment_credit": "Ajuste",
+      "adjustment_debit": "Ajuste",
+      "other": "Movimiento"
+    },
+    "topUp": {
+      "title": "Agregar saldo a tu wallet",
+      "limits": "Entre ${{min}} y ${{max}}. Se cobra a tu tarjeta en el momento.",
+      "amount": "Monto",
+      "card": "Cobrar a",
+      "addCard": "Agregar una tarjeta",
+      "cancel": "Cancelar",
+      "submit": "Agregar saldo",
+      "submitAmount": "Agregar ${{amount}}",
+      "done": "Saldo agregado. Disponible: {{balance}}",
+      "declined": "La tarjeta fue rechazada. Elegí otra tarjeta.",
+      "paused": "La carga de saldo está pausada. Pagá con una tarjeta.",
+      "failed": "No se pudo agregar el saldo. Intentá de nuevo."
+    },
+    "insufficient": {
+      "title": "Saldo insuficiente",
+      "body": "Esto cuesta {{amount}} y tu wallet tiene {{available}} disponibles. Faltan {{missing}}.",
+      "addFunds": "Agregar {{missing}} a mi wallet",
+      "payWithCard": "Pagar con tarjeta",
+      "pickCard": "¿Con qué tarjeta pagás?",
+      "back": "Volver",
+      "cancel": "Ahora no",
+      "retrying": "Procesando el pago…"
+    }
   }
 }

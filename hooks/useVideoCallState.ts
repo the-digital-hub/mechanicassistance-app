@@ -33,7 +33,8 @@ export function useVideoCallState(appointmentId: string | undefined, enabled: bo
     }, [load, statusKey]);
 
     React.useEffect(() => {
-        if (!lastMessage || lastMessage.type !== 'appointment_update') return;
+        // video_call_update also carries "extended": the owner bought more time.
+        if (!lastMessage || (lastMessage.type !== 'appointment_update' && lastMessage.type !== 'video_call_update')) return;
         const payload: { id?: string; appointmentId?: string } = lastMessage.payload ?? {};
         if (payload.id === appointmentId || payload.appointmentId === appointmentId) load();
     }, [lastMessage, appointmentId, load]);

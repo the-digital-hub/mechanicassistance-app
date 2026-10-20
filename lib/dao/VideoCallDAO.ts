@@ -64,6 +64,14 @@ export interface VideoCallState {
     callStartedAt: string | null;
     /** Seconds since callStartedAt, measured by the server when it answered. */
     elapsedSeconds: number | null;
+    /** Minutes the call lasts before any extension (set from the hub; 45 by default). */
+    baseMinutes?: number;
+    /** Base plus every extension the owner bought: the timer counts down from this. */
+    contractedMinutes?: number;
+    extensionsUsed?: number;
+    maxExtensions?: number;
+    /** When the video room closes (unix seconds). */
+    roomExpiryUnixSec?: number | null;
     /**
      * callStartedAt on this phone's clock (epoch ms), derived from
      * elapsedSeconds when the answer arrived, so a phone whose clock is off
@@ -73,6 +81,42 @@ export interface VideoCallState {
 }
 
 type VideoCallStateResponse = Omit<VideoCallState, 'startedAtLocalMs'>;
+
+
+/** A block of extra time the owner can buy, priced for this call. */
+export interface VideoExtensionOption {
+    id: string;
+    minutes: number;
+    /** Decimal string, "20.00". */
+    price: string;
+    currency: string;
+}
+
+export interface VideoExtension {
+    id: string;
+    appointmentId: string;
+    minutesAdded: number;
+    /** Owner only. */
+    amount?: string;
+    currency?: string;
+    paymentMethodId?: string | null;
+    /** held | captured | released | unpaid add time; failed | pending do not. */
+    status: 'pending' | 'held' | 'failed' | 'captured' | 'released' | 'unpaid';
+    failureCode?: string | null;
+    timestamp: string;
+    newExpiryUnixSec: number | null;
+}
+
+export interface VideoExtensions {
+    appointmentId: string;
+    baseMinutes: number;
+    maxExtensions: number;
+    extensionsUsed: number;
+    contractedMinutes: number;
+    /** Empty for the mechanic, at the limit, or when the call is not running. */
+    options: VideoExtensionOption[];
+    extensions: VideoExtension[];
+}
 
 function withLocalStart(state: VideoCallStateResponse): VideoCallState {
     const elapsed = state.elapsedSeconds;
@@ -120,6 +164,25 @@ export class VideoCallDAO {
     /** Owner: confirms; the payment is charged. */
     async confirm(appointmentId: string): Promise<VideoCallState> {
         return withLocalStart(await apiClient.post<VideoCallStateResponse>(`/api/appointments/${appointmentId}/video/confirm`, {}));
+    }
+
+    /** Extra time of the call; the owner also gets the blocks on sale with their prices. */
+    getExtensions(appointmentId: string): Promise<VideoExtensions> {
+        return apiClient.get(`/api/appointments/${appointmentId}/video/extensions`);
+    }
+
+    /**
+     * Owner: buys `minutes` more. The price is held on the wallet or card
+     * (`paymentMethodId`, else how the call is paid) and charged with the call.
+     * 402 `insufficient_funds` / `card_declined`: nothing added — retry with a
+     * NEW `idempotencyKey`; the same key only repeats the first answer.
+     */
+    extend(appointmentId: string, minutes: number, idempotencyKey: string, paymentMethodId?: string): Promise<VideoExtension> {
+        return apiClient.post(`/api/appointments/${appointmentId}/video/extensions`, {
+            minutes,
+            idempotencyKey,
+            ...(paymentMethodId ? { paymentMethodId } : {}),
+        });
     }
 
     /** Owner: it was not resolved; nothing is charged until support decides. */

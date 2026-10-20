@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
+import { WalletSection } from '@/components/payments/WalletSection';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { ApiError } from '@/lib/api/types';
 import type { PaymentCard } from '@/lib/dao/interfaces';
@@ -25,8 +26,8 @@ const CARD_SHADOW = {
 };
 
 /**
- * "Mis tarjetas" for the customer: the cards billing has on file, and a form to
- * add one.
+ * "Wallet & payments" for the customer: the prepaid wallet (balance, add funds,
+ * movements), then the cards billing has on file and a form to add one.
  *
  * The form is our own view around Stripe's CardField: the number goes from that
  * field straight to Stripe, which confirms the setup intent billing opened (and
@@ -235,6 +236,12 @@ function PaymentCardsContent() {
             </Text>
           </View>
         )}
+
+        {!resumesRequest && <WalletSection cards={cards} />}
+
+        <Text className="text-gray-900 font-outfit-semibold text-lg mb-3">
+          {t('paymentCards.cardsHeading')}
+        </Text>
 
         {loading ? (
           <ActivityIndicator color="#0047AB" />

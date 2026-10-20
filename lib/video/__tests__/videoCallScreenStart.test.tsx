@@ -39,12 +39,25 @@ jest.mock('@/lib/video/useDailyCall', () => ({
     }),
 }));
 jest.mock('@/lib/dao/VideoCallDAO', () => ({ videoCallDAO: { markStarted: jest.fn() } }));
+jest.mock('@/components/video/ExtendCallSheet', () => ({ ExtendCallSheet: () => null }));
+// The server says how long the call has: 45 minutes, plus `mockAdded` the owner bought.
+let mockRole = 'user';
+let mockAdded = 0;
+jest.mock('@/context/UserContext', () => ({ useUser: () => ({ user: { role: mockRole } }) }));
+jest.mock('@/hooks/useVideoCallState', () => ({
+    useVideoCallState: () => ({
+        state: { baseMinutes: 45, contractedMinutes: 45 + mockAdded, roomExpiryUnixSec: null },
+        reload: jest.fn(),
+    }),
+}));
 
 const markStarted = videoCallDAO.markStarted as jest.Mock;
 
 describe('VideoCallScreen session start', () => {
     beforeEach(() => {
         markStarted.mockReset();
+        mockRole = 'user';
+        mockAdded = 0;
         mockCall.callState = 'joined';
         mockCall.remoteParticipant = null;
     });
@@ -52,7 +65,7 @@ describe('VideoCallScreen session start', () => {
     it('does not report a start while alone in the room, and shows a full session', () => {
         const { getByTestId } = render(<VideoCallScreen />);
         expect(markStarted).not.toHaveBeenCalled();
-        expect(getByTestId('call-remaining').props.children).toBe('30:00');
+        expect(getByTestId('call-remaining').props.children).toBe('45:00');
         expect(getByTestId('call-status').props.children).toBe('appointments.videoCall.live.live');
     });
 
@@ -67,11 +80,11 @@ describe('VideoCallScreen session start', () => {
 
         await waitFor(() => expect(markStarted).toHaveBeenCalledTimes(1));
         expect(markStarted).toHaveBeenCalledWith('appt-1');
-        await waitFor(async () => expect((await findByTestId('call-remaining')).props.children).toBe('28:55'));
+        await waitFor(async () => expect((await findByTestId('call-remaining')).props.children).toBe('43:55'));
     });
 
     it('stops at 00:00 and says time is up once the session is spent', async () => {
-        markStarted.mockResolvedValue({ startedAtLocalMs: Date.now() - 31 * 60_000 });
+        markStarted.mockResolvedValue({ startedAtLocalMs: Date.now() - 46 * 60_000 });
         mockCall.remoteParticipant = { user_name: 'Client', tracks: {} };
 
         const { findByTestId, getByTestId } = render(<VideoCallScreen />);
@@ -86,7 +99,26 @@ describe('VideoCallScreen session start', () => {
 
         const { findByTestId } = render(<VideoCallScreen />);
         await waitFor(() => expect(markStarted).toHaveBeenCalledTimes(1));
-        expect((await findByTestId('call-remaining')).props.children).toBe('30:00');
+        expect((await findByTestId('call-remaining')).props.children).toBe('45:00');
         warn.mockRestore();
+    });
+
+    it('counts down from the time the owner bought', async () => {
+        mockAdded = 15;
+        markStarted.mockResolvedValue({ startedAtLocalMs: Date.now() - 50 * 60_000 });
+        mockCall.remoteParticipant = { user_name: 'Client', tracks: {} };
+
+        const { findByTestId } = render(<VideoCallScreen />);
+        await waitFor(async () => expect((await findByTestId('call-remaining')).props.children).toBe('10:00'));
+    });
+
+    it('offers "Add time" to the owner only', () => {
+        const owner = render(<VideoCallScreen />);
+        expect(owner.queryByTestId('call-add-time')).not.toBeNull();
+        owner.unmount();
+
+        mockRole = 'mechanic';
+        const mechanic = render(<VideoCallScreen />);
+        expect(mechanic.queryByTestId('call-add-time')).toBeNull();
     });
 });

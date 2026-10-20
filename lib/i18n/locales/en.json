@@ -30,7 +30,7 @@
       "logout": "Log out",
       "legalDocuments": "Legal documents",
       "availability": "Working hours",
-      "paymentCards": "My cards"
+      "paymentCards": "Wallet & payments"
     },
     "language": {
       "heading": "Select Language",
@@ -1259,22 +1259,20 @@
         "goBack": "Go back",
         "retry": "Retry",
         "you": "You",
-        "participant": "Participant"
+        "participant": "Participant",
+        "addTime": "Add time"
       },
       "timer": {
         "inProgress": "Call in progress",
         "elapsed": "elapsed",
         "overtime": "overtime",
         "session": "Session of {{minutes}} minutes.",
-        "warn": "Less than 5 minutes left. Extend or start wrapping up.",
-        "over": "Session time is up. Extend or finish the assistance.",
-        "extend": "Extend more time",
-        "extendTitle": "Extend the session time?",
-        "extendBody": "The client pays the extension in the platform. The timer extends once it's confirmed.",
+        "warn": "Less than 5 minutes left. Add time or start wrapping up.",
+        "over": "Session time is up. Add time or finish the assistance.",
+        "extend": "Add more time",
         "cancel": "Cancel",
-        "confirm": "Confirm extension",
         "added": "+{{minutes}} min added",
-        "startsOnJoin": "A 30-minute session timer starts when the client joins the call.",
+        "startsOnJoin": "A {{minutes}}-minute session timer starts when the client joins the call. Only the client can add more time.",
         "returnToCall": "Return to call"
       }
     }
@@ -1945,9 +1943,9 @@
     "applyFilter": "Apply Filter"
   },
   "paymentCards": {
-    "badge": "CARDS",
-    "title": "My cards",
-    "subtitle": "Cards you pay for assistance with. We charge the default one unless you pick another.",
+    "badge": "WALLET & PAYMENTS",
+    "title": "Wallet & payments",
+    "subtitle": "Your prepaid balance and the cards you pay with.",
     "emptyTitle": "No cards yet",
     "emptySubtitle": "Add a card to pay for assistance from the app.",
     "addCard": "Add card",
@@ -1979,8 +1977,13 @@
       "title": "Pay with",
       "default": "Default card",
       "expired": "Expired",
-      "manage": "Add or manage cards"
-    }
+      "manage": "Add or manage cards",
+      "walletAvailable": "Available: {{available}}",
+      "walletShort": "Not enough balance ({{available}}) — you can add funds when paying",
+      "walletUnknown": "Prepaid balance"
+    },
+    "cardsHeading": "Cards",
+    "walletWithBalance": "Wallet · {{available}}"
   },
   "payments": {
     "badge": "BANK ACCOUNT",
@@ -2087,5 +2090,67 @@
     "pink": "Pink",
     "ivory": "Ivory",
     "camouflage": "Camouflage / Custom"
+  },
+  "videoCall": {
+    "extend": {
+      "title": "Add time to the call",
+      "body": "Pick how much longer you need. The amount is held now and charged together with the call once you confirm it.",
+      "minutes": "min",
+      "remaining": "You can extend this call {{left}} more time(s).",
+      "payWith": "Pay with",
+      "change": "Change",
+      "sameAsCall": "Same as the call",
+      "cancel": "Cancel",
+      "confirm": "Add {{minutes}} min · {{price}}",
+      "confirmEmpty": "Add time",
+      "limit": "This call already has the most extensions allowed ({{max}}).",
+      "unavailable": "Extra time can only be added while the call is running.",
+      "loadFailed": "Could not load the options. Try again in a moment.",
+      "cardDeclined": "The card was declined. Choose another card.",
+      "notNow": "Time can't be added right now. The call may have ended or reached its limit.",
+      "notOwner": "Only the client can add time to the call.",
+      "failed": "Could not add the time. Try again."
+    }
+  },
+  "wallet": {
+    "available": "Available balance",
+    "held": "{{amount}} on hold for services in progress",
+    "addFunds": "Add funds",
+    "howItWorks": "Services are paid from your wallet when the balance covers them; otherwise your default card is used. You can change it on each payment.",
+    "movements": "Recent activity",
+    "noMovements": "No movements yet.",
+    "movementType": {
+      "deposit": "Funds added",
+      "deduction": "Service payment",
+      "refund": "Refund",
+      "auto_replenish": "Automatic top-up",
+      "adjustment_credit": "Adjustment",
+      "adjustment_debit": "Adjustment",
+      "other": "Movement"
+    },
+    "topUp": {
+      "title": "Add funds to your wallet",
+      "limits": "Between ${{min}} and ${{max}}. Charged to your card right away.",
+      "amount": "Amount",
+      "card": "Charge to",
+      "addCard": "Add a card",
+      "cancel": "Cancel",
+      "submit": "Add funds",
+      "submitAmount": "Add ${{amount}}",
+      "done": "Funds added. Available: {{balance}}",
+      "declined": "The card was declined. Choose another card.",
+      "paused": "Adding funds is paused right now. Pay with a card instead.",
+      "failed": "Could not add the funds. Try again."
+    },
+    "insufficient": {
+      "title": "Not enough balance",
+      "body": "This costs {{amount}} and your wallet has {{available}} available. {{missing}} is missing.",
+      "addFunds": "Add {{missing}} to my wallet",
+      "payWithCard": "Pay with a card",
+      "pickCard": "Pay with which card?",
+      "back": "Back",
+      "cancel": "Not now",
+      "retrying": "Processing the payment…"
+    }
   }
 }

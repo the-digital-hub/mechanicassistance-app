@@ -7,6 +7,7 @@ import {
     TechnicianCard,
 } from '@/components/offer/OfferSections';
 import { CardPickerModal } from '@/components/payments/CardPickerModal';
+import { InsufficientFundsSheet } from '@/components/payments/InsufficientFundsSheet';
 import { PaymentCardValue } from '@/components/payments/PaymentCardValue';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { useAppointments } from '@/context/AppointmentsContext';
@@ -15,7 +16,9 @@ import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import type { AssistanceOfferSummary, AssistanceRequest, VehicleIssueSnapshot } from '@/lib/dao/interfaces';
 import { pricingDAO } from '@/lib/dao/PricingDAO';
 import { apiErrorCode, isPaymentMethodRequired, RETURN_TO_BACK } from '@/lib/payments/cardRequired';
+import { WALLET_METHOD } from '@/lib/payments/cardLabel';
 import { usePaymentCards } from '@/lib/payments/usePaymentCards';
+import { useWallet } from '@/lib/payments/useWallet';
 import { videoCallBookedLabel } from '@/lib/video/videoCallTime';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -62,18 +65,24 @@ export default function MechanicFoundScreen() {
     const [cardPickerOpen, setCardPickerOpen] = useState(false);
     const [cardRequired, setCardRequired] = useState(false);
     const paymentCard = resolve(request?.paymentMethodId);
+    const { wallet, setWallet } = useWallet();
+    // The wallet could not cover the hold: add funds or pay with a card, then confirm again.
+    const [insufficientOpen, setInsufficientOpen] = useState(false);
+    const [retrying, setRetrying] = useState(false);
 
-    // Switches the card this request is charged to. Only before accepting: once
-    // accepted, billing already holds the amount on the card that was named.
-    const changeCard = async (cardId: string) => {
+    // Switches how this request is paid (a card or 'wallet'). Only before
+    // accepting: once accepted, billing already holds the amount on what was named.
+    const changeCard = async (cardId: string): Promise<boolean> => {
         setCardPickerOpen(false);
-        if (!requestId || cardId === paymentCard?.id) return;
+        if (!requestId || cardId === request?.paymentMethodId) return true;
         try {
             await assistanceDAO.setPaymentMethod(requestId, cardId);
             setRequest((prev) => (prev ? { ...prev, paymentMethodId: cardId } : prev));
+            return true;
         } catch (error) {
             console.error('Failed to change payment card:', error);
             Alert.alert(t('paymentCards.changeFailedTitle'), t('paymentCards.changeFailedMessage'));
+            return false;
         }
     };
 
@@ -191,15 +200,23 @@ export default function MechanicFoundScreen() {
                     { text: t(`${k}.changeCard`), onPress: openPaymentChoice },
                 ]);
             } else if (code === 'insufficient_funds') {
-                Alert.alert(t(`${k}.insufficientFundsTitle`), t(`${k}.insufficientFundsMessage`), [
-                    { text: t(`${k}.paymentErrorDismiss`), style: 'cancel' },
-                    { text: t(`${k}.changeMethod`), onPress: openPaymentChoice },
-                ]);
+                // Add the missing money to the wallet, or pay this one with a card.
+                setInsufficientOpen(true);
             } else if (code === 'payment_pending' || code === 'payment_unavailable') {
                 Alert.alert(t(`${k}.holdFailedTitle`), t(`${k}.holdFailedMessage`));
             } else {
                 Alert.alert(t(`${k}.errorTitle`), t(`${k}.errorMessage`));
             }
+        }
+    };
+
+    // After the owner topped up the wallet or switched to a card: confirm again.
+    const retryConfirm = async () => {
+        setRetrying(true);
+        try {
+            await handleConfirm();
+        } finally {
+            setRetrying(false);
         }
     };
 
@@ -270,7 +287,10 @@ export default function MechanicFoundScreen() {
     const videoWhen = isVideoCall ? videoCallBookedLabel(request, i18n.language) ?? t('requestDetail.videoCallNow') : null;
 
     const breakdown = offer?.breakdown ?? null;
-    const price = formatMoney(breakdown?.total ?? offer?.price ?? request?.price ?? request?.budget) ?? t(`${k}.tbd`);
+    const rawPrice = breakdown?.total ?? offer?.price ?? request?.price ?? request?.budget;
+    const price = formatMoney(rawPrice) ?? t(`${k}.tbd`);
+    // What the hold is for, as a number: what the wallet must cover.
+    const amountDue = rawPrice && Number.isFinite(Number(rawPrice)) ? Number(rawPrice) : null;
     const lines = breakdown
         ? [
             { label: t(`${k}.lineService`, { type: typeLabel }), amount: formatMoney(breakdown.service)! },
@@ -299,9 +319,29 @@ export default function MechanicFoundScreen() {
             <CardPickerModal
                 visible={cardPickerOpen}
                 cards={cards}
-                selectedId={paymentCard?.id ?? null}
+                selectedId={request?.paymentMethodId === WALLET_METHOD ? WALLET_METHOD : paymentCard?.id ?? null}
                 onSelect={(card) => changeCard(card.id)}
+                onSelectWallet={() => changeCard(WALLET_METHOD)}
+                wallet={wallet}
+                amount={amountDue}
                 onClose={() => setCardPickerOpen(false)}
+            />
+            <InsufficientFundsSheet
+                visible={insufficientOpen}
+                amount={amountDue ?? 0}
+                wallet={wallet}
+                cards={cards}
+                busy={retrying}
+                onClose={() => setInsufficientOpen(false)}
+                onToppedUp={(next) => {
+                    setWallet(next);
+                    setInsufficientOpen(false);
+                    retryConfirm();
+                }}
+                onPayWithCard={async (cardId) => {
+                    setInsufficientOpen(false);
+                    if (await changeCard(cardId)) retryConfirm();
+                }}
             />
             <ConfirmationModal
                 visible={cardRequired}
