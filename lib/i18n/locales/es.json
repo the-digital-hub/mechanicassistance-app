@@ -562,7 +562,7 @@
       "noPendingApproval": "No hay solicitudes pendientes de aprobación",
       "noPast": "No hay citas pasadas",
       "waitingForMechanic": "Esperando mecánico",
-      "mechanicOffered": "Mecánico ofertó",
+      "mechanicOffered": "Servicio ofertado",
       "tapToViewOffer": "Tocá para ver la oferta",
       "cancelModalTitle": "Cancelar solicitud",
       "cancelModalMessage": "¿Estás seguro de que querés cancelar esta solicitud?",
@@ -573,7 +573,7 @@
         "status": {
           "pending": "Esperando mecánico",
           "pendingHint": "Estamos buscando un mecánico",
-          "offered": "Mecánico ofertó",
+          "offered": "Servicio ofertado",
           "offeredHint": "Tocá para ver la oferta",
           "enRoute": "Mecánico en camino",
           "enRouteHint": "El mecánico está en camino",
