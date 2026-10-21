@@ -184,7 +184,8 @@ export default function AssistanceRequestsScreen() {
             placeholder={t('assist.searchPlaceholder')}
             value={searchQuery}
             onChangeText={setSearchQuery}
-            className="flex-1 ml-3 py-3 font-outfit-regular text-base"
+            className="flex-1 ml-3 py-3 font-outfit-regular"
+            style={{ fontSize: 16, letterSpacing: 0, textAlign: 'left' }}
             placeholderTextColor="#9CA3AF"
           />
         </View>

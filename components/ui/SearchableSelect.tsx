@@ -109,6 +109,7 @@ export function SearchableSelect<T extends SearchableSelectOption>({
                                 autoCorrect={false}
                                 autoCapitalize="none"
                                 className="flex-1 ml-2 font-outfit-regular text-[#0F172A]"
+                                style={{ fontSize: 16, letterSpacing: 0, textAlign: 'left' }}
                             />
                             {query ? (
                                 <TouchableOpacity onPress={() => setQuery('')} hitSlop={8}>

@@ -283,7 +283,8 @@ export default function IssueSelectionScreen() {
                             onChangeText={setSearchQuery}
                             placeholder={t('requestAssistance.issueSelection.searchPlaceholder')}
                             placeholderTextColor="#D1D5DB"
-                            className="ml-2 flex-1 font-outfit-regular text-[#0F172A] text-base"
+                            className="ml-2 flex-1 font-outfit-regular text-[#0F172A]"
+                            style={{ fontSize: 16, letterSpacing: 0, textAlign: 'left' }}
                         />
                         {searchQuery.length > 0 && (
                             <TouchableOpacity onPress={() => setSearchQuery('')}>
