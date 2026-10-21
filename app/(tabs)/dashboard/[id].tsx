@@ -10,6 +10,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Calendar, Clock, Navigation, HelpCircle } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { RequestIssueText } from '@/components/ui/RequestIssueText';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { FixedLocationMap } from '@/components/ui/FixedLocationMap';
 import { approximateArea, coarseAddress } from '@/lib/maps/approximateLocation';
@@ -34,7 +35,7 @@ function formatEta(minutes: number): string {
 }
 
 export default function AssistDetailScreen() {
-    const { id, type, assistanceType, title, car, address, zip, budget, userId, locationLat, locationLng, date } = useLocalSearchParams();
+    const { id, type, assistanceType, title, notes, car, address, zip, budget, userId, locationLat, locationLng, date } = useLocalSearchParams();
     const router = useRouter();
     const navigation = useNavigation();
     const { t, i18n } = useTranslation();
@@ -162,7 +163,11 @@ export default function AssistDetailScreen() {
                     <View className="mb-6 gap-4">
                         <View>
                             <Text className="font-outfit-bold text-gray-900 mb-1">{t('dashboardDetail.assistanceNeeded')}</Text>
-                            <Text className="font-outfit-regular text-gray-600">{title}</Text>
+                            <RequestIssueText
+                                requestId={id ? String(Array.isArray(id) ? id[0] : id) : undefined}
+                                fallback={(notes as string) || (title as string)}
+                                className="font-outfit-regular text-gray-600"
+                            />
                         </View>
                         <View>
                             <Text className="font-outfit-bold text-gray-900 mb-1">{t('dashboardDetail.car')}</Text>

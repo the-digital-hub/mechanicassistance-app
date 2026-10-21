@@ -17,6 +17,7 @@ import { approximateArea } from '@/lib/maps/approximateLocation';
 import { apiClient } from '@/lib/api/apiClient';
 import { videoCallStartLabel } from '@/lib/video/videoCallTime';
 import { LinearGradient } from 'expo-linear-gradient';
+import { RequestIssueText } from '@/components/ui/RequestIssueText';
 
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
     const R = 6371;
@@ -65,6 +66,7 @@ export default function RequestDetailScreen() {
     const type = field('type');
     const assistanceType = field('assistanceType');
     const title = field('title');
+    const notes = field('notes');
     const car = field('car');
     const address = field('address');
     const zip = field('zip');
@@ -369,7 +371,11 @@ export default function RequestDetailScreen() {
                             </View>
                             <View className="flex-1">
                                 <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">{t('requestDetail.assistanceNeeded')}</Text>
-                                <Text className="font-outfit-bold text-base text-gray-900">{title}</Text>
+                                <RequestIssueText
+                                    requestId={id ? String(Array.isArray(id) ? id[0] : id) : undefined}
+                                    fallback={String(notes || title || '')}
+                                    className="font-outfit-bold text-base text-gray-900"
+                                />
                             </View>
                         </View>
 

@@ -11,6 +11,7 @@ import { useUser } from '@/context/UserContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { AssistanceRequest, type AssistanceTypeCatalogItem } from '@/lib/dao/interfaces';
 import { translatedName } from '@/lib/i18n/catalogTranslations';
+import { RequestIssueText } from '@/components/ui/RequestIssueText';
 import { buildMechanicFeedFilters } from '@/lib/mechanic-feed';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Calendar, Video, Zap, MapPin, Wrench, DollarSign, Star, Award, Circle, Clock, Car, Lock } from 'lucide-react-native';
@@ -509,7 +510,7 @@ export default function DashboardScreen() {
                                                 </View>
                                                 <View className="flex-1">
                                                     <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">{t('dashboard.mechanic.assistanceNeeded')}</Text>
-                                                    <Text className="font-outfit-bold text-base text-gray-900">{request.notes || request.title}</Text>
+                                                    <RequestIssueText requestId={request.id} fallback={request.notes || request.title} className="font-outfit-bold text-base text-gray-900" />
                                                 </View>
                                             </View>
 
@@ -538,6 +539,7 @@ export default function DashboardScreen() {
                                                             type: request.type,
                                                             assistanceType: request.assistanceType || '',
                                                             title: request.title,
+                                                            notes: request.notes || '',
                                                             car: request.car,
                                                             address: request.address,
                                                             budget: request.budget,
