@@ -915,7 +915,26 @@
         "noDescription": "Todavía no hay descripción para este código.",
         "remove": "Quitar",
         "reminderTip": "Si no subís el archivo OBD hoy, mañana te llega un recordatorio.",
-        "attached": "Archivo del escaneo adjunto"
+        "attached": "Archivo del escaneo adjunto",
+        "vinMismatch": {
+          "title": "El VIN del scanner no coincide con el vehículo",
+          "body": "El VIN que leyó el escaneo OBD no es el del vehículo de este pedido. Contanos por qué antes de seguir.",
+          "requestVin": "Vehículo del pedido",
+          "scannerVin": "Scanner OBD",
+          "unknown": "Sin cargar",
+          "question": "¿Qué pasó?",
+          "options": {
+            "request_vin_wrong": "El VIN del pedido está mal",
+            "scanner_misread": "El scanner leyó mal el VIN",
+            "other": "Otro"
+          },
+          "vinPh": "VIN correcto (17 caracteres)",
+          "notePh": "Contanos qué pasó",
+          "noteOptionalPh": "Comentario (opcional)",
+          "submit": "Confirmar",
+          "stillMismatch": "Ese VIN tampoco coincide con el vehículo. Revisalo o elegí otra opción.",
+          "answered": "Discrepancia de VIN registrada: {{answer}}."
+        }
       },
       "photos": {
         "eyebrow": "PASO 3 · FOTOS",

@@ -36,6 +36,8 @@ export interface ObdCode {
 
 /** none → no report; processing → being read; ready → codes read; failed → unreadable; manual → typed in. */
 export type ObdStatus = 'none' | 'processing' | 'ready' | 'failed' | 'manual';
+/** Why the OBD VIN differs from the request's vehicle (mechanic's answer). */
+export type ObdVinResolution = 'request_vin_wrong' | 'scanner_misread' | 'other';
 
 export interface OnSiteVisit {
     appointmentId: string;
@@ -58,6 +60,11 @@ export interface OnSiteVisit {
     obdVin: string | null;
     /** true when that VIN is not the request vehicle's; null when not compared. */
     obdVinMismatch: boolean | null;
+    /** VIN of the request's vehicle; only sent when obdVinMismatch is true. */
+    vehicleVin?: string | null;
+    /** The mechanic's answer to a VIN mismatch; null while unanswered. */
+    obdVinResolution?: ObdVinResolution | null;
+    obdVinResolutionNote?: string | null;
     serviceAmount: string | null;
     /** Last time the owner was asked for a review (ISO); null if never. */
     reviewRequestedAt: string | null;
@@ -199,6 +206,18 @@ class OnSiteDAOImpl {
      */
     setObdCodes(appointmentId: string, codes: string[], vin?: string): Promise<OnSiteVisit> {
         return apiClient.put(`${base(appointmentId)}/on-site/obd/codes`, vin ? { codes, vin } : { codes });
+    }
+
+    /**
+     * The mechanic's answer when the OBD VIN is not the request vehicle's.
+     * `scanner_misread` carries the corrected VIN, compared again by the
+     * backend: if it still differs the answer is not kept and the app asks again.
+     */
+    resolveObdVin(
+        appointmentId: string,
+        body: { resolution: ObdVinResolution; vin?: string; note?: string },
+    ): Promise<OnSiteVisit> {
+        return apiClient.put(`${base(appointmentId)}/on-site/obd/vin-resolution`, body);
     }
 
     /**

@@ -915,7 +915,26 @@
         "noDescription": "No description for this code yet.",
         "remove": "Remove",
         "reminderTip": "If you don't upload the OBD file today, you'll get a reminder tomorrow.",
-        "attached": "Scan file attached"
+        "attached": "Scan file attached",
+        "vinMismatch": {
+          "title": "The scanner VIN doesn't match the vehicle",
+          "body": "The VIN read from the OBD scan is not the VIN of the vehicle on this request. Tell us why before going on.",
+          "requestVin": "Request vehicle",
+          "scannerVin": "OBD scanner",
+          "unknown": "Not on file",
+          "question": "What happened?",
+          "options": {
+            "request_vin_wrong": "The VIN on the request is wrong",
+            "scanner_misread": "The scanner read the VIN wrong",
+            "other": "Other"
+          },
+          "vinPh": "Correct VIN (17 characters)",
+          "notePh": "Tell us what happened",
+          "noteOptionalPh": "Comment (optional)",
+          "submit": "Confirm",
+          "stillMismatch": "That VIN doesn't match the vehicle either. Check it or pick another option.",
+          "answered": "VIN discrepancy recorded: {{answer}}."
+        }
       },
       "photos": {
         "eyebrow": "STEP 3 · PHOTOS",

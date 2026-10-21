@@ -4,6 +4,7 @@ import { ActivityIndicator, Alert, Text, TextInput, TouchableOpacity, View } fro
 import { ObdCode, onSiteDAO, OnSiteVisit } from '@/lib/dao/OnSiteDAO';
 import { MediaSlot, Picked } from './MediaSlot';
 import { Card, CardTitle, OS, Tip } from './ui';
+import { VinMismatchModal } from './VinMismatchModal';
 
 // The OBD scanner report of a visit: upload the file (its trouble codes are
 // read in the background by the document service), see the codes with what
@@ -73,7 +74,7 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true }: 
     };
 
     // The VIN is compared with the request's vehicle on the backend; a mismatch
-    // is only recorded there, the mechanic is not stopped.
+    // opens VinMismatchModal, which the mechanic has to answer.
     const saveVin = () => {
         const value = vin.replace(/[\s-]/g, '').toUpperCase();
         if (!VIN.test(value)) {
@@ -86,8 +87,11 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true }: 
 
     const removeCode = (code: string) => void saveCodes(codes.filter((c) => c.code !== code).map((c) => c.code));
 
+    const askVin = visit?.obdVinMismatch === true && !visit.obdVinResolution;
+
     return (
         <>
+            {visit && askVin ? <VinMismatchModal appointmentId={appointmentId} visit={visit} onVisit={onVisit} /> : null}
             {allowUpload ? (
                 <Card>
                     <CardTitle title={t(`${k}.file`)} optional />
@@ -109,6 +113,11 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true }: 
                 </View>
             ) : null}
             {status === 'failed' ? <Tip tone="orange">{t(`${k}.failed`)}</Tip> : null}
+            {visit?.obdVinMismatch && visit.obdVinResolution ? (
+                <Tip tone="orange">
+                    {t(`${k}.vinMismatch.answered`, { answer: t(`${k}.vinMismatch.options.${visit.obdVinResolution}`) })}
+                </Tip>
+            ) : null}
 
             {codes.length ? (
                 <Card>
@@ -167,16 +176,17 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true }: 
                 <View className="flex-row gap-2 px-4 pt-2 pb-3">
                     <TextInput
                         value={input}
-                        onChangeText={(v) => setInput(v.toUpperCase())}
+                        // No native maxLength: iOS spreads a placeholder longer
+                        // than maxLength across the field ("e . g .  P 0 3 0 1").
+                        onChangeText={(v) => setInput(v.toUpperCase().slice(0, 5))}
                         onSubmitEditing={addCode}
                         placeholder={t(`${k}.manualPh`)}
                         placeholderTextColor={OS.mutedLight}
                         autoCapitalize="characters"
                         autoCorrect={false}
-                        maxLength={5}
                         returnKeyType="done"
                         className="flex-1 font-outfit-bold text-[13px] px-3 py-2.5"
-                        style={{ borderRadius: 12, borderWidth: 1.5, borderColor: inputError ? OS.red : OS.border, backgroundColor: OS.page, color: OS.text }}
+                        style={{ borderRadius: 12, borderWidth: 1.5, borderColor: inputError ? OS.red : OS.border, backgroundColor: OS.page, color: OS.text, textAlign: 'left' }}
                         testID="obd-code-input"
                     />
                     <TouchableOpacity
@@ -197,16 +207,15 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true }: 
                 <View className="flex-row gap-2 px-4 pt-2 pb-3">
                     <TextInput
                         value={vin}
-                        onChangeText={(v) => setVin(v.toUpperCase())}
+                        onChangeText={(v) => setVin(v.toUpperCase().slice(0, 20))}
                         onSubmitEditing={saveVin}
                         placeholder={t(`${k}.vinPh`)}
                         placeholderTextColor={OS.mutedLight}
                         autoCapitalize="characters"
                         autoCorrect={false}
-                        maxLength={20}
                         returnKeyType="done"
                         className="flex-1 font-outfit-bold text-[13px] px-3 py-2.5"
-                        style={{ borderRadius: 12, borderWidth: 1.5, borderColor: vinError ? OS.red : OS.border, backgroundColor: OS.page, color: OS.text }}
+                        style={{ borderRadius: 12, borderWidth: 1.5, borderColor: vinError ? OS.red : OS.border, backgroundColor: OS.page, color: OS.text, textAlign: 'left' }}
                         testID="obd-vin-input"
                     />
                     <TouchableOpacity
