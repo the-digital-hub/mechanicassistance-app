@@ -99,12 +99,8 @@ export default function JobReceiptScreen() {
                     {earning ? (
                         <Card>
                             <Text className="font-outfit-bold text-xs px-4 pt-3" style={{ color: OS.text }}>{t(`${k}.payment`)}</Text>
-                            <Line label={t(`${k}.customerPaid`)} value={money(earning.grossAmount)} />
-                            <Line label={t(`${k}.platformFee`)} value={money(earning.platformFee)} negative />
+                            {/* Providers see what they get, never the fee or what the customer paid. */}
                             <Line label={t(`${k}.youEarn`)} value={money(earning.netAmount)} strong />
-                            <Text className="font-outfit-medium text-[11px] px-4 pb-3" style={{ color: OS.mutedLight }}>
-                                {t(`${k}.feeNote`)}
-                            </Text>
                             <View className="px-4 pb-3">
                                 <Text className="font-outfit-bold text-[10.5px] uppercase" style={{ color: OS.mutedLight }}>{t(`${k}.status`)}</Text>
                                 <Text className="font-outfit-bold text-sm mt-0.5" style={{ color: OS.text }}>

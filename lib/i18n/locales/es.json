@@ -22,7 +22,7 @@
       "addresses": "Mis Direcciones",
       "vehicles": "Mis Vehículos",
       "ase": "Certificaciones ASE",
-      "payments": "Cuenta bancaria / pagos",
+      "payments": "Ganancias y pagos",
       "promotions": "Promociones",
       "help": "Centro de ayuda",
       "privacy": "Política de privacidad",
@@ -2028,19 +2028,82 @@
     "walletWithBalance": "Wallet · {{available}}"
   },
   "payments": {
-    "badge": "CUENTA BANCARIA",
-    "title": "Cuenta bancaria",
-    "subtitle": "Agregá tu cuenta bancaria para recibir pagos",
-    "collectionMethod": "Método de cobro",
-    "bankAccount": "Cuenta bancaria",
-    "gPay": "G Pay",
-    "applePay": "Pay",
-    "accountName": "Nombre de la cuenta",
-    "accountNumber": "Número de cuenta",
-    "routingNumber": "N.º de ruta",
-    "checkingAcc": "Cuenta corriente",
-    "back": "Atrás",
-    "save": "Guardar"
+    "badge": "PAGOS AL PROVEEDOR",
+    "title": "Tus ganancias",
+    "subtitle": "Lo que ganaste, lo que está en camino y lo que ya te pagamos.",
+    "account": {
+      "ready": "Tu cuenta de cobro está lista.",
+      "connected": "Cuenta de cobro conectada",
+      "notConnected": "Conectá una cuenta de cobro para recibir tus ganancias. Los datos bancarios se cargan en Stripe, nunca en la app.",
+      "pendingReview": "Stripe todavía necesita información antes de poder pagarte.",
+      "connect": "Conectar cuenta de cobro",
+      "continue": "Terminar configuración en Stripe",
+      "manage": "Administrar cuenta de cobro",
+      "notReady": "Configuración incompleta",
+      "keepsAccruing": "Tus ganancias se siguen acumulando y se pagan cuando la cuenta esté lista.",
+      "openFailed": "No se pudo abrir Stripe. Intentá de nuevo.",
+      "loadFailed": "No se pudo consultar tu cuenta de cobro."
+    },
+    "summary": {
+      "totalEarned": "TOTAL GANADO",
+      "totalEarnedHint": "Todas las ganancias registradas",
+      "pending": "PENDIENTE",
+      "pendingHint": "{{count}} pendientes",
+      "pendingHint_one": "1 pendiente",
+      "pendingHint_other": "{{count}} pendientes",
+      "ready": "LISTO",
+      "readyHint": "Sale en la próxima liquidación",
+      "paidOut": "PAGADO",
+      "paidOutHint": "{{count}} pagos",
+      "paidOutHint_one": "1 pago",
+      "paidOutHint_other": "{{count}} pagos",
+      "noPayouts": "Sin pagos registrados"
+    },
+    "actions": {
+      "statement": "Descargar estado de cuenta (PDF)",
+      "statementFailed": "No se pudo descargar el estado de cuenta. Intentá de nuevo.",
+      "pending": "Pagos pendientes",
+      "all": "Todos los pagos"
+    },
+    "activity": {
+      "title": "Actividad de ganancias",
+      "count": "{{count}} registros",
+      "count_one": "1 registro",
+      "count_other": "{{count}} registros",
+      "from": "DESDE",
+      "to": "HASTA",
+      "sort": "ORDEN",
+      "newest": "Más recientes",
+      "oldest": "Más antiguos",
+      "clear": "Limpiar",
+      "any": "Cualquier fecha",
+      "assistanceId": "ID de asistencia: #{{id}}",
+      "location": "Ubicación: {{address}}",
+      "unavailable": "Detalles del pedido no disponibles",
+      "fallbackTitle": "Asistencia",
+      "empty": "No hay ganancias con estos filtros.",
+      "loadFailed": "No se pudieron cargar tus ganancias. Deslizá hacia abajo para reintentar."
+    },
+    "status": {
+      "pending": "PENDIENTE",
+      "ready": "LISTO",
+      "settled": "PAGADO",
+      "void": "ANULADO"
+    },
+    "statusHint": {
+      "pending": "En período de espera (2 días)",
+      "ready": "Se pagará en la próxima liquidación",
+      "settled": "Pagado",
+      "void": "Anulado"
+    },
+    "payouts": {
+      "title": "Historial de pagos",
+      "empty": "Todavía no recibiste pagos.",
+      "services": "{{count}} servicios",
+      "services_one": "1 servicio",
+      "services_other": "{{count}} servicios"
+    },
+    "howItWorks": "Las ganancias esperan 2 días desde que se cobra el servicio y después se envían solas a tu cuenta de cobro."
   },
   "chat": {
     "online": "En línea",
@@ -2193,6 +2256,36 @@
       "back": "Volver",
       "cancel": "Ahora no",
       "retrying": "Procesando el pago…"
+    },
+    "totalBalance": "Saldo total",
+    "heldForServices": "Retenido por servicios",
+    "currency": "USD",
+    "seeAll": "Ver todo",
+    "activity": {
+      "title": "Actividad de pagos",
+      "payments": "Pagos",
+      "movements": "Movimientos de la billetera",
+      "empty": "Todavía no hay pagos.",
+      "loadMore": "Cargar más",
+      "loadFailed": "No se pudo cargar tu actividad. Intentá de nuevo.",
+      "charged": "Cobrado {{amount}}",
+      "held": "Retenido {{amount}}",
+      "refunded": "Reembolsado {{amount}}",
+      "method": {
+        "wallet": "Billetera",
+        "card": "Tarjeta",
+        "other": "Pago"
+      },
+      "status": {
+        "held": "Retenido",
+        "captured": "Cobrado",
+        "released": "Liberado",
+        "refunded": "Reembolsado",
+        "partially_refunded": "Reembolso parcial",
+        "failed": "Fallido",
+        "pending": "Pendiente",
+        "other": "—"
+      }
     }
   }
 }

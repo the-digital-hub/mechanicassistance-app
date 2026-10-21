@@ -31,6 +31,72 @@ export interface MechanicEarning {
     createdAt: string;
 }
 
+/** All-time totals of `GET /api/earnings/me` (`summary`). Amounts are decimal strings, net of fees. */
+export interface EarningsSummary {
+    totalEarned: string;
+    pendingNet: string;
+    pendingCount: number;
+    readyNet: string;
+    readyCount: number;
+    paidOut: string;
+    payoutsCount: number;
+    currency: string;
+}
+
+/** `GET /api/earnings/me`. `summary` ignores the filters; `items` holds at most 200. */
+export interface EarningsList {
+    owedNet: string;
+    owedBackForRefunds: string;
+    summary: EarningsSummary;
+    items: MechanicEarning[];
+}
+
+export interface EarningsFilters {
+    status?: MechanicEarning['status'];
+    /** YYYY-MM-DD, inclusive. */
+    from?: string;
+    /** YYYY-MM-DD, exclusive. */
+    to?: string;
+    sort?: 'newest' | 'oldest';
+}
+
+/** One transfer to the mechanic's Stripe account, covering several earnings. */
+export interface Payout {
+    id: string;
+    stripeTransferId: string;
+    amount: string;
+    currency: string;
+    earningsCount: number;
+    createdAt: string;
+}
+
+export interface PayoutPage {
+    items: Payout[];
+    total: number;
+    page: number;
+    limit: number;
+}
+
+/** `GET /api/connect/me`: where the mechanic's Stripe payout account stands. */
+export interface ConnectStatus {
+    connected: boolean;
+    detailsSubmitted: boolean;
+    payoutsEnabled: boolean;
+    /** What decides whether earnings can be paid out. */
+    canReceiveTransfers: boolean;
+    requirementsDue: string[];
+}
+
+/** `POST /api/assistance/summaries`: what a job was, for lists that only hold its id. */
+export interface AssistanceSummary {
+    id: string;
+    assistanceType: string;
+    title: string;
+    address: string | null;
+    createdAt: string;
+    isVideoCall: boolean;
+}
+
 export interface AssistanceRequest {
     id: string;
     type: AssistanceType;

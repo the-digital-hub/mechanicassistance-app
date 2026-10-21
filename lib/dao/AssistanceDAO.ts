@@ -1,6 +1,6 @@
 import { apiClient } from '../api/apiClient';
 import { ConfigService } from '../config/ConfigService';
-import { AssistanceOfferSummary, AssistanceRequest, IAssistanceDAO } from './interfaces';
+import { AssistanceOfferSummary, AssistanceRequest, AssistanceSummary, IAssistanceDAO } from './interfaces';
 
 export class AssistanceDAO implements IAssistanceDAO {
     async getAll(filters?: { userId?: string; mechanicId?: string; status?: string; zip?: string; lat?: number; lng?: number; radiusKm?: number }): Promise<AssistanceRequest[]> {
@@ -14,6 +14,12 @@ export class AssistanceDAO implements IAssistanceDAO {
 
     async getById(id: string): Promise<AssistanceRequest | null> {
         return apiClient.get(`/api/assistance/${id}`);
+    }
+
+    /** Title, address and date of many jobs in one call (at most 200). Ids the caller cannot see are left out. */
+    async summaries(ids: string[]): Promise<AssistanceSummary[]> {
+        if (ids.length === 0) return [];
+        return apiClient.post('/api/assistance/summaries', { ids: [...new Set(ids)].slice(0, 200) });
     }
 
     /** The mechanic's offer as the owner reviews it: who, how much, and until when it is held. */

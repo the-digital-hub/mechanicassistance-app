@@ -22,7 +22,7 @@
       "addresses": "My Addresses",
       "vehicles": "My Vehicles",
       "ase": "ASE Certifications",
-      "payments": "Bank Account / payments",
+      "payments": "Earnings & payouts",
       "promotions": "Promotions",
       "help": "Help Center",
       "privacy": "Privacy Policy",
@@ -2028,19 +2028,82 @@
     "walletWithBalance": "Wallet · {{available}}"
   },
   "payments": {
-    "badge": "BANK ACCOUNT",
-    "title": "Bank account",
-    "subtitle": "Add your bank account to receive payments",
-    "collectionMethod": "Collection method",
-    "bankAccount": "Bank Account",
-    "gPay": "G Pay",
-    "applePay": "Pay",
-    "accountName": "Account name",
-    "accountNumber": "Account number",
-    "routingNumber": "Routing #",
-    "checkingAcc": "Checking acc.",
-    "back": "Back",
-    "save": "Save"
+    "badge": "PROVIDER PAYOUTS",
+    "title": "Your earnings",
+    "subtitle": "What you earned, what is on its way and what was already paid to you.",
+    "account": {
+      "ready": "Your payout account is ready.",
+      "connected": "Payout account connected",
+      "notConnected": "Connect a payout account to receive your earnings. Your bank details are entered on Stripe, never in the app.",
+      "pendingReview": "Stripe still needs some information before it can pay you.",
+      "connect": "Connect payout account",
+      "continue": "Finish setup on Stripe",
+      "manage": "Manage payout account",
+      "notReady": "Setup incomplete",
+      "keepsAccruing": "Your earnings keep adding up and will be paid once the account is ready.",
+      "openFailed": "Could not open Stripe. Try again.",
+      "loadFailed": "Could not check your payout account."
+    },
+    "summary": {
+      "totalEarned": "TOTAL EARNED",
+      "totalEarnedHint": "All recorded earnings",
+      "pending": "PENDING",
+      "pendingHint": "{{count}} pending items",
+      "pendingHint_one": "1 pending item",
+      "pendingHint_other": "{{count}} pending items",
+      "ready": "READY",
+      "readyHint": "Goes out in the next payout",
+      "paidOut": "PAID OUT",
+      "paidOutHint": "{{count}} payouts",
+      "paidOutHint_one": "1 payout",
+      "paidOutHint_other": "{{count}} payouts",
+      "noPayouts": "No payouts recorded"
+    },
+    "actions": {
+      "statement": "Download account statement (PDF)",
+      "statementFailed": "Could not download the statement. Try again.",
+      "pending": "Pending payments",
+      "all": "All payments"
+    },
+    "activity": {
+      "title": "Earnings activity",
+      "count": "{{count}} records",
+      "count_one": "1 record",
+      "count_other": "{{count}} records",
+      "from": "FROM",
+      "to": "TO",
+      "sort": "SORT",
+      "newest": "Newest first",
+      "oldest": "Oldest first",
+      "clear": "Clear",
+      "any": "Any date",
+      "assistanceId": "Assistance ID: #{{id}}",
+      "location": "Location: {{address}}",
+      "unavailable": "Request details unavailable",
+      "fallbackTitle": "Assistance",
+      "empty": "No earnings for these filters.",
+      "loadFailed": "Could not load your earnings. Pull down to try again."
+    },
+    "status": {
+      "pending": "PENDING",
+      "ready": "READY",
+      "settled": "PAID",
+      "void": "VOID"
+    },
+    "statusHint": {
+      "pending": "In the 2-day waiting period",
+      "ready": "Will be paid in the next payout",
+      "settled": "Paid",
+      "void": "Cancelled"
+    },
+    "payouts": {
+      "title": "Payout history",
+      "empty": "No payouts received yet.",
+      "services": "{{count}} services",
+      "services_one": "1 service",
+      "services_other": "{{count}} services"
+    },
+    "howItWorks": "Earnings wait 2 days after the service is charged, then are sent automatically to your payout account."
   },
   "chat": {
     "online": "Online",
@@ -2193,6 +2256,36 @@
       "back": "Back",
       "cancel": "Not now",
       "retrying": "Processing the payment…"
+    },
+    "totalBalance": "Total balance",
+    "heldForServices": "Held for services",
+    "currency": "USD",
+    "seeAll": "See all",
+    "activity": {
+      "title": "Payment activity",
+      "payments": "Payments",
+      "movements": "Wallet movements",
+      "empty": "No payments yet.",
+      "loadMore": "Load more",
+      "loadFailed": "Could not load your activity. Try again.",
+      "charged": "Charged {{amount}}",
+      "held": "On hold {{amount}}",
+      "refunded": "Refunded {{amount}}",
+      "method": {
+        "wallet": "Wallet",
+        "card": "Card",
+        "other": "Payment"
+      },
+      "status": {
+        "held": "On hold",
+        "captured": "Charged",
+        "released": "Released",
+        "refunded": "Refunded",
+        "partially_refunded": "Partly refunded",
+        "failed": "Failed",
+        "pending": "Pending",
+        "other": "—"
+      }
     }
   }
 }

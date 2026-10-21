@@ -1,3 +1,4 @@
+import { type Href, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Plus, Wallet as WalletIcon } from 'lucide-react-native';
 import React from 'react';
@@ -25,6 +26,7 @@ const CREDITS = ['deposit', 'refund', 'auto_replenish', 'adjustment_credit'];
  */
 export function WalletSection({ cards }: { cards: PaymentCard[] }) {
     const { t, i18n } = useTranslation();
+    const router = useRouter();
     const { wallet, setWallet } = useWallet();
     const [movements, setMovements] = React.useState<WalletMovement[] | null>(null);
     const [topUpOpen, setTopUpOpen] = React.useState(false);
@@ -62,7 +64,10 @@ export function WalletSection({ cards }: { cards: PaymentCard[] }) {
             <LinearGradient colors={['#0047AB', '#1D6FE0']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 20, padding: 20 }}>
                 <View className="flex-row items-center" style={{ gap: 8 }}>
                     <WalletIcon size={18} color="#DCE8FF" />
-                    <Text className="font-outfit-semibold text-sm" style={{ color: '#DCE8FF' }}>{t(`${K}.available`)}</Text>
+                    <Text className="font-outfit-semibold text-sm flex-1" style={{ color: '#DCE8FF' }}>{t(`${K}.available`)}</Text>
+                    <View className="px-2 py-0.5 rounded-full" style={{ borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' }}>
+                        <Text className="font-outfit-bold text-[10px] tracking-widest" style={{ color: '#fff' }}>{t(`${K}.currency`)}</Text>
+                    </View>
                 </View>
                 {wallet ? (
                     <Text className="font-outfit-bold" style={{ fontSize: 34, color: '#fff', marginTop: 6 }} testID="wallet-available">
@@ -71,10 +76,21 @@ export function WalletSection({ cards }: { cards: PaymentCard[] }) {
                 ) : (
                     <ActivityIndicator color="#fff" style={{ alignSelf: 'flex-start', marginTop: 12 }} />
                 )}
-                {held > 0 && (
-                    <Text className="font-outfit-regular text-sm" style={{ color: '#DCE8FF', marginTop: 2 }}>
-                        {t(`${K}.held`, { amount: formatMoney(held) })}
-                    </Text>
+                {wallet && (
+                    <View className="flex-row mt-3 pt-3" style={{ borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.2)', gap: 12 }}>
+                        <View className="flex-1">
+                            <Text className="font-outfit-semibold text-[11px] uppercase" style={{ color: '#DCE8FF' }}>{t(`${K}.totalBalance`)}</Text>
+                            <Text className="font-outfit-bold text-base" style={{ color: '#fff' }} testID="wallet-total">
+                                {formatMoney(wallet.balance)}
+                            </Text>
+                        </View>
+                        <View className="flex-1">
+                            <Text className="font-outfit-semibold text-[11px] uppercase" style={{ color: '#DCE8FF' }}>{t(`${K}.heldForServices`)}</Text>
+                            <Text className="font-outfit-bold text-base" style={{ color: '#fff' }} testID="wallet-held">
+                                {formatMoney(held)}
+                            </Text>
+                        </View>
+                    </View>
                 )}
                 <TouchableOpacity
                     onPress={() => {
@@ -99,7 +115,12 @@ export function WalletSection({ cards }: { cards: PaymentCard[] }) {
 
             <Text className="text-gray-500 font-outfit-regular text-sm mt-3">{t(`${K}.howItWorks`)}</Text>
 
-            <Text className="text-gray-900 font-outfit-semibold text-base mt-6 mb-2">{t(`${K}.movements`)}</Text>
+            <View className="flex-row items-center justify-between mt-6 mb-2">
+                <Text className="text-gray-900 font-outfit-semibold text-base">{t(`${K}.movements`)}</Text>
+                <TouchableOpacity onPress={() => router.push('/payment-activity' as Href)} accessibilityRole="link" testID="wallet-see-all">
+                    <Text className="font-outfit-semibold text-sm" style={{ color: '#0047AB' }}>{t(`${K}.seeAll`)}</Text>
+                </TouchableOpacity>
+            </View>
             {movements === null ? (
                 <ActivityIndicator color="#0047AB" />
             ) : movements.length === 0 ? (

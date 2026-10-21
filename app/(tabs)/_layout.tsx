@@ -416,6 +416,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="payment-activity"
+        options={{
+          href: null,
+          title: t('wallet.activity.title'),
+          headerLeft: () => <PersonalInfoHeaderLeft />,
+          headerRight: () => <PersonalInfoHeaderRight />,
+        }}
+      />
+      <Tabs.Screen
         name="ase"
         options={{
           href: null,
