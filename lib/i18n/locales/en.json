@@ -627,6 +627,7 @@
         "approximateArea": "Approximate area — the exact location is not shown",
         "budgetLabel": "Budget",
         "paidLabel": "Paid",
+        "earnedLabel": "Earned",
         "chargedLabel": "Charged",
         "viewOffer": "View offer",
         "viewDetails": "View details",
@@ -1113,6 +1114,28 @@
       "footerClosed": "The owner confirmed — this assistance is closed.",
       "arrivesByEst": "ARRIVES BY (EST.)",
       "arrivedOn": "SENT ON"
+    },
+    "receipt": {
+      "title": "Receipt",
+      "earnings": "Your earnings",
+      "yourService": "Your service",
+      "base": "Base price",
+      "timeBand": "Time-of-day adjustment",
+      "weather": "Weather adjustment",
+      "serviceTotal": "Service total",
+      "payment": "Payment",
+      "customerPaid": "Customer paid",
+      "platformFee": "Platform fees & taxes",
+      "youEarn": "You earn",
+      "feeNote": "Fees and taxes are shown as one amount.",
+      "status": "Payout status",
+      "statusValue": {
+        "pending": "Pending",
+        "ready": "Ready to be paid",
+        "settled": "Paid out",
+        "void": "Cancelled"
+      },
+      "notCharged": "This service has not been charged yet, so there is no payment to show."
     },
     "ownerReview": {
       "title": "Rate your mechanic",

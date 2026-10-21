@@ -627,6 +627,7 @@
         "approximateArea": "Zona aproximada — no se muestra la ubicación exacta",
         "budgetLabel": "Presupuesto",
         "paidLabel": "Pagado",
+        "earnedLabel": "Ganado",
         "chargedLabel": "Cobrado",
         "viewOffer": "Ver oferta",
         "viewDetails": "Ver detalles",
@@ -1113,6 +1114,28 @@
       "footerClosed": "El dueño confirmó — esta asistencia está cerrada.",
       "arrivesByEst": "LLEGA APROX.",
       "arrivedOn": "ENVIADO EL"
+    },
+    "receipt": {
+      "title": "Recibo",
+      "earnings": "Tus ganancias",
+      "yourService": "Tu servicio",
+      "base": "Precio base",
+      "timeBand": "Ajuste por horario",
+      "weather": "Ajuste por clima",
+      "serviceTotal": "Total del servicio",
+      "payment": "Pago",
+      "customerPaid": "El cliente pagó",
+      "platformFee": "Comisiones e impuestos",
+      "youEarn": "Tú recibes",
+      "feeNote": "Las comisiones y los impuestos se muestran como un solo monto.",
+      "status": "Estado del pago",
+      "statusValue": {
+        "pending": "Pendiente",
+        "ready": "Listo para pagarse",
+        "settled": "Pagado",
+        "void": "Cancelado"
+      },
+      "notCharged": "Este servicio aún no se cobró, así que no hay un pago para mostrar."
     },
     "ownerReview": {
       "title": "Calificá a tu mecánico",

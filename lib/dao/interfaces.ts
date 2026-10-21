@@ -10,6 +10,27 @@ export type AssistanceType =
     | 'witness'
     | 'towing';
 
+/** What a mechanic earns for a job, as 2-decimal strings ("149.00"). */
+export interface ProviderBreakdown {
+    base: string;
+    timeBand?: { dayType: string; multiplier: number | string; amount: string } | null;
+    weather?: { type: string; multiplier: number | string; amount: string } | null;
+    total: string;
+}
+
+/** One charged service in `GET /api/earnings/me`. `platformFee` is fees and taxes together. */
+export interface MechanicEarning {
+    id: string;
+    assistanceRequestId: string;
+    grossAmount: string;
+    platformFee: string;
+    netAmount: string;
+    currency: string;
+    status: 'pending' | 'ready' | 'settled' | 'void';
+    settledAt: string | null;
+    createdAt: string;
+}
+
 export interface AssistanceRequest {
     id: string;
     type: AssistanceType;
@@ -54,6 +75,8 @@ export interface AssistanceRequest {
     price?: string;
     /** Mechanic's estimated arrival time, e.g. "20 min" */
     eta?: string;
+    /** Mechanic-only: how the amount they earn is built. Fees and taxes never appear here. */
+    providerBreakdown?: ProviderBreakdown | null;
     /** While `offered`: when the offer stops being held (ISO). Then the request goes back to `pending`. */
     offerExpiresAt?: string | null;
     /** The saved vehicle, included by GET /api/assistance/:id. */

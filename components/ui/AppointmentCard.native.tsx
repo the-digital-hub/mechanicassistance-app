@@ -158,6 +158,11 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
      * screen that can actually act on the request.
      */
     const openDetail = () => {
+        // A mechanic's finished job opens its receipt, not the request.
+        if (isMechanic && state === 'completed') {
+            router.push({ pathname: '/(tabs)/appointments/receipt/[id]' as any, params: { id: appointment.id } });
+            return;
+        }
         if (appointment.source === 'assistance') {
             if (isMechanic) {
                 router.push({
@@ -230,7 +235,7 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
         ? t('appointments.list.card.budgetLabel')
         : notCharged
             ? t('appointments.list.card.chargedLabel')
-            : t('appointments.list.card.paidLabel');
+            : t(isMechanic ? 'appointments.list.card.earnedLabel' : 'appointments.list.card.paidLabel');
     const amount = notCharged ? '$0' : appointment.budget;
 
     const ctaLabel = state === 'offered' && !isMechanic
