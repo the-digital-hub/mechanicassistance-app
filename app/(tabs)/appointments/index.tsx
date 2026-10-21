@@ -55,25 +55,20 @@ export default function AppointmentsScreen() {
                 data={appointments}
                 keyExtractor={(item) => item.id}
                 ListHeaderComponent={
-                    <View className="px-6 pt-4 pb-4">
+                    <View style={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 12 }}>
                         {/* Section Badge */}
-                        <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
-                          <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
-                          <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+                        <View className="flex-row items-center rounded-full" style={{ gap: 6, marginBottom: 12, paddingHorizontal: 10, paddingVertical: 4, backgroundColor: '#EAF1FF', alignSelf: 'flex-start' }}>
+                          <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: '#1E56E3' }} />
+                          <Text className="font-outfit-bold text-[10.5px]" style={{ color: '#1E56E3', letterSpacing: 1.3 }}>
                             {t('appointments.list.badge')}
                           </Text>
                         </View>
 
                         {/* Title */}
-                        <Text className="text-gray-900 font-outfit-bold text-3xl mb-3">{t('appointments.list.title')}</Text>
-
-                        {/* Subtitle */}
-                        <Text className="text-gray-500 font-outfit-regular text-base mb-6">
-                          {t('appointments.list.subtitle')}
-                        </Text>
+                        <Text className="font-outfit-bold text-[26px]" style={{ color: '#0B1530', letterSpacing: -0.7, lineHeight: 29 }}>{t('appointments.list.title')}</Text>
 
                         {/* Tab Switcher */}
-                        <View className="flex-row gap-1 p-1 rounded-2xl" style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E4EAF5' }}>
+                        <View className="flex-row" style={{ marginTop: 16, gap: 4, padding: 4, borderRadius: 14, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E4EAF5' }}>
                             {([
                                 { key: 'upcoming', label: t('appointments.list.upcoming'), count: upcomingCount },
                                 { key: 'pending', label: t('appointments.list.pendingApproval'), count: pendingCount },
@@ -86,12 +81,19 @@ export default function AppointmentsScreen() {
                                 return (
                                     <TouchableOpacity
                                         key={tab.key}
-                                        className="flex-1 flex-row items-center justify-center gap-1.5 py-2.5 px-1 rounded-xl"
-                                        style={{ backgroundColor: isActive ? '#1E56E3' : 'transparent' }}
+                                        className="flex-1 flex-row items-center justify-center"
+                                        style={{
+                                            gap: 6,
+                                            paddingVertical: 10,
+                                            paddingHorizontal: 4,
+                                            borderRadius: 11,
+                                            backgroundColor: isActive ? '#1E56E3' : 'transparent',
+                                            ...(isActive && { shadowColor: '#1E56E3', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.35, shadowRadius: 8, elevation: 4 }),
+                                        }}
                                         onPress={() => setActiveTab(tab.key)}
                                     >
                                         <Text
-                                            className="font-outfit-bold text-sm"
+                                            className="font-outfit-bold text-[13.5px]"
                                             numberOfLines={1}
                                             style={{ color: isActive ? '#FFFFFF' : '#6B7490' }}
                                         >
@@ -114,13 +116,14 @@ export default function AppointmentsScreen() {
                 }
                 renderItem={({ item }) => (
                     <View
-                        className="px-6 mb-4"
                         style={{
-                            shadowColor: '#000',
+                            paddingHorizontal: 20,
+                            marginBottom: 14,
+                            shadowColor: '#0E2F8A',
                             shadowOffset: { width: 0, height: 4 },
-                            shadowOpacity: 0.12,
-                            shadowRadius: 8,
-                            elevation: 6,
+                            shadowOpacity: 0.06,
+                            shadowRadius: 14,
+                            elevation: 3,
                         }}
                     >
                         <AppointmentCard
@@ -132,7 +135,7 @@ export default function AppointmentsScreen() {
                 contentContainerStyle={{ paddingBottom: 20 }}
                 ListEmptyComponent={
                     <View className="items-center justify-center py-10">
-                        <Text className="text-gray-400 font-outfit-medium">{activeTab === 'upcoming'
+                        <Text className="font-outfit-bold text-[14.5px]" style={{ color: '#0B1530' }}>{activeTab === 'upcoming'
                             ? t('appointments.list.noUpcoming')
                             : activeTab === 'pending'
                                 ? t('appointments.list.noPendingApproval')

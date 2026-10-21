@@ -337,6 +337,12 @@ export default function TabLayout() {
         options={{
           title: t('tabs.appointments'),
           tabBarIcon: ({ color }) => <Calendar size={24} color={color} />,
+          headerStyle: { backgroundColor: "#F6F8FC" },
+          headerTitleStyle: {
+            fontFamily: "Outfit_700Bold",
+            fontSize: 17,
+            color: "#0B1530",
+          },
           headerLeft: () =>
             isAppointmentDetail ? (
               <TouchableOpacity

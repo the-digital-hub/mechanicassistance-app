@@ -89,9 +89,9 @@ function TechnicianRow({ mechanic, label, onMessage, messageLabel }: {
                 </LinearGradient>
             )}
             <View className="flex-1">
-                <Text className="font-outfit-bold text-[10.5px] uppercase tracking-wider" style={{ color: C.muted }}>{label}</Text>
+                <Text className="font-outfit-bold text-[10.5px] uppercase" style={{ color: C.muted, letterSpacing: 0.8 }}>{label}</Text>
                 <View className="flex-row items-center" style={{ gap: 6, marginTop: 1 }}>
-                    <Text className="font-outfit-bold text-[14.5px] flex-shrink" style={{ color: C.text }} numberOfLines={1}>
+                    <Text className="font-outfit-bold text-[14.5px] flex-shrink" style={{ color: C.text, letterSpacing: -0.2 }} numberOfLines={1}>
                         {mechanic.displayName ?? t('requestAssistance.mechanicFound.technicianFallback')}
                     </Text>
                     {mechanic.avgRating != null ? (
@@ -263,10 +263,10 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                     <TypeIcon size={20} color={isPast ? C.muted : C.blue} />
                 </View>
                 <View className="flex-1">
-                    <Text className="font-outfit-bold text-[10.5px] uppercase tracking-widest" style={{ color: C.muted }}>
+                    <Text className="font-outfit-bold text-[10.5px] uppercase" style={{ color: C.muted, letterSpacing: 0.9 }}>
                         {t(typeBar.labelKey)}
                     </Text>
-                    <Text className="font-outfit-bold text-[17px]" style={{ color: C.text }} numberOfLines={1}>
+                    <Text className="font-outfit-bold text-[17px]" style={{ color: C.text, letterSpacing: -0.3 }} numberOfLines={1}>
                         {appointment.title || t(`appointments.list.card.title.${state}`)}
                     </Text>
                 </View>
@@ -275,7 +275,7 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
             {/* Status pill */}
             <View className="flex-row items-center mt-3" style={{ gap: 8, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 12, backgroundColor: status.bg }}>
                 <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: status.title }} />
-                <Text className="font-outfit-bold text-[11px] uppercase tracking-wider" style={{ color: status.title }}>
+                <Text className="font-outfit-bold text-[11px] uppercase" style={{ color: status.title, letterSpacing: 0.8 }}>
                     {t(`appointments.list.card.status.${state}`)}
                 </Text>
             </View>
@@ -336,8 +336,8 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                         borderColor: isPast ? C.borderSoft : C.blueSoft,
                     }}
                 >
-                    <Text className="font-outfit-bold text-[10.5px] uppercase tracking-wide" style={{ color: C.muted }}>{amountLabel}</Text>
-                    <Text className="font-outfit-bold text-xl" style={{ color: isPast ? C.text : C.blue }} numberOfLines={1}>{amount}</Text>
+                    <Text className="font-outfit-bold text-[10.5px] uppercase" style={{ color: C.muted, letterSpacing: 0.4 }}>{amountLabel}</Text>
+                    <Text className="font-outfit-bold text-xl" style={{ color: isPast ? C.text : C.blue, letterSpacing: -0.5, lineHeight: 23 }} numberOfLines={1}>{amount}</Text>
                 </View>
 
                 <TouchableOpacity className="flex-1" activeOpacity={0.8} onPress={guardPress(openDetail)}>
