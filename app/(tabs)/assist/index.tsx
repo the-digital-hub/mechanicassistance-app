@@ -300,7 +300,7 @@ export default function AssistanceRequestsScreen() {
                       <View className="flex-1">
                         <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">{t('dashboard.mechanic.budget')}</Text>
                         <Text className="font-outfit-bold text-base text-gray-900">
-                          {request.price ? `$${request.price}` : request.budget}
+                          {request.price ? `$${request.price}` : request.budget || t('dashboard.mechanic.priceCalculating')}
                         </Text>
                       </View>
                     </View>
