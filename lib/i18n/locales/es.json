@@ -58,6 +58,24 @@
       "ok": "OK",
       "saveErrorTitle": "No se pudo guardar",
       "saveErrorMessage": "Tu disponibilidad no se guardó. Revisá tu conexión e intentá de nuevo."
+    },
+    "switchRole": {
+      "toMechanicTitle": "Cambiar a modo técnico",
+      "toOwnerTitle": "Cambiar a modo dueño de vehículo",
+      "toMechanicSubtitle": "Mirá y tomá solicitudes de asistencia cerca tuyo.",
+      "toOwnerSubtitle": "Pedí ayuda para tus propios vehículos.",
+      "confirmTitle": "¿Cambiar a modo {{role}}?",
+      "confirmMessage": "Se va a cerrar la sesión en tus otros dispositivos.",
+      "confirm": "Cambiar",
+      "cancel": "Cancelar",
+      "activeJobsTitle": "Primero terminá tus trabajos activos",
+      "activeJobsMessage": "Tenés solicitudes o citas en curso. Terminalas o cancelalas antes de cambiar.",
+      "notHeldTitle": "Rol no disponible",
+      "notHeldMessage": "Esta cuenta no tiene el rol {{role}}. Registrate como {{role}} desde el alta para sumarlo.",
+      "failedTitle": "No se pudo cambiar",
+      "failedMessage": "Algo salió mal. Intentá de nuevo.",
+      "roleUser": "dueño de vehículo",
+      "roleMechanic": "técnico"
     }
   },
   "assistanceCard": {
@@ -1923,6 +1941,24 @@
       "removeConfirmBody": "Esto quita el archivo de tu perfil. Podés volver a subirlo cuando quieras.",
       "cancel": "Cancelar",
       "insuranceReadNotice": "Cuando termines tu registro vamos a leer los datos de tu póliza y te los vamos a mostrar para que los confirmes."
+    },
+    "addRole": {
+      "badge": "CUENTA EXISTENTE",
+      "title": "Ya tenés una cuenta",
+      "message": "Este teléfono ya está registrado como {{roles}}. Elegí un rol que ya tenés para iniciar sesión, o uno nuevo para sumarlo a tu cuenta.",
+      "alreadyYours": "YA ES TUYO",
+      "signInAs": "Iniciar sesión como {{role}}",
+      "addRoleAs": "Sumar {{role}} a mi cuenta",
+      "cancel": "Cancelar y cerrar sesión",
+      "signInFailed": "No pudimos iniciar sesión con ese rol. Intentá de nuevo.",
+      "loadFailed": "No pudimos cargar los datos de tu cuenta. Intentá de nuevo.",
+      "activeJobs": "Tenés solicitudes o citas en curso como {{role}}. Terminalas o cancelalas antes de cambiar.",
+      "existingAddresses": "Direcciones de tu cuenta",
+      "useThis": "Usar esta",
+      "identityVerified": "Tu identidad ya está verificada.",
+      "finishing": "Sumando el rol a tu cuenta...",
+      "roleUser": "dueño de vehículo",
+      "roleMechanic": "técnico"
     }
   },
   "assist": {

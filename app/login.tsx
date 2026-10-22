@@ -206,6 +206,9 @@ export default function LoginScreen() {
         return;
       }
 
+      // `existing_account` only answers a signup challenge; this one is login.
+      if (result.kind !== "session") return;
+
       await adoptSession(result.user);
       await saveLastPhone(fullPhoneRef.current.replace(/\D/g, "").slice(-10));
       router.replace("/(tabs)/dashboard");

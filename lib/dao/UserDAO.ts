@@ -5,7 +5,15 @@ import {
     saveCachedUser,
     saveTokens,
 } from '../auth/session';
-import { AvailabilityPayload, IUserDAO, MechanicStatus, PublicUserProfile, UserData } from './interfaces';
+import {
+    AppRole,
+    AvailabilityPayload,
+    IUserDAO,
+    MechanicStatus,
+    PublicUserProfile,
+    RoleChangeResult,
+    UserData,
+} from './interfaces';
 import { deviceTimeZone } from './VideoCallDAO';
 
 export class UserDAO implements IUserDAO {
@@ -141,6 +149,44 @@ export class UserDAO implements IUserDAO {
     }
 
     /**
+     * Adds a role to the signed-in account, with the data the wizard collected.
+     *
+     * The add-role variant of `register`: the phone already had an account, so
+     * the wizard ran on that account's session instead of a signup token. Same
+     * payload as account creation minus the phone, which cannot change here.
+     * The new role becomes the active one, the account's other sessions are
+     * revoked, and the pair that comes back replaces the stored one.
+     */
+    async addOwnRole(setupProgress: Record<string, unknown>): Promise<RoleChangeResult> {
+        const { phone: _phone, firebaseUid: _firebaseUid, ...payload } =
+            this.buildRegistrationPayload(setupProgress);
+        const result = await apiClient.post<RoleChangeResult>('/api/roles/self/add-role', payload);
+        await this.storeRoleChangeSession(result);
+        return result;
+    }
+
+    /**
+     * Makes another role the account holds the active one.
+     *
+     * 403: the account does not hold that role. 409: it still has active
+     * requests or appointments in the current role. Neither changes anything.
+     */
+    async switchActiveRole(role: AppRole): Promise<RoleChangeResult> {
+        const result = await apiClient.post<RoleChangeResult>('/api/roles/self/active-role', { role });
+        await this.storeRoleChangeSession(result);
+        return result;
+    }
+
+    /** A role change revokes the old tokens server-side; keep the new pair. */
+    private async storeRoleChangeSession(result: RoleChangeResult): Promise<void> {
+        if (!result.session) return;
+        await saveTokens({
+            accessToken: result.session.accessToken,
+            refreshToken: result.session.refreshToken,
+        });
+    }
+
+    /**
      * Transforms raw setup progress (keyed by step) into the flat
      * CreateUserDto shape the backend expects.
      *
@@ -235,8 +281,10 @@ export class UserDAO implements IUserDAO {
         // "verify later" is allowed for both roles and the account is created
         // unverified. What stays closed until Didit approves is the mechanic's
         // offer on a request, which appointments-service enforces.
+        // A verification pre-filled by the add-role wizard is already linked to
+        // the account, so it is not sent again.
         const identityData = progress.identity as Record<string, unknown> | undefined;
-        if (identityData?.verificationId) {
+        if (identityData?.verificationId && !identityData.prefilled) {
             payload.verificationId = identityData.verificationId;
         }
 

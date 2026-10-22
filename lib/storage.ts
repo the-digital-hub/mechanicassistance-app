@@ -16,6 +16,23 @@ export const saveSetupProgress = async (step: string, data: any) => {
     }
 };
 
+/**
+ * Merges keys into the setup progress without moving `lastStep`.
+ *
+ * `saveSetupProgress` records a completed step, which is what the resume logic
+ * keys on. Seeding data for steps not yet visited (the add-role pre-fill) must
+ * not look like progress, or a restart would skip those steps.
+ * A key set to undefined is dropped.
+ */
+export const mergeSetupProgress = async (data: Record<string, unknown>) => {
+    try {
+        const existing = await getSetupProgress();
+        await AsyncStorage.setItem(STORAGE_KEYS.SETUP_PROGRESS, JSON.stringify({ ...existing, ...data }));
+    } catch (e) {
+        console.error('Failed to merge setup progress', e);
+    }
+};
+
 export const getSetupProgress = async () => {
     try {
         const json = await AsyncStorage.getItem(STORAGE_KEYS.SETUP_PROGRESS);

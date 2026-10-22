@@ -10,7 +10,7 @@ import {
     saveCachedUser,
 } from '@/lib/auth/session';
 import { userDAO } from '@/lib/dao/UserDAO';
-import { UserData } from '@/lib/dao/interfaces';
+import { AppRole, UserData } from '@/lib/dao/interfaces';
 import { firebaseSignOut } from '@/lib/firebase/auth';
 import { disablePush, forgetPushToken } from '@/lib/notifications/push';
 import React, {
@@ -35,6 +35,11 @@ interface UserContextType {
     adoptSession: (user: UserData) => Promise<void>;
     logout: () => Promise<void>;
     updateUser: (updates: Partial<UserData>, syncToBackend?: boolean) => Promise<void>;
+    /**
+     * Makes another role the account holds the active one. Rejects with the
+     * API error (403 role not held, 409 active jobs) and changes nothing then.
+     */
+    switchRole: (role: AppRole) => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -119,13 +124,34 @@ export function UserProvider({ children }: { children: ReactNode }) {
                 if ((!accessToken || isExpired(accessToken)) && !refreshToken) {
                     await clearSession();
                     if (!cancelled) setUser(null);
+                    return;
                 }
+
+                // Then re-read the profile in the background: the cached copy
+                // can predate a role added or switched on another device, and
+                // the profile's role switch depends on `roles` being current.
+                if (cached?.id) void refreshFromServer(cached.id);
             } catch (error) {
                 console.error('[UserContext] Session restore failed:', error);
                 await clearSession();
                 if (!cancelled) setUser(null);
             } finally {
                 if (!cancelled) setIsLoading(false);
+            }
+        };
+
+        const refreshFromServer = async (userId: string) => {
+            try {
+                const fresh = await userDAO.getById(userId);
+                // Skip if the user signed out or changed while this was in flight.
+                if (!fresh || cancelled || userRef.current?.id !== userId) return;
+                const merged = { ...userRef.current, ...fresh };
+                userRef.current = merged;
+                setUser(merged);
+                await saveCachedUser(merged);
+            } catch (error) {
+                // The cached profile stays; this is only a refresh.
+                console.warn('[UserContext] Background profile refresh failed:', error);
             }
         };
 
@@ -230,9 +256,36 @@ export function UserProvider({ children }: { children: ReactNode }) {
         }
     }, []);
 
+    /**
+     * Switches the active role.
+     *
+     * The backend revokes every session of the account and returns a new pair,
+     * which the DAO stores; the profile is then re-read so role-dependent data
+     * (mechanic details, addresses) matches. SocketContext reconnects on the
+     * role change, so realtime-gateway moves the socket to the right rooms.
+     */
+    const switchRole = useCallback(async (role: AppRole): Promise<void> => {
+        const current = userRef.current;
+        if (!current) return;
+
+        const result = await userDAO.switchActiveRole(role);
+        const fresh = await userDAO.getById(current.id).catch(() => null);
+
+        const next: UserData = {
+            ...current,
+            ...(fresh ?? {}),
+            role: result.primaryRole,
+            roles: result.roles,
+            permissions: result.permissions,
+        };
+        userRef.current = next;
+        setUser(next);
+        await saveCachedUser(next);
+    }, []);
+
     const value = useMemo(
-        () => ({ user, isLoading, login, adoptSession, logout, updateUser }),
-        [user, isLoading, login, adoptSession, logout, updateUser],
+        () => ({ user, isLoading, login, adoptSession, logout, updateUser, switchRole }),
+        [user, isLoading, login, adoptSession, logout, updateUser, switchRole],
     );
 
     return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

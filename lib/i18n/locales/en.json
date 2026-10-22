@@ -58,6 +58,24 @@
       "ok": "OK",
       "saveErrorTitle": "Could not save",
       "saveErrorMessage": "Your availability was not saved. Check your connection and try again."
+    },
+    "switchRole": {
+      "toMechanicTitle": "Switch to mechanic mode",
+      "toOwnerTitle": "Switch to vehicle owner mode",
+      "toMechanicSubtitle": "See and take assistance requests near you.",
+      "toOwnerSubtitle": "Request help for your own vehicles.",
+      "confirmTitle": "Switch to {{role}} mode?",
+      "confirmMessage": "Your other devices will be signed out.",
+      "confirm": "Switch",
+      "cancel": "Cancel",
+      "activeJobsTitle": "Finish your active jobs first",
+      "activeJobsMessage": "You have requests or appointments in progress. Finish or cancel them before switching.",
+      "notHeldTitle": "Role not available",
+      "notHeldMessage": "This account doesn't have the {{role}} role. Sign up as {{role}} from the registration screen to add it.",
+      "failedTitle": "Couldn't switch",
+      "failedMessage": "Something went wrong. Please try again.",
+      "roleUser": "vehicle owner",
+      "roleMechanic": "mechanic"
     }
   },
   "assistanceCard": {
@@ -1923,6 +1941,24 @@
       "removeConfirmBody": "This removes the file from your profile. You can upload it again whenever you want.",
       "cancel": "Cancel",
       "insuranceReadNotice": "When you finish signing up we will read your policy details and show them to you to confirm."
+    },
+    "addRole": {
+      "badge": "EXISTING ACCOUNT",
+      "title": "You already have an account",
+      "message": "This phone is already registered as {{roles}}. Choose a role you already have to sign in, or a new one to add it to your account.",
+      "alreadyYours": "ALREADY YOURS",
+      "signInAs": "Sign in as {{role}}",
+      "addRoleAs": "Add {{role}} to my account",
+      "cancel": "Cancel and sign out",
+      "signInFailed": "We couldn't sign you in with that role. Please try again.",
+      "loadFailed": "We couldn't load your account details. Please try again.",
+      "activeJobs": "You have requests or appointments in progress as {{role}}. Finish or cancel them before switching.",
+      "existingAddresses": "Addresses on your account",
+      "useThis": "Use this",
+      "identityVerified": "Your identity is already verified.",
+      "finishing": "Adding the role to your account...",
+      "roleUser": "vehicle owner",
+      "roleMechanic": "mechanic"
     }
   },
   "assist": {

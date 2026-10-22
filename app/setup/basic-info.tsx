@@ -2,13 +2,14 @@ import { DatePicker } from "@/components/ui/DatePicker";
 import { Input } from "@/components/ui/Input";
 import { useEmailAvailability } from "@/hooks/useEmailAvailability";
 import { mediaDAO } from "@/lib/dao/MediaDAO";
+import { getAddRoleState } from "@/lib/setup-add-role";
 import { getSetupProgress, saveSetupProgress } from "@/lib/storage";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { ChevronRight } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -37,7 +38,38 @@ export default function BasicInfoScreen() {
   });
   const [localProfileUri, setLocalProfileUri] = useState<string | null>(null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
-  const emailStatus = useEmailAvailability(formData.email);
+  // Adding a role to an existing account (lib/setup-add-role.ts): the account
+  // already exists, so there is no password to set, and its own email is not
+  // "taken".
+  const [isAddRole, setIsAddRole] = useState(false);
+  const [accountEmail, setAccountEmail] = useState<string | null>(null);
+  const checkedEmailStatus = useEmailAvailability(formData.email);
+  const isOwnEmail =
+    !!accountEmail &&
+    formData.email.trim().toLowerCase() === accountEmail.trim().toLowerCase();
+  const emailStatus = isOwnEmail ? "idle" : checkedEmailStatus;
+
+  // Add-role only: shows what the pre-fill seeded from the account.
+  useEffect(() => {
+    getSetupProgress().then((progress) => {
+      const addRole = getAddRoleState(progress);
+      if (!addRole) return;
+      setIsAddRole(true);
+      setAccountEmail(addRole.email ?? null);
+
+      const saved = progress?.basicInfo as Partial<typeof formData> | undefined;
+      if (!saved) return;
+      setFormData((prev) => ({
+        ...prev,
+        name: saved.name ?? prev.name,
+        surname: saved.surname ?? prev.surname,
+        email: saved.email ?? prev.email,
+        dob: saved.dob ?? prev.dob,
+        profileImage: saved.profileImage ?? prev.profileImage,
+      }));
+      if (saved.profileImage) setLocalProfileUri(saved.profileImage);
+    });
+  }, []);
 
   const scrollViewRef = useRef<ScrollView>(null);
   const passwordContainerRef = useRef<View>(null);
@@ -109,15 +141,18 @@ export default function BasicInfoScreen() {
     formData.password === formData.confirmPassword;
 
   const handleContinue = async () => {
-    if (!pwResult.success || !ruleMatch || emailStatus === 'taken' || emailStatus === 'checking') return;
+    if (emailStatus === 'taken' || emailStatus === 'checking') return;
+    if (!isAddRole && (!pwResult.success || !ruleMatch)) return;
     await saveSetupProgress("basicInfo", formData);
 
     // Didit identity verification is required for mechanics and optional for
     // users, so only mechanics get the step in the wizard. A user can still
     // verify later from the profile screen. Keep in sync with lib/setup-resume.ts.
+    // An account adding a role whose identity is already approved skips it.
     const progress = await getSetupProgress();
     const role = progress?.role?.role;
-    router.push(role === "mechanic" ? "/setup/identity" : "/setup/address");
+    const identityDone = !!progress?.identity?.prefilled;
+    router.push(role === "mechanic" && !identityDone ? "/setup/identity" : "/setup/address");
   };
 
   return (
@@ -249,6 +284,8 @@ export default function BasicInfoScreen() {
             />
           </View>
 
+          {!isAddRole && (
+          <>
           <View ref={passwordContainerRef}>
             <Text className="font-outfit-medium text-[#0F172A] mb-2 capitalize">
               {t("setup.basicInfo.accountPassword")}
@@ -280,9 +317,12 @@ export default function BasicInfoScreen() {
               isPassword={true}
             />
           </View>
+          </>
+          )}
         </View>
 
         {/* Password Requirements */}
+        {isAddRole ? <View className="mb-8" /> : (
         <View className="mb-8 pl-2">
           <Text
             className={`font-outfit-regular text-sm mb-1 ${
@@ -306,6 +346,7 @@ export default function BasicInfoScreen() {
             • {t("setup.basicInfo.rulePasswordsMatch")}
           </Text>
         </View>
+        )}
 
         <TouchableOpacity
           onPress={handleContinue}

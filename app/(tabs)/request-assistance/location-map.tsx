@@ -2,6 +2,7 @@ import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { Button } from '@/components/ui/Button';
 import MapView, { Marker, Region } from '@/components/ui/Map';
 import { useUser } from '@/context/UserContext';
+import { addressesForRole } from '@/lib/address';
 import type { ParsedAddress } from '@/lib/places';
 import * as Location from 'expo-location';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -18,9 +19,11 @@ export default function LocationMapScreen() {
     const { type, vehicleId, description, issues, details, photos } = params;
     const { user } = useUser();
 
-    // Helper to find address by type from the addresses array
-    const homeAddress = user?.addresses?.find(a => a.type === 'home') ?? user?.addresses?.[0];
-    const workAddress = user?.addresses?.find(a => a.type === 'work') ?? user?.addresses?.[1];
+    // Helper to find address by type from the addresses array. Only the active
+    // role's addresses and the shared ones count.
+    const roleAddresses = addressesForRole(user?.addresses, user?.role);
+    const homeAddress = roleAddresses.find(a => a.type === 'home') ?? roleAddresses[0];
+    const workAddress = roleAddresses.find(a => a.type === 'work') ?? roleAddresses[1];
 
     const [region, setRegion] = useState<Region | null>(null);
     const [marker, setMarker] = useState<{ latitude: number; longitude: number } | null>(null);

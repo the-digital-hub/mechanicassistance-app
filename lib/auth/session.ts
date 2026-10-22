@@ -132,8 +132,7 @@ export async function migrateLegacyTokenStorage(): Promise<void> {
     await AsyncStorage.removeItem(ACCESS_TOKEN_KEY);
 }
 
-/** The `exp` claim, in epoch ms, or null if the token is unreadable. */
-export function decodeJwtExpiry(token: string): number | null {
+function decodeJwtClaims(token: string): { exp?: number; sub?: string } | null {
     try {
         const payload = token.split(".")[1];
         if (!payload) return null;
@@ -144,12 +143,30 @@ export function decodeJwtExpiry(token: string): number | null {
             normalized.length + ((4 - (normalized.length % 4)) % 4),
             "=",
         );
-        const claims = JSON.parse(atob(padded)) as { exp?: number };
-
-        return typeof claims.exp === "number" ? claims.exp * 1000 : null;
+        return JSON.parse(atob(padded)) as { exp?: number; sub?: string };
     } catch {
         return null;
     }
+}
+
+/** The `exp` claim, in epoch ms, or null if the token is unreadable. */
+export function decodeJwtExpiry(token: string): number | null {
+    const claims = decodeJwtClaims(token);
+    return typeof claims?.exp === "number" ? claims.exp * 1000 : null;
+}
+
+/**
+ * The account id (`sub`) of the stored access token, or null.
+ *
+ * Used where a session exists but the app holds no user yet: signing up with a
+ * phone that already has an account returns tokens and no profile, and the
+ * wizard has to fetch that profile to pre-fill itself.
+ */
+export async function getSessionUserId(): Promise<string | null> {
+    const token = await getAccessToken();
+    if (!token) return null;
+    const sub = decodeJwtClaims(token)?.sub;
+    return typeof sub === "string" && sub ? sub : null;
 }
 
 /**

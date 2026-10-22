@@ -3,6 +3,7 @@ import { describeAuthError } from '@/lib/auth/describe';
 import { toAuthError } from '@/lib/auth/errors';
 import { resendOtp, verifyOtp } from '@/lib/auth/otp';
 import { formatCountdown, useCountdown } from '@/hooks/useCountdown';
+import { clearAddRole, startAddRole } from '@/lib/setup-add-role';
 import { clearSetupProgress, getSetupProgress, saveSetupProgress } from '@/lib/storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -102,6 +103,17 @@ export default function OTPScreen() {
                 await clearSetupProgress();
                 router.replace('/(tabs)/dashboard');
                 return;
+            }
+
+            if (result.kind === 'existing_account') {
+                // The phone already has an account: the wizard adds a role to
+                // it instead of creating one. Its session is stored but not
+                // adopted, so the app stays in the wizard.
+                await startAddRole(result.roles, result.primaryRole);
+            } else {
+                // A leftover marker from an abandoned add-role run must not
+                // turn this new account's signup into one.
+                await clearAddRole();
             }
 
             await saveSetupProgress('otp', { verified: true });

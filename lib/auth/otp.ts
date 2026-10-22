@@ -1,6 +1,11 @@
 import { apiClient } from "../api/apiClient";
-import type { UserData } from "../dao/interfaces";
-import { saveCachedUser, saveSignupToken, saveTokens } from "./session";
+import type { AppRole, UserData } from "../dao/interfaces";
+import {
+    clearSignupToken,
+    saveCachedUser,
+    saveSignupToken,
+    saveTokens,
+} from "./session";
 
 export type OtpPurpose = "login" | "signup";
 
@@ -23,7 +28,8 @@ export interface OtpChallenge {
  */
 export type OtpVerification =
     | { kind: "session"; user: UserData }
-    | { kind: "signup"; signupToken: string; expiresIn: number };
+    | { kind: "signup"; signupToken: string; expiresIn: number }
+    | { kind: "existing_account"; roles: string[]; primaryRole: AppRole };
 
 interface RawSessionResult {
     kind: "session";
@@ -36,6 +42,18 @@ interface RawSignupResult {
     kind: "signup";
     signupToken: string;
     expiresIn: number;
+}
+
+/**
+ * A signup challenge for a phone that already has an account. Possessing the
+ * phone proves the same thing a login does, so the backend answers with a
+ * session for that account; the wizard then adds a role to it.
+ */
+interface RawExistingAccountResult {
+    kind: "existing_account";
+    session: { accessToken: string; refreshToken: string; expiresIn: number };
+    roles: string[];
+    primaryRole: AppRole;
 }
 
 /**
@@ -78,14 +96,17 @@ export async function resendOtp(
  * On a login challenge the tokens are stored here, so callers only have to deal
  * with the resulting user. On a signup challenge the scoped token is stored
  * instead, which is what lets the rest of the wizard upload documents and create
- * the account before any session exists.
+ * the account before any session exists. A signup challenge for a phone that
+ * already has an account stores that account's session, without a cached user.
  */
 export async function verifyOtp(
     requestId: string,
     phoneE164: string,
     code: string,
 ): Promise<OtpVerification> {
-    const result = await apiClient.post<RawSessionResult | RawSignupResult>(
+    const result = await apiClient.post<
+        RawSessionResult | RawSignupResult | RawExistingAccountResult
+    >(
         "/api/auth/otp/verify",
         { requestId, phone: phoneE164, code },
     );
@@ -96,6 +117,22 @@ export async function verifyOtp(
             kind: "signup",
             signupToken: result.signupToken,
             expiresIn: result.expiresIn,
+        };
+    }
+
+    if (result.kind === "existing_account") {
+        // Stored, but deliberately not cached as the signed-in user: the caller
+        // is mid-wizard, and UserContext must not see a session until the role
+        // is added (or chosen). No signup token is involved on this path.
+        await saveTokens({
+            accessToken: result.session.accessToken,
+            refreshToken: result.session.refreshToken,
+        });
+        await clearSignupToken();
+        return {
+            kind: "existing_account",
+            roles: result.roles ?? [],
+            primaryRole: result.primaryRole,
         };
     }
 

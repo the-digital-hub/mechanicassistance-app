@@ -112,7 +112,10 @@ export function SocketProvider({ children }: { children: ReactNode }) {
                 s.disconnect();
             }
         };
-    }, [user?.id]);
+        // The role is a dependency so switching it reconnects: the gateway
+        // picks the socket's rooms from the token presented at handshake, and
+        // the switch revoked the old one.
+    }, [user?.id, user?.role]);
 
     const connect = () => {
         const url = toIoUrl(ConfigService.getWsUrl());

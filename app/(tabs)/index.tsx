@@ -3,18 +3,20 @@ import { AseStatusBadge } from '@/components/ui/AseStatusBadge';
 import { VerificationBadge } from '@/components/ui/VerificationBadge';
 import { useUser } from '@/context/UserContext';
 import { useMechanicStatus } from '@/context/MechanicStatusContext';
+import { ApiError } from '@/lib/api/types';
+import type { AppRole } from '@/lib/dao/interfaces';
 import { mediaDAO } from '@/lib/dao/MediaDAO';
 import { setAppLanguage } from '@/lib/i18n';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import { Award, Camera, Car, ChevronLeft, ChevronRight, Circle, Clock, CreditCard, FileText, Heart, HelpCircle, Lock, LogOut, MapPin, Settings, User, Wallet } from 'lucide-react-native';
+import { ArrowLeftRight, Award, Camera, Car, ChevronLeft, ChevronRight, Circle, Clock, CreditCard, FileText, Heart, HelpCircle, Lock, LogOut, MapPin, Settings, User, Wallet } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Image, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { user, isLoading, updateUser, logout } = useUser();
+  const { user, isLoading, updateUser, logout, switchRole } = useUser();
   const { mechanicStatus, setMechanicStatus, isUpdatingStatus } = useMechanicStatus();
   const { t, i18n } = useTranslation();
 
@@ -23,6 +25,15 @@ export default function ProfileScreen() {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [localProfileUri, setLocalProfileUri] = useState<string | null>(null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [showSwitchRoleModal, setShowSwitchRoleModal] = useState(false);
+  const [isSwitchingRole, setIsSwitchingRole] = useState(false);
+
+  // The switch only exists for an account holding both roles; anyone else
+  // adds the other role through the signup flow.
+  const canSwitchRole = !!user?.roles?.includes('user') && !!user?.roles?.includes('mechanic');
+  const otherRole: AppRole = user?.role === 'mechanic' ? 'user' : 'mechanic';
+  const roleName = (role: AppRole) =>
+    t(role === 'mechanic' ? 'profile.switchRole.roleMechanic' : 'profile.switchRole.roleUser');
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -72,6 +83,30 @@ export default function ProfileScreen() {
       setShowLogoutModal(false);
       setIsLoggingOut(false);
       router.replace('/login');
+    }
+  };
+
+  const handleSwitchRole = async () => {
+    if (isSwitchingRole) return;
+    setShowSwitchRoleModal(false);
+    setIsSwitchingRole(true);
+    try {
+      await switchRole(otherRole);
+      router.replace('/(tabs)/dashboard');
+    } catch (err) {
+      const status = err instanceof ApiError ? err.statusCode : null;
+      if (status === 409) {
+        Alert.alert(t('profile.switchRole.activeJobsTitle'), t('profile.switchRole.activeJobsMessage'));
+      } else if (status === 403) {
+        Alert.alert(
+          t('profile.switchRole.notHeldTitle'),
+          t('profile.switchRole.notHeldMessage', { role: roleName(otherRole) }),
+        );
+      } else {
+        Alert.alert(t('profile.switchRole.failedTitle'), t('profile.switchRole.failedMessage'));
+      }
+    } finally {
+      setIsSwitchingRole(false);
     }
   };
 
@@ -163,6 +198,38 @@ export default function ProfileScreen() {
             <AseStatusBadge />
           </View>
         </View>
+
+        {/* Role switch - only for accounts holding both roles */}
+        {canSwitchRole && (
+          <View
+            className="mb-8"
+            style={{ borderRadius: 24, backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 8, elevation: 6 }}
+          >
+            <TouchableOpacity
+              onPress={() => setShowSwitchRoleModal(true)}
+              disabled={isSwitchingRole}
+              activeOpacity={0.8}
+              className="flex-row items-center px-6 py-5 rounded-3xl"
+            >
+              <View className="w-12 h-12 rounded-full bg-blue-50 justify-center items-center mr-4">
+                <ArrowLeftRight size={24} color="#0047AB" />
+              </View>
+              <View className="flex-1">
+                <Text className="font-outfit-semibold text-lg text-gray-900">
+                  {t(otherRole === 'mechanic' ? 'profile.switchRole.toMechanicTitle' : 'profile.switchRole.toOwnerTitle')}
+                </Text>
+                <Text className="font-outfit-regular text-sm text-gray-500 mt-0.5">
+                  {t(otherRole === 'mechanic' ? 'profile.switchRole.toMechanicSubtitle' : 'profile.switchRole.toOwnerSubtitle')}
+                </Text>
+              </View>
+              {isSwitchingRole ? (
+                <ActivityIndicator color="#0047AB" />
+              ) : (
+                <ChevronRight size={24} color="#0047AB" />
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Status Block - Only for Mechanics */}
         {user?.role === 'mechanic' && (
@@ -312,6 +379,20 @@ export default function ProfileScreen() {
         confirmButtonColor="#0047AB"
         confirmText={t('profile.modals.yes')}
         cancelText={t('profile.modals.no')}
+      />
+
+      {/* Role Switch Confirmation Modal */}
+      <ConfirmationModal
+        visible={showSwitchRoleModal}
+        onClose={() => setShowSwitchRoleModal(false)}
+        onConfirm={handleSwitchRole}
+        title={t('profile.switchRole.confirmTitle', { role: roleName(otherRole) })}
+        message={t('profile.switchRole.confirmMessage')}
+        icon={ArrowLeftRight}
+        iconColor="#0047AB"
+        confirmButtonColor="#0047AB"
+        confirmText={t('profile.switchRole.confirm')}
+        cancelText={t('profile.switchRole.cancel')}
       />
 
       {/* Status Modal */}

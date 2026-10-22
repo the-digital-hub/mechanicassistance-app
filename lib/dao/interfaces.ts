@@ -170,6 +170,31 @@ export interface Address {
      */
     locationLat?: number;
     locationLng?: number;
+    /**
+     * Which of the account's roles the address belongs to. Null or absent means
+     * shared by both — every address saved before an account could hold two
+     * roles. Lists show the active role's addresses plus the shared ones.
+     */
+    role?: AppRole | null;
+}
+
+/** The two roles a person can hold in the app. */
+export type AppRole = 'user' | 'mechanic';
+
+/**
+ * Answer of POST /api/roles/self/add-role and /api/roles/self/active-role.
+ *
+ * `session` is null when nothing changed (switching to the role that is
+ * already active). Otherwise every other session of the account was revoked,
+ * because permissions travel inside the token, and this pair replaces the one
+ * the app held.
+ */
+export interface RoleChangeResult {
+    userId: string;
+    primaryRole: AppRole;
+    roles: string[];
+    permissions: string[];
+    session: { accessToken: string; refreshToken: string; expiresIn: number } | null;
 }
 
 export interface MechanicDetail {
@@ -472,6 +497,10 @@ export interface IUserDAO {
     logout(): Promise<void>;
     checkEmailExists(email: string): Promise<boolean>;
     register(setupData: any): Promise<any>;
+    /** Adds a second role to the signed-in account, with the wizard's data. */
+    addOwnRole(setupData: Record<string, unknown>): Promise<RoleChangeResult>;
+    /** Makes another role the account already holds the active one. */
+    switchActiveRole(role: AppRole): Promise<RoleChangeResult>;
     update(id: string, updates: Partial<UserData>): Promise<void>;
     /** Sets a mechanic's live status; returns the status the backend applied. */
     setPresence(id: string, status: MechanicStatus): Promise<{ status: MechanicStatus; isOnline: boolean }>;

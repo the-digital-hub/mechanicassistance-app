@@ -1,3 +1,5 @@
+import type { Address, AppRole } from './dao/interfaces';
+
 export const US_STATES = [
     { code: 'AL', name: 'Alabama' }, { code: 'AK', name: 'Alaska' }, { code: 'AZ', name: 'Arizona' },
     { code: 'AR', name: 'Arkansas' }, { code: 'CA', name: 'California' }, { code: 'CO', name: 'Colorado' },
@@ -53,3 +55,15 @@ export const getFormattedAddress = (feature: any) => {
 
     return `${street}, ${city}, ${stateCode} ${zip}`.replace(/,\s*$/, '');
 };
+
+/**
+ * The addresses that belong to the active role: its own plus the shared ones
+ * (role null or absent — every address saved before accounts held two roles).
+ */
+export function addressesForRole<T extends Pick<Address, 'role'>>(
+    addresses: T[] | undefined,
+    role: AppRole | undefined,
+): T[] {
+    if (!addresses) return [];
+    return addresses.filter((address) => !address.role || !role || address.role === role);
+}

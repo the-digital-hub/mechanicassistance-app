@@ -1,6 +1,8 @@
 import { useUser } from "@/context/UserContext";
 import { ApiError } from "@/lib/api/types";
+import { clearSession } from "@/lib/auth/session";
 import { userDAO } from "@/lib/dao/UserDAO";
+import { getAddRoleState } from "@/lib/setup-add-role";
 import { clearSetupProgress, getSetupProgress } from "@/lib/storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -43,6 +45,8 @@ export default function SuccessScreen() {
   const hasRun = useRef(false);
   /** Set once POST /api/users succeeds, so recovery knows the account exists. */
   const accountCreated = useRef(false);
+  /** The phone already had an account and this run adds a role to it. */
+  const [isAddRole, setIsAddRole] = useState(false);
 
   useEffect(() => {
     // Prevent double execution in React strict mode
@@ -55,6 +59,28 @@ export default function SuccessScreen() {
 
         const progress = await getSetupProgress();
         console.log("🔵 [success.tsx] Setup progress loaded:", progress);
+
+        // Existing account: add the role to it instead of creating a user.
+        // The wizard ran on that account's session, so there is no signup
+        // token to trade; the role change returns the new session itself.
+        if (getAddRoleState(progress)) {
+          setIsAddRole(true);
+          const result = await userDAO.addOwnRole(progress);
+          accountCreated.current = true;
+          const account = await userDAO.getById(result.userId);
+          if (account) {
+            await adoptSession({
+              ...account,
+              role: result.primaryRole,
+              roles: result.roles,
+              permissions: result.permissions,
+            });
+            setIsLoggedIn(true);
+          }
+          await clearSetupProgress();
+          setIsCreating(false);
+          return;
+        }
 
         console.log("🔵 [success.tsx] Registering user with DAO...");
         const registerResult = await userDAO.register(progress);
@@ -122,7 +148,7 @@ export default function SuccessScreen() {
       <View className="flex-1 items-center justify-center p-6" style={{ backgroundColor: '#F6F8FC' }}>
         <ActivityIndicator size="large" color="#0047AB" />
         <Text className="text-lg font-outfit-medium text-[#0047AB] text-center mt-4">
-          {t("setup.success.finalizing")}
+          {t(isAddRole ? "setup.addRole.finishing" : "setup.success.finalizing")}
         </Text>
       </View>
     );
@@ -207,6 +233,21 @@ export default function SuccessScreen() {
             <ChevronRight size={20} color="white" />
           </LinearGradient>
         </TouchableOpacity>
+        {isAddRole && (
+          <TouchableOpacity
+            onPress={async () => {
+              // Abandoning the add-role run: end the session the verify step
+              // opened rather than leaving it stored but unused.
+              await userDAO.logout();
+              await clearSession();
+              await clearSetupProgress();
+              router.replace("/login");
+            }}
+            className="mt-5"
+          >
+            <Text className="text-gray-500 font-outfit-medium text-sm">{t("setup.addRole.cancel")}</Text>
+          </TouchableOpacity>
+        )}
       </View>
     );
   }

@@ -1,7 +1,9 @@
 import { AddressAutocomplete } from "@/components/ui/AddressAutocomplete";
 import { Input } from "@/components/ui/Input";
 import { US_STATES } from "@/lib/address";
+import type { Address } from "@/lib/dao/interfaces";
 import type { ParsedAddress } from "@/lib/places";
+import { getAddRoleState } from "@/lib/setup-add-role";
 import { getSetupProgress, saveSetupProgress } from "@/lib/storage";
 import { useRouter } from "expo-router";
 import { ChevronRight } from "lucide-react-native";
@@ -68,9 +70,16 @@ export default function AddressScreen() {
     zip: "",
   });
 
+  // Adding a role to an existing account: its addresses, offered as "use this".
+  // The new role's address starts empty because it may differ from the other's.
+  const [existingAddresses, setExistingAddresses] = useState<Address[]>([]);
+
   useEffect(() => {
     const loadData = async () => {
       const progress = await getSetupProgress();
+      setExistingAddresses(
+        (getAddRoleState(progress)?.existingAddresses ?? []).filter((a) => a.street || a.city),
+      );
       if (progress.address) {
         if (progress.address.home) setHomeData(migrateCoords(progress.address.home));
         if (progress.address.work) setWorkData(migrateCoords(progress.address.work));
@@ -134,6 +143,20 @@ export default function AddressScreen() {
       locationLat: address.locationLat,
       locationLng: address.locationLng,
     }));
+  };
+
+  /** Copies one of the account's addresses into the active (home/work) form. */
+  const handleUseExisting = (address: Address) => {
+    const setter = addressType === "home" ? setHomeData : setWorkData;
+    setter({
+      street: address.street ?? "",
+      apartment: address.apartment ?? "",
+      city: address.city ?? "",
+      state: address.state ?? "",
+      zip: address.zip ?? "",
+      locationLat: address.locationLat,
+      locationLng: address.locationLng,
+    });
   };
 
   /**
@@ -209,6 +232,39 @@ export default function AddressScreen() {
         <Text className="text-gray-500 font-outfit-regular text-base mb-8">
           {t('setup.address.subtitle')}
         </Text>
+
+        {existingAddresses.length > 0 && (
+          <View className="mb-8 rounded-2xl overflow-hidden" style={{ backgroundColor: '#F4F8FF' }}>
+            <Text className="font-outfit-semibold text-[#0F172A] px-4 pt-4 pb-2">
+              {t('setup.addRole.existingAddresses')}
+            </Text>
+            {existingAddresses.map((address, index) => (
+              <View
+                key={address.id ?? index}
+                className="flex-row items-center px-4 py-3"
+                style={{ borderTopWidth: index > 0 ? 1 : 0, borderTopColor: '#E1EAFB' }}
+              >
+                <View className="flex-1 mr-3">
+                  <Text className="font-outfit-medium text-sm text-gray-900" numberOfLines={1}>
+                    {address.street}
+                  </Text>
+                  <Text className="font-outfit-regular text-xs text-gray-500" numberOfLines={1}>
+                    {[address.city, address.state, address.zip].filter(Boolean).join(', ')}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => handleUseExisting(address)}
+                  className="px-3 py-2 rounded-full"
+                  style={{ backgroundColor: '#E9F1FF' }}
+                >
+                  <Text className="text-blue-600 font-outfit-semibold text-xs">
+                    {t('setup.addRole.useThis')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        )}
 
         {/* Toggle */}
         <View className="flex-row mb-8">

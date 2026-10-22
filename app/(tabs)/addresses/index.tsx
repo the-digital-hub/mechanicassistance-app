@@ -1,4 +1,5 @@
 import { useUser } from '@/context/UserContext';
+import { addressesForRole } from '@/lib/address';
 import { useRouter } from 'expo-router';
 import { ChevronRight, MapPin, Plus } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +11,12 @@ export default function AddressesScreen() {
     const router = useRouter();
     const { t } = useTranslation();
     const { user } = useUser();
+    // The active role's addresses plus the shared ones. Each keeps its index in
+    // the full list, which is what the edit screen addresses it by.
+    const visibleAddresses = addressesForRole(
+        (user?.addresses ?? []).map((address, index) => ({ ...address, index })),
+        user?.role,
+    );
 
     return (
         <View className="flex-1 bg-white">
@@ -31,19 +38,19 @@ export default function AddressesScreen() {
                 </Text>
 
                 {/* Addresses List */}
-                {user?.addresses && user.addresses.length > 0 ? (
+                {visibleAddresses.length > 0 ? (
                     <>
                         <View className="bg-white rounded-3xl overflow-hidden mb-6" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 10, elevation: 5 }}>
-                            {user.addresses.map((address, index) => (
+                            {visibleAddresses.map((address, position) => (
                                 <TouchableOpacity
-                                    key={index}
+                                    key={address.index}
                                     className="flex-row items-center px-6 py-4"
-                                    style={{ borderBottomWidth: index < user.addresses.length - 1 ? 1 : 0, borderBottomColor: '#F3F4F6' }}
+                                    style={{ borderBottomWidth: position < visibleAddresses.length - 1 ? 1 : 0, borderBottomColor: '#F3F4F6' }}
                                     onPress={() => {
                                         router.push({
                                             pathname: '/(tabs)/addresses/edit',
                                             params: {
-                                                index: index.toString(),
+                                                index: address.index.toString(),
                                                 street: address.street || '',
                                                 apartment: address.apartment || '',
                                                 city: address.city || '',
