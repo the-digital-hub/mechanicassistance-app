@@ -1,6 +1,5 @@
 import { apiClient } from '../api/apiClient';
 import {
-    clearSession,
     clearSignupToken as clearStoredSignupToken,
     getRefreshToken,
     saveCachedUser,
@@ -105,7 +104,12 @@ export class UserDAO implements IUserDAO {
         return result.user ?? null;
     }
 
-    /** Ends the session server-side, revoking the whole rotation family. */
+    /**
+     * Ends the session server-side, revoking the whole rotation family.
+     *
+     * Does NOT clear local storage: the caller does that once every request
+     * that still needs the access token (push unregistration) has finished.
+     */
     async logout(): Promise<void> {
         const refreshToken = await getRefreshToken();
 
@@ -116,8 +120,6 @@ export class UserDAO implements IUserDAO {
                 .post('/api/auth/logout', { refreshToken })
                 .catch(() => undefined);
         }
-
-        await clearSession();
     }
 
     async clearSignupToken(): Promise<void> {

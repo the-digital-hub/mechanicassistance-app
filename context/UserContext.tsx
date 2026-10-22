@@ -1,3 +1,4 @@
+import { withTimeout } from '@/lib/api/apiClient';
 import {
     clearSession,
     getAccessToken,
@@ -37,6 +38,9 @@ interface UserContextType {
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
+
+/** How long logout waits for the server before signing out locally anyway. */
+const LOGOUT_REMOTE_TIMEOUT_MS = 5000;
 
 export function UserProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<UserData | null>(null);
@@ -175,17 +179,25 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const logout = useCallback(async () => {
-        // First, while the access token still works: this phone must stop
-        // getting the account's notifications once nobody is signed in on it.
-        await disablePush();
-        setUser(null);
-        // Revokes the whole rotation family server-side, so the refresh token is
-        // useless even if it was copied off the device.
-        await userDAO.logout();
         try {
-            await firebaseSignOut();
-        } catch {
-            // Ignore Firebase sign-out errors (e.g. already signed out).
+            // While the tokens still work: stop this phone getting the account's
+            // notifications, and revoke the whole rotation family server-side so
+            // the refresh token is useless even if copied off the device. Both
+            // are best-effort and capped — a slow network or a hung FCM call
+            // must never keep the user signed in.
+            await withTimeout(
+                Promise.allSettled([disablePush(), userDAO.logout()]).then(() => undefined),
+                LOGOUT_REMOTE_TIMEOUT_MS,
+                undefined,
+            );
+        } finally {
+            await clearSession().catch((error) =>
+                console.warn('[UserContext] clearSession failed on logout:', error),
+            );
+            setUser(null);
+            // Not awaited: Google/Firebase sign-out has no timeout either, and
+            // our own session is already gone. Errors (already signed out) ignored.
+            firebaseSignOut().catch(() => undefined);
         }
     }, []);
 

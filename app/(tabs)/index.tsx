@@ -19,6 +19,7 @@ export default function ProfileScreen() {
   const { t, i18n } = useTranslation();
 
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [localProfileUri, setLocalProfileUri] = useState<string | null>(null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
@@ -63,9 +64,15 @@ export default function ProfileScreen() {
   };
 
   const handleLogout = async () => {
-    await logout();
-    setShowLogoutModal(false);
-    router.replace('/login');
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    try {
+      await logout();
+    } finally {
+      setShowLogoutModal(false);
+      setIsLoggingOut(false);
+      router.replace('/login');
+    }
   };
 
   const getStatusColor = (status: 'available' | 'busy' | 'offline') => {

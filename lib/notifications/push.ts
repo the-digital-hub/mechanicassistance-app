@@ -13,6 +13,7 @@ import Constants from 'expo-constants';
 import type { Href } from 'expo-router';
 import { PermissionsAndroid, Platform } from 'react-native';
 import i18next from '../i18n';
+import { withTimeout } from '../api/apiClient';
 import { notificationDAO } from '../dao/NotificationDAO';
 
 /**
@@ -96,17 +97,23 @@ export function watchPushToken(): () => void {
     });
 }
 
+/** Upper bound on one FCM token call (they have no timeout of their own). */
+const FCM_TIMEOUT_MS = 3000;
+
 /**
  * Stops pushes to this phone. Must run BEFORE the session is cleared: the
  * backend call needs the access token. Deleting the FCM token afterwards means
  * the next person to sign in on this phone gets a fresh one. Never throws.
+ *
+ * The FCM calls are bounded: on iOS without an APNs token `getToken` can hang
+ * forever, and logout awaits this — the button looked dead.
  */
 export async function disablePush(): Promise<void> {
     try {
         const messaging = getMessaging();
-        const token = await getToken(messaging);
+        const token = await withTimeout(getToken(messaging), FCM_TIMEOUT_MS, null);
         if (token) await notificationDAO.unregisterDevice(token);
-        await deleteToken(messaging);
+        await withTimeout(deleteToken(messaging), FCM_TIMEOUT_MS, undefined);
     } catch (err) {
         console.warn('[push] unregistration failed:', (err as Error).message);
     }
@@ -120,7 +127,7 @@ export async function disablePush(): Promise<void> {
  */
 export async function forgetPushToken(): Promise<void> {
     try {
-        await deleteToken(getMessaging());
+        await withTimeout(deleteToken(getMessaging()), FCM_TIMEOUT_MS, undefined);
     } catch (err) {
         console.warn('[push] token deletion failed:', (err as Error).message);
     }

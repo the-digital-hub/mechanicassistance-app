@@ -102,7 +102,7 @@ async function fetchWithTimeout(url: string, init: RequestInit): Promise<Respons
 }
 
 /** Resolves to `fallback` if `promise` has not settled within `ms`. */
-function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+export function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
     return new Promise((resolve, reject) => {
         const timeoutId = setTimeout(() => resolve(fallback), ms);
         promise.then(
