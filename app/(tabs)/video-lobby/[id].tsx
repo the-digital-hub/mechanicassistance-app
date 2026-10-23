@@ -4,7 +4,10 @@ import { useUser } from '@/context/UserContext';
 import { apiClient } from '@/lib/api/apiClient';
 import { ApiError } from '@/lib/api/types';
 import { userDAO } from '@/lib/dao/UserDAO';
+import { useVideoCallState } from '@/hooks/useVideoCallState';
+import { DEFAULT_CALL_MINUTES } from '@/lib/video/callLength';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useGlobalSearchParams, useRouter } from 'expo-router';
 import { goBackOr } from '@/lib/navigation/goBackOr';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -30,8 +33,10 @@ export default function VideoLobbyScreen() {
     const { user } = useUser();
     const { getAppointmentById, refresh } = useAppointments();
     const { lastMessage } = useSocket();
+    const { t } = useTranslation();
 
     const appointmentId = Array.isArray(id) ? id[0] : id || '';
+    const { state: callState } = useVideoCallState(appointmentId || undefined, !!appointmentId);
     const appointment = getAppointmentById(appointmentId);
     const isUserRole = user?.role === 'user';
     const participantName = user ? `${user.name} ${user.surname}`.trim() : 'Participant';
@@ -290,7 +295,7 @@ export default function VideoLobbyScreen() {
             {/* Room will expire notice */}
             <View style={styles.footer}>
                 <Text style={styles.footerText}>
-                    Video calls last 45 minutes; the client can add more time during the call.
+                    {t('videoCall.lobby.footer', { minutes: callState?.baseMinutes ?? DEFAULT_CALL_MINUTES })}
                 </Text>
             </View>
         </View>

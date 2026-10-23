@@ -34,7 +34,7 @@ import { useVideoCallState } from '@/hooks/useVideoCallState';
 import { ApiError } from '@/lib/api/types';
 import { onSiteDAO } from '@/lib/dao/OnSiteDAO';
 import { videoCallDAO } from '@/lib/dao/VideoCallDAO';
-import { contractedSeconds } from '@/lib/video/callLength';
+import { contractedSeconds, DEFAULT_CALL_MINUTES } from '@/lib/video/callLength';
 import { videoCallBookedLabel } from '@/lib/video/videoCallTime';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import type { AssistanceOfferSummary } from '@/lib/dao/interfaces';
@@ -720,7 +720,7 @@ export default function AppointmentDetailScreen() {
                                             />
                                             {videoStartedAtMs === null && (
                                                 <Text className="text-center font-outfit-regular text-[11.5px] leading-4" style={{ color: MECH.muted }}>
-                                                    {t('appointments.videoCall.timer.startsOnJoin', { minutes: (videoState?.baseMinutes ?? 45) })}
+                                                    {t('appointments.videoCall.timer.startsOnJoin', { minutes: (videoState?.baseMinutes ?? DEFAULT_CALL_MINUTES) })}
                                                 </Text>
                                             )}
                                         </>

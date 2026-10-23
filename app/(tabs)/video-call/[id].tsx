@@ -14,7 +14,7 @@ import { useUser } from '@/context/UserContext';
 import { useDailyCall } from '@/lib/video/useDailyCall';
 import { goBackOr } from '@/lib/navigation/goBackOr';
 import { videoCallDAO } from '@/lib/dao/VideoCallDAO';
-import { contractedSeconds, GRACE_SECONDS } from '@/lib/video/callLength';
+import { contractedSeconds, graceSecondsOf } from '@/lib/video/callLength';
 import { useElapsedSeconds } from '@/hooks/useElapsedSeconds';
 import { useVideoCallState } from '@/hooks/useVideoCallState';
 
@@ -94,7 +94,7 @@ export default function VideoCallScreen() {
   // phone leaves at the same moment instead of waiting for the room to eject it.
   // An extension bought meanwhile raises limitSeconds and cancels this.
   const autoLeft = useRef(false);
-  const graceOver = startedAtMs !== null && elapsed >= limitSeconds + GRACE_SECONDS;
+  const graceOver = startedAtMs !== null && elapsed >= limitSeconds + graceSecondsOf(callTime);
   useEffect(() => {
     if (!graceOver || autoLeft.current) return;
     autoLeft.current = true;

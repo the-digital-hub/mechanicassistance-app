@@ -70,6 +70,8 @@ export interface VideoCallState {
     contractedMinutes?: number;
     extensionsUsed?: number;
     maxExtensions?: number;
+    /** Seconds the call keeps going after its time is up before the server ends it (set from the hub; 120 by default). */
+    graceSeconds?: number;
     /** When the video room closes (unix seconds). */
     roomExpiryUnixSec?: number | null;
     /**
