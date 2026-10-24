@@ -1302,7 +1302,12 @@
         "notResolvedBody": "Support ruled the problem wasn't resolved, so the owner was not charged.",
         "rateClient": "Rate the customer",
         "reviewAfterCompleted": "You can rate the customer once the assistance is confirmed.",
-        "reviewFailed": "We couldn't send your rating. Please try again."
+        "reviewFailed": "We couldn't send your rating. Please try again.",
+        "tabs": {
+          "client": "Client"
+        },
+        "clientLabel": "CLIENT",
+        "clientFallback": "Client"
       },
       "header": {
         "booked": "Video call booked",
@@ -1336,6 +1341,22 @@
         "startsOnJoin": "A {{minutes}}-minute session timer starts when the client joins the call. Only the client can add more time.",
         "returnToCall": "Return to call"
       }
+    },
+    "clientReview": {
+      "title": "How would you rate the client?",
+      "star_one": "{{count}} star",
+      "star_other": "{{count}} stars",
+      "experience": "Experience details",
+      "selectOption": "Select an option",
+      "options": {
+        "resolved": "Issue was fully resolved",
+        "savedTime": "Saved me time",
+        "professional": "Client was professional"
+      },
+      "review": "Client review",
+      "placeholder": "Type a review here...",
+      "send": "Send",
+      "sent": "Rating sent"
     }
   },
   "requestDetail": {

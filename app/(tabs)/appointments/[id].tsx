@@ -3,6 +3,7 @@ import { MechanicAssistanceInfoTab } from '@/components/appointments/MechanicAss
 import { MechanicArrivalCard, PulseDot } from '@/components/appointments/MechanicArrivalCard';
 import { MechanicClientInfoTab } from '@/components/appointments/MechanicClientInfoTab';
 import { CheckInCodeCard } from '@/components/appointments/CheckInCodeCard';
+import { ClientReviewCard } from '@/components/appointments/ClientReviewCard';
 import { OwnerReviewCard } from '@/components/appointments/OwnerReviewCard';
 import { VideoCallTimerCard } from '@/components/appointments/VideoCallTimerCard';
 import { ExtendCallSheet } from '@/components/video/ExtendCallSheet';
@@ -17,6 +18,7 @@ import {
 import {
     AcceptedHeader,
     CheckInBanner,
+    ClientInfoPanel,
     OwnerBudgetPanel,
     OwnerEtaCard,
     OwnerMechanicCard,
@@ -37,7 +39,7 @@ import { videoCallDAO } from '@/lib/dao/VideoCallDAO';
 import { contractedSeconds, DEFAULT_CALL_MINUTES } from '@/lib/video/callLength';
 import { videoCallBookedLabel } from '@/lib/video/videoCallTime';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
-import type { AssistanceOfferSummary } from '@/lib/dao/interfaces';
+import type { AssistanceClientSummary, AssistanceOfferSummary } from '@/lib/dao/interfaces';
 import { userDAO } from '@/lib/dao/UserDAO';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
@@ -176,6 +178,8 @@ export default function AppointmentDetailScreen() {
 
     const [activeTab, setActiveTab] = React.useState<TabType>('info');
     const [ownerTab, setOwnerTab] = React.useState<OwnerTab>('status');
+    // Mechanic on a video call: the owner's sub-navbar, with "mechanic" standing for the client.
+    const [mechTab, setMechTab] = React.useState<OwnerTab>('status');
     const [checkInSeen, setCheckInSeen] = React.useState(false);
     const openOwnerTab = (tab: OwnerTab) => {
         if (tab === 'checkin') setCheckInSeen(true);
@@ -337,6 +341,21 @@ export default function AppointmentDetailScreen() {
         fetchClient();
     }, [isUserRole, appointment?.userId]);
 
+    // Mechanic on a video call: the client's rating, jobs done, verification and join date.
+    // Falls back to the public profile (name and photo only) if this fails.
+    const [clientSummary, setClientSummary] = React.useState<AssistanceClientSummary | null>(null);
+    React.useEffect(() => {
+        if (isUserRole || !isVideoCall || !appointment?.id) return;
+        let cancelled = false;
+        assistanceDAO
+            .getClientSummary(appointment.id)
+            .then((summary) => !cancelled && setClientSummary(summary))
+            .catch((error) => console.error('Error fetching client summary:', error));
+        return () => {
+            cancelled = true;
+        };
+    }, [isUserRole, isVideoCall, appointment?.id]);
+
     const tabs: { key: TabType; label: string }[] = React.useMemo(() => [
         { key: 'info', label: t('appointments.detail.tabs.assistanceInfo') },
         { key: 'client', label: t('appointments.detail.tabs.clientInfo') },
@@ -422,6 +441,68 @@ export default function AppointmentDetailScreen() {
         }
     };
 
+    const submitClientReview = () => {
+        if (isVideoCall) {
+            // POST /appointments/:id/client-review — allowed once the video call is completed.
+            if (videoStatus !== 'completed') {
+                Alert.alert(t('appointments.videoCall.mechanic.reviewAfterCompleted'));
+                return;
+            }
+            onSiteDAO
+                .reviewClient(appointment.id, rating, reviewText.trim() || undefined)
+                .then(() => setIsReviewSubmitted(true))
+                .catch((error) => {
+                    if (error instanceof ApiError && error.statusCode === 409) setIsReviewSubmitted(true);
+                    else videoError(error, 'appointments.videoCall.mechanic.reviewFailed');
+                });
+            return;
+        }
+        setIsReviewSubmitted(true);
+        updateAppointment(appointment.id, {
+            isReviewSubmitted: true,
+            clientReview: {
+                rating,
+                review: reviewText,
+                experienceTags: selectedOption ? [selectedOption] : []
+            }
+        });
+    };
+
+    // Mechanic on a video call: the same four tabs the owner has.
+    const renderMechanicVideoPanel = () => {
+        switch (mechTab) {
+            case 'status':
+                return (
+                    <ClientReviewCard
+                        rating={rating}
+                        setRating={setRating}
+                        selectedOption={selectedOption}
+                        setSelectedOption={setSelectedOption}
+                        reviewText={reviewText}
+                        setReviewText={setReviewText}
+                        isSubmitted={isReviewSubmitted}
+                        onSubmit={submitClientReview}
+                        hint={videoStatus === 'completed' ? undefined : t('appointments.videoCall.mechanic.reviewAfterCompleted')}
+                    />
+                );
+            case 'info':
+                return <MechanicAssistanceInfoTab appointment={appointment} />;
+            case 'mechanic': {
+                const fallbackName = [client?.name, client?.surname].filter(Boolean).join(' ') || null;
+                return (
+                    <ClientInfoPanel
+                        client={clientSummary?.client ?? (client ? { displayName: fallbackName, profileImage: client.profileImage ?? null } : null)}
+                        onMessage={() => router.push(`/chat/${appointment.id}`)}
+                    />
+                );
+            }
+            case 'budget':
+                return <OwnerBudgetPanel total={(appointment.budget ?? '').replace(/^\$/, '') || null} />;
+            default:
+                return null;
+        }
+    };
+
     const renderTabContent = () => {
         switch (activeTab) {
             case 'info':
@@ -439,32 +520,7 @@ export default function AppointmentDetailScreen() {
                         reviewText={reviewText}
                         setReviewText={setReviewText}
                         isSubmitted={isReviewSubmitted}
-                        onSubmit={() => {
-                            if (isVideoCall) {
-                                // POST /appointments/:id/client-review — allowed once the video call is completed.
-                                if (videoStatus !== 'completed') {
-                                    Alert.alert(t('appointments.videoCall.mechanic.reviewAfterCompleted'));
-                                    return;
-                                }
-                                onSiteDAO
-                                    .reviewClient(appointment.id, rating, reviewText.trim() || undefined)
-                                    .then(() => setIsReviewSubmitted(true))
-                                    .catch((error) => {
-                                        if (error instanceof ApiError && error.statusCode === 409) setIsReviewSubmitted(true);
-                                        else videoError(error, 'appointments.videoCall.mechanic.reviewFailed');
-                                    });
-                                return;
-                            }
-                            setIsReviewSubmitted(true);
-                            updateAppointment(appointment.id, {
-                                isReviewSubmitted: true,
-                                clientReview: {
-                                    rating,
-                                    review: reviewText,
-                                    experienceTags: selectedOption ? [selectedOption] : []
-                                }
-                            });
-                        }}
+                        onSubmit={submitClientReview}
                         onMessage={() => router.push(`/chat/${appointment.id}`)}
                     />
                 );
@@ -727,7 +783,7 @@ export default function AppointmentDetailScreen() {
                                     ) : videoState ? (
                                         <MechanicVideoCallStatusCard
                                             state={videoState}
-                                            onRateClient={videoStatus === 'completed' && !isReviewSubmitted ? () => setActiveTab('client') : undefined}
+                                            onRateClient={videoStatus === 'completed' && !isReviewSubmitted ? () => setMechTab('status') : undefined}
                                         />
                                     ) : null}
                                 </View>
@@ -747,62 +803,53 @@ export default function AppointmentDetailScreen() {
                                 </View>
                             ) : null}
 
-                            {/* Quick-nav tabs */}
-                            <View
-                                className="mx-4 mt-3.5 flex-row gap-2.5"
-                                style={isVideoCall ? { gap: 4, padding: 4, borderRadius: 14, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: MECH.border } : undefined}
-                                testID="tab-navigation-container"
-                                nativeID="tab-navigation-container"
-                            >
-                                {tabs.map((tab) => {
-                                    const isActive = activeTab === tab.key;
-                                    if (isVideoCall) {
-                                        return (
-                                            <TouchableOpacity
-                                                key={tab.key}
-                                                testID={`tab-button-${tab.key}`}
-                                                className="flex-1 items-center py-2.5"
-                                                style={{
-                                                    borderRadius: 11,
-                                                    backgroundColor: isActive ? MECH.blue : 'transparent',
-                                                    shadowColor: MECH.blue,
-                                                    shadowOffset: { width: 0, height: 6 },
-                                                    shadowOpacity: isActive ? 0.35 : 0,
-                                                    shadowRadius: 8,
-                                                    elevation: isActive ? 3 : 0,
-                                                }}
-                                                onPress={() => setActiveTab(tab.key)}
-                                            >
-                                                <Text className="font-outfit-bold text-[13.5px]" style={{ color: isActive ? '#FFFFFF' : MECH.muted }}>
-                                                    {tab.label}
-                                                </Text>
-                                            </TouchableOpacity>
-                                        );
-                                    }
-                                    return (
-                                        <TouchableOpacity
-                                            key={tab.key}
-                                            testID={`tab-button-${tab.key}`}
-                                            className="flex-1 items-center py-3.5"
-                                            style={{
-                                                borderRadius: 14,
-                                                borderWidth: 1.5,
-                                                borderColor: isActive ? MECH.blue : MECH.border,
-                                                backgroundColor: isActive ? MECH.blueSoft : '#FFFFFF',
-                                            }}
-                                            onPress={() => setActiveTab(tab.key)}
-                                        >
-                                            <Text className="font-outfit-bold text-[13px]" style={{ color: isActive ? MECH.blue : MECH.text }}>
-                                                {tab.label}
-                                            </Text>
-                                        </TouchableOpacity>
-                                    );
-                                })}
-                            </View>
+                            {/* Quick-nav tabs — a video call uses the owner's sub-navbar */}
+                            {isVideoCall ? (
+                                <>
+                                    <View className="mx-4 mt-3.5">
+                                        <OwnerTabs
+                                            active={mechTab}
+                                            onChange={setMechTab}
+                                            checkInDot={false}
+                                            hideCheckIn
+                                            labels={{ mechanic: t('appointments.videoCall.mechanic.tabs.client') }}
+                                        />
+                                    </View>
+                                    <View className="px-4 pt-3.5 pb-10" testID="tab-content-container" nativeID="tab-content-container">
+                                        {renderMechanicVideoPanel()}
+                                    </View>
+                                </>
+                            ) : (
+                                <>
+                                    <View className="mx-4 mt-3.5 flex-row gap-2.5" testID="tab-navigation-container" nativeID="tab-navigation-container">
+                                        {tabs.map((tab) => {
+                                            const isActive = activeTab === tab.key;
+                                            return (
+                                                <TouchableOpacity
+                                                    key={tab.key}
+                                                    testID={`tab-button-${tab.key}`}
+                                                    className="flex-1 items-center py-3.5"
+                                                    style={{
+                                                        borderRadius: 14,
+                                                        borderWidth: 1.5,
+                                                        borderColor: isActive ? MECH.blue : MECH.border,
+                                                        backgroundColor: isActive ? MECH.blueSoft : '#FFFFFF',
+                                                    }}
+                                                    onPress={() => setActiveTab(tab.key)}
+                                                >
+                                                    <Text className="font-outfit-bold text-[13px]" style={{ color: isActive ? MECH.blue : MECH.text }}>
+                                                        {tab.label}
+                                                    </Text>
+                                                </TouchableOpacity>
+                                            );
+                                        })}
+                                    </View>
 
-                            <View className="px-4 pt-3.5 pb-10" testID="tab-content-container" nativeID="tab-content-container">
-                                {renderTabContent()}
-                            </View>
+                                    <View className="px-4 pt-3.5 pb-10" testID="tab-content-container" nativeID="tab-content-container">
+                                        {renderTabContent()}
+                                    </View>
+                                </>
+                            )}
                             </>
                         )}
                     </ScrollView>

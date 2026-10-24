@@ -1302,7 +1302,12 @@
         "notResolvedBody": "Soporte determinó que el problema no se resolvió, así que no se le cobró al cliente.",
         "rateClient": "Calificar al cliente",
         "reviewAfterCompleted": "Vas a poder calificar al cliente cuando se confirme la asistencia.",
-        "reviewFailed": "No pudimos enviar tu calificación. Intentá de nuevo."
+        "reviewFailed": "No pudimos enviar tu calificación. Intentá de nuevo.",
+        "tabs": {
+          "client": "Cliente"
+        },
+        "clientLabel": "CLIENTE",
+        "clientFallback": "Cliente"
       },
       "header": {
         "booked": "Videollamada agendada",
@@ -1336,6 +1341,22 @@
         "startsOnJoin": "Cuando el cliente se une a la llamada empieza una sesión de {{minutes}} minutos. Solo el cliente puede agregar más tiempo.",
         "returnToCall": "Volver a la llamada"
       }
+    },
+    "clientReview": {
+      "title": "¿Cómo calificarías al cliente?",
+      "star_one": "{{count}} estrella",
+      "star_other": "{{count}} estrellas",
+      "experience": "Detalles de la experiencia",
+      "selectOption": "Elegí una opción",
+      "options": {
+        "resolved": "El problema quedó resuelto",
+        "savedTime": "Me ahorró tiempo",
+        "professional": "El cliente fue profesional"
+      },
+      "review": "Reseña del cliente",
+      "placeholder": "Escribí una reseña...",
+      "send": "Enviar",
+      "sent": "Calificación enviada"
     }
   },
   "requestDetail": {

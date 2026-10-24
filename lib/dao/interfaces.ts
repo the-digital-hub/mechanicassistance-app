@@ -538,10 +538,27 @@ export interface AssistanceOfferSummary {
     breakdown: { service: string; fees: string; taxes: string; total: string } | null;
 }
 
+/** What the assigned mechanic sees about the vehicle owner (GET /api/assistance/:id/client-summary). */
+export interface AssistanceClientSummary {
+    client: {
+        displayName: string | null;
+        initials: string | null;
+        profileImage: string | null;
+        /** Average of the ratings mechanics gave this client; null when nobody has rated them yet. */
+        avgRating: number | null;
+        ratingCount: number;
+        servicesCount: number;
+        idVerified: boolean;
+        /** ISO date the client joined. */
+        memberSince: string | null;
+    };
+}
+
 export interface IAssistanceDAO {
     getAll(filters?: { userId?: string; mechanicId?: string; status?: string; zip?: string; lat?: number; lng?: number; radiusKm?: number }): Promise<AssistanceRequest[]>;
     getById(id: string): Promise<AssistanceRequest | null>;
     getOfferSummary(id: string): Promise<AssistanceOfferSummary>;
+    getClientSummary(id: string): Promise<AssistanceClientSummary>;
     updateStatus(id: string, mechanicId: string, status: string, extra?: { eta?: string; price?: string }): Promise<void>;
     create(request: Partial<AssistanceRequest>): Promise<AssistanceRequest>;
     reject(id: string): Promise<void>;

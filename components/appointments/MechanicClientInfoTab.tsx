@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
-import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React from 'react';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
+import { ClientReviewCard } from './ClientReviewCard';
 
 interface MechanicClientInfoTabProps {
     client: any;
@@ -31,13 +32,6 @@ export function MechanicClientInfoTab({
     onSubmit,
     onMessage
 }: MechanicClientInfoTabProps) {
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const options = [
-        'Issue was fully resolved',
-        'Saved me time',
-        'Client was professional'
-    ];
-
     return (
         <View className="gap-6">
             {/* Blue Header Banner */}
@@ -87,81 +81,16 @@ export function MechanicClientInfoTab({
 
             <View className="h-[1px] bg-gray-100 my-2" />
 
-            {/* Rating Section */}
-            <Text className="font-outfit-bold text-gray-900 text-base">How would you rate the client?</Text>
-            <View className="flex-row justify-center gap-2">
-                {[1, 2, 3, 4, 5].map((star) => (
-                    <TouchableOpacity key={star} onPress={() => !isSubmitted && setRating(star)} disabled={isSubmitted}>
-                        <Ionicons
-                            name={star <= rating ? "star" : "star-outline"}
-                            size={32}
-                            color="#3B82F6"
-                        />
-                    </TouchableOpacity>
-                ))}
-            </View>
-
-            {/* Experience Details Dropdown (Combo) */}
-            <View className="z-50">
-                <Text className="font-outfit-bold text-gray-900 text-base mb-2">Experience details</Text>
-
-                <TouchableOpacity
-                    onPress={() => !isSubmitted && setIsDropdownOpen(!isDropdownOpen)}
-                    disabled={isSubmitted}
-                    className="bg-white border border-gray-200 rounded-xl p-4 flex-row justify-between items-center"
-                >
-                    <Text className={selectedOption ? "text-gray-900 font-outfit-medium" : "text-gray-400 font-outfit-regular"}>
-                        {selectedOption || 'Select an option'}
-                    </Text>
-                    <Ionicons name={isDropdownOpen ? "chevron-up" : "chevron-down"} size={20} color="#6B7280" />
-                </TouchableOpacity>
-
-                {isDropdownOpen && (
-                    <View className="absolute top-[80px] w-full bg-white border border-gray-100 rounded-xl shadow-lg z-50">
-                        {options.map((option, index) => (
-                            <TouchableOpacity
-                                key={option}
-                                onPress={() => {
-                                    setSelectedOption(option);
-                                    setIsDropdownOpen(false);
-                                }}
-                                className={`p-4 border-b border-gray-50 flex-row items-center justify-between ${index === options.length - 1 ? 'border-b-0' : ''}`}
-                            >
-                                <Text className={`font-outfit-regular ${selectedOption === option ? 'text-blue-600 font-outfit-bold' : 'text-gray-700'}`}>
-                                    {option}
-                                </Text>
-                                {selectedOption === option && (
-                                    <Ionicons name="checkmark" size={20} color="#3B82F6" />
-                                )}
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                )}
-            </View>
-
-            {/* Client Review Text Area */}
-            <View>
-                <Text className="font-outfit-bold text-gray-900 text-base mb-2">Client review</Text>
-                <TextInput
-                    className="bg-white border border-gray-200 rounded-xl p-4 min-h-[100px] font-outfit-regular text-gray-700"
-                    placeholder="Type a review here..."
-                    multiline
-                    textAlignVertical="top"
-                    value={reviewText}
-                    onChangeText={setReviewText}
-                    editable={!isSubmitted}
-                />
-            </View>
-
-            {/* Send Button */}
-            {!isSubmitted && (
-                <TouchableOpacity
-                    onPress={onSubmit}
-                    className="bg-blue-600 w-full py-4 rounded-xl items-center justify-center mb-6"
-                >
-                    <Text className="text-white font-outfit-bold text-lg">Send</Text>
-                </TouchableOpacity>
-            )}
+            <ClientReviewCard
+                rating={rating}
+                setRating={setRating}
+                selectedOption={selectedOption}
+                setSelectedOption={setSelectedOption}
+                reviewText={reviewText}
+                setReviewText={setReviewText}
+                isSubmitted={isSubmitted}
+                onSubmit={onSubmit}
+            />
         </View>
     );
 }

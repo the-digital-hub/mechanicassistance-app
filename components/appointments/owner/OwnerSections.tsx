@@ -1,7 +1,7 @@
 import { PulseDot } from '@/components/appointments/MechanicArrivalCard';
 import { AO, card, IconName, RequestSummaryRows, Stars, SummaryRow } from '@/components/offer/OfferSections';
 import { formatEtaTime } from '@/hooks/useAppointmentEta';
-import type { AssistanceOfferSummary } from '@/lib/dao/interfaces';
+import type { AssistanceClientSummary, AssistanceOfferSummary } from '@/lib/dao/interfaces';
 import type { LatLng } from '@/lib/maps/polyline';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -80,8 +80,8 @@ const TABS: { id: OwnerTab; icon: IconName }[] = [
     { id: 'budget', icon: 'cash-outline' },
 ];
 
-/** `hideCheckIn`: video calls are remote and have no check-in. */
-export function OwnerTabs({ active, onChange, checkInDot, hideCheckIn = false }: { active: OwnerTab; onChange: (tab: OwnerTab) => void; checkInDot: boolean; hideCheckIn?: boolean }) {
+/** `hideCheckIn`: video calls are remote and have no check-in. `labels` renames tabs (the mechanic's "mechanic" tab is the client). */
+export function OwnerTabs({ active, onChange, checkInDot, hideCheckIn = false, labels }: { active: OwnerTab; onChange: (tab: OwnerTab) => void; checkInDot: boolean; hideCheckIn?: boolean; labels?: Partial<Record<OwnerTab, string>> }) {
     const { t } = useTranslation();
     return (
         <View className="flex-row" style={{ gap: 4, padding: 4, borderRadius: 16, backgroundColor: '#fff', borderWidth: 1, borderColor: AO.border }}>
@@ -96,7 +96,7 @@ export function OwnerTabs({ active, onChange, checkInDot, hideCheckIn = false }:
                     >
                         <Ionicons name={tab.icon} size={17} color={on ? '#fff' : AO.muted} />
                         <Text className="font-outfit-bold" numberOfLines={1} adjustsFontSizeToFit style={{ fontSize: 10.5, color: on ? '#fff' : AO.muted }}>
-                            {t(`${K}.tabs.${tab.id}`)}
+                            {labels?.[tab.id] ?? t(`${K}.tabs.${tab.id}`)}
                         </Text>
                         {tab.id === 'checkin' && checkInDot && !on && (
                             <View style={{ position: 'absolute', top: 6, right: '22%', width: 9, height: 9, borderRadius: 5, backgroundColor: AO.red, borderWidth: 2, borderColor: '#fff' }} />
@@ -288,16 +288,88 @@ export function OwnerTechnicianPanel({ mechanic }: { mechanic: Mechanic | null }
     );
 }
 
-/** `payment` is the card row's value (`PaymentCardValue`), resolved by the screen. */
-export function OwnerBudgetPanel({ total, payment }: { total: string | null; payment: React.ReactNode }) {
+/** `payment` is the card row's value (`PaymentCardValue`), resolved by the screen; omitted (the mechanic) hides the row. */
+export function OwnerBudgetPanel({ total, payment }: { total: string | null; payment?: React.ReactNode }) {
     const { t } = useTranslation();
+    const rows: (SummaryRow | null)[] = [
+        { icon: 'cash-outline', label: t(`${K}.rows.serviceValue`), value: total ? `$${total}` : '—', strong: true },
+        payment !== undefined ? { icon: 'card-outline', label: t(`${K}.rows.payment`), value: payment } : null,
+        { icon: 'document-text-outline', label: t(`${K}.rows.additionalParts`), value: t(`${K}.partsOnlyWithApproval`) },
+    ];
+    return <RequestSummaryRows rows={rows.filter((r): r is SummaryRow => r !== null)} />;
+}
+
+type Client = AssistanceClientSummary['client'];
+
+/**
+ * The mechanic's view of the vehicle owner — the counterpart of `OwnerTechnicianPanel`.
+ * `client` may hold only name/photo (public-profile fallback): the stat rows then stay hidden.
+ * `onCall` omitted hides the call button.
+ */
+export function ClientInfoPanel({ client, onMessage, onCall }: { client: (Partial<Client> & Pick<Client, 'displayName'>) | null; onMessage: () => void; onCall?: () => void }) {
+    const { t, i18n } = useTranslation();
+    if (!client) return null;
+
+    const memberSince = client.memberSince
+        ? new Date(client.memberSince).toLocaleDateString(i18n.language, { month: 'long', year: 'numeric' })
+        : null;
+    const hasStats = client.servicesCount !== undefined;
+
+    const rows: (SummaryRow | null)[] = [
+        hasStats
+            ? {
+                  icon: 'star-outline',
+                  label: t(`${K}.rows.rating`),
+                  value: (
+                      <View className="flex-row items-center flex-wrap justify-end" style={{ gap: 6 }}>
+                          {client.avgRating != null && <Stars rating={client.avgRating} size={13} />}
+                          <Text className="font-outfit-medium" style={{ fontSize: 12.5, color: AO.muted }}>
+                              {client.servicesCount! > 0
+                                  ? t('requestAssistance.mechanicFound.servicesCount', { count: client.servicesCount })
+                                  : t('requestAssistance.mechanicFound.newOnPlatform')}
+                          </Text>
+                      </View>
+                  ),
+              }
+            : null,
+        client.idVerified ? { icon: 'shield-checkmark-outline', label: t(`${K}.rows.verified`), value: t(`${K}.idChecked`), tone: 'green' } : null,
+        memberSince ? { icon: 'calendar-outline', label: t(`${K}.rows.memberSince`), value: memberSince } : null,
+    ];
+    const visible = rows.filter((r): r is SummaryRow => r !== null);
+
     return (
-        <RequestSummaryRows
-            rows={[
-                { icon: 'cash-outline', label: t(`${K}.rows.serviceValue`), value: total ? `$${total}` : '—', strong: true },
-                { icon: 'card-outline', label: t(`${K}.rows.payment`), value: payment },
-                { icon: 'document-text-outline', label: t(`${K}.rows.additionalParts`), value: t(`${K}.partsOnlyWithApproval`) },
-            ]}
-        />
+        <View style={{ gap: 12 }} testID="mechanic-client-panel">
+            <View style={[card, { borderRadius: 16, padding: 10, paddingLeft: 12, flexDirection: 'row', alignItems: 'center', gap: 10 }]} testID="mechanic-client-card">
+                {client.profileImage ? (
+                    <Image source={{ uri: client.profileImage }} style={{ width: 40, height: 40, borderRadius: 20 }} />
+                ) : (
+                    <LinearGradient colors={['#4A7BFF', AO.blueDark]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' }}>
+                        {client.initials ? (
+                            <Text className="font-outfit-bold" style={{ color: '#fff', fontSize: 14 }}>{client.initials}</Text>
+                        ) : (
+                            <Ionicons name="person" size={18} color="#fff" />
+                        )}
+                    </LinearGradient>
+                )}
+                <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 0.8, color: AO.muted }}>{t('appointments.videoCall.mechanic.clientLabel')}</Text>
+                    <View className="flex-row items-center" style={{ gap: 6, marginTop: 1 }}>
+                        <Text className="font-outfit-bold" numberOfLines={1} style={{ fontSize: 15, color: AO.text, letterSpacing: -0.2, flexShrink: 1 }}>
+                            {client.displayName ?? t('appointments.videoCall.mechanic.clientFallback')}
+                        </Text>
+                        {client.avgRating != null && <Stars rating={client.avgRating} />}
+                    </View>
+                </View>
+                <TouchableOpacity onPress={onMessage} accessibilityLabel={t(`${K}.message`)} style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: AO.blueSoft, alignItems: 'center', justifyContent: 'center' }} testID="mechanic-client-message">
+                    <Ionicons name="chatbubble-ellipses-outline" size={18} color={AO.blue} />
+                </TouchableOpacity>
+                {onCall && (
+                    <TouchableOpacity onPress={onCall} accessibilityLabel={t(`${K}.call`)} style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: AO.blue, alignItems: 'center', justifyContent: 'center' }} testID="mechanic-client-call">
+                        <Ionicons name="call-outline" size={18} color="#fff" />
+                    </TouchableOpacity>
+                )}
+            </View>
+            {visible.length > 0 && <RequestSummaryRows rows={visible} />}
+        </View>
     );
 }
