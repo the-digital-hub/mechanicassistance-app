@@ -7,6 +7,7 @@ import { ClientReviewCard } from '@/components/appointments/ClientReviewCard';
 import { OwnerReviewCard } from '@/components/appointments/OwnerReviewCard';
 import { VideoCallTimerCard } from '@/components/appointments/VideoCallTimerCard';
 import { ExtendCallSheet } from '@/components/video/ExtendCallSheet';
+import { CallTimeAddedToast } from '@/components/video/CallTimeAddedToast';
 import {
     GradientButton,
     JoinVideoCallButton,
@@ -555,6 +556,8 @@ export default function AppointmentDetailScreen() {
             testID="appointment-detail-root"
             nativeID="appointment-detail-root"
         >
+            {/* Either side: "the owner added N minutes" while a video call runs. */}
+            {isVideoCall && <CallTimeAddedToast appointmentId={appointment.id} />}
             {isCanceledFeedback ? (
                 <View><Text>Cancellation Feedback Placeholder</Text></View>
             ) : (

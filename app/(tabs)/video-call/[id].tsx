@@ -10,6 +10,7 @@ import { CallControls } from '@/components/video/CallControls';
 import { CallTopBar, VC, type CallStatus } from '@/components/video/CallTopBar';
 import { VideoTile } from '@/components/video/VideoTile';
 import { ExtendCallSheet } from '@/components/video/ExtendCallSheet';
+import { CallTimeAddedToast } from '@/components/video/CallTimeAddedToast';
 import { ObdCallSheet } from '@/components/video/ObdCallSheet';
 import { useRequestObd } from '@/components/video/RequestObdPanel';
 import { useUser } from '@/context/UserContext';
@@ -142,6 +143,8 @@ export default function VideoCallScreen() {
   return (
     <View style={styles.container}>
       <CallTopBar remaining={remaining} limit={limitSeconds} status={status} topInset={insets.top} />
+      {/* Just below the top bar: "the owner added N minutes". */}
+      <CallTimeAddedToast appointmentId={appointmentId || undefined} variant="dark" top={insets.top + 64} />
       <ObdCallSheet
         visible={obdOpen}
         requestId={appointmentId}

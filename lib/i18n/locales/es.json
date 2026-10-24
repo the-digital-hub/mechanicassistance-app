@@ -2317,7 +2317,9 @@
       "cardDeclined": "La tarjeta fue rechazada. Elegí otra tarjeta.",
       "notNow": "No se puede agregar tiempo ahora. Puede que la llamada haya terminado o llegado al límite.",
       "notOwner": "Solo el cliente puede agregar tiempo a la llamada.",
-      "failed": "No se pudo agregar el tiempo. Intentá de nuevo."
+      "failed": "No se pudo agregar el tiempo. Intentá de nuevo.",
+      "addedByOwner": "El cliente agregó {{minutes}} minutos a la llamada",
+      "addedBySelf": "Agregaste {{minutes}} minutos a la llamada"
     },
     "lobby": {
       "footer": "Las videollamadas duran {{minutes}} minutos; el cliente puede agregar más tiempo durante la llamada."
