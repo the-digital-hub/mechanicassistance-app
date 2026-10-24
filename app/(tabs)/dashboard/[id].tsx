@@ -7,7 +7,7 @@ import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import * as Location from 'expo-location';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Calendar, Clock, Navigation, HelpCircle } from 'lucide-react-native';
+import { Calendar, Clock, Navigation, HelpCircle, ScanLine } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RequestIssueText } from '@/components/ui/RequestIssueText';
@@ -16,6 +16,7 @@ import { FixedLocationMap } from '@/components/ui/FixedLocationMap';
 import { approximateArea, coarseAddress } from '@/lib/maps/approximateLocation';
 import { apiClient } from '@/lib/api/apiClient';
 import { videoCallStartLabel } from '@/lib/video/videoCallTime';
+import { useRequestObd } from '@/components/video/RequestObdPanel';
 
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
     const R = 6371;
@@ -44,6 +45,8 @@ export default function AssistDetailScreen() {
 
     const isImmediate = type === 'immediate' || type === 'videocall' || type === 'witness' || assistanceType === 'witness';
     const isVideo = type === 'videocall';
+    // Before accepting, only that the owner sent a scanner report and how many codes it has.
+    const { report: obd } = useRequestObd(isVideo && id ? String(Array.isArray(id) ? id[0] : id) : undefined);
 
     const reqLat = parseFloat(locationLat as string);
     const reqLng = parseFloat(locationLng as string);
@@ -191,6 +194,18 @@ export default function AssistDetailScreen() {
                                 <Clock size={16} color="#0047AB" />
                                 <Text className="font-outfit-bold text-blue-900">
                                     {t('requestDetail.videoCallWhen')}: {videoCallStartLabel(typeof date === 'string' ? date : undefined, i18n.language) ?? t('requestDetail.videoCallNow')}
+                                </Text>
+                            </View>
+                        )}
+                        {isVideo && obd && obd.status !== 'none' && (
+                            <View className="flex-row items-center gap-2 bg-blue-50 rounded-xl px-4 py-3" testID="video-call-obd">
+                                <ScanLine size={16} color="#0047AB" />
+                                <Text className="font-outfit-bold text-blue-900">
+                                    {obd.status === 'processing'
+                                        ? t('dashboardDetail.obdReading')
+                                        : obd.codeCount > 0
+                                            ? t('dashboardDetail.obdCodes', { count: obd.codeCount })
+                                            : t('dashboardDetail.obdNoCodes')}
                                 </Text>
                             </View>
                         )}

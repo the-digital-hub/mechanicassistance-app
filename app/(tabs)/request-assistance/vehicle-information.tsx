@@ -72,9 +72,10 @@ export default function VehicleInformationScreen() {
         if (!condition) return;
 
         router.push({
-            // A video call is remote: no photos or location, it ends on "When".
-            // Typed routes regenerate on the next dev-server start; until then "when" is unknown.
-            pathname: (type === 'videocall' ? '/request-assistance/when' : '/request-assistance/vehicle-documentation') as never,
+            // A video call is remote: no photos or location. It asks for the OBD
+            // scanner report (optional) and ends on "When".
+            // Typed routes regenerate on the next dev-server start; until then these are unknown.
+            pathname: (type === 'videocall' ? '/request-assistance/obd-scanner' : '/request-assistance/vehicle-documentation') as never,
             params: {
                 ...params,
                 issues,

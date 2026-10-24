@@ -10,6 +10,8 @@ import { CallControls } from '@/components/video/CallControls';
 import { CallTopBar, VC, type CallStatus } from '@/components/video/CallTopBar';
 import { VideoTile } from '@/components/video/VideoTile';
 import { ExtendCallSheet } from '@/components/video/ExtendCallSheet';
+import { ObdCallSheet } from '@/components/video/ObdCallSheet';
+import { useRequestObd } from '@/components/video/RequestObdPanel';
 import { useUser } from '@/context/UserContext';
 import { useDailyCall } from '@/lib/video/useDailyCall';
 import { goBackOr } from '@/lib/navigation/goBackOr';
@@ -33,6 +35,13 @@ export default function VideoCallScreen() {
   // Only the vehicle owner buys extra time; the mechanic's timer follows it.
   const isOwner = user?.role === 'user';
   const [extendOpen, setExtendOpen] = useState(false);
+  // The owner's OBD scanner report (the appointment id is the request id).
+  const obd = useRequestObd(appointmentId || undefined);
+  const [obdOpen, setObdOpen] = useState(false);
+  const obdHasCodes = (obd.report?.codeCount ?? 0) > 0;
+  // The mechanic only gets the button when there is something to read; the
+  // owner also uses it to send a report mid-call.
+  const showObd = !!obd.report && (isOwner || obd.report.status !== 'none');
   // How long the call may run (base + extensions) and when the room closes,
   // refreshed when either side extends it (video_call_update "extended").
   const { state: callTime, reload: reloadCallTime } = useVideoCallState(appointmentId || undefined, !!appointmentId);
@@ -133,6 +142,13 @@ export default function VideoCallScreen() {
   return (
     <View style={styles.container}>
       <CallTopBar remaining={remaining} limit={limitSeconds} status={status} topInset={insets.top} />
+      <ObdCallSheet
+        visible={obdOpen}
+        requestId={appointmentId}
+        role={isOwner ? 'owner' : 'mechanic'}
+        state={obd}
+        onClose={() => setObdOpen(false)}
+      />
       {isOwner && (
         <ExtendCallSheet
           visible={extendOpen}
@@ -173,6 +189,20 @@ export default function VideoCallScreen() {
             <Text style={styles.addTimeText}>{t(`${K}.addTime`)}</Text>
           </TouchableOpacity>
         )}
+        {showObd && callState === 'joined' && (
+          <TouchableOpacity
+            style={[styles.obd, { top: isOwner ? 58 : 14 }]}
+            onPress={() => setObdOpen(true)}
+            activeOpacity={0.85}
+            testID="call-obd"
+            accessibilityRole="button"
+          >
+            <Ionicons name="speedometer-outline" size={16} color="#FFFFFF" />
+            <Text style={styles.addTimeText}>
+              {obdHasCodes ? t(`${K}.obdCodes`, { count: obd.report?.codeCount ?? 0 }) : t(`${K}.obd`)}
+            </Text>
+          </TouchableOpacity>
+        )}
         <View style={styles.pip}>
           <View style={styles.pipInner}>
             <VideoTile stream={localStream} name={t(`${K}.you`)} isCameraOff={isCameraOff} isLocal />
@@ -209,6 +239,11 @@ const styles = StyleSheet.create({
   addTime: {
     position: 'absolute', top: 14, left: 14, zIndex: 3, flexDirection: 'row', alignItems: 'center', gap: 6,
     paddingHorizontal: 12, paddingVertical: 8, borderRadius: 100, backgroundColor: 'rgba(30,86,227,0.9)',
+  },
+  obd: {
+    position: 'absolute', left: 14, zIndex: 3, flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 12, paddingVertical: 8, borderRadius: 100, backgroundColor: 'rgba(15,23,41,0.75)',
+    borderWidth: 1, borderColor: 'rgba(92,214,242,0.6)',
   },
   addTimeText: { fontFamily: 'Outfit_700Bold', fontSize: 13, color: '#FFFFFF' },
   loadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: VC.navy, alignItems: 'center', justifyContent: 'center', zIndex: 10 },

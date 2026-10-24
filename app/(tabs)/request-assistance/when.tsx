@@ -4,6 +4,7 @@ import { useUser } from '@/context/UserContext';
 import { ApiError } from '@/lib/api/types';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { pricingDAO } from '@/lib/dao/PricingDAO';
+import { requestObdDAO } from '@/lib/dao/RequestObdDAO';
 import { WALLET_METHOD } from '@/lib/payments/cardLabel';
 import { usePaymentChoice } from '@/lib/payments/usePaymentChoice';
 import {
@@ -34,7 +35,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 /**
- * Last step of the video-call wizard (vehicle → issue → here): the owner picks
+ * Last step of the video-call wizard (vehicle → issue → OBD scanner → here): the owner picks
  * "Now" or a booked slot, and the button creates the request. A video call is
  * remote, so the wizard never asks for photos or a location.
  */
@@ -70,7 +71,7 @@ export default function VideoCallWhenScreen() {
     const router = useRouter();
     const { t, i18n } = useTranslation();
     const { user } = useUser();
-    const { vehicleDetails } = useRequestDraft();
+    const { vehicleDetails, obdFile, setObdFile } = useRequestDraft();
     const params = useLocalSearchParams();
     const { vehicleId, vehicleName, description, issues, symptomIds, details, condition } = params;
 
@@ -230,6 +231,22 @@ export default function VideoCallWhenScreen() {
                     t('requestAssistance.confirmation.pricingUnavailableTitle'),
                     t('requestAssistance.confirmation.pricingUnavailableMessage'),
                 );
+            }
+
+            // The OBD scanner report picked on the previous step. The request
+            // already exists, so a failed upload must not undo it: the owner can
+            // send it again from the assistance's OBD tab.
+            if (obdFile) {
+                try {
+                    await requestObdDAO.attach(response.id, obdFile);
+                    setObdFile(null);
+                } catch (err) {
+                    console.warn(`[when] attaching the OBD report failed for ${response.id}`, err);
+                    Alert.alert(
+                        t('requestAssistance.obdScanner.uploadFailedTitle'),
+                        t('requestAssistance.obdScanner.uploadFailedMessage'),
+                    );
+                }
             }
 
             router.replace({

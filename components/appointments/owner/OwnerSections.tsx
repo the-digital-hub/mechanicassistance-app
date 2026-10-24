@@ -17,7 +17,7 @@ const K = 'appointments.ownerAccepted';
 
 type Mechanic = AssistanceOfferSummary['mechanic'];
 
-export type OwnerTab = 'status' | 'checkin' | 'info' | 'mechanic' | 'budget';
+export type OwnerTab = 'status' | 'checkin' | 'info' | 'obd' | 'mechanic' | 'budget';
 
 /** `title`/`icon`/`color` override the default "Assistance accepted" (a video call reflects its close-out state). */
 export function AcceptedHeader({ id, title, icon = 'checkmark', color = AO.green }: { id: string; title?: string; icon?: IconName; color?: string }) {
@@ -76,16 +76,21 @@ const TABS: { id: OwnerTab; icon: IconName }[] = [
     { id: 'status', icon: 'time-outline' },
     { id: 'checkin', icon: 'qr-code-outline' },
     { id: 'info', icon: 'document-text-outline' },
+    { id: 'obd', icon: 'speedometer-outline' },
     { id: 'mechanic', icon: 'construct-outline' },
     { id: 'budget', icon: 'cash-outline' },
 ];
 
-/** `hideCheckIn`: video calls are remote and have no check-in. `labels` renames tabs (the mechanic's "mechanic" tab is the client). */
-export function OwnerTabs({ active, onChange, checkInDot, hideCheckIn = false, labels }: { active: OwnerTab; onChange: (tab: OwnerTab) => void; checkInDot: boolean; hideCheckIn?: boolean; labels?: Partial<Record<OwnerTab, string>> }) {
+/**
+ * `hideCheckIn`: video calls are remote and have no check-in. `showObd`: only video calls carry
+ * the owner's OBD scanner report; `obdDot` flags codes not seen yet. `labels` renames tabs (the
+ * mechanic's "mechanic" tab is the client).
+ */
+export function OwnerTabs({ active, onChange, checkInDot, hideCheckIn = false, showObd = false, obdDot = false, labels }: { active: OwnerTab; onChange: (tab: OwnerTab) => void; checkInDot: boolean; hideCheckIn?: boolean; showObd?: boolean; obdDot?: boolean; labels?: Partial<Record<OwnerTab, string>> }) {
     const { t } = useTranslation();
     return (
         <View className="flex-row" style={{ gap: 4, padding: 4, borderRadius: 16, backgroundColor: '#fff', borderWidth: 1, borderColor: AO.border }}>
-            {TABS.filter((tab) => !(hideCheckIn && tab.id === 'checkin')).map((tab) => {
+            {TABS.filter((tab) => !(hideCheckIn && tab.id === 'checkin') && (showObd || tab.id !== 'obd')).map((tab) => {
                 const on = active === tab.id;
                 return (
                     <TouchableOpacity
@@ -98,7 +103,7 @@ export function OwnerTabs({ active, onChange, checkInDot, hideCheckIn = false, l
                         <Text className="font-outfit-bold" numberOfLines={1} adjustsFontSizeToFit style={{ fontSize: 10.5, color: on ? '#fff' : AO.muted }}>
                             {labels?.[tab.id] ?? t(`${K}.tabs.${tab.id}`)}
                         </Text>
-                        {tab.id === 'checkin' && checkInDot && !on && (
+                        {((tab.id === 'checkin' && checkInDot) || (tab.id === 'obd' && obdDot)) && !on && (
                             <View style={{ position: 'absolute', top: 6, right: '22%', width: 9, height: 9, borderRadius: 5, backgroundColor: AO.red, borderWidth: 2, borderColor: '#fff' }} />
                         )}
                     </TouchableOpacity>

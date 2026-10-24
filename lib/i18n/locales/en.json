@@ -567,6 +567,30 @@
       "message": "You need a saved card to request assistance. Add one and you will go right back to your request.",
       "confirm": "Add card",
       "cancel": "Not now"
+    },
+    "obdScanner": {
+      "headerTitle": "OBD scanner",
+      "skip": "Skip",
+      "badge": "VIDEO CALL",
+      "title": "Do you have an OBD scanner?",
+      "subtitle": "If you have one, send the mechanic the trouble codes it reads. They'll see them before the call starts.",
+      "yesTitle": "Yes, I have one",
+      "yesSubtitle": "I'll plug it in and send the report",
+      "noTitle": "No, I don't",
+      "noSubtitle": "The mechanic will diagnose it on the call",
+      "howTitle": "How to do it",
+      "steps": {
+        "plug": "Plug the scanner into the OBD-II port, under the dashboard on the driver's side.",
+        "ignition": "Turn the key to ON (or start the engine) and wait for the scanner to connect.",
+        "read": "Read the trouble codes (\"Read codes\" / \"DTC\" on the scanner or its app).",
+        "capture": "Take a photo of the scanner's screen, or upload a screenshot or PDF from its app."
+      },
+      "placeholder": "Add the scanner report",
+      "privacy": "Only the mechanic who takes your call will see the codes. Before that, mechanics only see that you sent a report.",
+      "cta": "Continue",
+      "ctaNeedFile": "Add the report to continue",
+      "uploadFailedTitle": "We couldn't send the scanner report",
+      "uploadFailedMessage": "Your video call was requested. You can send the report again from the OBD tab of the assistance."
     }
   },
   "appointments": {
@@ -1206,7 +1230,8 @@
         "checkin": "Check-in",
         "info": "Details",
         "mechanic": "Technician",
-        "budget": "Budget"
+        "budget": "Budget",
+        "obd": "OBD"
       },
       "checkInBannerBold": "Have your check-in code ready.",
       "checkInBannerRest": "The technician will scan it when they arrive.",
@@ -1326,7 +1351,10 @@
         "retry": "Retry",
         "you": "You",
         "participant": "Participant",
-        "addTime": "Add time"
+        "addTime": "Add time",
+        "obd": "OBD",
+        "obdCodes_one": "OBD · {{count}} code",
+        "obdCodes_other": "OBD · {{count}} codes"
       },
       "timer": {
         "inProgress": "Call in progress",
@@ -1340,6 +1368,19 @@
         "added": "+{{minutes}} min added",
         "startsOnJoin": "A {{minutes}}-minute session timer starts when the client joins the call. Only the client can add more time.",
         "returnToCall": "Return to call"
+      },
+      "obd": {
+        "file": "Scanner report",
+        "placeholder": "Photo, screenshot or PDF of the scanner",
+        "noneOwner": "You didn't send a scanner report.",
+        "noneMechanic": "The vehicle owner didn't send a scanner report. You can type the codes in if you read them together on the call.",
+        "failedOwner": "We couldn't read codes from that file. Try a sharper photo of the scanner's screen.",
+        "failedMechanic": "The report couldn't be read. Ask the owner for the codes and type them in below.",
+        "vinMismatch": "The report's VIN ({{vin}}) is not this vehicle's. The scanner may have been plugged into another car.",
+        "fileSent": "The owner sent: {{name}}",
+        "openFile": "Open",
+        "openFileError": "The file couldn't be opened. Try again in a minute.",
+        "sheetTitle": "OBD scanner report"
       }
     },
     "clientReview": {
@@ -2175,7 +2216,11 @@
     "address": "Address:",
     "estimatedPrice": "Estimated Price:",
     "posted": "Posted: {{date}}",
-    "idLabel": "ID:#{{id}}"
+    "idLabel": "ID:#{{id}}",
+    "obdReading": "OBD report sent · being read",
+    "obdCodes_one": "OBD report · {{count}} trouble code",
+    "obdCodes_other": "OBD report · {{count}} trouble codes",
+    "obdNoCodes": "OBD report sent · no codes read"
   },
   "addressAutocomplete": {
     "searchPlaceholder": "Start typing an address",

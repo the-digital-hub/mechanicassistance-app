@@ -567,6 +567,30 @@
       "message": "Necesitás una tarjeta guardada para pedir asistencia. Agregala y volvés directo a tu pedido.",
       "confirm": "Agregar tarjeta",
       "cancel": "Ahora no"
+    },
+    "obdScanner": {
+      "headerTitle": "Scanner OBD",
+      "skip": "Saltar",
+      "badge": "VIDEOLLAMADA",
+      "title": "¿Tenés un scanner OBD?",
+      "subtitle": "Si tenés uno, mandale al mecánico los códigos de falla que lee. Los va a ver antes de empezar la llamada.",
+      "yesTitle": "Sí, tengo",
+      "yesSubtitle": "Lo conecto y mando el reporte",
+      "noTitle": "No tengo",
+      "noSubtitle": "El mecánico lo diagnostica en la llamada",
+      "howTitle": "Cómo hacerlo",
+      "steps": {
+        "plug": "Conectá el scanner al puerto OBD-II, debajo del tablero del lado del conductor.",
+        "ignition": "Poné la llave en contacto (o arrancá el motor) y esperá a que el scanner conecte.",
+        "read": "Leé los códigos de falla (\"Leer códigos\" / \"DTC\" en el scanner o su app).",
+        "capture": "Sacale una foto a la pantalla del scanner, o subí una captura o un PDF de su app."
+      },
+      "placeholder": "Agregar el reporte del scanner",
+      "privacy": "Solo el mecánico que tome tu llamada va a ver los códigos. Antes, los mecánicos solo ven que mandaste un reporte.",
+      "cta": "Continuar",
+      "ctaNeedFile": "Agregá el reporte para continuar",
+      "uploadFailedTitle": "No pudimos enviar el reporte del scanner",
+      "uploadFailedMessage": "Tu videollamada quedó pedida. Podés volver a mandar el reporte desde la pestaña OBD de la asistencia."
     }
   },
   "appointments": {
@@ -1206,7 +1230,8 @@
         "checkin": "Check-in",
         "info": "Detalles",
         "mechanic": "Técnico",
-        "budget": "Presupuesto"
+        "budget": "Presupuesto",
+        "obd": "OBD"
       },
       "checkInBannerBold": "Tené listo tu código de check-in.",
       "checkInBannerRest": "El técnico lo va a escanear cuando llegue.",
@@ -1326,7 +1351,10 @@
         "retry": "Reintentar",
         "you": "Vos",
         "participant": "Participante",
-        "addTime": "Agregar tiempo"
+        "addTime": "Agregar tiempo",
+        "obd": "OBD",
+        "obdCodes_one": "OBD · {{count}} código",
+        "obdCodes_other": "OBD · {{count}} códigos"
       },
       "timer": {
         "inProgress": "Llamada en curso",
@@ -1340,6 +1368,19 @@
         "added": "+{{minutes}} min agregados",
         "startsOnJoin": "Cuando el cliente se une a la llamada empieza una sesión de {{minutes}} minutos. Solo el cliente puede agregar más tiempo.",
         "returnToCall": "Volver a la llamada"
+      },
+      "obd": {
+        "file": "Reporte del scanner",
+        "placeholder": "Foto, captura o PDF del scanner",
+        "noneOwner": "No mandaste un reporte del scanner.",
+        "noneMechanic": "El dueño del vehículo no mandó un reporte del scanner. Si leen los códigos juntos en la llamada, podés cargarlos acá.",
+        "failedOwner": "No pudimos leer códigos de ese archivo. Probá con una foto más nítida de la pantalla del scanner.",
+        "failedMechanic": "No se pudo leer el reporte. Pedile los códigos al dueño y cargalos abajo.",
+        "vinMismatch": "El VIN del reporte ({{vin}}) no es el de este vehículo. Puede que el scanner se haya conectado a otro auto.",
+        "fileSent": "El dueño mandó: {{name}}",
+        "openFile": "Abrir",
+        "openFileError": "No se pudo abrir el archivo. Probá de nuevo en un minuto.",
+        "sheetTitle": "Reporte del scanner OBD"
       }
     },
     "clientReview": {
@@ -2175,7 +2216,11 @@
     "address": "Dirección:",
     "estimatedPrice": "Precio estimado:",
     "posted": "Publicado: {{date}}",
-    "idLabel": "ID:#{{id}}"
+    "idLabel": "ID:#{{id}}",
+    "obdReading": "Reporte OBD enviado · leyéndose",
+    "obdCodes_one": "Reporte OBD · {{count}} código de falla",
+    "obdCodes_other": "Reporte OBD · {{count}} códigos de falla",
+    "obdNoCodes": "Reporte OBD enviado · sin códigos leídos"
   },
   "addressAutocomplete": {
     "searchPlaceholder": "Empezá a escribir una dirección",

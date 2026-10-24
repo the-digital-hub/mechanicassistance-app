@@ -29,6 +29,7 @@ export default function RequestAssistanceLayout() {
         <Stack.Screen name="vehicle-documentation" options={{ headerShown: false }} />
         <Stack.Screen name="location-map" options={{ headerShown: false }} />
         <Stack.Screen name="date-time" options={{ headerShown: false }} />
+        <Stack.Screen name="obd-scanner" options={{ headerShown: false }} />
         <Stack.Screen name="when" options={{ headerShown: false }} />
         <Stack.Screen name="searching" options={{ headerShown: false }} />
         <Stack.Screen name="mechanic-found" options={{ headerShown: false }} />

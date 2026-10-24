@@ -1,4 +1,5 @@
 import React, { createContext, ReactNode, useContext, useState } from 'react';
+import type { PendingObdFile } from '@/lib/dao/RequestObdDAO';
 
 /**
  * Vehicle details captured on the select-vehicle screen, after the user picks a vehicle:
@@ -30,6 +31,12 @@ const EMPTY_VEHICLE_DETAILS: VehicleDetailsDraft = {
 interface RequestDraftContextType {
     vehicleDetails: VehicleDetailsDraft;
     setVehicleDetails: (details: VehicleDetailsDraft) => void;
+    /**
+     * OBD scanner report picked on the video-call wizard's scanner step. Uploaded
+     * and attached right after the request is created; null when skipped.
+     */
+    obdFile: PendingObdFile | null;
+    setObdFile: (file: PendingObdFile | null) => void;
     /** Call after submitting (or abandoning) a request so the next one starts clean. */
     resetDraft: () => void;
 }
@@ -38,11 +45,15 @@ const RequestDraftContext = createContext<RequestDraftContextType | undefined>(u
 
 export function RequestDraftProvider({ children }: { children: ReactNode }) {
     const [vehicleDetails, setVehicleDetails] = useState<VehicleDetailsDraft>(EMPTY_VEHICLE_DETAILS);
+    const [obdFile, setObdFile] = useState<PendingObdFile | null>(null);
 
-    const resetDraft = () => setVehicleDetails(EMPTY_VEHICLE_DETAILS);
+    const resetDraft = () => {
+        setVehicleDetails(EMPTY_VEHICLE_DETAILS);
+        setObdFile(null);
+    };
 
     return (
-        <RequestDraftContext.Provider value={{ vehicleDetails, setVehicleDetails, resetDraft }}>
+        <RequestDraftContext.Provider value={{ vehicleDetails, setVehicleDetails, obdFile, setObdFile, resetDraft }}>
             {children}
         </RequestDraftContext.Provider>
     );

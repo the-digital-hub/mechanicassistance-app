@@ -48,6 +48,7 @@ import { useGlobalSearchParams, useRouter } from 'expo-router';
 import { goBackOr } from '@/lib/navigation/goBackOr';
 import React from 'react';
 import { AttachmentStrip } from '@/components/appointments/AttachmentStrip';
+import { RequestObdPanel, useRequestObd } from '@/components/video/RequestObdPanel';
 import { parseAttachments } from '@/lib/media/attachments';
 import { usePaymentCards } from '@/lib/payments/usePaymentCards';
 import { useTranslation } from 'react-i18next';
@@ -151,6 +152,11 @@ export default function AppointmentDetailScreen() {
     );
     const videoStatus = videoState?.status ?? appointment?.status;
     const videoCallLive = videoStatus === 'accepted' || videoStatus === 'in_progress';
+    // The owner's OBD scanner report: it can change until the call is over.
+    const obd = useRequestObd(isVideoCall ? appointment?.id : undefined);
+    const obdEditable = ['pending', 'accepted', 'in_progress'].includes(videoStatus ?? '');
+    const [obdSeen, setObdSeen] = React.useState(false);
+    const obdDot = !obdSeen && (obd.report?.status === 'ready' || obd.report?.status === 'manual');
     // Owner header for a video call: follows the close-out state, not just "accepted".
     const videoCallHeader: { title: string; icon: IconName; color: string } =
         videoStatus === 'awaiting_confirmation'
@@ -183,6 +189,7 @@ export default function AppointmentDetailScreen() {
     const [checkInSeen, setCheckInSeen] = React.useState(false);
     const openOwnerTab = (tab: OwnerTab) => {
         if (tab === 'checkin') setCheckInSeen(true);
+        if (tab === 'obd') setObdSeen(true);
         setOwnerTab(tab);
     };
     const [showCancelModal, setShowCancelModal] = React.useState(false);
@@ -429,6 +436,12 @@ export default function AppointmentDetailScreen() {
                     </View>
                 );
             }
+            case 'obd':
+                return (
+                    <View style={{ marginHorizontal: -16 }}>
+                        <RequestObdPanel requestId={appointment.id} role="owner" editable={obdEditable} state={obd} />
+                    </View>
+                );
             case 'mechanic':
                 return <OwnerTechnicianPanel mechanic={offer?.mechanic ?? null} />;
             case 'budget':
@@ -468,7 +481,7 @@ export default function AppointmentDetailScreen() {
         });
     };
 
-    // Mechanic on a video call: the same four tabs the owner has.
+    // Mechanic on a video call: the same tabs the owner has.
     const renderMechanicVideoPanel = () => {
         switch (mechTab) {
             case 'status':
@@ -487,6 +500,12 @@ export default function AppointmentDetailScreen() {
                 );
             case 'info':
                 return <MechanicAssistanceInfoTab appointment={appointment} />;
+            case 'obd':
+                return (
+                    <View style={{ marginHorizontal: -16 }}>
+                        <RequestObdPanel requestId={appointment.id} role="mechanic" editable={obdEditable} state={obd} />
+                    </View>
+                );
             case 'mechanic': {
                 const fallbackName = [client?.name, client?.surname].filter(Boolean).join(' ') || null;
                 return (
@@ -588,6 +607,8 @@ export default function AppointmentDetailScreen() {
                                     onChange={openOwnerTab}
                                     checkInDot={!isVideoCall && appointment.status === 'accepted' && !checkInSeen}
                                     hideCheckIn={isVideoCall}
+                                    showObd={isVideoCall}
+                                    obdDot={obdDot}
                                 />
 
                                 {!isVideoCall && ownerTab === 'status' && appointment.status === 'accepted' && (
@@ -809,9 +830,14 @@ export default function AppointmentDetailScreen() {
                                     <View className="mx-4 mt-3.5">
                                         <OwnerTabs
                                             active={mechTab}
-                                            onChange={setMechTab}
+                                            onChange={(tab) => {
+                                                if (tab === 'obd') setObdSeen(true);
+                                                setMechTab(tab);
+                                            }}
                                             checkInDot={false}
                                             hideCheckIn
+                                            showObd
+                                            obdDot={obdDot}
                                             labels={{ mechanic: t('appointments.videoCall.mechanic.tabs.client') }}
                                         />
                                     </View>
