@@ -425,7 +425,24 @@
       "location": "Location",
       "budget": "Price",
       "cancelRequest": "Cancel Request",
-      "footer": "Mechanic Assistance App # request:"
+      "footer": "Mechanic Assistance App # request:",
+      "vinCheck": {
+        "mismatch": {
+          "title": "This report is from another vehicle",
+          "body": "The VIN on the scanner report you attached is not the VIN of the vehicle on this request. The mechanic will see a warning. You can carry on, send another report or cancel the request."
+        },
+        "unknown": {
+          "title": "Is this report from your vehicle?",
+          "body": "Your vehicle has no VIN saved, so we cannot check that the scanner report is from it. Make sure the VIN below is your vehicle's."
+        },
+        "vehicleVin": "Your vehicle",
+        "reportVin": "Scanner report",
+        "noVin": "Not saved",
+        "continue": "Continue anyway",
+        "replace": "Upload another report",
+        "uploadPlaceholder": "Attach the correct report",
+        "cancel": "Cancel request"
+      }
     },
     "mechanicFound": {
       "errorTitle": "Error",

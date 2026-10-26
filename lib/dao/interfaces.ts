@@ -146,7 +146,7 @@ export interface AssistanceRequest {
     /** While `offered`: when the offer stops being held (ISO). Then the request goes back to `pending`. */
     offerExpiresAt?: string | null;
     /** The saved vehicle, included by GET /api/assistance/:id. */
-    vehicle?: { make?: string | null; model?: string | null } | null;
+    vehicle?: { make?: string | null; model?: string | null; vin?: string | null } | null;
     /** ISO date string of when the request was made; the searching timer counts from it */
     createdAt?: string;
     /** ISO date string of the last update (used e.g. as cancellation date) */

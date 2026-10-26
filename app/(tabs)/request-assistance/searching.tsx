@@ -1,4 +1,6 @@
+import { RequestVinCheckModal } from '@/components/video/RequestVinCheckModal';
 import { useSocket } from '@/context/SocketContext';
+import { useRequestObdVinCheck } from '@/hooks/useRequestObdVinCheck';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { Ionicons } from '@expo/vector-icons';
 import { useIsFocused } from '@react-navigation/native';
@@ -34,6 +36,8 @@ export default function SearchingScreen() {
     const [activeStep, setActiveStep] = useState(0);
     const [requestData, setRequestData] = useState<AssistanceRequest | null>(null);
     const isFocused = useIsFocused();
+    // A video call may carry an OBD scanner report; once it is read, its VIN is checked against the vehicle.
+    const vinCheck = useRequestObdVinCheck(requestId as string | undefined, type === 'videocall');
 
     // Hands off to Mechanic Found once. This screen can stay mounted under it
     // (a tapped push opens Mechanic Found on top), and `replace` acts on the
@@ -422,6 +426,21 @@ export default function SearchingScreen() {
                     </Text>
                 </View>
             </ScrollView>
+
+            {vinCheck.check && isFocused && !handedOff.current ? (
+                <RequestVinCheckModal
+                    requestId={requestId as string}
+                    variant={vinCheck.check.variant}
+                    obdVin={vinCheck.check.vin}
+                    vehicleVin={requestData?.vehicle?.vin}
+                    onContinue={vinCheck.dismiss}
+                    onReplaced={vinCheck.replaced}
+                    onCancelRequest={() => {
+                        vinCheck.dismiss();
+                        handleCancel();
+                    }}
+                />
+            ) : null}
         </View>
     );
 }

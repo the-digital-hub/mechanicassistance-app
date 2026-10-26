@@ -425,7 +425,24 @@
       "location": "Ubicación",
       "budget": "Precio",
       "cancelRequest": "Cancelar solicitud",
-      "footer": "Mechanic Assistance App # solicitud:"
+      "footer": "Mechanic Assistance App # solicitud:",
+      "vinCheck": {
+        "mismatch": {
+          "title": "Este reporte es de otro vehículo",
+          "body": "El VIN del reporte del escáner que adjuntaste no coincide con el del vehículo de esta solicitud. El mecánico verá una advertencia. Podés seguir, subir otro reporte o cancelar la solicitud."
+        },
+        "unknown": {
+          "title": "¿Este reporte es de tu vehículo?",
+          "body": "Tu vehículo no tiene VIN guardado, así que no podemos comprobar que el reporte sea suyo. Verificá que el VIN de abajo sea el de tu vehículo."
+        },
+        "vehicleVin": "Tu vehículo",
+        "reportVin": "Reporte del escáner",
+        "noVin": "Sin guardar",
+        "continue": "Seguir igual",
+        "replace": "Subir otro reporte",
+        "uploadPlaceholder": "Adjuntá el reporte correcto",
+        "cancel": "Cancelar solicitud"
+      }
     },
     "mechanicFound": {
       "errorTitle": "Error",
