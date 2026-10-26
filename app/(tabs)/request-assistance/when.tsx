@@ -15,6 +15,7 @@ import {
     type VideoCallSlotDay,
     type SlotPeriod,
 } from '@/lib/dao/VideoCallDAO';
+import { DEFAULT_CALL_MINUTES } from '@/lib/video/callLength';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
@@ -27,6 +28,7 @@ import {
     Moon,
     Sun,
     Sunrise,
+    Timer,
     Video,
     Zap,
 } from 'lucide-react-native';
@@ -383,6 +385,7 @@ export default function VideoCallWhenScreen() {
 
     const online = now?.mechanicsOnline ?? 0;
     const wait = now?.estimatedWaitMinutes ?? null;
+    const callMinutes = now?.baseMinutes ?? DEFAULT_CALL_MINUTES;
     const priceLabel = priceLoading
         ? '…'
         : price != null
@@ -622,6 +625,7 @@ export default function VideoCallWhenScreen() {
                                     <SummaryRow Icon={Clock} label={t('requestAssistance.when.time')} value={slot ? slotLabel(slot) : t('requestAssistance.when.pickTime')} />
                                 </>
                             )}
+                            <SummaryRow Icon={Timer} label={t('requestAssistance.when.duration')} value={t('requestAssistance.when.durationValue', { count: callMinutes })} />
                             <SummaryRow Icon={DollarSign} label={t('requestAssistance.when.price')} value={priceLabel} />
                             <SummaryRow
                                 last
@@ -637,6 +641,9 @@ export default function VideoCallWhenScreen() {
                                 }
                             />
                         </View>
+                        <Text className="font-outfit-regular" style={{ fontSize: 11.5, color: C.faint, lineHeight: 16, marginTop: 8 }} testID="when-duration-note">
+                            {t('requestAssistance.when.durationNote', { count: callMinutes })}
+                        </Text>
                     </>
                 )}
             </ScrollView>

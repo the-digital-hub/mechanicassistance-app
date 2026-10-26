@@ -16,6 +16,8 @@ import { FixedLocationMap } from '@/components/ui/FixedLocationMap';
 import { approximateArea } from '@/lib/maps/approximateLocation';
 import { apiClient } from '@/lib/api/apiClient';
 import { videoCallStartLabel } from '@/lib/video/videoCallTime';
+import { videoCallDAO } from '@/lib/dao/VideoCallDAO';
+import { DEFAULT_CALL_MINUTES } from '@/lib/video/callLength';
 import { LinearGradient } from 'expo-linear-gradient';
 import { RequestIssueText } from '@/components/ui/RequestIssueText';
 
@@ -147,6 +149,21 @@ export default function RequestDetailScreen() {
     const hasLocation = !isNaN(reqLat) && !isNaN(reqLng);
 
     const [showConfirm, setShowConfirm] = useState(false);
+    // How long the call lasts, from the hub's settings; the fallback covers older backends and offline.
+    const [callMinutes, setCallMinutes] = useState(DEFAULT_CALL_MINUTES);
+    useEffect(() => {
+        if (!isVideo) return;
+        let mounted = true;
+        videoCallDAO
+            .getNow()
+            .then((r) => {
+                if (mounted && r?.baseMinutes) setCallMinutes(r.baseMinutes);
+            })
+            .catch((err) => console.warn('[assist] call length failed; using default', err));
+        return () => {
+            mounted = false;
+        };
+    }, [isVideo]);
     const [submitting, setSubmitting] = useState(false);
     const [declining, setDeclining] = useState(false);
     const [etaText, setEtaText] = useState<string | null>(null);
@@ -422,6 +439,9 @@ export default function RequestDetailScreen() {
                                 <Text className="font-outfit-semibold text-xs tracking-widest text-blue-500 mb-0.5">{t('requestDetail.videoCallWhen')}</Text>
                                 <Text className="font-outfit-bold text-lg text-gray-900">
                                     {videoCallStartLabel(typeof date === 'string' ? date : undefined, i18n.language) ?? t('requestDetail.videoCallNow')}
+                                </Text>
+                                <Text className="font-outfit-regular text-xs text-gray-600 mt-0.5" testID="video-call-duration">
+                                    {t('requestDetail.videoCallDuration', { count: callMinutes })}
                                 </Text>
                             </View>
                         </View>

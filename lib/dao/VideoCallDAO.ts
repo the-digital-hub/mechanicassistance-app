@@ -11,6 +11,8 @@ export interface VideoCallNow {
     mechanicsOnline: number;
     /** Typical minutes until pick-up; null without enough history — hide it then. */
     estimatedWaitMinutes: number | null;
+    /** Minutes the call lasts before the owner has to extend it; missing on older backends. */
+    baseMinutes?: number;
 }
 
 export type SlotPeriod = 'morning' | 'afternoon' | 'evening';
