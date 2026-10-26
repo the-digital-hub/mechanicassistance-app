@@ -22,7 +22,7 @@ jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({
 jest.mock('expo-linear-gradient', () => ({ LinearGradient: 'LinearGradient' }));
 const mockReplace = jest.fn();
 jest.mock('expo-router', () => ({
-    useGlobalSearchParams: () => ({ id: 'appt-1', roomUrl: 'https://x.daily.co/r', token: 't', expiry: '0' }),
+    useLocalSearchParams: () => ({ id: 'appt-1', roomUrl: 'https://x.daily.co/r', token: 't', expiry: '0' }),
     useRouter: () => ({ navigate: jest.fn(), back: jest.fn(), replace: mockReplace }),
 }));
 jest.mock('@/lib/video/useDailyCall', () => ({

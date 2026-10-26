@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useGlobalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -31,7 +31,7 @@ const WARN_BANNER_MS = 8000;
 export default function VideoCallScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { id, roomUrl, token, expiry } = useGlobalSearchParams();
+  const { id, roomUrl, token, expiry } = useLocalSearchParams();
   const router = useRouter();
   const appointmentId = Array.isArray(id) ? id[0] : id || '';
   const appointmentHref = { pathname: '/appointments/[id]' as const, params: { id: appointmentId } };

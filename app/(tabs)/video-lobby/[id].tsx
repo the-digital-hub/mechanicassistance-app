@@ -8,7 +8,7 @@ import { useVideoCallState } from '@/hooks/useVideoCallState';
 import { DEFAULT_CALL_MINUTES } from '@/lib/video/callLength';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { useGlobalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { goBackOr } from '@/lib/navigation/goBackOr';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
@@ -28,7 +28,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 export default function VideoLobbyScreen() {
-    const { id } = useGlobalSearchParams();
+    const { id } = useLocalSearchParams();
     const router = useRouter();
     const { user } = useUser();
     const { getAppointmentById, refresh } = useAppointments();
