@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, waitFor } from '@testing-library/react-native';
+import { Alert } from 'react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import VideoCallScreen from '@/app/(tabs)/video-call/[id]';
 import { videoCallDAO } from '@/lib/dao/VideoCallDAO';
 
@@ -19,9 +20,10 @@ jest.mock('@/components/video/VideoTile', () => ({ VideoTile: () => null }));
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }) }));
 jest.mock('expo-linear-gradient', () => ({ LinearGradient: 'LinearGradient' }));
+const mockReplace = jest.fn();
 jest.mock('expo-router', () => ({
     useGlobalSearchParams: () => ({ id: 'appt-1', roomUrl: 'https://x.daily.co/r', token: 't', expiry: '0' }),
-    useRouter: () => ({ navigate: jest.fn(), back: jest.fn() }),
+    useRouter: () => ({ navigate: jest.fn(), back: jest.fn(), replace: mockReplace }),
 }));
 jest.mock('@/lib/video/useDailyCall', () => ({
     useDailyCall: () => ({
@@ -38,7 +40,7 @@ jest.mock('@/lib/video/useDailyCall', () => ({
         switchCamera: jest.fn(),
     }),
 }));
-jest.mock('@/lib/dao/VideoCallDAO', () => ({ videoCallDAO: { markStarted: jest.fn() } }));
+jest.mock('@/lib/dao/VideoCallDAO', () => ({ videoCallDAO: { markStarted: jest.fn(), ownerFinish: jest.fn() } }));
 jest.mock('@/components/video/ExtendCallSheet', () => ({ ExtendCallSheet: () => null }));
 // The OBD report has its own tests; here the call has none.
 jest.mock('@/components/video/ObdCallSheet', () => ({ ObdCallSheet: () => null }));
@@ -124,5 +126,32 @@ describe('VideoCallScreen session start', () => {
         mockRole = 'mechanic';
         const mechanic = render(<VideoCallScreen />);
         expect(mechanic.queryByTestId('call-add-time')).toBeNull();
+    });
+
+    it('offers "Finish video call" to the owner only', () => {
+        const owner = render(<VideoCallScreen />);
+        expect(owner.queryByTestId('call-owner-finish')).not.toBeNull();
+        owner.unmount();
+
+        mockRole = 'mechanic';
+        const mechanic = render(<VideoCallScreen />);
+        expect(mechanic.queryByTestId('call-owner-finish')).toBeNull();
+    });
+
+    it('finishes and confirms after the owner agrees, then opens the review', async () => {
+        const ownerFinish = videoCallDAO.ownerFinish as jest.Mock;
+        ownerFinish.mockResolvedValue({});
+        const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+
+        const { getByTestId } = render(<VideoCallScreen />);
+        fireEvent.press(getByTestId('call-owner-finish'));
+        expect(ownerFinish).not.toHaveBeenCalled();
+
+        const buttons = alert.mock.calls[0][2] as { style?: string; onPress?: () => void }[];
+        await act(async () => buttons.find((b) => b.style === 'destructive')?.onPress?.());
+
+        await waitFor(() => expect(mockReplace).toHaveBeenCalledWith({ pathname: '/appointments/review/[id]', params: { id: 'appt-1' } }));
+        expect(ownerFinish).toHaveBeenCalledWith('appt-1');
+        alert.mockRestore();
     });
 });

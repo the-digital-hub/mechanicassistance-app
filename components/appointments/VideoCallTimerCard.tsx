@@ -12,7 +12,7 @@ const K = 'appointments.videoCall.timer';
 
 /** A video call lasts 45 minutes unless the server says otherwise (the hub sets it). */
 export const VIDEO_SESSION_SECONDS = DEFAULT_CALL_MINUTES * 60;
-const WARN_BEFORE_SECONDS = 5 * 60;
+export const WARN_BEFORE_SECONDS = 5 * 60;
 
 export type TimerTone = 'normal' | 'warn' | 'over';
 

@@ -3,7 +3,7 @@ import { useGlobalSearchParams, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MediaStream } from '@daily-co/react-native-webrtc';
 import { CallControls } from '@/components/video/CallControls';
@@ -11,17 +11,22 @@ import { CallTopBar, VC, type CallStatus } from '@/components/video/CallTopBar';
 import { VideoTile } from '@/components/video/VideoTile';
 import { ExtendCallSheet } from '@/components/video/ExtendCallSheet';
 import { CallTimeAddedToast } from '@/components/video/CallTimeAddedToast';
+import { CallTimeWarningBanner } from '@/components/video/CallTimeWarningBanner';
+import { WARN_BEFORE_SECONDS } from '@/components/appointments/VideoCallTimerCard';
 import { ObdCallSheet } from '@/components/video/ObdCallSheet';
 import { useRequestObd } from '@/components/video/RequestObdPanel';
 import { useUser } from '@/context/UserContext';
 import { useDailyCall } from '@/lib/video/useDailyCall';
 import { goBackOr } from '@/lib/navigation/goBackOr';
 import { videoCallDAO } from '@/lib/dao/VideoCallDAO';
+import { ApiError } from '@/lib/api/types';
 import { contractedSeconds, graceSecondsOf } from '@/lib/video/callLength';
 import { useElapsedSeconds } from '@/hooks/useElapsedSeconds';
 import { useVideoCallState } from '@/hooks/useVideoCallState';
 
 const K = 'appointments.videoCall.live';
+/** How long the "less than 5 minutes" banner stays up. */
+const WARN_BANNER_MS = 8000;
 
 export default function VideoCallScreen() {
   const { t } = useTranslation();
@@ -93,12 +98,57 @@ export default function VideoCallScreen() {
   const remaining = startedAtMs === null ? limitSeconds : Math.max(0, limitSeconds - elapsed);
   const status: CallStatus = timeLeft <= 0 ? 'expired' : remaining === 0 ? 'timeUp' : 'live';
 
+  // "Less than 5 minutes left", shown once when the session enters its last
+  // minutes and hidden after a few seconds. An extension pushes the time back
+  // over the threshold, which re-arms it for the new last minutes.
+  const [warnVisible, setWarnVisible] = useState(false);
+  const warned = useRef(false);
+  const inLastMinutes = startedAtMs !== null && remaining > 0 && remaining <= WARN_BEFORE_SECONDS;
+  useEffect(() => {
+    if (remaining > WARN_BEFORE_SECONDS) {
+      warned.current = false;
+      setWarnVisible(false);
+    } else if (inLastMinutes && !warned.current) {
+      warned.current = true;
+      setWarnVisible(true);
+    }
+  }, [inLastMinutes, remaining]);
+  useEffect(() => {
+    if (!warnVisible) return;
+    const timer = setTimeout(() => setWarnVisible(false), WARN_BANNER_MS);
+    return () => clearTimeout(timer);
+  }, [warnVisible]);
+
   const handleHangUp = async () => {
     await leave();
     // Back to the appointment, not to the lobby (rejoining from there is one tap
     // away on the detail) and not to whatever tab happened to be underneath.
     router.navigate(appointmentHref, { withAnchor: true });
   };
+
+  // Owner: the help is done — end the call and confirm it (charged) in one
+  // step, then rate the mechanic. The plain hang-up only leaves the room.
+  const [finishing, setFinishing] = useState(false);
+  const finishCall = async () => {
+    if (finishing || !appointmentId) return;
+    setFinishing(true);
+    try {
+      await videoCallDAO.ownerFinish(appointmentId);
+    } catch (error) {
+      setFinishing(false);
+      // The server says why (e.g. 409: the mechanic already finished it).
+      const message = error instanceof ApiError && error.apiMessage ? error.apiMessage : t(`${K}.finishFailed`);
+      Alert.alert(t('appointments.videoCall.errorTitle'), message);
+      return;
+    }
+    await leave();
+    router.replace({ pathname: '/appointments/review/[id]' as never, params: { id: appointmentId } });
+  };
+  const askFinishCall = () =>
+    Alert.alert(t(`${K}.finishTitle`), t(`${K}.finishBody`), [
+      { text: t(`${K}.finishCancel`), style: 'cancel' },
+      { text: t(`${K}.finishConfirm`), style: 'destructive', onPress: () => void finishCall() },
+    ]);
 
   // The server ends the call when the grace after the time is up runs out; this
   // phone leaves at the same moment instead of waiting for the room to eject it.
@@ -145,6 +195,16 @@ export default function VideoCallScreen() {
       <CallTopBar remaining={remaining} limit={limitSeconds} status={status} topInset={insets.top} />
       {/* Just below the top bar: "the owner added N minutes". */}
       <CallTimeAddedToast appointmentId={appointmentId || undefined} variant="dark" top={insets.top + 64} />
+      <CallTimeWarningBanner
+        visible={warnVisible}
+        isOwner={isOwner}
+        top={insets.top + 64}
+        onPress={() => {
+          setWarnVisible(false);
+          setExtendOpen(true);
+        }}
+        onDismiss={() => setWarnVisible(false)}
+      />
       <ObdCallSheet
         visible={obdOpen}
         requestId={appointmentId}
@@ -206,6 +266,23 @@ export default function VideoCallScreen() {
             </Text>
           </TouchableOpacity>
         )}
+        {isOwner && callState === 'joined' && (
+          <TouchableOpacity
+            style={[styles.finish, finishing && { opacity: 0.6 }]}
+            onPress={askFinishCall}
+            disabled={finishing}
+            activeOpacity={0.85}
+            testID="call-owner-finish"
+            accessibilityRole="button"
+          >
+            {finishing ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Ionicons name="checkmark-circle-outline" size={18} color="#FFFFFF" />
+            )}
+            <Text style={styles.addTimeText}>{t(`${K}.finish`)}</Text>
+          </TouchableOpacity>
+        )}
         <View style={styles.pip}>
           <View style={styles.pipInner}>
             <VideoTile stream={localStream} name={t(`${K}.you`)} isCameraOff={isCameraOff} isLocal />
@@ -247,6 +324,10 @@ const styles = StyleSheet.create({
     position: 'absolute', left: 14, zIndex: 3, flexDirection: 'row', alignItems: 'center', gap: 6,
     paddingHorizontal: 12, paddingVertical: 8, borderRadius: 100, backgroundColor: 'rgba(15,23,41,0.75)',
     borderWidth: 1, borderColor: 'rgba(92,214,242,0.6)',
+  },
+  finish: {
+    position: 'absolute', bottom: 16, alignSelf: 'center', zIndex: 3, flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 18, paddingVertical: 10, borderRadius: 100, backgroundColor: VC.red,
   },
   addTimeText: { fontFamily: 'Outfit_700Bold', fontSize: 13, color: '#FFFFFF' },
   loadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: VC.navy, alignItems: 'center', justifyContent: 'center', zIndex: 10 },

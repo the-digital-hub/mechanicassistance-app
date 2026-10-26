@@ -1390,7 +1390,15 @@
         "addTime": "Agregar tiempo",
         "obd": "OBD",
         "obdCodes_one": "OBD · {{count}} código",
-        "obdCodes_other": "OBD · {{count}} códigos"
+        "obdCodes_other": "OBD · {{count}} códigos",
+        "warnOwner": "Quedan menos de 5 minutos. Tocá acá para agregar tiempo.",
+        "warnMechanic": "Quedan menos de 5 minutos de llamada.",
+        "finish": "Finalizar videollamada",
+        "finishTitle": "¿Finalizar la videollamada?",
+        "finishBody": "La llamada termina para los dos y se cobra la asistencia. No se puede deshacer.",
+        "finishConfirm": "Finalizar",
+        "finishCancel": "Cancelar",
+        "finishFailed": "No se pudo finalizar la videollamada. Probá de nuevo."
       },
       "timer": {
         "inProgress": "Llamada en curso",

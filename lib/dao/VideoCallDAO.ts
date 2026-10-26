@@ -170,6 +170,11 @@ export class VideoCallDAO {
         return withLocalStart(await apiClient.post<VideoCallStateResponse>(`/api/appointments/${appointmentId}/video/confirm`, {}));
     }
 
+    /** Owner, during the call: ends it and confirms it at once; the payment is charged. */
+    async ownerFinish(appointmentId: string): Promise<VideoCallState> {
+        return withLocalStart(await apiClient.post<VideoCallStateResponse>(`/api/appointments/${appointmentId}/video/owner-finish`, {}));
+    }
+
     /** Extra time of the call; the owner also gets the blocks on sale with their prices. */
     getExtensions(appointmentId: string): Promise<VideoExtensions> {
         return apiClient.get(`/api/appointments/${appointmentId}/video/extensions`);

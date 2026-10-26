@@ -1390,7 +1390,15 @@
         "addTime": "Add time",
         "obd": "OBD",
         "obdCodes_one": "OBD · {{count}} code",
-        "obdCodes_other": "OBD · {{count}} codes"
+        "obdCodes_other": "OBD · {{count}} codes",
+        "warnOwner": "Less than 5 minutes left. Tap here to add time.",
+        "warnMechanic": "Less than 5 minutes left in the call.",
+        "finish": "Finish video call",
+        "finishTitle": "Finish the video call?",
+        "finishBody": "The call ends for both of you and the assistance is charged. This cannot be undone.",
+        "finishConfirm": "Finish",
+        "finishCancel": "Cancel",
+        "finishFailed": "The video call could not be finished. Please try again."
       },
       "timer": {
         "inProgress": "Call in progress",
