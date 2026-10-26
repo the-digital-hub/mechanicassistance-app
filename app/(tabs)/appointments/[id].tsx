@@ -50,6 +50,8 @@ import { goBackOr } from '@/lib/navigation/goBackOr';
 import React from 'react';
 import { AttachmentStrip } from '@/components/appointments/AttachmentStrip';
 import { RequestObdPanel, useRequestObd } from '@/components/video/RequestObdPanel';
+import { RequestVinCheckModal } from '@/components/video/RequestVinCheckModal';
+import { useVisitObdVinCheck } from '@/hooks/useRequestObdVinCheck';
 import { parseAttachments } from '@/lib/media/attachments';
 import { usePaymentCards } from '@/lib/payments/usePaymentCards';
 import { useTranslation } from 'react-i18next';
@@ -96,6 +98,8 @@ export default function AppointmentDetailScreen() {
     const { resolve: resolvePaymentCard } = usePaymentCards(isUserRole);
     // A video call is remote: no GPS, ETA, check-in or on-site close-out.
     const isVideoCall = (appointment?.assistanceType ?? appointment?.type) === 'videocall';
+    // On-site: the mechanic's scanner read another vehicle's VIN (or the vehicle has none on file). The owner is told.
+    const visitVinCheck = useVisitObdVinCheck(appointment?.id, isUserRole && !!appointment && !isVideoCall);
 
     // "Head out": the mechanic left for the vehicle. Until then the job is
     // accepted but nobody follows them — no position shared, no live ETA.
@@ -937,6 +941,17 @@ export default function AppointmentDetailScreen() {
                     });
                 }}
             />
+
+            {visitVinCheck.check && appointment ? (
+                <RequestVinCheckModal
+                    requestId={appointment.id}
+                    variant={visitVinCheck.check.variant}
+                    obdVin={visitVinCheck.check.vin}
+                    vehicleVin={visitVinCheck.check.vehicleVin}
+                    onContinue={visitVinCheck.dismiss}
+                    textKey="appointments.onSite.obd.ownerVinCheck"
+                />
+            ) : null}
         </View>
     );
 }

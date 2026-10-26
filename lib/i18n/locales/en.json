@@ -994,6 +994,20 @@
           "submit": "Confirm",
           "stillMismatch": "That VIN doesn't match the vehicle either. Check it or pick another option.",
           "answered": "VIN discrepancy recorded: {{answer}}."
+        },
+        "ownerVinCheck": {
+          "mismatch": {
+            "title": "The mechanic scanned another vehicle",
+            "body": "The VIN read by the mechanic's scanner is not the VIN of your vehicle. The mechanic has been asked to explain it, and their answer goes on the service report."
+          },
+          "unknown": {
+            "title": "Your vehicle has no VIN saved",
+            "body": "The mechanic's scanner read the VIN below, but your vehicle has none saved, so we cannot check it is yours. Make sure it matches your vehicle."
+          },
+          "vehicleVin": "Your vehicle",
+          "reportVin": "Scanner",
+          "noVin": "Not saved",
+          "continue": "Got it"
         }
       },
       "photos": {

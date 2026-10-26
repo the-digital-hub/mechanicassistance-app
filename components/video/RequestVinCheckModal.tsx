@@ -6,11 +6,13 @@ import { MediaSlot, type Picked } from '@/components/on-site/MediaSlot';
 import { OS } from '@/components/on-site/ui';
 import { requestObdDAO } from '@/lib/dao/RequestObdDAO';
 
-// Shown to the vehicle owner while a video-call request is searching, once the
-// scanner report they attached has been read and its VIN is either another
-// vehicle's (`mismatch`) or cannot be compared because the vehicle has no VIN
-// on file (`unknown`). A warning, not a block: the owner can carry on, send
-// another report, or cancel the request.
+// Shown to the vehicle owner once a scanner report has been read and its VIN is
+// either another vehicle's (`mismatch`) or cannot be compared because the
+// vehicle has no VIN on file (`unknown`). A warning, not a block.
+// - Video call, while searching: the owner attached the report, so they can
+//   carry on, send another report, or cancel the request.
+// - On-site visit: the mechanic scanned it and answers the discrepancy; the
+//   owner is only told (no `onReplaced` / `onCancelRequest`).
 
 export type RequestVinCheckVariant = 'mismatch' | 'unknown';
 
@@ -20,26 +22,38 @@ interface RequestVinCheckModalProps {
     obdVin: string;
     vehicleVin?: string | null;
     onContinue: () => void;
-    /** A new report was attached; its reading arrives later by socket. */
-    onReplaced: () => void;
-    onCancelRequest: () => void;
+    /** A new report was attached; its reading arrives later by socket. Omitted: no "upload another". */
+    onReplaced?: () => void;
+    /** Omitted: no "cancel request". */
+    onCancelRequest?: () => void;
+    /** Where the copy lives: the searching screen's, or the on-site visit's. */
+    textKey?: string;
 }
 
-export function RequestVinCheckModal({ requestId, variant, obdVin, vehicleVin, onContinue, onReplaced, onCancelRequest }: RequestVinCheckModalProps) {
+export function RequestVinCheckModal({
+    requestId,
+    variant,
+    obdVin,
+    vehicleVin,
+    onContinue,
+    onReplaced,
+    onCancelRequest,
+    textKey = 'requestAssistance.searching.vinCheck',
+}: RequestVinCheckModalProps) {
     const { t } = useTranslation();
-    const k = `requestAssistance.searching.vinCheck`;
+    const k = textKey;
     const [replacing, setReplacing] = React.useState(false);
     const [canceling, setCanceling] = React.useState(false);
 
     // MediaSlot shows its own error and lets the owner retry when this throws.
     const upload = async (file: Picked) => {
         await requestObdDAO.attach(requestId, { uri: file.uri, name: file.name, mimeType: file.mimeType });
-        onReplaced();
+        onReplaced?.();
     };
 
     const cancel = () => {
         setCanceling(true);
-        onCancelRequest();
+        onCancelRequest?.();
     };
 
     const tone = variant === 'mismatch' ? { fg: OS.red, bg: OS.redSoft } : { fg: OS.orange, bg: OS.orangeSoft };
@@ -62,8 +76,8 @@ export function RequestVinCheckModal({ requestId, variant, obdVin, vehicleVin, o
                         </Text>
 
                         <View className="mt-3 px-3.5 py-3 rounded-2xl" style={{ backgroundColor: OS.page }}>
-                            <VinRow label={t(`${k}.vehicleVin`)} value={vehicleVin} />
-                            <VinRow label={t(`${k}.reportVin`)} value={obdVin} color={tone.fg} />
+                            <VinRow label={t(`${k}.vehicleVin`)} value={vehicleVin} noVin={t(`${k}.noVin`)} />
+                            <VinRow label={t(`${k}.reportVin`)} value={obdVin} color={tone.fg} noVin={t(`${k}.noVin`)} />
                         </View>
 
                         {replacing ? (
@@ -82,7 +96,7 @@ export function RequestVinCheckModal({ requestId, variant, obdVin, vehicleVin, o
                             <Text className="text-white font-outfit-bold text-[15px]">{t(`${k}.continue`)}</Text>
                         </TouchableOpacity>
 
-                        {!replacing ? (
+                        {onReplaced && !replacing ? (
                             <TouchableOpacity
                                 onPress={() => setReplacing(true)}
                                 activeOpacity={0.85}
@@ -94,17 +108,19 @@ export function RequestVinCheckModal({ requestId, variant, obdVin, vehicleVin, o
                             </TouchableOpacity>
                         ) : null}
 
-                        <TouchableOpacity
-                            onPress={cancel}
-                            disabled={canceling}
-                            activeOpacity={0.85}
-                            className="items-center justify-center py-3 mt-2"
-                            testID="vin-check-cancel"
-                        >
-                            {canceling ? <ActivityIndicator color={OS.red} /> : (
-                                <Text className="font-outfit-bold text-[14px]" style={{ color: OS.red }}>{t(`${k}.cancel`)}</Text>
-                            )}
-                        </TouchableOpacity>
+                        {onCancelRequest ? (
+                            <TouchableOpacity
+                                onPress={cancel}
+                                disabled={canceling}
+                                activeOpacity={0.85}
+                                className="items-center justify-center py-3 mt-2"
+                                testID="vin-check-cancel"
+                            >
+                                {canceling ? <ActivityIndicator color={OS.red} /> : (
+                                    <Text className="font-outfit-bold text-[14px]" style={{ color: OS.red }}>{t(`${k}.cancel`)}</Text>
+                                )}
+                            </TouchableOpacity>
+                        ) : null}
                     </ScrollView>
                 </View>
             </View>
@@ -112,13 +128,12 @@ export function RequestVinCheckModal({ requestId, variant, obdVin, vehicleVin, o
     );
 }
 
-function VinRow({ label, value, color }: { label: string; value?: string | null; color?: string }) {
-    const { t } = useTranslation();
+function VinRow({ label, value, color, noVin }: { label: string; value?: string | null; color?: string; noVin: string }) {
     return (
         <View className="flex-row items-center justify-between gap-2 py-1">
             <Text className="font-outfit-medium text-[11.5px]" style={{ color: OS.muted }}>{label}</Text>
             <Text className="font-outfit-bold text-[12.5px]" style={{ color: color ?? OS.text, letterSpacing: 0.5 }}>
-                {value || t('requestAssistance.searching.vinCheck.noVin')}
+                {value || noVin}
             </Text>
         </View>
     );

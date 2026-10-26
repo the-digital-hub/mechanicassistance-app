@@ -994,6 +994,20 @@
           "submit": "Confirmar",
           "stillMismatch": "Ese VIN tampoco coincide con el vehículo. Revisalo o elegí otra opción.",
           "answered": "Discrepancia de VIN registrada: {{answer}}."
+        },
+        "ownerVinCheck": {
+          "mismatch": {
+            "title": "El mecánico escaneó otro vehículo",
+            "body": "El VIN que leyó el escáner del mecánico no es el de tu vehículo. Se le pidió al mecánico que lo explique, y su respuesta queda en el reporte del servicio."
+          },
+          "unknown": {
+            "title": "Tu vehículo no tiene VIN guardado",
+            "body": "El escáner del mecánico leyó el VIN de abajo, pero tu vehículo no tiene uno guardado, así que no podemos comprobar que sea el tuyo. Verificá que coincida con tu vehículo."
+          },
+          "vehicleVin": "Tu vehículo",
+          "reportVin": "Escáner",
+          "noVin": "Sin guardar",
+          "continue": "Entendido"
         }
       },
       "photos": {

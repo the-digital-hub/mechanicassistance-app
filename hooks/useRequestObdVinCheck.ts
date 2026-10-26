@@ -1,7 +1,9 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React from 'react';
 
 import type { RequestVinCheckVariant } from '@/components/video/RequestVinCheckModal';
 import { useSocket } from '@/context/SocketContext';
+import { onSiteDAO } from '@/lib/dao/OnSiteDAO';
 import { requestObdDAO } from '@/lib/dao/RequestObdDAO';
 
 export interface RequestVinCheck {
@@ -74,4 +76,54 @@ export function useRequestObdVinCheck(requestId: string | undefined, enabled: bo
     }, []);
 
     return { check, dismiss, replaced };
+}
+
+export interface VisitVinCheck extends RequestVinCheck {
+    vehicleVin: string | null;
+}
+
+/** Remembers, per appointment and VIN, that the owner was told, so reopening the job does not ask again. */
+const toldKey = (appointmentId: string, vin: string) => `obd-vin-told:${appointmentId}:${vin}`;
+
+/**
+ * The owner's side of an on-site visit: the mechanic scanned the vehicle and
+ * its VIN is another vehicle's, or the vehicle has none on file. The mechanic
+ * answers it; the owner is told once. The reading arrives by an `obd_update`
+ * socket event (sent to both sides), and may have landed before this screen
+ * opened, so the visit is fetched on mount and on every event.
+ */
+export function useVisitObdVinCheck(appointmentId: string | undefined, enabled: boolean) {
+    const { lastMessage } = useSocket();
+    const [check, setCheck] = React.useState<VisitVinCheck | null>(null);
+    const asked = React.useRef<string | null>(null);
+
+    const refresh = React.useCallback(async () => {
+        if (!appointmentId) return;
+        const visit = await onSiteDAO.get(appointmentId).catch(() => null);
+        const vin = visit?.obdVin;
+        const variant = vinCheckVariant(vin, visit?.obdVinMismatch);
+        if (!variant || !vin || asked.current === vin) return;
+        asked.current = vin;
+        const told = await AsyncStorage.getItem(toldKey(appointmentId, vin)).catch(() => null);
+        if (told) return;
+        setCheck({ vin, variant, vehicleVin: visit?.vehicleVin ?? null });
+    }, [appointmentId]);
+
+    React.useEffect(() => {
+        if (enabled) refresh();
+    }, [enabled, refresh]);
+
+    React.useEffect(() => {
+        if (!enabled || !appointmentId || lastMessage?.type !== 'obd_update') return;
+        const p: { id?: string; scope?: string; obdVin?: string | null } = lastMessage.payload ?? {};
+        if (p.scope === 'request' || p.id !== appointmentId || !p.obdVin) return;
+        refresh();
+    }, [enabled, appointmentId, lastMessage, refresh]);
+
+    const dismiss = React.useCallback(() => {
+        if (appointmentId && check) AsyncStorage.setItem(toldKey(appointmentId, check.vin), '1').catch(() => undefined);
+        setCheck(null);
+    }, [appointmentId, check]);
+
+    return { check, dismiss };
 }
