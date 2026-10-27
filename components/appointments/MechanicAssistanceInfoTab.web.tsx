@@ -88,7 +88,7 @@ export function MechanicAssistanceInfoTab({ appointment }: MechanicAssistanceInf
                 <DetailCard>
                     <DetailRow icon="videocam-outline" label={t('appointments.ownerAccepted.rows.service')} value={t('appointments.detail.types.videocall')} />
                     <DetailRow icon="calendar-outline" label={t('appointments.videoCall.scheduledFor')} value={videoCallBookedLabel(appointment, i18n.language) ?? t('requestDetail.videoCallNow')} />
-                    <DetailRow icon="cash-outline" label={t('appointments.ownerAccepted.rows.serviceValue')} value={appointment.budget ? `$${appointment.budget}` : '—'} last />
+                    <DetailRow icon="cash-outline" label={t('appointments.ownerAccepted.rows.serviceValue')} value={appointment.budget ? `$${appointment.budget.replace(/^\$/, '')}` : '—'} last />
                 </DetailCard>
             ) : (
                 <>

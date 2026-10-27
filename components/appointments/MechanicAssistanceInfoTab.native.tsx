@@ -135,7 +135,7 @@ export function MechanicAssistanceInfoTab({ appointment }: MechanicAssistanceInf
                     <DetailRow
                         icon="cash-outline"
                         label={t('appointments.ownerAccepted.rows.serviceValue')}
-                        value={appointment.budget ? `$${appointment.budget}` : '—'}
+                        value={appointment.budget ? `$${appointment.budget.replace(/^\$/, '')}` : '—'}
                         last
                     />
                 </DetailCard>
