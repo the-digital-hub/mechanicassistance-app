@@ -306,6 +306,27 @@ export default function AppointmentDetailScreen() {
         }
     };
 
+    // Owner: the help is done — end the call and confirm it (charged) in one
+    // step, without waiting for the mechanic; then offer the mechanic review.
+    const ownerFinishVideoCall = async () => {
+        if (!appointment || videoBusy) return;
+        setVideoBusy(true);
+        try {
+            setVideoState(await videoCallDAO.ownerFinish(appointment.id));
+            refreshAppointments();
+            router.push({ pathname: '/appointments/review/[id]' as never, params: { id: appointment.id } });
+        } catch (error) {
+            videoError(error, 'appointments.videoCall.owner.finishFailed');
+        } finally {
+            setVideoBusy(false);
+        }
+    };
+    const askOwnerFinishVideoCall = () =>
+        Alert.alert(t('appointments.videoCall.owner.finishTitle'), t('appointments.videoCall.owner.finishBody'), [
+            { text: t('appointments.videoCall.owner.finishCancel'), style: 'cancel' },
+            { text: t('appointments.videoCall.owner.finishConfirm'), style: 'destructive', onPress: () => void ownerFinishVideoCall() },
+        ]);
+
     // Owner: it was not resolved — nothing is charged until support decides.
     const disputeVideoCall = async (reason: string) => {
         if (!appointment || videoBusy) return;
@@ -597,6 +618,16 @@ export default function AppointmentDetailScreen() {
                                                     onExtended={() => reloadVideoState()}
                                                 />
                                             </>
+                                        )}
+                                        {videoCallLive && (
+                                            <GradientButton
+                                                label={t('appointments.videoCall.mechanic.finish')}
+                                                icon="checkmark-done"
+                                                colors={['#10B981', '#047857']}
+                                                loading={videoBusy}
+                                                onPress={askOwnerFinishVideoCall}
+                                                testID="owner-video-finish"
+                                            />
                                         )}
                                         {videoState && (
                                             <OwnerVideoCallStatusCard

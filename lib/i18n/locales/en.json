@@ -1337,7 +1337,12 @@
         "disputedTitle": "Support is reviewing it",
         "disputedBody": "You reported that the problem wasn't resolved. You won't be charged until support decides.",
         "notChargedTitle": "Not charged",
-        "notChargedBody": "Support found the problem wasn't resolved, so you weren't charged."
+        "notChargedBody": "Support found the problem wasn't resolved, so you weren't charged.",
+        "finishTitle": "Finish the video call?",
+        "finishBody": "The call ends for both of you and the assistance is charged. This cannot be undone.",
+        "finishConfirm": "Finish",
+        "finishCancel": "Cancel",
+        "finishFailed": "The video call could not be finished. Please try again."
       },
       "dispute": {
         "title": "What wasn't resolved?",
@@ -1392,13 +1397,7 @@
         "obdCodes_one": "OBD · {{count}} code",
         "obdCodes_other": "OBD · {{count}} codes",
         "warnOwner": "Less than 5 minutes left. Tap here to add time.",
-        "warnMechanic": "Less than 5 minutes left in the call.",
-        "finish": "Finish video call",
-        "finishTitle": "Finish the video call?",
-        "finishBody": "The call ends for both of you and the assistance is charged. This cannot be undone.",
-        "finishConfirm": "Finish",
-        "finishCancel": "Cancel",
-        "finishFailed": "The video call could not be finished. Please try again."
+        "warnMechanic": "Less than 5 minutes left in the call."
       },
       "timer": {
         "inProgress": "Call in progress",

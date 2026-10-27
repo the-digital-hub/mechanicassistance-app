@@ -3,7 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MediaStream } from '@daily-co/react-native-webrtc';
 import { CallControls } from '@/components/video/CallControls';
@@ -19,7 +19,6 @@ import { useUser } from '@/context/UserContext';
 import { useDailyCall } from '@/lib/video/useDailyCall';
 import { goBackOr } from '@/lib/navigation/goBackOr';
 import { videoCallDAO } from '@/lib/dao/VideoCallDAO';
-import { ApiError } from '@/lib/api/types';
 import { contractedSeconds } from '@/lib/video/callLength';
 import { useElapsedSeconds } from '@/hooks/useElapsedSeconds';
 import { useVideoCallState } from '@/hooks/useVideoCallState';
@@ -125,30 +124,6 @@ export default function VideoCallScreen() {
     // away on the detail) and not to whatever tab happened to be underneath.
     router.navigate(appointmentHref, { withAnchor: true });
   };
-
-  // Owner: the help is done — end the call and confirm it (charged) in one
-  // step, then rate the mechanic. The plain hang-up only leaves the room.
-  const [finishing, setFinishing] = useState(false);
-  const finishCall = async () => {
-    if (finishing || !appointmentId) return;
-    setFinishing(true);
-    try {
-      await videoCallDAO.ownerFinish(appointmentId);
-    } catch (error) {
-      setFinishing(false);
-      // The server says why (e.g. 409: the mechanic already finished it).
-      const message = error instanceof ApiError && error.apiMessage ? error.apiMessage : t(`${K}.finishFailed`);
-      Alert.alert(t('appointments.videoCall.errorTitle'), message);
-      return;
-    }
-    await leave();
-    router.replace({ pathname: '/appointments/review/[id]' as never, params: { id: appointmentId } });
-  };
-  const askFinishCall = () =>
-    Alert.alert(t(`${K}.finishTitle`), t(`${K}.finishBody`), [
-      { text: t(`${K}.finishCancel`), style: 'cancel' },
-      { text: t(`${K}.finishConfirm`), style: 'destructive', onPress: () => void finishCall() },
-    ]);
 
   // The call ends when the timer reaches zero: the server finishes it and the
   // room ejects both sides at that moment, so this phone leaves right then.
@@ -266,23 +241,6 @@ export default function VideoCallScreen() {
             </Text>
           </TouchableOpacity>
         )}
-        {isOwner && callState === 'joined' && (
-          <TouchableOpacity
-            style={[styles.finish, finishing && { opacity: 0.6 }]}
-            onPress={askFinishCall}
-            disabled={finishing}
-            activeOpacity={0.85}
-            testID="call-owner-finish"
-            accessibilityRole="button"
-          >
-            {finishing ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
-            ) : (
-              <Ionicons name="checkmark-circle-outline" size={18} color="#FFFFFF" />
-            )}
-            <Text style={styles.addTimeText}>{t(`${K}.finish`)}</Text>
-          </TouchableOpacity>
-        )}
         <View style={styles.pip}>
           <View style={styles.pipInner}>
             <VideoTile stream={localStream} name={t(`${K}.you`)} isCameraOff={isCameraOff} isLocal />
@@ -324,10 +282,6 @@ const styles = StyleSheet.create({
     position: 'absolute', left: 14, zIndex: 3, flexDirection: 'row', alignItems: 'center', gap: 6,
     paddingHorizontal: 12, paddingVertical: 8, borderRadius: 100, backgroundColor: 'rgba(15,23,41,0.75)',
     borderWidth: 1, borderColor: 'rgba(92,214,242,0.6)',
-  },
-  finish: {
-    position: 'absolute', bottom: 16, alignSelf: 'center', zIndex: 3, flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 18, paddingVertical: 10, borderRadius: 100, backgroundColor: VC.red,
   },
   addTimeText: { fontFamily: 'Outfit_700Bold', fontSize: 13, color: '#FFFFFF' },
   loadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: VC.navy, alignItems: 'center', justifyContent: 'center', zIndex: 10 },

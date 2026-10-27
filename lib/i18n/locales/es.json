@@ -1337,7 +1337,12 @@
         "disputedTitle": "Soporte lo está revisando",
         "disputedBody": "Reportaste que el problema no se resolvió. No se te cobrará hasta que soporte decida.",
         "notChargedTitle": "Sin cargo",
-        "notChargedBody": "Soporte determinó que el problema no se resolvió, así que no se te cobró."
+        "notChargedBody": "Soporte determinó que el problema no se resolvió, así que no se te cobró.",
+        "finishTitle": "¿Finalizar la videollamada?",
+        "finishBody": "La llamada termina para los dos y se cobra la asistencia. No se puede deshacer.",
+        "finishConfirm": "Finalizar",
+        "finishCancel": "Cancelar",
+        "finishFailed": "No se pudo finalizar la videollamada. Probá de nuevo."
       },
       "dispute": {
         "title": "¿Qué no se resolvió?",
@@ -1392,13 +1397,7 @@
         "obdCodes_one": "OBD · {{count}} código",
         "obdCodes_other": "OBD · {{count}} códigos",
         "warnOwner": "Quedan menos de 5 minutos. Tocá acá para agregar tiempo.",
-        "warnMechanic": "Quedan menos de 5 minutos de llamada.",
-        "finish": "Finalizar videollamada",
-        "finishTitle": "¿Finalizar la videollamada?",
-        "finishBody": "La llamada termina para los dos y se cobra la asistencia. No se puede deshacer.",
-        "finishConfirm": "Finalizar",
-        "finishCancel": "Cancelar",
-        "finishFailed": "No se pudo finalizar la videollamada. Probá de nuevo."
+        "warnMechanic": "Quedan menos de 5 minutos de llamada."
       },
       "timer": {
         "inProgress": "Llamada en curso",
