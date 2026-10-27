@@ -576,7 +576,7 @@
       "pickTime": "Elegí un horario",
       "price": "Precio",
       "priceTbd": "A definir",
-      "ctaNow": "Buscar técnico",
+      "ctaNow": "Confirmar y solicitar",
       "ctaSchedule": "Agendar para las {{time}}",
       "ctaPickTime": "Elegí un horario para seguir",
       "loadFailed": "No pudimos cargar los horarios disponibles.",

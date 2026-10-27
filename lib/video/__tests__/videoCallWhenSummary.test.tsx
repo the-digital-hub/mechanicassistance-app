@@ -4,7 +4,7 @@ import VideoCallWhenScreen from '@/app/(tabs)/request-assistance/when';
 
 // Before asking for a video call the owner sees how long it lasts (the hub's
 // base minutes, 45 when the server does not say) and that it can be extended,
-// the wait labelled as an estimate, and a "Search Technician" button.
+// the wait labelled as an estimate, and a "Confirm and request" button.
 
 let mockBaseMinutes: number | undefined = 45;
 

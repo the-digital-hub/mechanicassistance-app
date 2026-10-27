@@ -576,7 +576,7 @@
       "pickTime": "Pick a time",
       "price": "Price",
       "priceTbd": "TBD",
-      "ctaNow": "Search Technician",
+      "ctaNow": "Confirm and request",
       "ctaSchedule": "Schedule for {{time}}",
       "ctaPickTime": "Pick a time to continue",
       "loadFailed": "We couldn't load the available times.",
