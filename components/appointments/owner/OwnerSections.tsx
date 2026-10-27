@@ -294,10 +294,10 @@ export function OwnerTechnicianPanel({ mechanic }: { mechanic: Mechanic | null }
 }
 
 /** `payment` is the card row's value (`PaymentCardValue`), resolved by the screen; omitted (the mechanic) hides the row. */
-export function OwnerBudgetPanel({ total, payment }: { total: string | null; payment?: React.ReactNode }) {
+export function OwnerBudgetPanel({ total, payment, totalLabel }: { total: string | null; payment?: React.ReactNode; totalLabel?: string }) {
     const { t } = useTranslation();
     const rows: (SummaryRow | null)[] = [
-        { icon: 'cash-outline', label: t(`${K}.rows.serviceValue`), value: total ? `$${total}` : '—', strong: true },
+        { icon: 'cash-outline', label: totalLabel ?? t(`${K}.rows.serviceValue`), value: total ? `$${total}` : '—', strong: true },
         payment !== undefined ? { icon: 'card-outline', label: t(`${K}.rows.payment`), value: payment } : null,
         { icon: 'document-text-outline', label: t(`${K}.rows.additionalParts`), value: t(`${K}.partsOnlyWithApproval`) },
     ];

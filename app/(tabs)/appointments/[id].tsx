@@ -521,7 +521,8 @@ export default function AppointmentDetailScreen() {
                 );
             }
             case 'budget':
-                return <OwnerBudgetPanel total={(appointment.budget ?? '').replace(/^\$/, '') || null} />;
+                // `budget` already comes back as what the mechanic earns, never the customer's price.
+                return <OwnerBudgetPanel total={(appointment.budget ?? '').replace(/^\$/, '') || null} totalLabel={t('appointments.receipt.youEarn')} />;
             default:
                 return null;
         }
