@@ -21,9 +21,11 @@ jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) =>
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }) }));
 jest.mock('expo-linear-gradient', () => ({ LinearGradient: 'LinearGradient' }));
 const mockReplace = jest.fn();
+const mockNavigate = jest.fn();
+const mockLeave = jest.fn();
 jest.mock('expo-router', () => ({
     useLocalSearchParams: () => ({ id: 'appt-1', roomUrl: 'https://x.daily.co/r', token: 't', expiry: '0' }),
-    useRouter: () => ({ navigate: jest.fn(), back: jest.fn(), replace: mockReplace }),
+    useRouter: () => ({ navigate: mockNavigate, back: jest.fn(), replace: mockReplace }),
 }));
 jest.mock('@/lib/video/useDailyCall', () => ({
     useDailyCall: () => ({
@@ -34,7 +36,7 @@ jest.mock('@/lib/video/useDailyCall', () => ({
         isCameraOff: false,
         errorMessage: null,
         join: jest.fn(),
-        leave: jest.fn(),
+        leave: mockLeave,
         toggleAudio: jest.fn(),
         toggleCamera: jest.fn(),
         switchCamera: jest.fn(),
@@ -62,6 +64,8 @@ const markStarted = videoCallDAO.markStarted as jest.Mock;
 describe('VideoCallScreen session start', () => {
     beforeEach(() => {
         markStarted.mockReset();
+        mockLeave.mockReset();
+        mockNavigate.mockReset();
         mockRole = 'user';
         mockAdded = 0;
         mockCall.callState = 'joined';
@@ -96,6 +100,24 @@ describe('VideoCallScreen session start', () => {
         const { findByTestId, getByTestId } = render(<VideoCallScreen />);
         await waitFor(async () => expect((await findByTestId('call-remaining')).props.children).toBe('00:00'));
         expect(getByTestId('call-status').props.children).toBe('appointments.videoCall.live.timeUp');
+    });
+
+    it('leaves the call the moment the timer reaches zero, with no grace', async () => {
+        markStarted.mockResolvedValue({ startedAtLocalMs: Date.now() - 45 * 60_000 });
+        mockCall.remoteParticipant = { user_name: 'Client', tracks: {} };
+
+        render(<VideoCallScreen />);
+        await waitFor(() => expect(mockLeave).toHaveBeenCalledTimes(1));
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
+    });
+
+    it('stays in the call while there is time left', async () => {
+        markStarted.mockResolvedValue({ startedAtLocalMs: Date.now() - 44 * 60_000 });
+        mockCall.remoteParticipant = { user_name: 'Client', tracks: {} };
+
+        const { findByTestId } = render(<VideoCallScreen />);
+        await waitFor(async () => expect((await findByTestId('call-remaining')).props.children).toBe('01:00'));
+        expect(mockLeave).not.toHaveBeenCalled();
     });
 
     it('still counts locally if the server cannot be reached', async () => {

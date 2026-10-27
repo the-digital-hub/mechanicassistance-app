@@ -20,7 +20,7 @@ import { useDailyCall } from '@/lib/video/useDailyCall';
 import { goBackOr } from '@/lib/navigation/goBackOr';
 import { videoCallDAO } from '@/lib/dao/VideoCallDAO';
 import { ApiError } from '@/lib/api/types';
-import { contractedSeconds, graceSecondsOf } from '@/lib/video/callLength';
+import { contractedSeconds } from '@/lib/video/callLength';
 import { useElapsedSeconds } from '@/hooks/useElapsedSeconds';
 import { useVideoCallState } from '@/hooks/useVideoCallState';
 
@@ -150,17 +150,17 @@ export default function VideoCallScreen() {
       { text: t(`${K}.finishConfirm`), style: 'destructive', onPress: () => void finishCall() },
     ]);
 
-  // The server ends the call when the grace after the time is up runs out; this
-  // phone leaves at the same moment instead of waiting for the room to eject it.
-  // An extension bought meanwhile raises limitSeconds and cancels this.
+  // The call ends when the timer reaches zero: the server finishes it and the
+  // room ejects both sides at that moment, so this phone leaves right then.
+  // Extra time has to be bought before zero; it raises limitSeconds.
   const autoLeft = useRef(false);
-  const graceOver = startedAtMs !== null && elapsed >= limitSeconds + graceSecondsOf(callTime);
+  const timeOver = startedAtMs !== null && elapsed >= limitSeconds;
   useEffect(() => {
-    if (!graceOver || autoLeft.current) return;
+    if (!timeOver || autoLeft.current) return;
     autoLeft.current = true;
     void handleHangUp();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [graceOver]);
+  }, [timeOver]);
 
   const buildStream = (p: typeof localParticipant) => {
     const track = p?.tracks?.video?.persistentTrack;
