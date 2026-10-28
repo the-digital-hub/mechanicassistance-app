@@ -4,8 +4,8 @@ import { haversineDistanceKm } from '@/lib/utils';
 import { approximateArea, coarseAddress } from '@/lib/maps/approximateLocation';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
-import { Calendar, Car, LucideIcon, MapPin, MessageSquare, Route } from 'lucide-react-native';
-import { useContext, useEffect, useState } from 'react';
+import { Calendar, Car, LucideIcon, MapPin, MessageSquare, Route, Star } from 'lucide-react-native';
+import { ReactNode, useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, Platform, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -36,7 +36,7 @@ const C = {
 
 const MONO = Platform.select({ ios: 'Menlo', default: 'monospace' });
 
-function InfoRows({ rows }: { rows: { icon: LucideIcon; label: string; value: string }[] }) {
+function InfoRows({ rows }: { rows: { icon: LucideIcon; label: string; value?: string; node?: ReactNode }[] }) {
     return (
         <View style={{ borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: C.borderSoft }}>
             {rows.map((r, i) => {
@@ -57,9 +57,13 @@ function InfoRows({ rows }: { rows: { icon: LucideIcon; label: string; value: st
                             <RowIcon size={16} color={C.blue} />
                         </View>
                         <Text className="font-outfit-medium text-xs" style={{ color: C.muted, width: 66 }}>{r.label}</Text>
-                        <Text className="flex-1 font-outfit-bold text-[13px] text-right" style={{ color: C.text }} numberOfLines={2}>
-                            {r.value}
-                        </Text>
+                        {r.node ? (
+                            <View className="flex-1 flex-row items-center justify-end">{r.node}</View>
+                        ) : (
+                            <Text className="flex-1 font-outfit-bold text-[13px] text-right" style={{ color: C.text }} numberOfLines={2}>
+                                {r.value}
+                            </Text>
+                        )}
                     </View>
                 );
             })}
@@ -230,6 +234,21 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                 },
             ]),
         { icon: Calendar, label: t(isPast ? 'appointments.list.card.rows.date' : 'appointments.list.card.rows.when'), value: whenLabel },
+        // The customer's stars for this one job — the dashboard only shows the average.
+        ...(state === 'completed' && appointment.source === 'appointment'
+            ? [{
+                icon: Star,
+                label: t('appointments.list.card.rows.rating'),
+                node: appointment.reviewRating != null ? (
+                    <View className="flex-row items-center" style={{ gap: 6 }}>
+                        <Stars rating={appointment.reviewRating} size={13} />
+                        <Text className="font-outfit-bold text-[13px]" style={{ color: C.text }}>{appointment.reviewRating}/5</Text>
+                    </View>
+                ) : (
+                    <Text className="font-outfit-semibold text-[13px]" style={{ color: C.muted }}>{t('appointments.list.card.notRated')}</Text>
+                ),
+            }]
+            : []),
     ];
 
     const notCharged = state === 'canceled' || state === 'notCharged';

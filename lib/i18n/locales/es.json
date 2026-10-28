@@ -692,8 +692,10 @@
           "location": "Ubicación",
           "distance": "Distancia",
           "when": "Cuándo",
-          "date": "Fecha"
+          "date": "Fecha",
+          "rating": "Calificación"
         },
+        "notRated": "Sin calificar",
         "notAvailable": "—",
         "distanceApprox": "~{{km}} km",
         "approximateArea": "Zona aproximada — no se muestra la ubicación exacta",

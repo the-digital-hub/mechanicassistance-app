@@ -692,8 +692,10 @@
           "location": "Location",
           "distance": "Distance",
           "when": "When",
-          "date": "Date"
+          "date": "Date",
+          "rating": "Rating"
         },
+        "notRated": "Not rated yet",
         "notAvailable": "—",
         "distanceApprox": "~{{km}} km",
         "approximateArea": "Approximate area — the exact location is not shown",

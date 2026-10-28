@@ -156,11 +156,21 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                 )}
 
                 {isPast ? (
-                    <View className="self-start bg-gray-100 border border-gray-200 rounded-lg py-2 px-4 items-center justify-center">
-                        <Text className="text-gray-900 font-outfit-bold text-sm">
-                            {t('appointments.list.card.paid', { amount: appointment.budget })}
-                        </Text>
-                    </View>
+                    <>
+                        {state === 'completed' && appointment.source === 'appointment' && (
+                            <Text className="text-gray-700 text-sm font-outfit-bold mb-3">
+                                {t('appointments.list.card.rows.rating')}:{' '}
+                                {appointment.reviewRating != null
+                                    ? `${'★'.repeat(appointment.reviewRating)}${'☆'.repeat(5 - appointment.reviewRating)} ${appointment.reviewRating}/5`
+                                    : t('appointments.list.card.notRated')}
+                            </Text>
+                        )}
+                        <View className="self-start bg-gray-100 border border-gray-200 rounded-lg py-2 px-4 items-center justify-center">
+                            <Text className="text-gray-900 font-outfit-bold text-sm">
+                                {t('appointments.list.card.paid', { amount: appointment.budget })}
+                            </Text>
+                        </View>
+                    </>
                 ) : (
                     <>
                         <View className="flex-row gap-3">

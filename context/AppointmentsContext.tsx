@@ -65,6 +65,8 @@ export interface Appointment {
     additionalFunds?: AdditionalFunds[];
     clientReview?: ClientReview;
     isReviewSubmitted?: boolean;
+    /** Stars (1–5) the customer gave the mechanic for this job; null until reviewed. List rows only. */
+    reviewRating?: number | null;
     isStatusUpdated?: boolean;
     currentStatus?: string;
     userId?: string;
