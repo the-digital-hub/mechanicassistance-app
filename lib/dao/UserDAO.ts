@@ -65,6 +65,31 @@ export class UserDAO implements IUserDAO {
     }
 
     /**
+     * Email + password sign-in against auth-service.
+     *
+     * Only accounts an operator provisioned with a password can use it; anyone
+     * who signed up by phone has none and gets the same 401 as a wrong password.
+     */
+    async loginWithPassword(email: string, password: string): Promise<UserData | null> {
+        const result = await apiClient.post<{
+            accessToken: string;
+            refreshToken: string;
+            user: UserData;
+        }>('/api/auth/login/password', { email, password });
+
+        if (result.accessToken) {
+            await saveTokens({
+                accessToken: result.accessToken,
+                refreshToken: result.refreshToken,
+            });
+            if (result.user) await saveCachedUser(result.user);
+            await this.clearSignupToken();
+        }
+
+        return result.user ?? null;
+    }
+
+    /**
      * Trades a pre-refresh-token session for a current one.
      *
      * Older builds stored a single long-lived access token and nothing else.

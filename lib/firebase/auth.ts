@@ -150,22 +150,6 @@ export const signInWithApple = async (): Promise<FirebaseAuthTypes.User> => {
     return userCredential.user;
 };
 
-// ─── Email/Password Auth ────────────────────────────────────────────────────────
-
-/**
- * Signs in an existing user with email and password via Firebase Auth.
- * Returns the Firebase user on success.
- */
-export const signInWithEmail = async (email: string, password: string): Promise<FirebaseAuthTypes.User> => {
-    const userCredential = await auth().signInWithEmailAndPassword(email, password);
-
-    if (!userCredential.user) {
-        throw new Error('Email sign-in failed.');
-    }
-
-    console.log('[FirebaseAuth] Email sign-in successful, uid:', userCredential.user.uid);
-    return userCredential.user;
-};
 
 /**
  * Creates a new Firebase user with email and password.

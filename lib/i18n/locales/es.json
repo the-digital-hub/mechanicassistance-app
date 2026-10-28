@@ -144,6 +144,10 @@
       "days": "hace {{count}}d"
     },
     "mechanic": {
+      "activeJob": {
+        "title": "Trabajo en curso",
+        "headOut": "Salir ahora"
+      },
       "readyToWork": "Listo para trabajar",
       "reviewSubtitle": "Revisá las nuevas solicitudes en tu zona",
       "availableToProvide": "Disponible para brindar servicios",
@@ -640,6 +644,8 @@
           "pendingHint": "Estamos buscando un mecánico",
           "offered": "Servicio ofertado",
           "offeredHint": "Tocá para ver la oferta",
+          "ready": "El mecánico aún no salió",
+          "readyHint": "Esperando que el mecánico salga",
           "enRoute": "Mecánico en camino",
           "enRouteHint": "El mecánico está en camino",
           "scheduled": "Agendada",
@@ -664,6 +670,7 @@
         "title": {
           "pending": "Pendiente – Pendiente",
           "offered": "Pendiente – Ofertada",
+          "ready": "Confirmada – Pendiente de salida",
           "enRoute": "Confirmada – En camino",
           "scheduled": "Confirmada – Agendada",
           "completed": "Completada – Resuelta",
@@ -1729,6 +1736,8 @@
     "signInWithApple": "Iniciar sesión con Apple",
     "signInWithMobile": "Iniciar sesión con celular",
     "signInWithEmail": "Iniciar sesión con email",
+    "backToPhone": "Volver a ingresar con teléfono",
+    "invalidCredentialsMessage": "Email o contraseña incorrectos.",
     "noAccount": "¿No tenés una cuenta?",
     "cancel": "Cancelar",
     "gotIt": "Entendido",

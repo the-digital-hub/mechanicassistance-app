@@ -7,7 +7,6 @@ import { DetailCard, DetailRow } from './DetailCard';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import { MAP_PROVIDER } from '@/lib/maps/provider';
 import { formatEtaTime, useAppointmentEta } from '@/hooks/useAppointmentEta';
-import { useSocket } from '@/context/SocketContext';
 import { videoCallBookedLabel } from '@/lib/video/videoCallTime';
 
 function decodePolyline(encoded: string): { latitude: number; longitude: number }[] {
@@ -39,7 +38,6 @@ export function MechanicAssistanceInfoTab({ appointment }: MechanicAssistanceInf
     const isVideoCall = (appointment?.assistanceType ?? appointment?.type) === 'videocall';
     const mapRef = React.useRef<MapView | null>(null);
     const [mechanicCoords, setMechanicCoords] = React.useState<{ latitude: number; longitude: number } | null>(null);
-    const { sendMessage } = useSocket();
 
     // Request location coords are the client's chosen point (default address or
     // the spot they dropped on the map) — always the destination reference.
@@ -55,6 +53,7 @@ export function MechanicAssistanceInfoTab({ appointment }: MechanicAssistanceInf
     );
 
     // Track mechanic's live position — watch continuously so the marker moves as they drive.
+    // Local marker only: sharing it with the owner is MechanicLocationBroadcaster's job.
     React.useEffect(() => {
         if (isVideoCall) return;
         let sub: Location.LocationSubscription | null = null;
@@ -70,13 +69,6 @@ export function MechanicAssistanceInfoTab({ appointment }: MechanicAssistanceInf
                         if (cancelled) return;
                         const { latitude, longitude } = loc.coords;
                         setMechanicCoords({ latitude, longitude });
-                        if (appointment?.id) {
-                            sendMessage('mechanic_location_update', {
-                                appointmentId: appointment.id,
-                                lat: latitude,
-                                lng: longitude,
-                            });
-                        }
                     },
                 );
             } catch {

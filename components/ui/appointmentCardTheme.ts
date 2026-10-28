@@ -5,6 +5,7 @@ import { Calendar, Clock, LucideIcon, ShieldCheck, Video } from 'lucide-react-na
 export type CardState =
     | 'pending'
     | 'offered'
+    | 'ready'
     | 'enRoute'
     | 'scheduled'
     | 'awaitingConfirmation'
@@ -13,7 +14,7 @@ export type CardState =
     | 'notCharged'
     | 'canceled';
 
-export function getCardState(appointment: Pick<Appointment, 'status' | 'type' | 'assistanceType' | 'currentStatus'>): CardState {
+export function getCardState(appointment: Pick<Appointment, 'status' | 'type' | 'assistanceType' | 'currentStatus' | 'departedAt'>): CardState {
     const { status } = appointment;
     // A video call is remote: nobody is "en route" to it.
     if (status === 'accepted' && (appointment.assistanceType ?? appointment.type) === 'videocall') return 'scheduled';
@@ -23,6 +24,8 @@ export function getCardState(appointment: Pick<Appointment, 'status' | 'type' | 
         case 'offered':
             return 'offered';
         case 'accepted':
+            // Accepted is not "en route": the mechanic is only on the way once they tap "Head out".
+            return appointment.departedAt ? 'enRoute' : 'ready';
         case 'started':
         case 'in_progress':
             return 'enRoute';
@@ -48,6 +51,7 @@ export function isPastState(state: CardState): boolean {
 export const BANNER_COLORS: Record<CardState, { bg: string; label: string; title: string; hint: string }> = {
     pending: { bg: '#FFF4E8', label: '#F59E0B', title: '#EA580C', hint: '#FB923C' },
     offered: { bg: '#E9F1FF', label: '#6B8BD6', title: '#1E56E3', hint: '#3B6FE8' },
+    ready: { bg: '#FFF4E8', label: '#F59E0B', title: '#EA580C', hint: '#FB923C' },
     enRoute: { bg: '#E7F6EE', label: '#6BAF8A', title: '#15803D', hint: '#22A35A' },
     scheduled: { bg: '#E9F1FF', label: '#6B8BD6', title: '#1E56E3', hint: '#3B6FE8' },
     awaitingConfirmation: { bg: '#FFF4E8', label: '#F59E0B', title: '#EA580C', hint: '#FB923C' },

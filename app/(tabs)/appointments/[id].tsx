@@ -32,7 +32,7 @@ import { PaymentCardValue } from '@/components/payments/PaymentCardValue';
 import { useAppointments } from '@/context/AppointmentsContext';
 import { useUser } from '@/context/UserContext';
 import { formatEtaTime, useAppointmentEta } from '@/hooks/useAppointmentEta';
-import { useMechanicLocationBroadcast } from '@/hooks/useMechanicLocationBroadcast';
+import { useHeadOut } from '@/hooks/useHeadOut';
 import { useVideoCallState } from '@/hooks/useVideoCallState';
 import { ApiError } from '@/lib/api/types';
 import { onSiteDAO } from '@/lib/dao/OnSiteDAO';
@@ -43,7 +43,6 @@ import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import type { AssistanceClientSummary, AssistanceOfferSummary } from '@/lib/dao/interfaces';
 import { userDAO } from '@/lib/dao/UserDAO';
 import { Ionicons } from '@expo/vector-icons';
-import * as Location from 'expo-location';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useGlobalSearchParams, useRouter } from 'expo-router';
 import { goBackOr } from '@/lib/navigation/goBackOr';
@@ -101,21 +100,11 @@ export default function AppointmentDetailScreen() {
     // On-site: the mechanic's scanner read another vehicle's VIN (or the vehicle has none on file). The owner is told.
     const visitVinCheck = useVisitObdVinCheck(appointment?.id, isUserRole && !!appointment && !isVideoCall);
 
-    // "Head out": the mechanic left for the vehicle. Until then the job is
-    // accepted but nobody follows them — no position shared, no live ETA.
-    // `departedNow` covers the gap until the refreshed appointment arrives.
-    const [departedNow, setDepartedNow] = React.useState<string | null>(null);
+    // "Head out": the mechanic left for the vehicle. The position itself is
+    // shared app-wide by MechanicLocationBroadcaster, not by this screen.
+    const { headOut: departNow, headingOut, departedNow } = useHeadOut();
     const departedAt = appointment?.departedAt ?? departedNow;
     const departed = !!departedAt;
-    const [headingOut, setHeadingOut] = React.useState(false);
-
-    useMechanicLocationBroadcast({
-        appointmentId: appointment?.id ?? '',
-        status: appointment?.status ?? 'pending',
-        role: user?.role,
-        isVideoCall,
-        departed,
-    });
 
     // Lifted here so the socket listener stays alive regardless of active tab.
     // An accepted job is only tracked once the mechanic heads out.
@@ -125,24 +114,8 @@ export default function AppointmentDetailScreen() {
         ownerTracks ? appointment?.status : undefined,
     );
 
-    const headOut = async () => {
-        if (!appointment || headingOut) return;
-        setHeadingOut(true);
-        try {
-            // Ask now, while the mechanic is looking: the broadcast starts as soon as departedAt is set.
-            const { status: perm } = await Location.requestForegroundPermissionsAsync();
-            if (perm !== 'granted') {
-                Alert.alert(t('appointments.detail.locationNeededTitle'), t('appointments.detail.locationNeeded'));
-            }
-            const res = await onSiteDAO.depart(appointment.id);
-            setDepartedNow(res.departedAt);
-            refreshAppointments();
-        } catch (error) {
-            const message = error instanceof ApiError && error.apiMessage ? error.apiMessage : t('appointments.detail.headOutFailed');
-            Alert.alert(t('appointments.videoCall.errorTitle'), message);
-        } finally {
-            setHeadingOut(false);
-        }
+    const headOut = () => {
+        if (appointment) departNow(appointment.id);
     };
 
     // Video call close-out (finish → confirm / dispute). Reloaded on focus, on

@@ -1,6 +1,7 @@
 import { KPICard } from '@/components/ui/KPICard';
 import { PromotionalCard } from '@/components/ui/PromotionalCard';
 import { UserRequestCard } from '@/components/ui/UserRequestCard';
+import { MechanicActiveJobCard } from '@/components/ui/MechanicActiveJobCard';
 import { useAppointments, type Appointment } from '@/context/AppointmentsContext';
 import { MechanicFeedStatusBanner } from '@/components/MechanicFeedStatusBanner';
 import { useMechanicStatus } from '@/context/MechanicStatusContext';
@@ -294,6 +295,8 @@ export default function DashboardScreen() {
             { id: 'busy', label: t('dashboard.mechanic.status.busy.label'), description: t('dashboard.mechanic.status.busy.description'), color: '#F97316' },
             { id: 'offline', label: t('dashboard.mechanic.status.offline.label'), description: t('dashboard.mechanic.status.offline.description'), color: '#9CA3AF' },
         ];
+        // Accepted onward: pending/offered rows are requests still being bid on, not jobs.
+        const activeJobs = getActiveRequests().filter((a) => a.status !== 'pending' && a.status !== 'offered');
 
         return (
             <View className="flex-1">
@@ -316,6 +319,18 @@ export default function DashboardScreen() {
                     <Text className="text-gray-500 font-outfit-regular text-base mb-8">
                         {t('dashboard.mechanic.reviewSubtitle')}
                     </Text>
+
+                    {/* Active jobs — otherwise only reachable from the Appointments tab */}
+                    {activeJobs.length > 0 && (
+                        <View className="mb-4">
+                            <Text className="font-outfit-bold" style={{ fontSize: 18, letterSpacing: -0.3, color: '#0B1530', marginBottom: 12 }}>
+                                {t('dashboard.mechanic.activeJob.title')}
+                            </Text>
+                            {activeJobs.map((job) => (
+                                <MechanicActiveJobCard key={job.id} appointment={job} />
+                            ))}
+                        </View>
+                    )}
 
                     {/* Status Block */}
                     <View className="bg-white rounded-3xl p-6 mb-8" style={{

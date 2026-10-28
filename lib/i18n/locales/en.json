@@ -144,6 +144,10 @@
       "days": "{{count}}d ago"
     },
     "mechanic": {
+      "activeJob": {
+        "title": "Active job",
+        "headOut": "Head out"
+      },
       "readyToWork": "Ready to work",
       "reviewSubtitle": "Review new requests in your area",
       "availableToProvide": "Available to provide services",
@@ -640,6 +644,8 @@
           "pendingHint": "We're looking for a mechanic",
           "offered": "Service offered",
           "offeredHint": "Tap to view offer",
+          "ready": "Mechanic hasn't left yet",
+          "readyHint": "Waiting for the mechanic to head out",
           "enRoute": "Mechanic en route",
           "enRouteHint": "Mechanic is on the way",
           "scheduled": "Scheduled",
@@ -664,6 +670,7 @@
         "title": {
           "pending": "Pending – Pending",
           "offered": "Pending – Offered",
+          "ready": "Confirmed – Ready to head out",
           "enRoute": "Confirmed – En route",
           "scheduled": "Confirmed – Scheduled",
           "completed": "Completed – Resolved",
@@ -1729,6 +1736,8 @@
     "signInWithApple": "Sign in with Apple",
     "signInWithMobile": "Sign in with Mobile",
     "signInWithEmail": "Sign in with Email",
+    "backToPhone": "Back to phone sign-in",
+    "invalidCredentialsMessage": "Incorrect email or password.",
     "noAccount": "Don't have an account?",
     "cancel": "Cancel",
     "gotIt": "Got it",

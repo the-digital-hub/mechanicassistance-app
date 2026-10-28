@@ -16,6 +16,7 @@ import { Image, Modal, Platform, Text, TouchableOpacity, View } from "react-nati
 import { LinearGradient } from "expo-linear-gradient";
 
 import { HapticTab } from "@/components/haptic-tab";
+import { MechanicLocationBroadcaster } from "@/components/MechanicLocationBroadcaster";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { goBackOr } from "@/lib/navigation/goBackOr";
 import { useTranslation } from "react-i18next";
@@ -253,6 +254,8 @@ export default function TabLayout() {
     /^\/appointments\/[^/]+$/.test(pathname) && pathname !== "/appointments/cancel-reason";
 
   return (
+    <>
+    <MechanicLocationBroadcaster />
     <Tabs
       // Back follows the order the user actually visited tabs in. The default
       // ("firstRoute") sends every cross-tab back to Dashboard.
@@ -547,5 +550,6 @@ export default function TabLayout() {
         options={{ href: null, headerShown: false }}
       />
     </Tabs>
+    </>
   );
 }

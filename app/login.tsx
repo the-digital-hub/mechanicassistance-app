@@ -18,9 +18,9 @@ import { formatCountdown, useCountdown } from "@/hooks/useCountdown";
 import {
   getIdToken,
   signInWithApple,
-  signInWithEmail,
   signInWithGoogle,
 } from "@/lib/firebase/auth";
+import { userDAO } from "@/lib/dao/UserDAO";
 import { getLastPhone, saveLastPhone } from "@/lib/storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -292,15 +292,32 @@ export default function LoginScreen() {
   const handleAppleLogin = () =>
     handleProviderLogin(() => signInWithApple(), "Apple");
 
-  const handleEmailLogin = () => {
+  const handleEmailLogin = async () => {
     if (!emailAddress.trim() || !password.trim()) {
       showError(t("login.missingFieldsTitle"), t("login.missingFieldsMessage"));
       return;
     }
-    handleProviderLogin(
-      () => signInWithEmail(emailAddress.trim(), password),
-      "Email",
-    );
+    setIsLoading(true);
+    try {
+      const user = await userDAO.loginWithPassword(
+        emailAddress.trim(),
+        password,
+      );
+      if (!user) throw new Error();
+      await adoptSession(user);
+      router.replace("/(tabs)/dashboard");
+    } catch (err: unknown) {
+      // A 401 means wrong email/password or an account without a password;
+      // the backend deliberately doesn't say which.
+      const message =
+        err instanceof ApiError && err.statusCode !== 401 ? err.apiMessage : "";
+      showError(
+        t("login.loginFailedTitle"),
+        message || t("login.invalidCredentialsMessage"),
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // ─── OTP helpers ────────────────────────────────────────────────────────────
@@ -495,6 +512,20 @@ export default function LoginScreen() {
             accessible={false}
           >
             <GradientLayout className="flex-1" resizeMode="cover">
+              {method === "email" && (
+                <TouchableOpacity
+                  onPress={() => setMethod("mobile")}
+                  className="absolute left-6 top-16 z-10 flex-row items-center gap-2"
+                  accessibilityRole="button"
+                  accessibilityLabel={t("login.backToPhone")}
+                  hitSlop={12}
+                >
+                  <Ionicons name="arrow-back" size={24} color="white" />
+                  <Text className="text-white font-outfit-medium">
+                    {t("login.backToPhone")}
+                  </Text>
+                </TouchableOpacity>
+              )}
               <View className="flex-1 justify-end px-6 pb-[108px] gap-4">
                 <View className="flex-1" />
 
@@ -609,7 +640,11 @@ export default function LoginScreen() {
                       setMethod(method === "email" ? "mobile" : "email")
                     }
                     leftIcon={
-                      <Ionicons name="mail-outline" size={20} color="black" />
+                      <Ionicons
+                        name={method === "email" ? "call-outline" : "mail-outline"}
+                        size={20}
+                        color="black"
+                      />
                     }
                     className="h-[52px]"
                   >
