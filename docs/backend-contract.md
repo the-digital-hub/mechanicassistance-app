@@ -23,7 +23,7 @@ ciclo de vida del request. `AppointmentsContext` en mobile usa la fila de
 El upload devuelve una URL absoluta completa, guardada dentro del JSON de
 `photos`. Los uploads mobile son `AssistanceDAO.uploadPhoto(localUri)`
 (`POST /api/photos/upload`, imágenes, 5 MB) y `AssistanceDAO.uploadVideo(localUri)`
-(`POST /api/videos/upload`, mp4/mov/webm, 50 MB), ambos con `apiClient.upload()` y
+(`POST /api/videos/upload`, mp4/mov/webm, 250 MB), ambos con `apiClient.upload()` y
 `FormData` — el método `upload()` **no** debe setear `Content-Type` manual (fetch lo
 pone con el boundary multipart automáticamente). Máximo 3 fotos + 1 video por
 request, enforceado en `app/(tabs)/request-assistance/vehicle-documentation.tsx`.

@@ -71,7 +71,7 @@ export class AssistanceDAO implements IAssistanceDAO {
 
     /**
      * Uploads a local video URI and returns the permanent URL. Same contract as
-     * `uploadPhoto`, but the media service caps videos at 50 MB and only accepts
+     * `uploadPhoto`, but the media service caps videos at 250 MB and only accepts
      * mp4 / mov / webm.
      */
     async uploadVideo(localUri: string): Promise<string> {

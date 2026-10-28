@@ -10,7 +10,7 @@ import type { PendingAttachment } from '@/lib/media/attachments';
 
 const MAX_PHOTOS = 3;
 /** Mirrors MAX_UPLOAD_BYTES.video in media-service — the upload 413s past this. */
-const MAX_VIDEO_MB = 50;
+const MAX_VIDEO_MB = 250;
 
 type PhotoSlot = { uri: string; note: string };
 type VideoSlot = { uri: string; note: string };

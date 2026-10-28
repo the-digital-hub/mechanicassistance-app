@@ -88,12 +88,22 @@ let refreshInFlight: Promise<boolean> | null = null;
  */
 const REQUEST_TIMEOUT_MS = 15000;
 
+/**
+ * Upper bound on a multipart upload. A 250 MB video takes minutes on 4G, far
+ * past REQUEST_TIMEOUT_MS; matches the gateway's 5-minute proxy timeout.
+ */
+const UPLOAD_TIMEOUT_MS = 5 * 60 * 1000;
+
 /** Upper bound on reading the stored tokens before a request. */
 const AUTH_HEADERS_TIMEOUT_MS = 3000;
 
-async function fetchWithTimeout(url: string, init: RequestInit): Promise<Response> {
+async function fetchWithTimeout(
+    url: string,
+    init: RequestInit,
+    timeoutMs: number = REQUEST_TIMEOUT_MS,
+): Promise<Response> {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
     try {
         return await fetch(url, { ...init, signal: controller.signal });
     } finally {
@@ -285,6 +295,7 @@ async function send<T>(
     method: string,
     endpoint: string,
     init: Omit<RequestInit, 'method'> = {},
+    timeoutMs: number = REQUEST_TIMEOUT_MS,
 ): Promise<T> {
     await ConfigService.init();
     const authHeaders = await withTimeout(
@@ -302,7 +313,7 @@ async function send<T>(
             ...init,
             method,
             headers: { ...(init.headers ?? {}), ...authHeaders },
-        });
+        }, timeoutMs);
     } catch (error) {
         console.log(`[apiClient] transport failure for ${url}:`, error);
         throw error;
@@ -389,7 +400,7 @@ export const apiClient = {
     async upload<T = unknown>(endpoint: string, formData: FormData): Promise<T> {
         // No Content-Type: fetch sets it along with the multipart boundary.
         return withSession(endpoint, () =>
-            send<T>('POST', endpoint, { body: formData }),
+            send<T>('POST', endpoint, { body: formData }, UPLOAD_TIMEOUT_MS),
         );
     },
 };
