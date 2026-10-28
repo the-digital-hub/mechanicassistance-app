@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Modal, Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 import { AO } from '@/components/offer/OfferSections';
 import type { PaymentCard } from '@/lib/dao/interfaces';
@@ -45,6 +45,7 @@ export function InsufficientFundsSheet({ visible, amount, wallet, cards, busy, o
 
     return (
         <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
+            <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
             <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' }} onPress={busy ? undefined : onClose} />
             <View
                 style={{ backgroundColor: '#fff', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingHorizontal: 20, paddingTop: 18, paddingBottom: 34, maxHeight: '85%' }}
@@ -123,6 +124,7 @@ export function InsufficientFundsSheet({ visible, amount, wallet, cards, busy, o
                     </View>
                 )}
             </View>
+            </KeyboardAvoidingView>
         </Modal>
     );
 }

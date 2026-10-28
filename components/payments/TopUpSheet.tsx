@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Modal, Pressable, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, Pressable, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { AO } from '@/components/offer/OfferSections';
 import { ApiError } from '@/lib/api/types';
@@ -165,10 +165,12 @@ export function TopUpSheet({ visible, cards, initialAmount, onDone, onClose }: {
 }) {
     return (
         <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
+            <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
             <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' }} onPress={onClose} />
             <View style={{ backgroundColor: '#fff', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingHorizontal: 20, paddingTop: 18, paddingBottom: 34 }}>
                 {visible && <TopUpForm cards={cards} initialAmount={initialAmount} onDone={onDone} onCancel={onClose} />}
             </View>
+            </KeyboardAvoidingView>
         </Modal>
     );
 }
