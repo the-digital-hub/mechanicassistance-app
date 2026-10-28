@@ -277,7 +277,11 @@ export default function OnSiteFlowScreen() {
                 <ScreenCloseout
                     visit={visit}
                     onVisit={setVisit}
-                    onBackToDashboard={() => router.replace('/(tabs)/appointments')}
+                    onBackToDashboard={() => {
+                        // Flow finished: empty the appointments stack so the tab doesn't reopen check-in.
+                        if (router.canDismiss()) router.dismissAll();
+                        router.navigate('/(tabs)/dashboard');
+                    }}
                 />
             ) : null;
             break;
