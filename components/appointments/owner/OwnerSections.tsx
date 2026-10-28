@@ -163,7 +163,7 @@ export function OwnerEtaCard({ status, departed, minutesAway, etaTime, loading, 
     // Accepted but not yet headed out: the mechanic is getting ready.
     const preparing = status === 'accepted' && !departed;
     const enRoute = status === 'accepted' && departed;
-    const onSite = status === 'started';
+    const onSite = status === 'started' || status === 'in_progress';
     const progress = preparing ? 0.05 : !enRoute ? 1 : minutesAway === null || !start ? 0.05 : Math.min(1, Math.max(0.05, 1 - minutesAway / start));
 
     const pill = preparing ? t(`${K}.preparing`) : enRoute ? t(`${K}.enRoute`) : onSite ? t(`${K}.onSite`) : t(`${K}.done`);
