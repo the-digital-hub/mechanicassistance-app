@@ -38,7 +38,7 @@ import { ApiError } from '@/lib/api/types';
 import { onSiteDAO } from '@/lib/dao/OnSiteDAO';
 import { videoCallDAO } from '@/lib/dao/VideoCallDAO';
 import { contractedSeconds, DEFAULT_CALL_MINUTES } from '@/lib/video/callLength';
-import { videoCallBookedLabel } from '@/lib/video/videoCallTime';
+import { formatLocalDateTime, videoCallBookedLabel } from '@/lib/video/videoCallTime';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import type { AssistanceClientSummary, AssistanceOfferSummary } from '@/lib/dao/interfaces';
 import { userDAO } from '@/lib/dao/UserDAO';
@@ -446,7 +446,11 @@ export default function AppointmentDetailScreen() {
                 );
             case 'info': {
                 const issues = appointment.vehicleIssues?.map((i) => i.name).join(', ');
-                const posted = [appointment.date, appointment.time].filter(Boolean).join(' · ');
+                // `date` is an ISO timestamp and `time` falls back to the literal 'Pending';
+                // a video call has no ETA to show.
+                const postedAt = formatLocalDateTime(appointment.date, i18n.language);
+                const eta = appointment.time && appointment.time !== 'Pending' ? appointment.time : null;
+                const posted = postedAt ? [postedAt, isVideoCall ? null : eta].filter(Boolean).join(' · ') : '';
                 const rows = [
                     { icon: isVideoCall ? 'videocam-outline' as const : 'flash-outline' as const, label: t('appointments.ownerAccepted.rows.service'), value: t(assistanceTypeKey(appointment)) },
                     appointment.car ? { icon: 'car-outline' as const, label: t('appointments.ownerAccepted.rows.vehicle'), value: appointment.car } : null,
