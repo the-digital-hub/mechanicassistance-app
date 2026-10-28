@@ -93,6 +93,7 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
         <TouchableOpacity
             className="bg-white rounded-2xl overflow-hidden mb-4 shadow-sm border border-gray-100"
             onPress={() => router.navigate(`/appointments/${appointment.id}`)}
+            disabled={state === 'canceled'}
             activeOpacity={0.7}
         >
             {/* Status banner */}

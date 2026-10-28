@@ -148,6 +148,8 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
 
     const state = getCardState(appointment);
     const isPast = isPastState(state);
+    // A canceled job has no detail screen to open: its card and CTA stay inert.
+    const isCanceled = state === 'canceled';
     const status = BANNER_COLORS[state];
     const typeBar = getTypeBar(appointment);
     const TypeIcon = typeBar.icon;
@@ -255,6 +257,7 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
             className="bg-white"
             style={{ borderRadius: 20, padding: 14, borderWidth: 1, borderColor: C.borderSoft }}
             onPress={guardPress(openDetail)}
+            disabled={isCanceled}
             activeOpacity={0.7}
         >
             {/* Service type + issue */}
@@ -340,10 +343,19 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                     <Text className="font-outfit-bold text-xl" style={{ color: isPast ? C.text : C.blue, letterSpacing: -0.5, lineHeight: 23 }} numberOfLines={1}>{amount}</Text>
                 </View>
 
-                <TouchableOpacity className="flex-1" activeOpacity={0.8} onPress={guardPress(openDetail)}>
+                <TouchableOpacity
+                    className="flex-1"
+                    activeOpacity={0.8}
+                    onPress={guardPress(openDetail)}
+                    disabled={isCanceled}
+                    accessibilityState={{ disabled: isCanceled }}
+                >
                     {isPast ? (
-                        <View className="flex-1 items-center justify-center" style={{ borderRadius: 13, backgroundColor: C.blueSoft }}>
-                            <Text className="font-outfit-bold text-[14.5px]" style={{ color: C.blue }}>{ctaLabel}</Text>
+                        <View
+                            className="flex-1 items-center justify-center"
+                            style={{ borderRadius: 13, backgroundColor: isCanceled ? C.pastTile : C.blueSoft, opacity: isCanceled ? 0.5 : 1 }}
+                        >
+                            <Text className="font-outfit-bold text-[14.5px]" style={{ color: isCanceled ? C.muted : C.blue }}>{ctaLabel}</Text>
                         </View>
                     ) : (
                         <LinearGradient
