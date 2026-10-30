@@ -790,7 +790,10 @@
       "clientNotified": "The client was notified you're on the way.",
       "headOutFailed": "Couldn't start the trip. Check your connection and try again.",
       "locationNeededTitle": "Location needed",
-      "locationNeeded": "Allow location access so the client can follow you on the map."
+      "locationNeeded": "Allow location access so the client can follow you on the map.",
+      "locationAlwaysNeeded": "To head out, set location access to \"Always\" (Android: \"Allow all the time\"). The client keeps following you on the map while you drive, even with the app in the background or the phone locked.",
+      "openSettings": "Open settings",
+      "cancelOpenSettings": "Not now"
     },
     "userTracking": {
       "mechanicMatch": "Mechanic Match!",
@@ -1450,6 +1453,10 @@
       "placeholder": "Type a review here...",
       "send": "Send",
       "sent": "Rating sent"
+    },
+    "backgroundLocation": {
+      "notificationTitle": "Sharing your location",
+      "notificationBody": "The client is following you on the map while you head to the assistance."
     }
   },
   "requestDetail": {

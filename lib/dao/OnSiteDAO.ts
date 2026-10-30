@@ -114,6 +114,15 @@ class OnSiteDAOImpl {
         return apiClient.post(`${base(appointmentId)}/depart`, {});
     }
 
+    /**
+     * Mechanic, from the background task: one position while on the way. With
+     * the app on screen the socket carries it instead. A 409 means the job is
+     * no longer on the way or in progress — stop sending.
+     */
+    sendLocation(appointmentId: string, lat: number, lng: number): Promise<void> {
+        return apiClient.post(`${base(appointmentId)}/location`, { lat, lng });
+    }
+
     /** Mechanic: check in with the typed PIN or the scanned QR text. */
     async checkIn(appointmentId: string, method: 'pin' | 'qr', code: string): Promise<CheckInResult> {
         try {

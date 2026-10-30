@@ -56,6 +56,17 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location to find assistance near you and to show the client where you are while you head to them.",
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location in the background so the client can follow you on the map while you drive to the assistance, even with the app closed or the phone locked.",
+          "locationAlwaysPermission": "Allow $(PRODUCT_NAME) to use your location in the background so the client can follow you on the map while you drive to the assistance.",
+          "isIosBackgroundLocationEnabled": true,
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
+        }
+      ],
       "expo-video",
       [
         "expo-camera",

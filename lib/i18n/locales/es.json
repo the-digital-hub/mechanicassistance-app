@@ -790,7 +790,10 @@
       "clientNotified": "Le avisamos al cliente que vas en camino.",
       "headOutFailed": "No pudimos iniciar el viaje. Revisa tu conexión e inténtalo de nuevo.",
       "locationNeededTitle": "Se necesita tu ubicación",
-      "locationNeeded": "Permite el acceso a la ubicación para que el cliente pueda seguirte en el mapa."
+      "locationNeeded": "Permite el acceso a la ubicación para que el cliente pueda seguirte en el mapa.",
+      "locationAlwaysNeeded": "Para salir, configurá el acceso a la ubicación en \"Siempre\" (Android: \"Permitir todo el tiempo\"). Así el cliente te sigue en el mapa mientras manejás, aunque la app esté en segundo plano o el teléfono bloqueado.",
+      "openSettings": "Abrir ajustes",
+      "cancelOpenSettings": "Ahora no"
     },
     "userTracking": {
       "mechanicMatch": "¡Mecánico encontrado!",
@@ -1450,6 +1453,10 @@
       "placeholder": "Escribí una reseña...",
       "send": "Enviar",
       "sent": "Calificación enviada"
+    },
+    "backgroundLocation": {
+      "notificationTitle": "Compartiendo tu ubicación",
+      "notificationBody": "El cliente te sigue en el mapa mientras vas a la asistencia."
     }
   },
   "requestDetail": {

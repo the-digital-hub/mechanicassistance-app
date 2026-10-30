@@ -12,6 +12,7 @@ import {
 import { userDAO } from '@/lib/dao/UserDAO';
 import { AppRole, UserData } from '@/lib/dao/interfaces';
 import { firebaseSignOut } from '@/lib/firebase/auth';
+import { stopBackgroundLocation } from '@/lib/location/backgroundLocationTask';
 import { disablePush, forgetPushToken } from '@/lib/notifications/push';
 import React, {
     createContext,
@@ -212,7 +213,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
             // are best-effort and capped — a slow network or a hung FCM call
             // must never keep the user signed in.
             await withTimeout(
-                Promise.allSettled([disablePush(), userDAO.logout()]).then(() => undefined),
+                Promise.allSettled([disablePush(), userDAO.logout(), stopBackgroundLocation()]).then(() => undefined),
                 LOGOUT_REMOTE_TIMEOUT_MS,
                 undefined,
             );

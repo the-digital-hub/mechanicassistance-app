@@ -27,6 +27,8 @@ import { VerificationProvider } from "@/context/VerificationContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { ConfigService } from "@/lib/config/ConfigService";
 import "@/lib/i18n";
+// Defines the background location task at startup, including headless relaunches.
+import "@/lib/location/backgroundLocationTask";
 import "../global.css";
 
 // Suppress warnings from dependencies that aren't yet updated for React 19
