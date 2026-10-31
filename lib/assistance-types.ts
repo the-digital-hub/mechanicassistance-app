@@ -98,13 +98,16 @@ export const i18nKeyFor = (item: AssistanceTypeCatalogItem): string | undefined 
  * Where a type's card navigates. A type with no resolvable code cannot be navigated:
  * the param drives every later step and ends up in assistance_requests.type, so the
  * caller renders it disabled.
+ *
+ * `entry` is new on every tap: the wizard's tab stack can outlive an attempt, and the
+ * first screen resets its leftover state when it sees a new one.
  */
 export const assistanceTypeRoute = (item: AssistanceTypeCatalogItem) => {
     const code = codeFor(item);
     return code
         ? {
               pathname: (item.path ?? '/request-assistance/select-vehicle') as never,
-              params: { type: code },
+              params: { type: code, entry: String(Date.now()) },
           }
         : undefined;
 };

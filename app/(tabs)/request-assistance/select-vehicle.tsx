@@ -4,9 +4,9 @@ import { useUser } from '@/context/UserContext';
 import { vehicleDAO } from '@/lib/dao/VehicleDAO';
 import { Vehicle } from '@/lib/dao/interfaces';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Car, ChevronLeft, ChevronRight, Plus } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
@@ -25,7 +25,7 @@ export default function SelectVehicleScreen() {
     const router = useRouter();
     const { t } = useTranslation();
     const params = useLocalSearchParams();
-    const { type } = params; // 'immediate', 'scheduled', 'videocall'
+    const { type, entry } = params; // type: 'immediate', 'scheduled', 'videocall'
     const { user } = useUser();
     const { setVehicleDetails } = useRequestDraft();
 
@@ -40,24 +40,40 @@ export default function SelectVehicleScreen() {
     const [lastName, setLastName] = useState('');
     const [phone, setPhone] = useState('');
 
+    // The tab stack keeps this screen mounted after the flow leaves it, so a new attempt
+    // can land on the previous one's details step. A new `entry` means a new attempt;
+    // coming back from the next step keeps the same one.
     useEffect(() => {
-        if (user?.id) {
-            loadVehicles();
-        }
-    }, [user?.id]);
+        setStep('select');
+        setSelected(null);
+        setMileage('');
+        setIsOwner(true);
+        setFirstName('');
+        setLastName('');
+        setPhone('');
+    }, [entry]);
 
-    const loadVehicles = async () => {
-        if (!user?.id) return;
-        setIsLoading(true);
-        try {
-            const data = await vehicleDAO.getByUser(user.id);
-            setVehicles(data);
-        } catch (error) {
-            console.error('Failed to load vehicles', error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    // On focus, not mount: picks up a vehicle added through "Add vehicle".
+    useFocusEffect(
+        useCallback(() => {
+            if (!user?.id) return;
+            const userId = user.id;
+            let active = true;
+            (async () => {
+                try {
+                    const data = await vehicleDAO.getByUser(userId);
+                    if (active) setVehicles(data);
+                } catch (error) {
+                    console.error('Failed to load vehicles', error);
+                } finally {
+                    if (active) setIsLoading(false);
+                }
+            })();
+            return () => {
+                active = false;
+            };
+        }, [user?.id])
+    );
 
     const handleSelectVehicle = (vehicle: Vehicle) => {
         setSelected(vehicle);

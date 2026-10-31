@@ -148,10 +148,7 @@ export function GlobalNotificationListener() {
                 <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#1e3a8a', marginBottom: 8 }}>{notification.title}</Text>
                 <Text style={{ fontSize: 14, color: '#4b5563', marginBottom: 20 }}>{notification.body}</Text>
 
-                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 12 }}>
-                    <TouchableOpacity onPress={() => setNotification(null)}>
-                        <Text style={{ color: '#6b7280', fontWeight: '600' }}>Dismiss</Text>
-                    </TouchableOpacity>
+                <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
                     <TouchableOpacity
                         onPress={notification.action}
                         style={{ backgroundColor: '#1e3a8a', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 }}
