@@ -89,6 +89,12 @@ export const toVehicleDecodedFields = (r: VinDecodeResult): VehicleDecodedFields
 };
 
 /**
+ * Why a VIN lookup failed, for the caller to show in the app's language
+ * (`vehicles.form.vinError.<code>`).
+ */
+export type VinLookupError = 'notFound' | 'invalid' | 'unreachable';
+
+/**
  * Looks the VIN up through our backend (which asks NHTSA vPIC). `onSuccess`
  * gets the make and model for the form, plus the decoded fields to send along
  * when the vehicle is saved.
@@ -96,13 +102,13 @@ export const toVehicleDecodedFields = (r: VinDecodeResult): VehicleDecodedFields
 export const decodeVin = async (
     vin: string,
     onSuccess: (make: string, model: string, decoded: VehicleDecodedFields, result: VinDecodeResult) => void,
-    onError: (error: string) => void
+    onError: (error: VinLookupError) => void
 ) => {
     try {
         const result = await vehicleDAO.decodeVin(vin);
 
         if (!result.found || !result.make) {
-            onError('We could not find this VIN. Check it, or enter the vehicle manually.');
+            onError('notFound');
             return;
         }
 
@@ -110,9 +116,9 @@ export const decodeVin = async (
     } catch (error) {
         console.error('VIN lookup failed:', error);
         if (error instanceof ApiError && error.statusCode === 400) {
-            onError('This VIN is not valid. It has 17 letters and digits, without I, O or Q.');
+            onError('invalid');
         } else {
-            onError('Could not reach the VIN database. Please try again later, or enter the vehicle manually.');
+            onError('unreachable');
         }
     }
 };

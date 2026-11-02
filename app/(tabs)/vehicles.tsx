@@ -1,19 +1,17 @@
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
 import { useUser } from '@/context/UserContext';
 import { vehicleDAO } from '@/lib/dao/VehicleDAO';
-import { Vehicle, VehicleDecodedFields } from '@/lib/dao/interfaces';
+import { Vehicle } from '@/lib/dao/interfaces';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { VehicleColorSelect } from '@/components/vehicles/VehicleColorSelect';
-import { MakeType, VEHICLE_DATA, decodeVin } from '@/lib/vehicle';
+import { VehicleForm, VehicleFormPayload } from '@/components/vehicles/VehicleForm';
 
 export default function VehiclesScreen() {
     const router = useRouter();
@@ -22,35 +20,8 @@ export default function VehiclesScreen() {
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
-    const [editingVehicleId, setEditingVehicleId] = useState<string | null>(null);
-    const [activeModal, setActiveModal] = useState<'make' | 'model' | null>(null);
-    const [isVinSearching, setIsVinSearching] = useState(false);
-    // What the last VIN lookup decoded; saved along with the form, cleared when the VIN changes.
-    const [vinDecoded, setVinDecoded] = useState<VehicleDecodedFields | null>(null);
-
-    const scrollViewRef = useRef<ScrollView>(null);
-    const detailsContainerRef = useRef<View>(null);
-
-    const scrollToField = (fieldRef: React.RefObject<View | null>) => {
-        if (!fieldRef.current || !scrollViewRef.current) return;
-
-        fieldRef.current.measureLayout(
-            scrollViewRef.current as any,
-            (_x, y) => scrollViewRef.current?.scrollTo({ y: Math.max(0, y - 100), animated: true }),
-            () => { }
-        );
-    };
-
-    // Form state
-    const [formData, setFormData] = useState({
-        make: 'Select',
-        model: 'Select',
-        color: '',
-        colorId: null as string | null,
-        plate: '',
-        vin: '',
-        details: ''
-    });
+    const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
         if (user?.id) {
@@ -63,10 +34,7 @@ export default function VehiclesScreen() {
         useCallback(() => {
             return () => {
                 // Cleanup on blur: reset to list view
-                setIsEditing(false);
-                setEditingVehicleId(null);
-                setActiveModal(null);
-                resetForm();
+                closeForm();
             };
         }, [])
     );
@@ -79,9 +47,7 @@ export default function VehiclesScreen() {
                 <TouchableOpacity
                     onPress={() => {
                         if (isEditing) {
-                            setIsEditing(false);
-                            setEditingVehicleId(null);
-                            resetForm();
+                            closeForm();
                         } else {
                             router.navigate('/(tabs)');
                         }
@@ -107,105 +73,58 @@ export default function VehiclesScreen() {
         }
     };
 
-    const handleSelectMake = (make: string) => {
-        setFormData(prev => ({ ...prev, make, model: 'Select' }));
-        setActiveModal(null);
+    const closeForm = () => {
+        setIsEditing(false);
+        setEditingVehicle(null);
     };
 
-    const handleSelectModel = (model: string) => {
-        setFormData(prev => ({ ...prev, model }));
-        setActiveModal(null);
-    };
-
-    const handleSaveVehicle = async () => {
+    const handleSaveVehicle = async (payload: VehicleFormPayload) => {
         if (!user?.id) return;
 
+        setIsSaving(true);
         try {
-            if (editingVehicleId) {
-                await vehicleDAO.update(editingVehicleId, { ...formData, ...vinDecoded });
+            if (editingVehicle?.id) {
+                await vehicleDAO.update(editingVehicle.id, payload);
             } else {
-                await vehicleDAO.create({
-                    userId: user.id,
-                    ...formData,
-                    ...vinDecoded,
-                });
+                await vehicleDAO.create({ userId: user.id, ...payload });
             }
-            setIsEditing(false);
-            setEditingVehicleId(null);
-            resetForm();
+            closeForm();
             loadVehicles();
         } catch (error) {
             console.error('Failed to save vehicle', error);
+            Alert.alert(t('vehicles.form.saveErrorTitle'), t('vehicles.form.saveErrorMessage'));
+        } finally {
+            setIsSaving(false);
         }
     };
 
     const handleEditVehicle = (vehicle: Vehicle) => {
-        setFormData({
-            make: vehicle.make,
-            model: vehicle.model,
-            color: vehicle.color,
-            colorId: vehicle.colorId ?? null,
-            plate: vehicle.plate,
-            vin: vehicle.vin,
-            details: vehicle.details
-        });
-        setEditingVehicleId(vehicle.id ?? null);
+        setEditingVehicle(vehicle);
         setIsEditing(true);
     };
 
-    const handleDeleteVehicle = async (id: string) => {
-        try {
-            await vehicleDAO.delete(id);
-            loadVehicles();
-        } catch (error) {
-            console.error('Failed to delete vehicle', error);
-        }
-    };
-
-    const resetForm = () => {
-        setVinDecoded(null);
-        setFormData({
-            make: 'Select',
-            model: 'Select',
-            color: '',
-            colorId: null,
-            plate: '',
-            vin: '',
-            details: ''
-        });
-    };
-
-    const handleVinLookup = async () => {
-        const vin = formData.vin.trim();
-        if (vin.length !== 17) {
-            Alert.alert(t('vehicles.invalidVinTitle'), t('vehicles.invalidVinMessage'));
-            return;
-        }
-
-        setIsVinSearching(true);
-        try {
-            await decodeVin(
-                vin,
-                (make, model, decoded) => {
-                    setFormData(prev => ({
-                        ...prev,
-                        make,
-                        model,
-                    }));
-                    setVinDecoded(decoded);
-                    Alert.alert(
-                        t('vehicles.vinDecodedTitle'),
-                        t('vehicles.vinDecodedMessage', { make, model }),
-                        [{ text: t('vehicles.ok') }]
-                    );
+    const handleDeleteVehicle = (vehicle: Vehicle) => {
+        if (!vehicle.id) return;
+        const id = vehicle.id;
+        Alert.alert(
+            t('vehicles.deleteTitle'),
+            t('vehicles.deleteMessage', { vehicle: `${vehicle.make} ${vehicle.model}`.trim() }),
+            [
+                { text: t('vehicles.cancel'), style: 'cancel' },
+                {
+                    text: t('vehicles.delete'),
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await vehicleDAO.delete(id);
+                            loadVehicles();
+                        } catch (error) {
+                            console.error('Failed to delete vehicle', error);
+                        }
+                    },
                 },
-                (errorMsg) => {
-                    Alert.alert(t('vehicles.vinNotFoundTitle'), errorMsg);
-                }
-            );
-        } finally {
-            setIsVinSearching(false);
-        }
+            ]
+        );
     };
 
     if (isLoading) {
@@ -224,7 +143,6 @@ export default function VehiclesScreen() {
                 keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
             >
                 <ScrollView
-                    ref={scrollViewRef}
                     className="flex-1"
                     style={{ backgroundColor: '#F6F8FC' }}
                     contentContainerStyle={{ padding: 24, paddingBottom: 40 }}
@@ -239,180 +157,20 @@ export default function VehiclesScreen() {
                     </View>
 
                     {/* Title */}
-                    <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">{t('vehicles.addVehicleTitle')}</Text>
+                    <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">{editingVehicle ? t('vehicles.editVehicleTitle') : t('vehicles.addVehicleTitle')}</Text>
 
                     {/* Subtitle */}
                     <Text className="text-gray-500 font-outfit-regular text-base mb-6">
                       {t('vehicles.addVehicleSubtitle')}
                     </Text>
 
-                    <View className="gap-4 mb-8">
-                        <View>
-                            <Text className="font-outfit-medium text-[#0F172A] mb-2">{t('vehicles.make')}</Text>
-                            <TouchableOpacity
-                                onPress={() => setActiveModal('make')}
-                                className="bg-white border border-gray-300 h-12 flex-row items-center justify-between px-4 rounded-[10px]"
-                            >
-                                <Text className="text-[#0F172A] font-outfit-regular">{formData.make === 'Select' ? t('vehicles.select') : formData.make}</Text>
-                                <Ionicons name="chevron-down" size={20} color="#0047AB" />
-                            </TouchableOpacity>
-                        </View>
-
-                        <View>
-                            <Text className="font-outfit-medium text-[#0F172A] mb-2">{t('vehicles.model')}</Text>
-                            <TouchableOpacity
-                                onPress={() => formData.make !== 'Select' && setActiveModal('model')}
-                                className={`bg-white border border-gray-300 h-12 flex-row items-center justify-between px-4 rounded-[10px] ${formData.make === 'Select' ? 'opacity-50' : ''}`}
-                            >
-                                <Text className="text-[#0F172A] font-outfit-regular">{formData.model === 'Select' ? t('vehicles.select') : formData.model}</Text>
-                                <Ionicons name="chevron-down" size={20} color="#0047AB" />
-                            </TouchableOpacity>
-                        </View>
-
-                        <View>
-                            <Text className="font-outfit-medium text-[#0F172A] mb-2">{t('vehicles.color')}</Text>
-                            <VehicleColorSelect
-                                colorId={formData.colorId}
-                                legacyColor={formData.color}
-                                onChange={(c) => setFormData(p => ({ ...p, colorId: c.id, color: c.label }))}
-                            />
-                        </View>
-
-                        <View>
-                            <Text className="font-outfit-medium text-[#0F172A] mb-2">{t('vehicles.plate')}</Text>
-                            <Input
-                                value={formData.plate}
-                                onChangeText={(text) => setFormData(p => ({ ...p, plate: text }))}
-                                containerClassName="bg-white border border-gray-300 h-12 rounded-[10px]"
-                            />
-                        </View>
-
-                        <View>
-                            <Text className="font-outfit-medium text-[#0F172A] mb-2">{t('vehicles.vin')}</Text>
-                            <View className="flex-row items-center gap-2">
-                                <View className="flex-1">
-                                    <Input
-                                        value={formData.vin}
-                                        onChangeText={(text) => {
-                                            setVinDecoded(null);
-                                            if (text.includes('.')) {
-                                                setFormData(p => ({ ...p, vin: '5YJ3E1EB9NF000001' }));
-                                            } else {
-                                                setFormData(p => ({ ...p, vin: text.toUpperCase() }));
-                                            }
-                                        }}
-                                        containerClassName="bg-white border border-gray-300 h-12 rounded-[10px]"
-                                        maxLength={17}
-                                        autoCapitalize="characters"
-                                        placeholder={t('vehicles.vinPlaceholder')}
-                                    />
-                                </View>
-                                <TouchableOpacity
-                                    onPress={handleVinLookup}
-                                    disabled={isVinSearching || formData.vin.trim().length !== 17}
-                                    style={{
-                                        width: 48,
-                                        height: 48,
-                                        borderRadius: 12,
-                                        backgroundColor: formData.vin.trim().length === 17 ? '#0047AB' : '#CBD5E1',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                    }}
-                                >
-                                    {isVinSearching ? (
-                                        <ActivityIndicator size="small" color="white" />
-                                    ) : (
-                                        <Ionicons name="search" size={22} color="white" />
-                                    )}
-                                </TouchableOpacity>
-                            </View>
-                            <Text className="text-xs font-outfit-regular text-slate-400 mt-1">
-                                {t('vehicles.vinHint')}
-                            </Text>
-                        </View>
-
-                        <View ref={detailsContainerRef}>
-                            <Text className="font-outfit-medium text-[#0F172A] mb-2">{t('vehicles.furtherDetails')}</Text>
-                            <TextInput
-                                multiline
-                                numberOfLines={3}
-                                value={formData.details}
-                                onChangeText={(text) => setFormData(p => ({ ...p, details: text }))}
-                                onFocus={() => scrollToField(detailsContainerRef)}
-                                className="bg-white border border-gray-300 rounded-[10px] p-4 font-outfit-regular text-[#0F172A] text-base h-24"
-                                style={{ textAlignVertical: 'top' }}
-                            />
-                        </View>
-
-                        <TouchableOpacity
-                            onPress={handleSaveVehicle}
-                            disabled={formData.make === 'Select' || formData.model === 'Select'}
-                            activeOpacity={0.8}
-                        >
-                            {formData.make !== 'Select' && formData.model !== 'Select' ? (
-                                <LinearGradient
-                                    colors={['#2B66F8', '#081E72']}
-                                    start={{ x: 0, y: 1 }}
-                                    end={{ x: 1, y: 0 }}
-                                    style={{
-                                        borderRadius: 10,
-                                        paddingVertical: 16,
-                                        paddingHorizontal: 16,
-                                        marginTop: 16,
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                    }}
-                                >
-                                    <Text className="text-white font-outfit-bold text-center mr-2">{t('vehicles.saveVehicle')}</Text>
-                                    <ChevronRight size={20} color="white" />
-                                </LinearGradient>
-                            ) : (
-                                <View
-                                    style={{
-                                        borderRadius: 10,
-                                        paddingVertical: 16,
-                                        paddingHorizontal: 16,
-                                        marginTop: 16,
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        backgroundColor: '#E5E7EB'
-                                    }}
-                                >
-                                    <Text className="text-gray-400 font-outfit-bold text-center mr-2">{t('vehicles.saveVehicle')}</Text>
-                                    <ChevronRight size={20} color="#9CA3AF" />
-                                </View>
-                            )}
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* Selection Modal */}
-                    <Modal visible={!!activeModal} transparent animationType="slide">
-                        <View className="flex-1 bg-black/40 justify-end">
-                            <View className="bg-white rounded-t-3xl min-h-[50%] max-h-[80%] p-6">
-                                <View className="flex-row justify-between items-center mb-6">
-                                    <Text className="text-xl font-outfit-bold text-[#0F172A]">{activeModal === 'make' ? t('vehicles.selectMake') : t('vehicles.selectModel')}</Text>
-                                    <TouchableOpacity onPress={() => setActiveModal(null)}><Text className="text-blue-600 font-outfit-bold">{t('vehicles.done')}</Text></TouchableOpacity>
-                                </View>
-                                <ScrollView showsVerticalScrollIndicator={false}>
-                                    {activeModal === 'make' ? (
-                                        Object.keys(VEHICLE_DATA).map(make => (
-                                            <TouchableOpacity key={make} className="py-4 border-b border-slate-50" onPress={() => handleSelectMake(make)}>
-                                                <Text className={`text-lg font-outfit-medium ${formData.make === make ? 'text-blue-600' : 'text-[#0F172A]'}`}>{make}</Text>
-                                            </TouchableOpacity>
-                                        ))
-                                    ) : (
-                                        formData.make !== 'Select' && (VEHICLE_DATA[formData.make as MakeType] || []).map(model => (
-                                            <TouchableOpacity key={model} className="py-4 border-b border-slate-50" onPress={() => handleSelectModel(model)}>
-                                                <Text className={`text-lg font-outfit-medium ${formData.model === model ? 'text-blue-600' : 'text-[#0F172A]'}`}>{model}</Text>
-                                            </TouchableOpacity>
-                                        ))
-                                    )}
-                                </ScrollView>
-                            </View>
-                        </View>
-                    </Modal>
+                    <VehicleForm
+                        key={editingVehicle?.id ?? 'new'}
+                        initialValue={editingVehicle ?? undefined}
+                        submitLabel={t('vehicles.saveVehicle')}
+                        submitting={isSaving}
+                        onSubmit={handleSaveVehicle}
+                    />
                 </ScrollView>
             </KeyboardAvoidingView>
         );
@@ -453,7 +211,7 @@ export default function VehiclesScreen() {
                                 <Text className="text-lg font-outfit-bold text-[#0F172A] uppercase">{v.make} {v.model}</Text>
                                 <Text className="text-blue-600 font-outfit-medium text-xs tracking-widest uppercase mt-1">{v.plate || t('vehicles.noPlate')}</Text>
                             </View>
-                            <TouchableOpacity onPress={() => v.id && handleDeleteVehicle(v.id)} className="p-2">
+                            <TouchableOpacity onPress={() => handleDeleteVehicle(v)} className="p-2">
                                 <Ionicons name="trash-outline" size={20} color="#EF4444" style={{ opacity: 0.6 }} />
                             </TouchableOpacity>
                         </TouchableOpacity>

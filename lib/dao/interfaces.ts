@@ -399,8 +399,41 @@ export interface Vehicle {
     vin: string;
     details: string;
     /** Last known odometer reading. Overwritten on every request that reports a newer one. */
-    mileage?: number;
-    year?: number;
+    mileage?: number | null;
+    year?: number | null;
+    /** 2-letter US state of the plate. The backend defaults it to FL. */
+    plateState?: string;
+    vehicleTypeId?: string;
+    engineTypeId?: string;
+    fuelTypeId?: string | null;
+    spareTireTypeId?: string;
+    /** Standard tire notation, e.g. "225/50R17". */
+    frontTires?: string | null;
+    rearTires?: string | null;
+    insuranceCompany?: string | null;
+    /** NAIC code of the insurer, 5 digits. */
+    insuranceCompanyCode?: string | null;
+    insurancePolicyNumber?: string | null;
+    trim?: string | null;
+    bodyClass?: string | null;
+    transmissionStyle?: string | null;
+    driveType?: string | null;
+    doors?: number | null;
+    displacementL?: number | null;
+    engineHp?: number | null;
+    engineCylinders?: number | null;
+}
+
+/**
+ * An entry of the vehicle type, engine, fuel or spare-tire catalog
+ * (users-service, managed from Portal Hub). Same shape for all four.
+ */
+export interface VehicleCatalogEntry {
+    id: string;
+    code: string;
+    label: string;
+    sortOrder?: number | null;
+    isActive: boolean;
 }
 
 /**
