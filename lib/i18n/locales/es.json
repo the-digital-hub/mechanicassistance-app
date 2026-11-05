@@ -1315,6 +1315,10 @@
       "doneTitle": "Servicio finalizado",
       "yourLocation": "Tu ubicación",
       "openInMaps": "Abrir en Maps",
+      "expandMap": "Ampliar mapa",
+      "mapTitle": "Ruta del mecánico",
+      "recenter": "Centrar",
+      "closeMap": "Cerrar",
       "checkInDone": "Tu técnico ya hizo el check-in",
       "rows": {
         "service": "Servicio",
