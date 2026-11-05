@@ -234,20 +234,23 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                 },
             ]),
         { icon: Calendar, label: t(isPast ? 'appointments.list.card.rows.date' : 'appointments.list.card.rows.when'), value: whenLabel },
-        // The customer's stars for this one job — the dashboard only shows the average.
+        // The stars each side gave for this one job — the dashboard only shows the average.
         ...(state === 'completed' && appointment.source === 'appointment'
-            ? [{
+            ? ([
+                ['ratingFromCustomer', appointment.reviewRating],
+                ['ratingFromMechanic', appointment.clientRating],
+            ] as const).map(([labelKey, stars]) => ({
                 icon: Star,
-                label: t('appointments.list.card.rows.rating'),
-                node: appointment.reviewRating != null ? (
+                label: t(`appointments.list.card.rows.${labelKey}`),
+                node: stars != null && stars > 0 ? (
                     <View className="flex-row items-center" style={{ gap: 6 }}>
-                        <Stars rating={appointment.reviewRating} size={13} />
-                        <Text className="font-outfit-bold text-[13px]" style={{ color: C.text }}>{appointment.reviewRating}/5</Text>
+                        <Stars rating={stars} size={13} />
+                        <Text className="font-outfit-bold text-[13px]" style={{ color: C.text }}>{stars}/5</Text>
                     </View>
                 ) : (
                     <Text className="font-outfit-semibold text-[13px]" style={{ color: C.muted }}>{t('appointments.list.card.notRated')}</Text>
                 ),
-            }]
+            }))
             : []),
     ];
 

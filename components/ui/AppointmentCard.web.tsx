@@ -158,12 +158,19 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                 {isPast ? (
                     <>
                         {state === 'completed' && appointment.source === 'appointment' && (
-                            <Text className="text-gray-700 text-sm font-outfit-bold mb-3">
-                                {t('appointments.list.card.rows.rating')}:{' '}
-                                {appointment.reviewRating != null
-                                    ? `${'★'.repeat(appointment.reviewRating)}${'☆'.repeat(5 - appointment.reviewRating)} ${appointment.reviewRating}/5`
-                                    : t('appointments.list.card.notRated')}
-                            </Text>
+                            <View className="mb-3">
+                                {([
+                                    ['ratingFromCustomer', appointment.reviewRating],
+                                    ['ratingFromMechanic', appointment.clientRating],
+                                ] as const).map(([labelKey, stars]) => (
+                                    <Text key={labelKey} className="text-gray-700 text-sm font-outfit-bold">
+                                        {t(`appointments.list.card.rows.${labelKey}`)}:{' '}
+                                        {stars != null && stars > 0
+                                            ? `${'★'.repeat(stars)}${'☆'.repeat(5 - stars)} ${stars}/5`
+                                            : t('appointments.list.card.notRated')}
+                                    </Text>
+                                ))}
+                            </View>
                         )}
                         <View className="self-start bg-gray-100 border border-gray-200 rounded-lg py-2 px-4 items-center justify-center">
                             <Text className="text-gray-900 font-outfit-bold text-sm">

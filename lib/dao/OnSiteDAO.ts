@@ -248,8 +248,12 @@ class OnSiteDAOImpl {
         }
     }
 
-    reviewClient(appointmentId: string, rating: number, review?: string): Promise<unknown> {
-        return apiClient.post(`${base(appointmentId)}/client-review`, { rating, ...(review ? { review } : {}) });
+    reviewClient(appointmentId: string, rating: number, review?: string, experienceTags: string[] = []): Promise<unknown> {
+        return apiClient.post(`${base(appointmentId)}/client-review`, {
+            rating,
+            ...(review ? { review } : {}),
+            ...(experienceTags.length ? { experienceTags } : {}),
+        });
     }
 
     private uploadVideo(localUri: string): Promise<{ key: string; url: string }> {

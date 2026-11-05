@@ -712,7 +712,9 @@
           "distance": "Distancia",
           "when": "Cuándo",
           "date": "Fecha",
-          "rating": "Calificación"
+          "rating": "Calificación",
+          "ratingFromCustomer": "Calificación del cliente al mecánico",
+          "ratingFromMechanic": "Calificación del mecánico al cliente"
         },
         "notRated": "Sin calificar",
         "notAvailable": "—",
@@ -1467,6 +1469,7 @@
       "star_other": "{{count}} estrellas",
       "experience": "Detalles de la experiencia",
       "selectOption": "Elegí una opción",
+      "pickStars": "Elegí primero la cantidad de estrellas.",
       "options": {
         "resolved": "El problema quedó resuelto",
         "savedTime": "Me ahorró tiempo",

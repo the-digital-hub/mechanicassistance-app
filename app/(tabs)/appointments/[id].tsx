@@ -88,7 +88,7 @@ export default function AppointmentDetailScreen() {
     // const { id } = useLocalSearchParams();
     const router = useRouter();
     const { t, i18n } = useTranslation();
-    const { getAppointmentById, updateAppointment, refresh: refreshAppointments } = useAppointments();
+    const { getAppointmentById, refresh: refreshAppointments } = useAppointments();
 
     const appointment = getAppointmentById(Array.isArray(id) ? id[0] : id || '');
 
@@ -193,27 +193,6 @@ export default function AppointmentDetailScreen() {
         }
     }, [appointment]);
 
-    // Debounced update implementation for preservation
-    const timerRef = React.useRef<any>(null);
-    const debouncedUpdate = React.useCallback(
-        (updates: Partial<any>) => {
-            if (timerRef.current) clearTimeout(timerRef.current);
-            timerRef.current = setTimeout(() => {
-                if (appointment) {
-                    updateAppointment(appointment.id, updates);
-                }
-            }, 1000);
-        },
-        [appointment?.id]
-    );
-
-    // Cleanup timer on unmount
-    React.useEffect(() => {
-        return () => {
-            if (timerRef.current) clearTimeout(timerRef.current);
-        };
-    }, []);
-
     // Mechanic: navigate to appointments list when client cancels
     React.useEffect(() => {
         if (!isUserRole && appointment?.status === 'canceled') {
@@ -221,18 +200,9 @@ export default function AppointmentDetailScreen() {
         }
     }, [appointment?.status, isUserRole]);
 
-    // Sync client review state to context for persistence
-    React.useEffect(() => {
-        if (appointment && !isReviewSubmitted && !isUserRole) {
-            debouncedUpdate({
-                clientReview: {
-                    rating,
-                    review: reviewText,
-                    experienceTags: selectedOption ? [selectedOption] : []
-                }
-            });
-        }
-    }, [rating, selectedOption, reviewText]);
+    // The mechanic's rating is only written when they send it (submitClientReview).
+    // It used to be saved as a draft while they typed, which stored a 0-star
+    // "review" on every job they merely opened and made the real one look done.
 
     // Owner: who the mechanic is and what the job costs — the same summary the offer screen used.
     // The appointment id is the request id.
@@ -457,31 +427,38 @@ export default function AppointmentDetailScreen() {
         }
     };
 
+    // POST /appointments/:id/client-review for every kind of job. The screen only
+    // says "rated" once the server has it, so a failed send never looks saved.
+    const reviewSending = React.useRef(false);
     const submitClientReview = () => {
-        if (isVideoCall) {
-            // POST /appointments/:id/client-review — allowed once the video call is completed.
-            if (videoStatus !== 'completed') {
-                Alert.alert(t('appointments.videoCall.mechanic.reviewAfterCompleted'));
-                return;
-            }
-            onSiteDAO
-                .reviewClient(appointment.id, rating, reviewText.trim() || undefined)
-                .then(() => setIsReviewSubmitted(true))
-                .catch((error) => {
-                    if (error instanceof ApiError && error.statusCode === 409) setIsReviewSubmitted(true);
-                    else videoError(error, 'appointments.videoCall.mechanic.reviewFailed');
-                });
+        if (reviewSending.current || isReviewSubmitted) return;
+        if (rating < 1) {
+            Alert.alert(t('appointments.clientReview.pickStars'));
             return;
         }
-        setIsReviewSubmitted(true);
-        updateAppointment(appointment.id, {
-            isReviewSubmitted: true,
-            clientReview: {
-                rating,
-                review: reviewText,
-                experienceTags: selectedOption ? [selectedOption] : []
-            }
-        });
+        // A video call can be rated once it is completed.
+        if (isVideoCall && videoStatus !== 'completed') {
+            Alert.alert(t('appointments.videoCall.mechanic.reviewAfterCompleted'));
+            return;
+        }
+        reviewSending.current = true;
+        onSiteDAO
+            .reviewClient(appointment.id, rating, reviewText.trim() || undefined, selectedOption ? [selectedOption] : [])
+            .then(() => {
+                setIsReviewSubmitted(true);
+                refreshAppointments();
+            })
+            .catch((error) => {
+                // 409 "already rated" means it is saved; any other 409 (e.g. service not closed) is not.
+                if (error instanceof ApiError && error.statusCode === 409 && /already/i.test(error.apiMessage ?? '')) {
+                    setIsReviewSubmitted(true);
+                } else {
+                    videoError(error, 'appointments.videoCall.mechanic.reviewFailed');
+                }
+            })
+            .finally(() => {
+                reviewSending.current = false;
+            });
     };
 
     // Mechanic on a video call: the same tabs the owner has.

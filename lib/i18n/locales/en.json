@@ -712,7 +712,9 @@
           "distance": "Distance",
           "when": "When",
           "date": "Date",
-          "rating": "Rating"
+          "rating": "Rating",
+          "ratingFromCustomer": "Customer's rating of the mechanic",
+          "ratingFromMechanic": "Mechanic's rating of the customer"
         },
         "notRated": "Not rated yet",
         "notAvailable": "—",
@@ -1467,6 +1469,7 @@
       "star_other": "{{count}} stars",
       "experience": "Experience details",
       "selectOption": "Select an option",
+      "pickStars": "Choose the number of stars first.",
       "options": {
         "resolved": "Issue was fully resolved",
         "savedTime": "Saved me time",
