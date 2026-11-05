@@ -57,12 +57,30 @@ describe("availabilityFromUser", () => {
 });
 
 describe("baseLocationFromAddresses", () => {
-  it("uses the first address and falls back when coordinates are missing", () => {
+  it("leaves the point out when the address has no coordinates", () => {
     const location = baseLocationFromAddresses([
       { id: "a", street: "1 Main St", city: "Austin", state: "TX" },
     ]);
     expect(location?.address).toBe("1 Main St · Austin, TX");
-    expect(typeof location?.latitude).toBe("number");
+    expect(location?.latitude).toBeUndefined();
+    expect(location?.longitude).toBeUndefined();
+  });
+
+  it("prefers the address marked as service base", () => {
+    const location = baseLocationFromAddresses([
+      { id: "a", street: "1 Main St", locationLat: 1, locationLng: 1 },
+      { id: "b", street: "2 Shop Rd", locationLat: 2, locationLng: 2, isServiceBase: true },
+    ]);
+    expect(location).toMatchObject({ address: "2 Shop Rd", latitude: 2, longitude: 2 });
+  });
+
+  it("skips the vehicle-owner home and addresses off the map", () => {
+    const location = baseLocationFromAddresses([
+      { id: "a", street: "1 Home Ave", role: "user", locationLat: 1, locationLng: 1 },
+      { id: "b", street: "2 No Point St", role: "mechanic" },
+      { id: "c", street: "3 Shop Rd", role: "mechanic", locationLat: 3, locationLng: 3 },
+    ]);
+    expect(location).toMatchObject({ address: "3 Shop Rd", latitude: 3 });
   });
 
   it("returns null without a street", () => {

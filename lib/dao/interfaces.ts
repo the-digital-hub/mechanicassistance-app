@@ -176,6 +176,8 @@ export interface Address {
      * roles. Lists show the active role's addresses plus the shared ones.
      */
     role?: AppRole | null;
+    /** The address the mechanic receives requests from. At most one per account. */
+    isServiceBase?: boolean;
 }
 
 /** The two roles a person can hold in the app. */

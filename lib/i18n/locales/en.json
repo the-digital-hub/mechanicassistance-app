@@ -2034,6 +2034,7 @@
       "applySameHours": "Apply same hours to all selected days",
       "serviceArea": "Service area",
       "serviceAreaHint": "How far you're willing to drive for a job",
+      "addressNotOnMap": "We couldn't place this address on the map. Tap Edit to check the street, city and zip.",
       "serviceRadius": "Service radius",
       "miles_one": "{{count}} mile",
       "miles_other": "{{count}} miles",

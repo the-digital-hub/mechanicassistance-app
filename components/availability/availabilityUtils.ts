@@ -10,9 +10,10 @@ export type DayHours = { startTime: string; endTime: string };
 /** What the form emits — the `availability` payload of `POST`/`PATCH /api/users`. */
 export type AvailabilityValue = AvailabilityPayload;
 
+/** No coordinates means the address could not be placed on the map. */
 export type BaseLocation = {
-  latitude: number;
-  longitude: number;
+  latitude?: number;
+  longitude?: number;
   address: string;
 };
 
@@ -41,8 +42,8 @@ export const RADIUS_MIN = 1;
 export const RADIUS_MAX = 50;
 
 /**
- * Shown until the mechanic's own address is known, and as the fallback when
- * there is none (or the street was typed by hand, which drops the coordinates).
+ * Shown until the mechanic's own address is known. Never borrowed for an address
+ * without coordinates: its pin would sit in Phoenix under someone else's street.
  */
 export const BASE_LOCATION: BaseLocation = {
   latitude: 33.4484,
@@ -92,9 +93,9 @@ function toBaseLocation(entry?: AddressLike): BaseLocation | null {
   if (!entry?.street) return null;
 
   const cityState = [entry.city, entry.state].filter(Boolean).join(", ");
+  const hasPoint = entry.locationLat != null && entry.locationLng != null;
   return {
-    latitude: entry.locationLat ?? BASE_LOCATION.latitude,
-    longitude: entry.locationLng ?? BASE_LOCATION.longitude,
+    ...(hasPoint && { latitude: entry.locationLat, longitude: entry.locationLng }),
     address: [entry.street, cityState].filter(Boolean).join(" · "),
   };
 }
@@ -109,13 +110,21 @@ export function baseLocationFromSetupAddress(address: {
 }
 
 /**
- * Same, from a registered account. The first address is the primary one — the
- * one `personal-info` edits and signup created.
+ * Same, from a registered account: the address the mechanic chose as service
+ * base, else the first work one (not the vehicle-owner's home) that is on the
+ * map, else the first work one, else the first of all.
  */
 export function baseLocationFromAddresses(
   addresses?: Address[],
 ): BaseLocation | null {
-  return toBaseLocation(addresses?.[0]);
+  const list = addresses ?? [];
+  const work = list.filter((a) => a.role !== "user");
+  return toBaseLocation(
+    list.find((a) => a.isServiceBase) ??
+      work.find((a) => a.locationLat != null && a.locationLng != null) ??
+      work[0] ??
+      list[0],
+  );
 }
 
 /** Rows may come back as "09:00:00"; the picker only knows "HH:mm". */

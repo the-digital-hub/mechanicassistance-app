@@ -155,6 +155,10 @@ export function AvailabilityForm({
 }: AvailabilityFormProps) {
   const { t } = useTranslation();
   const baseLocation = baseLocationProp ?? BASE_LOCATION;
+  const basePoint =
+    baseLocation.latitude != null && baseLocation.longitude != null
+      ? { latitude: baseLocation.latitude, longitude: baseLocation.longitude }
+      : null;
 
   const [selectedDays, setSelectedDays] = useState<string[]>(
     initialValue?.selectedDays ?? DEFAULT_DAYS,
@@ -528,31 +532,42 @@ export function AvailabilityForm({
           <View className="bg-white rounded-2xl">
             {/* Map with padding so it doesn't touch the edges */}
             <View className="p-3 pb-0">
-              <View className="rounded-xl overflow-hidden">
-                <MapView
-                  provider={MAP_PROVIDER}
+              {basePoint ? (
+                <View className="rounded-xl overflow-hidden">
+                  <MapView
+                    provider={MAP_PROVIDER}
+                    style={{ height: 180 }}
+                    region={{
+                      ...basePoint,
+                      latitudeDelta: mapDelta,
+                      longitudeDelta: mapDelta,
+                    }}
+                    scrollEnabled={false}
+                    zoomEnabled={false}
+                    pitchEnabled={false}
+                    rotateEnabled={false}
+                  >
+                    <Marker coordinate={basePoint} pinColor="#0047AB" />
+                    <Circle
+                      center={basePoint}
+                      radius={serviceRadius * 1609.34}
+                      strokeColor="rgba(0, 71, 171, 0.35)"
+                      fillColor="rgba(0, 71, 171, 0.12)"
+                      strokeWidth={1.5}
+                    />
+                  </MapView>
+                </View>
+              ) : (
+                <View
+                  className="rounded-xl bg-[#F8FAFF] border border-[#E2E8F0] items-center justify-center px-6"
                   style={{ height: 180 }}
-                  region={{
-                    latitude: baseLocation.latitude,
-                    longitude: baseLocation.longitude,
-                    latitudeDelta: mapDelta,
-                    longitudeDelta: mapDelta,
-                  }}
-                  scrollEnabled={false}
-                  zoomEnabled={false}
-                  pitchEnabled={false}
-                  rotateEnabled={false}
                 >
-                  <Marker coordinate={baseLocation} pinColor="#0047AB" />
-                  <Circle
-                    center={baseLocation}
-                    radius={serviceRadius * 1609.34}
-                    strokeColor="rgba(0, 71, 171, 0.35)"
-                    fillColor="rgba(0, 71, 171, 0.12)"
-                    strokeWidth={1.5}
-                  />
-                </MapView>
-              </View>
+                  <Ionicons name="map-outline" size={28} color="#94A3B8" />
+                  <Text className="text-[#64748B] font-outfit-regular text-sm text-center mt-2">
+                    {t('setup.availability.addressNotOnMap')}
+                  </Text>
+                </View>
+              )}
             </View>
 
             <View className="px-4 pt-4 pb-4">

@@ -7,8 +7,8 @@ import {
 import { useUser } from '@/context/UserContext';
 import { userDAO } from '@/lib/dao/UserDAO';
 import type { UserData } from '@/lib/dao/interfaces';
-import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, View } from 'react-native';
 
@@ -27,25 +27,30 @@ export default function ProfileAvailabilityScreen() {
 
     const userId = user?.id;
 
-    useEffect(() => {
-        if (!userId) return;
-        let cancelled = false;
+    // On every focus, not just on mount: the base location's Edit leaves this
+    // screen mounted underneath, and coming back must show the address just saved.
+    // A failed refetch keeps what is already on screen.
+    useFocusEffect(
+        useCallback(() => {
+            if (!userId) return;
+            let cancelled = false;
 
-        (async () => {
-            try {
-                const fresh = await userDAO.getById(userId);
-                if (!cancelled) setAccount(fresh ?? user);
-            } catch {
-                if (!cancelled) setAccount(user);
-            }
-        })();
+            (async () => {
+                try {
+                    const fresh = await userDAO.getById(userId);
+                    if (!cancelled) setAccount((prev) => fresh ?? prev ?? user);
+                } catch {
+                    if (!cancelled) setAccount((prev) => prev ?? user);
+                }
+            })();
 
-        return () => {
-            cancelled = true;
-        };
-        // `user` changes identity on every update; the id is what matters here.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [userId]);
+            return () => {
+                cancelled = true;
+            };
+            // `user` changes identity on every update; the id is what matters here.
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [userId]),
+    );
 
     const handleSubmit = async (value: AvailabilityValue) => {
         if (!userId) return;

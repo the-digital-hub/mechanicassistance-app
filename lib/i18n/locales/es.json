@@ -2034,6 +2034,7 @@
       "applySameHours": "Aplicar el mismo horario a todos los días seleccionados",
       "serviceArea": "Área de servicio",
       "serviceAreaHint": "Qué tan lejos estás dispuesto a viajar por un trabajo",
+      "addressNotOnMap": "No pudimos ubicar esta dirección en el mapa. Toca Editar para revisar la calle, la ciudad y el código postal.",
       "serviceRadius": "Radio de servicio",
       "miles_one": "{{count}} milla",
       "miles_other": "{{count}} millas",
