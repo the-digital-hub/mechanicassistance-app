@@ -425,7 +425,7 @@ export default function MechanicFoundScreen() {
                 {!!requestId && (
                     <Text className="text-center font-outfit-regular" style={{ fontSize: 11, color: AO.mutedLight, lineHeight: 16 }}>
                         {t(`${k}.requestNumber`)}
-                        <Text style={{ fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }}>{requestId.slice(0, 8).toUpperCase()}</Text>
+                        <Text style={{ fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }}>{request?.refCode ?? `#${requestId.slice(0, 8).toUpperCase()}`}</Text>
                     </Text>
                 )}
             </ScrollView>

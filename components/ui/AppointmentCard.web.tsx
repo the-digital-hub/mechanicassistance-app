@@ -4,6 +4,7 @@ import { Car, MapPin, MessageSquare, Trash2, Video } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, TouchableOpacity, View } from 'react-native';
+import { refLabel } from '@/lib/refCode';
 import { videoCallBookedLabel } from '@/lib/video/videoCallTime';
 import { BANNER_COLORS, TYPE_BAR_ACTIVE, TYPE_BAR_PAST, getCardState, getTypeBar, isPastState } from './appointmentCardTheme';
 // Leaflet CSS is injected via link tag in render
@@ -118,7 +119,7 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                     <Icon size={16} color="white" />
                     <Text className="text-white font-outfit-bold text-base">{t(typeBar.labelKey)}</Text>
                 </View>
-                <Text className="text-white/80 font-outfit-medium text-xs">#{appointment.id.slice(0, 8)}</Text>
+                <Text className="text-white/80 font-outfit-medium text-xs">{refLabel(appointment.refCode, appointment.id)}</Text>
             </View>
 
             <View className="p-4">

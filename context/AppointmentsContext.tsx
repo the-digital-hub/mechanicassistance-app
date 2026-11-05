@@ -65,6 +65,8 @@ export interface Appointment {
     additionalFunds?: AdditionalFunds[];
     clientReview?: ClientReview;
     isReviewSubmitted?: boolean;
+    /** Short reference for support, e.g. `AS-4H8TX2` (the request's; a booking made without one has none). */
+    refCode?: string;
     /** Stars (1–5) the customer gave the mechanic for this job; null until reviewed. List rows only. */
     reviewRating?: number | null;
     /** Stars (1–5) the mechanic gave the customer for this job; null until rated. List rows only. */
@@ -159,6 +161,7 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                 .filter((req: AssistanceRequest) => !data.some(appt => appt.id === req.id))
                 .map((req: AssistanceRequest) => ({
                     id: req.id,
+                    refCode: req.refCode,
                     type: req.type,
                     assistanceType: req.assistanceType,
                     title: req.title,
@@ -195,6 +198,7 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                 const ar = arById.get(appt.id);
                 return {
                     ...appt,
+                    refCode: appt.refCode ?? ar?.refCode,
                     updatedAt: appt.updatedAt,
                     locationLat: appt.locationLat ?? ar?.locationLat,
                     locationLng: appt.locationLng ?? ar?.locationLng,

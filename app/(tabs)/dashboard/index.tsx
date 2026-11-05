@@ -818,6 +818,7 @@ export default function DashboardScreen() {
                 renderItem={({ item }) => (
                     <UserRequestCard
                         id={item.id}
+                        refCode={item.refCode}
                         type={item.type}
                         assistanceType={item.assistanceType}
                         title={item.title}

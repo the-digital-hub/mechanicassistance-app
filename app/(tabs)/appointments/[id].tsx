@@ -3,6 +3,7 @@ import { MechanicAssistanceInfoTab } from '@/components/appointments/MechanicAss
 import { MechanicArrivalCard, PulseDot } from '@/components/appointments/MechanicArrivalCard';
 import { MechanicClientInfoTab } from '@/components/appointments/MechanicClientInfoTab';
 import { CheckInCodeCard } from '@/components/appointments/CheckInCodeCard';
+import { refLabel } from '@/lib/refCode';
 import { ClientReviewCard } from '@/components/appointments/ClientReviewCard';
 import { OwnerReviewCard } from '@/components/appointments/OwnerReviewCard';
 import { VideoCallTimerCard } from '@/components/appointments/VideoCallTimerCard';
@@ -545,7 +546,7 @@ export default function AppointmentDetailScreen() {
                     <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
                         {isUserRole ? (
                             <View style={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 32, gap: 16 }} testID="owner-accepted">
-                                <AcceptedHeader id={appointment.id} {...(isVideoCall ? videoCallHeader : {})} />
+                                <AcceptedHeader id={appointment.id} refCode={appointment.refCode} {...(isVideoCall ? videoCallHeader : {})} />
 
                                 <OwnerMechanicCard
                                     mechanic={offer?.mechanic ?? null}
@@ -643,7 +644,7 @@ export default function AppointmentDetailScreen() {
                                                 {t('appointments.videoCall.mechanic.title')}
                                             </Text>
                                             <Text className="text-xs mt-0.5" style={{ color: MECH.mutedLight, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }}>
-                                                {t('appointments.detail.idLabel', { id: appointment.id.slice(0, 8) })}
+                                                {t('appointments.detail.idLabel', { id: refLabel(appointment.refCode, appointment.id) })}
                                             </Text>
                                         </View>
                                     </View>
@@ -665,7 +666,7 @@ export default function AppointmentDetailScreen() {
                                     </View>
                                     <Text style={{ color: MECH.border }}>·</Text>
                                     <Text className="font-outfit-medium text-xs" style={{ color: MECH.mutedLight }}>
-                                        {t('appointments.detail.idLabel', { id: appointment.id.slice(0, 8) })}
+                                        {t('appointments.detail.idLabel', { id: refLabel(appointment.refCode, appointment.id) })}
                                     </Text>
                                 </View>
                                 </>

@@ -99,6 +99,8 @@ export interface AssistanceSummary {
 
 export interface AssistanceRequest {
     id: string;
+    /** Short reference for support, e.g. `AS-4H8TX2`. */
+    refCode?: string;
     type: AssistanceType;
     assistanceType?: string;
     title: string;
@@ -316,6 +318,8 @@ export interface IMechanicDocumentsDAO {
 
 export interface UserData {
     id: string;
+    /** Short reference for support, e.g. `US-7K3M9Q`. */
+    refCode?: string;
     email: string;
     name: string;
     surname: string;

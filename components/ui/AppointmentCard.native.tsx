@@ -1,6 +1,7 @@
 import { Appointment } from '@/context/AppointmentsContext';
 import { useUser } from '@/context/UserContext';
 import { haversineDistanceKm } from '@/lib/utils';
+import { refLabel } from '@/lib/refCode';
 import { approximateArea, coarseAddress } from '@/lib/maps/approximateLocation';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
@@ -407,7 +408,7 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
 
             {/* Footer: id + cancel */}
             <View className="flex-row items-center justify-between mt-2.5">
-                <Text style={{ fontFamily: MONO, fontSize: 11, color: C.mutedLight }}>#{appointment.id.slice(0, 8)}</Text>
+                <Text style={{ fontFamily: MONO, fontSize: 11, color: C.mutedLight }}>{refLabel(appointment.refCode, appointment.id)}</Text>
                 {!isPast && (
                     <TouchableOpacity onPress={guardPress(() => onCancel(appointment.id))} hitSlop={8}>
                         <Text className="font-outfit-bold text-xs" style={{ color: C.red }}>{t('appointments.list.card.cancelRequest')}</Text>

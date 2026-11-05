@@ -3,11 +3,14 @@ import { Car, ClipboardList, Clock, MapPin, ShieldCheck } from 'lucide-react-nat
 import { useTranslation } from 'react-i18next';
 import { Text, TouchableOpacity, View } from 'react-native';
 
+import { refLabel } from '@/lib/refCode';
 import type { AppointmentStatus } from '@/context/AppointmentsContext';
 import type { AssistanceType } from '@/lib/dao/interfaces';
 
 interface UserRequestCardProps {
     id: string;
+    /** Short reference, e.g. `AS-4H8TX2`. */
+    refCode?: string;
     type?: AssistanceType;
     assistanceType?: string;
     title: string;
@@ -25,6 +28,7 @@ interface UserRequestCardProps {
  */
 export function UserRequestCard({
     id,
+    refCode,
     type,
     assistanceType,
     title,
@@ -245,7 +249,7 @@ export function UserRequestCard({
             </View>
 
             <Text className="font-mono text-right" style={{ fontSize: 11, letterSpacing: 0.5, color: '#8C96AE', marginTop: 10 }}>
-                #{id.slice(0, 8)}
+                {refLabel(refCode, id)}
             </Text>
         </View>
     );

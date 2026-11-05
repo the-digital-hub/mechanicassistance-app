@@ -232,7 +232,7 @@ export function ScreenDone({ variant, appointmentId, visit, onVisit, clientName,
                     </View>
                     <Text className="font-outfit-bold text-xl" style={{ color: OS.text }}>{completed ? t(`${k}.completed`) : t(`${k}.finished`)}</Text>
                     <Text className="font-outfit-bold text-[10.5px]" style={{ color: OS.mutedLight }}>
-                        {t('appointments.detail.idLabel', { id: appointmentId.slice(0, 8) })}
+                        {t('appointments.detail.idLabel', { id: `#${appointmentId.slice(0, 8)}` })}
                     </Text>
                     <Text className="font-outfit-regular text-[13.5px] text-center leading-5" style={{ color: OS.muted }}>
                         {completed ? t(`${k}.completedBody`) : t(`${k}.finishedBody`)}

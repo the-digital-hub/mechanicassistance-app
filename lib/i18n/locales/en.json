@@ -534,7 +534,7 @@
         "Extra parts only with your approval",
         "Free cancellation until the technician is on the way"
       ],
-      "requestNumber": "Request #",
+      "requestNumber": "Request ",
       "confirm": "Confirm",
       "confirming": "Confirming…",
       "requestConfirmed": "Request confirmed",
@@ -773,7 +773,7 @@
       "joinVideoCall": "Join Video Call",
       "onTheWayBadge": "ON THE WAY",
       "onTheWayTitle": "You're on the way.",
-      "idLabel": "ID: #{{id}}",
+      "idLabel": "ID: {{id}}",
       "types": {
         "immediate": "Immediate Assistance",
         "scheduled": "Scheduled Assistance",
@@ -1554,6 +1554,7 @@
     "title": "Personal information",
     "subtitle": "Keep your profile up to date to ensure the best service experience",
     "tapToChangePhoto": "Tap to change photo",
+    "reference": "Your reference",
     "name": "Name",
     "surname": "Surname",
     "email": "Email",

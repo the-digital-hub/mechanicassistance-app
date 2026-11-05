@@ -1,4 +1,5 @@
 import { PulseDot } from '@/components/appointments/MechanicArrivalCard';
+import { refLabel } from '@/lib/refCode';
 import { AO, card, IconName, RequestSummaryRows, Stars, SummaryRow } from '@/components/offer/OfferSections';
 import { formatEtaTime } from '@/hooks/useAppointmentEta';
 import type { AssistanceClientSummary, AssistanceOfferSummary } from '@/lib/dao/interfaces';
@@ -20,7 +21,7 @@ type Mechanic = AssistanceOfferSummary['mechanic'];
 export type OwnerTab = 'status' | 'checkin' | 'info' | 'obd' | 'mechanic' | 'budget';
 
 /** `title`/`icon`/`color` override the default "Assistance accepted" (a video call reflects its close-out state). */
-export function AcceptedHeader({ id, title, icon = 'checkmark', color = AO.green }: { id: string; title?: string; icon?: IconName; color?: string }) {
+export function AcceptedHeader({ id, refCode, title, icon = 'checkmark', color = AO.green }: { id: string; refCode?: string; title?: string; icon?: IconName; color?: string }) {
     const { t } = useTranslation();
     return (
         <View className="flex-row items-center" style={{ gap: 12 }}>
@@ -29,7 +30,7 @@ export function AcceptedHeader({ id, title, icon = 'checkmark', color = AO.green
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>
                 <Text className="font-outfit-bold" style={{ fontSize: 22, color: AO.text, letterSpacing: -0.6 }} testID="owner-accepted-title">{title ?? t(`${K}.title`)}</Text>
-                <Text style={{ fontSize: 12, color: AO.mutedLight, marginTop: 2, fontFamily: 'Menlo' }}>ID: #{id.slice(0, 8)}</Text>
+                <Text style={{ fontSize: 12, color: AO.mutedLight, marginTop: 2, fontFamily: 'Menlo' }}>ID: {refLabel(refCode, id)}</Text>
             </View>
         </View>
     );

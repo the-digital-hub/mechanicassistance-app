@@ -534,7 +534,7 @@
         "Repuestos extra solo con tu aprobación",
         "Cancelación gratis hasta que el técnico salga en camino"
       ],
-      "requestNumber": "Solicitud #",
+      "requestNumber": "Solicitud ",
       "confirm": "Confirmar",
       "confirming": "Confirmando…",
       "requestConfirmed": "Solicitud confirmada",
@@ -773,7 +773,7 @@
       "joinVideoCall": "Unirse a la videollamada",
       "onTheWayBadge": "EN CAMINO",
       "onTheWayTitle": "Vas en camino.",
-      "idLabel": "ID: #{{id}}",
+      "idLabel": "ID: {{id}}",
       "types": {
         "immediate": "Asistencia inmediata",
         "scheduled": "Asistencia programada",
@@ -1554,6 +1554,7 @@
     "title": "Información personal",
     "subtitle": "Mantené tu perfil actualizado para asegurar la mejor experiencia de servicio",
     "tapToChangePhoto": "Tocá para cambiar la foto",
+    "reference": "Tu referencia",
     "name": "Nombre",
     "surname": "Apellido",
     "email": "Email",
