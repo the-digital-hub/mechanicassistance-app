@@ -60,22 +60,41 @@
       "saveErrorMessage": "Your availability was not saved. Check your connection and try again."
     },
     "switchRole": {
-      "toMechanicTitle": "Switch to mechanic mode",
-      "toOwnerTitle": "Switch to vehicle owner mode",
-      "toMechanicSubtitle": "See and take assistance requests near you.",
-      "toOwnerSubtitle": "Request help for your own vehicles.",
-      "confirmTitle": "Switch to {{role}} mode?",
-      "confirmMessage": "Your other devices will be signed out.",
-      "confirm": "Switch",
-      "cancel": "Cancel",
+      "menu": "Switch role",
+      "sheetTitle": "Switch role",
+      "sheetSubtitle": "Choose how you want to use the app. Your data in each role stays saved.",
+      "current": "Current",
+      "notSetUp": "Not set up",
+      "comingSoon": "Coming soon",
+      "choose": "Choose a role",
+      "switchTo": "Switch to {{role}}",
+      "setUp": "Set up {{role}} profile",
+      "toastSwitched": "You're now using the app as {{role}}",
       "activeJobsTitle": "Finish your active jobs first",
       "activeJobsMessage": "You have requests or appointments in progress. Finish or cancel them before switching.",
       "notHeldTitle": "Role not available",
-      "notHeldMessage": "This account doesn't have the {{role}} role. Sign up as {{role}} from the registration screen to add it.",
+      "notHeldMessage": "This account doesn't have the {{role}} role. Set it up from this menu to add it.",
       "failedTitle": "Couldn't switch",
       "failedMessage": "Something went wrong. Please try again.",
-      "roleUser": "vehicle owner",
-      "roleMechanic": "mechanic"
+      "startFailed": "Couldn't open the sign-up. Please try again.",
+      "roles": {
+        "user": {
+          "label": "Vehicle Owner",
+          "desc": "Request assistance for your vehicles"
+        },
+        "mechanic": {
+          "label": "Technician",
+          "desc": "Repairs, diagnostics and video calls"
+        },
+        "towing_driver": {
+          "label": "Towing",
+          "desc": "Tow vehicles to shops or home"
+        },
+        "locksmith_technician": {
+          "label": "Locksmith",
+          "desc": "Lockouts and key replacement"
+        }
+      }
     }
   },
   "assistanceCard": {
@@ -2155,7 +2174,8 @@
       "identityVerified": "Your identity is already verified.",
       "finishing": "Adding the role to your account...",
       "roleUser": "vehicle owner",
-      "roleMechanic": "mechanic"
+      "roleMechanic": "mechanic",
+      "registeredOnly": "Your profile is saved. This role is coming soon to the app — you'll keep using your current role meanwhile."
     }
   },
   "assist": {

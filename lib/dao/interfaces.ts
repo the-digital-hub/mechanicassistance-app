@@ -182,6 +182,13 @@ export interface Address {
 export type AppRole = 'user' | 'mechanic';
 
 /**
+ * Roles the profile's role sheet can add. Towing and locksmith go through the
+ * mechanic wizard and are registered on the account, but never become the
+ * active role: the app has no screens for them yet.
+ */
+export type AddableRole = AppRole | 'towing_driver' | 'locksmith_technician';
+
+/**
  * Answer of POST /api/roles/self/add-role and /api/roles/self/active-role.
  *
  * `session` is null when nothing changed (switching to the role that is

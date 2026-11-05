@@ -1,16 +1,18 @@
+import { SwitchRoleSheet } from '@/components/profile/SwitchRoleSheet';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { AseStatusBadge } from '@/components/ui/AseStatusBadge';
 import { VerificationBadge } from '@/components/ui/VerificationBadge';
 import { useUser } from '@/context/UserContext';
 import { useMechanicStatus } from '@/context/MechanicStatusContext';
 import { ApiError } from '@/lib/api/types';
-import type { AppRole } from '@/lib/dao/interfaces';
+import type { AddableRole, AppRole } from '@/lib/dao/interfaces';
 import { mediaDAO } from '@/lib/dao/MediaDAO';
 import { setAppLanguage } from '@/lib/i18n';
+import { startAddRoleFromProfile } from '@/lib/setup-add-role';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import { ArrowLeftRight, Award, Camera, Car, ChevronLeft, ChevronRight, Circle, Clock, CreditCard, FileText, Heart, HelpCircle, Lock, LogOut, MapPin, Settings, User, Wallet } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+import { ArrowLeftRight, Award, Camera, Car, Check, ChevronLeft, ChevronRight, Circle, Clock, CreditCard, FileText, Heart, HelpCircle, Lock, LogOut, MapPin, Settings, User, Wallet } from 'lucide-react-native';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Image, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
@@ -25,15 +27,17 @@ export default function ProfileScreen() {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [localProfileUri, setLocalProfileUri] = useState<string | null>(null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
-  const [showSwitchRoleModal, setShowSwitchRoleModal] = useState(false);
+  const [showRoleSheet, setShowRoleSheet] = useState(false);
   const [isSwitchingRole, setIsSwitchingRole] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // The switch only exists for an account holding both roles; anyone else
-  // adds the other role through the signup flow.
-  const canSwitchRole = !!user?.roles?.includes('user') && !!user?.roles?.includes('mechanic');
-  const otherRole: AppRole = user?.role === 'mechanic' ? 'user' : 'mechanic';
-  const roleName = (role: AppRole) =>
-    t(role === 'mechanic' ? 'profile.switchRole.roleMechanic' : 'profile.switchRole.roleUser');
+  const currentRole: AppRole = user?.role === 'mechanic' ? 'mechanic' : 'user';
+  const roleName = (role: AddableRole) => t(`profile.switchRole.roles.${role}.label`);
+
+  useEffect(() => () => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+  }, []);
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -86,21 +90,32 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleSwitchRole = async () => {
-    if (isSwitchingRole) return;
-    setShowSwitchRoleModal(false);
+  // A held role is switched to; one the account lacks opens its sign-up, on
+  // this same session (lib/setup-add-role.ts).
+  const handlePickRole = async (role: AddableRole, isHeld: boolean) => {
+    if (isSwitchingRole || !user) return;
+    setShowRoleSheet(false);
     setIsSwitchingRole(true);
     try {
-      await switchRole(otherRole);
+      if (!isHeld) {
+        router.push((await startAddRoleFromProfile(user, role)) as any);
+        return;
+      }
+      await switchRole(role as AppRole);
+      setToast(t('profile.switchRole.toastSwitched', { role: roleName(role) }));
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+      toastTimer.current = setTimeout(() => setToast(null), 2400);
       router.replace('/(tabs)/dashboard');
     } catch (err) {
       const status = err instanceof ApiError ? err.statusCode : null;
-      if (status === 409) {
+      if (!isHeld) {
+        Alert.alert(t('profile.switchRole.failedTitle'), t('profile.switchRole.startFailed'));
+      } else if (status === 409) {
         Alert.alert(t('profile.switchRole.activeJobsTitle'), t('profile.switchRole.activeJobsMessage'));
       } else if (status === 403) {
         Alert.alert(
           t('profile.switchRole.notHeldTitle'),
-          t('profile.switchRole.notHeldMessage', { role: roleName(otherRole) }),
+          t('profile.switchRole.notHeldMessage', { role: roleName(role) }),
         );
       } else {
         Alert.alert(t('profile.switchRole.failedTitle'), t('profile.switchRole.failedMessage'));
@@ -199,38 +214,6 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Role switch - only for accounts holding both roles */}
-        {canSwitchRole && (
-          <View
-            className="mb-8"
-            style={{ borderRadius: 24, backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 8, elevation: 6 }}
-          >
-            <TouchableOpacity
-              onPress={() => setShowSwitchRoleModal(true)}
-              disabled={isSwitchingRole}
-              activeOpacity={0.8}
-              className="flex-row items-center px-6 py-5 rounded-3xl"
-            >
-              <View className="w-12 h-12 rounded-full bg-blue-50 justify-center items-center mr-4">
-                <ArrowLeftRight size={24} color="#0047AB" />
-              </View>
-              <View className="flex-1">
-                <Text className="font-outfit-semibold text-lg text-gray-900">
-                  {t(otherRole === 'mechanic' ? 'profile.switchRole.toMechanicTitle' : 'profile.switchRole.toOwnerTitle')}
-                </Text>
-                <Text className="font-outfit-regular text-sm text-gray-500 mt-0.5">
-                  {t(otherRole === 'mechanic' ? 'profile.switchRole.toMechanicSubtitle' : 'profile.switchRole.toOwnerSubtitle')}
-                </Text>
-              </View>
-              {isSwitchingRole ? (
-                <ActivityIndicator color="#0047AB" />
-              ) : (
-                <ChevronRight size={24} color="#0047AB" />
-              )}
-            </TouchableOpacity>
-          </View>
-        )}
-
         {/* Status Block - Only for Mechanics */}
         {user?.role === 'mechanic' && (
           <View className="bg-white rounded-3xl p-6 mb-8" style={{
@@ -312,6 +295,13 @@ export default function ProfileScreen() {
             { icon: HelpCircle, label: t('profile.menu.help'), route: '/help' },
             { icon: Lock, label: t('profile.menu.privacy'), route: '/privacy' },
             { icon: Settings, label: t('profile.menu.settings'), route: '/settings' },
+            {
+              icon: ArrowLeftRight,
+              label: t('profile.switchRole.menu'),
+              value: roleName(currentRole),
+              action: () => setShowRoleSheet(true),
+              busy: isSwitchingRole,
+            },
             { icon: LogOut, label: t('profile.menu.logout'), action: () => setShowLogoutModal(true), color: '#EF4444' },
           ];
           return (
@@ -332,7 +322,16 @@ export default function ProfileScreen() {
               <Text className={`flex-1 font-outfit-semibold text-lg ${item.color ? 'text-red-500' : 'text-gray-900'}`}>
                 {item.label}
               </Text>
-              <ChevronRight size={24} color={item.color ? '#EF4444' : '#0047AB'} />
+              {'value' in item && item.value ? (
+                <View className="px-2.5 py-1 rounded-full mr-2" style={{ backgroundColor: '#EAF1FF' }}>
+                  <Text className="font-outfit-bold" style={{ fontSize: 12.5, color: '#1E56E3' }} numberOfLines={1}>{item.value}</Text>
+                </View>
+              ) : null}
+              {'busy' in item && item.busy ? (
+                <ActivityIndicator color="#0047AB" />
+              ) : (
+                <ChevronRight size={24} color={item.color ? '#EF4444' : '#0047AB'} />
+              )}
             </TouchableOpacity>
             ))}
           </View>
@@ -381,18 +380,12 @@ export default function ProfileScreen() {
         cancelText={t('profile.modals.no')}
       />
 
-      {/* Role Switch Confirmation Modal */}
-      <ConfirmationModal
-        visible={showSwitchRoleModal}
-        onClose={() => setShowSwitchRoleModal(false)}
-        onConfirm={handleSwitchRole}
-        title={t('profile.switchRole.confirmTitle', { role: roleName(otherRole) })}
-        message={t('profile.switchRole.confirmMessage')}
-        icon={ArrowLeftRight}
-        iconColor="#0047AB"
-        confirmButtonColor="#0047AB"
-        confirmText={t('profile.switchRole.confirm')}
-        cancelText={t('profile.switchRole.cancel')}
+      <SwitchRoleSheet
+        visible={showRoleSheet}
+        current={currentRole}
+        held={user.roles ?? [currentRole]}
+        onClose={() => setShowRoleSheet(false)}
+        onPick={handlePickRole}
       />
 
       {/* Status Modal */}
@@ -441,6 +434,17 @@ export default function ProfileScreen() {
         </Modal>
       )}
       </ScrollView>
+      )}
+      {toast && (
+        <View
+          className="absolute flex-row items-center px-3.5 py-3 rounded-2xl"
+          style={{ left: 16, right: 16, bottom: 24, gap: 10, backgroundColor: '#0B1530', shadowColor: '#0B1530', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 8 }}
+        >
+          <View className="w-[22px] h-[22px] rounded-full items-center justify-center" style={{ backgroundColor: '#10B981' }}>
+            <Check size={12} color="#fff" strokeWidth={3} />
+          </View>
+          <Text className="flex-1 font-outfit-semibold text-sm text-white">{toast}</Text>
+        </View>
       )}
     </View>
   );

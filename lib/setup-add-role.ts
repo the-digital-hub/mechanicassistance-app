@@ -1,7 +1,7 @@
 import { getSessionUserId } from './auth/session';
-import type { Address, AppRole, UserData } from './dao/interfaces';
+import type { AddableRole, Address, AppRole, UserData } from './dao/interfaces';
 import { userDAO } from './dao/UserDAO';
-import { getSetupProgress, mergeSetupProgress } from './storage';
+import { clearSetupProgress, getSetupProgress, mergeSetupProgress, saveSetupProgress } from './storage';
 
 /**
  * The "add a role" variant of the signup wizard.
@@ -28,6 +28,13 @@ export interface AddRoleState {
     existingAddresses?: Address[];
     /** Role the pre-fill was seeded for; choosing another role re-seeds. */
     prefilledFor?: AppRole;
+    /**
+     * Role actually sent to add-role when it differs from the wizard path:
+     * towing / locksmith walk the mechanic steps.
+     */
+    targetRole?: AddableRole;
+    /** Started from the profile's role sheet on the live session, not from OTP. */
+    fromProfile?: boolean;
 }
 
 export function getAddRoleState(progress: Record<string, unknown> | null | undefined): AddRoleState | null {
@@ -47,6 +54,30 @@ export function holdsRole(state: AddRoleState, role: AppRole): boolean {
 export async function startAddRole(roles: string[], primaryRole: AppRole): Promise<void> {
     const previous = getAddRoleState(await getSetupProgress());
     await mergeSetupProgress({ addRole: { ...previous, roles, primaryRole } satisfies AddRoleState });
+}
+
+/**
+ * Starts the add-role wizard from the profile's role sheet, on the session the
+ * app is already using. Towing and locksmith walk the mechanic steps; the role
+ * really added travels in `targetRole`. Resolves to the first wizard step.
+ */
+export async function startAddRoleFromProfile(user: UserData, target: AddableRole): Promise<string> {
+    const primaryRole: AppRole = user.role === 'mechanic' ? 'mechanic' : 'user';
+    const pathRole: AppRole = target === 'user' ? 'user' : 'mechanic';
+    // A fresh run: whatever an earlier attempt left belongs to another target.
+    await clearSetupProgress();
+    await mergeSetupProgress({
+        addRole: {
+            roles: user.roles ?? [user.role ?? primaryRole],
+            primaryRole,
+            userId: user.id,
+            targetRole: target === pathRole ? undefined : target,
+            fromProfile: true,
+        } satisfies AddRoleState,
+    });
+    await saveSetupProgress('role', { role: pathRole });
+    await prefillForAddRole(pathRole);
+    return '/setup/basic-info';
 }
 
 /** Drops the add-role marker, so a later signup for a new phone is a plain one. */

@@ -6,6 +6,7 @@ import {
     saveTokens,
 } from '../auth/session';
 import {
+    AddableRole,
     AppRole,
     AvailabilityPayload,
     IUserDAO,
@@ -185,6 +186,10 @@ export class UserDAO implements IUserDAO {
     async addOwnRole(setupProgress: Record<string, unknown>): Promise<RoleChangeResult> {
         const { phone: _phone, firebaseUid: _firebaseUid, ...payload } =
             this.buildRegistrationPayload(setupProgress);
+        // Towing / locksmith run the mechanic wizard; the role sent is the real one.
+        // (Read inline: lib/setup-add-role imports this DAO.)
+        const targetRole = (setupProgress.addRole as { targetRole?: AddableRole } | undefined)?.targetRole;
+        if (targetRole) payload.role = targetRole;
         const result = await apiClient.post<RoleChangeResult>('/api/roles/self/add-role', payload);
         await this.storeRoleChangeSession(result);
         return result;

@@ -47,6 +47,8 @@ export default function SuccessScreen() {
   const accountCreated = useRef(false);
   /** The phone already had an account and this run adds a role to it. */
   const [isAddRole, setIsAddRole] = useState(false);
+  const [fromProfile, setFromProfile] = useState(false);
+  const [registeredOnly, setRegisteredOnly] = useState(false);
 
   useEffect(() => {
     // Prevent double execution in React strict mode
@@ -63,9 +65,13 @@ export default function SuccessScreen() {
         // Existing account: add the role to it instead of creating a user.
         // The wizard ran on that account's session, so there is no signup
         // token to trade; the role change returns the new session itself.
-        if (getAddRoleState(progress)) {
+        const addRoleState = getAddRoleState(progress);
+        if (addRoleState) {
           setIsAddRole(true);
+          setFromProfile(!!addRoleState.fromProfile);
           const result = await userDAO.addOwnRole(progress);
+          // Towing / locksmith are registered but stay inactive.
+          setRegisteredOnly(!!addRoleState.targetRole);
           accountCreated.current = true;
           const account = await userDAO.getById(result.userId);
           if (account) {
@@ -236,6 +242,12 @@ export default function SuccessScreen() {
         {isAddRole && (
           <TouchableOpacity
             onPress={async () => {
+              // Started from the profile: the session is the app's own, keep it.
+              if (fromProfile) {
+                await clearSetupProgress();
+                router.replace("/(tabs)");
+                return;
+              }
               // Abandoning the add-role run: end the session the verify step
               // opened rather than leaving it stored but unused.
               await userDAO.logout();
@@ -268,7 +280,7 @@ export default function SuccessScreen() {
         {t("setup.success.congratulations")}
       </Text>
       <Text className="text-base font-outfit-regular text-gray-500 mb-12 text-center">
-        {t("setup.success.setupComplete")}
+        {t(registeredOnly ? "setup.addRole.registeredOnly" : "setup.success.setupComplete")}
       </Text>
 
       <TouchableOpacity

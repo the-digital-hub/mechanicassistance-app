@@ -60,22 +60,41 @@
       "saveErrorMessage": "Tu disponibilidad no se guardó. Revisá tu conexión e intentá de nuevo."
     },
     "switchRole": {
-      "toMechanicTitle": "Cambiar a modo técnico",
-      "toOwnerTitle": "Cambiar a modo dueño de vehículo",
-      "toMechanicSubtitle": "Mirá y tomá solicitudes de asistencia cerca tuyo.",
-      "toOwnerSubtitle": "Pedí ayuda para tus propios vehículos.",
-      "confirmTitle": "¿Cambiar a modo {{role}}?",
-      "confirmMessage": "Se va a cerrar la sesión en tus otros dispositivos.",
-      "confirm": "Cambiar",
-      "cancel": "Cancelar",
-      "activeJobsTitle": "Primero terminá tus trabajos activos",
+      "menu": "Cambiar rol",
+      "sheetTitle": "Cambiar rol",
+      "sheetSubtitle": "Elegí cómo querés usar la app. Tus datos en cada rol quedan guardados.",
+      "current": "Actual",
+      "notSetUp": "Sin configurar",
+      "comingSoon": "Próximamente",
+      "choose": "Elegí un rol",
+      "switchTo": "Cambiar a {{role}}",
+      "setUp": "Configurar perfil de {{role}}",
+      "toastSwitched": "Ahora usás la app como {{role}}",
+      "activeJobsTitle": "Terminá tus trabajos activos",
       "activeJobsMessage": "Tenés solicitudes o citas en curso. Terminalas o cancelalas antes de cambiar.",
       "notHeldTitle": "Rol no disponible",
-      "notHeldMessage": "Esta cuenta no tiene el rol {{role}}. Registrate como {{role}} desde el alta para sumarlo.",
+      "notHeldMessage": "Esta cuenta no tiene el rol {{role}}. Configuralo desde este menú para agregarlo.",
       "failedTitle": "No se pudo cambiar",
       "failedMessage": "Algo salió mal. Intentá de nuevo.",
-      "roleUser": "dueño de vehículo",
-      "roleMechanic": "técnico"
+      "startFailed": "No se pudo abrir el registro. Intentá de nuevo.",
+      "roles": {
+        "user": {
+          "label": "Dueño de vehículo",
+          "desc": "Pedí asistencia para tus vehículos"
+        },
+        "mechanic": {
+          "label": "Técnico",
+          "desc": "Reparaciones, diagnóstico y videollamadas"
+        },
+        "towing_driver": {
+          "label": "Grúa",
+          "desc": "Remolcá vehículos a talleres o domicilios"
+        },
+        "locksmith_technician": {
+          "label": "Cerrajero",
+          "desc": "Aperturas y reemplazo de llaves"
+        }
+      }
     }
   },
   "assistanceCard": {
@@ -2155,7 +2174,8 @@
       "identityVerified": "Tu identidad ya está verificada.",
       "finishing": "Sumando el rol a tu cuenta...",
       "roleUser": "dueño de vehículo",
-      "roleMechanic": "técnico"
+      "roleMechanic": "técnico",
+      "registeredOnly": "Tu perfil quedó guardado. Este rol llega pronto a la app; mientras tanto seguís usando tu rol actual."
     }
   },
   "assist": {
