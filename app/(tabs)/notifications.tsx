@@ -2,10 +2,84 @@ import { useNotifications } from '@/context/NotificationsContext';
 import { useUser } from '@/context/UserContext';
 import { routeForPush } from '@/lib/notifications/push';
 import { useRouter } from 'expo-router';
-import { Check, MoreHorizontal, X } from 'lucide-react-native';
+import {
+    AlarmClock,
+    Bell,
+    Car,
+    Check,
+    CircleCheck,
+    CircleDollarSign,
+    CircleX,
+    CornerUpRight,
+    Flag,
+    MapPin,
+    MessageSquareMore,
+    MoreHorizontal,
+    Scale,
+    ScanSearch,
+    Star,
+    TriangleAlert,
+    Video,
+    Wrench,
+    X,
+    type LucideIcon,
+} from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+
+// Tile palette from the Notification Center design: icon color + soft tint.
+const TONES = {
+    blue: { fg: '#1E56E3', bg: '#EAF1FF' },
+    green: { fg: '#0E8A5F', bg: '#E6F7EF' },
+    violet: { fg: '#6D4AE0', bg: '#F0EBFF' },
+    orange: { fg: '#C26A0A', bg: '#FFF4E5' },
+    red: { fg: '#D93636', bg: '#FDECEC' },
+} as const;
+
+type KindIcon = { Icon: LucideIcon; tone: keyof typeof TONES };
+
+const KIND_ICON: Record<string, KindIcon> = {
+    new_request: { Icon: Car, tone: 'blue' },
+    mechanic_found: { Icon: Wrench, tone: 'blue' },
+    request_status: { Icon: MapPin, tone: 'blue' },
+    service_redirected: { Icon: CornerUpRight, tone: 'blue' },
+    obd_reminder: { Icon: ScanSearch, tone: 'blue' },
+    offer_accepted: { Icon: CircleCheck, tone: 'green' },
+    video_call_confirmed: { Icon: CircleCheck, tone: 'green' },
+    video_call_resolved: { Icon: Scale, tone: 'green' },
+    video_call: { Icon: Video, tone: 'violet' },
+    video_call_finished: { Icon: Flag, tone: 'violet' },
+    video_call_reminder: { Icon: AlarmClock, tone: 'violet' },
+    review_requested: { Icon: Star, tone: 'orange' },
+    video_call_disputed: { Icon: TriangleAlert, tone: 'orange' },
+    request_canceled: { Icon: CircleX, tone: 'red' },
+    // In the design but not sent by the backend yet; ready for when these kinds exist.
+    message: { Icon: MessageSquareMore, tone: 'orange' },
+    payment: { Icon: CircleDollarSign, tone: 'green' },
+};
+
+const DEFAULT_ICON: KindIcon = { Icon: Bell, tone: 'blue' };
+
+function NotificationIcon({ kind, unread }: { kind: string; unread: boolean }) {
+    const { Icon, tone } = KIND_ICON[kind] ?? DEFAULT_ICON;
+    const { fg, bg } = TONES[tone];
+    return (
+        <View style={{ position: 'relative' }}>
+            <View style={{ width: 42, height: 42, borderRadius: 13, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}>
+                <Icon size={20} color={fg} strokeWidth={1.8} />
+            </View>
+            {unread && (
+                <View
+                    style={{
+                        position: 'absolute', top: -2, right: -2, width: 10, height: 10, borderRadius: 5,
+                        backgroundColor: '#1E56E3', borderWidth: 2, borderColor: '#fff',
+                    }}
+                />
+            )}
+        </View>
+    );
+}
 
 export default function NotificationsScreen() {
     const router = useRouter();
@@ -38,26 +112,6 @@ export default function NotificationsScreen() {
         : notifications.filter(n => n.unread);
 
     const unreadCount = notifications.filter(n => n.unread).length;
-
-    const getIcon = (kind: string) => {
-        switch (kind) {
-            case 'mechanic_found': return '🔧';
-            case 'offer_accepted': return '✅';
-            case 'request_canceled': return '❌';
-            case 'service_redirected': return '↪️';
-            case 'obd_reminder': return '🔍';
-            case 'review_requested': return '⭐';
-            case 'new_request': return '🚗';
-            case 'request_status': return '📍';
-            case 'video_call': return '📹';
-            case 'video_call_finished': return '🏁';
-            case 'video_call_confirmed': return '✅';
-            case 'video_call_disputed': return '⚠️';
-            case 'video_call_resolved': return '⚖️';
-            case 'video_call_reminder': return '⏰';
-            default: return '🔔';
-        }
-    };
 
     // Same destination as tapping the push itself.
     const handleNotificationPress = (notif: typeof notifications[0]) => {
@@ -129,7 +183,9 @@ export default function NotificationsScreen() {
                 <View className="mb-10">
                     {filteredNotifications.length === 0 ? (
                         <View className="px-6 py-16 items-center">
-                            <Text className="text-4xl mb-4">🔔</Text>
+                            <View className="mb-4">
+                                <Bell size={40} color="#8C96AE" strokeWidth={1.5} />
+                            </View>
                             <Text className="text-gray-400 font-outfit-medium text-base text-center">{t('notifications.empty')}</Text>
                             <Text className="text-gray-300 font-outfit-regular text-sm text-center mt-1">
                                 {t('notifications.emptyHint')}
@@ -144,14 +200,7 @@ export default function NotificationsScreen() {
                                 activeOpacity={notif.requestId ? 0.7 : 1}
                             >
                                 {/* Icon */}
-                                <View className="relative">
-                                    <View className="w-10 h-10 rounded-full items-center justify-center bg-blue-50 border border-blue-100">
-                                        <Text className="text-lg">{getIcon(notif.kind)}</Text>
-                                    </View>
-                                    {notif.unread && (
-                                        <View className="absolute -left-1 top-3 w-2 h-2 bg-blue-600 rounded-full border border-white" />
-                                    )}
-                                </View>
+                                <NotificationIcon kind={notif.kind} unread={notif.unread} />
 
                                 {/* Content */}
                                 <View className="flex-1">
