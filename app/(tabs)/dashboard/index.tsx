@@ -14,6 +14,9 @@ import { AssistanceRequest, type AssistanceTypeCatalogItem } from '@/lib/dao/int
 import { translatedName } from '@/lib/i18n/catalogTranslations';
 import { RequestIssueText } from '@/components/ui/RequestIssueText';
 import { buildMechanicFeedFilters } from '@/lib/mechanic-feed';
+import { countCompletedToday } from '@/lib/dashboard/mechanicKpis';
+import { useMechanicKpis } from '@/lib/dashboard/useMechanicKpis';
+import { formatMoney } from '@/lib/payments/paymentSource';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Calendar, Video, Zap, MapPin, Wrench, DollarSign, Star, Award, Circle, Clock, Car, Lock } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -147,6 +150,8 @@ export default function DashboardScreen() {
     };
     const [showStatusModal, setShowStatusModal] = useState(false);
     const { appointments, getActiveRequests, refresh: refreshAppointments, isLoading: isLoadingAppointments } = useAppointments();
+    const jobsToday = countCompletedToday(appointments);
+    const { earnedToday, stats: mechanicStats } = useMechanicKpis(user?.role === 'mechanic', jobsToday);
     const { lastMessage } = useSocket();
     const { mechanicStatus, setMechanicStatus, isUpdatingStatus } = useMechanicStatus();
 
@@ -397,21 +402,27 @@ export default function DashboardScreen() {
                       <KPICard
                         icon={Wrench}
                         iconColor="#0047AB"
-                        value={appointments.filter(a => a.status === 'completed').length.toString()}
+                        value={jobsToday.toString()}
                         label={t('dashboard.mechanic.jobsToday')}
                         bgColor="#E0ECFF"
                       />
                       <KPICard
                         icon={DollarSign}
                         iconColor="#10B981"
-                        value={`$${(appointments.filter(a => a.status === 'completed').length * 50).toString()}`}
+                        value={earnedToday === null ? '—' : formatMoney(earnedToday)}
                         label={t('dashboard.mechanic.earnedToday')}
                         bgColor="#ECFDF5"
                       />
                       <KPICard
                         icon={Star}
                         iconColor="#F97316"
-                        value={(user?.rating || 4.8).toString()}
+                        value={
+                            !mechanicStats
+                                ? '—'
+                                : mechanicStats.avgRating === null
+                                  ? t('dashboard.mechanic.noRating')
+                                  : mechanicStats.avgRating.toFixed(1)
+                        }
                         label={t('dashboard.mechanic.rating')}
                         bgColor="#FFF7ED"
                       />

@@ -613,8 +613,17 @@ export interface IAssistanceDAO {
     uploadVideo(localUri: string): Promise<string>;
 }
 
+/** `GET /api/appointments/stats/me`: the signed-in mechanic's own rating and finished jobs. */
+export interface MechanicStats {
+    /** Average stars customers gave, one decimal; null when nobody has rated yet. */
+    avgRating: number | null;
+    ratingCount: number;
+    completedCount: number;
+}
+
 export interface IAppointmentDAO {
     getAll(filters?: { userId?: string; mechanicId?: string }): Promise<any[]>;
+    getMyStats(): Promise<MechanicStats>;
     create(appointment: any): Promise<any>;
     update(id: string, updates: any): Promise<void>;
 }

@@ -1,5 +1,5 @@
 import { apiClient } from '../api/apiClient';
-import { IAppointmentDAO } from './interfaces';
+import { IAppointmentDAO, MechanicStats } from './interfaces';
 
 export class AppointmentDAO implements IAppointmentDAO {
     async getAll(filters?: { userId?: string; mechanicId?: string }): Promise<any[]> {
@@ -9,6 +9,11 @@ export class AppointmentDAO implements IAppointmentDAO {
             url += `?${params.toString()}`;
         }
         return apiClient.get(url);
+    }
+
+    /** The signed-in mechanic's rating and finished jobs. */
+    async getMyStats(): Promise<MechanicStats> {
+        return apiClient.get<MechanicStats>('/api/appointments/stats/me');
     }
 
     async create(appointment: any): Promise<any> {
