@@ -29,6 +29,7 @@ import { useTranslation } from "react-i18next";
 import {
   Image,
   Keyboard,
+  KeyboardAvoidingView,
   Modal,
   Platform,
   Text,
@@ -88,6 +89,45 @@ export default function LoginScreen() {
   };
   const hideError = () =>
     setErrorModal((prev) => ({ ...prev, visible: false }));
+
+  // Forgot password — same flow as the fleet portal: one email field, the
+  // backend emails a reset link and answers 200 whether or not the account exists.
+  const [forgotVisible, setForgotVisible] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotMsg, setForgotMsg] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+
+  const openForgot = () => {
+    setForgotEmail(emailAddress);
+    setForgotMsg(null);
+    setForgotVisible(true);
+  };
+  const closeForgot = () => {
+    if (forgotLoading) return;
+    setForgotVisible(false);
+  };
+
+  const handleForgotSubmit = async () => {
+    const email = forgotEmail.trim();
+    if (!email || !email.includes("@")) {
+      setForgotMsg({ type: "error", text: t("login.forgotInvalidEmail") });
+      return;
+    }
+    setForgotLoading(true);
+    setForgotMsg(null);
+    try {
+      await userDAO.requestPasswordReset(email);
+      setForgotMsg({ type: "success", text: t("login.resetSuccessNotice") });
+    } catch (err: unknown) {
+      const message = err instanceof ApiError ? err.apiMessage : "";
+      setForgotMsg({ type: "error", text: message || t("login.forgotFailed") });
+    } finally {
+      setForgotLoading(false);
+    }
+  };
 
   useEffect(() => {
     const loadLastPhone = async () => {
@@ -564,6 +604,15 @@ export default function LoginScreen() {
                           />
                         }
                       />
+                      <TouchableOpacity
+                        onPress={openForgot}
+                        className="self-end -mt-1"
+                        hitSlop={8}
+                      >
+                        <Text className="text-white/90 font-outfit-medium underline">
+                          {t("login.forgotPassword")}
+                        </Text>
+                      </TouchableOpacity>
                     </View>
                   ) : (
                     <View className="flex-row gap-3">
@@ -717,6 +766,110 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
         </View>
+      </Modal>
+
+      {/* Forgot Password Modal */}
+      <Modal
+        visible={forgotVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={closeForgot}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          className="flex-1"
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View className="flex-1 bg-black/40 justify-center items-center px-6">
+              <View className="bg-white rounded-3xl w-full p-8 shadow-xl">
+                <View className="w-16 h-16 bg-blue-50 rounded-full justify-center items-center mb-6 self-center">
+                  <Ionicons name="key-outline" size={30} color="#1D4ED8" />
+                </View>
+
+                <Text className="text-xl font-outfit-bold text-[#0F172A] mb-2 text-center">
+                  {t("login.forgotModalTitle")}
+                </Text>
+
+                <Text className="text-base font-outfit-regular text-slate-500 text-center mb-6">
+                  {t("login.forgotModalSubtitle")}
+                </Text>
+
+                {forgotMsg && (
+                  <View
+                    className={`flex-row items-start rounded-xl px-4 py-3 mb-4 ${
+                      forgotMsg.type === "success" ? "bg-green-50" : "bg-red-50"
+                    }`}
+                  >
+                    <Ionicons
+                      name={
+                        forgotMsg.type === "success"
+                          ? "checkmark-circle"
+                          : "alert-circle"
+                      }
+                      size={20}
+                      color={forgotMsg.type === "success" ? "#16A34A" : "#EF4444"}
+                    />
+                    <Text
+                      className={`flex-1 ml-2 font-outfit-medium ${
+                        forgotMsg.type === "success"
+                          ? "text-green-700"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {forgotMsg.text}
+                    </Text>
+                  </View>
+                )}
+
+                {forgotMsg?.type !== "success" && (
+                  <Input
+                    placeholder={t("login.email")}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoComplete="email"
+                    value={forgotEmail}
+                    onChangeText={setForgotEmail}
+                    editable={!forgotLoading}
+                    containerClassName="border border-slate-200 mb-6"
+                    leftIcon={
+                      <Ionicons name="mail-outline" size={20} color="#9CA3AF" />
+                    }
+                  />
+                )}
+
+                {forgotMsg?.type === "success" ? (
+                  <TouchableOpacity
+                    className="bg-blue-700 w-full py-4 rounded-xl shadow-sm active:opacity-90"
+                    onPress={closeForgot}
+                  >
+                    <Text className="text-white text-center font-outfit-bold text-lg">
+                      {t("login.close")}
+                    </Text>
+                  </TouchableOpacity>
+                ) : (
+                  <>
+                    <Button
+                      onPress={handleForgotSubmit}
+                      isLoading={forgotLoading}
+                      className="mb-3"
+                    >
+                      {t("login.sendResetButton")}
+                    </Button>
+                    <TouchableOpacity
+                      className="bg-slate-100 w-full py-4 rounded-xl active:opacity-90"
+                      onPress={closeForgot}
+                      disabled={forgotLoading}
+                    >
+                      <Text className="text-slate-700 text-center font-outfit-bold text-lg">
+                        {t("login.cancel")}
+                      </Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
       </Modal>
     </>
   );

@@ -102,23 +102,15 @@ export default function PersonalInfoScreen() {
         }
     };
 
-    const getPlainPhoneNumber = (text: string) => {
-        if (!text) return '';
-        const cleaned = text.replace(/\D/g, '');
-        if (cleaned.length === 10) {
-            return `+1${cleaned}`;
-        }
-        if (cleaned.length === 11 && cleaned.startsWith('1')) {
-            return `+${cleaned}`;
-        }
-        return `+${cleaned}`;
-    };
-
     const handleUpdate = async () => {
         // The backend DTO only whitelists `addresses` (an array); sending the
         // singular `address` object gets the whole PATCH rejected with a 400,
         // which silently dropped every field on this screen — photo included.
-        const { address, ...rest } = formData;
+        // Phone and email stay out too: users-service refuses contact changes
+        // here (CONTACT_CHANGE_REQUIRES_VERIFICATION), and an account with no
+        // phone sent `phone: ''`, which counted as a change and failed the save.
+        // The phone has its own screen, which proves the number with a code.
+        const { address, phone, email, ...rest } = formData;
         const hasAddress = !!(address.street || address.city);
         const [existingAddress, ...otherAddresses] = user?.addresses ?? [];
         // `id` is kept only to satisfy the Address type — the backend strips it
@@ -132,7 +124,6 @@ export default function PersonalInfoScreen() {
 
         const payloadToUpdate = {
             ...rest,
-            phone: getPlainPhoneNumber(formData.phone),
             // The backend replaces the whole set (deleteMany + create), so keep
             // the addresses this screen does not edit.
             ...(hasAddress && { addresses: [editedAddress, ...otherAddresses] }),
@@ -257,21 +248,43 @@ export default function PersonalInfoScreen() {
 
                     <View>
                         <Text className="font-outfit-medium mb-2 text-gray-900">{t('personalInfo.email')}</Text>
+                        {/* Read-only: users-service refuses contact changes in a profile PATCH. */}
                         <Input
                             value={formData.email}
-                            onChangeText={(text) => setFormData({ ...formData, email: text })}
-                            containerClassName="bg-white border border-gray-300 rounded-2xl"
+                            editable={false}
+                            containerClassName="bg-gray-100 border border-gray-300 rounded-2xl text-gray-500"
                             keyboardType="email-address"
                         />
                     </View>
 
                     <View>
                         <Text className="font-outfit-medium mb-2 text-gray-900">{t('personalInfo.phoneNumber')}</Text>
-                        <Input
-                            value={formData.phone}
-                            editable={false}
-                            containerClassName="bg-gray-100 border border-gray-300 rounded-2xl text-gray-500"
-                        />
+                        {/*
+                          Read from `user`, not the form: the form is hydrated once,
+                          and the phone changes on its own screen. A phone is never
+                          typed here — it has to be proved with a code.
+                        */}
+                        <View className="flex-row items-center gap-3">
+                            <View className="flex-1">
+                                <Input
+                                    value={user.phone ? formatPhoneNumber(user.phone) : ''}
+                                    placeholder={t('phoneChange.noPhone')}
+                                    editable={false}
+                                    containerClassName="bg-gray-100 border border-gray-300 rounded-2xl text-gray-500"
+                                />
+                            </View>
+                            <TouchableOpacity
+                                onPress={() => router.push('/phone-change' as any)}
+                                activeOpacity={0.8}
+                                className="px-4 py-3 rounded-2xl"
+                                style={{ backgroundColor: '#E9F1FF' }}
+                                testID="personal-info-phone-action"
+                            >
+                                <Text className="font-outfit-semibold text-[#0047AB]">
+                                    {user.phone ? t('phoneChange.fieldChange') : t('phoneChange.fieldAdd')}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
 
                     <View>

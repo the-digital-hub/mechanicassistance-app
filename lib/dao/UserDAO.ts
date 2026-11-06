@@ -91,6 +91,18 @@ export class UserDAO implements IUserDAO {
     }
 
     /**
+     * Asks auth-service to email a password-reset link.
+     *
+     * The backend answers 200 whether or not the email belongs to an account,
+     * so a success only means the request was accepted.
+     */
+    async requestPasswordReset(email: string): Promise<void> {
+        await apiClient.post('/api/auth/password/forgot', {
+            email: email.trim().toLowerCase(),
+        });
+    }
+
+    /**
      * Trades a pre-refresh-token session for a current one.
      *
      * Older builds stored a single long-lived access token and nothing else.

@@ -413,6 +413,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="phone-change"
+        options={{
+          href: null,
+          title: t('tabs.profile'),
+          headerLeft: () => <PersonalInfoHeaderLeft />,
+          headerRight: () => <PersonalInfoHeaderRight />,
+        }}
+      />
+      <Tabs.Screen
         name="service-base"
         options={{
           href: null,

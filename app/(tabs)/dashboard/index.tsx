@@ -4,6 +4,7 @@ import { UserRequestCard } from '@/components/ui/UserRequestCard';
 import { MechanicActiveJobCard } from '@/components/ui/MechanicActiveJobCard';
 import { useAppointments, type Appointment } from '@/context/AppointmentsContext';
 import { MechanicFeedStatusBanner } from '@/components/MechanicFeedStatusBanner';
+import { AddPhoneBanner } from '@/components/AddPhoneBanner';
 import { useMechanicStatus } from '@/context/MechanicStatusContext';
 import type { MechanicStatus } from '@/lib/dao/interfaces';
 import { useSocket } from '@/context/SocketContext';
@@ -324,6 +325,8 @@ export default function DashboardScreen() {
                     <Text className="text-gray-500 font-outfit-regular text-base mb-8">
                         {t('dashboard.mechanic.reviewSubtitle')}
                     </Text>
+
+                    <AddPhoneBanner className="mb-6" />
 
                     {/* Active jobs — otherwise only reachable from the Appointments tab */}
                     {activeJobs.length > 0 && (
@@ -796,6 +799,8 @@ export default function DashboardScreen() {
                         <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, marginTop: 8, color: '#6B7490' }}>
                             {t('dashboard.user.subtitle')}
                         </Text>
+
+                        <AddPhoneBanner className="mt-4" />
 
                         {/* Assistance Type Buttons — same catalog as the type picker */}
                         <View className="flex-row flex-wrap" style={{ gap: TYPE_GRID_GAP, marginTop: 18 }}>
