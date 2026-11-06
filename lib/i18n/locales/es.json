@@ -1780,6 +1780,12 @@
     "addNew": "Agregar nueva dirección",
     "empty": "Todavía no hay direcciones",
     "emptyHint": "Empezá agregando tu primera dirección"
+,
+    "pickTitle": "Elegí tu ubicación base",
+    "pickSubtitle": "Las solicitudes de servicio se miden desde esta dirección. Tocá la dirección desde donde trabajás.",
+    "baseBadge": "UBICACIÓN BASE",
+    "setBaseFailedTitle": "No se pudo cambiar la ubicación base",
+    "setBaseFailedMessage": "Intentá de nuevo."
   },
   "addressForm": {
     "requiredFields": "Completá todos los campos obligatorios",

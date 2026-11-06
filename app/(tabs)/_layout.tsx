@@ -413,6 +413,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="service-base"
+        options={{
+          href: null,
+          title: t('profile.menu.availability'),
+          headerLeft: () => <PersonalInfoHeaderLeft />,
+          headerRight: () => <PersonalInfoHeaderRight />,
+        }}
+      />
+      <Tabs.Screen
         name="payment-cards"
         options={{
           href: null,

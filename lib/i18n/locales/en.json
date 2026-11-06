@@ -1780,6 +1780,12 @@
     "addNew": "Add New Address",
     "empty": "No addresses yet",
     "emptyHint": "Start by adding your first address"
+,
+    "pickTitle": "Choose your base location",
+    "pickSubtitle": "Service requests are measured from this address. Tap the one you work from.",
+    "baseBadge": "BASE LOCATION",
+    "setBaseFailedTitle": "Could not change base location",
+    "setBaseFailedMessage": "Please try again."
   },
   "addressForm": {
     "requiredFields": "Please fill in all required fields",

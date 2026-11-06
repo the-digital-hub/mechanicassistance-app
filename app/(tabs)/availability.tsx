@@ -95,7 +95,7 @@ export default function ProfileAvailabilityScreen() {
         <AvailabilityForm
             initialValue={availabilityFromUser(account)}
             baseLocation={baseLocationFromAddresses(account.addresses)}
-            onEditLocation={() => router.push('/(tabs)/addresses')}
+            onEditLocation={() => router.push('/(tabs)/service-base')}
             submitLabel={t('setup.availability.saveChanges')}
             submitting={isSaving}
             onSubmit={handleSubmit}

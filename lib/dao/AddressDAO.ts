@@ -6,6 +6,7 @@ export interface IAddressDAO {
     create(address: Partial<Address> & { userId: string }): Promise<Address>;
     update(id: string, updates: Partial<Address>): Promise<Address>;
     delete(id: string): Promise<void>;
+    setServiceBase(id: string): Promise<Address>;
 }
 
 class AddressDAO implements IAddressDAO {
@@ -23,6 +24,11 @@ class AddressDAO implements IAddressDAO {
 
     async delete(id: string): Promise<void> {
         return apiClient.delete(`/api/addresses/${id}`);
+    }
+
+    /** Makes this the address the mechanic receives requests from; the previous base loses the flag. */
+    async setServiceBase(id: string): Promise<Address> {
+        return apiClient.put(`/api/addresses/${encodeURIComponent(id)}/service-base`, {});
     }
 }
 
