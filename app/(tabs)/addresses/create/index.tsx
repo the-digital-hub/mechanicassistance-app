@@ -2,6 +2,7 @@ import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { Input } from '@/components/ui/Input';
 import { useUser } from '@/context/UserContext';
 import { useMechanicStatus } from '@/context/MechanicStatusContext';
+import { addressDAO } from '@/lib/dao/AddressDAO';
 import type { MechanicStatus } from '@/lib/dao/interfaces';
 import { US_STATES } from '@/lib/address';
 import type { ParsedAddress } from '@/lib/places';
@@ -15,7 +16,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 export default function CreateAddressScreen() {
     const router = useRouter();
     const { t } = useTranslation();
-    const { user, updateUser } = useUser();
+    const { user, refreshAddresses } = useUser();
     const { mechanicStatus, setMechanicStatus } = useMechanicStatus();
     const [isLoading, setIsLoading] = useState(false);
     const [showStateModal, setShowStateModal] = useState(false);
@@ -114,8 +115,15 @@ export default function CreateAddressScreen() {
 
         setIsLoading(true);
         try {
-            const updatedAddresses = user?.addresses ? [...user.addresses] : [];
-            updatedAddresses.push({
+            if (!user) return;
+            // One row through the addresses API. Saving the whole list through
+            // PATCH /users/:id recreated every row with new ids and left the
+            // new one without a role.
+            const role = user.role === 'user' || user.role === 'mechanic' ? user.role : undefined;
+            await addressDAO.create({
+                userId: user.id,
+                type: 'home',
+                role,
                 street: formData.street,
                 apartment: formData.apartment,
                 city: formData.city,
@@ -124,8 +132,7 @@ export default function CreateAddressScreen() {
                 locationLat: formData.locationLat,
                 locationLng: formData.locationLng
             });
-
-            await updateUser({ addresses: updatedAddresses });
+            await refreshAddresses();
             router.back();
         } catch {
             Alert.alert(t('addressForm.saveFailedTitle'), t('addressForm.saveFailedMessage'));

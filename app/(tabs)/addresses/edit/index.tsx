@@ -2,6 +2,7 @@ import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { Input } from '@/components/ui/Input';
 import { useUser } from '@/context/UserContext';
 import { useMechanicStatus } from '@/context/MechanicStatusContext';
+import { addressDAO } from '@/lib/dao/AddressDAO';
 import { US_STATES } from '@/lib/address';
 import type { ParsedAddress } from '@/lib/places';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -15,9 +16,10 @@ export default function EditAddressScreen() {
     const router = useRouter();
     const { t } = useTranslation();
     const params = useLocalSearchParams();
-    const { user, updateUser } = useUser();
+    const { user, refreshAddresses } = useUser();
     const { mechanicStatus, setMechanicStatus } = useMechanicStatus();
     const [isLoading, setIsLoading] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [showStateModal, setShowStateModal] = useState(false);
     const [showStatusModal, setShowStatusModal] = useState(false);
 
@@ -113,14 +115,28 @@ export default function EditAddressScreen() {
         setFormData(prev => ({ ...prev, street: text, locationLat: undefined, locationLng: undefined }));
     };
 
+    /**
+     * A session cached before addresses were saved one by one can hold rows
+     * without an id, or ids the server no longer has. Re-read them and send the
+     * person back to the list, where the indexes match again.
+     */
+    const recoverStaleAddress = async () => {
+        await refreshAddresses().catch(() => undefined);
+        Alert.alert(t('addressForm.saveFailedTitle'), t('addressForm.staleMessage'));
+        router.back();
+    };
+
     const handleUpdate = async () => {
-        if (!user?.addresses) return;
+        if (!existingAddress) return;
+        if (!existingAddress.id) {
+            await recoverStaleAddress();
+            return;
+        }
 
         setIsLoading(true);
         try {
-            const updatedAddresses = [...user.addresses];
-            updatedAddresses[addressIndex] = {
-                ...updatedAddresses[addressIndex],
+            // Only this row, through the addresses API: the fields its DTO accepts.
+            await addressDAO.update(existingAddress.id, {
                 street: formData.street,
                 apartment: formData.apartment,
                 city: formData.city,
@@ -128,15 +144,38 @@ export default function EditAddressScreen() {
                 zip: formData.zip,
                 locationLat: formData.locationLat,
                 locationLng: formData.locationLng
-            };
-
-            await updateUser({ addresses: updatedAddresses });
+            });
+            await refreshAddresses();
             router.back();
         } catch {
             Alert.alert(t('addressForm.saveFailedTitle'), t('addressForm.saveFailedMessage'));
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const deleteAddress = async () => {
+        if (!existingAddress?.id) {
+            await recoverStaleAddress();
+            return;
+        }
+        setIsDeleting(true);
+        try {
+            await addressDAO.delete(existingAddress.id);
+            await refreshAddresses();
+            router.back();
+        } catch {
+            Alert.alert(t('addressForm.deleteFailedTitle'), t('addressForm.deleteFailedMessage'));
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    const confirmDelete = () => {
+        Alert.alert(t('addressForm.deleteConfirmTitle'), t('addressForm.deleteConfirmMessage'), [
+            { text: t('addressForm.cancel'), style: 'cancel' },
+            { text: t('addressForm.delete'), style: 'destructive', onPress: () => void deleteAddress() },
+        ]);
     };
 
     return (
@@ -235,7 +274,7 @@ export default function EditAddressScreen() {
                     <TouchableOpacity
                         onPress={handleUpdate}
                         activeOpacity={0.8}
-                        disabled={isLoading}
+                        disabled={isLoading || isDeleting}
                         style={{ flex: 0.7 }}
                     >
                         <LinearGradient
@@ -259,6 +298,23 @@ export default function EditAddressScreen() {
                         </LinearGradient>
                     </TouchableOpacity>
                 </View>
+
+                {/* Delete */}
+                <TouchableOpacity
+                    onPress={confirmDelete}
+                    activeOpacity={0.8}
+                    disabled={isLoading || isDeleting}
+                    className="py-4 rounded-lg border items-center"
+                    style={{ borderColor: '#FCA5A5', backgroundColor: '#FEF2F2' }}
+                >
+                    {isDeleting ? (
+                        <ActivityIndicator color="#EF4444" />
+                    ) : (
+                        <Text className="font-outfit-semibold text-base" style={{ color: '#EF4444' }}>
+                            {t('addressForm.delete')}
+                        </Text>
+                    )}
+                </TouchableOpacity>
             </ScrollView>
 
             {/* State Modal */}

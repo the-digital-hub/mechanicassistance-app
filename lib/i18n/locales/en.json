@@ -1809,8 +1809,7 @@
     "subtitle": "Manage your saved addresses and choose your preferred locations",
     "addNew": "Add New Address",
     "empty": "No addresses yet",
-    "emptyHint": "Start by adding your first address"
-,
+    "emptyHint": "Start by adding your first address",
     "pickTitle": "Choose your base location",
     "pickSubtitle": "Service requests are measured from this address. Tap the one you work from.",
     "baseBadge": "BASE LOCATION",
@@ -1838,7 +1837,14 @@
     "create": "Create",
     "save": "Save",
     "selectState": "Select State",
-    "done": "Done"
+    "done": "Done",
+    "delete": "Delete address",
+    "cancel": "Cancel",
+    "deleteConfirmTitle": "Delete this address?",
+    "deleteConfirmMessage": "It will be removed from your profile. This cannot be undone.",
+    "deleteFailedTitle": "Could not delete",
+    "deleteFailedMessage": "The address could not be deleted. Please try again.",
+    "staleMessage": "Your addresses were out of date and have been reloaded. Open the address again."
   },
   "tabs": {
     "dashboard": "Dashboard",

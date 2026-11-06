@@ -1809,8 +1809,7 @@
     "subtitle": "Gestioná tus direcciones guardadas y elegí tus ubicaciones preferidas",
     "addNew": "Agregar nueva dirección",
     "empty": "Todavía no hay direcciones",
-    "emptyHint": "Empezá agregando tu primera dirección"
-,
+    "emptyHint": "Empezá agregando tu primera dirección",
     "pickTitle": "Elegí tu ubicación base",
     "pickSubtitle": "Las solicitudes de servicio se miden desde esta dirección. Tocá la dirección desde donde trabajás.",
     "baseBadge": "UBICACIÓN BASE",
@@ -1838,7 +1837,14 @@
     "create": "Crear",
     "save": "Guardar",
     "selectState": "Seleccionar estado",
-    "done": "Listo"
+    "done": "Listo",
+    "delete": "Eliminar dirección",
+    "cancel": "Cancelar",
+    "deleteConfirmTitle": "¿Eliminar esta dirección?",
+    "deleteConfirmMessage": "Se quitará de tu perfil. No se puede deshacer.",
+    "deleteFailedTitle": "No se pudo eliminar",
+    "deleteFailedMessage": "No se pudo eliminar la dirección. Intentá de nuevo.",
+    "staleMessage": "Tus direcciones estaban desactualizadas y se recargaron. Abrí la dirección de nuevo."
   },
   "tabs": {
     "dashboard": "Inicio",

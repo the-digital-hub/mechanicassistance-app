@@ -9,6 +9,7 @@ import {
     onSessionExpired,
     saveCachedUser,
 } from '@/lib/auth/session';
+import { addressDAO } from '@/lib/dao/AddressDAO';
 import { userDAO } from '@/lib/dao/UserDAO';
 import { AppRole, UserData } from '@/lib/dao/interfaces';
 import { firebaseSignOut } from '@/lib/firebase/auth';
@@ -41,6 +42,12 @@ interface UserContextType {
      * API error (403 role not held, 409 active jobs) and changes nothing then.
      */
     switchRole: (role: AppRole) => Promise<void>;
+    /**
+     * Re-reads the account's addresses from the server into the session user.
+     * Call it after any write to an address: ids, `role` and `isServiceBase`
+     * are the server's to decide, and a stale id makes the next call 404.
+     */
+    refreshAddresses: () => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -284,9 +291,16 @@ export function UserProvider({ children }: { children: ReactNode }) {
         await saveCachedUser(next);
     }, []);
 
+    const refreshAddresses = useCallback(async (): Promise<void> => {
+        const current = userRef.current;
+        if (!current) return;
+        const addresses = await addressDAO.getByUser(current.id);
+        await updateUser({ addresses }, false);
+    }, [updateUser]);
+
     const value = useMemo(
-        () => ({ user, isLoading, login, adoptSession, logout, updateUser, switchRole }),
-        [user, isLoading, login, adoptSession, logout, updateUser, switchRole],
+        () => ({ user, isLoading, login, adoptSession, logout, updateUser, switchRole, refreshAddresses }),
+        [user, isLoading, login, adoptSession, logout, updateUser, switchRole, refreshAddresses],
     );
 
     return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

@@ -17,7 +17,7 @@ import React, { useState } from 'react';
 export function AddressesList({ picking = false }: { picking?: boolean }) {
     const router = useRouter();
     const { t } = useTranslation();
-    const { user, updateUser } = useUser();
+    const { user, updateUser, refreshAddresses } = useUser();
     const [savingId, setSavingId] = useState<string | null>(null);
 
     const pickServiceBase = async (id: string) => {
@@ -25,11 +25,13 @@ export function AddressesList({ picking = false }: { picking?: boolean }) {
         setSavingId(id);
         try {
             await addressDAO.setServiceBase(id);
-            // Mirror the server: one base per account. Working hours refetches on
-            // focus anyway; this keeps the cached session user in step.
-            await updateUser(
-                { addresses: (user?.addresses ?? []).map((a) => ({ ...a, isServiceBase: a.id === id })) },
-                false,
+            // Keep the cached session user in step with the server. If the
+            // re-read fails, mirror the server's rule locally: one base per account.
+            await refreshAddresses().catch(() =>
+                updateUser(
+                    { addresses: (user?.addresses ?? []).map((a) => ({ ...a, isServiceBase: a.id === id })) },
+                    false,
+                ),
             );
             router.back();
         } catch (error) {
