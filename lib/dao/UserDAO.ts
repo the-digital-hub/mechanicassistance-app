@@ -345,6 +345,18 @@ export class UserDAO implements IUserDAO {
     ): Promise<{ status: MechanicStatus; isOnline: boolean }> {
         return apiClient.patch(`/api/users/${id}/presence`, { status });
     }
+
+    /**
+     * Records where the device is now, as the account's last known position.
+     * Sent on every app entry (cold start and return from background) by
+     * `useLocationRevalidation`, for both roles.
+     */
+    async updateLastLocation(
+        id: string,
+        position: { lat: number; lng: number; accuracyM?: number },
+    ): Promise<{ lastLat: number; lastLng: number; lastLocationAt: string }> {
+        return apiClient.patch(`/api/users/${id}/location`, position);
+    }
 }
 
 export const userDAO = new UserDAO();

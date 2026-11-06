@@ -2426,6 +2426,14 @@
       "title": "Update required",
       "message": "This version of the app is no longer supported. Update to keep going.",
       "action": "Update now"
+    },
+    "locationCheck": {
+      "servicesOffTitle": "Location is off",
+      "servicesOffMessage": "Turn on your phone's location so we can show you assistance near you.",
+      "permissionTitle": "Location needed",
+      "permissionMessage": "Allow location access in settings so we can show you assistance near you.",
+      "openSettings": "Open settings",
+      "notNow": "Not now"
     }
   },
   "vehicleColors": {

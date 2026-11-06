@@ -2426,6 +2426,14 @@
       "title": "Actualización necesaria",
       "message": "Esta versión de la app ya no está soportada. Actualizá para seguir.",
       "action": "Actualizar ahora"
+    },
+    "locationCheck": {
+      "servicesOffTitle": "Ubicación desactivada",
+      "servicesOffMessage": "Activá la ubicación del teléfono para que podamos mostrarte asistencia cerca tuyo.",
+      "permissionTitle": "Se necesita tu ubicación",
+      "permissionMessage": "Permití el acceso a la ubicación en los ajustes para que podamos mostrarte asistencia cerca tuyo.",
+      "openSettings": "Abrir ajustes",
+      "notNow": "Ahora no"
     }
   },
   "vehicleColors": {
