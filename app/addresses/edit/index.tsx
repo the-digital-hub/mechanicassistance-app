@@ -5,7 +5,8 @@ import { useMechanicStatus } from '@/context/MechanicStatusContext';
 import { US_STATES } from '@/lib/address';
 import type { ParsedAddress } from '@/lib/places';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ChevronLeft, ChevronRight, Circle, Bell } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, Circle } from 'lucide-react-native';
+import { NotificationBell } from '@/components/NotificationBell';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View, Modal, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -163,7 +164,7 @@ export default function EditAddressScreen() {
                     Profile
                 </Text>
                 <TouchableOpacity onPress={() => router.push('/(tabs)/notifications')}>
-                    <Bell size={24} color="#0047AB" />
+                    <NotificationBell />
                 </TouchableOpacity>
             </View>
 

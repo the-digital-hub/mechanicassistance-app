@@ -16,6 +16,7 @@ import { Image, Modal, Platform, Text, TouchableOpacity, View } from "react-nati
 import { LinearGradient } from "expo-linear-gradient";
 
 import { HapticTab } from "@/components/haptic-tab";
+import { NotificationBell } from "@/components/NotificationBell";
 import { MechanicLocationBroadcaster } from "@/components/MechanicLocationBroadcaster";
 import { LocationRevalidator } from "@/components/LocationRevalidator";
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -73,7 +74,7 @@ function PersonalInfoHeaderRight() {
       style={{ marginRight: 16 }}
       className="justify-center items-center"
     >
-      <Bell size={24} color="#0047AB" />
+      <NotificationBell />
     </TouchableOpacity>
   );
 }
@@ -220,7 +221,7 @@ export function NotificationHeaderRight() {
       style={{ marginRight: 16 }}
       className="justify-center items-center"
     >
-      <Bell size={24} color="#0047AB" />
+      <NotificationBell />
     </TouchableOpacity>
   );
 }
