@@ -8,6 +8,8 @@ import { videoCallBookedLabel } from '@/lib/video/videoCallTime';
 
 interface MechanicAssistanceInfoTabProps {
     appointment: any;
+    /** Sub-navbar split: `trip` = address and map; `vehicle` = car, issue, notes. Omitted = everything. */
+    section?: 'trip' | 'vehicle';
 }
 
 const ClientSideMap = ({ appointment }: { appointment: any }) => {
@@ -74,17 +76,19 @@ const ClientSideMap = ({ appointment }: { appointment: any }) => {
     );
 };
 
-export function MechanicAssistanceInfoTab({ appointment }: MechanicAssistanceInfoTabProps) {
+export function MechanicAssistanceInfoTab({ appointment, section }: MechanicAssistanceInfoTabProps) {
     const { t, i18n } = useTranslation();
     // A video call is remote: no address or map, just when it is booked for.
     const isVideoCall = (appointment?.assistanceType ?? appointment?.type) === 'videocall';
     const issueValue = appointment.vehicleIssues?.length
         ? appointment.vehicleIssues.map((i: { name: string }) => i.name).join(', ')
         : '—';
+    const showTrip = section !== 'vehicle';
+    const showVehicle = section !== 'trip';
 
     return (
         <View className="gap-3.5">
-            {isVideoCall ? (
+            {!showTrip ? null : isVideoCall ? (
                 <DetailCard>
                     <DetailRow icon="videocam-outline" label={t('appointments.ownerAccepted.rows.service')} value={t('appointments.detail.types.videocall')} />
                     <DetailRow icon="calendar-outline" label={t('appointments.videoCall.scheduledFor')} value={videoCallBookedLabel(appointment, i18n.language) ?? t('requestDetail.videoCallNow')} />
@@ -105,6 +109,7 @@ export function MechanicAssistanceInfoTab({ appointment }: MechanicAssistanceInf
             )}
 
             {/* Vehicle details */}
+            {showVehicle && (
             <DetailCard>
                 <DetailRow icon="car-outline" label={t('appointments.detail.info.car')} value={appointment.car} />
                 <DetailRow icon="construct-outline" label={t('appointments.detail.info.carIssue')} value={issueValue} />
@@ -115,6 +120,7 @@ export function MechanicAssistanceInfoTab({ appointment }: MechanicAssistanceInf
                     last
                 />
             </DetailCard>
+            )}
         </View>
     );
 }

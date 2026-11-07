@@ -59,7 +59,6 @@ import { ActivityIndicator, Alert, Dimensions, Platform, ScrollView, Text, Touch
 
 const { width } = Dimensions.get('window');
 
-type TabType = 'info' | 'client';
 
 // Mechanic "Request accepted" palette.
 const MECH = {
@@ -161,9 +160,8 @@ export default function AppointmentDetailScreen() {
     // Owner: the card the request is charged to (null = made before the app sent one → default card).
     const [paymentMethodId, setPaymentMethodId] = React.useState<string | null>(null);
 
-    const [activeTab, setActiveTab] = React.useState<TabType>('info');
     const [ownerTab, setOwnerTab] = React.useState<OwnerTab>('status');
-    // Mechanic on a video call: the owner's sub-navbar, with "mechanic" standing for the client.
+    // Mechanic: the owner's sub-navbar, with "mechanic" standing for the client.
     const [mechTab, setMechTab] = React.useState<OwnerTab>('status');
     const [checkInSeen, setCheckInSeen] = React.useState(false);
     const openOwnerTab = (tab: OwnerTab) => {
@@ -333,11 +331,6 @@ export default function AppointmentDetailScreen() {
         };
     }, [isUserRole, isVideoCall, appointment?.id]);
 
-    const tabs: { key: TabType; label: string }[] = React.useMemo(() => [
-        { key: 'info', label: t('appointments.detail.tabs.assistanceInfo') },
-        { key: 'client', label: t('appointments.detail.tabs.clientInfo') },
-    ], [t]);
-
     if (!appointment) {
         return (
             <View className="flex-1 bg-white justify-center items-center p-6">
@@ -504,11 +497,22 @@ export default function AppointmentDetailScreen() {
         }
     };
 
-    const renderTabContent = () => {
-        switch (activeTab) {
+    // Mechanic on an on-site job: same sub-navbar, Status carries the trip and the map.
+    const renderMechanicOnSitePanel = () => {
+        switch (mechTab) {
+            case 'status':
+                return <MechanicAssistanceInfoTab appointment={appointment} section="trip" />;
             case 'info':
-                return <MechanicAssistanceInfoTab appointment={appointment} />;
-            case 'client':
+                return (
+                    <View style={{ gap: 12 }}>
+                        <MechanicAssistanceInfoTab appointment={appointment} section="vehicle" />
+                        {parseAttachments(appointment.photos).length > 0 && <AttachmentStrip photos={appointment.photos} />}
+                    </View>
+                );
+            case 'budget':
+                // `budget` already comes back as what the mechanic earns, never the customer's price.
+                return <OwnerBudgetPanel total={(appointment.budget ?? '').replace(/^\$/, '') || null} totalLabel={t('appointments.receipt.youEarn')} />;
+            case 'mechanic':
                 return (
                     <MechanicClientInfoTab
                         client={client}
@@ -818,7 +822,7 @@ export default function AppointmentDetailScreen() {
                                 </View>
                             ) : null}
 
-                            {/* Quick-nav tabs — a video call uses the owner's sub-navbar */}
+                            {/* Quick-nav sub-navbar (the owner's), set per kind of job */}
                             {isVideoCall ? (
                                 <>
                                     <View className="mx-4 mt-3.5">
@@ -841,32 +845,18 @@ export default function AppointmentDetailScreen() {
                                 </>
                             ) : (
                                 <>
-                                    <View className="mx-4 mt-3.5 flex-row gap-2.5" testID="tab-navigation-container" nativeID="tab-navigation-container">
-                                        {tabs.map((tab) => {
-                                            const isActive = activeTab === tab.key;
-                                            return (
-                                                <TouchableOpacity
-                                                    key={tab.key}
-                                                    testID={`tab-button-${tab.key}`}
-                                                    className="flex-1 items-center py-3.5"
-                                                    style={{
-                                                        borderRadius: 14,
-                                                        borderWidth: 1.5,
-                                                        borderColor: isActive ? MECH.blue : MECH.border,
-                                                        backgroundColor: isActive ? MECH.blueSoft : '#FFFFFF',
-                                                    }}
-                                                    onPress={() => setActiveTab(tab.key)}
-                                                >
-                                                    <Text className="font-outfit-bold text-[13px]" style={{ color: isActive ? MECH.blue : MECH.text }}>
-                                                        {tab.label}
-                                                    </Text>
-                                                </TouchableOpacity>
-                                            );
-                                        })}
+                                    <View className="mx-4 mt-3.5" testID="tab-navigation-container" nativeID="tab-navigation-container">
+                                        <OwnerTabs
+                                            active={mechTab}
+                                            onChange={setMechTab}
+                                            checkInDot={false}
+                                            hideCheckIn
+                                            labels={{ mechanic: t('appointments.videoCall.mechanic.tabs.client') }}
+                                        />
                                     </View>
 
                                     <View className="px-4 pt-3.5 pb-10" testID="tab-content-container" nativeID="tab-content-container">
-                                        {renderTabContent()}
+                                        {renderMechanicOnSitePanel()}
                                     </View>
                                 </>
                             )}
