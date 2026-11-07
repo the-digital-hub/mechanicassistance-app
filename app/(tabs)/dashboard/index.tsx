@@ -127,8 +127,11 @@ export default function DashboardScreen() {
     const { user, isLoading: isUserLoading } = useUser();
     const { types: assistanceTypes, languageId } = useAssistanceTypeCatalog();
     const { width: screenWidth } = useWindowDimensions();
-    const typeButtonWidth =
-        (screenWidth - DASHBOARD_PADDING_X * 2 - TYPE_GRID_GAP * (TYPE_GRID_COLUMNS - 1)) / TYPE_GRID_COLUMNS;
+    // Floored: an exact fractional fit gets rounded up by the layout engine and
+    // wraps the third tile onto the next row.
+    const typeButtonWidth = Math.floor(
+        (screenWidth - DASHBOARD_PADDING_X * 2 - TYPE_GRID_GAP * (TYPE_GRID_COLUMNS - 1)) / TYPE_GRID_COLUMNS,
+    );
     const [filter, setFilter] = useState<string | null>(null);
     // Owner's tapped assistance type; null falls back to the first of the catalog.
     const [selectedTypeId, setSelectedTypeId] = useState<string | null>(null);
