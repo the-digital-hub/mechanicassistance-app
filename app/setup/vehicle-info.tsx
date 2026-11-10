@@ -1,13 +1,12 @@
 import { saveSetupProgress } from "@/lib/storage";
 import { VehicleForm, type VehicleFormPayload } from "@/components/vehicles/VehicleForm";
+import { VehicleFormHeader } from "@/components/vehicles/vehicleFormDesign";
 import { useRouter } from "expo-router";
 import { ChevronRight } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -129,39 +128,17 @@ export default function VehicleInfoScreen() {
   }
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={{ flex: 1 }}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-    >
-      <ScrollView
-        style={{ backgroundColor: '#F6F8FC' }}
-        contentContainerStyle={{ padding: 24, paddingBottom: 40 }}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Section Badge */}
-        <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
-          <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
-          <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-            {t("setup.vehicleInfo.badge")}
-          </Text>
-        </View>
-
-        {/* Title */}
-        <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
-          {t("setup.vehicleInfo.title")}
-        </Text>
-
-        {/* Subtitle */}
-        <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-          {t("setup.vehicleInfo.subtitle")}
-        </Text>
-
-        <VehicleForm
-          submitLabel={t("setup.vehicleInfo.continue")}
-          onSubmit={handleAddVehicle}
+    <VehicleForm
+      submitLabel={t("setup.vehicleInfo.continue")}
+      onSubmit={handleAddVehicle}
+      safeBottom
+      header={
+        <VehicleFormHeader
+          badge={t("setup.vehicleInfo.badge")}
+          title={t("setup.vehicleInfo.title")}
+          subtitle={t("setup.vehicleInfo.subtitle")}
         />
-      </ScrollView>
-    </KeyboardAvoidingView>
+      }
+    />
   );
 }

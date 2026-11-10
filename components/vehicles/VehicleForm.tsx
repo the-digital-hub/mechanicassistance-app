@@ -1,18 +1,28 @@
 import { SearchableSelect } from '@/components/ui/SearchableSelect';
-import { Input } from '@/components/ui/Input';
 import { CatalogSelect } from '@/components/vehicles/CatalogSelect';
 import { TireSizeSelect } from '@/components/vehicles/TireSizeSelect';
 import { VehicleColorSelect } from '@/components/vehicles/VehicleColorSelect';
 import { VehicleFormSection } from '@/components/vehicles/VehicleFormSection';
-import type { Vehicle, VehicleDecodedFields } from '@/lib/dao/interfaces';
+import { AV, AVCheckbox, AVField, AVRow, AVTextInput } from '@/components/vehicles/vehicleFormDesign';
+import { VIN_LENGTH, VinCard } from '@/components/vehicles/VinCard';
+import type { Vehicle, VehicleDecodedFields, VehicleStatus } from '@/lib/dao/interfaces';
 import { decodeVin, fetchMakes, fetchModelsByMake } from '@/lib/vehicle';
 import { TireSize, formatTireSize, parseTireSize } from '@/lib/vehicleTires';
-import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight } from 'lucide-react-native';
-import { Children, ReactNode, useEffect, useMemo, useState } from 'react';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, KeyboardTypeOptions, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+    ActivityIndicator,
+    Alert,
+    KeyboardAvoidingView,
+    KeyboardTypeOptions,
+    Platform,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 /**
  * What the form hands back: the fields of POST /api/vehicles (and of each
@@ -29,9 +39,16 @@ interface VehicleFormProps {
     submitLabel: string;
     submitting?: boolean;
     onSubmit: (payload: VehicleFormPayload) => void | Promise<void>;
+    /** Scrolls with the form, above the VIN card (badge, title, subtitle). */
+    header?: ReactNode;
+    /** Pads the fixed footer for the home indicator; off when a tab bar sits below. */
+    safeBottom?: boolean;
 }
 
-type SectionKey = 'vin' | 'info' | 'technical' | 'tires' | 'insurance' | 'additional';
+type SectionKey = 'info' | 'technical' | 'tires' | 'insurance' | 'additional';
+
+/** GPS tracker select. The backend keeps only a yes/no (`hasGps`). */
+type GpsOption = '' | 'none' | 'builtin' | 'aftermarket';
 
 interface FormValues {
     vin: string;
@@ -43,6 +60,8 @@ interface FormValues {
     colorId: string | null;
     plate: string;
     plateState: string;
+    status: VehicleStatus | '';
+    gps: GpsOption;
     vehicleTypeId: string;
     engineTypeId: string;
     fuelTypeId: string;
@@ -64,8 +83,24 @@ interface FormValues {
 }
 
 type FieldKey = keyof FormValues;
-type TextFieldKey = Exclude<FieldKey, 'frontTires' | 'rearTires' | 'colorId'>;
-type ErrorCode = 'required' | 'vinLength' | 'plateState' | 'naic' | 'number' | 'tireIncomplete';
+type TextFieldKey =
+    | 'year'
+    | 'trim'
+    | 'plate'
+    | 'plateState'
+    | 'bodyClass'
+    | 'transmissionStyle'
+    | 'driveType'
+    | 'doors'
+    | 'displacementL'
+    | 'engineHp'
+    | 'engineCylinders'
+    | 'insuranceCompany'
+    | 'insuranceCompanyCode'
+    | 'insurancePolicyNumber'
+    | 'mileage'
+    | 'details';
+type ErrorCode = 'vinRequired' | 'vinLength' | 'plateState' | 'naic' | 'number' | 'tireIncomplete';
 
 /** Decoded VIN data that has no field of its own; saved as it came. */
 type HiddenDecoded = Pick<
@@ -75,11 +110,7 @@ type HiddenDecoded = Pick<
 
 /** Where each validated field lives, to open its section when it fails. */
 const FIELD_SECTION: Partial<Record<FieldKey, SectionKey>> = {
-    vin: 'vin',
-    make: 'info',
-    model: 'info',
     year: 'info',
-    plate: 'info',
     plateState: 'info',
     doors: 'technical',
     displacementL: 'technical',
@@ -101,6 +132,19 @@ const NUMBER_RULES: Partial<Record<TextFieldKey, { min: number; max: number; int
     mileage: { min: 0, max: 10_000_000, integer: true },
 };
 
+/** Operational status choices of the design, mapped to the backend's values. */
+const STATUS_OPTIONS: { value: VehicleStatus; key: string }[] = [
+    { value: 'active', key: 'statusActive' },
+    { value: 'out_of_service', key: 'statusInactive' },
+    { value: 'maintenance', key: 'statusRepair' },
+];
+
+const GPS_OPTIONS: { value: Exclude<GpsOption, ''>; key: string }[] = [
+    { value: 'none', key: 'gpsNone' },
+    { value: 'builtin', key: 'gpsBuiltIn' },
+    { value: 'aftermarket', key: 'gpsAftermarket' },
+];
+
 const str = (v?: string | number | null) => (v === undefined || v === null ? '' : String(v));
 const text = (s: string) => s.trim() || null;
 const num = (s: string) => (s.trim() === '' ? null : Number(s.trim().replace(',', '.')));
@@ -115,6 +159,8 @@ const toValues = (v?: Partial<Vehicle>): FormValues => ({
     colorId: v?.colorId ?? null,
     plate: str(v?.plate),
     plateState: str(v?.plateState),
+    status: v?.status ?? 'active',
+    gps: v?.hasGps === undefined ? '' : v.hasGps ? 'builtin' : 'none',
     vehicleTypeId: str(v?.vehicleTypeId),
     engineTypeId: str(v?.engineTypeId),
     fuelTypeId: str(v?.fuelTypeId),
@@ -137,10 +183,9 @@ const toValues = (v?: Partial<Vehicle>): FormValues => ({
 
 const validate = (v: FormValues): Partial<Record<FieldKey, ErrorCode>> => {
     const errors: Partial<Record<FieldKey, ErrorCode>> = {};
-    if (v.vin.trim() && v.vin.trim().length !== 17) errors.vin = 'vinLength';
-    if (!v.make) errors.make = 'required';
-    if (!v.model) errors.model = 'required';
-    if (!v.plate.trim()) errors.plate = 'required';
+    const vin = v.vin.trim();
+    if (!vin) errors.vin = 'vinRequired';
+    else if (vin.length !== VIN_LENGTH) errors.vin = 'vinLength';
     if (v.plateState.trim() && !/^[A-Za-z]{2}$/.test(v.plateState.trim())) errors.plateState = 'plateState';
     if (v.insuranceCompanyCode.trim() && !/^\d{5}$/.test(v.insuranceCompanyCode.trim())) {
         errors.insuranceCompanyCode = 'naic';
@@ -173,6 +218,8 @@ const toPayload = (v: FormValues, hidden: HiddenDecoded | null): VehicleFormPayl
     // Fields with a backend default are left out when empty, so the default
     // applies; the other optional ones are cleared with null.
     plateState: v.plateState.trim().toUpperCase() || undefined,
+    status: v.status || undefined,
+    hasGps: v.gps ? v.gps !== 'none' : undefined,
     vehicleTypeId: v.vehicleTypeId || undefined,
     engineTypeId: v.engineTypeId || undefined,
     spareTireTypeId: v.spareTireTypeId || undefined,
@@ -194,33 +241,29 @@ const toPayload = (v: FormValues, hidden: HiddenDecoded | null): VehicleFormPayl
     ...hidden,
 });
 
-/** Lays fields side by side, each taking an equal share of the width. */
-const Row = ({ children }: { children: ReactNode }) => (
-    <View className="flex-row gap-3">
-        {Children.map(children, child => (
-            <View style={{ flex: 1 }}>{child}</View>
-        ))}
-    </View>
-);
-
 /**
  * The vehicle owner's vehicle form, shared by the Vehicles tab and the vehicle
- * step of sign-up. Same fields as the vehicle owner portal, minus the fleet
- * ones (operational status, GPS tracker), which keep their backend defaults.
+ * step of sign-up. Laid out as the Claude Design "Add Vehicle" mock: VIN card
+ * first (the one required field), collapsible sections, and a fixed Save bar.
  */
-export function VehicleForm({ initialValue, submitLabel, submitting, onSubmit }: VehicleFormProps) {
+export function VehicleForm({ initialValue, submitLabel, submitting, onSubmit, header, safeBottom }: VehicleFormProps) {
     const { t } = useTranslation();
+    const insets = useSafeAreaInsets();
     const [values, setValues] = useState<FormValues>(() => toValues(initialValue));
     const [hidden, setHidden] = useState<HiddenDecoded | null>(null);
+    const [decoded, setDecoded] = useState(false);
     const [errors, setErrors] = useState<Partial<Record<FieldKey, ErrorCode>>>({});
     const [open, setOpen] = useState<Record<SectionKey, boolean>>({
-        vin: true,
         info: true,
         technical: false,
         tires: false,
         insurance: false,
         additional: false,
     });
+    // Rear mirrors front until unticked; starts unticked only when the saved sizes differ.
+    const [rearSame, setRearSame] = useState(
+        () => formatTireSize(values.frontTires) === formatTireSize(values.rearTires),
+    );
     const [isVinSearching, setIsVinSearching] = useState(false);
     const [makes, setMakes] = useState<string[]>([]);
     const [models, setModels] = useState<string[]>([]);
@@ -258,6 +301,14 @@ export function VehicleForm({ initialValue, submitLabel, submitting, onSubmit }:
 
     const makeOptions = useMemo(() => makes.map(m => ({ value: m, label: m })), [makes]);
     const modelOptions = useMemo(() => models.map(m => ({ value: m, label: m })), [models]);
+    const statusOptions = useMemo(
+        () => STATUS_OPTIONS.map(o => ({ value: o.value, label: t(`vehicles.form.design.${o.key}`) })),
+        [t],
+    );
+    const gpsOptions = useMemo(
+        () => GPS_OPTIONS.map(o => ({ value: o.value, label: t(`vehicles.form.design.${o.key}`) })),
+        [t],
+    );
 
     const set = <K extends FieldKey>(key: K, value: FormValues[K]) => {
         setValues(prev => ({ ...prev, [key]: value }));
@@ -269,9 +320,24 @@ export function VehicleForm({ initialValue, submitLabel, submitting, onSubmit }:
     const sectionHasError = (key: SectionKey) =>
         (Object.keys(errors) as FieldKey[]).some(f => errors[f] && FIELD_SECTION[f] === key);
 
+    const errorText = (key: FieldKey) => (errors[key] ? t(`vehicles.form.errors.${errors[key]}`) : null);
+
+    const setFrontTires = (v: TireSize) => {
+        setValues(prev => ({ ...prev, frontTires: v, rearTires: rearSame ? { ...v } : prev.rearTires }));
+        setErrors(prev => ({ ...prev, frontTires: undefined, rearTires: rearSame ? undefined : prev.rearTires }));
+    };
+
+    const toggleRearSame = () => {
+        if (!rearSame) {
+            setValues(prev => ({ ...prev, rearTires: { ...prev.frontTires } }));
+            setErrors(prev => ({ ...prev, rearTires: undefined }));
+        }
+        setRearSame(!rearSame);
+    };
+
     const handleVinLookup = async () => {
         const vin = values.vin.trim();
-        if (vin.length !== 17) {
+        if (vin.length !== VIN_LENGTH) {
             Alert.alert(t('vehicles.invalidVinTitle'), t('vehicles.invalidVinMessage'));
             return;
         }
@@ -280,38 +346,34 @@ export function VehicleForm({ initialValue, submitLabel, submitting, onSubmit }:
         try {
             await decodeVin(
                 vin,
-                (make, decodedModel, decoded) => {
+                (make, decodedModel, d) => {
                     const model = decodedModel === 'Select' ? '' : decodedModel;
                     setValues(prev => ({
                         ...prev,
                         make,
                         model,
-                        year: str(decoded.year) || prev.year,
-                        trim: decoded.trim ?? prev.trim,
-                        bodyClass: decoded.bodyClass ?? prev.bodyClass,
-                        transmissionStyle: decoded.transmissionStyle ?? prev.transmissionStyle,
-                        driveType: decoded.driveType ?? prev.driveType,
-                        doors: str(decoded.doors) || prev.doors,
-                        displacementL: str(decoded.displacementL) || prev.displacementL,
-                        engineHp: str(decoded.engineHp) || prev.engineHp,
-                        engineCylinders: str(decoded.engineCylinders) || prev.engineCylinders,
-                        vehicleTypeId: decoded.vehicleTypeId ?? prev.vehicleTypeId,
-                        engineTypeId: decoded.engineTypeId ?? prev.engineTypeId,
+                        year: str(d.year) || prev.year,
+                        trim: d.trim ?? prev.trim,
+                        bodyClass: d.bodyClass ?? prev.bodyClass,
+                        transmissionStyle: d.transmissionStyle ?? prev.transmissionStyle,
+                        driveType: d.driveType ?? prev.driveType,
+                        doors: str(d.doors) || prev.doors,
+                        displacementL: str(d.displacementL) || prev.displacementL,
+                        engineHp: str(d.engineHp) || prev.engineHp,
+                        engineCylinders: str(d.engineCylinders) || prev.engineCylinders,
+                        vehicleTypeId: d.vehicleTypeId ?? prev.vehicleTypeId,
+                        engineTypeId: d.engineTypeId ?? prev.engineTypeId,
                     }));
                     setHidden({
-                        nhtsaVehicleType: decoded.nhtsaVehicleType,
-                        manufacturer: decoded.manufacturer,
-                        fuelTypePrimary: decoded.fuelTypePrimary,
-                        electrificationLevel: decoded.electrificationLevel,
-                        plantCountry: decoded.plantCountry,
-                        vinDecoded: decoded.vinDecoded,
+                        nhtsaVehicleType: d.nhtsaVehicleType,
+                        manufacturer: d.manufacturer,
+                        fuelTypePrimary: d.fuelTypePrimary,
+                        electrificationLevel: d.electrificationLevel,
+                        plantCountry: d.plantCountry,
+                        vinDecoded: d.vinDecoded,
                     });
-                    setErrors(prev => ({ ...prev, vin: undefined, make: undefined, model: undefined }));
-                    Alert.alert(
-                        t('vehicles.vinDecodedTitle'),
-                        t('vehicles.vinDecodedMessage', { make, model }),
-                        [{ text: t('vehicles.ok') }],
-                    );
+                    setDecoded(true);
+                    setErrors(prev => ({ ...prev, vin: undefined, year: undefined }));
                 },
                 code => {
                     Alert.alert(t('vehicles.vinNotFoundTitle'), t(`vehicles.form.vinError.${code}`));
@@ -342,329 +404,341 @@ export function VehicleForm({ initialValue, submitLabel, submitting, onSubmit }:
         onSubmit(toPayload(values, hidden));
     };
 
-    const field = (key: FieldKey, label: string | null, control: ReactNode) => (
-        <View>
-            {label ? <Text className="font-outfit-medium text-[#0F172A] mb-2">{label}</Text> : null}
-            {control}
-            {errors[key] ? (
-                <Text className="text-xs font-outfit-regular mt-1" style={{ color: '#EF4444' }}>
-                    {t(`vehicles.form.errors.${errors[key]}`)}
-                </Text>
-            ) : null}
-        </View>
-    );
-
     const textField = (
         key: TextFieldKey,
         label: string,
-        options: { placeholder?: string; keyboardType?: KeyboardTypeOptions; maxLength?: number; upper?: boolean } = {},
-    ) =>
-        field(
-            key,
-            label,
-            <Input
+        options: {
+            placeholder?: string;
+            keyboardType?: KeyboardTypeOptions;
+            maxLength?: number;
+            upper?: boolean;
+            mono?: boolean;
+            multiline?: boolean;
+        } = {},
+    ) => (
+        <AVField label={label} error={errorText(key)}>
+            <AVTextInput
                 value={values[key]}
                 onChangeText={v => set(key, options.upper ? v.toUpperCase() : v)}
                 placeholder={options.placeholder}
                 keyboardType={options.keyboardType}
                 maxLength={options.maxLength}
+                multiline={options.multiline}
+                numberOfLines={options.multiline ? 3 : undefined}
+                mono={options.mono}
+                hasError={Boolean(errors[key])}
                 // Brand names, codes and plates are not words: autocorrect only mangles them.
-                autoCorrect={false}
+                autoCorrect={options.multiline === true}
                 autoCapitalize={options.upper ? 'characters' : 'sentences'}
-                containerClassName={`bg-white border rounded-[10px] ${errors[key] ? 'border-red-400' : 'border-gray-300'}`}
-            />,
-        );
+            />
+        </AVField>
+    );
 
-    const vinReady = values.vin.trim().length === 17;
-    const frontComplete = formatTireSize(values.frontTires) !== null;
+    const select = (label: string) => ({
+        placeholder: t('vehicles.form.select'),
+        title: label,
+        searchPlaceholder: t('vehicles.form.search'),
+        emptyText: t('vehicles.form.noResults'),
+        doneText: t('vehicles.done'),
+        variant: 'vehicle' as const,
+    });
+
+    const vinReady = values.vin.trim().length === VIN_LENGTH;
+    const canSave = vinReady && !submitting;
+    const optional = t('vehicles.form.design.optional');
+    const statusLabel = values.status ? statusOptions.find(o => o.value === values.status)?.label ?? values.status : undefined;
 
     return (
-        <View>
-            <VehicleFormSection
-                title={t('vehicles.form.sections.vin')}
-                hint={t('vehicles.form.sections.vinHint')}
-                open={open.vin}
-                onToggle={() => toggle('vin')}
-                hasError={sectionHasError('vin')}
+        <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={{ flex: 1, backgroundColor: AV.page }}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        >
+            <ScrollView
+                style={{ flex: 1 }}
+                contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 20, gap: 14 }}
+                keyboardShouldPersistTaps="handled"
             >
-                {field(
-                    'vin',
-                    t('vehicles.vin'),
-                    <View className="flex-row items-center gap-2">
-                        <View className="flex-1">
-                            <Input
-                                value={values.vin}
-                                onChangeText={v => {
-                                    setHidden(null);
-                                    set('vin', v.toUpperCase());
-                                }}
-                                containerClassName={`bg-white border rounded-[10px] ${errors.vin ? 'border-red-400' : 'border-gray-300'}`}
-                                maxLength={17}
-                                autoCapitalize="characters"
-                                autoCorrect={false}
-                                placeholder={t('vehicles.vinPlaceholder')}
-                            />
-                        </View>
-                        <TouchableOpacity
-                            onPress={handleVinLookup}
-                            disabled={isVinSearching || !vinReady}
-                            accessibilityLabel={t('vehicles.form.decodeVin')}
-                            style={{
-                                width: 52,
-                                height: 52,
-                                borderRadius: 12,
-                                backgroundColor: vinReady ? '#0047AB' : '#CBD5E1',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                            }}
-                        >
-                            {isVinSearching ? (
-                                <ActivityIndicator size="small" color="white" />
-                            ) : (
-                                <Ionicons name="search" size={22} color="white" />
-                            )}
-                        </TouchableOpacity>
-                    </View>,
-                )}
-                <Text className="text-xs font-outfit-regular text-slate-400 -mt-2">{t('vehicles.form.vinHint')}</Text>
-            </VehicleFormSection>
+                {header}
 
-            <VehicleFormSection
-                title={t('vehicles.form.sections.info')}
-                open={open.info}
-                onToggle={() => toggle('info')}
-                hasError={sectionHasError('info')}
-            >
-                {field(
-                    'make',
-                    t('vehicles.make'),
-                    <SearchableSelect
-                        options={makeOptions}
-                        value={values.make || null}
-                        onChange={o => {
-                            setValues(prev => ({ ...prev, make: o.value, model: '' }));
-                            setErrors(prev => ({ ...prev, make: undefined }));
-                        }}
-                        placeholder={t('vehicles.select')}
-                        title={t('vehicles.selectMake')}
-                        searchPlaceholder={t('setup.vehicleInfo.searchMake')}
-                        emptyText={t('vehicles.form.noResults')}
-                        doneText={t('vehicles.done')}
-                        loading={isLoadingMakes}
-                        fallbackLabel={values.make || undefined}
-                    />,
-                )}
-                <View style={{ opacity: values.make ? 1 : 0.5 }} pointerEvents={values.make ? 'auto' : 'none'}>
-                    {field(
-                        'model',
-                        t('vehicles.model'),
-                        <SearchableSelect
-                            options={modelOptions}
-                            value={values.model || null}
-                            onChange={o => set('model', o.value)}
-                            placeholder={t('vehicles.select')}
-                            title={t('vehicles.selectModel')}
-                            searchPlaceholder={t('setup.vehicleInfo.searchModel')}
-                            emptyText={t('vehicles.form.noResults')}
-                            doneText={t('vehicles.done')}
-                            loading={isLoadingModels}
-                            fallbackLabel={values.model || undefined}
-                        />,
-                    )}
-                </View>
-                <Row>
-                    {textField('year', t('vehicles.form.year'), { placeholder: '2024', keyboardType: 'number-pad', maxLength: 4 })}
-                    {textField('trim', t('vehicles.form.trim'), { placeholder: 'LE, XLE…' })}
-                </Row>
-                {field(
-                    'color',
-                    t('vehicles.color'),
-                    <VehicleColorSelect
-                        colorId={values.colorId}
-                        legacyColor={values.color}
-                        onChange={c => setValues(prev => ({ ...prev, colorId: c.id, color: c.label }))}
-                    />,
-                )}
-                {textField('plate', t('vehicles.form.plateRequired'), { placeholder: 'ABC-1234', upper: true })}
-                {textField('plateState', t('vehicles.form.plateState'), { placeholder: 'FL', maxLength: 2, upper: true })}
-            </VehicleFormSection>
-
-            <VehicleFormSection
-                title={t('vehicles.form.sections.technical')}
-                open={open.technical}
-                onToggle={() => toggle('technical')}
-                hasError={sectionHasError('technical')}
-            >
-                {field(
-                    'vehicleTypeId',
-                    t('vehicles.form.vehicleType'),
-                    <CatalogSelect
-                        kind="vehicle-types"
-                        value={values.vehicleTypeId || null}
-                        onChange={id => set('vehicleTypeId', id)}
-                        title={t('vehicles.form.vehicleType')}
-                    />,
-                )}
-                {field(
-                    'engineTypeId',
-                    t('vehicles.form.engineType'),
-                    <CatalogSelect
-                        kind="engine-types"
-                        value={values.engineTypeId || null}
-                        onChange={id => set('engineTypeId', id)}
-                        title={t('vehicles.form.engineType')}
-                    />,
-                )}
-                {field(
-                    'fuelTypeId',
-                    t('vehicles.form.fuelType'),
-                    <CatalogSelect
-                        kind="fuel-types"
-                        value={values.fuelTypeId || null}
-                        onChange={id => set('fuelTypeId', id)}
-                        title={t('vehicles.form.fuelType')}
-                    />,
-                )}
-                {textField('bodyClass', t('vehicles.form.bodyClass'), { placeholder: t('vehicles.form.bodyClassPlaceholder') })}
-                {textField('transmissionStyle', t('vehicles.form.transmission'), {
-                    placeholder: t('vehicles.form.transmissionPlaceholder'),
-                })}
-                {textField('driveType', t('vehicles.form.driveType'), { placeholder: 'FWD, RWD, AWD, 4WD…' })}
-                <Row>
-                    {textField('doors', t('vehicles.form.doors'), { placeholder: '4', keyboardType: 'number-pad', maxLength: 2 })}
-                    {textField('engineCylinders', t('vehicles.form.cylinders'), {
-                        placeholder: '4',
-                        keyboardType: 'number-pad',
-                        maxLength: 2,
-                    })}
-                </Row>
-                <Row>
-                    {textField('displacementL', t('vehicles.form.displacement'), {
-                        placeholder: '2.5',
-                        keyboardType: 'decimal-pad',
-                        maxLength: 5,
-                    })}
-                    {textField('engineHp', t('vehicles.form.horsepower'), {
-                        placeholder: '203',
-                        keyboardType: 'number-pad',
-                        maxLength: 4,
-                    })}
-                </Row>
-            </VehicleFormSection>
-
-            <VehicleFormSection
-                title={t('vehicles.form.sections.tires')}
-                hint={t('vehicles.form.sections.tiresHint')}
-                open={open.tires}
-                onToggle={() => toggle('tires')}
-                hasError={sectionHasError('tires')}
-            >
-                {field(
-                    'frontTires',
-                    null,
-                    <TireSizeSelect
-                        title={t('vehicles.form.frontTires')}
-                        value={values.frontTires}
-                        onChange={v => set('frontTires', v)}
-                    />,
-                )}
-                {field(
-                    'rearTires',
-                    null,
-                    <TireSizeSelect
-                        title={t('vehicles.form.rearTires')}
-                        value={values.rearTires}
-                        onChange={v => set('rearTires', v)}
-                    />,
-                )}
-                <TouchableOpacity
-                    onPress={() => set('rearTires', { ...values.frontTires })}
-                    disabled={!frontComplete}
-                    style={{ opacity: frontComplete ? 1 : 0.4, alignSelf: 'flex-start' }}
-                >
-                    <Text className="text-blue-600 font-outfit-semibold">{t('vehicles.form.sameAsFront')}</Text>
-                </TouchableOpacity>
-                {field(
-                    'spareTireTypeId',
-                    t('vehicles.form.spareTire'),
-                    <CatalogSelect
-                        kind="spare-tire-types"
-                        value={values.spareTireTypeId || null}
-                        onChange={id => set('spareTireTypeId', id)}
-                        title={t('vehicles.form.spareTire')}
-                    />,
-                )}
-            </VehicleFormSection>
-
-            <VehicleFormSection
-                title={t('vehicles.form.sections.insurance')}
-                hint={t('vehicles.form.sections.insuranceHint')}
-                open={open.insurance}
-                onToggle={() => toggle('insurance')}
-                hasError={sectionHasError('insurance')}
-            >
-                {textField('insuranceCompany', t('vehicles.form.insuranceCompany'), {
-                    placeholder: 'Geico, Progressive, State Farm…',
-                })}
-                {textField('insuranceCompanyCode', t('vehicles.form.naicCode'), {
-                    placeholder: '12345',
-                    keyboardType: 'number-pad',
-                    maxLength: 5,
-                })}
-                {textField('insurancePolicyNumber', t('vehicles.form.policyNumber'), {
-                    placeholder: 'POL-998877-X',
-                    upper: true,
-                })}
-            </VehicleFormSection>
-
-            <VehicleFormSection
-                title={t('vehicles.form.sections.additional')}
-                open={open.additional}
-                onToggle={() => toggle('additional')}
-                hasError={sectionHasError('additional')}
-            >
-                {textField('mileage', t('vehicles.form.mileage'), { placeholder: '0', keyboardType: 'number-pad', maxLength: 8 })}
-                {field(
-                    'details',
-                    t('vehicles.furtherDetails'),
-                    <TextInput
-                        multiline
-                        numberOfLines={3}
-                        value={values.details}
-                        onChangeText={v => set('details', v)}
-                        placeholder={t('vehicles.form.detailsPlaceholder')}
-                        placeholderTextColor="#9CA3AF"
-                        className="bg-white border border-gray-300 rounded-[10px] p-4 font-outfit-regular text-[#0F172A] text-base h-24"
-                        style={{ textAlignVertical: 'top' }}
-                    />,
-                )}
-            </VehicleFormSection>
-
-            <TouchableOpacity onPress={handleSubmit} disabled={submitting} activeOpacity={0.8} className="mt-2">
-                <LinearGradient
-                    colors={['#2B66F8', '#081E72']}
-                    start={{ x: 0, y: 1 }}
-                    end={{ x: 1, y: 0 }}
-                    style={{
-                        borderRadius: 10,
-                        paddingVertical: 16,
-                        paddingHorizontal: 16,
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        opacity: submitting ? 0.6 : 1,
+                <VinCard
+                    value={values.vin}
+                    onChange={v => {
+                        setHidden(null);
+                        setDecoded(false);
+                        set('vin', v);
                     }}
+                    onDecode={handleVinLookup}
+                    decoding={isVinSearching}
+                    decoded={decoded}
+                    error={errorText('vin')}
+                />
+
+                <VehicleFormSection
+                    icon="car"
+                    title={t('vehicles.form.sections.info')}
+                    subtitle={t('vehicles.form.design.infoSubtitle')}
+                    done={decoded && !open.info}
+                    open={open.info}
+                    onToggle={() => toggle('info')}
+                    hasError={sectionHasError('info')}
                 >
-                    {submitting ? (
-                        <ActivityIndicator color="white" />
-                    ) : (
-                        <>
-                            <Text className="text-white font-outfit-bold text-center mr-2">{submitLabel}</Text>
-                            <ChevronRight size={20} color="white" />
-                        </>
-                    )}
-                </LinearGradient>
-            </TouchableOpacity>
-        </View>
+                    <AVRow>
+                        <AVField label={t('vehicles.form.design.make')}>
+                            <SearchableSelect
+                                {...select(t('vehicles.selectMake'))}
+                                options={makeOptions}
+                                value={values.make || null}
+                                onChange={o => setValues(prev => ({ ...prev, make: o.value, model: '' }))}
+                                searchPlaceholder={t('setup.vehicleInfo.searchMake')}
+                                loading={isLoadingMakes}
+                                fallbackLabel={values.make || undefined}
+                            />
+                        </AVField>
+                        <View style={{ opacity: values.make ? 1 : 0.5 }} pointerEvents={values.make ? 'auto' : 'none'}>
+                            <AVField label={t('vehicles.form.design.model')}>
+                                <SearchableSelect
+                                    {...select(t('vehicles.selectModel'))}
+                                    options={modelOptions}
+                                    value={values.model || null}
+                                    onChange={o => set('model', o.value)}
+                                    searchPlaceholder={t('setup.vehicleInfo.searchModel')}
+                                    loading={isLoadingModels}
+                                    fallbackLabel={values.model || undefined}
+                                />
+                            </AVField>
+                        </View>
+                    </AVRow>
+                    <AVRow>
+                        {textField('year', t('vehicles.form.year'), {
+                            placeholder: t('vehicles.form.design.yearPlaceholder'),
+                            keyboardType: 'number-pad',
+                            maxLength: 4,
+                        })}
+                        {textField('trim', t('vehicles.form.trim'), { placeholder: 'LE, XLE…' })}
+                    </AVRow>
+                    <AVField label={t('vehicles.color')}>
+                        <VehicleColorSelect
+                            colorId={values.colorId}
+                            legacyColor={values.color}
+                            onChange={c => setValues(prev => ({ ...prev, colorId: c.id, color: c.label }))}
+                        />
+                    </AVField>
+                    <AVRow>
+                        {textField('plate', t('vehicles.form.design.plate'), { placeholder: 'ABC-1234', upper: true })}
+                        {textField('plateState', t('vehicles.form.design.plateState'), {
+                            placeholder: 'FL',
+                            maxLength: 2,
+                            upper: true,
+                        })}
+                    </AVRow>
+                    <AVRow>
+                        <AVField label={t('vehicles.form.design.status')}>
+                            <SearchableSelect
+                                {...select(t('vehicles.form.design.status'))}
+                                options={statusOptions}
+                                value={values.status || null}
+                                onChange={o => set('status', o.value)}
+                                fallbackLabel={statusLabel}
+                            />
+                        </AVField>
+                        <AVField label={t('vehicles.form.design.gps')}>
+                            <SearchableSelect
+                                {...select(t('vehicles.form.design.gps'))}
+                                options={gpsOptions}
+                                value={values.gps || null}
+                                onChange={o => set('gps', o.value)}
+                            />
+                        </AVField>
+                    </AVRow>
+                </VehicleFormSection>
+
+                <VehicleFormSection
+                    icon="gear"
+                    title={t('vehicles.form.sections.technical')}
+                    subtitle={t(decoded ? 'vehicles.form.design.technicalFromVin' : 'vehicles.form.design.technicalSubtitle')}
+                    open={open.technical}
+                    onToggle={() => toggle('technical')}
+                    hasError={sectionHasError('technical')}
+                >
+                    <AVRow>
+                        <AVField label={t('vehicles.form.vehicleType')}>
+                            <CatalogSelect
+                                kind="vehicle-types"
+                                value={values.vehicleTypeId || null}
+                                onChange={id => set('vehicleTypeId', id)}
+                                title={t('vehicles.form.vehicleType')}
+                            />
+                        </AVField>
+                        <AVField label={t('vehicles.form.engineType')}>
+                            <CatalogSelect
+                                kind="engine-types"
+                                value={values.engineTypeId || null}
+                                onChange={id => set('engineTypeId', id)}
+                                title={t('vehicles.form.engineType')}
+                            />
+                        </AVField>
+                    </AVRow>
+                    <AVRow>
+                        <AVField label={t('vehicles.form.fuelType')}>
+                            <CatalogSelect
+                                kind="fuel-types"
+                                value={values.fuelTypeId || null}
+                                onChange={id => set('fuelTypeId', id)}
+                                title={t('vehicles.form.fuelType')}
+                            />
+                        </AVField>
+                        {textField('bodyClass', t('vehicles.form.bodyClass'), {
+                            placeholder: t('vehicles.form.bodyClassPlaceholder'),
+                        })}
+                    </AVRow>
+                    <AVRow>
+                        {textField('transmissionStyle', t('vehicles.form.transmission'), {
+                            placeholder: t('vehicles.form.transmissionPlaceholder'),
+                        })}
+                        {textField('driveType', t('vehicles.form.driveType'), { placeholder: 'FWD, AWD…' })}
+                    </AVRow>
+                    <AVRow gap={8}>
+                        {textField('doors', t('vehicles.form.doors'), { placeholder: '4', keyboardType: 'number-pad', maxLength: 2 })}
+                        {textField('displacementL', t('vehicles.form.design.displacement'), {
+                            placeholder: '2.5',
+                            keyboardType: 'decimal-pad',
+                            maxLength: 5,
+                        })}
+                        {textField('engineHp', t('vehicles.form.horsepower'), {
+                            placeholder: '203',
+                            keyboardType: 'number-pad',
+                            maxLength: 4,
+                        })}
+                        {textField('engineCylinders', t('vehicles.form.cylinders'), {
+                            placeholder: '4',
+                            keyboardType: 'number-pad',
+                            maxLength: 2,
+                        })}
+                    </AVRow>
+                </VehicleFormSection>
+
+                <VehicleFormSection
+                    icon="tire"
+                    title={t('vehicles.form.sections.tires')}
+                    subtitle={t('vehicles.form.design.tiresSubtitle')}
+                    optionalLabel={optional}
+                    open={open.tires}
+                    onToggle={() => toggle('tires')}
+                    hasError={sectionHasError('tires')}
+                >
+                    <AVField error={errorText('frontTires')}>
+                        <TireSizeSelect
+                            title={t('vehicles.form.design.frontTireSize')}
+                            value={values.frontTires}
+                            onChange={setFrontTires}
+                        />
+                    </AVField>
+                    <AVCheckbox checked={rearSame} label={t('vehicles.form.design.rearSame')} onPress={toggleRearSame} />
+                    {!rearSame ? (
+                        <AVField error={errorText('rearTires')}>
+                            <TireSizeSelect
+                                title={t('vehicles.form.design.rearTireSize')}
+                                value={values.rearTires}
+                                onChange={v => set('rearTires', v)}
+                            />
+                        </AVField>
+                    ) : null}
+                    <AVField label={t('vehicles.form.design.spareTire')}>
+                        <CatalogSelect
+                            kind="spare-tire-types"
+                            value={values.spareTireTypeId || null}
+                            onChange={id => set('spareTireTypeId', id)}
+                            title={t('vehicles.form.design.spareTire')}
+                        />
+                    </AVField>
+                </VehicleFormSection>
+
+                <VehicleFormSection
+                    icon="shield"
+                    title={t('vehicles.form.sections.insurance')}
+                    subtitle={t('vehicles.form.design.insuranceSubtitle')}
+                    optionalLabel={optional}
+                    open={open.insurance}
+                    onToggle={() => toggle('insurance')}
+                    hasError={sectionHasError('insurance')}
+                >
+                    <AVRow flex={[1.6, 1]}>
+                        {textField('insuranceCompany', t('vehicles.form.insuranceCompany'), {
+                            placeholder: t('vehicles.form.design.insurancePlaceholder'),
+                        })}
+                        {textField('insuranceCompanyCode', t('vehicles.form.design.naic'), {
+                            placeholder: '12345',
+                            keyboardType: 'number-pad',
+                            maxLength: 5,
+                        })}
+                    </AVRow>
+                    {textField('insurancePolicyNumber', t('vehicles.form.policyNumber'), {
+                        placeholder: 'POL-998877-X',
+                        upper: true,
+                        mono: true,
+                    })}
+                </VehicleFormSection>
+
+                <VehicleFormSection
+                    icon="note"
+                    title={t('vehicles.form.sections.additional')}
+                    subtitle={t('vehicles.form.design.additionalSubtitle')}
+                    open={open.additional}
+                    onToggle={() => toggle('additional')}
+                    hasError={sectionHasError('additional')}
+                >
+                    {textField('mileage', t('vehicles.form.mileage'), { placeholder: '0', keyboardType: 'number-pad', maxLength: 8 })}
+                    {textField('details', t('vehicles.form.design.notes'), {
+                        placeholder: t('vehicles.form.design.notesPlaceholder'),
+                        multiline: true,
+                    })}
+                </VehicleFormSection>
+            </ScrollView>
+
+            <View
+                style={{
+                    paddingHorizontal: 20,
+                    paddingTop: 12,
+                    paddingBottom: safeBottom ? Math.max(12, insets.bottom) : 12,
+                    backgroundColor: '#fff',
+                    borderTopWidth: 1,
+                    borderTopColor: AV.borderSoft,
+                    shadowColor: '#0E2F8A',
+                    shadowOffset: { width: 0, height: -8 },
+                    shadowOpacity: 0.08,
+                    shadowRadius: 10,
+                    elevation: 8,
+                }}
+            >
+                <TouchableOpacity onPress={handleSubmit} disabled={!canSave} activeOpacity={0.8}>
+                    <LinearGradient
+                        colors={vinReady ? [AV.blue, AV.blueDark] : [AV.disabled, AV.disabled]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={{
+                            borderRadius: 14,
+                            paddingVertical: 15,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            opacity: submitting ? 0.7 : 1,
+                        }}
+                    >
+                        {submitting ? (
+                            <ActivityIndicator color="white" />
+                        ) : (
+                            <Text className="font-outfit-bold" style={{ color: '#fff', fontSize: 15.5 }}>
+                                {submitLabel}
+                            </Text>
+                        )}
+                    </LinearGradient>
+                </TouchableOpacity>
+                {!vinReady ? (
+                    <Text className="font-outfit-regular" style={{ fontSize: 11.5, color: AV.muted, textAlign: 'center', marginTop: 8 }}>
+                        {t('vehicles.form.design.saveHint')}
+                    </Text>
+                ) : null}
+            </View>
+        </KeyboardAvoidingView>
     );
 }

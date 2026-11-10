@@ -8,10 +8,11 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { VehicleForm, VehicleFormPayload } from '@/components/vehicles/VehicleForm';
+import { VehicleFormHeader } from '@/components/vehicles/vehicleFormDesign';
 
 export default function VehiclesScreen() {
     const router = useRouter();
@@ -137,42 +138,20 @@ export default function VehiclesScreen() {
 
     if (isEditing) {
         return (
-            <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={{ flex: 1 }}
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-            >
-                <ScrollView
-                    className="flex-1"
-                    style={{ backgroundColor: '#F6F8FC' }}
-                    contentContainerStyle={{ padding: 24, paddingBottom: 40 }}
-                    keyboardShouldPersistTaps="handled"
-                >
-                    {/* Section Badge */}
-                    <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
-                      <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
-                      <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                        {t('vehicles.badge')}
-                      </Text>
-                    </View>
-
-                    {/* Title */}
-                    <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">{editingVehicle ? t('vehicles.editVehicleTitle') : t('vehicles.addVehicleTitle')}</Text>
-
-                    {/* Subtitle */}
-                    <Text className="text-gray-500 font-outfit-regular text-base mb-6">
-                      {t('vehicles.addVehicleSubtitle')}
-                    </Text>
-
-                    <VehicleForm
-                        key={editingVehicle?.id ?? 'new'}
-                        initialValue={editingVehicle ?? undefined}
-                        submitLabel={t('vehicles.saveVehicle')}
-                        submitting={isSaving}
-                        onSubmit={handleSaveVehicle}
+            <VehicleForm
+                key={editingVehicle?.id ?? 'new'}
+                initialValue={editingVehicle ?? undefined}
+                submitLabel={t('vehicles.saveVehicle')}
+                submitting={isSaving}
+                onSubmit={handleSaveVehicle}
+                header={
+                    <VehicleFormHeader
+                        badge={t('vehicles.badge')}
+                        title={editingVehicle ? t('vehicles.editVehicleTitle') : t('vehicles.addVehicleTitle')}
+                        subtitle={t('vehicles.addVehicleSubtitle')}
                     />
-                </ScrollView>
-            </KeyboardAvoidingView>
+                }
+            />
         );
     }
 

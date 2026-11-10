@@ -16,9 +16,9 @@ interface VehicleColorSelectProps {
 const ColorDot = ({ hex }: { hex?: string | null }) => (
     <View
         style={{
-            width: 22,
-            height: 22,
-            borderRadius: 11,
+            width: 18,
+            height: 18,
+            borderRadius: 9,
             backgroundColor: hex ?? '#E5E7EB',
             borderWidth: 1,
             borderColor: '#D1D5DB',
@@ -70,6 +70,7 @@ export function VehicleColorSelect({ colorId, legacyColor, onChange }: VehicleCo
             retryText={t('vehicles.retry')}
             onRetry={reload}
             fallbackLabel={legacyColor ?? undefined}
+            variant="vehicle"
             renderLeading={o => <ColorDot hex={o.color.hex} />}
         />
     );

@@ -435,7 +435,14 @@ export interface Vehicle {
     displacementL?: number | null;
     engineHp?: number | null;
     engineCylinders?: number | null;
+    /** Operational lifecycle. The backend defaults it to `active`. */
+    status?: VehicleStatus;
+    /** Carries a GPS / telematics tracker. The backend defaults it to true. */
+    hasGps?: boolean;
 }
+
+/** Operational status of a vehicle (users-service `VEHICLE_STATUSES`). */
+export type VehicleStatus = 'active' | 'maintenance' | 'out_of_service' | 'unregistered';
 
 /**
  * An entry of the vehicle type, engine, fuel or spare-tire catalog

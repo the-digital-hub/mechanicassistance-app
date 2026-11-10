@@ -32,7 +32,8 @@ export function CatalogSelect({ kind, value, onChange, title }: CatalogSelectPro
             options={options}
             value={value}
             onChange={o => onChange(o.value)}
-            placeholder={t('vehicles.form.selectFromCatalog')}
+            placeholder={t('vehicles.form.select')}
+            variant="vehicle"
             title={title}
             searchPlaceholder={t('vehicles.form.search')}
             emptyText={t('vehicles.form.noResults')}

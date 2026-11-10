@@ -27,6 +27,8 @@ interface SearchableSelectProps<T extends SearchableSelectOption> {
     renderLeading?: (option: T) => ReactNode;
     /** Shown in the field when `value` is not among `options` (e.g. a retired entry). */
     fallbackLabel?: string;
+    /** `vehicle`: the field look of the vehicle form (48 high, rounded 12, small blue chevron). */
+    variant?: 'default' | 'vehicle';
 }
 
 const normalize = (s: string) =>
@@ -51,6 +53,7 @@ export function SearchableSelect<T extends SearchableSelectOption>({
     onRetry,
     renderLeading,
     fallbackLabel,
+    variant = 'default',
 }: SearchableSelectProps<T>) {
     const [open, setOpen] = useState(false);
     const [query, setQuery] = useState('');
@@ -70,21 +73,51 @@ export function SearchableSelect<T extends SearchableSelectOption>({
 
     return (
         <>
-            <TouchableOpacity
-                onPress={() => setOpen(true)}
-                className="bg-white border border-gray-300 h-12 flex-row items-center justify-between px-4 rounded-[10px]"
-            >
-                <View className="flex-row items-center gap-3 flex-1">
-                    {selected && renderLeading?.(selected)}
-                    <Text
-                        numberOfLines={1}
-                        className={`font-outfit-regular flex-1 ${fieldText ? 'text-[#0F172A]' : 'text-gray-400'}`}
-                    >
-                        {fieldText ?? placeholder}
-                    </Text>
-                </View>
-                <Ionicons name="chevron-down" size={20} color="#0047AB" />
-            </TouchableOpacity>
+            {variant === 'vehicle' ? (
+                <TouchableOpacity
+                    onPress={() => setOpen(true)}
+                    style={{
+                        height: 48,
+                        borderRadius: 12,
+                        backgroundColor: '#fff',
+                        borderWidth: 1,
+                        borderColor: '#DCE3F0',
+                        paddingLeft: 14,
+                        paddingRight: 12,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 6,
+                    }}
+                >
+                    <View className="flex-row items-center gap-2 flex-1">
+                        {selected && renderLeading?.(selected)}
+                        <Text
+                            numberOfLines={1}
+                            className="font-outfit-regular flex-1"
+                            style={{ fontSize: 14.5, color: fieldText ? '#0B1530' : '#8C96AE' }}
+                        >
+                            {fieldText ?? placeholder}
+                        </Text>
+                    </View>
+                    <Ionicons name="chevron-down" size={15} color="#1E56E3" />
+                </TouchableOpacity>
+            ) : (
+                <TouchableOpacity
+                    onPress={() => setOpen(true)}
+                    className="bg-white border border-gray-300 h-12 flex-row items-center justify-between px-4 rounded-[10px]"
+                >
+                    <View className="flex-row items-center gap-3 flex-1">
+                        {selected && renderLeading?.(selected)}
+                        <Text
+                            numberOfLines={1}
+                            className={`font-outfit-regular flex-1 ${fieldText ? 'text-[#0F172A]' : 'text-gray-400'}`}
+                        >
+                            {fieldText ?? placeholder}
+                        </Text>
+                    </View>
+                    <Ionicons name="chevron-down" size={20} color="#0047AB" />
+                </TouchableOpacity>
+            )}
 
             <Modal visible={open} transparent animationType="slide" onRequestClose={close}>
                 <KeyboardAvoidingView
