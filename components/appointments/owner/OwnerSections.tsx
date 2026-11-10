@@ -307,12 +307,54 @@ export function OwnerBudgetPanel({ total, payment, totalLabel }: { total: string
 
 type Client = AssistanceClientSummary['client'];
 
+type ClientLike = (Partial<Client> & Pick<Client, 'displayName'>) | null;
+
+/**
+ * The mechanic's header card for the vehicle owner — the counterpart of `OwnerMechanicCard`,
+ * shown above the sub-navbar. `onCall` omitted hides the call button.
+ */
+export function MechanicClientCard({ client, onMessage, onCall }: { client: ClientLike; onMessage: () => void; onCall?: () => void }) {
+    const { t } = useTranslation();
+    if (!client) return null;
+    return (
+        <View style={[card, { borderRadius: 16, padding: 10, paddingLeft: 12, flexDirection: 'row', alignItems: 'center', gap: 10 }]} testID="mechanic-client-card">
+            {client.profileImage ? (
+                <Image source={{ uri: client.profileImage }} style={{ width: 40, height: 40, borderRadius: 20 }} />
+            ) : (
+                <LinearGradient colors={['#4A7BFF', AO.blueDark]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' }}>
+                    {client.initials ? (
+                        <Text className="font-outfit-bold" style={{ color: '#fff', fontSize: 14 }}>{client.initials}</Text>
+                    ) : (
+                        <Ionicons name="person" size={18} color="#fff" />
+                    )}
+                </LinearGradient>
+            )}
+            <View style={{ flex: 1, minWidth: 0 }}>
+                <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 0.8, color: AO.muted }}>{t('appointments.videoCall.mechanic.clientLabel')}</Text>
+                <View className="flex-row items-center" style={{ gap: 6, marginTop: 1 }}>
+                    <Text className="font-outfit-bold" numberOfLines={1} style={{ fontSize: 15, color: AO.text, letterSpacing: -0.2, flexShrink: 1 }}>
+                        {client.displayName ?? t('appointments.videoCall.mechanic.clientFallback')}
+                    </Text>
+                    {client.avgRating != null && <Stars rating={client.avgRating} />}
+                </View>
+            </View>
+            <TouchableOpacity onPress={onMessage} accessibilityLabel={t(`${K}.message`)} style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: AO.blueSoft, alignItems: 'center', justifyContent: 'center' }} testID="mechanic-client-message">
+                <Ionicons name="chatbubble-ellipses-outline" size={18} color={AO.blue} />
+            </TouchableOpacity>
+            {onCall && (
+                <TouchableOpacity onPress={onCall} accessibilityLabel={t(`${K}.call`)} style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: AO.blue, alignItems: 'center', justifyContent: 'center', shadowColor: AO.blue, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 8, elevation: 4 }} testID="mechanic-client-call">
+                    <Ionicons name="call-outline" size={18} color="#fff" />
+                </TouchableOpacity>
+            )}
+        </View>
+    );
+}
+
 /**
  * The mechanic's view of the vehicle owner — the counterpart of `OwnerTechnicianPanel`.
  * `client` may hold only name/photo (public-profile fallback): the stat rows then stay hidden.
- * `onCall` omitted hides the call button.
  */
-export function ClientInfoPanel({ client, onMessage, onCall }: { client: (Partial<Client> & Pick<Client, 'displayName'>) | null; onMessage: () => void; onCall?: () => void }) {
+export function ClientInfoPanel({ client }: { client: ClientLike }) {
     const { t, i18n } = useTranslation();
     if (!client) return null;
 
@@ -342,40 +384,11 @@ export function ClientInfoPanel({ client, onMessage, onCall }: { client: (Partia
         memberSince ? { icon: 'calendar-outline', label: t(`${K}.rows.memberSince`), value: memberSince } : null,
     ];
     const visible = rows.filter((r): r is SummaryRow => r !== null);
+    if (visible.length === 0) return null;
 
     return (
-        <View style={{ gap: 12 }} testID="mechanic-client-panel">
-            <View style={[card, { borderRadius: 16, padding: 10, paddingLeft: 12, flexDirection: 'row', alignItems: 'center', gap: 10 }]} testID="mechanic-client-card">
-                {client.profileImage ? (
-                    <Image source={{ uri: client.profileImage }} style={{ width: 40, height: 40, borderRadius: 20 }} />
-                ) : (
-                    <LinearGradient colors={['#4A7BFF', AO.blueDark]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' }}>
-                        {client.initials ? (
-                            <Text className="font-outfit-bold" style={{ color: '#fff', fontSize: 14 }}>{client.initials}</Text>
-                        ) : (
-                            <Ionicons name="person" size={18} color="#fff" />
-                        )}
-                    </LinearGradient>
-                )}
-                <View style={{ flex: 1, minWidth: 0 }}>
-                    <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 0.8, color: AO.muted }}>{t('appointments.videoCall.mechanic.clientLabel')}</Text>
-                    <View className="flex-row items-center" style={{ gap: 6, marginTop: 1 }}>
-                        <Text className="font-outfit-bold" numberOfLines={1} style={{ fontSize: 15, color: AO.text, letterSpacing: -0.2, flexShrink: 1 }}>
-                            {client.displayName ?? t('appointments.videoCall.mechanic.clientFallback')}
-                        </Text>
-                        {client.avgRating != null && <Stars rating={client.avgRating} />}
-                    </View>
-                </View>
-                <TouchableOpacity onPress={onMessage} accessibilityLabel={t(`${K}.message`)} style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: AO.blueSoft, alignItems: 'center', justifyContent: 'center' }} testID="mechanic-client-message">
-                    <Ionicons name="chatbubble-ellipses-outline" size={18} color={AO.blue} />
-                </TouchableOpacity>
-                {onCall && (
-                    <TouchableOpacity onPress={onCall} accessibilityLabel={t(`${K}.call`)} style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: AO.blue, alignItems: 'center', justifyContent: 'center' }} testID="mechanic-client-call">
-                        <Ionicons name="call-outline" size={18} color="#fff" />
-                    </TouchableOpacity>
-                )}
-            </View>
-            {visible.length > 0 && <RequestSummaryRows rows={visible} />}
+        <View testID="mechanic-client-panel">
+            <RequestSummaryRows rows={visible} />
         </View>
     );
 }

@@ -1,7 +1,6 @@
 import { CancellationModal } from '@/components/appointments/CancellationModal';
 import { MechanicAssistanceInfoTab } from '@/components/appointments/MechanicAssistanceInfoTab';
 import { MechanicArrivalCard, PulseDot } from '@/components/appointments/MechanicArrivalCard';
-import { MechanicClientInfoTab } from '@/components/appointments/MechanicClientInfoTab';
 import { CheckInCodeCard } from '@/components/appointments/CheckInCodeCard';
 import { refLabel } from '@/lib/refCode';
 import { ClientReviewCard } from '@/components/appointments/ClientReviewCard';
@@ -21,6 +20,7 @@ import {
     AcceptedHeader,
     CheckInBanner,
     ClientInfoPanel,
+    MechanicClientCard,
     OwnerBudgetPanel,
     OwnerEtaCard,
     OwnerMechanicCard,
@@ -316,11 +316,11 @@ export default function AppointmentDetailScreen() {
         fetchClient();
     }, [isUserRole, appointment?.userId]);
 
-    // Mechanic on a video call: the client's rating, jobs done, verification and join date.
+    // Mechanic: the client's rating, jobs done, verification and join date.
     // Falls back to the public profile (name and photo only) if this fails.
     const [clientSummary, setClientSummary] = React.useState<AssistanceClientSummary | null>(null);
     React.useEffect(() => {
-        if (isUserRole || !isVideoCall || !appointment?.id) return;
+        if (isUserRole || !appointment?.id) return;
         let cancelled = false;
         assistanceDAO
             .getClientSummary(appointment.id)
@@ -329,7 +329,7 @@ export default function AppointmentDetailScreen() {
         return () => {
             cancelled = true;
         };
-    }, [isUserRole, isVideoCall, appointment?.id]);
+    }, [isUserRole, appointment?.id]);
 
     if (!appointment) {
         return (
@@ -349,6 +349,9 @@ export default function AppointmentDetailScreen() {
             : null;
     const ownerMechanicName = offer?.mechanic.displayName ?? t('requestAssistance.mechanicFound.technicianFallback');
     const awaitingHeadOut = !isVideoCall && appointment.status === 'accepted' && !departed;
+    // Mechanic: who the client is, for the header card and the Client tab.
+    const clientFallbackName = [client?.name, client?.surname].filter(Boolean).join(' ') || null;
+    const panelClient = clientSummary?.client ?? (client ? { displayName: clientFallbackName, profileImage: client.profileImage ?? null } : null);
 
     const renderOwnerPanel = () => {
         switch (ownerTab) {
@@ -480,15 +483,8 @@ export default function AppointmentDetailScreen() {
                         <RequestObdPanel requestId={appointment.id} role="mechanic" editable={obdEditable} state={obd} />
                     </View>
                 );
-            case 'mechanic': {
-                const fallbackName = [client?.name, client?.surname].filter(Boolean).join(' ') || null;
-                return (
-                    <ClientInfoPanel
-                        client={clientSummary?.client ?? (client ? { displayName: fallbackName, profileImage: client.profileImage ?? null } : null)}
-                        onMessage={() => router.push(`/chat/${appointment.id}`)}
-                    />
-                );
-            }
+            case 'mechanic':
+                return <ClientInfoPanel client={panelClient} />;
             case 'budget':
                 // `budget` already comes back as what the mechanic earns, never the customer's price.
                 return <OwnerBudgetPanel total={(appointment.budget ?? '').replace(/^\$/, '') || null} totalLabel={t('appointments.receipt.youEarn')} />;
@@ -514,20 +510,20 @@ export default function AppointmentDetailScreen() {
                 return <OwnerBudgetPanel total={(appointment.budget ?? '').replace(/^\$/, '') || null} totalLabel={t('appointments.receipt.youEarn')} />;
             case 'mechanic':
                 return (
-                    <MechanicClientInfoTab
-                        client={client}
-                        appointmentType={appointment.type}
-                        assistanceType={appointment.assistanceType}
-                        rating={rating}
-                        setRating={setRating}
-                        selectedOption={selectedOption}
-                        setSelectedOption={setSelectedOption}
-                        reviewText={reviewText}
-                        setReviewText={setReviewText}
-                        isSubmitted={isReviewSubmitted}
-                        onSubmit={submitClientReview}
-                        onMessage={() => router.push(`/chat/${appointment.id}`)}
-                    />
+                    <View style={{ gap: 12 }}>
+                        <ClientInfoPanel client={panelClient} />
+                        <ClientReviewCard
+                            rating={rating}
+                            setRating={setRating}
+                            selectedOption={selectedOption}
+                            setSelectedOption={setSelectedOption}
+                            reviewText={reviewText}
+                            setReviewText={setReviewText}
+                            isSubmitted={isReviewSubmitted}
+                            onSubmit={submitClientReview}
+                            hint={appointment.status === 'completed' ? undefined : t('appointments.videoCall.mechanic.reviewAfterCompleted')}
+                        />
+                    </View>
                 );
             default:
                 return null;
@@ -675,6 +671,15 @@ export default function AppointmentDetailScreen() {
                                 </View>
                                 </>
                                 )}
+                            </View>
+
+                            {/* The client, with chat and call — the counterpart of the owner's technician card */}
+                            <View className="mx-4 mt-3">
+                                <MechanicClientCard
+                                    client={panelClient}
+                                    onMessage={() => router.push(`/chat/${appointment.id}`)}
+                                    onCall={isVideoCall ? undefined : () => router.push({ pathname: '/video-lobby/[id]' as any, params: { id: appointment.id } })}
+                                />
                             </View>
 
                             {/* Status card — a finished video call shows its close-out card instead */}
