@@ -813,7 +813,8 @@
       "headOutFailed": "No pudimos iniciar el viaje. Revisa tu conexión e inténtalo de nuevo.",
       "locationNeededTitle": "Se necesita tu ubicación",
       "locationNeeded": "Permite el acceso a la ubicación para que el cliente pueda seguirte en el mapa.",
-      "locationAlwaysNeeded": "Para salir, configurá el acceso a la ubicación en \"Siempre\" (Android: \"Permitir todo el tiempo\"). Así el cliente te sigue en el mapa mientras manejás, aunque la app esté en segundo plano o el teléfono bloqueado.",
+      "locationAlwaysNeeded": "Para salir, configurá el acceso a la ubicación en \"Siempre\". Así el cliente te sigue en el mapa mientras manejás, aunque la app esté en segundo plano o el teléfono bloqueado.",
+      "locationAlwaysNeededAndroid": "Para salir, configurá el acceso a la ubicación en \"Permitir todo el tiempo\". Así el cliente te sigue en el mapa mientras manejás, aunque la app esté en segundo plano o el teléfono bloqueado.",
       "openSettings": "Abrir ajustes",
       "cancelOpenSettings": "Ahora no"
     },

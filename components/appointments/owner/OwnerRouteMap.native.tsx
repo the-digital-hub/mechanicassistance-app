@@ -4,7 +4,7 @@ import { decodePolyline, googleDirectionsUrl, LatLng } from '@/lib/maps/polyline
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Linking, Modal, Pressable, Text, View } from 'react-native';
+import { Linking, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -50,15 +50,16 @@ function RouteLayers({ destination, mechanic, route }: { destination: LatLng; me
 const floating = { backgroundColor: 'rgba(255,255,255,0.95)', shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 4 };
 
 /**
- * The route full screen, so the owner can follow the mechanic: pan and zoom freely.
+ * The route in a card over the dimmed screen, so the owner follows the mechanic
+ * without leaving the app: pan and zoom freely; tapping outside closes it.
  * It keeps refitting as the mechanic moves until the owner pans; recenter resumes that.
  */
-function FullScreenRouteMap({ destination, mechanic, route, onClose }: { destination: LatLng; mechanic: LatLng | null; route: LatLng[]; onClose: () => void }) {
+function RouteMapSheet({ destination, mechanic, route, onClose }: { destination: LatLng; mechanic: LatLng | null; route: LatLng[]; onClose: () => void }) {
     const { t } = useTranslation();
     const insets = useSafeAreaInsets();
     const mapRef = React.useRef<MapView | null>(null);
     const followRef = React.useRef(true);
-    const fit = useFitRoute(mapRef, destination, mechanic, route, 80);
+    const fit = useFitRoute(mapRef, destination, mechanic, route, 48);
 
     React.useEffect(() => {
         if (followRef.current) fit();
@@ -70,57 +71,68 @@ function FullScreenRouteMap({ destination, mechanic, route, onClose }: { destina
     };
 
     return (
-        <View style={{ flex: 1, backgroundColor: '#E8EDF5' }} testID="owner-route-map-fullscreen">
-            <MapView
-                provider={MAP_PROVIDER}
-                ref={mapRef}
-                style={{ flex: 1 }}
-                onMapReady={fit}
-                onPanDrag={() => {
-                    followRef.current = false;
-                }}
-                toolbarEnabled={false}
-                showsCompass={false}
-                initialRegion={{ ...destination, latitudeDelta: 0.04, longitudeDelta: 0.04 }}
-            >
-                <RouteLayers destination={destination} mechanic={mechanic} route={route} />
-            </MapView>
+        <View
+            style={{ flex: 1, backgroundColor: 'rgba(15,23,42,0.55)', paddingHorizontal: 16, paddingTop: insets.top + 88, paddingBottom: insets.bottom + 84 }}
+            testID="owner-route-map-fullscreen"
+        >
+            {/* The dimmed app behind the card: a tap there closes it. */}
+            <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessible={false} testID="owner-route-map-backdrop" />
 
-            <View style={{ position: 'absolute', top: insets.top + 8, left: 12, right: 12, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                <Pressable
-                    onPress={onClose}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('appointments.ownerAccepted.closeMap')}
-                    hitSlop={8}
-                    style={[floating, { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' }]}
-                    testID="owner-route-map-close"
-                >
-                    <Ionicons name="close" size={22} color={AO.text} />
-                </Pressable>
-                <View style={[floating, { paddingHorizontal: 14, paddingVertical: 9, borderRadius: 100 }]}>
-                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: AO.text }}>{t('appointments.ownerAccepted.mapTitle')}</Text>
+            <View style={{ flex: 1, borderRadius: 22, overflow: 'hidden', backgroundColor: '#fff', shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 18, shadowOffset: { width: 0, height: 8 }, elevation: 12 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingLeft: 18, paddingRight: 10, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: AO.border }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <Ionicons name="navigate" size={16} color={AO.blue} />
+                        <Text className="font-outfit-bold" style={{ fontSize: 16, color: AO.text }}>{t('appointments.ownerAccepted.mapTitle')}</Text>
+                    </View>
+                    <Pressable
+                        onPress={onClose}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('appointments.ownerAccepted.closeMap')}
+                        hitSlop={8}
+                        style={{ width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F1F4F9' }}
+                        testID="owner-route-map-close"
+                    >
+                        <Ionicons name="close" size={20} color={AO.text} />
+                    </Pressable>
                 </View>
-            </View>
 
-            <View style={{ position: 'absolute', bottom: insets.bottom + 16, left: 12, right: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Pressable
-                    onPress={() => Linking.openURL(googleDirectionsUrl(mechanic, destination))}
-                    accessibilityRole="link"
-                    style={[floating, { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 100 }]}
-                    testID="owner-route-map-open-in-maps"
-                >
-                    <Ionicons name="navigate-outline" size={15} color={AO.blue} />
-                    <Text className="font-outfit-bold" style={{ fontSize: 13, color: AO.blue }}>{t('appointments.ownerAccepted.openInMaps')}</Text>
-                </Pressable>
-                <Pressable
-                    onPress={recenter}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('appointments.ownerAccepted.recenter')}
-                    style={[floating, { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center' }]}
-                    testID="owner-route-map-recenter"
-                >
-                    <Ionicons name="locate-outline" size={22} color={AO.blue} />
-                </Pressable>
+                <View style={{ flex: 1, backgroundColor: '#E8EDF5' }}>
+                    <MapView
+                        provider={MAP_PROVIDER}
+                        ref={mapRef}
+                        style={{ flex: 1 }}
+                        onMapReady={fit}
+                        onPanDrag={() => {
+                            followRef.current = false;
+                        }}
+                        toolbarEnabled={false}
+                        showsCompass={false}
+                        initialRegion={{ ...destination, latitudeDelta: 0.04, longitudeDelta: 0.04 }}
+                    >
+                        <RouteLayers destination={destination} mechanic={mechanic} route={route} />
+                    </MapView>
+
+                    <View style={{ position: 'absolute', bottom: 12, left: 12, right: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Pressable
+                            onPress={() => Linking.openURL(googleDirectionsUrl(mechanic, destination))}
+                            accessibilityRole="link"
+                            style={[floating, { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 100 }]}
+                            testID="owner-route-map-open-in-maps"
+                        >
+                            <Ionicons name="navigate-outline" size={15} color={AO.blue} />
+                            <Text className="font-outfit-bold" style={{ fontSize: 13, color: AO.blue }}>{t('appointments.ownerAccepted.openInMaps')}</Text>
+                        </Pressable>
+                        <Pressable
+                            onPress={recenter}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('appointments.ownerAccepted.recenter')}
+                            style={[floating, { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' }]}
+                            testID="owner-route-map-recenter"
+                        >
+                            <Ionicons name="locate-outline" size={21} color={AO.blue} />
+                        </Pressable>
+                    </View>
+                </View>
             </View>
         </View>
     );
@@ -186,8 +198,8 @@ export function OwnerRouteMap({ destination, mechanic, polyline, height = 190 }:
                     <Text className="font-outfit-bold" style={{ fontSize: 10.5, color: AO.blue }}>{t('appointments.ownerAccepted.expandMap')}</Text>
                 </View>
             </Pressable>
-            <Modal visible={expanded} animationType="slide" presentationStyle="fullScreen" onRequestClose={() => setExpanded(false)}>
-                <FullScreenRouteMap destination={destination} mechanic={mechanic} route={route} onClose={() => setExpanded(false)} />
+            <Modal visible={expanded} transparent animationType="fade" statusBarTranslucent onRequestClose={() => setExpanded(false)}>
+                <RouteMapSheet destination={destination} mechanic={mechanic} route={route} onClose={() => setExpanded(false)} />
             </Modal>
         </>
     );

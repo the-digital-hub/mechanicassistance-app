@@ -813,7 +813,8 @@
       "headOutFailed": "Couldn't start the trip. Check your connection and try again.",
       "locationNeededTitle": "Location needed",
       "locationNeeded": "Allow location access so the client can follow you on the map.",
-      "locationAlwaysNeeded": "To head out, set location access to \"Always\" (Android: \"Allow all the time\"). The client keeps following you on the map while you drive, even with the app in the background or the phone locked.",
+      "locationAlwaysNeeded": "To head out, set location access to \"Always\". The client keeps following you on the map while you drive, even with the app in the background or the phone locked.",
+      "locationAlwaysNeededAndroid": "To head out, set location access to \"Allow all the time\". The client keeps following you on the map while you drive, even with the app in the background or the phone locked.",
       "openSettings": "Open settings",
       "cancelOpenSettings": "Not now"
     },

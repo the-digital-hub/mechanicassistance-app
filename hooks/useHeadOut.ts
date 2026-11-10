@@ -4,7 +4,7 @@ import { onSiteDAO } from '@/lib/dao/OnSiteDAO';
 import * as Location from 'expo-location';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Linking } from 'react-native';
+import { Alert, Linking, Platform } from 'react-native';
 
 /**
  * "Head out": the mechanic left for the vehicle. Until then the job is accepted
@@ -32,7 +32,7 @@ export function useHeadOut() {
             if (bgPerm !== 'granted') {
                 Alert.alert(
                     t('appointments.detail.locationNeededTitle'),
-                    t('appointments.detail.locationAlwaysNeeded'),
+                    t(Platform.OS === 'android' ? 'appointments.detail.locationAlwaysNeededAndroid' : 'appointments.detail.locationAlwaysNeeded'),
                     [
                         { text: t('appointments.detail.cancelOpenSettings'), style: 'cancel' },
                         { text: t('appointments.detail.openSettings'), onPress: () => Linking.openSettings() },
