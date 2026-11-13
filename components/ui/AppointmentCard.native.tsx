@@ -209,6 +209,13 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
     };
 
     const whenLabel = (() => {
+        // A finished job shows when it ended: for an immediate one `time` holds the ETA ("1 min"), not a date.
+        // No `cancelledAt` exists, so a cancelled one falls back to `updatedAt`.
+        if (isPast) {
+            const finishedAt = appointment.completedAt ?? appointment.startedAt ?? appointment.acceptedAt ?? appointment.updatedAt;
+            const label = formatLocalDateTime(finishedAt, i18n.language);
+            if (label) return label;
+        }
         if (isVideoCall) return videoCallBookedLabel(appointment, i18n.language) ?? t('requestDetail.videoCallNow');
         if (appointment.date?.includes('T')) return formatLocalDateTime(appointment.date, i18n.language);
         const parts = [appointment.date, appointment.time].filter((v) => v && v !== 'Pending');
