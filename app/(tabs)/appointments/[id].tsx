@@ -118,6 +118,19 @@ export default function AppointmentDetailScreen() {
         if (appointment) departNow(appointment.id);
     };
 
+    // On-site job already checked in: skip the arrival card and reopen the flow
+    // where it was left. Decided once per appointment, on its first load, so a
+    // check-in made from this screen (status flips while the flow is on top) or
+    // coming back from the flow never pushes it again.
+    const arrivalDecidedFor = React.useRef<string | null>(null);
+    React.useEffect(() => {
+        if (!appointment || !user || arrivalDecidedFor.current === appointment.id) return;
+        arrivalDecidedFor.current = appointment.id;
+        if (user.role === 'mechanic' && !isVideoCall && appointment.status === 'in_progress') {
+            router.push({ pathname: '/appointments/check-in/[id]' as any, params: { id: appointment.id } });
+        }
+    }, [appointment, user, isVideoCall, router]);
+
     // Video call close-out (finish → confirm / dispute). Reloaded on focus, on
     // appointment_update and whenever the appointments list refreshes this row.
     // Not asked while still pending or once canceled: there is no close-out to show.
