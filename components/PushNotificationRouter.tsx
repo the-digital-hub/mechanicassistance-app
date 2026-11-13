@@ -3,8 +3,8 @@ import {
     getMessaging,
     onNotificationOpenedApp,
 } from '@react-native-firebase/messaging';
-import { useRouter } from 'expo-router';
-import { useEffect, useRef } from 'react';
+import { useRootNavigationState, useRouter, type Href } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import { useUser } from '@/context/UserContext';
 import {
@@ -33,6 +33,11 @@ export function PushNotificationRouter() {
     const userId = user?.id;
     const role = user?.role;
     const handledInitial = useRef(false);
+    const handledMessageIds = useRef(new Set<string>());
+    const pendingRoute = useRef<Href | null>(null);
+    const [pendingTick, setPendingTick] = useState(0);
+    const navState = useRootNavigationState();
+    const navReady = !!navState?.key;
 
     // Registration follows the session.
     useEffect(() => {
@@ -51,11 +56,32 @@ export function PushNotificationRouter() {
     // Tapped pushes. Only for a signed-in person: signed out, the target
     // screens would bounce to login anyway. A push meant for another account
     // (this phone changed hands) is ignored — the app just opens.
+    //
+    // A tap that opens the app can arrive before the root navigator has
+    // mounted; navigating then throws ("Attempted to navigate before mounting
+    // the Root Layout"), and from the onNotificationOpenedApp callback that
+    // throw is uncaught and closes a release build. So a tap only records the
+    // target, and the effect below navigates once the navigator is ready.
     useEffect(() => {
         if (!userId || !role) return;
         const open = (message: RemoteMessage | null) => {
-            const route = routeForPush(message?.data as PushData | undefined, { id: userId, role });
-            if (route) router.push(route, { withAnchor: true });
+            if (!message) return;
+            // The launch tap can be delivered by both getInitialNotification
+            // and onNotificationOpenedApp: navigate once.
+            const key = message.messageId;
+            if (key) {
+                if (handledMessageIds.current.has(key)) return;
+                handledMessageIds.current.add(key);
+            }
+            try {
+                const route = routeForPush(message.data as PushData | undefined, { id: userId, role });
+                if (route) {
+                    pendingRoute.current = route;
+                    setPendingTick((n) => n + 1);
+                }
+            } catch (err) {
+                console.warn('[push] could not resolve the tapped notification', err);
+            }
         };
 
         const messaging = getMessaging();
@@ -64,7 +90,24 @@ export function PushNotificationRouter() {
             getInitialNotification(messaging).then(open).catch(() => undefined);
         }
         return onNotificationOpenedApp(messaging, open);
-    }, [userId, role, router]);
+    }, [userId, role]);
+
+    // Navigates to the recorded target once the root navigator is mounted.
+    // Deferred one tick so it lands after the start-up <Redirect> in app/index.
+    useEffect(() => {
+        if (!navReady || !pendingRoute.current) return;
+        const timer = setTimeout(() => {
+            const route = pendingRoute.current;
+            pendingRoute.current = null;
+            if (!route) return;
+            try {
+                router.push(route, { withAnchor: true });
+            } catch (err) {
+                console.warn('[push] could not open the tapped notification', err);
+            }
+        }, 0);
+        return () => clearTimeout(timer);
+    }, [navReady, pendingTick, router]);
 
     return null;
 }
