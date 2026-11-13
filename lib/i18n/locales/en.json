@@ -1798,7 +1798,9 @@
     "unread": "Unread",
     "empty": "No notifications yet",
     "emptyHint": "When a mechanic responds to your request, it will appear here.",
-    "tapToView": "Tap to view details →"
+    "tapToView": "Tap to view details →",
+    "deleteFailedTitle": "Could not delete",
+    "deleteFailedMessage": "The notifications could not be deleted. Check your connection and try again."
   },
   "settingsMenu": {
     "notifications": "Notifications",

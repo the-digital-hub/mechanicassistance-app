@@ -82,6 +82,16 @@ class NotificationDAO {
         const result = await apiClient.post<{ marked: number }>('/api/notifications/inbox/read', {});
         return result.marked;
     }
+
+    /**
+     * Deletes notifications from the inbox for good, on every phone. Ids that
+     * are not the caller's or were already deleted are skipped. Answers how
+     * many were deleted.
+     */
+    async deleteInbox(ids: string[]): Promise<number> {
+        const result = await apiClient.post<{ deleted: number }>('/api/notifications/inbox/delete', { ids });
+        return result.deleted;
+    }
 }
 
 export const notificationDAO = new NotificationDAO();

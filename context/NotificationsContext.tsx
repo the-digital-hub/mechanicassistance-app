@@ -35,8 +35,12 @@ interface NotificationsContextType {
     /** Clears the number on the app icon (and the backend's count behind it). Never throws. */
     markSeen: () => Promise<void>;
     markAllRead: () => void;
-    /** Hides it on this phone until the app restarts; the backend keeps it. */
-    deleteNotification: (id: string) => void;
+    /**
+     * Deletes them from the inbox on the backend, so they stay gone after a
+     * restart and on other phones. Removed from the list at once; put back if
+     * the backend call fails. Resolves false on failure, never throws.
+     */
+    deleteNotifications: (ids: string[]) => Promise<boolean>;
 }
 
 const NotificationsContext = createContext<NotificationsContextType | undefined>(undefined);
@@ -140,14 +144,27 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
         );
     }, []);
 
-    const deleteNotification = useCallback((id: string) => {
-        hidden.current.add(id);
-        setNotifications(prev => prev.filter(n => n.id !== id));
-    }, []);
+    // `hidden` keeps a refresh that is already in flight from bringing back
+    // what is being deleted; once the backend has them hidden, it never lists them.
+    const deleteNotifications = useCallback(async (ids: string[]) => {
+        if (ids.length === 0) return true;
+        const gone = new Set(ids);
+        ids.forEach((id) => hidden.current.add(id));
+        setNotifications(prev => prev.filter(n => !gone.has(n.id)));
+        try {
+            await notificationDAO.deleteInbox(ids);
+            return true;
+        } catch (err) {
+            console.warn('[inbox] delete failed:', (err as Error).message);
+            ids.forEach((id) => hidden.current.delete(id));
+            void refresh();
+            return false;
+        }
+    }, [refresh]);
 
     const value = useMemo(
-        () => ({ notifications, refresh, markSeen, markAllRead, deleteNotification }),
-        [notifications, refresh, markSeen, markAllRead, deleteNotification],
+        () => ({ notifications, refresh, markSeen, markAllRead, deleteNotifications }),
+        [notifications, refresh, markSeen, markAllRead, deleteNotifications],
     );
 
     return <NotificationsContext.Provider value={value}>{children}</NotificationsContext.Provider>;

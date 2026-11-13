@@ -85,11 +85,20 @@ export default function NotificationsScreen() {
     const router = useRouter();
     const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
-    const { notifications, deleteNotification, markAllRead } = useNotifications();
+    const { notifications, deleteNotifications, markAllRead } = useNotifications();
     const { user } = useUser();
 
+    const deleteAndReport = async (ids: string[]) => {
+        if (await deleteNotifications(ids)) return;
+        if (Platform.OS === 'web') {
+            window.alert(t('notifications.deleteFailedMessage'));
+        } else {
+            Alert.alert(t('notifications.deleteFailedTitle'), t('notifications.deleteFailedMessage'));
+        }
+    };
+
     const handleDelete = (id: string) => {
-        const performDelete = () => deleteNotification(id);
+        const performDelete = () => void deleteAndReport([id]);
 
         if (Platform.OS === 'web') {
             if (window.confirm(t('notifications.deleteConfirmMessage'))) {
@@ -173,7 +182,7 @@ export default function NotificationsScreen() {
                         <TouchableOpacity onPress={markAllRead}>
                             <Check size={18} color="#9CA3AF" />
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => filteredNotifications.forEach(n => deleteNotification(n.id))}>
+                        <TouchableOpacity onPress={() => void deleteAndReport(filteredNotifications.map(n => n.id))}>
                             <X size={18} color="#9CA3AF" />
                         </TouchableOpacity>
                     </View>

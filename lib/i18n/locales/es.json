@@ -1798,7 +1798,9 @@
     "unread": "No leídas",
     "empty": "Todavía no hay notificaciones",
     "emptyHint": "Cuando un mecánico responda a tu solicitud, va a aparecer acá.",
-    "tapToView": "Tocá para ver detalles →"
+    "tapToView": "Tocá para ver detalles →",
+    "deleteFailedTitle": "No se pudo eliminar",
+    "deleteFailedMessage": "No se pudieron eliminar las notificaciones. Revisá tu conexión e intentá de nuevo."
   },
   "settingsMenu": {
     "notifications": "Notificaciones",
