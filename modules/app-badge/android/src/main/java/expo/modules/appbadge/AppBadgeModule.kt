@@ -12,8 +12,11 @@ class AppBadgeModule : Module() {
     // notifications in the tray (or use the push's notification_count while
     // it is there). Emptying the tray clears the icon.
     AsyncFunction("clear") {
-      val context = appContext.reactContext ?: return@AsyncFunction
-      NotificationManagerCompat.from(context).cancelAll()
+      // No bare `return@AsyncFunction`: Kotlin 2.1 infers the lambda's return
+      // as Any? and rejects an early Unit return ("Return type mismatch").
+      appContext.reactContext?.let { context ->
+        NotificationManagerCompat.from(context).cancelAll()
+      }
     }
   }
 }
