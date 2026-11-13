@@ -85,7 +85,11 @@ function AppShell() {
       <GlobalNotificationListener />
       <PushNotificationRouter />
       <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(tabs)" />
+        {/* Every (tabs) screen has its own back arrow. With the edge swipe on,
+            a second (tabs) entry on this stack could be dragged aside and
+            showed the tab navigator underneath, tab bar and all. The nested
+            stacks (dashboard/[id], appointments/[id]…) keep their own swipe. */}
+        <Stack.Screen name="(tabs)" options={{ gestureEnabled: false }} />
         <Stack.Screen name="index" />
         <Stack.Screen name="login" />
         <Stack.Screen name="onboarding" />

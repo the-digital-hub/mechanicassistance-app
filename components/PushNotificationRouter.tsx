@@ -101,7 +101,11 @@ export function PushNotificationRouter() {
             pendingRoute.current = null;
             if (!route) return;
             try {
-                router.push(route, { withAnchor: true });
+                // navigate, not push: this runs from the root, where a push
+                // that diverges at the root stack (start-up, before the tabs
+                // have their state) stacks a second (tabs) on top of the first.
+                // navigate reuses the (tabs) entry that is already there.
+                router.navigate(route, { withAnchor: true });
             } catch (err) {
                 console.warn('[push] could not open the tapped notification', err);
             }
