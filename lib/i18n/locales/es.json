@@ -642,7 +642,7 @@
   "appointments": {
     "list": {
       "badge": "TUS SOLICITUDES",
-      "title": "Tus solicitudes,\ntodo en un solo lugar.",
+      "title": "Tus solicitudes, todo en un solo lugar.",
       "subtitle": "Seguí tus solicitudes activas, mirá trabajos pasados y gestioná tus reservas desde acá.",
       "upcoming": "Próximas",
       "pendingApproval": "Pendientes",

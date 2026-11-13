@@ -642,7 +642,7 @@
   "appointments": {
     "list": {
       "badge": "YOUR REQUESTS",
-      "title": "Your requests,\nall in one place.",
+      "title": "Your requests, all in one place.",
       "subtitle": "Track active requests, view past jobs, and manage your bookings from here.",
       "upcoming": "Upcoming",
       "pendingApproval": "Pending",

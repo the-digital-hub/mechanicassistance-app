@@ -345,9 +345,9 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <Calendar size={24} color={color} />,
           headerStyle: { backgroundColor: "#F6F8FC" },
           headerTitleStyle: {
-            fontFamily: "Outfit_700Bold",
-            fontSize: 17,
-            color: "#0B1530",
+            fontFamily: "Outfit_500Medium",
+            fontSize: 18,
+            color: "#1A1A1A",
           },
           headerLeft: () =>
             isAppointmentDetail ? (

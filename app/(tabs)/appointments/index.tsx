@@ -59,13 +59,13 @@ export default function AppointmentsScreen() {
                         {/* Section Badge */}
                         <View className="flex-row items-center rounded-full" style={{ gap: 6, marginBottom: 12, paddingHorizontal: 10, paddingVertical: 4, backgroundColor: '#EAF1FF', alignSelf: 'flex-start' }}>
                           <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: '#1E56E3' }} />
-                          <Text className="font-outfit-bold text-[10.5px]" style={{ color: '#1E56E3', letterSpacing: 1.3 }}>
+                          <Text className="font-outfit-medium text-[10.5px]" style={{ color: '#1E56E3', letterSpacing: 1.3 }}>
                             {t('appointments.list.badge')}
                           </Text>
                         </View>
 
                         {/* Title */}
-                        <Text className="font-outfit-bold text-[26px]" style={{ color: '#0B1530', letterSpacing: -0.7, lineHeight: 29 }}>{t('appointments.list.title')}</Text>
+                        <Text className="font-outfit-medium text-[26px]" style={{ color: '#0B1530', letterSpacing: -0.7, lineHeight: 29 }}>{t('appointments.list.title')}</Text>
 
                         {/* Tab Switcher */}
                         <View className="flex-row" style={{ marginTop: 16, gap: 4, padding: 4, borderRadius: 14, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E4EAF5' }}>
@@ -93,7 +93,7 @@ export default function AppointmentsScreen() {
                                         onPress={() => setActiveTab(tab.key)}
                                     >
                                         <Text
-                                            className="font-outfit-bold text-[13.5px]"
+                                            className="font-outfit-medium text-[13.5px]"
                                             numberOfLines={1}
                                             style={{ color: isActive ? '#FFFFFF' : '#6B7490' }}
                                         >
@@ -135,7 +135,7 @@ export default function AppointmentsScreen() {
                 contentContainerStyle={{ paddingBottom: 20 }}
                 ListEmptyComponent={
                     <View className="items-center justify-center py-10">
-                        <Text className="font-outfit-bold text-[14.5px]" style={{ color: '#0B1530' }}>{activeTab === 'upcoming'
+                        <Text className="font-outfit-medium text-[14.5px]" style={{ color: '#0B1530' }}>{activeTab === 'upcoming'
                             ? t('appointments.list.noUpcoming')
                             : activeTab === 'pending'
                                 ? t('appointments.list.noPendingApproval')
