@@ -398,19 +398,6 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                         </LinearGradient>
                     )}
                 </TouchableOpacity>
-
-                {/* Chat sits in the technician row when that row is shown */}
-                {canMessage && !mechanic && (
-                    <TouchableOpacity
-                        accessibilityLabel={t('appointments.list.card.message')}
-                        onPress={openChat}
-                        activeOpacity={0.8}
-                        className="items-center justify-center"
-                        style={{ width: 52, borderRadius: 13, backgroundColor: C.blueSoft }}
-                    >
-                        <MessageSquare size={18} color={C.blue} />
-                    </TouchableOpacity>
-                )}
             </View>
 
             {/* Footer: id + cancel */}
