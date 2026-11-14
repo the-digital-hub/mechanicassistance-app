@@ -1,6 +1,7 @@
 import {
     getInitialNotification,
     getMessaging,
+    onMessage,
     onNotificationOpenedApp,
 } from '@react-native-firebase/messaging';
 import { useRootNavigationState, useRouter, type Href } from 'expo-router';
@@ -8,6 +9,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import { useUser } from '@/context/UserContext';
 import {
+    notifyCancellationDisputePush,
     routeForPush,
     syncPushRegistration,
     watchPushToken,
@@ -23,6 +25,8 @@ import {
  *   then silently on every return to the foreground and on token rotation.
  * - Opens the right screen when a push is tapped, whether the app was in the
  *   background or closed (cold start).
+ * - Passes on cancellation-dispute pushes that arrive in the foreground, so an
+ *   open appointment refreshes its charge/compensation banner.
  *
  * Mounted inside AppShell, after the session check, so the router is ready and
  * the signed-in user is known.
@@ -91,6 +95,17 @@ export function PushNotificationRouter() {
         }
         return onNotificationOpenedApp(messaging, open);
     }, [userId, role]);
+
+    // Pushes that arrive while the app is open: a cancellation-dispute push
+    // refreshes the open detail screen's banner. Nothing navigates here.
+    useEffect(() => {
+        if (!userId) return;
+        return onMessage(getMessaging(), async (message) => {
+            const data = message.data as PushData | undefined;
+            if (data?.recipientId && data.recipientId !== userId) return;
+            notifyCancellationDisputePush(data);
+        });
+    }, [userId]);
 
     // Navigates to the recorded target once the root navigator is mounted.
     // Deferred one tick so it lands after the start-up <Redirect> in app/index.

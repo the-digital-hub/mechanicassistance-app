@@ -867,7 +867,25 @@
       "locationNotAvailable": "Ubicación no disponible"
     },
     "cancellationModal": {
-      "message": "¿Estás seguro de que querés cancelar esta solicitud?\nTu mecánico ya está en camino hacia vos."
+      "message": "¿Estás seguro de que querés cancelar esta solicitud?\nTu mecánico ya está en camino hacia vos.",
+      "notDeparted": "¿Estás seguro de que querés cancelar esta solicitud?",
+      "freeWindow": "Tu mecánico ya está en camino, pero todavía podés cancelar sin cargo durante {{time}} más.",
+      "chargeReview": "Tu mecánico ya salió hacia tu ubicación. Si cancelás ahora, el cobro pasa a revisión: el monto retenido se mantiene y el mecánico puede ser compensado por el viaje."
+    },
+    "cancellationDispute": {
+      "cancelledTitle": "Solicitud cancelada",
+      "ownerReviewTitle": "Cobro en revisión",
+      "ownerReviewBody": "El mecánico ya había salido cuando cancelaste. Nuestro equipo está revisando el cobro; hay hasta {{amount}} retenidos.",
+      "ownerChargedTitle": "Se cobró {{amount}}",
+      "ownerChargedBody": "Se cobró a tu tarjeta por el viaje del mecánico. El resto de la retención se liberó.",
+      "ownerNoChargeTitle": "Sin cargo",
+      "ownerNoChargeBody": "Se liberó la retención de tu tarjeta.",
+      "mechanicReviewTitle": "Compensación en revisión",
+      "mechanicReviewBody": "El cliente canceló después de que saliste. Nuestro equipo va a decidir tu compensación por el viaje.",
+      "mechanicPaidTitle": "Compensación: {{amount}}",
+      "mechanicPaidBody": "Se te va a pagar este monto por el viaje.",
+      "mechanicNoneTitle": "Sin compensación",
+      "mechanicNoneBody": "Esta cancelación se resolvió sin cobro al cliente."
     },
     "checkIn": {
       "title": "Check-in",

@@ -1,4 +1,5 @@
 import { useNotifications } from '@/context/NotificationsContext';
+import { isCancelledStatus } from '@/context/AppointmentsContext';
 import { useSocket } from '@/context/SocketContext';
 import { useUser } from '@/context/UserContext';
 import { useRouter, useSegments } from 'expo-router';
@@ -102,7 +103,7 @@ export function GlobalNotificationListener() {
         }
 
         // 3. Mechanic Logic: Job Canceled (Status: canceled)
-        if (isMechanicForRequest && status === 'canceled') {
+        if (isMechanicForRequest && isCancelledStatus(status)) {
             const key = `canceled-${requestId}`;
             if (notifiedIds.current.has(key)) return;
             notifiedIds.current.add(key);

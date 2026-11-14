@@ -114,7 +114,7 @@ export interface AssistanceRequest {
     startNow?: boolean;
     userId?: string;
     mechanicId?: string;
-    status?: 'pending' | 'accepted' | 'canceled' | 'offered';
+    status?: 'pending' | 'accepted' | 'cancelled' | 'canceled' | 'offered';
     locationLat?: number;
     locationLng?: number;
     /**
@@ -628,11 +628,27 @@ export interface MechanicStats {
     completedCount: number;
 }
 
+/**
+ * What happened to the hold when the owner cancelled after the mechanic headed
+ * out and past the free-cancel window (GET /api/appointments/:id/cancellation-dispute).
+ * Amounts are in cents. `open` = staff still have to decide; `resolved` = staff
+ * captured `capturedAmount` (0 = released); `auto_captured` = the visit fee was
+ * captured before the hold expired.
+ */
+export interface CancellationDispute {
+    status: 'open' | 'resolved' | 'auto_captured';
+    heldAmount: number;
+    capturedAmount: number | null;
+    currency: string;
+    resolvedAt: string | null;
+}
+
 export interface IAppointmentDAO {
     getAll(filters?: { userId?: string; mechanicId?: string }): Promise<any[]>;
     getMyStats(): Promise<MechanicStats>;
     create(appointment: any): Promise<any>;
     update(id: string, updates: any): Promise<void>;
+    getCancellationDispute(id: string): Promise<CancellationDispute | null>;
 }
 
 export interface ISetupDAO {

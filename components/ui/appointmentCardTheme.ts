@@ -37,6 +37,7 @@ export function getCardState(appointment: Pick<Appointment, 'status' | 'type' | 
             // Video call support ruled "not resolved": the payment was released.
             return appointment.currentStatus === 'not_resolved' ? 'notCharged' : 'completed';
         case 'canceled':
+        case 'cancelled':
             return 'canceled';
         default:
             return 'scheduled';

@@ -211,6 +211,13 @@ export function routeForPush(data: PushData | undefined, viewer: PushViewer): Hr
             return appointmentId
                 ? { pathname: '/appointments/[id]', params: { id: appointmentId } }
                 : '/appointments';
+        case 'cancellation_disputed':
+        case 'cancellation_dispute_resolved':
+            // Cancelled after the mechanic headed out: the detail screen shows the
+            // charge (owner) or compensation (mechanic) banner.
+            return appointmentId
+                ? { pathname: '/appointments/[id]', params: { id: appointmentId } }
+                : '/appointments';
         case 'video_call':
             return appointmentId
                 ? { pathname: '/video-lobby/[id]', params: { id: appointmentId } }
@@ -221,3 +228,28 @@ export function routeForPush(data: PushData | undefined, viewer: PushViewer): Hr
 }
 
 export type RemoteMessage = FirebaseMessagingTypes.RemoteMessage;
+
+/** Push kinds that change an appointment's cancellation dispute. */
+export const CANCELLATION_DISPUTE_KINDS: ReadonlySet<string> = new Set(['cancellation_disputed', 'cancellation_dispute_resolved']);
+
+type DisputePushListener = (appointmentId: string) => void;
+const disputePushListeners = new Set<DisputePushListener>();
+
+/**
+ * A cancellation-dispute push arrived while the app was open. The detail screen
+ * listens to refetch its banner; PushNotificationRouter is the only emitter.
+ */
+export function onCancellationDisputePush(listener: DisputePushListener): () => void {
+    disputePushListeners.add(listener);
+    return () => {
+        disputePushListeners.delete(listener);
+    };
+}
+
+/** Tells listeners about a foreground push, if it is a cancellation-dispute one. */
+export function notifyCancellationDisputePush(data: PushData | undefined): void {
+    if (!data?.kind || !CANCELLATION_DISPUTE_KINDS.has(data.kind)) return;
+    const appointmentId = data.appointmentId ?? data.requestId;
+    if (!appointmentId) return;
+    disputePushListeners.forEach((listener) => listener(appointmentId));
+}

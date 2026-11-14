@@ -1,3 +1,4 @@
+import { CancellationDisputeBanner } from '@/components/appointments/CancellationDisputeBanner';
 import { CancellationModal } from '@/components/appointments/CancellationModal';
 import { MechanicAssistanceInfoTab } from '@/components/appointments/MechanicAssistanceInfoTab';
 import { MechanicArrivalCard, PulseDot } from '@/components/appointments/MechanicArrivalCard';
@@ -30,18 +31,20 @@ import {
 } from '@/components/appointments/owner/OwnerSections';
 import { AO, IconName, RequestSummaryRows } from '@/components/offer/OfferSections';
 import { PaymentCardValue } from '@/components/payments/PaymentCardValue';
-import { useAppointments } from '@/context/AppointmentsContext';
+import { isCancelledStatus, useAppointments } from '@/context/AppointmentsContext';
 import { useUser } from '@/context/UserContext';
 import { formatEtaTime, useAppointmentEta } from '@/hooks/useAppointmentEta';
 import { useHeadOut } from '@/hooks/useHeadOut';
 import { useVideoCallState } from '@/hooks/useVideoCallState';
 import { ApiError } from '@/lib/api/types';
+import { appointmentDAO } from '@/lib/dao/AppointmentDAO';
 import { onSiteDAO } from '@/lib/dao/OnSiteDAO';
 import { videoCallDAO } from '@/lib/dao/VideoCallDAO';
+import { onCancellationDisputePush } from '@/lib/notifications/push';
 import { contractedSeconds, DEFAULT_CALL_MINUTES } from '@/lib/video/callLength';
 import { formatLocalDateTime, videoCallBookedLabel } from '@/lib/video/videoCallTime';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
-import type { AssistanceClientSummary, AssistanceOfferSummary } from '@/lib/dao/interfaces';
+import type { AssistanceClientSummary, AssistanceOfferSummary, CancellationDispute } from '@/lib/dao/interfaces';
 import { userDAO } from '@/lib/dao/UserDAO';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -105,6 +108,40 @@ export default function AppointmentDetailScreen() {
     const { headOut: departNow, headingOut, departedNow } = useHeadOut();
     const departedAt = appointment?.departedAt ?? departedNow;
     const departed = !!departedAt;
+    const isCancelled = isCancelledStatus(appointment?.status);
+
+    // Cancelled after the mechanic headed out and past the free window: the hold
+    // was kept and a cancellation dispute opened. 404 (none) comes back as null.
+    const [cancellationDispute, setCancellationDispute] = React.useState<CancellationDispute | null>(null);
+    // Bumped by a foreground `cancellation_disputed` / `cancellation_dispute_resolved` push for this appointment.
+    const [disputeTick, setDisputeTick] = React.useState(0);
+    // `refresh` is a new function every render; read it through a ref so the subscription stays put.
+    const refreshAppointmentsRef = React.useRef(refreshAppointments);
+    refreshAppointmentsRef.current = refreshAppointments;
+    React.useEffect(() => {
+        if (!appointment?.id) return;
+        const id = appointment.id;
+        return onCancellationDisputePush((appointmentId) => {
+            if (appointmentId !== id) return;
+            setDisputeTick((n) => n + 1);
+            // The push can be the first sign the appointment was cancelled.
+            void refreshAppointmentsRef.current();
+        });
+    }, [appointment?.id]);
+    React.useEffect(() => {
+        if (!isCancelled || !appointment?.id) {
+            setCancellationDispute(null);
+            return;
+        }
+        let cancelled = false;
+        appointmentDAO
+            .getCancellationDispute(appointment.id)
+            .then((d) => !cancelled && setCancellationDispute(d))
+            .catch((error) => console.error('Error fetching cancellation dispute:', error));
+        return () => {
+            cancelled = true;
+        };
+    }, [isCancelled, appointment?.id, appointment?.updatedAt, disputeTick]);
 
     // Lifted here so the socket listener stays alive regardless of active tab.
     // An accepted job is only tracked once the mechanic heads out.
@@ -205,12 +242,14 @@ export default function AppointmentDetailScreen() {
         }
     }, [appointment]);
 
-    // Mechanic: navigate to appointments list when client cancels
+    // Mechanic: navigate to appointments list when client cancels — unless they
+    // had already headed out: then the cancellation may compensate them, and this
+    // screen is where they see it.
     React.useEffect(() => {
-        if (!isUserRole && appointment?.status === 'canceled') {
+        if (!isUserRole && isCancelled && !departed) {
             router.replace('/(tabs)/appointments');
         }
-    }, [appointment?.status, isUserRole]);
+    }, [isCancelled, departed, isUserRole, router]);
 
     // The mechanic's rating is only written when they send it (submitClientReview).
     // It used to be saved as a draft while they typed, which stored a 0-star
@@ -559,7 +598,17 @@ export default function AppointmentDetailScreen() {
                     <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
                         {isUserRole ? (
                             <View style={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 32, gap: 16 }} testID="owner-accepted">
-                                <AcceptedHeader id={appointment.id} refCode={appointment.refCode} {...(isVideoCall ? videoCallHeader : {})} />
+                                <AcceptedHeader
+                                    id={appointment.id}
+                                    refCode={appointment.refCode}
+                                    {...(isCancelled
+                                        ? { title: t('appointments.cancellationDispute.cancelledTitle'), icon: 'close' as IconName, color: AO.mutedLight }
+                                        : isVideoCall ? videoCallHeader : {})}
+                                />
+
+                                {isCancelled && cancellationDispute && (
+                                    <CancellationDisputeBanner dispute={cancellationDispute} role="owner" />
+                                )}
 
                                 <OwnerMechanicCard
                                     mechanic={offer?.mechanic ?? null}
@@ -664,9 +713,11 @@ export default function AppointmentDetailScreen() {
                                 ) : (
                                 <>
                                 <Text className="font-outfit-bold text-[22px]" style={{ color: MECH.text }}>
-                                    {awaitingHeadOut
-                                        ? t('appointments.detail.acceptedTitle')
-                                        : t('appointments.detail.onTheWayTitle')}
+                                    {isCancelled
+                                        ? t('appointments.cancellationDispute.cancelledTitle')
+                                        : awaitingHeadOut
+                                            ? t('appointments.detail.acceptedTitle')
+                                            : t('appointments.detail.onTheWayTitle')}
                                 </Text>
                                 <View className="flex-row items-center flex-wrap gap-2 mt-2">
                                     <View className="flex-row items-center gap-2">
@@ -695,8 +746,15 @@ export default function AppointmentDetailScreen() {
                                 />
                             </View>
 
+                            {/* Cancelled after heading out: what the mechanic gets for the trip */}
+                            {isCancelled && cancellationDispute && (
+                                <View className="mx-4 mt-3.5">
+                                    <CancellationDisputeBanner dispute={cancellationDispute} role="mechanic" />
+                                </View>
+                            )}
+
                             {/* Status card — a finished video call shows its close-out card instead */}
-                            {!isVideoCall && (
+                            {!isVideoCall && !isCancelled && (
                             <View className="mx-4 mt-3.5 px-5 py-4 items-center" style={{ borderRadius: 20, backgroundColor: MECH.greenSoft }} testID="status-badge" nativeID="status-badge">
                                 <View className="flex-row items-center gap-2">
                                     <PulseDot color={MECH.green} />
@@ -827,7 +885,7 @@ export default function AppointmentDetailScreen() {
                             ) : null}
 
                             {/* On-site check-in — the critical next step once the mechanic arrives */}
-                            {!isVideoCall && appointment.status !== 'completed' ? (
+                            {!isVideoCall && appointment.status !== 'completed' && !isCancelled ? (
                                 <View className="mt-3.5">
                                     <MechanicArrivalCard
                                         inProgress={appointment.status === 'in_progress'}
@@ -926,6 +984,8 @@ export default function AppointmentDetailScreen() {
             {/* Cancellation Overlay */}
             <CancellationModal
                 visible={showCancelModal}
+                departedAt={departedAt}
+                freeCancelUntil={appointment?.freeCancelUntil}
                 onClose={() => setShowCancelModal(false)}
                 onConfirm={() => {
                     setShowCancelModal(false);

@@ -867,7 +867,25 @@
       "locationNotAvailable": "Location not available"
     },
     "cancellationModal": {
-      "message": "Are you sure you'd like to cancel this request?\nYour mechanic is already on their way to you."
+      "message": "Are you sure you'd like to cancel this request?\nYour mechanic is already on their way to you.",
+      "notDeparted": "Are you sure you'd like to cancel this request?",
+      "freeWindow": "Your mechanic is already on their way, but you can still cancel at no charge for {{time}} more.",
+      "chargeReview": "Your mechanic already left for your location. If you cancel now, the charge goes to review: the amount on hold is kept and the mechanic may be compensated for the trip."
+    },
+    "cancellationDispute": {
+      "cancelledTitle": "Request cancelled",
+      "ownerReviewTitle": "Charge under review",
+      "ownerReviewBody": "The mechanic had already left when you cancelled. Our team is reviewing the charge; up to {{amount}} is on hold.",
+      "ownerChargedTitle": "Charged {{amount}}",
+      "ownerChargedBody": "Charged to your card for the mechanic's trip. The rest of the hold was released.",
+      "ownerNoChargeTitle": "No charge",
+      "ownerNoChargeBody": "The hold on your card was released.",
+      "mechanicReviewTitle": "Compensation under review",
+      "mechanicReviewBody": "The client cancelled after you headed out. Our team will decide your compensation for the trip.",
+      "mechanicPaidTitle": "Compensation: {{amount}}",
+      "mechanicPaidBody": "You'll be paid this amount for the trip.",
+      "mechanicNoneTitle": "No compensation",
+      "mechanicNoneBody": "This cancellation was resolved without a charge to the client."
     },
     "checkIn": {
       "title": "Check-in",

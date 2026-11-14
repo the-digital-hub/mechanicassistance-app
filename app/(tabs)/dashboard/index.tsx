@@ -750,7 +750,7 @@ export default function DashboardScreen() {
 
     const doCancelRequest = async (id: string) => {
         try {
-            await assistanceDAO.updateStatus(id, '', 'canceled');
+            await assistanceDAO.updateStatus(id, '', 'cancelled');
         } catch (error) {
             // A failure used to be swallowed here: the card just stayed put and the
             // user had no way to tell why. The backend's reason goes under the message.

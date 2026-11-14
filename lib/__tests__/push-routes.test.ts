@@ -60,6 +60,13 @@ describe('routeForPush', () => {
         expect(routeForPush({ kind: 'review_requested', appointmentId: 'req-1' }, mechanic)).toBeNull();
     });
 
+    it('opens the appointment for a cancellation dispute, for either role', () => {
+        const expected = { pathname: '/appointments/[id]', params: { id: 'req-1' } };
+        expect(routeForPush({ kind: 'cancellation_disputed', appointmentId: 'req-1' }, customer)).toEqual(expected);
+        expect(routeForPush({ kind: 'cancellation_dispute_resolved', appointmentId: 'req-1' }, mechanic)).toEqual(expected);
+        expect(routeForPush({ kind: 'cancellation_dispute_resolved', requestId: 'req-1' }, customer)).toEqual(expected);
+    });
+
     it('opens the appointments list for a cancellation', () => {
         expect(routeForPush({ kind: 'request_canceled', requestId: 'req-1' }, customer)).toBe('/appointments');
     });

@@ -198,7 +198,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
         SERVER_EVENTS.forEach((evt) => {
             s.on(evt, (payload: any) => {
                 setLastMessage({ type: evt, payload });
-                if (evt === 'assistance_update' && payload?.status === 'canceled') {
+                if (evt === 'assistance_update' && (payload?.status === 'cancelled' || payload?.status === 'canceled')) {
                     const reqId = payload.requestId || payload.id;
                     if (reqId) clearChatHistory(reqId);
                 }

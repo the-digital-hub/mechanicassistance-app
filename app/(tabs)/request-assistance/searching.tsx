@@ -1,4 +1,5 @@
 import { RequestVinCheckModal } from '@/components/video/RequestVinCheckModal';
+import { isCancelledStatus } from '@/context/AppointmentsContext';
 import { useSocket } from '@/context/SocketContext';
 import { useRequestObdVinCheck } from '@/hooks/useRequestObdVinCheck';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
@@ -107,7 +108,7 @@ export default function SearchingScreen() {
                     return;
                 }
                 if (latest?.status === 'pending') {
-                    await assistanceDAO.updateStatus(requestId as string, '', 'canceled');
+                    await assistanceDAO.updateStatus(requestId as string, '', 'cancelled');
                 }
             } catch (error) {
                 console.error('Failed to cancel expired request:', error);
@@ -167,7 +168,7 @@ export default function SearchingScreen() {
                     if (data) setRequestData(data);
                     if (data && data.status === 'offered') goToMechanicFound();
                     // Canceled by the backend's 45-minute sweep while we were away.
-                    if (data && data.status === 'canceled' && data.createdAt &&
+                    if (data && isCancelledStatus(data.status) && data.createdAt &&
                         Date.now() - new Date(data.createdAt).getTime() >= SEARCH_TIMEOUT_SECONDS * 1000) {
                         handleExpired(true);
                     }
@@ -218,8 +219,8 @@ export default function SearchingScreen() {
     const handleCancel = async () => {
         if (requestId) {
             try {
-                // Also update the backend status to 'canceled'
-                await assistanceDAO.updateStatus(requestId as string, '', 'canceled');
+                // Also update the backend status to 'cancelled'
+                await assistanceDAO.updateStatus(requestId as string, '', 'cancelled');
                 clearChatHistory(requestId as string);
                 alert(t('requestAssistance.searching.cancelledAlert'));
                 router.replace('/(tabs)/dashboard');

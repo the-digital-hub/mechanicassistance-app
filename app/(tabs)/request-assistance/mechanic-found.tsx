@@ -240,7 +240,7 @@ export default function MechanicFoundScreen() {
                     try {
                         // Keep the offering mechanic on the request: '' would
                         // unassign them, and they would never hear it was canceled.
-                        await assistanceDAO.updateStatus(requestId, request?.mechanicId ?? '', 'canceled');
+                        await assistanceDAO.updateStatus(requestId, request?.mechanicId ?? '', 'cancelled');
                         await refresh();
                         router.replace('/(tabs)/dashboard');
                     } catch (error) {

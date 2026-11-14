@@ -12,6 +12,8 @@ import { useSocket } from './SocketContext';
 // owner has to confirm it, or reported it as not resolved and support decides. Both are active.
 export type AppointmentStatus =
     | 'scheduled'
+    // The backend stores 'cancelled'; older rows and events still say 'canceled'.
+    | 'cancelled'
     | 'canceled'
     | 'started'
     | 'in_progress'
@@ -21,6 +23,11 @@ export type AppointmentStatus =
     | 'offered'
     | 'awaiting_confirmation'
     | 'disputed';
+
+/** True for either spelling of a cancelled status. */
+export function isCancelledStatus(status?: string | null): boolean {
+    return status === 'cancelled' || status === 'canceled';
+}
 
 /** Confirmed work that is not over yet — shown as active, never as past. */
 export const IN_FLIGHT_STATUSES: AppointmentStatus[] = ['scheduled', 'accepted', 'started', 'in_progress', 'awaiting_confirmation', 'disputed'];
@@ -61,6 +68,12 @@ export interface Appointment {
     completedAt?: string;
     /** When the mechanic tapped "Head out" (ISO). Until then the owner sees no live map. */
     departedAt?: string | null;
+    /**
+     * Until when (ISO) the owner can still cancel for free once the mechanic has
+     * headed out (`departedAt` + grace). Null before they head out. After it, a
+     * cancellation keeps the hold and opens a cancellation dispute.
+     */
+    freeCancelUntil?: string | null;
     updatedAt?: string;
     additionalFunds?: AdditionalFunds[];
     clientReview?: ClientReview;
@@ -282,10 +295,10 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
 
     const cancelAppointment = async (id: string, reason: string) => {
         try {
-            await appointmentDAO.update(id, { status: 'canceled', cancelReason: reason });
+            await appointmentDAO.update(id, { status: 'cancelled', cancelReason: reason });
             setAppointments((prev) =>
                 prev.map((appt) =>
-                    appt.id === id ? { ...appt, status: 'canceled', cancelReason: reason } : appt
+                    appt.id === id ? { ...appt, status: 'cancelled', cancelReason: reason } : appt
                 )
             );
         } catch (error) {
@@ -319,7 +332,7 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
     };
 
     const getPast = () => {
-        return appointments.filter((a) => a.status === 'completed' || a.status === 'canceled');
+        return appointments.filter((a) => a.status === 'completed' || isCancelledStatus(a.status));
     };
 
     /**
