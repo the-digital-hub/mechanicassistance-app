@@ -57,15 +57,15 @@ export default function AppointmentsScreen() {
                 ListHeaderComponent={
                     <View style={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 12 }}>
                         {/* Section Badge */}
-                        <View className="flex-row items-center rounded-full" style={{ gap: 6, marginBottom: 12, paddingHorizontal: 10, paddingVertical: 4, backgroundColor: '#EAF1FF', alignSelf: 'flex-start' }}>
-                          <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: '#1E56E3' }} />
-                          <Text className="font-outfit-medium text-[10.5px]" style={{ color: '#1E56E3', letterSpacing: 1.3 }}>
+                        <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+                          <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+                          <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
                             {t('appointments.list.badge')}
                           </Text>
                         </View>
 
                         {/* Title */}
-                        <Text className="font-outfit-medium text-[26px]" style={{ color: '#0B1530', letterSpacing: -0.7, lineHeight: 29 }}>{t('appointments.list.title')}</Text>
+                        <Text className="text-gray-900 font-outfit-medium text-3xl">{t('appointments.list.title')}</Text>
 
                         {/* Tab Switcher */}
                         <View className="flex-row" style={{ marginTop: 16, gap: 4, padding: 4, borderRadius: 14, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E4EAF5' }}>
