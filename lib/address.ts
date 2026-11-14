@@ -57,6 +57,20 @@ export const getFormattedAddress = (feature: any) => {
 };
 
 /**
+ * The name to show for an address: "Home"/"Office" for those types, the user's
+ * own text for `other`, or undefined when the address has no name.
+ */
+export function addressDisplayName(
+    address: Pick<Address, 'type' | 'label'> | undefined | null,
+    t: (key: string) => string,
+): string | undefined {
+    if (!address?.type) return undefined;
+    if (address.type === 'other') return address.label?.trim() || t('addresses.name.other');
+    if (address.type === 'home' || address.type === 'work') return t(`addresses.name.${address.type}`);
+    return undefined;
+}
+
+/**
  * The addresses that belong to the active role: its own plus the shared ones
  * (role null or absent — every address saved before accounts held two roles).
  */

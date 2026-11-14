@@ -1877,7 +1877,18 @@
     "pickSubtitle": "Las solicitudes de servicio se miden desde esta dirección. Tocá la dirección desde donde trabajás.",
     "baseBadge": "UBICACIÓN BASE",
     "setBaseFailedTitle": "No se pudo cambiar la ubicación base",
-    "setBaseFailedMessage": "Intentá de nuevo."
+    "setBaseFailedMessage": "Intentá de nuevo.",
+    "name": {
+      "label": "Nombre de la dirección",
+      "optional": "(opcional)",
+      "none": "Sin nombre",
+      "home": "Casa",
+      "work": "Oficina",
+      "other": "Otro",
+      "customPlaceholder": "Ej: Casa de mamá",
+      "pickTitle": "Nombrá esta dirección",
+      "done": "Listo"
+    }
   },
   "addressForm": {
     "requiredFields": "Completá todos los campos obligatorios",

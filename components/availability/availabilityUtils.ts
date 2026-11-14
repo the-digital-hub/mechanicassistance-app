@@ -105,7 +105,9 @@ export function baseLocationFromSetupAddress(address: {
   type?: string;
   home?: AddressLike;
   work?: AddressLike;
+  other?: AddressLike;
 }): BaseLocation | null {
+  if (address.type === "other") return toBaseLocation(address.other);
   return toBaseLocation(address.type === "work" ? address.work : address.home);
 }
 

@@ -279,6 +279,11 @@ export class UserDAO implements IUserDAO {
             const addresses: Record<string, unknown>[] = [];
             if (hasAddressData(home)) addresses.push({ ...home, type: 'home' });
             if (hasAddressData(work)) addresses.push({ ...work, type: 'work' });
+            const other = addressData.other as Record<string, unknown> | undefined;
+            if (hasAddressData(other)) {
+                const label = typeof addressData.otherLabel === 'string' ? addressData.otherLabel.trim() : '';
+                addresses.push({ ...other, type: 'other', label: label || null });
+            }
             if (addresses.length > 0) payload.addresses = addresses;
         }
         if (progress.dealerInfo) payload.dealerInfo = progress.dealerInfo;

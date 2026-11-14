@@ -1,3 +1,4 @@
+import { AddressNameField, addressNamePayload, type AddressNameValue } from '@/components/addresses/AddressNameField';
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { Input } from '@/components/ui/Input';
 import { useUser } from '@/context/UserContext';
@@ -85,6 +86,8 @@ export default function CreateAddressScreen() {
         zip: ''
     });
 
+    const [name, setName] = useState<AddressNameValue>({ type: null, label: '' });
+
     /** Fills the whole form from a Google Places suggestion. Fields stay editable. */
     const handleSelectAddress = (address: ParsedAddress) => {
         setFormData(prev => ({
@@ -122,7 +125,7 @@ export default function CreateAddressScreen() {
             const role = user.role === 'user' || user.role === 'mechanic' ? user.role : undefined;
             await addressDAO.create({
                 userId: user.id,
-                type: 'home',
+                ...addressNamePayload(name),
                 role,
                 street: formData.street,
                 apartment: formData.apartment,
@@ -162,6 +165,8 @@ export default function CreateAddressScreen() {
 
                 {/* Form Fields */}
                 <View className="gap-4 mb-8">
+                    <AddressNameField value={name} onChange={setName} />
+
                     <View>
                         <Text className="font-outfit-medium mb-2 text-gray-900">{t('addressForm.street')} <Text className="text-red-500">*</Text></Text>
                         <AddressAutocomplete

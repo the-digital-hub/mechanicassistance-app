@@ -157,9 +157,15 @@ export interface AssistanceRequest {
     vehicleIssues?: VehicleIssueSnapshot[];
 }
 
+/** The name category of an address. `work` is shown as "Office"; `other` carries the user's text in `label`. */
+export type AddressNameType = 'home' | 'work' | 'other';
+
 export interface Address {
     id: string;
-    type?: string;
+    /** Name category; null or absent = the address has no name. */
+    type?: AddressNameType | null;
+    /** Free-text name, only when `type` is `other` (the backend clears it otherwise). */
+    label?: string | null;
     street?: string;
     apartment?: string;
     city?: string;

@@ -2,7 +2,7 @@ import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { Button } from '@/components/ui/Button';
 import MapView, { Marker, Region } from '@/components/ui/Map';
 import { useUser } from '@/context/UserContext';
-import { addressesForRole } from '@/lib/address';
+import { addressDisplayName, addressesForRole } from '@/lib/address';
 import type { ParsedAddress } from '@/lib/places';
 import * as Location from 'expo-location';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -23,7 +23,7 @@ export default function LocationMapScreen() {
     // role's addresses and the shared ones count.
     const roleAddresses = addressesForRole(user?.addresses, user?.role);
     const homeAddress = roleAddresses.find(a => a.type === 'home') ?? roleAddresses[0];
-    const workAddress = roleAddresses.find(a => a.type === 'work') ?? roleAddresses[1];
+    const workAddress = roleAddresses.find(a => a.type === 'work') ?? roleAddresses.find(a => a !== homeAddress);
 
     const [region, setRegion] = useState<Region | null>(null);
     const [marker, setMarker] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -322,7 +322,7 @@ export default function LocationMapScreen() {
                             className="flex-1 bg-gray-50 p-4 rounded-xl border border-gray-100 relative"
                         >
                             <View className="flex-row justify-between items-start mb-1">
-                                <Text className="text-blue-900 font-outfit-bold">{t('requestAssistance.locationMap.home')}</Text>
+                                <Text numberOfLines={1} className="text-blue-900 font-outfit-bold">{addressDisplayName(homeAddress, t) ?? t('requestAssistance.locationMap.home')}</Text>
                             </View>
                             <Text numberOfLines={1} className="text-gray-500 text-xs">
                                 {homeAddress ? `${homeAddress.street || ''}, ${homeAddress.city || ''}` : t('requestAssistance.locationMap.notSet')}
@@ -343,7 +343,7 @@ export default function LocationMapScreen() {
                             className="flex-1 bg-gray-50 p-4 rounded-xl border border-gray-100 relative"
                         >
                             <View className="flex-row justify-between items-start mb-1">
-                                <Text className="text-blue-900 font-outfit-bold">{t('requestAssistance.locationMap.work')}</Text>
+                                <Text numberOfLines={1} className="text-blue-900 font-outfit-bold">{addressDisplayName(workAddress, t) ?? t('requestAssistance.locationMap.work')}</Text>
                             </View>
                             <Text numberOfLines={1} className="text-gray-500 text-xs">
                                 {workAddress ? `${workAddress.street || ''}, ${workAddress.city || ''}` : t('requestAssistance.locationMap.notSet')}

@@ -52,7 +52,9 @@ const migrateCoords = (stored: Record<string, any>): AddressFormData => ({
 export default function AddressScreen() {
   const router = useRouter();
   const { t } = useTranslation();
-  const [addressType, setAddressType] = useState<"home" | "work">("home");
+  const [addressType, setAddressType] = useState<"home" | "work" | "other">("home");
+  /** The user's own name for the "other" address (Other tab). */
+  const [otherLabel, setOtherLabel] = useState("");
   const [showStateModal, setShowStateModal] = useState(false);
 
   const [homeData, setHomeData] = useState<AddressFormData>({
@@ -70,6 +72,17 @@ export default function AddressScreen() {
     zip: "",
   });
 
+  const [otherData, setOtherData] = useState<AddressFormData>({
+    street: "",
+    apartment: "",
+    city: "",
+    state: "",
+    zip: "",
+  });
+
+  const formSetters = { home: setHomeData, work: setWorkData, other: setOtherData };
+  const activeSetter = formSetters[addressType];
+
   // Adding a role to an existing account: its addresses, offered as "use this".
   // The new role's address starts empty because it may differ from the other's.
   const [existingAddresses, setExistingAddresses] = useState<Address[]>([]);
@@ -83,6 +96,8 @@ export default function AddressScreen() {
       if (progress.address) {
         if (progress.address.home) setHomeData(migrateCoords(progress.address.home));
         if (progress.address.work) setWorkData(migrateCoords(progress.address.work));
+        if (progress.address.other) setOtherData(migrateCoords(progress.address.other));
+        if (typeof progress.address.otherLabel === "string") setOtherLabel(progress.address.otherLabel);
         if (progress.address.type) setAddressType(progress.address.type);
 
         // Migrate old data structure if found
@@ -106,7 +121,7 @@ export default function AddressScreen() {
     loadData();
   }, []);
 
-  const formData = addressType === "home" ? homeData : workData;
+  const formData = { home: homeData, work: workData, other: otherData }[addressType];
 
   const scrollViewRef = useRef<ScrollView>(null);
   const zipContainerRef = useRef<View>(null);
@@ -126,13 +141,13 @@ export default function AddressScreen() {
   };
 
   const handleChange = (key: string, value: string) => {
-    const setter = addressType === "home" ? setHomeData : setWorkData;
+    const setter = activeSetter;
     setter((prev) => ({ ...prev, [key]: value }));
   };
 
   /** Fills the active (home/work) form from a Google Places suggestion. */
   const handleSelectAddress = (address: ParsedAddress) => {
-    const setter = addressType === "home" ? setHomeData : setWorkData;
+    const setter = activeSetter;
     setter((prev) => ({
       ...prev,
       street: address.street || prev.street,
@@ -147,7 +162,7 @@ export default function AddressScreen() {
 
   /** Copies one of the account's addresses into the active (home/work) form. */
   const handleUseExisting = (address: Address) => {
-    const setter = addressType === "home" ? setHomeData : setWorkData;
+    const setter = activeSetter;
     setter({
       street: address.street ?? "",
       apartment: address.apartment ?? "",
@@ -164,7 +179,7 @@ export default function AddressScreen() {
    * the suggestion, so drop them instead of saving a mismatched pair.
    */
   const handleStreetChange = (text: string) => {
-    const setter = addressType === "home" ? setHomeData : setWorkData;
+    const setter = activeSetter;
     setter((prev) => ({
       ...prev,
       street: text,
@@ -179,6 +194,8 @@ export default function AddressScreen() {
       type: addressType,
       home: homeData,
       work: workData,
+      other: otherData,
+      otherLabel: otherLabel.trim(),
     });
 
     // Check role to decide next step
@@ -267,28 +284,36 @@ export default function AddressScreen() {
         )}
 
         {/* Toggle */}
-        <View className="flex-row mb-8">
-          <TouchableOpacity
-            onPress={() => setAddressType("home")}
-            className={`flex-1 py-3 border rounded-l-xl justify-center items-center ${addressType === "home" ? "bg-white border-[#0047AB]" : "bg-gray-50 border-gray-200"}`}
-          >
-            <Text
-              className={`font-outfit-medium ${addressType === "home" ? "text-[#0F172A]" : "text-gray-500"}`}
+        <View className={`flex-row ${addressType === "other" ? "mb-4" : "mb-8"}`}>
+          {(["home", "work", "other"] as const).map((type, i, all) => (
+            <TouchableOpacity
+              key={type}
+              onPress={() => setAddressType(type)}
+              className={`flex-1 py-3 border justify-center items-center ${i === 0 ? "rounded-l-xl" : ""} ${i === all.length - 1 ? "rounded-r-xl" : ""} ${addressType === type ? "bg-white border-[#0047AB]" : "bg-gray-50 border-gray-200"}`}
             >
-              {t('setup.address.home')}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setAddressType("work")}
-            className={`flex-1 py-3 border rounded-r-xl justify-center items-center ${addressType === "work" ? "bg-white border-[#0047AB]" : "bg-gray-50 border-gray-200"}`}
-          >
-            <Text
-              className={`font-outfit-medium ${addressType === "work" ? "text-[#0F172A]" : "text-gray-500"}`}
-            >
-              {t('setup.address.work')}
-            </Text>
-          </TouchableOpacity>
+              <Text
+                className={`font-outfit-medium ${addressType === type ? "text-[#0F172A]" : "text-gray-500"}`}
+              >
+                {t(`addresses.name.${type}`)}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
+
+        {addressType === "other" && (
+          <View className="mb-8">
+            <Text className="font-outfit-medium text-[#0F172A] mb-2">
+              {t('addresses.name.label')}
+            </Text>
+            <Input
+              value={otherLabel}
+              onChangeText={setOtherLabel}
+              placeholder={t('addresses.name.customPlaceholder')}
+              maxLength={40}
+              containerClassName="bg-white border border-gray-300 rounded-2xl"
+            />
+          </View>
+        )}
 
         <View className="space-y-4 mb-4 gap-5">
           <View className="relative z-50">

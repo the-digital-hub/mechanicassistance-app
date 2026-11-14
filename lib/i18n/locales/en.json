@@ -1877,7 +1877,18 @@
     "pickSubtitle": "Service requests are measured from this address. Tap the one you work from.",
     "baseBadge": "BASE LOCATION",
     "setBaseFailedTitle": "Could not change base location",
-    "setBaseFailedMessage": "Please try again."
+    "setBaseFailedMessage": "Please try again.",
+    "name": {
+      "label": "Address name",
+      "optional": "(optional)",
+      "none": "No name",
+      "home": "Home",
+      "work": "Office",
+      "other": "Other",
+      "customPlaceholder": "e.g. Mom's house",
+      "pickTitle": "Name this address",
+      "done": "Done"
+    }
   },
   "addressForm": {
     "requiredFields": "Please fill in all required fields",

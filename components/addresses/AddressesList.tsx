@@ -1,5 +1,5 @@
 import { useUser } from '@/context/UserContext';
-import { addressesForRole } from '@/lib/address';
+import { addressDisplayName, addressesForRole } from '@/lib/address';
 import { addressDAO } from '@/lib/dao/AddressDAO';
 import { useRouter } from 'expo-router';
 import { CheckCircle2, ChevronRight, Circle, MapPin, Plus } from 'lucide-react-native';
@@ -103,6 +103,11 @@ export function AddressesList({ picking = false }: { picking?: boolean }) {
                                         <MapPin size={24} color="#0047AB" />
                                     </View>
                                     <View className="flex-1 justify-center">
+                                        {addressDisplayName(address, t) && (
+                                            <Text className="font-outfit-semibold text-xs tracking-widest text-blue-600 mb-0.5" numberOfLines={1}>
+                                                {addressDisplayName(address, t)?.toUpperCase()}
+                                            </Text>
+                                        )}
                                         <Text className="font-outfit-semibold text-base text-gray-900">
                                             {address.street}
                                         </Text>

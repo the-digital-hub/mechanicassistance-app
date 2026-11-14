@@ -1,3 +1,4 @@
+import { AddressNameField, addressNamePayload, type AddressNameValue } from '@/components/addresses/AddressNameField';
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { Input } from '@/components/ui/Input';
 import { useUser } from '@/context/UserContext';
@@ -93,6 +94,11 @@ export default function EditAddressScreen() {
         locationLng: existingAddress?.locationLng
     });
 
+    const [name, setName] = useState<AddressNameValue>({
+        type: existingAddress?.type ?? null,
+        label: existingAddress?.label ?? '',
+    });
+
     /** Fills the whole form from a Google Places suggestion. Fields stay editable. */
     const handleSelectAddress = (address: ParsedAddress) => {
         setFormData(prev => ({
@@ -143,7 +149,8 @@ export default function EditAddressScreen() {
                 state: formData.state,
                 zip: formData.zip,
                 locationLat: formData.locationLat,
-                locationLng: formData.locationLng
+                locationLng: formData.locationLng,
+                ...addressNamePayload(name)
             });
             await refreshAddresses();
             router.back();
@@ -199,6 +206,8 @@ export default function EditAddressScreen() {
 
                 {/* Form Fields */}
                 <View className="gap-4 mb-8">
+                    <AddressNameField value={name} onChange={setName} />
+
                     <View>
                         <Text className="font-outfit-medium mb-2 text-gray-900">{t('addressForm.street')}</Text>
                         <AddressAutocomplete
