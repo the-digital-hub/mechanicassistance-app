@@ -291,10 +291,14 @@ export default function MechanicFoundScreen() {
     const price = formatMoney(rawPrice) ?? t(`${k}.tbd`);
     // What the hold is for, as a number: what the wallet must cover.
     const amountDue = rawPrice && Number.isFinite(Number(rawPrice)) ? Number(rawPrice) : null;
+    // The platform fee is not shown on its own: it is folded into the service
+    // line (summed in cents) so the visible lines still add up to the total.
+    const serviceWithFees = breakdown
+        ? ((Math.round(Number(breakdown.service) * 100) + Math.round(Number(breakdown.fees) * 100)) / 100).toFixed(2)
+        : null;
     const lines = breakdown
         ? [
-            { label: t(`${k}.lineService`, { type: typeLabel }), amount: formatMoney(breakdown.service)! },
-            { label: t(`${k}.linePlatformFee`), amount: formatMoney(breakdown.fees)! },
+            { label: t(`${k}.lineService`, { type: typeLabel }), amount: formatMoney(serviceWithFees)! },
             { label: t(`${k}.lineTaxes`), amount: formatMoney(breakdown.taxes)! },
         ]
         : [];

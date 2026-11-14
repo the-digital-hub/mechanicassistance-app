@@ -518,7 +518,6 @@
         ]
       },
       "lineService": "Service · {{type}}",
-      "linePlatformFee": "Platform fee",
       "lineTaxes": "Taxes",
       "lineTotal": "Total",
       "partsNotIncluded": "Parts are not included. If any are needed, you'll approve them in the app before they're bought.",

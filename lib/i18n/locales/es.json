@@ -518,7 +518,6 @@
         ]
       },
       "lineService": "Servicio · {{type}}",
-      "linePlatformFee": "Tarifa de la plataforma",
       "lineTaxes": "Impuestos",
       "lineTotal": "Total",
       "partsNotIncluded": "Los repuestos no están incluidos. Si hace falta alguno, lo vas a aprobar en la app antes de que se compre.",
