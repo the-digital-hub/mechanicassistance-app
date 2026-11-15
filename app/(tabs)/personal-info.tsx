@@ -248,13 +248,32 @@ export default function PersonalInfoScreen() {
 
                     <View>
                         <Text className="font-outfit-medium mb-2 text-gray-900">{t('personalInfo.email')}</Text>
-                        {/* Read-only: users-service refuses contact changes in a profile PATCH. */}
-                        <Input
-                            value={formData.email}
-                            editable={false}
-                            containerClassName="bg-gray-100 border border-gray-300 rounded-2xl text-gray-500"
-                            keyboardType="email-address"
-                        />
+                        {/*
+                          Read from `user`, not the form: the email changes on its own
+                          screen. It is never typed here — it has to be proved with a code.
+                        */}
+                        <View className="flex-row items-center gap-3">
+                            <View className="flex-1">
+                                <Input
+                                    value={user.email ?? ''}
+                                    placeholder={t('emailChange.noEmail')}
+                                    editable={false}
+                                    containerClassName="bg-gray-100 border border-gray-300 rounded-2xl text-gray-500"
+                                    keyboardType="email-address"
+                                />
+                            </View>
+                            <TouchableOpacity
+                                onPress={() => router.push('/email-change' as any)}
+                                activeOpacity={0.8}
+                                className="px-4 py-3 rounded-2xl"
+                                style={{ backgroundColor: '#E9F1FF' }}
+                                testID="personal-info-email-action"
+                            >
+                                <Text className="font-outfit-semibold text-[#0047AB]">
+                                    {user.email ? t('emailChange.fieldChange') : t('emailChange.fieldAdd')}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
 
                     <View>

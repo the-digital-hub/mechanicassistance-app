@@ -4,15 +4,18 @@ import { AseStatusBadge } from '@/components/ui/AseStatusBadge';
 import { VerificationBadge } from '@/components/ui/VerificationBadge';
 import { useUser } from '@/context/UserContext';
 import { useMechanicStatus } from '@/context/MechanicStatusContext';
+import { Stars } from '@/components/offer/OfferSections';
 import { ApiError } from '@/lib/api/types';
+import { appointmentDAO } from '@/lib/dao/AppointmentDAO';
+import type { MechanicStats } from '@/lib/dao/interfaces';
 import type { AddableRole, AppRole } from '@/lib/dao/interfaces';
 import { mediaDAO } from '@/lib/dao/MediaDAO';
 import { setAppLanguage } from '@/lib/i18n';
 import { startAddRoleFromProfile } from '@/lib/setup-add-role';
 import * as ImagePicker from 'expo-image-picker';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { ArrowLeftRight, Award, Briefcase, Camera, Car, Check, ChevronDown, ChevronLeft, ChevronRight, Circle, Clock, CreditCard, FileText, Heart, HelpCircle, Lock, LogOut, MapPin, Settings, User, Wallet } from 'lucide-react-native';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Image, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
@@ -33,6 +36,16 @@ export default function ProfileScreen() {
   const [isSwitchingRole, setIsSwitchingRole] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // The technician's rating under the name; a failed load simply shows nothing.
+  const isTechnician = user?.role === 'mechanic';
+  const [ratingStats, setRatingStats] = useState<MechanicStats | null>(null);
+  useFocusEffect(
+    useCallback(() => {
+      if (!isTechnician) return;
+      appointmentDAO.getMyStats().then(setRatingStats).catch(() => undefined);
+    }, [isTechnician]),
+  );
 
   const currentRole: AppRole = user?.role === 'mechanic' ? 'mechanic' : 'user';
   const roleName = (role: AddableRole) => t(`profile.switchRole.roles.${role}.label`);
@@ -199,9 +212,25 @@ export default function ProfileScreen() {
           </View>
 
           {/* Name */}
-          <Text className="text-3xl font-outfit-medium mt-4 mb-2" style={{ color: '#0B1530' }}>
+          <Text className="text-3xl font-outfit-medium mt-4 mb-1" style={{ color: '#0B1530' }}>
             {user.name} {user.surname}
           </Text>
+
+          {/* Technician rating */}
+          {isTechnician && ratingStats && (
+            <View className="flex-row items-center justify-center mb-3" style={{ gap: 6 }}>
+              {ratingStats.avgRating != null && Number.isFinite(Number(ratingStats.avgRating)) ? (
+                <>
+                  <Stars rating={Number(ratingStats.avgRating)} size={16} />
+                  <Text className="font-outfit-semibold text-sm" style={{ color: '#0B1530' }}>
+                    {t('appointments.list.card.ratingValue', { rating: Number(ratingStats.avgRating).toFixed(1), count: ratingStats.ratingCount })}
+                  </Text>
+                </>
+              ) : (
+                <Text className="font-outfit-medium text-sm" style={{ color: '#6B7490' }}>{t('appointments.list.card.noRatings')}</Text>
+              )}
+            </View>
+          )}
 
           {/* Role + identity verification badges */}
           {/* Wraps: a mechanic can show three pills at once (role, identity, ASE). */}
