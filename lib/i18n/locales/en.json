@@ -219,7 +219,8 @@
         "scheduled": "Request quotes and pick a date that works for you",
         "videoCall": "Talk a technician through it from your phone",
         "subtitle": "How do you want to be helped?"
-      }
+      },
+      "activeRequestTitle_other": "Your active requests!"
     },
     "timeAgo": {
       "justNow": "Just now",
@@ -230,7 +231,8 @@
     "mechanic": {
       "activeJob": {
         "title": "Active job",
-        "headOut": "Head out"
+        "headOut": "Head out",
+        "title_other": "Active jobs"
       },
       "readyToWork": "Ready to work",
       "reviewSubtitle": "Review new requests in your area",
@@ -312,9 +314,10 @@
       "attention": {
         "title": "Needs your attention",
         "notifications": {
-          "title": "{{count}} unread notifications",
+          "title": "{{count}} unread notification",
           "sub": "Check what's new on your jobs and requests.",
-          "cta": "Open"
+          "cta": "Open",
+          "title_other": "{{count}} unread notifications"
         },
         "payouts": {
           "title": "Set up your payouts",
@@ -549,7 +552,7 @@
       "subtitle": "We're scanning your area in real-time to find the best match.",
       "searchingNearby": "SEARCHING NEARBY",
       "averageMatchTime": "Average match time is under 8 minutes",
-      "mechanicsNotified": "{{count}} technicians notified",
+      "mechanicsNotified": "{{count}} technician notified",
       "yourRequest": "Your request",
       "service": "Service",
       "vehicle": "Vehicle",
@@ -573,7 +576,8 @@
         "replace": "Upload another report",
         "uploadPlaceholder": "Attach the correct report",
         "cancel": "Cancel request"
-      }
+      },
+      "mechanicsNotified_other": "{{count}} technicians notified"
     },
     "mechanicFound": {
       "errorTitle": "Error",
@@ -838,7 +842,8 @@
         "technician": "Technician",
         "ratingValue": "{{rating}} ({{count}})",
         "noRatings": "No ratings yet",
-        "distanceExact": "{{miles}} mi"
+        "distanceExact": "{{miles}} mi",
+        "pricePending": "Pending"
       },
       "hint": {
         "upcoming": "Confirmed services with an assigned technician.",
@@ -1491,7 +1496,10 @@
       "cancel": "Cancel request",
       "preparing": "GETTING READY",
       "preparingTitle": "{{name}} is getting ready",
-      "preparingHint": "You'll see them on the map once they head out."
+      "preparingHint": "You'll see them on the map once they head out.",
+      "upcoming": "SCHEDULED",
+      "upcomingTitle": "Scheduled for {{date}}",
+      "upcomingHint": "{{name}} will head out on the day. You'll see them on the map once they do."
     },
     "videoCall": {
       "badge": "VIDEO CALL",
@@ -2541,13 +2549,13 @@
       "totalEarned": "TOTAL EARNED",
       "totalEarnedHint": "All recorded earnings",
       "pending": "PENDING",
-      "pendingHint": "{{count}} pending items",
+      "pendingHint": "{{count}} pending item",
       "pendingHint_one": "1 pending item",
       "pendingHint_other": "{{count}} pending items",
       "ready": "READY",
       "readyHint": "Goes out in the next payout",
       "paidOut": "PAID OUT",
-      "paidOutHint": "{{count}} payouts",
+      "paidOutHint": "{{count}} payout",
       "paidOutHint_one": "1 payout",
       "paidOutHint_other": "{{count}} payouts",
       "noPayouts": "No payouts recorded"
@@ -2560,7 +2568,7 @@
     },
     "activity": {
       "title": "Earnings activity",
-      "count": "{{count}} records",
+      "count": "{{count}} record",
       "count_one": "1 record",
       "count_other": "{{count}} records",
       "from": "FROM",
@@ -2592,7 +2600,7 @@
     "payouts": {
       "title": "Payout history",
       "empty": "No payouts received yet.",
-      "services": "{{count}} services",
+      "services": "{{count}} service",
       "services_one": "1 service",
       "services_other": "{{count}} services"
     },

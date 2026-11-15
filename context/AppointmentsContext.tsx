@@ -223,6 +223,10 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                     ...((appt.assistanceType ?? appt.type) === 'videocall'
                         ? { date: appt.date || ar?.date, startNow: appt.startNow ?? ar?.startNow }
                         : {}),
+                    // A scheduled service is booked for a day: the appointment row may not carry it.
+                    ...((appt.assistanceType ?? appt.type) === 'scheduled' && !appt.date && ar?.date
+                        ? { date: ar.date }
+                        : {}),
                     vehicleIssues: issuesById.get(appt.id) || [],
                     source: 'appointment' as const,
                 };

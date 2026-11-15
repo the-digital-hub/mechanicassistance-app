@@ -2,6 +2,7 @@ import { PulseDot } from '@/components/appointments/MechanicArrivalCard';
 import { refLabel } from '@/lib/refCode';
 import { AO, card, IconName, RequestSummaryRows, Stars, SummaryRow } from '@/components/offer/OfferSections';
 import { formatEtaTime } from '@/hooks/useAppointmentEta';
+import { formatLocalDateTime } from '@/lib/video/videoCallTime';
 import type { AssistanceClientSummary, AssistanceOfferSummary } from '@/lib/dao/interfaces';
 import type { LatLng } from '@/lib/maps/polyline';
 import { Ionicons } from '@expo/vector-icons';
@@ -143,8 +144,10 @@ function EtaRing({ progress, children }: { progress: number; children: React.Rea
     );
 }
 
-export function OwnerEtaCard({ status, departed, minutesAway, etaTime, loading, mechanicName, destination, mechanicCoords, polyline }: {
+export function OwnerEtaCard({ status, departed, scheduledFor, minutesAway, etaTime, loading, mechanicName, destination, mechanicCoords, polyline }: {
     status: string;
+    /** A scheduled service still days away (ISO): shown as "scheduled for" instead of "getting ready". */
+    scheduledFor?: string | null;
     /** The mechanic tapped "Head out". Before that there is no live position or ETA to show. */
     departed: boolean;
     minutesAway: number | null;
@@ -155,24 +158,27 @@ export function OwnerEtaCard({ status, departed, minutesAway, etaTime, loading, 
     mechanicCoords: LatLng | null;
     polyline: string | null;
 }) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     // The ring fills as the mechanic gets closer: measured against the longest ETA seen on this screen.
     const startRef = React.useRef<number | null>(null);
     if (minutesAway !== null && (startRef.current === null || minutesAway > startRef.current)) startRef.current = minutesAway;
     const start = startRef.current;
 
     // Accepted but not yet headed out: the mechanic is getting ready.
-    const preparing = status === 'accepted' && !departed;
+    const upcoming = status === 'accepted' && !departed && !!scheduledFor;
+    const preparing = status === 'accepted' && !departed && !upcoming;
     const enRoute = status === 'accepted' && departed;
     const onSite = status === 'started' || status === 'in_progress';
-    const progress = preparing ? 0.05 : !enRoute ? 1 : minutesAway === null || !start ? 0.05 : Math.min(1, Math.max(0.05, 1 - minutesAway / start));
+    const progress = preparing || upcoming ? 0.05 : !enRoute ? 1 : minutesAway === null || !start ? 0.05 : Math.min(1, Math.max(0.05, 1 - minutesAway / start));
 
-    const pill = preparing ? t(`${K}.preparing`) : enRoute ? t(`${K}.enRoute`) : onSite ? t(`${K}.onSite`) : t(`${K}.done`);
-    const live = enRoute || preparing;
+    const pill = upcoming ? t(`${K}.upcoming`) : preparing ? t(`${K}.preparing`) : enRoute ? t(`${K}.enRoute`) : onSite ? t(`${K}.onSite`) : t(`${K}.done`);
+    const live = enRoute || preparing || upcoming;
     const pillColor = live ? AO.blue : AO.greenText;
     const pillBg = live ? AO.blueSoft : AO.greenSoft;
 
-    const headline = preparing
+    const headline = upcoming
+        ? t(`${K}.upcomingTitle`, { date: formatLocalDateTime(scheduledFor, i18n.language) })
+        : preparing
         ? t(`${K}.preparingTitle`, { name: mechanicName })
         : enRoute
         ? loading
@@ -194,7 +200,7 @@ export function OwnerEtaCard({ status, departed, minutesAway, etaTime, loading, 
                             <Text className="font-outfit-bold" style={{ fontSize: 11, color: AO.muted }}>{t(`${K}.min`)}</Text>
                         </>
                     ) : (
-                        <Ionicons name={live ? 'time-outline' : 'checkmark'} size={30} color={live ? AO.blue : AO.greenText} />
+                        <Ionicons name={upcoming ? 'calendar-outline' : live ? 'time-outline' : 'checkmark'} size={30} color={live ? AO.blue : AO.greenText} />
                     )}
                 </EtaRing>
                 <View style={{ flex: 1, minWidth: 0 }}>
@@ -203,6 +209,11 @@ export function OwnerEtaCard({ status, departed, minutesAway, etaTime, loading, 
                         <Text className="font-outfit-bold" style={{ fontSize: 10, letterSpacing: 1, color: pillColor }}>{pill}</Text>
                     </View>
                     <Text className="font-outfit-bold" style={{ fontSize: 19, color: AO.text, letterSpacing: -0.4, marginTop: 8 }}>{headline}</Text>
+                    {upcoming && (
+                        <Text className="font-outfit-regular" style={{ fontSize: 13, color: AO.muted, marginTop: 2 }} testID="owner-eta-upcoming">
+                            {t(`${K}.upcomingHint`, { name: mechanicName })}
+                        </Text>
+                    )}
                     {preparing && (
                         <Text className="font-outfit-regular" style={{ fontSize: 13, color: AO.muted, marginTop: 2 }} testID="owner-eta-preparing">
                             {t(`${K}.preparingHint`)}
@@ -217,7 +228,7 @@ export function OwnerEtaCard({ status, departed, minutesAway, etaTime, loading, 
                 </View>
             </View>
             <View style={{ marginTop: 14 }}>
-                <OwnerRouteMap destination={destination} mechanic={preparing ? null : mechanicCoords} polyline={preparing ? null : polyline} />
+                <OwnerRouteMap destination={destination} mechanic={preparing || upcoming ? null : mechanicCoords} polyline={preparing || upcoming ? null : polyline} />
             </View>
             <View className="flex-row items-center" style={{ gap: 10, marginTop: 10 }}>
                 <View className="flex-row items-center" style={{ gap: 6 }}>

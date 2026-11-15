@@ -219,7 +219,8 @@
         "scheduled": "Pedí cotizaciones y elegí la fecha que te convenga",
         "videoCall": "Resolvelo con un mecánico guiándote desde tu teléfono",
         "subtitle": "¿Cómo querés que te ayuden?"
-      }
+      },
+      "activeRequestTitle_other": "¡Tus solicitudes activas!"
     },
     "timeAgo": {
       "justNow": "Recién",
@@ -230,7 +231,8 @@
     "mechanic": {
       "activeJob": {
         "title": "Trabajo en curso",
-        "headOut": "Salir ahora"
+        "headOut": "Salir ahora",
+        "title_other": "Trabajos en curso"
       },
       "readyToWork": "Listo para trabajar",
       "reviewSubtitle": "Revisá las nuevas solicitudes en tu zona",
@@ -312,9 +314,10 @@
       "attention": {
         "title": "Requiere tu atención",
         "notifications": {
-          "title": "{{count}} notificaciones sin leer",
+          "title": "{{count}} notificación sin leer",
           "sub": "Revisá las novedades de tus trabajos y solicitudes.",
-          "cta": "Abrir"
+          "cta": "Abrir",
+          "title_other": "{{count}} notificaciones sin leer"
         },
         "payouts": {
           "title": "Configurá tus cobros",
@@ -408,10 +411,11 @@
       "possibleIssues": "Posibles problemas detectados",
       "symptoms": "¿Cuál lo describe mejor?",
       "otherIssues": "Otros",
-      "selectedCount": "{{count}} seleccionado(s)",
+      "selectedCount": "{{count}} seleccionado",
       "selected": "Seleccionado",
       "searchPlaceholder": "Buscar problemas",
-      "noResults": "No se encontraron problemas"
+      "noResults": "No se encontraron problemas",
+      "selectedCount_other": "{{count}} seleccionados"
     },
     "vehicleInformation": {
       "title": "Estado del vehículo",
@@ -549,7 +553,7 @@
       "subtitle": "Estamos escaneando tu zona en tiempo real para encontrar el mejor match.",
       "searchingNearby": "BUSCANDO CERCA",
       "averageMatchTime": "El tiempo promedio de match es menos de 8 minutos",
-      "mechanicsNotified": "{{count}} mecánicos notificados",
+      "mechanicsNotified": "{{count}} mecánico notificado",
       "yourRequest": "Tu solicitud",
       "service": "Servicio",
       "vehicle": "Vehículo",
@@ -573,7 +577,8 @@
         "replace": "Subir otro reporte",
         "uploadPlaceholder": "Adjuntá el reporte correcto",
         "cancel": "Cancelar solicitud"
-      }
+      },
+      "mechanicsNotified_other": "{{count}} mecánicos notificados"
     },
     "mechanicFound": {
       "errorTitle": "Error",
@@ -838,7 +843,8 @@
         "technician": "Técnico",
         "ratingValue": "{{rating}} ({{count}})",
         "noRatings": "Sin calificaciones",
-        "distanceExact": "{{miles}} mi"
+        "distanceExact": "{{miles}} mi",
+        "pricePending": "Pendiente"
       },
       "hint": {
         "upcoming": "Servicios confirmados con un técnico asignado.",
@@ -1491,7 +1497,10 @@
       "cancel": "Cancelar solicitud",
       "preparing": "PREPARÁNDOSE",
       "preparingTitle": "{{name}} se está preparando",
-      "preparingHint": "Lo verás en el mapa cuando salga hacia ti."
+      "preparingHint": "Lo verás en el mapa cuando salga hacia ti.",
+      "upcoming": "AGENDADO",
+      "upcomingTitle": "Agendado para el {{date}}",
+      "upcomingHint": "{{name}} saldrá el día del servicio. Lo verás en el mapa cuando salga."
     },
     "videoCall": {
       "badge": "VIDEOLLAMADA",
@@ -2541,13 +2550,13 @@
       "totalEarned": "TOTAL GANADO",
       "totalEarnedHint": "Todas las ganancias registradas",
       "pending": "PENDIENTE",
-      "pendingHint": "{{count}} pendientes",
+      "pendingHint": "{{count}} pendiente",
       "pendingHint_one": "1 pendiente",
       "pendingHint_other": "{{count}} pendientes",
       "ready": "LISTO",
       "readyHint": "Sale en la próxima liquidación",
       "paidOut": "PAGADO",
-      "paidOutHint": "{{count}} pagos",
+      "paidOutHint": "{{count}} pago",
       "paidOutHint_one": "1 pago",
       "paidOutHint_other": "{{count}} pagos",
       "noPayouts": "Sin pagos registrados"
@@ -2560,7 +2569,7 @@
     },
     "activity": {
       "title": "Actividad de ganancias",
-      "count": "{{count}} registros",
+      "count": "{{count}} registro",
       "count_one": "1 registro",
       "count_other": "{{count}} registros",
       "from": "DESDE",
@@ -2592,7 +2601,7 @@
     "payouts": {
       "title": "Historial de pagos",
       "empty": "Todavía no recibiste pagos.",
-      "services": "{{count}} servicios",
+      "services": "{{count}} servicio",
       "services_one": "1 servicio",
       "services_other": "{{count}} servicios"
     },

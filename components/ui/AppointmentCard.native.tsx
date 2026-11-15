@@ -1,3 +1,4 @@
+import { useAcceptedSlot } from '@/lib/scheduled/slot';
 import { Appointment } from '@/context/AppointmentsContext';
 import { useUser } from '@/context/UserContext';
 import { haversineDistanceKm, kmToMiles } from '@/lib/utils';
@@ -6,7 +7,7 @@ import { approximateArea, coarseAddress } from '@/lib/maps/approximateLocation';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { Calendar, Car, LucideIcon, MapPin, MessageSquare, Route, Star } from 'lucide-react-native';
-import { ReactNode, useContext, useEffect, useState } from 'react';
+import { ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, Platform, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -127,7 +128,10 @@ function TechnicianRow({ mechanic, label, onMessage, messageLabel }: {
     );
 }
 
-export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps) {
+export function AppointmentCard({ appointment: base, onCancel }: AppointmentCardProps) {
+    // A scheduled service is booked for the time the provider offered, not the window the owner asked for.
+    const slot = useAcceptedSlot(base.id, (base.assistanceType ?? base.type) === 'scheduled' && base.source === 'appointment');
+    const appointment = useMemo(() => (slot ? { ...base, date: slot.start } : base), [base, slot]);
     const router = useRouter();
     const guardPress = useContext(ScrollPressGuardContext);
     const { t, i18n } = useTranslation();
@@ -279,7 +283,9 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
         : notCharged
             ? t('appointments.list.card.chargedLabel')
             : t(isMechanic ? 'appointments.list.card.earnedLabel' : 'appointments.list.card.paidLabel');
-    const amount = notCharged ? '$0' : appointment.budget;
+    // No price yet (a request still waiting for a technician): say so instead of leaving the box empty.
+    const hasPrice = !!appointment.budget && !/^\s*(\$?\s*0(\.0+)?|pending|-+)\s*$/i.test(appointment.budget);
+    const amount = notCharged ? '$0' : hasPrice ? appointment.budget : t('appointments.list.card.pricePending');
 
     const ctaLabel = state === 'offered' && !isMechanic
         ? t('appointments.list.card.viewOffer')
@@ -369,8 +375,8 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
 
             {/* Amount + action */}
             <View className="flex-row mt-3" style={{ gap: 10 }}>
-                {/* Outer view carries the width (50/50 on past cards); the padded box fills it, so padding can't skew the split. */}
-                <View style={isPast ? { flex: 1 } : { minWidth: 96 }}>
+                {/* Outer view carries the width (50/50 on every card); the padded box fills it, so padding can't skew the split. */}
+                <View style={{ flex: 1 }}>
                     <View
                         style={{
                             flex: 1,

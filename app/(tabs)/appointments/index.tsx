@@ -1,3 +1,4 @@
+import { RequestTypeTabs } from '@/components/dashboard/MechanicHomeBlocks';
 import { AppointmentCard } from '@/components/ui/AppointmentCard';
 import { Appointment, isCancelledStatus, useAppointments } from '@/context/AppointmentsContext';
 import { useUser } from '@/context/UserContext';
@@ -16,7 +17,7 @@ export default function AppointmentsScreen() {
     const { tab: tabParam } = useLocalSearchParams<{ tab?: string }>();
     const { scrollProps, guard } = useScrollPressGuard();
 
-    const [activeTab, setActiveTab] = useState<'upcoming' | 'pending' | 'past'>('upcoming');
+    const [selectedTab, setSelectedTab] = useState<'upcoming' | 'pending' | 'past'>('upcoming');
     const [pastFilter, setPastFilter] = useState<'completed' | 'cancelled'>('completed');
     // Per filter: newest first (desc, the default) or oldest first (asc).
     const [pastOrder, setPastOrder] = useState<Record<'completed' | 'cancelled', 'desc' | 'asc'>>({ completed: 'desc', cancelled: 'desc' });
@@ -26,7 +27,7 @@ export default function AppointmentsScreen() {
     // Arriving with ?tab=pending (e.g. right after a mechanic sends an offer) opens that tab once.
     useEffect(() => {
         if (tabParam === 'pending' || tabParam === 'upcoming' || tabParam === 'past') {
-            setActiveTab(tabParam);
+            setSelectedTab(tabParam);
             router.setParams({ tab: undefined });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -49,6 +50,13 @@ export default function AppointmentsScreen() {
     const pastShown = pastAll
         .filter((a) => (pastFilter === 'cancelled') === isCancelledStatus(a.status))
         .sort((a, b) => (pastOrder[pastFilter] === 'desc' ? pastTime(b) - pastTime(a) : pastTime(a) - pastTime(b)));
+    // Only tabs that hold something are shown; if the selected one empties out, fall back to the first that has items.
+    const tabs = ([
+        { id: 'upcoming', label: t('appointments.list.upcoming'), count: upcomingCount },
+        { id: 'pending', label: t('appointments.list.pendingApproval'), count: pendingCount, alert: true },
+        { id: 'past', label: t('appointments.list.past'), count: pastCount },
+    ] as const).filter((tab) => tab.count > 0);
+    const activeTab = tabs.some((tab) => tab.id === selectedTab) ? selectedTab : tabs[0]?.id ?? 'upcoming';
     const appointments = activeTab === 'upcoming'
         ? getUpcoming()
         : activeTab === 'pending'
@@ -97,47 +105,12 @@ export default function AppointmentsScreen() {
                         {/* Title */}
                         <Text className="text-gray-900 font-outfit-medium text-3xl">{t(user?.role === 'mechanic' ? 'appointments.list.title' : 'appointments.list.titleOwner')}</Text>
 
-                        {/* Tab Switcher */}
-                        <View className="flex-row" style={{ marginTop: 16, gap: 4, padding: 4, borderRadius: 14, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E4EAF5' }}>
-                            {([
-                                { key: 'upcoming', label: t('appointments.list.upcoming'), count: upcomingCount },
-                                { key: 'pending', label: t('appointments.list.pendingApproval'), count: pendingCount },
-                                { key: 'past', label: t('appointments.list.past'), count: pastCount },
-                            ] as const).map((tab) => {
-                                const isActive = activeTab === tab.key;
-                                // Pending asks for a decision: its count stays red while unselected.
-                                const badgeBg = isActive ? 'rgba(255,255,255,0.22)' : tab.key === 'pending' ? '#E53E3E' : '#E4EAF5';
-                                const badgeFg = isActive || tab.key === 'pending' ? '#FFFFFF' : '#6B7490';
-                                return (
-                                    <TouchableOpacity
-                                        key={tab.key}
-                                        className="flex-1 flex-row items-center justify-center"
-                                        style={{
-                                            gap: 6,
-                                            paddingVertical: 10,
-                                            paddingHorizontal: 4,
-                                            borderRadius: 11,
-                                            backgroundColor: isActive ? '#1E56E3' : 'transparent',
-                                            ...(isActive && { shadowColor: '#1E56E3', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.35, shadowRadius: 8, elevation: 4 }),
-                                        }}
-                                        onPress={() => setActiveTab(tab.key)}
-                                    >
-                                        <Text
-                                            className="font-outfit-medium text-[13.5px]"
-                                            numberOfLines={1}
-                                            style={{ color: isActive ? '#FFFFFF' : '#6B7490' }}
-                                        >
-                                            {tab.label}
-                                        </Text>
-                                        {tab.count > 0 && (
-                                            <View style={{ minWidth: 18, height: 18, paddingHorizontal: 5, borderRadius: 9, backgroundColor: badgeBg, justifyContent: 'center', alignItems: 'center' }}>
-                                                <Text className="font-outfit-bold text-[10.5px]" style={{ color: badgeFg, lineHeight: 13 }}>{tab.count}</Text>
-                                            </View>
-                                        )}
-                                    </TouchableOpacity>
-                                );
-                            })}
-                        </View>
+                        {/* Tab Switcher: only tabs with items, each at its natural width */}
+                        {tabs.length > 0 && (
+                            <View style={{ marginTop: 16 }}>
+                                <RequestTypeTabs tabs={tabs} selected={activeTab} onSelect={setSelectedTab} horizontalInset={40} />
+                            </View>
+                        )}
 
                         {/* Past has its own Completed / Cancelled selector, which says the same thing. */}
                         {activeTab !== 'past' && (

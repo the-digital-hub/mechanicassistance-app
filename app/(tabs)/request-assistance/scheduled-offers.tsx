@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 import { CARD_STYLE, Footer, Note, SC, StepHead, WizardHeader } from '@/components/scheduled/ui';
+import { formatSlot } from '@/lib/scheduled/slot';
 import { QuoteDetails } from '@/components/scheduled/QuoteDetails';
 import { RequestAgainButton } from '@/components/scheduled/RequestAgainButton';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
@@ -29,16 +30,6 @@ type View_ = 'list' | 'detail' | 'pay' | 'done';
 
 const POLL_MS = 30000;
 const EXTEND_HOURS = 24;
-
-function formatSlot(start?: string | null, end?: string | null, locale?: string): string | null {
-    if (!start) return null;
-    const s = new Date(start);
-    if (Number.isNaN(s.getTime())) return null;
-    const day = s.toLocaleDateString(locale, { weekday: 'short', month: 'short', day: 'numeric' });
-    const time = (d: Date) => d.toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit' });
-    const e = end ? new Date(end) : null;
-    return e && !Number.isNaN(e.getTime()) ? `${day} · ${time(s)} – ${time(e)}` : `${day} · ${time(s)}`;
-}
 
 export default function ScheduledOffersScreen() {
     const { t, i18n } = useTranslation();

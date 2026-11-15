@@ -1,3 +1,5 @@
+import { useAcceptedSlot } from '@/lib/scheduled/slot';
+import { isFarScheduled } from '@/lib/scheduled/timing';
 import { RequestAgainButton } from '@/components/scheduled/RequestAgainButton';
 import { FinalQuoteBanner } from '@/components/scheduled/FinalQuoteBanner';
 import { CancellationDisputeBanner } from '@/components/appointments/CancellationDisputeBanner';
@@ -96,7 +98,10 @@ export default function AppointmentDetailScreen() {
     const { t, i18n } = useTranslation();
     const { getAppointmentById, refresh: refreshAppointments } = useAppointments();
 
-    const appointment = getAppointmentById(Array.isArray(id) ? id[0] : id || '');
+    const baseAppointment = getAppointmentById(Array.isArray(id) ? id[0] : id || '');
+    // A scheduled service is booked for the time the provider offered, not the window the owner asked for.
+    const acceptedSlotTime = useAcceptedSlot(baseAppointment?.id, (baseAppointment?.assistanceType ?? baseAppointment?.type) === 'scheduled' && baseAppointment?.source === 'appointment');
+    const appointment = React.useMemo(() => (baseAppointment && acceptedSlotTime ? { ...baseAppointment, date: acceptedSlotTime.start } : baseAppointment), [baseAppointment, acceptedSlotTime]);
 
     const { user } = useUser();
     const isUserRole = user?.role === 'user';
@@ -427,6 +432,7 @@ export default function AppointmentDetailScreen() {
                         <OwnerEtaCard
                             status={appointment.status}
                             departed={departed}
+                            scheduledFor={isFarScheduled(appointment) ? appointment.date : null}
                             minutesAway={minutesAway}
                             etaTime={etaTime}
                             loading={etaLoading}

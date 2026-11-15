@@ -358,7 +358,7 @@ export default function DashboardScreen() {
                     {activeJobs.length > 0 && (
                         <View className="mb-4">
                             <Text className="font-outfit-bold" style={{ fontSize: 18, letterSpacing: -0.3, color: '#0B1530', marginBottom: 12 }}>
-                                {t('dashboard.mechanic.activeJob.title')}
+                                {t('dashboard.mechanic.activeJob.title', { count: activeJobs.length })}
                             </Text>
                             {activeJobs.map((job) => (
                                 <MechanicActiveJobCard key={job.id} appointment={job} />
@@ -963,7 +963,7 @@ export default function DashboardScreen() {
                 {/* Active requests: open, cancel — as before */}
                 {activeRequests.length > 0 && (
                     <View style={{ marginTop: 24 }}>
-                        <OwnerSectionTitle title={t('dashboard.user.activeRequestTitle')} />
+                        <OwnerSectionTitle title={t('dashboard.user.activeRequestTitle', { count: activeRequests.length })} />
                         {activeRequests.map((item) => (
                             <UserRequestCard
                                 key={item.id}

@@ -1,3 +1,4 @@
+import { isFarScheduled } from '@/lib/scheduled/timing';
 import { Appointment } from '@/context/AppointmentsContext';
 import { Calendar, Clock, LucideIcon, ShieldCheck, Video } from 'lucide-react-native';
 
@@ -14,7 +15,7 @@ export type CardState =
     | 'notCharged'
     | 'canceled';
 
-export function getCardState(appointment: Pick<Appointment, 'status' | 'type' | 'assistanceType' | 'currentStatus' | 'departedAt'>): CardState {
+export function getCardState(appointment: Pick<Appointment, 'status' | 'type' | 'assistanceType' | 'currentStatus' | 'departedAt' | 'date'>): CardState {
     const { status } = appointment;
     // A video call is remote: nobody is "en route" to it.
     if (status === 'accepted' && (appointment.assistanceType ?? appointment.type) === 'videocall') return 'scheduled';
@@ -25,6 +26,8 @@ export function getCardState(appointment: Pick<Appointment, 'status' | 'type' | 
             return 'offered';
         case 'accepted':
             // Accepted is not "en route": the mechanic is only on the way once they tap "Head out".
+            // A scheduled service days away is not "ready" or "en route": it is simply scheduled.
+            if (isFarScheduled(appointment)) return 'scheduled';
             return appointment.departedAt ? 'enRoute' : 'ready';
         case 'started':
         case 'in_progress':

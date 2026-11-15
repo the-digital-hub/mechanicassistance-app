@@ -251,7 +251,8 @@ export function RequestTypeTabs<T extends string>({
     slots = 3,
     horizontalInset = 48,
 }: {
-    tabs: { id: T; label: string; count: number }[];
+    /** `alert`: the count stays red while the tab is not selected (it asks for a decision). */
+    tabs: { id: T; label: string; count: number; alert?: boolean }[];
     selected: T;
     onSelect: (id: T) => void;
     slots?: number;
@@ -279,8 +280,8 @@ export function RequestTypeTabs<T extends string>({
                         style={{ width: tabWidth, paddingVertical: 9, borderRadius: 12, backgroundColor: on ? C.blue : 'transparent', gap: 6 }}
                     >
                         <Text className="font-outfit-bold" style={{ fontSize: 13, color: on ? '#FFFFFF' : C.muted }} numberOfLines={1}>{tab.label}</Text>
-                        <View className="items-center justify-center rounded-full" style={{ minWidth: 18, height: 18, paddingHorizontal: 5, backgroundColor: on ? 'rgba(255,255,255,0.24)' : C.blueSoft }}>
-                            <Text className="font-outfit-bold" style={{ fontSize: 10.5, color: on ? '#FFFFFF' : C.blue }}>{tab.count}</Text>
+                        <View className="items-center justify-center rounded-full" style={{ minWidth: 18, height: 18, paddingHorizontal: 5, backgroundColor: on ? 'rgba(255,255,255,0.24)' : tab.alert ? '#E53E3E' : C.blueSoft }}>
+                            <Text className="font-outfit-bold" style={{ fontSize: 10.5, color: on || tab.alert ? '#FFFFFF' : C.blue }}>{tab.count}</Text>
                         </View>
                     </TouchableOpacity>
                 );
