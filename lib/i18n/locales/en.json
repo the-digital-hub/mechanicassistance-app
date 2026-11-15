@@ -228,6 +228,41 @@
         "busyTitle": "You're busy",
         "message": "You won't receive new requests. Go online to start working.",
         "action": "Go online"
+      },
+      "live": "LIVE",
+      "tabs": {
+        "immediate": "Immediate",
+        "scheduled": "Scheduled",
+        "video": "Video call"
+      },
+      "todayTitle": "Today",
+      "viewEarnings": "View earnings",
+      "readyToPay": "Ready to pay out",
+      "weekTitle": "Weekly earnings",
+      "thisWeek": "This week",
+      "payouts": "Payouts",
+      "paidOut": "Paid out so far",
+      "dayLetters": [
+        "M",
+        "T",
+        "W",
+        "T",
+        "F",
+        "S",
+        "S"
+      ],
+      "attention": {
+        "title": "Needs your attention",
+        "notifications": {
+          "title": "{{count}} unread notifications",
+          "sub": "Check what's new on your jobs and requests.",
+          "cta": "Open"
+        },
+        "payouts": {
+          "title": "Set up your payouts",
+          "sub": "Add your bank details to get paid for your jobs.",
+          "cta": "Set up"
+        }
       }
     }
   },

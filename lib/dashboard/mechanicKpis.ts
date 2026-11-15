@@ -29,3 +29,37 @@ export function sumNetEarnings(items: readonly Pick<MechanicEarning, 'netAmount'
         .reduce((sum, e) => sum + Math.round((Number(e.netAmount) || 0) * 100), 0);
     return cents / 100;
 }
+
+/** Monday 00:00 of the phone's local week through the next Monday (exclusive), as ISO timestamps. */
+export function localWeekBounds(now: Date = new Date()): { from: string; to: string } {
+    const sinceMonday = (now.getDay() + 6) % 7;
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - sinceMonday);
+    const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() - sinceMonday + 7);
+    return { from: start.toISOString(), to: end.toISOString() };
+}
+
+/**
+ * Net earned per day of the local week (Monday first), voided rows left out.
+ * `todayIdx` is today's slot, `total` the week's sum.
+ */
+export function weekDailyTotals(
+    items: readonly Pick<MechanicEarning, 'netAmount' | 'status' | 'createdAt'>[],
+    now: Date = new Date(),
+): { days: number[]; todayIdx: number; total: number } {
+    const { from } = localWeekBounds(now);
+    const start = new Date(from);
+    const cents = [0, 0, 0, 0, 0, 0, 0];
+    for (const e of items) {
+        if (e.status === 'void') continue;
+        const at = new Date(e.createdAt);
+        const idx = Math.floor(
+            (new Date(at.getFullYear(), at.getMonth(), at.getDate()).getTime() - start.getTime()) / 86400000,
+        );
+        if (idx >= 0 && idx < 7) cents[idx] += Math.round((Number(e.netAmount) || 0) * 100);
+    }
+    return {
+        days: cents.map((c) => c / 100),
+        todayIdx: (now.getDay() + 6) % 7,
+        total: cents.reduce((a, c) => a + c, 0) / 100,
+    };
+}

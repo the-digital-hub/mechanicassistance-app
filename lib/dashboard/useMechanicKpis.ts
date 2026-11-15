@@ -3,9 +3,9 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { appointmentDAO } from '@/lib/dao/AppointmentDAO';
 import { earningsDAO } from '@/lib/dao/EarningsDAO';
-import type { MechanicStats } from '@/lib/dao/interfaces';
+import type { EarningsSummary, MechanicStats } from '@/lib/dao/interfaces';
 
-import { localDayBounds, sumNetEarnings } from './mechanicKpis';
+import { localDayBounds, localWeekBounds, sumNetEarnings, weekDailyTotals } from './mechanicKpis';
 
 /**
  * What the mechanic dashboard shows besides the job count: net earned today
@@ -17,12 +17,21 @@ import { localDayBounds, sumNetEarnings } from './mechanicKpis';
 export function useMechanicKpis(enabled: boolean, refreshKey: unknown) {
     const [earnedToday, setEarnedToday] = useState<number | null>(null);
     const [stats, setStats] = useState<MechanicStats | null>(null);
+    const [week, setWeek] = useState<ReturnType<typeof weekDailyTotals> | null>(null);
+    const [summary, setSummary] = useState<EarningsSummary | null>(null);
 
     const reload = useCallback(() => {
         if (!enabled) return;
         earningsDAO
             .list(localDayBounds())
             .then((res) => setEarnedToday(sumNetEarnings(res.items)))
+            .catch(() => undefined);
+        earningsDAO
+            .list(localWeekBounds())
+            .then((res) => {
+                setWeek(weekDailyTotals(res.items));
+                setSummary(res.summary);
+            })
             .catch(() => undefined);
         appointmentDAO
             .getMyStats()
@@ -36,5 +45,5 @@ export function useMechanicKpis(enabled: boolean, refreshKey: unknown) {
         reload();
     }, [reload, refreshKey]);
 
-    return { earnedToday, stats };
+    return { earnedToday, stats, week, summary };
 }

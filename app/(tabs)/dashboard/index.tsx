@@ -1,5 +1,6 @@
-import { KPICard } from '@/components/ui/KPICard';
-import { PromotionalCard } from '@/components/ui/PromotionalCard';
+import { AseCta, AttentionList, AvailabilityCard, RequestTypeTabs, SectionTitle, TodayBlock, WeeklyEarnings, type AttentionItem } from '@/components/dashboard/MechanicHomeBlocks';
+import { useNotifications } from '@/context/NotificationsContext';
+import { connectDAO } from '@/lib/dao/ConnectDAO';
 import { UserRequestCard } from '@/components/ui/UserRequestCard';
 import { MechanicActiveJobCard } from '@/components/ui/MechanicActiveJobCard';
 import { useAppointments, type Appointment } from '@/context/AppointmentsContext';
@@ -18,7 +19,7 @@ import { countCompletedToday } from '@/lib/dashboard/mechanicKpis';
 import { useMechanicKpis } from '@/lib/dashboard/useMechanicKpis';
 import { formatMoney } from '@/lib/payments/paymentSource';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Calendar, Video, Zap, MapPin, Wrench, DollarSign, Star, Award, Circle, Clock, Car, Lock, Power } from 'lucide-react-native';
+import { Calendar, Video, Zap, MapPin, Wrench, DollarSign, Circle, Clock, Car, Lock, Power, Bell, CreditCard } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useScrollPressGuard } from '@/hooks/useScrollPressGuard';
@@ -154,7 +155,18 @@ export default function DashboardScreen() {
     const [showStatusModal, setShowStatusModal] = useState(false);
     const { appointments, getActiveRequests, refresh: refreshAppointments, isLoading: isLoadingAppointments } = useAppointments();
     const jobsToday = countCompletedToday(appointments);
-    const { earnedToday, stats: mechanicStats } = useMechanicKpis(user?.role === 'mechanic', jobsToday);
+    const { earnedToday, stats: mechanicStats, week, summary: earningsSummary } = useMechanicKpis(user?.role === 'mechanic', jobsToday);
+    const { notifications } = useNotifications();
+    const unreadCount = notifications.filter((n) => n.unread).length;
+    const [requestTab, setRequestTab] = useState<'immediate' | 'scheduled' | 'video'>('immediate');
+    // null until the Stripe payout account has been read; only a confirmed "cannot be paid yet" raises the alert.
+    const [payoutsReady, setPayoutsReady] = useState<boolean | null>(null);
+    useFocusEffect(
+        useCallback(() => {
+            if (user?.role !== 'mechanic') return;
+            connectDAO.status().then((st) => setPayoutsReady(!!st.canReceiveTransfers)).catch(() => undefined);
+        }, [user?.role]),
+    );
     const { lastMessage } = useSocket();
     const { mechanicStatus, setMechanicStatus, isUpdatingStatus } = useMechanicStatus();
 
@@ -306,6 +318,42 @@ export default function DashboardScreen() {
         // Accepted onward: pending/offered rows are requests still being bid on, not jobs.
         const activeJobs = getActiveRequests().filter((a) => a.status !== 'pending' && a.status !== 'offered');
 
+        const tabOf = (r: AssistanceRequest): 'immediate' | 'scheduled' | 'video' =>
+            r.type === 'videocall' ? 'video' : r.type === 'scheduled' ? 'scheduled' : 'immediate';
+        const openRequests = requests.filter((r) => !declinedIds.has(r.id));
+        const requestTabs = (['immediate', 'scheduled', 'video'] as const).map((id) => ({
+            id,
+            label: t(`dashboard.mechanic.tabs.${id}`),
+            count: openRequests.filter((r) => tabOf(r) === id).length,
+        }));
+        // Land on a tab that has requests when the chosen one is empty.
+        const activeTab = requestTabs.find((x) => x.id === requestTab)?.count
+            ? requestTab
+            : requestTabs.find((x) => x.count > 0)?.id ?? requestTab;
+        const visibleRequests = openRequests.filter((r) => tabOf(r) === activeTab);
+        // Nothing to show (or still loading the first time): hide the whole section.
+        const showRequests = !isLoadingRequests && openRequests.length > 0;
+
+        const attentionItems: AttentionItem[] = [];
+        if (payoutsReady === false) {
+            attentionItems.push({
+                id: 'payouts', tone: 'amber', icon: CreditCard,
+                title: t('dashboard.mechanic.attention.payouts.title'),
+                sub: t('dashboard.mechanic.attention.payouts.sub'),
+                cta: t('dashboard.mechanic.attention.payouts.cta'),
+                onPress: () => router.push('/payments'),
+            });
+        }
+        if (unreadCount > 0) {
+            attentionItems.push({
+                id: 'notifications', tone: 'blue', icon: Bell,
+                title: t('dashboard.mechanic.attention.notifications.title', { count: unreadCount }),
+                sub: t('dashboard.mechanic.attention.notifications.sub'),
+                cta: t('dashboard.mechanic.attention.notifications.cta'),
+                onPress: () => router.push('/notifications'),
+            });
+        }
+
         return (
             <View className="flex-1">
                 <ScrollView {...scrollProps} style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ paddingBottom: 40 }}>
@@ -377,114 +425,48 @@ export default function DashboardScreen() {
                         </View>
                     )}
 
-                    {/* Status Block */}
-                    <View className="bg-white rounded-3xl p-6 mb-8" style={{
-                        shadowColor: '#000',
-                        shadowOffset: { width: 0, height: 2 },
-                        shadowOpacity: 0.08,
-                        shadowRadius: 4,
-                        elevation: 3,
-                    }}>
-                        {/* Header with Title */}
-                        <Text style={{ fontFamily: 'Outfit_600SemiBold', fontSize: 18, color: '#111827' }} className="mb-4">
-                            {t('dashboard.mechanic.availableToProvide')}
-                        </Text>
+                    {/* Availability */}
+                    <View className="mb-6">
+                        <AvailabilityCard
+                            title={t('dashboard.mechanic.availableToProvide')}
+                            liveLabel={t('dashboard.mechanic.live')}
+                            status={mechanicStatus}
+                            options={statusOptions.map(({ id, label }) => ({ id, label }))}
+                            description={
+                                mechanicStatus === 'available'
+                                    ? t('dashboard.mechanic.descAvailable')
+                                    : mechanicStatus === 'busy'
+                                    ? t('dashboard.mechanic.descBusy')
+                                    : t('dashboard.mechanic.descOffline')
+                            }
+                            disabled={isUpdatingStatus}
+                            onChange={(next) => { setMechanicStatus(next).catch(() => undefined); }}
+                        />
+                    </View>
 
-                        {/* Status Options */}
-                        <View className="flex-row gap-2 mb-4">
-                            {statusOptions.map((option) => {
-                                const optionStyles = (() => {
-                                    switch (option.id) {
-                                        case 'available':
-                                            return { bgColor: '#ECFDF5', borderColor: '#D1FAE5', textColor: '#111827' };
-                                        case 'busy':
-                                            return { bgColor: '#FEF3C7', borderColor: '#FCD34D', textColor: '#111827' };
-                                        case 'offline':
-                                            return { bgColor: '#F3F4F6', borderColor: '#D1D5DB', textColor: '#6B7280' };
-                                        default:
-                                            return { bgColor: '#F3F4F6', borderColor: '#D1D5DB', textColor: '#6B7280' };
-                                    }
-                                })();
-
-                                return (
-                                    <TouchableOpacity
-                                        key={option.id}
-                                        onPress={() => { setMechanicStatus(option.id).catch(() => undefined); }}
-                                        disabled={isUpdatingStatus}
-                                        className="flex-1 py-3 px-4 rounded-2xl flex-row items-center justify-center gap-2"
-                                        style={{
-                                            backgroundColor: mechanicStatus === option.id ? optionStyles.bgColor : '#F9FAFB',
-                                            borderColor: mechanicStatus === option.id ? optionStyles.borderColor : '#E5E7EB',
-                                            borderWidth: 1,
-                                        }}
-                                    >
-                                        <Circle size={8} color={getStatusColor(option.id)} fill={getStatusColor(option.id)} />
-                                        <Text style={{ color: mechanicStatus === option.id ? optionStyles.textColor : '#9CA3AF', fontFamily: 'Outfit_600SemiBold', fontSize: 13 }}>
-                                            {option.label}
-                                        </Text>
-                                    </TouchableOpacity>
-                                );
-                            })}
+                    {/* Needs your attention */}
+                    {attentionItems.length > 0 && (
+                        <View className="mb-6">
+                            <SectionTitle title={t('dashboard.mechanic.attention.title')} badge={attentionItems.length} />
+                            <AttentionList items={attentionItems} />
                         </View>
+                    )}
 
-                        {/* Description */}
-                        <Text style={{ color: '#4B5563', fontFamily: 'Outfit_400Regular', fontSize: 15, lineHeight: 20 }}>
-                            {mechanicStatus === 'available'
-                                ? t('dashboard.mechanic.descAvailable')
-                                : mechanicStatus === 'busy'
-                                ? t('dashboard.mechanic.descBusy')
-                                : t('dashboard.mechanic.descOffline')}
-                        </Text>
-                    </View>
-
-                    {/* KPIs Section */}
-                    <View className="flex-row gap-3 mb-8">
-                      <KPICard
-                        icon={Wrench}
-                        iconColor="#0047AB"
-                        value={jobsToday.toString()}
-                        label={t('dashboard.mechanic.jobsToday')}
-                        bgColor="#E0ECFF"
-                      />
-                      <KPICard
-                        icon={DollarSign}
-                        iconColor="#10B981"
-                        value={earnedToday === null ? '—' : formatMoney(earnedToday)}
-                        label={t('dashboard.mechanic.earnedToday')}
-                        bgColor="#ECFDF5"
-                      />
-                      <KPICard
-                        icon={Star}
-                        iconColor="#F97316"
-                        value={
-                            !mechanicStats
-                                ? '—'
-                                : Number.isFinite(Number(mechanicStats.avgRating)) && mechanicStats.avgRating != null
-                                  ? Number(mechanicStats.avgRating).toFixed(1)
-                                  : t('dashboard.mechanic.noRating')
-                        }
-                        label={t('dashboard.mechanic.rating')}
-                        bgColor="#FFF7ED"
-                      />
-                    </View>
-
-                            {/* New Requests Title */}
-                            <Text style={{ fontFamily: 'Outfit_600SemiBold', fontSize: 16, color: '#111827' }} className="mt-2 mb-4">
-                                {t('dashboard.mechanic.newRequestsTitle')}
-                            </Text>
+                    {showRequests && (
+                        <View className="mb-2">
+                            {/* New Requests: one tab per service type */}
+                            <SectionTitle title={t('dashboard.mechanic.newRequestsTitle')} />
+                            <View className="mb-4">
+                                <RequestTypeTabs
+                                    tabs={requestTabs}
+                                    selected={activeTab}
+                                    onSelect={setRequestTab}
+                                />
+                            </View>
 
                             {/* Requests List */}
-                            {isLoadingRequests ? (
-                                <View className="items-center justify-center py-8">
-                                    <ActivityIndicator size="large" color="#0047AB" />
-                                </View>
-                            ) : requests.filter((r) => !declinedIds.has(r.id)).length === 0 ? (
-                                <View className="items-center justify-center py-8">
-                                    <Text className="text-gray-400 font-outfit-regular text-base">{t('dashboard.mechanic.noPendingRequests')}</Text>
-                                </View>
-                            ) : (
                         <View className="gap-4">
-                            {requests.filter((r) => !declinedIds.has(r.id)).map((request) => {
+                            {visibleRequests.map((request) => {
                                 const iconType = request.type === 'videocall' ? 'video' : request.type === 'scheduled' ? 'scheduled' : 'urgent';
                                 const iconBgColor = iconType === 'urgent' ? '#FEE2E2' : iconType === 'scheduled' ? '#EDE9FE' : '#DBEAFE';
                                 const iconColor = iconType === 'urgent' ? '#DC2626' : iconType === 'scheduled' ? '#7C3AED' : '#0047AB';
@@ -650,17 +632,58 @@ export default function DashboardScreen() {
                                 );
                             })}
                             </View>
-                        )}
+                        </View>
+                    )}
 
-                    {/* Promotional Card */}
+                    {/* Today */}
+                    <View className="mt-8">
+                        <SectionTitle title={t('dashboard.mechanic.todayTitle')} actionLabel={t('dashboard.mechanic.viewEarnings')} onAction={() => router.push('/payments')} />
+                        <TodayBlock
+                            earnedLabel={t('dashboard.mechanic.earnedToday')}
+                            earned={earnedToday === null ? '—' : formatMoney(earnedToday)}
+                            footer={earningsSummary ? (
+                                <Text className="font-outfit-regular" style={{ fontSize: 12.5, color: '#6B7490' }}>
+                                    {t('dashboard.mechanic.readyToPay')} · <Text className="font-outfit-bold" style={{ color: '#0B1530' }}>{formatMoney(Number(earningsSummary.readyNet) || 0)}</Text>
+                                </Text>
+                            ) : undefined}
+                            jobsLabel={t('dashboard.mechanic.jobsToday')}
+                            jobs={jobsToday.toString()}
+                            ratingLabel={t('dashboard.mechanic.rating')}
+                            rating={
+                                !mechanicStats
+                                    ? '—'
+                                    : Number.isFinite(Number(mechanicStats.avgRating)) && mechanicStats.avgRating != null
+                                      ? Number(mechanicStats.avgRating).toFixed(1)
+                                      : t('dashboard.mechanic.noRating')
+                            }
+                            ratingSub={mechanicStats && mechanicStats.ratingCount > 0 ? `${mechanicStats.ratingCount}` : undefined}
+                        />
+                    </View>
+
+                    {/* Weekly earnings */}
+                    {week && week.total > 0 && (
+                        <View className="mt-8">
+                            <SectionTitle title={t('dashboard.mechanic.weekTitle')} actionLabel={t('dashboard.mechanic.payouts')} onAction={() => router.push('/payments')} />
+                            <WeeklyEarnings
+                                label={t('dashboard.mechanic.thisWeek')}
+                                total={formatMoney(week.total)}
+                                days={week.days}
+                                todayIdx={week.todayIdx}
+                                dayLabels={t('dashboard.mechanic.dayLetters', { returnObjects: true }) as unknown as string[]}
+                                footerLabel={earningsSummary ? t('dashboard.mechanic.paidOut') : undefined}
+                                footerValue={earningsSummary ? formatMoney(Number(earningsSummary.paidOut) || 0) : undefined}
+                            />
+                        </View>
+                    )}
+
+                    {/* ASE certification */}
                     <View className="mt-8 mb-4">
-                      <PromotionalCard
-                        badge={t('dashboard.mechanic.promoBadge')}
-                        title={t('dashboard.mechanic.promoTitle')}
-                        description={t('dashboard.mechanic.promoDescription')}
-                        icon={Award}
-                        onPress={() => router.push('/(tabs)/ase')}
-                      />
+                        <AseCta
+                            badge={t('dashboard.mechanic.promoBadge')}
+                            title={t('dashboard.mechanic.promoTitle')}
+                            subtitle={t('dashboard.mechanic.promoDescription')}
+                            onPress={() => router.push('/(tabs)/ase')}
+                        />
                     </View>
                     </View>
                 </ScrollView>

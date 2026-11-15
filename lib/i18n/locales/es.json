@@ -228,6 +228,41 @@
         "busyTitle": "Estás ocupado",
         "message": "No vas a recibir solicitudes nuevas. Ponete disponible para empezar a trabajar.",
         "action": "Ponerme disponible"
+      },
+      "live": "EN VIVO",
+      "tabs": {
+        "immediate": "Inmediata",
+        "scheduled": "Programada",
+        "video": "Videollamada"
+      },
+      "todayTitle": "Hoy",
+      "viewEarnings": "Ver ganancias",
+      "readyToPay": "Listo para cobrar",
+      "weekTitle": "Ganancias semanales",
+      "thisWeek": "Esta semana",
+      "payouts": "Pagos",
+      "paidOut": "Cobrado hasta hoy",
+      "dayLetters": [
+        "L",
+        "M",
+        "M",
+        "J",
+        "V",
+        "S",
+        "D"
+      ],
+      "attention": {
+        "title": "Requiere tu atención",
+        "notifications": {
+          "title": "{{count}} notificaciones sin leer",
+          "sub": "Revisá las novedades de tus trabajos y solicitudes.",
+          "cta": "Abrir"
+        },
+        "payouts": {
+          "title": "Configurá tus cobros",
+          "sub": "Agregá tus datos bancarios para cobrar tus trabajos.",
+          "cta": "Configurar"
+        }
       }
     }
   },
