@@ -103,7 +103,7 @@ function TechnicianRow({ mechanic, label, onMessage, messageLabel }: {
                         <View className="flex-row items-center" style={{ gap: 4 }}>
                             <Stars rating={mechanic.avgRating} />
                             <Text className="font-outfit-semibold text-[11px]" style={{ color: C.muted }}>
-                                {t('appointments.list.card.ratingValue', { rating: mechanic.avgRating.toFixed(1), count: mechanic.ratingCount })}
+                                {t('appointments.list.card.ratingValue', { rating: Number(mechanic.avgRating).toFixed(1), count: mechanic.ratingCount })}
                             </Text>
                         </View>
                     ) : (

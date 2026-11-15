@@ -1,6 +1,26 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Alert } from 'react-native';
 
 export const LAST_FATAL_ERROR_KEY = 'last_fatal_js_error';
+
+/**
+ * TestFlight diagnosis: show the error (message + top of the stack) in an alert so a
+ * tester can screenshot it. Turn off before the App Store release.
+ */
+const SHOW_ERROR_DETAILS = true;
+let alertVisible = false;
+
+function showErrorDetails(err: Error): void {
+    if (!SHOW_ERROR_DETAILS || alertVisible) return;
+    alertVisible = true;
+    const stackHead = (err.stack ?? '').split('\n').slice(0, 6).join('\n');
+    Alert.alert(
+        'Error',
+        `${err.message}\n\n${stackHead}`.slice(0, 1200),
+        [{ text: 'OK', onPress: () => { alertVisible = false; } }],
+        { onDismiss: () => { alertVisible = false; } },
+    );
+}
 
 export interface FatalErrorRecord {
     message: string;
@@ -19,6 +39,7 @@ export function recordFatalError(error: unknown, isFatal: boolean): void {
         at: new Date().toISOString(),
     };
     console.error('[GlobalError]', record.message, record.stack);
+    showErrorDetails(err);
     AsyncStorage.setItem(LAST_FATAL_ERROR_KEY, JSON.stringify(record)).catch(() => {});
 }
 
