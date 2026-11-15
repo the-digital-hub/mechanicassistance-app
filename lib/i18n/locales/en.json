@@ -161,7 +161,56 @@
       "cancelFailedTitle": "Could not cancel",
       "cancelFailedMessage": "Please try again in a moment.",
       "requestVehicleLabel": "Vehicle",
-      "requestLocationLabel": "Location"
+      "requestLocationLabel": "Location",
+      "requestCta": {
+        "title": "Request assistance",
+        "subtitle": "Immediate help, scheduled service or video guidance"
+      },
+      "emergencyLabel": "ADDITIONAL SERVICES",
+      "attention": {
+        "title": "Needs your attention",
+        "emptyTitle": "You’re all caught up",
+        "emptySub": "Nothing needs your action right now.",
+        "offers": {
+          "title": "{{count}} offer received",
+          "title_other": "{{count}} offers received",
+          "sub": "Compare them and pick the one you prefer.",
+          "cta": "Compare"
+        },
+        "confirm": {
+          "title": "Confirm the finished call",
+          "sub": "Confirm it was resolved so the technician can be paid.",
+          "cta": "Review"
+        }
+      },
+      "upcoming": {
+        "title": "Upcoming appointment",
+        "confirmed": "Confirmed"
+      },
+      "vehicleCare": {
+        "title": "Vehicle care & activity",
+        "subtitle": "Pick a vehicle to see its history.",
+        "switchTitle": "Choose a vehicle",
+        "mileage": "Mileage {{miles}} mi",
+        "noMileage": "No mileage recorded yet",
+        "update": "Update",
+        "add": "Add",
+        "mileageTitle": "Update mileage",
+        "mileagePlaceholder": "Odometer reading (mi)",
+        "mileageSave": "Save mileage",
+        "mileageError": "Could not save the mileage. Please try again."
+      },
+      "recent": {
+        "title": "Recent activity",
+        "seeAll": "See all"
+      },
+      "sheet": {
+        "title": "Request assistance",
+        "immediate": "A nearby mechanic dispatched right away",
+        "scheduled": "Request quotes and pick a date that works for you",
+        "videoCall": "Talk a mechanic through it from your phone",
+        "subtitle": "How do you want to be helped?"
+      }
     },
     "timeAgo": {
       "justNow": "Just now",

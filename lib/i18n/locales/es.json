@@ -161,7 +161,56 @@
       "cancelFailedTitle": "No se pudo cancelar",
       "cancelFailedMessage": "Probá de nuevo en un momento.",
       "requestVehicleLabel": "Vehículo",
-      "requestLocationLabel": "Ubicación"
+      "requestLocationLabel": "Ubicación",
+      "requestCta": {
+        "title": "Pedir asistencia",
+        "subtitle": "Ayuda inmediata, servicio programado o guía por video"
+      },
+      "emergencyLabel": "SERVICIOS ADICIONALES",
+      "attention": {
+        "title": "Requiere tu atención",
+        "emptyTitle": "Estás al día",
+        "emptySub": "Nada necesita tu acción por ahora.",
+        "offers": {
+          "title": "{{count}} oferta recibida",
+          "title_other": "{{count}} ofertas recibidas",
+          "sub": "Compará y elegí la que prefieras.",
+          "cta": "Comparar"
+        },
+        "confirm": {
+          "title": "Confirmá la llamada finalizada",
+          "sub": "Confirmá que se resolvió para que el técnico cobre.",
+          "cta": "Revisar"
+        }
+      },
+      "upcoming": {
+        "title": "Próxima cita",
+        "confirmed": "Confirmada"
+      },
+      "vehicleCare": {
+        "title": "Cuidado y actividad del vehículo",
+        "subtitle": "Elegí un vehículo para ver su historial.",
+        "switchTitle": "Elegí un vehículo",
+        "mileage": "Kilometraje {{miles}} mi",
+        "noMileage": "Todavía no hay kilometraje",
+        "update": "Actualizar",
+        "add": "Agregar",
+        "mileageTitle": "Actualizar kilometraje",
+        "mileagePlaceholder": "Lectura del odómetro (mi)",
+        "mileageSave": "Guardar kilometraje",
+        "mileageError": "No se pudo guardar el kilometraje. Probá de nuevo."
+      },
+      "recent": {
+        "title": "Actividad reciente",
+        "seeAll": "Ver todo"
+      },
+      "sheet": {
+        "title": "Pedir asistencia",
+        "immediate": "Un mecánico cercano enviado de inmediato",
+        "scheduled": "Pedí cotizaciones y elegí la fecha que te convenga",
+        "videoCall": "Resolvelo con un mecánico guiándote desde tu teléfono",
+        "subtitle": "¿Cómo querés que te ayuden?"
+      }
     },
     "timeAgo": {
       "justNow": "Recién",

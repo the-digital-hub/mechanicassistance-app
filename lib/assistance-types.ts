@@ -1,7 +1,7 @@
 import { assistanceTypeDAO } from '@/lib/dao/AssistanceTypeDAO';
 import type { AssistanceTypeCatalogItem } from '@/lib/dao/interfaces';
 import { getLanguageId } from '@/lib/i18n/catalogTranslations';
-import { Calendar, Clock, HelpCircle, ShieldCheck, Truck, Video, Zap } from 'lucide-react-native';
+import { Calendar, Clock, HelpCircle, KeyRound, ShieldCheck, Truck, Video, Zap } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -46,6 +46,7 @@ const ICONS_BY_CODE: Record<string, typeof Zap> = {
     videocall: Video,
     witness: ShieldCheck,
     towing: Truck,
+    locksmith: KeyRound,
 };
 
 /**

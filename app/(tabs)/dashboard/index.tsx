@@ -1,3 +1,4 @@
+import { EmergencyRow, MileageField, OwnerAttentionList, OwnerSectionTitle, OwnerSheet, RecentActivityList, RequestAssistanceCta, SheetOption, UpcomingCard, VehicleCareCard, type OwnerAttentionItem } from '@/components/dashboard/OwnerHomeBlocks';
 import { AseCta, AttentionList, AvailabilityCard, RequestTypeTabs, SectionTitle, TodayBlock, WeeklyEarnings, type AttentionItem } from '@/components/dashboard/MechanicHomeBlocks';
 import { useNotifications } from '@/context/NotificationsContext';
 import { connectDAO } from '@/lib/dao/ConnectDAO';
@@ -11,7 +12,8 @@ import { useSocket } from '@/context/SocketContext';
 import { assistanceTypeRoute, codeFor, i18nKeyFor, iconFor, useAssistanceTypeCatalog } from '@/lib/assistance-types';
 import { useUser } from '@/context/UserContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
-import { AssistanceRequest, type AssistanceTypeCatalogItem } from '@/lib/dao/interfaces';
+import { vehicleDAO } from '@/lib/dao/VehicleDAO';
+import { AssistanceRequest, type AssistanceTypeCatalogItem, type Vehicle } from '@/lib/dao/interfaces';
 import { translatedName } from '@/lib/i18n/catalogTranslations';
 import { RequestIssueText } from '@/components/ui/RequestIssueText';
 import { buildMechanicFeedFilters } from '@/lib/mechanic-feed';
@@ -19,12 +21,12 @@ import { countCompletedToday } from '@/lib/dashboard/mechanicKpis';
 import { useMechanicKpis } from '@/lib/dashboard/useMechanicKpis';
 import { formatMoney } from '@/lib/payments/paymentSource';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Calendar, Video, Zap, MapPin, Wrench, DollarSign, Circle, Clock, Car, Lock, Power, Bell, CreditCard } from 'lucide-react-native';
+import { Calendar, Video, Zap, MapPin, Wrench, DollarSign, Circle, Clock, Car, Lock, Power, Bell, CreditCard, AlertTriangle } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useScrollPressGuard } from '@/hooks/useScrollPressGuard';
 import { ApiError } from '@/lib/api/types';
-import { ActivityIndicator, Alert, FlatList, Platform, ScrollView, Text, TouchableOpacity, View, Modal, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, Alert, Platform, ScrollView, Text, TouchableOpacity, View, Modal, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 /** Returns a translation key for the current time of day — resolve with t() at the call site. */
@@ -35,110 +37,26 @@ const getTimeGreetingKey = (): string => {
     return 'dashboard.greeting.night';
 };
 
-// Horizontal padding of the user dashboard (20 on each side) and the grid gap,
-// used to size three buttons per row.
+// Horizontal padding of the user dashboard.
 const DASHBOARD_PADDING_X = 20;
 // Technician request slider: card gap and how much of the next card peeks in.
 const REQUEST_CARD_GAP = 12;
 const REQUEST_CARD_PEEK = 36;
-const TYPE_GRID_GAP = 10;
-const TYPE_GRID_COLUMNS = 3;
-// How long a tapped type shows its selected skin before the wizard opens.
-const TYPE_SELECT_DELAY_MS = 150;
-
-type DashboardTypeButtonProps = {
-    item: AssistanceTypeCatalogItem;
-    title: string;
-    subtitle: string | null;
-    selected: boolean;
-    width: number;
-    onPress?: () => void;
-};
-
-/**
- * One assistance type on the owner dashboard. The selected type (the first of the
- * catalog until the owner taps another) gets the gradient skin, the rest the white
- * one — the same catalog as the type picker, drawn as compact buttons.
- */
-function DashboardTypeButton({ item, title, subtitle, selected, width, onPress }: DashboardTypeButtonProps) {
-    const Icon = iconFor(item);
-    const label = subtitle ? `${title}\n${subtitle}` : title;
-
-    const content = (
-        <>
-            <View
-                className="justify-center items-center mb-2.5"
-                style={{
-                    width: 42,
-                    height: 42,
-                    borderRadius: 12,
-                    backgroundColor: selected ? 'rgba(255,255,255,0.18)' : '#EAF1FF',
-                }}
-            >
-                <Icon size={22} color={selected ? '#FFFFFF' : '#1E56E3'} strokeWidth={1.8} />
-            </View>
-            <Text
-                className="font-outfit-bold text-center"
-                style={{ fontSize: 12, lineHeight: 15, color: selected ? '#FFFFFF' : '#0B1530' }}
-            >
-                {label}
-            </Text>
-        </>
-    );
-
-    const tileStyle = {
-        borderRadius: 18,
-        minHeight: 112,
-        paddingVertical: 14,
-        paddingHorizontal: 6,
-        justifyContent: 'center' as const,
-        alignItems: 'center' as const,
-    };
-
-    return (
-        <TouchableOpacity
-            onPress={onPress}
-            disabled={!onPress}
-            activeOpacity={0.8}
-            style={{
-                width,
-                opacity: onPress ? 1 : 0.5,
-                borderRadius: 18,
-                backgroundColor: selected ? '#1E56E3' : '#FFFFFF',
-                shadowColor: selected ? '#1E56E3' : '#0E2F8A',
-                shadowOffset: { width: 0, height: selected ? 8 : 2 },
-                shadowOpacity: selected ? 0.35 : 0.05,
-                shadowRadius: selected ? 12 : 6,
-                elevation: selected ? 6 : 1,
-            }}
-        >
-            {selected ? (
-                <LinearGradient colors={['#1E56E3', '#0B2A8E']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={tileStyle}>
-                    {content}
-                </LinearGradient>
-            ) : (
-                <View style={[tileStyle, { borderWidth: 1, borderColor: '#EEF2FA' }]}>{content}</View>
-            )}
-        </TouchableOpacity>
-    );
-}
 
 export default function DashboardScreen() {
     const router = useRouter();
     const { scrollProps, guard } = useScrollPressGuard();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { user, isLoading: isUserLoading } = useUser();
     const { types: assistanceTypes, languageId } = useAssistanceTypeCatalog();
     const { width: screenWidth } = useWindowDimensions();
-    // Floored: an exact fractional fit gets rounded up by the layout engine and
-    // wraps the third tile onto the next row.
-    const typeButtonWidth = Math.floor(
-        (screenWidth - DASHBOARD_PADDING_X * 2 - TYPE_GRID_GAP * (TYPE_GRID_COLUMNS - 1)) / TYPE_GRID_COLUMNS,
-    );
-    const [filter, setFilter] = useState<string | null>(null);
-    // Owner's tapped assistance type; null falls back to the first of the catalog.
-    const [selectedTypeId, setSelectedTypeId] = useState<string | null>(null);
-    const typeSelectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    // Owner home: which sheet is open, the owner's vehicles and the mileage being edited.
+    const [sheet, setSheet] = useState<'request' | 'vehicle' | 'mileage' | null>(null);
+    const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+    const [vehicleId, setVehicleId] = useState<string | null>(null);
+    const [mileageInput, setMileageInput] = useState('');
+    const [savingMileage, setSavingMileage] = useState(false);
+    const [mileageError, setMileageError] = useState<string | null>(null);
     const [requests, setRequests] = useState<AssistanceRequest[]>([]);
     const [isLoadingRequests, setIsLoadingRequests] = useState(true);
     // Declining hides the request right away and persists it server-side (the
@@ -265,18 +183,22 @@ export default function DashboardScreen() {
     useFocusEffect(
         useCallback(() => {
             if (!user) return;
-            setSelectedTypeId(null);
             if (user.role === 'mechanic') {
                 loadRequests();
             } else {
                 refreshAppointments();
             }
-        }, [filter, user?.id, user?.addresses])
+        }, [user?.id, user?.addresses])
     );
 
-    useEffect(() => () => {
-        if (typeSelectTimer.current) clearTimeout(typeSelectTimer.current);
-    }, []);
+    // Owner only: the vehicles behind the care card. Reloaded on focus so a vehicle added
+    // from the wizard shows up when the owner comes back.
+    useFocusEffect(
+        useCallback(() => {
+            if (user?.role !== 'user' || !user.id) return;
+            vehicleDAO.getByUser(user.id).then(setVehicles).catch(() => undefined);
+        }, [user?.role, user?.id]),
+    );
 
     // Live updates: a new request broadcast to mechanics, or any status change,
     // triggers a refetch so the feed stays current without leaving the screen.
@@ -790,46 +712,37 @@ export default function DashboardScreen() {
 
     // Catalog translation first; otherwise the short bundled copy for the types the
     // app has always shipped. A type the app does not know gets its catalog name only.
-    const typeButtonCopy = (item: AssistanceTypeCatalogItem) => {
+    const typeLabel = (item: AssistanceTypeCatalogItem) => {
         const hasTranslation = item.translations?.some(tr => tr.languageId === languageId);
         const key = i18nKeyFor(item);
-        if (!hasTranslation && key) {
-            return {
-                title: t(`dashboard.user.cards.${key}Title`),
-                subtitle: t(`dashboard.user.cards.${key}Subtitle`),
-            };
-        }
-        return { title: translatedName(item, languageId), subtitle: null };
+        if (!hasTranslation && key) return t(`dashboard.user.cards.${key}Title`);
+        return translatedName(item, languageId);
     };
 
-    // Owners start a request; any other role toggles the list filter. A type with no
-    // resolvable code can do neither, so its button renders disabled.
-    const typeButtonPress = (item: AssistanceTypeCatalogItem) => {
-        const code = codeFor(item);
-        if (!code) return undefined;
-        if (user?.role === 'user') {
-            // No identity gate: verification is optional for users.
-            const route = assistanceTypeRoute(item);
-            if (!route) return undefined;
-            return () => {
-                setSelectedTypeId(item.id);
-                if (typeSelectTimer.current) clearTimeout(typeSelectTimer.current);
-                typeSelectTimer.current = setTimeout(() => router.push(route), TYPE_SELECT_DELAY_MS);
-            };
-        }
+    // The three ways to ask for help live in the "Request assistance" sheet; every other
+    // catalog type (towing, accident, locksmith…) is an emergency shortcut.
+    const MAIN_CODES = ['immediate', 'scheduled', 'videocall'];
+    const mainTypes = assistanceTypes.filter((i) => MAIN_CODES.includes(codeFor(i) ?? ''));
+    const emergencyTypes = assistanceTypes.filter((i) => {
+        const code = codeFor(i);
+        return !!code && !MAIN_CODES.includes(code);
+    });
+    const SHEET_SUBTITLE: Record<string, string> = {
+        immediate: t('dashboard.user.sheet.immediate'),
+        scheduled: t('dashboard.user.sheet.scheduled'),
+        videocall: t('dashboard.user.sheet.videoCall'),
+    };
+
+    // No identity gate: verification is optional for users. A type with no resolvable
+    // code has no route, so its shortcut renders disabled.
+    const startType = (item: AssistanceTypeCatalogItem) => {
+        const route = assistanceTypeRoute(item);
+        if (!route) return undefined;
         return () => {
-            setSelectedTypeId(item.id);
-            setFilter(filter === code ? null : code);
+            setSheet(null);
+            router.push(route);
         };
     };
-
-    // Everything the user has in flight, narrowed by the visual type filter.
-    const filteredRequests = activeRequests.filter(req => {
-        if (!filter) return true;
-        if (filter === 'witness') return req.assistanceType === 'witness' || req.type === 'witness';
-        if (filter === 'immediate') return req.type === 'immediate' && req.assistanceType !== 'witness';
-        return req.type === filter;
-    });
 
     const openRequest = (req: Appointment) => {
         // pending/offered have no appointment row yet — the searching screen is the
@@ -873,80 +786,247 @@ export default function DashboardScreen() {
         ]);
     };
 
-    const selectedId = selectedTypeId ?? assistanceTypes[0]?.id;
+    // ── Needs your attention: only what the data says needs the owner ──
+    const offered = activeRequests.filter((r) => r.status === 'offered');
+    const toConfirm = activeRequests.filter((r) => r.status === 'awaiting_confirmation');
+    const attentionItems: OwnerAttentionItem[] = [];
+    if (offered.length > 0) {
+        attentionItems.push({
+            id: 'offers', tone: 'blue', icon: Zap,
+            title: t('dashboard.user.attention.offers.title', { count: offered.length }),
+            sub: t('dashboard.user.attention.offers.sub'),
+            cta: t('dashboard.user.attention.offers.cta'),
+            onPress: guard(() => openRequest(offered[0])),
+        });
+    }
+    if (toConfirm.length > 0) {
+        attentionItems.push({
+            id: 'confirm', tone: 'amber', icon: AlertTriangle,
+            title: t('dashboard.user.attention.confirm.title'),
+            sub: t('dashboard.user.attention.confirm.sub'),
+            cta: t('dashboard.user.attention.confirm.cta'),
+            onPress: guard(() => openRequest(toConfirm[0])),
+        });
+    }
+
+    // Rows that carry no title of their own (older ones) fall back to their service type.
+    const serviceName = (a: Appointment) =>
+        a.title ||
+        t(`requestAssistance.header.${a.type === 'videocall' ? 'videoCall' : a.type === 'scheduled' ? 'scheduled' : 'immediate'}`);
+
+    // ── Upcoming appointment: the nearest confirmed future one ──
+    const dateLabel = (raw?: string) => {
+        const d = raw ? new Date(raw) : null;
+        return d && !isNaN(d.getTime())
+            ? d.toLocaleDateString(i18n.language, { weekday: 'short', month: 'short', day: 'numeric' })
+            : raw || '';
+    };
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const upcoming = appointments
+        .filter((a) => (a.status === 'scheduled' || (a.status === 'accepted' && a.type === 'scheduled')) && !isNaN(Date.parse(a.date)) && Date.parse(a.date) >= startOfToday.getTime())
+        .sort((a, b) => Date.parse(a.date) - Date.parse(b.date))[0];
+
+    // ── Vehicle care & activity ──
+    const vehicle = vehicles.find((v) => v.id === vehicleId) ?? vehicles[0];
+    const vehicleName = (v: Vehicle) => [v.year, v.make, v.model].filter(Boolean).join(' ');
+    const vehicleShort = (a: Appointment) => a.car || '';
+    const recent = appointments
+        .filter((a) => a.status === 'completed')
+        .filter((a) => !vehicle || (vehicle.model ? a.car?.toLowerCase().includes(vehicle.model.toLowerCase()) : true))
+        .sort((a, b) => (b.completedAt || b.updatedAt || '').localeCompare(a.completedAt || a.updatedAt || ''))
+        .slice(0, 3);
+
+    const openMileageSheet = () => {
+        setMileageInput(vehicle?.mileage != null ? String(vehicle.mileage) : '');
+        setMileageError(null);
+        setSheet('mileage');
+    };
+    const saveMileage = async () => {
+        if (!vehicle?.id) return;
+        const miles = parseInt(mileageInput, 10);
+        if (!Number.isFinite(miles)) return;
+        setSavingMileage(true);
+        setMileageError(null);
+        try {
+            await vehicleDAO.update(vehicle.id, { mileage: miles });
+            setVehicles((prev) => prev.map((v) => (v.id === vehicle.id ? { ...v, mileage: miles } : v)));
+            setSheet(null);
+        } catch (error) {
+            console.error('Failed to save mileage', error);
+            setMileageError(t('dashboard.user.vehicleCare.mileageError'));
+        } finally {
+            setSavingMileage(false);
+        }
+    };
 
     return (
-        <View className="flex-1" style={{ backgroundColor: '#F6F8FC', paddingHorizontal: DASHBOARD_PADDING_X, paddingTop: 18 }}>
-            <FlatList
+        <View className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
+            <ScrollView
                 {...scrollProps}
-                ListHeaderComponent={
-                    <View>
-                        {/* Section Badge */}
-                        <View className="flex-row items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#EAF1FF', alignSelf: 'flex-start', marginBottom: 12 }}>
-                            <View className="rounded-full" style={{ width: 5, height: 5, backgroundColor: '#1E56E3' }} />
-                            <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 1.3, color: '#1E56E3' }}>
-                                {user?.role?.toLowerCase() === 'mechanic' ? 'FIND JOBS' : t(getTimeGreetingKey())}
-                            </Text>
-                        </View>
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingHorizontal: DASHBOARD_PADDING_X, paddingTop: 18, paddingBottom: 40 }}
+            >
+                {/* Section Badge */}
+                <View className="flex-row items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#EAF1FF', alignSelf: 'flex-start', marginBottom: 12 }}>
+                    <View className="rounded-full" style={{ width: 5, height: 5, backgroundColor: '#1E56E3' }} />
+                    <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 1.3, color: '#1E56E3' }}>
+                        {t(getTimeGreetingKey())}
+                    </Text>
+                </View>
 
-                        {/* Title */}
-                        <Text className="font-outfit-bold" style={{ fontSize: 28, lineHeight: 32, letterSpacing: -0.7, color: '#0B1530' }}>
-                            {t('dashboard.user.title')}{user?.name ? `, ${user.name.split(' ')[0]}` : ''}
-                        </Text>
+                {/* Title */}
+                <Text className="font-outfit-bold" style={{ fontSize: 28, lineHeight: 32, letterSpacing: -0.7, color: '#0B1530' }}>
+                    {t('dashboard.user.title')}{user?.name ? `, ${user.name.split(' ')[0]}` : ''}
+                </Text>
 
-                        {/* Subtitle */}
-                        <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, marginTop: 8, color: '#6B7490' }}>
-                            {t('dashboard.user.subtitle')}
-                        </Text>
+                {/* Subtitle */}
+                <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, marginTop: 8, color: '#6B7490' }}>
+                    {t('dashboard.user.subtitle')}
+                </Text>
 
-                        <AddPhoneBanner className="mt-4" />
+                <AddPhoneBanner className="mt-4" />
 
-                        {/* Assistance Type Buttons — same catalog as the type picker */}
-                        <View className="flex-row flex-wrap" style={{ gap: TYPE_GRID_GAP, marginTop: 18 }}>
-                            {assistanceTypes.map(item => (
-                                <DashboardTypeButton
-                                    key={item.id}
-                                    item={item}
-                                    selected={item.id === selectedId}
-                                    width={typeButtonWidth}
-                                    {...typeButtonCopy(item)}
-                                    onPress={typeButtonPress(item)}
+                {/* Primary action + emergency shortcuts */}
+                <View style={{ marginTop: 18 }}>
+                    <RequestAssistanceCta
+                        title={t('dashboard.user.requestCta.title')}
+                        subtitle={t('dashboard.user.requestCta.subtitle')}
+                        onPress={() => setSheet('request')}
+                    />
+                    <EmergencyRow
+                        label={t('dashboard.user.emergencyLabel')}
+                        items={emergencyTypes.map((item) => ({
+                            id: item.id,
+                            label: typeLabel(item),
+                            icon: iconFor(item),
+                            onPress: startType(item),
+                        }))}
+                    />
+                </View>
+
+                {/* Active requests: open, cancel — as before */}
+                {activeRequests.length > 0 && (
+                    <View style={{ marginTop: 24 }}>
+                        <OwnerSectionTitle title={t('dashboard.user.activeRequestTitle')} />
+                        {activeRequests.map((item) => (
+                            <UserRequestCard
+                                key={item.id}
+                                id={item.id}
+                                refCode={item.refCode}
+                                type={item.type}
+                                assistanceType={item.assistanceType}
+                                title={item.title}
+                                car={item.car}
+                                address={item.address}
+                                status={item.status}
+                                onPress={guard(() => openRequest(item))}
+                                onCancel={guard(() => cancelRequest(item.id))}
+                            />
+                        ))}
+                    </View>
+                )}
+
+                {/* Needs your attention */}
+                <View style={{ marginTop: 24 }}>
+                    <OwnerSectionTitle title={t('dashboard.user.attention.title')} badge={attentionItems.length} />
+                    <OwnerAttentionList
+                        items={attentionItems}
+                        emptyTitle={t('dashboard.user.attention.emptyTitle')}
+                        emptySub={t('dashboard.user.attention.emptySub')}
+                    />
+                </View>
+
+                {/* Upcoming appointment */}
+                {upcoming && (
+                    <View style={{ marginTop: 24 }}>
+                        <OwnerSectionTitle title={t('dashboard.user.upcoming.title')} />
+                        <UpcomingCard
+                            title={serviceName(upcoming)}
+                            sub={[dateLabel(upcoming.date), upcoming.time].filter(Boolean).join(' · ')}
+                            statusLabel={t('dashboard.user.upcoming.confirmed')}
+                            onPress={guard(() => openRequest(upcoming))}
+                        />
+                    </View>
+                )}
+
+                {/* Vehicle care & activity */}
+                {vehicle && (
+                    <View style={{ marginTop: 24 }}>
+                        <OwnerSectionTitle title={t('dashboard.user.vehicleCare.title')} />
+                        <VehicleCareCard
+                            name={vehicleName(vehicle)}
+                            detail={vehicle.plate ? `${vehicle.plate}${vehicle.plateState ? ` · ${vehicle.plateState}` : ''}` : undefined}
+                            canSwitch={vehicles.length > 1}
+                            onSwitch={() => setSheet('vehicle')}
+                            mileageText={vehicle.mileage != null
+                                ? t('dashboard.user.vehicleCare.mileage', { miles: vehicle.mileage.toLocaleString('en-US') })
+                                : t('dashboard.user.vehicleCare.noMileage')}
+                            mileageCta={vehicle.mileage != null ? t('dashboard.user.vehicleCare.update') : t('dashboard.user.vehicleCare.add')}
+                            onMileage={openMileageSheet}
+                        />
+                        {recent.length > 0 && (
+                            <View style={{ marginTop: 20 }}>
+                                <OwnerSectionTitle title={t('dashboard.user.recent.title')} />
+                                <RecentActivityList
+                                    items={recent.map((a) => ({
+                                        id: a.id,
+                                        title: serviceName(a),
+                                        sub: [vehicleShort(a), dateLabel(a.completedAt || a.date)].filter(Boolean).join(' · '),
+                                        amount: a.budget ? String(a.budget) : undefined,
+                                        onPress: guard(() => openRequest(a)),
+                                    }))}
                                 />
-                            ))}
-                        </View>
-
-                        {/* Active Request Title */}
-                        <Text className="font-outfit-bold" style={{ fontSize: 18, letterSpacing: -0.3, color: '#0B1530', marginTop: 24, marginBottom: 12 }}>
-                            {t('dashboard.user.activeRequestTitle')}
-                        </Text>
-
-                        {/* Empty State Message (only when no active requests) */}
-                        {filteredRequests.length === 0 && (
-                            <Text className="font-outfit-regular mb-2" style={{ fontSize: 14, color: '#6B7490' }}>
-                                {t('dashboard.user.noActiveRequests')}
-                            </Text>
+                            </View>
                         )}
                     </View>
-                }
-                data={filteredRequests}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                    <UserRequestCard
-                        id={item.id}
-                        refCode={item.refCode}
-                        type={item.type}
-                        assistanceType={item.assistanceType}
-                        title={item.title}
-                        car={item.car}
-                        address={item.address}
-                        status={item.status}
-                        onPress={guard(() => openRequest(item))}
-                        onCancel={guard(() => cancelRequest(item.id))}
-                    />
                 )}
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 20 }}
-            />
+            </ScrollView>
+
+            {/* Request assistance: the three ways to ask for help */}
+            <OwnerSheet visible={sheet === 'request'} title={t('dashboard.user.sheet.title')} subtitle={t('dashboard.user.sheet.subtitle')} onClose={() => setSheet(null)}>
+                <View style={{ gap: 10 }}>
+                    {mainTypes.map((item) => (
+                        <SheetOption
+                            key={item.id}
+                            icon={iconFor(item)}
+                            title={typeLabel(item)}
+                            subtitle={SHEET_SUBTITLE[codeFor(item) ?? '']}
+                            gradient
+                            onPress={startType(item) ?? (() => undefined)}
+                        />
+                    ))}
+                </View>
+            </OwnerSheet>
+
+            {/* Switch vehicle */}
+            <OwnerSheet visible={sheet === 'vehicle'} title={t('dashboard.user.vehicleCare.switchTitle')} onClose={() => setSheet(null)}>
+                <View style={{ gap: 10 }}>
+                    {vehicles.map((v) => (
+                        <SheetOption
+                            key={v.id}
+                            icon={Car}
+                            title={vehicleName(v)}
+                            subtitle={v.plate}
+                            selected={v.id === vehicle?.id}
+                            onPress={() => { setVehicleId(v.id ?? null); setSheet(null); }}
+                        />
+                    ))}
+                </View>
+            </OwnerSheet>
+
+            {/* Mileage */}
+            <OwnerSheet visible={sheet === 'mileage'} title={t('dashboard.user.vehicleCare.mileageTitle')} onClose={() => setSheet(null)}>
+                <MileageField
+                    value={mileageInput}
+                    onChange={setMileageInput}
+                    placeholder={t('dashboard.user.vehicleCare.mileagePlaceholder')}
+                    saveLabel={t('dashboard.user.vehicleCare.mileageSave')}
+                    saving={savingMileage}
+                    error={mileageError}
+                    onSave={saveMileage}
+                />
+            </OwnerSheet>
         </View>
     );
 }
