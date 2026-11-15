@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Alert } from 'react-native';
+import { Alert, Share } from 'react-native';
 
 export const LAST_FATAL_ERROR_KEY = 'last_fatal_js_error';
 
@@ -14,11 +14,22 @@ function showErrorDetails(err: Error): void {
     if (!SHOW_ERROR_DETAILS || alertVisible) return;
     alertVisible = true;
     const stackHead = (err.stack ?? '').split('\n').slice(0, 6).join('\n');
+    const close = () => { alertVisible = false; };
     Alert.alert(
         'Error',
         `${err.message}\n\n${stackHead}`.slice(0, 1200),
-        [{ text: 'OK', onPress: () => { alertVisible = false; } }],
-        { onDismiss: () => { alertVisible = false; } },
+        [
+            {
+                // The share sheet has "Copy", and also sends the full text straight to Notes, Mail or a chat.
+                text: 'Copy / Share',
+                onPress: () => {
+                    close();
+                    void Share.share({ message: `${new Date().toISOString()}\n${err.message}\n\n${err.stack ?? ''}` }).catch(() => {});
+                },
+            },
+            { text: 'OK', onPress: close },
+        ],
+        { onDismiss: close },
     );
 }
 

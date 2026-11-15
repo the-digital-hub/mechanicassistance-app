@@ -59,28 +59,29 @@ export default function CancelReasonScreen() {
                         {t('appointments.cancelReason.subtitle')}
                     </Text>
 
-                    {/* Reasons List */}
-                    <View className="gap-3 mb-8">
-                        {REASONS.map((reason) => (
-                            <TouchableOpacity
-                                key={reason}
-                                onPress={() => setSelectedReason(reason)}
-                                className={`py-4 px-4 rounded-2xl border flex-row items-center gap-3 ${selectedReason === reason
-                                    ? 'bg-blue-50 border-blue-200'
-                                    : 'bg-white border-gray-200'
-                                    }`}
-                            >
-                                <Circle
-                                    size={20}
-                                    color={selectedReason === reason ? '#0047AB' : '#D1D5DB'}
-                                    fill={selectedReason === reason ? '#0047AB' : 'transparent'}
-                                />
-                                <Text className={`font-outfit-medium text-base ${selectedReason === reason ? 'text-blue-900' : 'text-gray-700'
-                                    }`}>
-                                    {reason}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
+                    {/* Reasons List — one card, rows separated by thin dividers */}
+                    <View className="bg-white rounded-2xl border border-gray-200 mb-8 overflow-hidden">
+                        {REASONS.map((reason, index) => {
+                            const selected = selectedReason === reason;
+                            return (
+                                <TouchableOpacity
+                                    key={reason}
+                                    onPress={() => setSelectedReason(reason)}
+                                    activeOpacity={0.7}
+                                    className={`py-4 px-4 flex-row items-center gap-3 ${selected ? 'bg-blue-50' : ''}`}
+                                    style={index > 0 ? { borderTopWidth: 1, borderTopColor: '#EEF2FA' } : undefined}
+                                >
+                                    <Circle
+                                        size={20}
+                                        color={selected ? '#0047AB' : '#D1D5DB'}
+                                        fill={selected ? '#0047AB' : 'transparent'}
+                                    />
+                                    <Text className={`font-outfit-medium text-base ${selected ? 'text-blue-900' : 'text-gray-700'}`}>
+                                        {reason}
+                                    </Text>
+                                </TouchableOpacity>
+                            );
+                        })}
                     </View>
 
                     {/* Information Message */}

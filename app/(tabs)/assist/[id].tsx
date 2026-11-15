@@ -247,7 +247,8 @@ export default function RequestDetailScreen() {
                 await assistanceDAO.updateStatus(appointmentId, user.id, 'offered', etaText && !isVideo ? { eta: etaText } : undefined);
             }
             setShowConfirm(false);
-            router.replace('/(tabs)/appointments');
+            // A sent offer is `offered`: it waits for the owner under Pending, not Upcoming.
+            router.replace({ pathname: '/(tabs)/appointments', params: { tab: 'pending' } });
             navigation.dispatch(
                 CommonActions.reset({
                     index: 0,

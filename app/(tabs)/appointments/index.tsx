@@ -1,9 +1,9 @@
 import { AppointmentCard } from '@/components/ui/AppointmentCard';
 import { useAppointments } from '@/context/AppointmentsContext';
 import { ScrollPressGuardContext, useScrollPressGuard } from '@/hooks/useScrollPressGuard';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { X } from 'lucide-react-native';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, Modal, Text, TouchableOpacity, View } from 'react-native';
 
@@ -11,11 +11,21 @@ export default function AppointmentsScreen() {
     const { t } = useTranslation();
     const { getUpcoming, getPendingApproval, getPast, refresh, appointments: allAppointments } = useAppointments();
     const router = useRouter();
+    const { tab: tabParam } = useLocalSearchParams<{ tab?: string }>();
     const { scrollProps, guard } = useScrollPressGuard();
 
     const [activeTab, setActiveTab] = useState<'upcoming' | 'pending' | 'past'>('upcoming');
     const [cancelModalVisible, setCancelModalVisible] = useState(false);
     const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
+
+    // Arriving with ?tab=pending (e.g. right after a mechanic sends an offer) opens that tab once.
+    useEffect(() => {
+        if (tabParam === 'pending' || tabParam === 'upcoming' || tabParam === 'past') {
+            setActiveTab(tabParam);
+            router.setParams({ tab: undefined });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [tabParam]);
 
     useFocusEffect(
         useCallback(() => {
