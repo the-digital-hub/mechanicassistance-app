@@ -4,7 +4,6 @@ import { Tabs, useRouter, usePathname } from "expo-router";
 import {
   Bell,
   Calendar,
-  ChevronLeft,
   Circle,
   FileText,
   LifeBuoy,
@@ -16,6 +15,7 @@ import { Image, Modal, Platform, Text, TouchableOpacity, View } from "react-nati
 import { LinearGradient } from "expo-linear-gradient";
 
 import { HapticTab } from "@/components/haptic-tab";
+import { HeaderBackButton } from "@/components/ui/HeaderBackButton";
 import { NotificationBell } from "@/components/NotificationBell";
 import { MechanicLocationBroadcaster } from "@/components/MechanicLocationBroadcaster";
 import { LocationRevalidator } from "@/components/LocationRevalidator";
@@ -27,37 +27,9 @@ function MechanicStatusHeaderLeft() {
   return <MechanicStatusBadge />;
 }
 
-function ProfileHeaderLeft() {
-  const router = useRouter();
-  return (
-    <View className="flex-row items-center gap-3">
-      <TouchableOpacity
-        onPress={() => router.navigate("/(tabs)")}
-        style={{ marginLeft: 8 }}
-      >
-        <ChevronLeft size={24} color="#0047AB" />
-      </TouchableOpacity>
-      <MechanicStatusHeaderLeft />
-    </View>
-  );
-}
-
 function PersonalInfoHeaderLeft() {
   const router = useRouter();
-  const { user } = useUser();
-
-  if (user?.role === 'mechanic') {
-    return <MechanicStatusBadge />;
-  }
-
-  return (
-    <TouchableOpacity
-      onPress={() => router.navigate("/(tabs)")}
-      style={{ marginLeft: 16 }}
-    >
-      <ChevronLeft size={24} color="#0047AB" />
-    </TouchableOpacity>
-  );
+  return <HeaderBackButton onPress={() => router.navigate("/(tabs)")} />;
 }
 
 function PersonalInfoHeaderRight() {
@@ -81,21 +53,7 @@ function PersonalInfoHeaderRight() {
 
 function AddressesHeaderLeft() {
   const router = useRouter();
-  const { user } = useUser();
-
-  // For mechanics, show badge; for users, show back button
-  if (user?.role?.toLowerCase().trim() === 'mechanic') {
-    return <MechanicStatusBadge />;
-  }
-
-  return (
-    <TouchableOpacity
-      onPress={() => router.navigate("/(tabs)")}
-      style={{ marginLeft: 16 }}
-    >
-      <ChevronLeft size={24} color="#0047AB" />
-    </TouchableOpacity>
-  );
+  return <HeaderBackButton onPress={() => router.navigate("/(tabs)")} />;
 }
 
 function MechanicStatusBadge() {
@@ -285,14 +243,7 @@ export default function TabLayout() {
           fontSize: 18,
           color: "#1A1A1A",
         },
-        headerLeft: () => (
-          <TouchableOpacity
-            onPress={() => goBackOr(router, "/(tabs)/dashboard")}
-            style={{ marginLeft: 16 }}
-          >
-            <ChevronLeft size={24} color="#0047AB" />
-          </TouchableOpacity>
-        ),
+        headerLeft: () => <HeaderBackButton onPress={() => goBackOr(router, "/(tabs)/dashboard")} />,
         tabBarButton: HapticTab,
       }}
     >
@@ -351,14 +302,10 @@ export default function TabLayout() {
           },
           headerLeft: () =>
             isAppointmentDetail ? (
-              <TouchableOpacity
+              <HeaderBackButton
                 onPress={() => goBackOr(router, "/(tabs)/appointments")}
-                style={{ marginLeft: 16 }}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                 testID="appointment-detail-back"
-              >
-                <ChevronLeft size={24} color="#0047AB" />
-              </TouchableOpacity>
+              />
             ) : (
               <MechanicStatusHeaderLeft />
             ),
@@ -516,14 +463,7 @@ export default function TabLayout() {
         options={{
           href: null,
           title: t('tabs.profile'),
-          headerLeft: () => (
-            <TouchableOpacity
-              onPress={() => router.navigate("/(tabs)")}
-              style={{ marginLeft: 16 }}
-            >
-              <ChevronLeft size={24} color="#0047AB" />
-            </TouchableOpacity>
-          ),
+          headerLeft: () => <HeaderBackButton onPress={() => router.navigate("/(tabs)")} />,
         }}
       />
       <Tabs.Screen
@@ -531,14 +471,7 @@ export default function TabLayout() {
         options={{
           href: null,
           title: t('tabs.profile'),
-          headerLeft: () => (
-            <TouchableOpacity
-              onPress={() => router.navigate("/(tabs)")}
-              style={{ marginLeft: 16 }}
-            >
-              <ChevronLeft size={24} color="#0047AB" />
-            </TouchableOpacity>
-          ),
+          headerLeft: () => <HeaderBackButton onPress={() => router.navigate("/(tabs)")} />,
         }}
       />
       <Tabs.Screen

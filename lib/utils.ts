@@ -24,3 +24,10 @@ export function haversineDistanceKm(
         Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
+
+const MILES_PER_KM = 0.621371;
+
+/** Distances are always shown in miles; the backend and haversine work in km. */
+export function kmToMiles(km: number): number {
+    return km * MILES_PER_KM;
+}

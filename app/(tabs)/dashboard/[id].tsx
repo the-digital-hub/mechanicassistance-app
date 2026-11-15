@@ -1,4 +1,5 @@
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
+import { kmToMiles } from '@/lib/utils';
 import { useAppointments } from '@/context/AppointmentsContext';
 import { useVerifiedAction } from '@/hooks/useVerifiedAction';
 import { useAvailableToOffer } from '@/hooks/useAvailableToOffer';
@@ -213,7 +214,7 @@ export default function AssistDetailScreen() {
                             <View className="flex-row items-center gap-2 bg-blue-50 rounded-xl px-4 py-3">
                                 <Navigation size={16} color="#0047AB" />
                                 {distKm !== null && (
-                                    <Text className="font-outfit-bold text-blue-900">{distKm.toFixed(1)} km</Text>
+                                    <Text className="font-outfit-bold text-blue-900">{kmToMiles(distKm).toFixed(1)} mi</Text>
                                 )}
                                 {etaText && (
                                     <Text className="font-outfit-bold text-blue-900">· ETA: {etaText}</Text>

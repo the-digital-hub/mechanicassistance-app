@@ -11,7 +11,7 @@ import { setAppLanguage } from '@/lib/i18n';
 import { startAddRoleFromProfile } from '@/lib/setup-add-role';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import { ArrowLeftRight, Award, Camera, Car, Check, ChevronLeft, ChevronRight, Circle, Clock, CreditCard, FileText, Heart, HelpCircle, Lock, LogOut, MapPin, Settings, User, Wallet } from 'lucide-react-native';
+import { ArrowLeftRight, Award, Briefcase, Camera, Car, Check, ChevronDown, ChevronLeft, ChevronRight, Circle, Clock, CreditCard, FileText, Heart, HelpCircle, Lock, LogOut, MapPin, Settings, User, Wallet } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Image, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -23,6 +23,8 @@ export default function ProfileScreen() {
   const { t, i18n } = useTranslation();
 
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  // Technician menu groups that are currently open (Account, Professional profile).
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [localProfileUri, setLocalProfileUri] = useState<string | null>(null);
@@ -197,7 +199,7 @@ export default function ProfileScreen() {
           </View>
 
           {/* Name */}
-          <Text className="text-3xl font-outfit-bold mt-4 mb-2" style={{ color: '#2B66F8' }}>
+          <Text className="text-3xl font-outfit-medium mt-4 mb-2" style={{ color: '#0B1530' }}>
             {user.name} {user.surname}
           </Text>
 
@@ -278,62 +280,128 @@ export default function ProfileScreen() {
 
         {/* Menu Items Card */}
         {(() => {
-          const menuItems = [
-            { icon: User, label: t('profile.menu.personalInfo'), route: '/personal-info' },
-            { icon: MapPin, label: t('profile.menu.addresses'), route: '/(tabs)/addresses' },
-            ...(user.role?.toLowerCase().trim() !== 'mechanic' ? [
-              { icon: Car || User, label: t('profile.menu.vehicles'), route: '/vehicles' },
-              { icon: Wallet, label: t('profile.menu.paymentCards'), route: '/payment-cards' },
-            ] : []),
-            ...(user.role === 'mechanic' ? [
-              { icon: Clock, label: t('profile.menu.availability'), route: '/availability' },
-              { icon: Award, label: t('profile.menu.ase'), route: '/ase' },
-              { icon: FileText, label: t('profile.menu.legalDocuments'), route: '/legal-documents' },
-              { icon: CreditCard, label: t('profile.menu.payments'), route: '/payments' },
-              { icon: Heart, label: t('profile.menu.promotions'), route: '/promotions' },
-            ] : []),
-            { icon: HelpCircle, label: t('profile.menu.help'), route: '/help' },
-            { icon: Lock, label: t('profile.menu.privacy'), route: '/privacy' },
-            { icon: Settings, label: t('profile.menu.settings'), route: '/settings' },
+          type MenuItem = {
+            key: string;
+            icon: typeof User;
+            label: string;
+            route?: string;
+            value?: string;
+            action?: () => void;
+            busy?: boolean;
+            color?: string;
+            /** A group: tapping it opens/closes these, shown with the same row design. */
+            children?: MenuItem[];
+          };
+          const switchRole: MenuItem = {
+            key: 'switchRole',
+            icon: ArrowLeftRight,
+            label: t('profile.switchRole.menu'),
+            value: roleName(currentRole),
+            action: () => setShowRoleSheet(true),
+            busy: isSwitchingRole,
+          };
+          const logout: MenuItem = { key: 'logout', icon: LogOut, label: t('profile.menu.logout'), action: () => setShowLogoutModal(true), color: '#EF4444' };
+          const technicianMenu: MenuItem[] = [
             {
-              icon: ArrowLeftRight,
-              label: t('profile.switchRole.menu'),
-              value: roleName(currentRole),
-              action: () => setShowRoleSheet(true),
-              busy: isSwitchingRole,
+              key: 'account',
+              icon: User,
+              label: t('profile.groups.account'),
+              children: [
+                { key: 'personalInfo', icon: User, label: t('profile.menu.personalInfo'), route: '/personal-info' },
+                { key: 'savedAddresses', icon: MapPin, label: t('profile.menu.savedAddresses'), route: '/(tabs)/addresses' },
+                { key: 'privacy', icon: Lock, label: t('profile.menu.privacy'), route: '/privacy' },
+              ],
             },
-            { icon: LogOut, label: t('profile.menu.logout'), action: () => setShowLogoutModal(true), color: '#EF4444' },
+            {
+              key: 'professional',
+              icon: Briefcase,
+              label: t('profile.groups.professional'),
+              children: [
+                { key: 'schedule', icon: Clock, label: t('profile.menu.schedule'), route: '/availability' },
+                { key: 'ase', icon: Award, label: t('profile.menu.ase'), route: '/ase' },
+                { key: 'legal', icon: FileText, label: t('profile.menu.legalDocuments'), route: '/legal-documents' },
+              ],
+            },
+            { key: 'wallet', icon: CreditCard, label: t('profile.menu.wallet'), route: '/payments' },
+            { key: 'promotions', icon: Heart, label: t('profile.menu.promotions'), route: '/promotions' },
+            { key: 'help', icon: HelpCircle, label: t('profile.menu.help'), route: '/help' },
+            { key: 'settings', icon: Settings, label: t('profile.menu.settings'), route: '/settings' },
+            switchRole,
+            logout,
           ];
+          const ownerMenu: MenuItem[] = [
+            { key: 'personalInfo', icon: User, label: t('profile.menu.personalInfo'), route: '/personal-info' },
+            { key: 'addresses', icon: MapPin, label: t('profile.menu.addresses'), route: '/(tabs)/addresses' },
+            ...(user.role?.toLowerCase().trim() !== 'mechanic' ? [
+              { key: 'vehicles', icon: Car || User, label: t('profile.menu.vehicles'), route: '/vehicles' },
+              { key: 'paymentCards', icon: Wallet, label: t('profile.menu.paymentCards'), route: '/payment-cards' },
+            ] : []),
+            { key: 'help', icon: HelpCircle, label: t('profile.menu.help'), route: '/help' },
+            { key: 'privacy', icon: Lock, label: t('profile.menu.privacy'), route: '/privacy' },
+            { key: 'settings', icon: Settings, label: t('profile.menu.settings'), route: '/settings' },
+            switchRole,
+            logout,
+          ];
+          const isTechnicianMenu = user.role === 'mechanic';
+          const menuItems = isTechnicianMenu ? technicianMenu : ownerMenu;
+
+          const renderRow = (item: MenuItem, opts: { last: boolean; nested?: boolean }) => {
+            const isGroup = !!item.children;
+            const open = !!openGroups[item.key];
+            return (
+              <TouchableOpacity
+                key={item.key}
+                className="flex-row items-center px-6 py-4"
+                style={{
+                  borderBottomWidth: opts.last && !(isGroup && open) ? 0 : 1,
+                  borderBottomColor: '#F3F4F6',
+                  ...(opts.nested ? { backgroundColor: '#F9FAFB', paddingLeft: 40 } : null),
+                }}
+                onPress={isGroup
+                  ? () => setOpenGroups((prev) => ({ ...prev, [item.key]: !prev[item.key] }))
+                  : item.action ? item.action : () => {
+                    if (item.route) router.push(item.route as any);
+                  }}
+                accessibilityState={isGroup ? { expanded: open } : undefined}
+              >
+                <View className={`w-12 h-12 rounded-full ${item.color ? 'bg-red-50' : 'bg-blue-50'} justify-center items-center mr-4`}>
+                  <item.icon size={24} color={item.color || '#0047AB'} />
+                </View>
+                <Text className={`flex-1 font-outfit-semibold text-lg ${item.color ? 'text-red-500' : 'text-gray-900'}`}>
+                  {item.label}
+                </Text>
+                {item.value ? (
+                  <View className="px-2.5 py-1 rounded-full mr-2" style={{ backgroundColor: '#EAF1FF' }}>
+                    <Text className="font-outfit-bold" style={{ fontSize: 12.5, color: '#1E56E3' }} numberOfLines={1}>{item.value}</Text>
+                  </View>
+                ) : null}
+                {item.busy ? (
+                  <ActivityIndicator color="#0047AB" />
+                ) : isGroup ? (
+                  // Groups point right (closed) and turn down while open; technician direct links show no arrow.
+                  open ? <ChevronDown size={24} color="#0047AB" /> : <ChevronRight size={24} color="#0047AB" />
+                ) : isTechnicianMenu ? null : (
+                  <ChevronRight size={24} color={item.color ? '#EF4444' : '#0047AB'} />
+                )}
+              </TouchableOpacity>
+            );
+          };
+
           return (
         <View className="mb-6" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 10, elevation: 5 }}>
           <View className="bg-white rounded-3xl overflow-hidden">
-            {menuItems.map((item, index) => (
-            <TouchableOpacity
-              key={index}
-              className="flex-row items-center px-6 py-4"
-              style={{ borderBottomWidth: index < menuItems.length - 1 ? 1 : 0, borderBottomColor: '#F3F4F6' }}
-              onPress={item.action ? item.action : () => {
-                if (item.route) router.push(item.route as any);
-              }}
-            >
-              <View className={`w-12 h-12 rounded-full ${item.color ? 'bg-red-50' : 'bg-blue-50'} justify-center items-center mr-4`}>
-                <item.icon size={24} color={item.color || '#0047AB'} />
-              </View>
-              <Text className={`flex-1 font-outfit-semibold text-lg ${item.color ? 'text-red-500' : 'text-gray-900'}`}>
-                {item.label}
-              </Text>
-              {'value' in item && item.value ? (
-                <View className="px-2.5 py-1 rounded-full mr-2" style={{ backgroundColor: '#EAF1FF' }}>
-                  <Text className="font-outfit-bold" style={{ fontSize: 12.5, color: '#1E56E3' }} numberOfLines={1}>{item.value}</Text>
-                </View>
-              ) : null}
-              {'busy' in item && item.busy ? (
-                <ActivityIndicator color="#0047AB" />
-              ) : (
-                <ChevronRight size={24} color={item.color ? '#EF4444' : '#0047AB'} />
-              )}
-            </TouchableOpacity>
-            ))}
+            {menuItems.map((item, index) => {
+              const last = index === menuItems.length - 1;
+              if (!item.children) return renderRow(item, { last });
+              const open = !!openGroups[item.key];
+              return (
+                <React.Fragment key={item.key}>
+                  {renderRow(item, { last })}
+                  {open && item.children.map((child, ci) =>
+                    renderRow(child, { last: last && ci === item.children!.length - 1, nested: true }))}
+                </React.Fragment>
+              );
+            })}
           </View>
         </View>
           );

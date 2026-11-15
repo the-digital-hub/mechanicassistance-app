@@ -1,8 +1,8 @@
 import { AppointmentCard } from '@/components/ui/AppointmentCard';
-import { useAppointments } from '@/context/AppointmentsContext';
+import { Appointment, isCancelledStatus, useAppointments } from '@/context/AppointmentsContext';
 import { ScrollPressGuardContext, useScrollPressGuard } from '@/hooks/useScrollPressGuard';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { X } from 'lucide-react-native';
+import { ArrowDown, ArrowUp, X } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, Modal, Text, TouchableOpacity, View } from 'react-native';
@@ -15,6 +15,9 @@ export default function AppointmentsScreen() {
     const { scrollProps, guard } = useScrollPressGuard();
 
     const [activeTab, setActiveTab] = useState<'upcoming' | 'pending' | 'past'>('upcoming');
+    const [pastFilter, setPastFilter] = useState<'completed' | 'cancelled'>('completed');
+    // Per filter: newest first (desc, the default) or oldest first (asc).
+    const [pastOrder, setPastOrder] = useState<Record<'completed' | 'cancelled', 'desc' | 'asc'>>({ completed: 'desc', cancelled: 'desc' });
     const [cancelModalVisible, setCancelModalVisible] = useState(false);
     const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
 
@@ -36,11 +39,26 @@ export default function AppointmentsScreen() {
     const upcomingCount = getUpcoming().length;
     const pendingCount = getPendingApproval().length;
     const pastCount = getPast().length;
+    const pastAll = getPast();
+    const completedCount = pastAll.filter((a) => !isCancelledStatus(a.status)).length;
+    const cancelledCount = pastAll.length - completedCount;
+    // Default newest first: a finished job by when it ended, a cancelled one by when it was cancelled.
+    const pastTime = (a: Appointment) => Date.parse((isCancelledStatus(a.status) ? a.cancelledAt : a.completedAt) ?? a.updatedAt ?? '') || 0;
+    const pastShown = pastAll
+        .filter((a) => (pastFilter === 'cancelled') === isCancelledStatus(a.status))
+        .sort((a, b) => (pastOrder[pastFilter] === 'desc' ? pastTime(b) - pastTime(a) : pastTime(a) - pastTime(b)));
     const appointments = activeTab === 'upcoming'
         ? getUpcoming()
         : activeTab === 'pending'
             ? getPendingApproval()
-            : getPast();
+            : pastShown;
+
+    // The badge is a live summary, so it never repeats the title below it.
+    const badgeLabel = upcomingCount > 0
+        ? t('appointments.list.badgeStatus.active', { count: upcomingCount })
+        : pendingCount > 0
+            ? t('appointments.list.badgeStatus.pending', { count: pendingCount })
+            : t('appointments.list.badgeStatus.caughtUp');
 
     const handleCancelRequest = (id: string) => {
         setSelectedAppointmentId(id);
@@ -70,7 +88,7 @@ export default function AppointmentsScreen() {
                         <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                           <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
                           <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                            {t('appointments.list.badge')}
+                            {badgeLabel}
                           </Text>
                         </View>
 
@@ -119,9 +137,57 @@ export default function AppointmentsScreen() {
                             })}
                         </View>
 
-                        <Text className="font-outfit-regular text-[12.5px] mt-2.5" style={{ color: '#6B7490' }}>
-                            {t(`appointments.list.hint.${activeTab}`)}
-                        </Text>
+                        {/* Past has its own Completed / Cancelled selector, which says the same thing. */}
+                        {activeTab !== 'past' && (
+                            <Text className="font-outfit-regular text-[12.5px] mt-2.5" style={{ color: '#6B7490' }}>
+                                {t(`appointments.list.hint.${activeTab}`)}
+                            </Text>
+                        )}
+
+                        {activeTab === 'past' && (
+                            <View className="flex-row" style={{ marginTop: 12, gap: 8 }}>
+                                {([
+                                    { key: 'completed', label: t('appointments.list.pastFilter.completed'), count: completedCount },
+                                    { key: 'cancelled', label: t('appointments.list.pastFilter.cancelled'), count: cancelledCount },
+                                ] as const).map((f) => {
+                                    const on = pastFilter === f.key;
+                                    const asc = pastOrder[f.key] === 'asc';
+                                    const Arrow = asc ? ArrowUp : ArrowDown;
+                                    const color = on ? '#1E56E3' : '#6B7490';
+                                    return (
+                                        <View
+                                            key={f.key}
+                                            className="flex-row items-center"
+                                            style={{ borderRadius: 100, backgroundColor: on ? '#EAF1FF' : 'transparent' }}
+                                        >
+                                            <TouchableOpacity
+                                                onPress={() => setPastFilter(f.key)}
+                                                style={{ paddingLeft: 12, paddingVertical: 6 }}
+                                                accessibilityRole="button"
+                                                accessibilityState={{ selected: on }}
+                                            >
+                                                <Text className="font-outfit-medium text-[13px]" style={{ color }}>
+                                                    {f.label} · {f.count}
+                                                </Text>
+                                            </TouchableOpacity>
+                                            {/* Flips this list between newest-first (down) and oldest-first (up). */}
+                                            <TouchableOpacity
+                                                onPress={() => {
+                                                    setPastFilter(f.key);
+                                                    setPastOrder((prev) => ({ ...prev, [f.key]: prev[f.key] === 'desc' ? 'asc' : 'desc' }));
+                                                }}
+                                                hitSlop={6}
+                                                style={{ paddingHorizontal: 8, paddingVertical: 6 }}
+                                                accessibilityRole="button"
+                                                accessibilityLabel={asc ? t('appointments.list.sort.oldestFirst') : t('appointments.list.sort.newestFirst')}
+                                            >
+                                                <Arrow size={14} color={color} />
+                                            </TouchableOpacity>
+                                        </View>
+                                    );
+                                })}
+                            </View>
+                        )}
                     </View>
                 }
                 renderItem={({ item }) => (
@@ -149,7 +215,9 @@ export default function AppointmentsScreen() {
                             ? t('appointments.list.noUpcoming')
                             : activeTab === 'pending'
                                 ? t('appointments.list.noPendingApproval')
-                                : t('appointments.list.noPast')}</Text>
+                                : pastFilter === 'cancelled'
+                                    ? t('appointments.list.noCancelled')
+                                    : t('appointments.list.noCompleted')}</Text>
                     </View>
                 }
             />

@@ -3,7 +3,7 @@
     "badge": "MI PERFIL",
     "title": "Tu cuenta, tus preferencias",
     "subtitle": "Gestioná tu información personal, vehículos y configuración de la app.",
-    "roleMechanic": "Mecánico",
+    "roleMechanic": "Técnico",
     "roleOwner": "Dueño de vehículo",
     "availability": {
       "heading": "Disponible para brindar servicios",
@@ -30,7 +30,10 @@
       "logout": "Cerrar sesión",
       "legalDocuments": "Documentación legal",
       "availability": "Disponibilidad horaria",
-      "paymentCards": "Wallet y pagos"
+      "paymentCards": "Wallet y pagos",
+      "savedAddresses": "Direcciones guardadas",
+      "wallet": "Billetera",
+      "schedule": "Horario y zona de servicio"
     },
     "language": {
       "heading": "Seleccionar idioma",
@@ -95,6 +98,10 @@
           "desc": "Aperturas y reemplazo de llaves"
         }
       }
+    },
+    "groups": {
+      "account": "Cuenta",
+      "professional": "Perfil profesional"
     }
   },
   "assistanceCard": {
@@ -699,7 +706,7 @@
           "notCharged": "Completada – Sin cargo"
         },
         "vehicleId": "Vehículo:",
-        "distance": "Distancia: {{km}} Km",
+        "distance": "Distancia: {{miles}} mi",
         "distanceNA": "Distancia: N/D",
         "locationNotAvailable": "Ubicación no disponible",
         "budget": "Presupuesto: {{amount}}",
@@ -713,12 +720,12 @@
           "when": "Cuándo",
           "date": "Fecha",
           "rating": "Calificación",
-          "ratingFromCustomer": "Calificación del cliente al mecánico",
-          "ratingFromMechanic": "Calificación del mecánico al cliente"
+          "ratingFromCustomer": "Calificación del cliente al técnico",
+          "ratingFromMechanic": "Calificación del técnico al cliente"
         },
         "notRated": "Sin calificar",
         "notAvailable": "—",
-        "distanceApprox": "~{{km}} km",
+        "distanceApprox": "{{miles}} mi",
         "approximateArea": "Zona aproximada — no se muestra la ubicación exacta",
         "budgetLabel": "Presupuesto",
         "paidLabel": "Pagado",
@@ -731,12 +738,29 @@
         "technician": "Técnico",
         "ratingValue": "{{rating}} ({{count}})",
         "noRatings": "Sin calificaciones",
-        "distanceExact": "{{km}} km"
+        "distanceExact": "{{miles}} mi"
       },
       "hint": {
         "upcoming": "Servicios confirmados con un técnico asignado.",
         "pending": "Solicitudes que esperan tu decisión o un técnico.",
         "past": "Servicios completados y cancelados."
+      },
+      "pastFilter": {
+        "completed": "Completados",
+        "cancelled": "Cancelados"
+      },
+      "noCompleted": "No hay servicios completados",
+      "noCancelled": "No hay servicios cancelados",
+      "sort": {
+        "newestFirst": "Más recientes primero",
+        "oldestFirst": "Más antiguos primero"
+      },
+      "badgeStatus": {
+        "active_one": "{{count}} TRABAJO ACTIVO",
+        "active_other": "{{count}} TRABAJOS ACTIVOS",
+        "pending_one": "{{count}} SOLICITUD PENDIENTE",
+        "pending_other": "{{count}} SOLICITUDES PENDIENTES",
+        "caughtUp": "TODO AL DÍA"
       }
     },
     "cancelReason": {
@@ -2347,7 +2371,7 @@
     "recommended": "recomendado",
     "mapView": "Vista de mapa",
     "address": "Dirección: 778 Locust View Drive Oakland, CA",
-    "distance": "Distancia: 2.5 km",
+    "distance": "Distancia: 2.5 mi",
     "specialOfferTitle": "Oferta especial para miembros ASE",
     "specialOfferBody1": "Disfrutá un 10% de descuento en todos nuestros servicios, exclusivo para profesionales certificados ASE.",
     "specialOfferBody2": "Aumentá tu visibilidad, hacé crecer tu negocio y accedé a funciones premium a un precio reducido.",

@@ -1,6 +1,6 @@
 import { Appointment } from '@/context/AppointmentsContext';
 import { useUser } from '@/context/UserContext';
-import { haversineDistanceKm } from '@/lib/utils';
+import { haversineDistanceKm, kmToMiles } from '@/lib/utils';
 import { refLabel } from '@/lib/refCode';
 import { approximateArea, coarseAddress } from '@/lib/maps/approximateLocation';
 import * as Location from 'expo-location';
@@ -57,9 +57,10 @@ function InfoRows({ rows }: { rows: { icon: LucideIcon; label: string; value?: s
                         <View className="items-center justify-center" style={{ width: 30, height: 30, borderRadius: 9, backgroundColor: C.blueSoft }}>
                             <RowIcon size={16} color={C.blue} />
                         </View>
-                        <Text className="font-outfit-medium text-xs" style={{ color: C.muted, width: 66 }}>{r.label}</Text>
+                        {/* Plain rows keep a short fixed label; rating rows give the label all the room the stars leave. */}
+                        <Text className="font-outfit-medium text-xs" style={r.node ? { color: C.muted, flex: 1 } : { color: C.muted, width: 66 }}>{r.label}</Text>
                         {r.node ? (
-                            <View className="flex-1 flex-row items-center justify-end">{r.node}</View>
+                            <View className="flex-row items-center justify-end" style={{ flexShrink: 0 }}>{r.node}</View>
                         ) : (
                             <Text className="flex-1 font-outfit-bold text-[13px] text-right" style={{ color: C.text }} numberOfLines={2}>
                                 {r.value}
@@ -227,7 +228,10 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
         ? coarseAddress(appointment.address, appointment.zip) || t('appointments.list.card.notAvailable')
         : appointment.address;
 
+    // A finished or cancelled job leads with its date; an active one leads with the vehicle.
+    const dateRow = { icon: Calendar, label: t(isPast ? 'appointments.list.card.rows.date' : 'appointments.list.card.rows.when'), value: whenLabel };
     const rows = [
+        ...(isPast ? [dateRow] : []),
         { icon: Car, label: t('appointments.list.card.rows.vehicle'), value: appointment.car },
         ...(isVideoCall
             ? []
@@ -237,11 +241,11 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                     icon: Route,
                     label: t('appointments.list.card.rows.distance'),
                     value: distanceKm != null
-                        ? t(isMechanic ? 'appointments.list.card.distanceApprox' : 'appointments.list.card.distanceExact', { km: distanceKm.toFixed(1) })
+                        ? t(isMechanic ? 'appointments.list.card.distanceApprox' : 'appointments.list.card.distanceExact', { miles: kmToMiles(distanceKm).toFixed(1) })
                         : t('appointments.list.card.notAvailable'),
                 },
             ]),
-        { icon: Calendar, label: t(isPast ? 'appointments.list.card.rows.date' : 'appointments.list.card.rows.when'), value: whenLabel },
+        ...(isPast ? [] : [dateRow]),
         // The stars each side gave for this one job — the dashboard only shows the average.
         ...(state === 'completed' && appointment.source === 'appointment'
             ? ([
@@ -358,34 +362,38 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
 
             {/* Amount + action */}
             <View className="flex-row mt-3" style={{ gap: 10 }}>
-                <View
-                    style={{
-                        minWidth: 96,
-                        paddingVertical: 8,
-                        paddingHorizontal: 12,
-                        borderRadius: 13,
-                        backgroundColor: isPast ? C.page : C.blueSofter,
-                        borderWidth: 1,
-                        borderColor: isPast ? C.borderSoft : C.blueSoft,
-                    }}
-                >
-                    <Text className="font-outfit-bold text-[10.5px] uppercase" style={{ color: C.muted, letterSpacing: 0.4 }}>{amountLabel}</Text>
-                    <Text className="font-outfit-bold text-xl" style={{ color: isPast ? C.text : C.blue, letterSpacing: -0.5, lineHeight: 23 }} numberOfLines={1}>{amount}</Text>
+                {/* Outer view carries the width (50/50 on past cards); the padded box fills it, so padding can't skew the split. */}
+                <View style={isPast ? { flex: 1 } : { minWidth: 96 }}>
+                    <View
+                        style={{
+                            flex: 1,
+                            paddingVertical: 8,
+                            paddingHorizontal: 12,
+                            borderRadius: 13,
+                            backgroundColor: isPast ? C.page : C.blueSofter,
+                            borderWidth: 1,
+                            borderColor: isPast ? C.borderSoft : C.blueSoft,
+                        }}
+                    >
+                        <Text className="font-outfit-bold text-[10.5px] uppercase" style={{ color: C.muted, letterSpacing: 0.4 }}>{amountLabel}</Text>
+                        <Text className="font-outfit-bold text-xl" style={{ color: isPast ? C.text : C.blue, letterSpacing: -0.5, lineHeight: 23 }} numberOfLines={1}>{amount}</Text>
+                    </View>
                 </View>
 
+                {/* A cancelled job has nothing to open: an empty half keeps the amount at 50% width. */}
+                {isCanceled && <View style={{ flex: 1 }} />}
+                {!isCanceled && (
                 <TouchableOpacity
                     className="flex-1"
                     activeOpacity={0.8}
                     onPress={guardPress(openDetail)}
-                    disabled={isCanceled}
-                    accessibilityState={{ disabled: isCanceled }}
                 >
                     {isPast ? (
                         <View
                             className="flex-1 items-center justify-center"
-                            style={{ borderRadius: 13, backgroundColor: isCanceled ? C.pastTile : C.blueSoft, opacity: isCanceled ? 0.5 : 1 }}
+                            style={{ borderRadius: 13, backgroundColor: C.blueSoft }}
                         >
-                            <Text className="font-outfit-bold text-[14.5px]" style={{ color: isCanceled ? C.muted : C.blue }}>{ctaLabel}</Text>
+                            <Text className="font-outfit-bold text-[14.5px]" style={{ color: C.blue }}>{ctaLabel}</Text>
                         </View>
                     ) : (
                         <LinearGradient
@@ -398,6 +406,7 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                         </LinearGradient>
                     )}
                 </TouchableOpacity>
+                )}
             </View>
 
             {/* Footer: id + cancel */}

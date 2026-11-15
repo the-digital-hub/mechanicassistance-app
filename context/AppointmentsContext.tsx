@@ -66,6 +66,8 @@ export interface Appointment {
     acceptedAt?: string;
     startedAt?: string;
     completedAt?: string;
+    /** When it was cancelled (ISO); absent on older rows, which fall back to `updatedAt`. */
+    cancelledAt?: string | null;
     /** When the mechanic tapped "Head out" (ISO). Until then the owner sees no live map. */
     departedAt?: string | null;
     /**

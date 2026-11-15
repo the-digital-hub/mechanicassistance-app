@@ -3,7 +3,7 @@
     "badge": "MY PROFILE",
     "title": "Your account, your preferences",
     "subtitle": "Manage your personal info, vehicles and app settings.",
-    "roleMechanic": "Mechanic",
+    "roleMechanic": "Technician",
     "roleOwner": "Vehicle Owner",
     "availability": {
       "heading": "Available to provide services",
@@ -30,7 +30,10 @@
       "logout": "Log out",
       "legalDocuments": "Legal documents",
       "availability": "Working hours",
-      "paymentCards": "Wallet & payments"
+      "paymentCards": "Wallet & payments",
+      "savedAddresses": "Saved addresses",
+      "wallet": "Wallet",
+      "schedule": "Schedule & service area"
     },
     "language": {
       "heading": "Select Language",
@@ -95,6 +98,10 @@
           "desc": "Lockouts and key replacement"
         }
       }
+    },
+    "groups": {
+      "account": "Account",
+      "professional": "Professional profile"
     }
   },
   "assistanceCard": {
@@ -699,7 +706,7 @@
           "notCharged": "Completed – Not charged"
         },
         "vehicleId": "Vehicle ID:",
-        "distance": "Distance: {{km}} Km",
+        "distance": "Distance: {{miles}} mi",
         "distanceNA": "Distance: N/A",
         "locationNotAvailable": "Location not available",
         "budget": "Budget: {{amount}}",
@@ -713,12 +720,12 @@
           "when": "When",
           "date": "Date",
           "rating": "Rating",
-          "ratingFromCustomer": "Customer's rating of the mechanic",
-          "ratingFromMechanic": "Mechanic's rating of the customer"
+          "ratingFromCustomer": "Customer's rating of the technician",
+          "ratingFromMechanic": "Technician's rating of the customer"
         },
         "notRated": "Not rated yet",
         "notAvailable": "—",
-        "distanceApprox": "~{{km}} km",
+        "distanceApprox": "{{miles}} mi",
         "approximateArea": "Approximate area — the exact location is not shown",
         "budgetLabel": "Budget",
         "paidLabel": "Paid",
@@ -731,12 +738,29 @@
         "technician": "Technician",
         "ratingValue": "{{rating}} ({{count}})",
         "noRatings": "No ratings yet",
-        "distanceExact": "{{km}} km"
+        "distanceExact": "{{miles}} mi"
       },
       "hint": {
         "upcoming": "Confirmed services with an assigned technician.",
         "pending": "Requests waiting for your decision or a technician match.",
         "past": "Completed and cancelled services."
+      },
+      "pastFilter": {
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      },
+      "noCompleted": "No completed appointments",
+      "noCancelled": "No cancelled appointments",
+      "sort": {
+        "newestFirst": "Newest first",
+        "oldestFirst": "Oldest first"
+      },
+      "badgeStatus": {
+        "active_one": "{{count}} ACTIVE JOB",
+        "active_other": "{{count}} ACTIVE JOBS",
+        "pending_one": "{{count}} PENDING REQUEST",
+        "pending_other": "{{count}} PENDING REQUESTS",
+        "caughtUp": "ALL CAUGHT UP"
       }
     },
     "cancelReason": {
@@ -2347,7 +2371,7 @@
     "recommended": "recommended",
     "mapView": "Map View",
     "address": "Address: 778 Locust View Drive Oakland, CA",
-    "distance": "Distance: 2.5 km",
+    "distance": "Distance: 2.5 mi",
     "specialOfferTitle": "Special Offer for ASE Members",
     "specialOfferBody1": "Enjoy a 10% discount on all our services exclusively for ASE-certified professionals.",
     "specialOfferBody2": "Boost your visibility, grow your business, and access premium features at a reduced rate.",
