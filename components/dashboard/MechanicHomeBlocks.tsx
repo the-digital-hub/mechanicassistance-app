@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { Award, ChevronRight, Star, Wrench, type LucideIcon } from 'lucide-react-native';
 import type { ReactNode } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 
 import type { MechanicStatus } from '@/lib/dao/interfaces';
 
@@ -226,18 +226,33 @@ export function WeeklyEarnings({
     );
 }
 
-/** Immediate / Scheduled / Video segmented control, each with its request count. */
+/**
+ * Immediate / Scheduled / Video segmented control, each with its request count.
+ * A tab keeps the width it has when all `slots` are shown, so with fewer tabs the
+ * control shrinks instead of stretching them across the screen.
+ */
 export function RequestTypeTabs<T extends string>({
     tabs,
     selected,
     onSelect,
+    slots = 3,
+    horizontalInset = 48,
 }: {
     tabs: { id: T; label: string; count: number }[];
     selected: T;
     onSelect: (id: T) => void;
+    slots?: number;
+    /** Screen width not available to the control (side padding of the screen). */
+    horizontalInset?: number;
 }) {
+    const { width } = useWindowDimensions();
+    const PAD = 4;
+    const GAP = 4;
+    const full = width - horizontalInset;
+    const tabWidth = Math.floor((full - PAD * 2 - GAP * (slots - 1)) / slots);
+    const containerWidth = tabs.length * tabWidth + (tabs.length - 1) * GAP + PAD * 2;
     return (
-        <View className="flex-row" style={{ ...CARD, borderRadius: 16, padding: 4, gap: 4 }} accessibilityRole="tablist">
+        <View className="flex-row" style={{ ...CARD, borderRadius: 16, padding: PAD, gap: GAP, width: containerWidth, maxWidth: '100%' }} accessibilityRole="tablist">
             {tabs.map((tab) => {
                 const on = tab.id === selected;
                 return (
@@ -247,8 +262,8 @@ export function RequestTypeTabs<T extends string>({
                         activeOpacity={0.8}
                         accessibilityRole="tab"
                         accessibilityState={{ selected: on }}
-                        className="flex-1 flex-row items-center justify-center"
-                        style={{ paddingVertical: 9, borderRadius: 12, backgroundColor: on ? C.blue : 'transparent', gap: 6 }}
+                        className="flex-row items-center justify-center"
+                        style={{ width: tabWidth, paddingVertical: 9, borderRadius: 12, backgroundColor: on ? C.blue : 'transparent', gap: 6 }}
                     >
                         <Text className="font-outfit-bold" style={{ fontSize: 13, color: on ? '#FFFFFF' : C.muted }} numberOfLines={1}>{tab.label}</Text>
                         <View className="items-center justify-center rounded-full" style={{ minWidth: 18, height: 18, paddingHorizontal: 5, backgroundColor: on ? 'rgba(255,255,255,0.24)' : C.blueSoft }}>

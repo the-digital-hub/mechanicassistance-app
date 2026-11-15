@@ -29,7 +29,7 @@ function MechanicStatusHeaderLeft() {
 
 function PersonalInfoHeaderLeft() {
   const router = useRouter();
-  return <HeaderBackButton onPress={() => router.navigate("/(tabs)")} />;
+  return <HeaderBackButton onPress={() => goBackOr(router, "/(tabs)")} />;
 }
 
 function PersonalInfoHeaderRight() {
@@ -53,7 +53,7 @@ function PersonalInfoHeaderRight() {
 
 function AddressesHeaderLeft() {
   const router = useRouter();
-  return <HeaderBackButton onPress={() => router.navigate("/(tabs)")} />;
+  return <HeaderBackButton onPress={() => goBackOr(router, "/(tabs)")} />;
 }
 
 function MechanicStatusBadge() {
@@ -472,7 +472,7 @@ export default function TabLayout() {
         options={{
           href: null,
           title: t('tabs.profile'),
-          headerLeft: () => <HeaderBackButton onPress={() => router.navigate("/(tabs)")} />,
+          headerLeft: () => <HeaderBackButton onPress={() => goBackOr(router, "/(tabs)")} />,
         }}
       />
       <Tabs.Screen
@@ -480,7 +480,7 @@ export default function TabLayout() {
         options={{
           href: null,
           title: t('tabs.profile'),
-          headerLeft: () => <HeaderBackButton onPress={() => router.navigate("/(tabs)")} />,
+          headerLeft: () => <HeaderBackButton onPress={() => goBackOr(router, "/(tabs)")} />,
         }}
       />
       <Tabs.Screen

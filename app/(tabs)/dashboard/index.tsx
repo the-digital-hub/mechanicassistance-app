@@ -38,6 +38,9 @@ const getTimeGreetingKey = (): string => {
 // Horizontal padding of the user dashboard (20 on each side) and the grid gap,
 // used to size three buttons per row.
 const DASHBOARD_PADDING_X = 20;
+// Technician request slider: card gap and how much of the next card peeks in.
+const REQUEST_CARD_GAP = 12;
+const REQUEST_CARD_PEEK = 36;
 const TYPE_GRID_GAP = 10;
 const TYPE_GRID_COLUMNS = 3;
 // How long a tapped type shows its selected skin before the wizard opens.
@@ -159,6 +162,7 @@ export default function DashboardScreen() {
     const { notifications } = useNotifications();
     const unreadCount = notifications.filter((n) => n.unread).length;
     const [requestTab, setRequestTab] = useState<'immediate' | 'scheduled' | 'video'>('immediate');
+    const [requestPage, setRequestPage] = useState(0);
     // null until the Stripe payout account has been read; only a confirmed "cannot be paid yet" raises the alert.
     const [payoutsReady, setPayoutsReady] = useState<boolean | null>(null);
     useFocusEffect(
@@ -321,17 +325,24 @@ export default function DashboardScreen() {
         const tabOf = (r: AssistanceRequest): 'immediate' | 'scheduled' | 'video' =>
             r.type === 'videocall' ? 'video' : r.type === 'scheduled' ? 'scheduled' : 'immediate';
         const openRequests = requests.filter((r) => !declinedIds.has(r.id));
-        const requestTabs = (['immediate', 'scheduled', 'video'] as const).map((id) => ({
-            id,
-            label: t(`dashboard.mechanic.tabs.${id}`),
-            count: openRequests.filter((r) => tabOf(r) === id).length,
-        }));
+        // Only the types that have requests get a tab.
+        const requestTabs = (['immediate', 'scheduled', 'video'] as const)
+            .map((id) => ({
+                id,
+                label: t(`dashboard.mechanic.tabs.${id}`),
+                count: openRequests.filter((r) => tabOf(r) === id).length,
+            }))
+            .filter((tab) => tab.count > 0);
         // Land on a tab that has requests when the chosen one is empty.
         const activeTab = requestTabs.find((x) => x.id === requestTab)?.count
             ? requestTab
             : requestTabs.find((x) => x.count > 0)?.id ?? requestTab;
         const visibleRequests = openRequests.filter((r) => tabOf(r) === activeTab);
         // Nothing to show (or still loading the first time): hide the whole section.
+        const multiRequests = visibleRequests.length > 1;
+        const requestPageIdx = Math.min(requestPage, Math.max(0, visibleRequests.length - 1));
+        // Screen minus the 24px side padding, leaving a sliver of the next card visible.
+        const requestCardWidth = screenWidth - 48 - REQUEST_CARD_PEEK;
         const showRequests = !isLoadingRequests && openRequests.length > 0;
 
         const attentionItems: AttentionItem[] = [];
@@ -460,13 +471,13 @@ export default function DashboardScreen() {
                                 <RequestTypeTabs
                                     tabs={requestTabs}
                                     selected={activeTab}
-                                    onSelect={setRequestTab}
+                                    onSelect={(id) => { setRequestTab(id); setRequestPage(0); }}
                                 />
                             </View>
 
                             {/* Requests List */}
-                        <View className="gap-4">
-                            {visibleRequests.map((request) => {
+                        {(() => {
+                            const cards = visibleRequests.map((request) => {
                                 const iconType = request.type === 'videocall' ? 'video' : request.type === 'scheduled' ? 'scheduled' : 'urgent';
                                 const iconBgColor = iconType === 'urgent' ? '#FEE2E2' : iconType === 'scheduled' ? '#EDE9FE' : '#DBEAFE';
                                 const iconColor = iconType === 'urgent' ? '#DC2626' : iconType === 'scheduled' ? '#7C3AED' : '#0047AB';
@@ -488,7 +499,7 @@ export default function DashboardScreen() {
                                 };
 
                                 return (
-                                    <View key={request.id} className="mb-2">
+                                    <View key={request.id} className="mb-2" style={multiRequests ? { width: requestCardWidth } : undefined}>
                                         {/* Combined Card: header + details */}
                                         <View className="bg-white rounded-3xl mb-3" style={cardShadow}>
                                             {/* Header Row: service type + urgency + time */}
@@ -630,8 +641,38 @@ export default function DashboardScreen() {
                                         </View>
                                     </View>
                                 );
-                            })}
-                            </View>
+                            });
+                            if (!multiRequests) return <View className="gap-4">{cards}</View>;
+                            return (
+                                <View>
+                                    <View className="flex-row items-center justify-between mb-3">
+                                        <View className="flex-row" style={{ gap: 5 }}>
+                                            {visibleRequests.map((r, i) => (
+                                                <View key={r.id} style={{ width: i === requestPageIdx ? 16 : 6, height: 6, borderRadius: 3, backgroundColor: i === requestPageIdx ? '#1E56E3' : '#DCE7FA' }} />
+                                            ))}
+                                        </View>
+                                        <Text className="font-outfit-semibold" style={{ fontSize: 12.5, color: '#6B7490' }}>
+                                            {requestPageIdx + 1} / {visibleRequests.length}
+                                        </Text>
+                                    </View>
+                                    <ScrollView
+                                        horizontal
+                                        showsHorizontalScrollIndicator={false}
+                                        decelerationRate="fast"
+                                        snapToInterval={requestCardWidth + REQUEST_CARD_GAP}
+                                        snapToAlignment="start"
+                                        style={{ marginHorizontal: -24 }}
+                                        contentContainerStyle={{ paddingHorizontal: 24, gap: REQUEST_CARD_GAP, alignItems: 'flex-start' }}
+                                        onMomentumScrollEnd={(e) => {
+                                            const idx = Math.round(e.nativeEvent.contentOffset.x / (requestCardWidth + REQUEST_CARD_GAP));
+                                            setRequestPage(Math.max(0, Math.min(visibleRequests.length - 1, idx)));
+                                        }}
+                                    >
+                                        {cards}
+                                    </ScrollView>
+                                </View>
+                            );
+                        })()}
                         </View>
                     )}
 

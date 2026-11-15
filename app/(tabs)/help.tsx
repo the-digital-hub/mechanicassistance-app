@@ -1,4 +1,4 @@
-import { Car, ChevronDown, CreditCard, LayoutGrid, Search, ShieldCheck, Wrench, X, type LucideIcon } from 'lucide-react-native';
+import { Car, ChevronDown, ChevronRight, CreditCard, LayoutGrid, Search, ShieldCheck, Wrench, X, type LucideIcon } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LayoutAnimation, Platform, ScrollView, Text, TextInput, TouchableOpacity, UIManager, View } from 'react-native';
@@ -26,6 +26,7 @@ export default function HelpScreen() {
     const { user } = useUser();
     const [query, setQuery] = useState('');
     const [searchFocused, setSearchFocused] = useState(false);
+    const [collapsedSections, setCollapsedSections] = useState<string[]>([]);
     const [expandedIds, setExpandedIds] = useState<string[]>([]);
     const lang = i18n.language?.startsWith('es') ? 'es' : 'en';
 
@@ -44,6 +45,11 @@ export default function HelpScreen() {
             .filter((s) => s.items.length > 0);
     }, [lang, user?.role, query]);
 
+
+    const toggleSection = (id: string) => {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setCollapsedSections((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
+    };
 
     const toggleExpand = (id: string) => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -107,9 +113,17 @@ export default function HelpScreen() {
             {/* Accordion FAQ, grouped by section (content mirrored from the website) */}
             {sections.map((section) => {
                 const Icon = SECTION_ICONS[section.id] ?? LayoutGrid;
+                // While searching, every match stays visible.
+                const collapsed = !query.trim() && collapsedSections.includes(section.id);
                 return (
                     <View key={section.id} className="mb-8">
-                        <View className="flex-row items-center mb-3 gap-3">
+                        <TouchableOpacity
+                            onPress={() => toggleSection(section.id)}
+                            activeOpacity={0.7}
+                            accessibilityRole="button"
+                            accessibilityState={{ expanded: !collapsed }}
+                            className={`flex-row items-center gap-3 ${collapsed ? '' : 'mb-3'}`}
+                        >
                             <View className="w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: '#E9F1FF' }}>
                                 <Icon size={20} color="#0047AB" />
                             </View>
@@ -117,7 +131,9 @@ export default function HelpScreen() {
                             <View className="px-2.5 py-0.5 rounded-full" style={{ backgroundColor: '#E9F1FF' }}>
                                 <Text className="text-blue-600 font-outfit-semibold text-xs">{section.items.length}</Text>
                             </View>
-                        </View>
+                            {collapsed ? <ChevronRight size={20} color="#9CA3AF" /> : <ChevronDown size={20} color="#9CA3AF" />}
+                        </TouchableOpacity>
+                        {!collapsed && (
                         <View className="bg-white rounded-2xl" style={CARD_SHADOW}>
                             <View className="rounded-2xl overflow-hidden bg-white">
                                 {section.items.map((faq, idx) => {
@@ -154,6 +170,7 @@ export default function HelpScreen() {
                                 })}
                             </View>
                         </View>
+                        )}
                     </View>
                 );
             })}
