@@ -4,6 +4,7 @@ import { Car, MapPin } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 
+import { CancelRequestLink, canCancelBeforeStart } from '@/components/appointments/CancelRequestLink';
 import type { Appointment } from '@/context/AppointmentsContext';
 import { useHeadOut } from '@/hooks/useHeadOut';
 import { BANNER_COLORS, getCardState, getTypeBar } from './appointmentCardTheme';
@@ -145,6 +146,11 @@ export function MechanicActiveJobCard({ appointment }: { appointment: Appointmen
                     </Text>
                 </TouchableOpacity>
             </View>
+            {canCancelBeforeStart(appointment.status) && (
+                <View style={{ marginTop: 6 }}>
+                    <CancelRequestLink appointmentId={appointment.id} />
+                </View>
+            )}
         </View>
     );
 }

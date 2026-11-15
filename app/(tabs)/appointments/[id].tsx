@@ -1,4 +1,5 @@
 import { CancellationDisputeBanner } from '@/components/appointments/CancellationDisputeBanner';
+import { CancelRequestLink, canCancelBeforeStart } from '@/components/appointments/CancelRequestLink';
 import { CancellationModal } from '@/components/appointments/CancellationModal';
 import { MechanicAssistanceInfoTab } from '@/components/appointments/MechanicAssistanceInfoTab';
 import { MechanicArrivalCard, PulseDot } from '@/components/appointments/MechanicArrivalCard';
@@ -935,6 +936,11 @@ export default function AppointmentDetailScreen() {
                                         {renderMechanicOnSitePanel()}
                                     </View>
                                 </>
+                            )}
+                            {appointment && canCancelBeforeStart(appointment.status) && (
+                                <View className="px-4 pb-10" style={{ marginTop: -20 }}>
+                                    <CancelRequestLink appointmentId={appointment.id} align="center" />
+                                </View>
                             )}
                             </>
                         )}
