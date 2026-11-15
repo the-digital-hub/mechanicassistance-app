@@ -3,7 +3,6 @@ import { PromotionalCard } from '@/components/ui/PromotionalCard';
 import { UserRequestCard } from '@/components/ui/UserRequestCard';
 import { MechanicActiveJobCard } from '@/components/ui/MechanicActiveJobCard';
 import { useAppointments, type Appointment } from '@/context/AppointmentsContext';
-import { MechanicFeedStatusBanner } from '@/components/MechanicFeedStatusBanner';
 import { AddPhoneBanner } from '@/components/AddPhoneBanner';
 import { useMechanicStatus } from '@/context/MechanicStatusContext';
 import type { MechanicStatus } from '@/lib/dao/interfaces';
@@ -19,7 +18,7 @@ import { countCompletedToday } from '@/lib/dashboard/mechanicKpis';
 import { useMechanicKpis } from '@/lib/dashboard/useMechanicKpis';
 import { formatMoney } from '@/lib/payments/paymentSource';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Calendar, Video, Zap, MapPin, Wrench, DollarSign, Star, Award, Circle, Clock, Car, Lock } from 'lucide-react-native';
+import { Calendar, Video, Zap, MapPin, Wrench, DollarSign, Star, Award, Circle, Clock, Car, Lock, Power } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useScrollPressGuard } from '@/hooks/useScrollPressGuard';
@@ -331,6 +330,41 @@ export default function DashboardScreen() {
 
                     <AddPhoneBanner className="mb-6" />
 
+                    {/* Not Available: no new requests reach the technician, so offer the one tap that fixes it. */}
+                    {mechanicStatus !== 'available' && (
+                        <View
+                            className="flex-row items-center mb-6 p-4 rounded-2xl"
+                            style={{ backgroundColor: '#FFF7ED', borderWidth: 1, borderColor: '#FED7AA', gap: 12 }}
+                            testID="dashboard-go-online"
+                        >
+                            <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#FFEDD5' }}>
+                                <Power size={20} color="#EA580C" />
+                            </View>
+                            <View className="flex-1">
+                                <Text className="font-outfit-semibold text-[15px]" style={{ color: '#7C2D12' }}>
+                                    {mechanicStatus === 'busy' ? t('dashboard.mechanic.goOnline.busyTitle') : t('dashboard.mechanic.goOnline.offlineTitle')}
+                                </Text>
+                                <Text className="font-outfit-regular text-[13px] mt-0.5" style={{ color: '#9A3412' }}>
+                                    {t('dashboard.mechanic.goOnline.message')}
+                                </Text>
+                            </View>
+                            <TouchableOpacity
+                                onPress={() => { setMechanicStatus('available').catch(() => undefined); }}
+                                disabled={isUpdatingStatus}
+                                activeOpacity={0.85}
+                                className="px-4 py-2.5 rounded-xl"
+                                style={{ backgroundColor: '#1E56E3', opacity: isUpdatingStatus ? 0.6 : 1 }}
+                                accessibilityRole="button"
+                            >
+                                {isUpdatingStatus ? (
+                                    <ActivityIndicator color="#FFFFFF" />
+                                ) : (
+                                    <Text className="font-outfit-bold text-[13px] text-white">{t('dashboard.mechanic.goOnline.action')}</Text>
+                                )}
+                            </TouchableOpacity>
+                        </View>
+                    )}
+
                     {/* Active jobs — otherwise only reachable from the Appointments tab */}
                     {activeJobs.length > 0 && (
                         <View className="mb-4">
@@ -438,8 +472,6 @@ export default function DashboardScreen() {
                             <Text style={{ fontFamily: 'Outfit_600SemiBold', fontSize: 16, color: '#111827' }} className="mt-2 mb-4">
                                 {t('dashboard.mechanic.newRequestsTitle')}
                             </Text>
-
-                            <MechanicFeedStatusBanner />
 
                             {/* Requests List */}
                             {isLoadingRequests ? (

@@ -145,7 +145,7 @@ export default function AppointmentsScreen() {
                         )}
 
                         {activeTab === 'past' && (
-                            <View className="flex-row" style={{ marginTop: 12, gap: 8 }}>
+                            <View className="flex-row justify-end" style={{ marginTop: 12, gap: 8 }}>
                                 {([
                                     { key: 'completed', label: t('appointments.list.pastFilter.completed'), count: completedCount },
                                     { key: 'cancelled', label: t('appointments.list.pastFilter.cancelled'), count: cancelledCount },
@@ -155,35 +155,29 @@ export default function AppointmentsScreen() {
                                     const Arrow = asc ? ArrowUp : ArrowDown;
                                     const color = on ? '#1E56E3' : '#6B7490';
                                     return (
-                                        <View
+                                        // The whole pill is the button: a first tap selects it, tapping the
+                                        // selected one flips its order (the arrow only shows which way it goes).
+                                        <TouchableOpacity
                                             key={f.key}
-                                            className="flex-row items-center"
-                                            style={{ borderRadius: 100, backgroundColor: on ? '#EAF1FF' : 'transparent' }}
-                                        >
-                                            <TouchableOpacity
-                                                onPress={() => setPastFilter(f.key)}
-                                                style={{ paddingLeft: 12, paddingVertical: 6 }}
-                                                accessibilityRole="button"
-                                                accessibilityState={{ selected: on }}
-                                            >
-                                                <Text className="font-outfit-medium text-[13px]" style={{ color }}>
-                                                    {f.label} · {f.count}
-                                                </Text>
-                                            </TouchableOpacity>
-                                            {/* Flips this list between newest-first (down) and oldest-first (up). */}
-                                            <TouchableOpacity
-                                                onPress={() => {
-                                                    setPastFilter(f.key);
+                                            onPress={() => {
+                                                if (on) {
                                                     setPastOrder((prev) => ({ ...prev, [f.key]: prev[f.key] === 'desc' ? 'asc' : 'desc' }));
-                                                }}
-                                                hitSlop={6}
-                                                style={{ paddingHorizontal: 8, paddingVertical: 6 }}
-                                                accessibilityRole="button"
-                                                accessibilityLabel={asc ? t('appointments.list.sort.oldestFirst') : t('appointments.list.sort.newestFirst')}
-                                            >
-                                                <Arrow size={14} color={color} />
-                                            </TouchableOpacity>
-                                        </View>
+                                                } else {
+                                                    setPastFilter(f.key);
+                                                }
+                                            }}
+                                            activeOpacity={0.7}
+                                            className="flex-row items-center"
+                                            style={{ gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 100, backgroundColor: on ? '#EAF1FF' : 'transparent' }}
+                                            accessibilityRole="button"
+                                            accessibilityState={{ selected: on }}
+                                            accessibilityLabel={`${f.label}, ${asc ? t('appointments.list.sort.oldestFirst') : t('appointments.list.sort.newestFirst')}`}
+                                        >
+                                            <Text className="font-outfit-medium text-[13px]" style={{ color }}>
+                                                {f.label} · {f.count}
+                                            </Text>
+                                            <Arrow size={14} color={color} />
+                                        </TouchableOpacity>
                                     );
                                 })}
                             </View>

@@ -3,6 +3,7 @@ import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { AseStatusBadge } from '@/components/ui/AseStatusBadge';
 import { VerificationBadge } from '@/components/ui/VerificationBadge';
 import { useUser } from '@/context/UserContext';
+import { useAppointments } from '@/context/AppointmentsContext';
 import { useMechanicStatus } from '@/context/MechanicStatusContext';
 import { Stars } from '@/components/offer/OfferSections';
 import { ApiError } from '@/lib/api/types';
@@ -15,7 +16,7 @@ import { startAddRoleFromProfile } from '@/lib/setup-add-role';
 import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { ArrowLeftRight, Award, Briefcase, Camera, Car, Check, ChevronDown, ChevronLeft, ChevronRight, Circle, Clock, CreditCard, FileText, Heart, HelpCircle, Lock, LogOut, MapPin, Settings, User, Wallet } from 'lucide-react-native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Image, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
@@ -37,7 +38,7 @@ export default function ProfileScreen() {
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // The technician's rating under the name; a failed load simply shows nothing.
+  // The rating under the name; a failed load simply shows nothing.
   const isTechnician = user?.role === 'mechanic';
   const [ratingStats, setRatingStats] = useState<MechanicStats | null>(null);
   useFocusEffect(
@@ -46,6 +47,18 @@ export default function ProfileScreen() {
       appointmentDAO.getMyStats().then(setRatingStats).catch(() => undefined);
     }, [isTechnician]),
   );
+  // A vehicle owner has no stats endpoint: their rating is what technicians gave them
+  // on each job (`clientRating`), averaged over the appointments already loaded.
+  const { appointments } = useAppointments();
+  const ownerRating = useMemo<MechanicStats | null>(() => {
+    if (isTechnician) return null;
+    const given = appointments
+      .map((a) => Number(a.clientRating))
+      .filter((r) => Number.isFinite(r) && r > 0);
+    const avg = given.length ? Math.round((given.reduce((sum, r) => sum + r, 0) / given.length) * 10) / 10 : null;
+    return { avgRating: avg, ratingCount: given.length, completedCount: 0 };
+  }, [appointments, isTechnician]);
+  const profileRating = isTechnician ? ratingStats : ownerRating;
 
   const currentRole: AppRole = user?.role === 'mechanic' ? 'mechanic' : 'user';
   const roleName = (role: AddableRole) => t(`profile.switchRole.roles.${role}.label`);
@@ -216,14 +229,14 @@ export default function ProfileScreen() {
             {user.name} {user.surname}
           </Text>
 
-          {/* Technician rating */}
-          {isTechnician && ratingStats && (
+          {/* Rating: the technician's own stats, or what technicians gave the owner */}
+          {profileRating && (
             <View className="flex-row items-center justify-center mb-3" style={{ gap: 6 }}>
-              {ratingStats.avgRating != null && Number.isFinite(Number(ratingStats.avgRating)) ? (
+              {profileRating.avgRating != null && Number.isFinite(Number(profileRating.avgRating)) ? (
                 <>
-                  <Stars rating={Number(ratingStats.avgRating)} size={16} />
+                  <Stars rating={Number(profileRating.avgRating)} size={16} />
                   <Text className="font-outfit-semibold text-sm" style={{ color: '#0B1530' }}>
-                    {t('appointments.list.card.ratingValue', { rating: Number(ratingStats.avgRating).toFixed(1), count: ratingStats.ratingCount })}
+                    {t('appointments.list.card.ratingValue', { rating: Number(profileRating.avgRating).toFixed(1), count: profileRating.ratingCount })}
                   </Text>
                 </>
               ) : (

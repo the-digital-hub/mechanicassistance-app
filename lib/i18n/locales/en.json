@@ -222,6 +222,12 @@
         "busyTitle": "You're busy",
         "busyMessage": "We won't notify you about new requests until you're available.",
         "goAvailable": "Go available"
+      },
+      "goOnline": {
+        "offlineTitle": "You're offline",
+        "busyTitle": "You're busy",
+        "message": "You won't receive new requests. Go online to start working.",
+        "action": "Go online"
       }
     }
   },

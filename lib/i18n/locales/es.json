@@ -222,6 +222,12 @@
         "busyTitle": "Estás ocupado",
         "busyMessage": "No te avisamos de solicitudes nuevas hasta que estés disponible.",
         "goAvailable": "Ponerme disponible"
+      },
+      "goOnline": {
+        "offlineTitle": "Estás desconectado",
+        "busyTitle": "Estás ocupado",
+        "message": "No vas a recibir solicitudes nuevas. Ponete disponible para empezar a trabajar.",
+        "action": "Ponerme disponible"
       }
     }
   },

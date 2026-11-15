@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { rankOptions } from '@/lib/searchRank';
 import { ReactNode, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, KeyboardAvoidingView, Modal, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -31,12 +32,10 @@ interface SearchableSelectProps<T extends SearchableSelectOption> {
     variant?: 'default' | 'vehicle';
 }
 
-const normalize = (s: string) =>
-    s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-
 /**
  * A field that opens a bottom sheet with a search box and a filtered list —
- * for catalogs too long for a row of buttons. Matching ignores case and accents.
+ * for catalogs too long for a row of buttons. Matching ignores case and accents; results
+ * are ranked prefix first, then word start, then contains, alphabetically within each.
  */
 export function SearchableSelect<T extends SearchableSelectOption>({
     options,
@@ -60,8 +59,7 @@ export function SearchableSelect<T extends SearchableSelectOption>({
 
     const selected = options.find(o => o.value === value);
     const filtered = useMemo(() => {
-        const q = normalize(query.trim());
-        return q ? options.filter(o => normalize(o.label).includes(q)) : options;
+        return rankOptions(options, query);
     }, [options, query]);
 
     const close = () => {
