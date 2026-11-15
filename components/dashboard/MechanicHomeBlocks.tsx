@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { Award, ChevronRight, Star, Wrench, type LucideIcon } from 'lucide-react-native';
+import { Award, ChevronDown, ChevronRight, Star, Wrench, type LucideIcon } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 
@@ -37,22 +37,35 @@ export function SectionTitle({
     actionLabel,
     onAction,
     badge,
+    collapsed,
+    onToggle,
 }: {
     title: string;
     actionLabel?: string;
     onAction?: () => void;
     badge?: number;
+    /** With `onToggle`, the whole title row collapses/expands the section. */
+    collapsed?: boolean;
+    onToggle?: () => void;
 }) {
+    const heading = (
+        <View className="flex-row items-center" style={{ gap: 8 }}>
+            <Text className="font-outfit-bold" style={{ fontSize: 18, letterSpacing: -0.3, color: C.text }}>{title}</Text>
+            {badge != null && badge > 0 && (
+                <View className="items-center justify-center rounded-full" style={{ minWidth: 20, height: 20, paddingHorizontal: 6, backgroundColor: C.blueSoft }}>
+                    <Text className="font-outfit-bold" style={{ fontSize: 11, color: C.blue }}>{badge}</Text>
+                </View>
+            )}
+            {onToggle ? (collapsed ? <ChevronRight size={18} color={C.mutedLight} /> : <ChevronDown size={18} color={C.mutedLight} />) : null}
+        </View>
+    );
     return (
-        <View className="flex-row items-center justify-between mb-3">
-            <View className="flex-row items-center" style={{ gap: 8 }}>
-                <Text className="font-outfit-bold" style={{ fontSize: 18, letterSpacing: -0.3, color: C.text }}>{title}</Text>
-                {badge != null && badge > 0 && (
-                    <View className="items-center justify-center rounded-full" style={{ minWidth: 20, height: 20, paddingHorizontal: 6, backgroundColor: C.blueSoft }}>
-                        <Text className="font-outfit-bold" style={{ fontSize: 11, color: C.blue }}>{badge}</Text>
-                    </View>
-                )}
-            </View>
+        <View className="flex-row items-center justify-between" style={{ marginBottom: collapsed ? 0 : 12 }}>
+            {onToggle ? (
+                <TouchableOpacity onPress={onToggle} activeOpacity={0.7} hitSlop={8} accessibilityRole="button" accessibilityState={{ expanded: !collapsed }} style={{ flex: 1 }}>
+                    {heading}
+                </TouchableOpacity>
+            ) : heading}
             {actionLabel && onAction && (
                 <TouchableOpacity onPress={onAction} hitSlop={8} accessibilityRole="button">
                     <Text className="font-outfit-semibold" style={{ fontSize: 13, color: C.blue }}>{actionLabel}</Text>
@@ -283,13 +296,15 @@ export type AttentionItem = {
     title: string;
     sub: string;
     cta: string;
+    /** Changes when the alert is a new one (e.g. another count), so a hidden alert can return. */
+    signature?: string;
     onPress: () => void;
 };
 
 const TONES = { amber: { bg: '#FFF4E0', fg: '#8A5200' }, blue: { bg: C.blueSoft, fg: C.blue } } as const;
 
 /** "Needs your attention": one tappable row per thing the technician should act on. */
-export function AttentionList({ items }: { items: AttentionItem[] }) {
+export function AttentionList({ items, hideLabel, onDismiss }: { items: AttentionItem[]; hideLabel?: string; onDismiss?: (item: AttentionItem) => void }) {
     return (
         <View style={{ ...CARD, overflow: 'hidden' }}>
             {items.map((a, i) => {
@@ -311,9 +326,16 @@ export function AttentionList({ items }: { items: AttentionItem[] }) {
                             <Text className="font-outfit-bold" style={{ fontSize: 14, color: C.text }}>{a.title}</Text>
                             <Text className="font-outfit-regular" style={{ fontSize: 12.5, color: C.muted, marginTop: 2, lineHeight: 17 }}>{a.sub}</Text>
                         </View>
-                        <View className="flex-row items-center" style={{ gap: 2 }}>
-                            <Text className="font-outfit-bold" style={{ fontSize: 13, color: C.blue }}>{a.cta}</Text>
-                            <ChevronRight size={16} color={C.blue} />
+                        <View className="items-end" style={{ gap: 8 }}>
+                            <View className="flex-row items-center" style={{ gap: 2 }}>
+                                <Text className="font-outfit-bold" style={{ fontSize: 13, color: C.blue }}>{a.cta}</Text>
+                                <ChevronRight size={16} color={C.blue} />
+                            </View>
+                            {onDismiss && hideLabel ? (
+                                <TouchableOpacity onPress={() => onDismiss(a)} hitSlop={{ top: 6, bottom: 6, left: 10, right: 6 }} accessibilityRole="button">
+                                    <Text className="font-outfit-semibold" style={{ fontSize: 12, color: C.mutedLight }}>{hideLabel}</Text>
+                                </TouchableOpacity>
+                            ) : null}
                         </View>
                     </TouchableOpacity>
                 );

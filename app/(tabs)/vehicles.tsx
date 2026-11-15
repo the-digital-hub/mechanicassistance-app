@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/Button';
+import { HeaderBackButton } from '@/components/ui/HeaderBackButton';
 import { useUser } from '@/context/UserContext';
 import { vehicleDAO } from '@/lib/dao/VehicleDAO';
 import { Vehicle } from '@/lib/dao/interfaces';
@@ -45,7 +46,7 @@ export default function VehiclesScreen() {
     useEffect(() => {
         parentNavigation.setOptions({
             headerLeft: () => (
-                <TouchableOpacity
+                <HeaderBackButton
                     onPress={() => {
                         if (isEditing) {
                             closeForm();
@@ -53,10 +54,7 @@ export default function VehiclesScreen() {
                             router.navigate('/(tabs)');
                         }
                     }}
-                    style={{ marginLeft: 16 }}
-                >
-                    <Ionicons name="chevron-back" size={24} color="#0047AB" />
-                </TouchableOpacity>
+                />
             ),
         });
     }, [isEditing]);

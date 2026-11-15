@@ -169,8 +169,6 @@
       "emergencyLabel": "SERVICIOS ADICIONALES",
       "attention": {
         "title": "Requiere tu atención",
-        "emptyTitle": "Estás al día",
-        "emptySub": "Nada necesita tu acción por ahora.",
         "offers": {
           "title": "{{count}} oferta recibida",
           "title_other": "{{count}} ofertas recibidas",
@@ -181,7 +179,8 @@
           "title": "Confirmá la llamada finalizada",
           "sub": "Confirmá que se resolvió para que el técnico cobre.",
           "cta": "Revisar"
-        }
+        },
+        "hide": "Ocultar"
       },
       "upcoming": {
         "title": "Próxima cita",
@@ -311,7 +310,8 @@
           "title": "Configurá tus cobros",
           "sub": "Agregá tus datos bancarios para cobrar tus trabajos.",
           "cta": "Configurar"
-        }
+        },
+        "hide": "Ocultar"
       }
     }
   },

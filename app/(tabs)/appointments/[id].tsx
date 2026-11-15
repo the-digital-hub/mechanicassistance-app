@@ -384,6 +384,10 @@ export default function AppointmentDetailScreen() {
         };
     }, [isUserRole, appointment?.id]);
 
+    // Hooks must all run before the early return below: calling one after it changes the
+    // hook count between renders ("Rendered fewer hooks than expected") when the appointment loads.
+    const reviewSending = React.useRef(false);
+
     if (!appointment) {
         return (
             <View className="flex-1 bg-white justify-center items-center p-6">
@@ -479,7 +483,6 @@ export default function AppointmentDetailScreen() {
 
     // POST /appointments/:id/client-review for every kind of job. The screen only
     // says "rated" once the server has it, so a failed send never looks saved.
-    const reviewSending = React.useRef(false);
     const submitClientReview = () => {
         if (reviewSending.current || isReviewSubmitted) return;
         if (rating < 1) {

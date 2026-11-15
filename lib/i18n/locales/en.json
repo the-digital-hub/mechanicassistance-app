@@ -169,8 +169,6 @@
       "emergencyLabel": "ADDITIONAL SERVICES",
       "attention": {
         "title": "Needs your attention",
-        "emptyTitle": "You’re all caught up",
-        "emptySub": "Nothing needs your action right now.",
         "offers": {
           "title": "{{count}} offer received",
           "title_other": "{{count}} offers received",
@@ -181,7 +179,8 @@
           "title": "Confirm the finished call",
           "sub": "Confirm it was resolved so the technician can be paid.",
           "cta": "Review"
-        }
+        },
+        "hide": "Hide"
       },
       "upcoming": {
         "title": "Upcoming appointment",
@@ -311,7 +310,8 @@
           "title": "Set up your payouts",
           "sub": "Add your bank details to get paid for your jobs.",
           "cta": "Set up"
-        }
+        },
+        "hide": "Hide"
       }
     }
   },

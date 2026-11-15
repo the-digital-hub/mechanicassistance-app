@@ -7,7 +7,8 @@ import * as Location from 'expo-location';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { goBackOr } from '@/lib/navigation/goBackOr';
-import { Calendar, Clock, Navigation, HelpCircle, ChevronLeft, Zap, Car, Wrench, Lock, ArrowUpRight, DollarSign, Video } from 'lucide-react-native';
+import { HeaderBackButton } from '@/components/ui/HeaderBackButton';
+import { Calendar, Clock, Navigation, HelpCircle, Zap, Car, Wrench, Lock, ArrowUpRight, DollarSign, Video } from 'lucide-react-native';
 import React, { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -96,11 +97,7 @@ export default function RequestDetailScreen() {
         useCallback(() => {
             navigation.setOptions({
                 title: t('requestDetail.headerTitle'),
-                headerLeft: () => (
-                    <TouchableOpacity onPress={() => goBackOr(router, '/(tabs)/assist')} style={{ marginLeft: 16 }}>
-                        <ChevronLeft size={24} color="#0047AB" />
-                    </TouchableOpacity>
-                ),
+                headerLeft: () => <HeaderBackButton onPress={() => goBackOr(router, '/(tabs)/assist')} />,
             });
         }, [navigation, router])
     );

@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { HeaderBackButton } from "@/components/ui/HeaderBackButton";
 import { Stack, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Text, TouchableOpacity } from "react-native";
@@ -27,23 +27,7 @@ export default function SetupLayout() {
           color: "#1F2937", // text-gray-800
         },
         headerTitleAlign: "center",
-        headerLeft: () => (
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 20,
-              backgroundColor: "#FFFFFF",
-              justifyContent: "center",
-              alignItems: "center",
-              marginLeft: 0,
-              overflow: "hidden",
-            }}
-          >
-            <Ionicons name="arrow-back" size={18} color="#1F2937" />
-          </TouchableOpacity>
-        ),
+        headerLeft: () => <HeaderBackButton onPress={() => router.back()} marginLeft={0} />,
       }}
     >
       <Stack.Screen name="index" options={{ title: setupTitle }} />

@@ -33,17 +33,40 @@ const CARD = {
     elevation: 3,
 } as const;
 
-export function OwnerSectionTitle({ title, badge, actionLabel, onAction }: { title: string; badge?: number; actionLabel?: string; onAction?: () => void }) {
+export function OwnerSectionTitle({
+    title,
+    badge,
+    actionLabel,
+    onAction,
+    collapsed,
+    onToggle,
+}: {
+    title: string;
+    badge?: number;
+    actionLabel?: string;
+    onAction?: () => void;
+    /** With `onToggle`, the whole title row collapses/expands the section. */
+    collapsed?: boolean;
+    onToggle?: () => void;
+}) {
+    const heading = (
+        <View className="flex-row items-center" style={{ gap: 8 }}>
+            <Text className="font-outfit-bold" style={{ fontSize: 18, letterSpacing: -0.3, color: C.text }}>{title}</Text>
+            {badge != null && badge > 0 && (
+                <View className="items-center justify-center rounded-full" style={{ minWidth: 22, height: 22, paddingHorizontal: 7, backgroundColor: C.red }}>
+                    <Text className="font-outfit-bold" style={{ fontSize: 12, color: '#FFFFFF' }}>{badge}</Text>
+                </View>
+            )}
+            {onToggle ? (collapsed ? <ChevronRight size={18} color={C.mutedLight} /> : <ChevronDown size={18} color={C.mutedLight} />) : null}
+        </View>
+    );
     return (
-        <View className="flex-row items-center justify-between mb-3">
-            <View className="flex-row items-center" style={{ gap: 8 }}>
-                <Text className="font-outfit-bold" style={{ fontSize: 18, letterSpacing: -0.3, color: C.text }}>{title}</Text>
-                {badge != null && badge > 0 && (
-                    <View className="items-center justify-center rounded-full" style={{ minWidth: 22, height: 22, paddingHorizontal: 7, backgroundColor: C.red }}>
-                        <Text className="font-outfit-bold" style={{ fontSize: 12, color: '#FFFFFF' }}>{badge}</Text>
-                    </View>
-                )}
-            </View>
+        <View className="flex-row items-center justify-between" style={{ marginBottom: collapsed ? 0 : 12 }}>
+            {onToggle ? (
+                <TouchableOpacity onPress={onToggle} activeOpacity={0.7} hitSlop={8} accessibilityRole="button" accessibilityState={{ expanded: !collapsed }} style={{ flex: 1 }}>
+                    {heading}
+                </TouchableOpacity>
+            ) : heading}
             {actionLabel && onAction ? (
                 <TouchableOpacity onPress={onAction} hitSlop={8} accessibilityRole="button">
                     <Text className="font-outfit-bold" style={{ fontSize: 13, color: C.blue }}>{actionLabel}</Text>
@@ -125,24 +148,13 @@ export type OwnerAttentionItem = {
     title: string;
     sub: string;
     cta: string;
+    /** Changes when the alert is a new one (e.g. another count), so a hidden alert can return. */
+    signature?: string;
     onPress: () => void;
 };
 
-/** What needs the owner's action, or a calm "all caught up" card. */
-export function OwnerAttentionList({ items, emptyTitle, emptySub }: { items: OwnerAttentionItem[]; emptyTitle: string; emptySub: string }) {
-    if (items.length === 0) {
-        return (
-            <View className="flex-row items-center" style={{ ...CARD, padding: 16, gap: 12 }}>
-                <View className="items-center justify-center" style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: C.greenSoft }}>
-                    <Check size={18} color={C.greenText} />
-                </View>
-                <View className="flex-1">
-                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: C.text }}>{emptyTitle}</Text>
-                    <Text className="font-outfit-regular" style={{ fontSize: 12.5, color: C.muted, marginTop: 2 }}>{emptySub}</Text>
-                </View>
-            </View>
-        );
-    }
+/** What needs the owner's action: one tappable card per alert, each one can be hidden. */
+export function OwnerAttentionList({ items, hideLabel, onDismiss }: { items: OwnerAttentionItem[]; hideLabel?: string; onDismiss?: (item: OwnerAttentionItem) => void }) {
     return (
         <View style={{ gap: 10 }}>
             {items.map((a) => {
@@ -164,9 +176,16 @@ export function OwnerAttentionList({ items, emptyTitle, emptySub }: { items: Own
                             <Text className="font-outfit-bold" style={{ fontSize: 14.5, letterSpacing: -0.2, color: C.text }}>{a.title}</Text>
                             <Text className="font-outfit-regular" style={{ fontSize: 12.5, lineHeight: 17, color: C.muted, marginTop: 2 }}>{a.sub}</Text>
                         </View>
-                        <View className="flex-row items-center" style={{ gap: 2 }}>
-                            <Text className="font-outfit-bold" style={{ fontSize: 13, color: C.blue }}>{a.cta}</Text>
-                            <ChevronRight size={16} color={C.blue} />
+                        <View className="items-end" style={{ gap: 8 }}>
+                            <View className="flex-row items-center" style={{ gap: 2 }}>
+                                <Text className="font-outfit-bold" style={{ fontSize: 13, color: C.blue }}>{a.cta}</Text>
+                                <ChevronRight size={16} color={C.blue} />
+                            </View>
+                            {onDismiss && hideLabel ? (
+                                <TouchableOpacity onPress={() => onDismiss(a)} hitSlop={{ top: 6, bottom: 6, left: 10, right: 6 }} accessibilityRole="button">
+                                    <Text className="font-outfit-semibold" style={{ fontSize: 12, color: C.mutedLight }}>{hideLabel}</Text>
+                                </TouchableOpacity>
+                            ) : null}
                         </View>
                     </TouchableOpacity>
                 );

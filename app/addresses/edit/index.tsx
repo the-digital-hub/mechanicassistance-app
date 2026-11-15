@@ -155,7 +155,7 @@ export default function EditAddressScreen() {
                     </TouchableOpacity>
                 ) : (
                     <TouchableOpacity onPress={() => router.back()}>
-                        <View className="w-10 h-10 rounded-full justify-center items-center" style={{ backgroundColor: '#FFFFFF' }}>
+                        <View className="w-10 h-10 rounded-full justify-center items-center" style={{ backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }}>
                             <ChevronLeft size={20} color="#0047AB" />
                         </View>
                     </TouchableOpacity>

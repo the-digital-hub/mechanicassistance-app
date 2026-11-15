@@ -1,6 +1,5 @@
 import { Stack, useRouter } from "expo-router";
-import { ChevronLeft } from "lucide-react-native";
-import { TouchableOpacity } from "react-native";
+import { HeaderBackButton } from "@/components/ui/HeaderBackButton";
 
 // See app/(tabs)/appointments/_layout.tsx.
 export const unstable_settings = { anchor: "index" };
@@ -29,14 +28,7 @@ export default function DashboardLayout() {
         name="[id]"
         options={{
           title: "Assist",
-          headerLeft: () => (
-            <TouchableOpacity
-              onPress={() => router.navigate("/dashboard")}
-              style={{ marginLeft: 0 }}
-            >
-              <ChevronLeft size={24} color="#0047AB" />
-            </TouchableOpacity>
-          ),
+          headerLeft: () => <HeaderBackButton onPress={() => router.navigate("/dashboard")} />,
         }}
       />
       <Stack.Screen
@@ -44,14 +36,7 @@ export default function DashboardLayout() {
         options={{
           presentation: "modal",
           title: "Filter results",
-          headerLeft: () => (
-            <TouchableOpacity
-              onPress={() => router.navigate("/dashboard")}
-              style={{ marginLeft: 0 }}
-            >
-              <ChevronLeft size={24} color="#0047AB" />
-            </TouchableOpacity>
-          ),
+          headerLeft: () => <HeaderBackButton onPress={() => router.navigate("/dashboard")} />,
         }}
       />
     </Stack>

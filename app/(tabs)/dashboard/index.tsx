@@ -1,6 +1,8 @@
 import { EmergencyRow, MileageField, OwnerAttentionList, OwnerSectionTitle, OwnerSheet, RecentActivityList, RequestAssistanceCta, SheetOption, UpcomingCard, VehicleCareCard, type OwnerAttentionItem } from '@/components/dashboard/OwnerHomeBlocks';
 import { AseCta, AttentionList, AvailabilityCard, RequestTypeTabs, SectionTitle, TodayBlock, WeeklyEarnings, type AttentionItem } from '@/components/dashboard/MechanicHomeBlocks';
 import { useNotifications } from '@/context/NotificationsContext';
+import { attentionKey, visibleAttention } from '@/lib/dashboard/attention';
+import { useAttentionState } from '@/lib/dashboard/useAttentionState';
 import { connectDAO } from '@/lib/dao/ConnectDAO';
 import { UserRequestCard } from '@/components/ui/UserRequestCard';
 import { MechanicActiveJobCard } from '@/components/ui/MechanicActiveJobCard';
@@ -79,6 +81,8 @@ export default function DashboardScreen() {
     const { earnedToday, stats: mechanicStats, week, summary: earningsSummary } = useMechanicKpis(user?.role === 'mechanic', jobsToday);
     const { notifications } = useNotifications();
     const unreadCount = notifications.filter((n) => n.unread).length;
+    // Hidden alerts and the collapsed state of "Needs your attention", kept per account and role.
+    const attention = useAttentionState(user?.id ? `${user.role}:${user.id}` : undefined);
     const [requestTab, setRequestTab] = useState<'immediate' | 'scheduled' | 'video'>('immediate');
     const [requestPage, setRequestPage] = useState(0);
     // null until the Stripe payout account has been read; only a confirmed "cannot be paid yet" raises the alert.
@@ -279,13 +283,15 @@ export default function DashboardScreen() {
         }
         if (unreadCount > 0) {
             attentionItems.push({
-                id: 'notifications', tone: 'blue', icon: Bell,
+                id: 'notifications', signature: `notifications:${unreadCount}`, tone: 'blue', icon: Bell,
                 title: t('dashboard.mechanic.attention.notifications.title', { count: unreadCount }),
                 sub: t('dashboard.mechanic.attention.notifications.sub'),
                 cta: t('dashboard.mechanic.attention.notifications.cta'),
                 onPress: () => router.push('/notifications'),
             });
         }
+
+        const shownAttention = visibleAttention(attentionItems, attention.dismissed);
 
         return (
             <View className="flex-1">
@@ -378,10 +384,21 @@ export default function DashboardScreen() {
                     </View>
 
                     {/* Needs your attention */}
-                    {attentionItems.length > 0 && (
+                    {shownAttention.length > 0 && (
                         <View className="mb-6">
-                            <SectionTitle title={t('dashboard.mechanic.attention.title')} badge={attentionItems.length} />
-                            <AttentionList items={attentionItems} />
+                            <SectionTitle
+                                title={t('dashboard.mechanic.attention.title')}
+                                badge={shownAttention.length}
+                                collapsed={attention.collapsed}
+                                onToggle={attention.toggleCollapsed}
+                            />
+                            {!attention.collapsed && (
+                                <AttentionList
+                                    items={shownAttention}
+                                    hideLabel={t('dashboard.mechanic.attention.hide')}
+                                    onDismiss={(item) => attention.dismiss(attentionKey(item))}
+                                />
+                            )}
                         </View>
                     )}
 
@@ -792,7 +809,7 @@ export default function DashboardScreen() {
     const attentionItems: OwnerAttentionItem[] = [];
     if (offered.length > 0) {
         attentionItems.push({
-            id: 'offers', tone: 'blue', icon: Zap,
+            id: 'offers', signature: `offers:${offered.map((r) => r.id).join(',')}`, tone: 'blue', icon: Zap,
             title: t('dashboard.user.attention.offers.title', { count: offered.length }),
             sub: t('dashboard.user.attention.offers.sub'),
             cta: t('dashboard.user.attention.offers.cta'),
@@ -801,13 +818,15 @@ export default function DashboardScreen() {
     }
     if (toConfirm.length > 0) {
         attentionItems.push({
-            id: 'confirm', tone: 'amber', icon: AlertTriangle,
+            id: 'confirm', signature: `confirm:${toConfirm.map((r) => r.id).join(',')}`, tone: 'amber', icon: AlertTriangle,
             title: t('dashboard.user.attention.confirm.title'),
             sub: t('dashboard.user.attention.confirm.sub'),
             cta: t('dashboard.user.attention.confirm.cta'),
             onPress: guard(() => openRequest(toConfirm[0])),
         });
     }
+
+    const shownAttention = visibleAttention(attentionItems, attention.dismissed);
 
     // Rows that carry no title of their own (older ones) fall back to their service type.
     const serviceName = (a: Appointment) =>
@@ -927,15 +946,24 @@ export default function DashboardScreen() {
                     </View>
                 )}
 
-                {/* Needs your attention */}
-                <View style={{ marginTop: 24 }}>
-                    <OwnerSectionTitle title={t('dashboard.user.attention.title')} badge={attentionItems.length} />
-                    <OwnerAttentionList
-                        items={attentionItems}
-                        emptyTitle={t('dashboard.user.attention.emptyTitle')}
-                        emptySub={t('dashboard.user.attention.emptySub')}
-                    />
-                </View>
+                {/* Needs your attention: only while there is something to act on (and not hidden) */}
+                {shownAttention.length > 0 && (
+                    <View style={{ marginTop: 24 }}>
+                        <OwnerSectionTitle
+                            title={t('dashboard.user.attention.title')}
+                            badge={shownAttention.length}
+                            collapsed={attention.collapsed}
+                            onToggle={attention.toggleCollapsed}
+                        />
+                        {!attention.collapsed && (
+                            <OwnerAttentionList
+                                items={shownAttention}
+                                hideLabel={t('dashboard.user.attention.hide')}
+                                onDismiss={(item) => attention.dismiss(attentionKey(item))}
+                            />
+                        )}
+                    </View>
+                )}
 
                 {/* Upcoming appointment */}
                 {upcoming && (
