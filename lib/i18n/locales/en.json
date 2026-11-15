@@ -180,7 +180,17 @@
           "sub": "Confirm it was resolved so the technician can be paid.",
           "cta": "Review"
         },
-        "hide": "Hide"
+        "hide": "Hide",
+        "finalQuote": {
+          "title": "Final quote to review",
+          "sub": "Your provider proposed the final price.",
+          "cta": "Review"
+        },
+        "draft": {
+          "title": "Finish your request",
+          "sub": "You left a scheduled request unfinished.",
+          "cta": "Continue"
+        }
       },
       "upcoming": {
         "title": "Upcoming appointment",
@@ -2819,5 +2829,230 @@
     "fieldAdd": "Add",
     "fieldChange": "Change",
     "noEmail": "No email yet"
+  },
+  "scheduled": {
+    "title": "Scheduled assistance",
+    "stepLabel": "Step {{n}} of {{total}} · {{name}}",
+    "steps": {
+      "vehicle": "Vehicle",
+      "location": "Location",
+      "services": "Services",
+      "availability": "Availability",
+      "review": "Review"
+    },
+    "next": "Continue",
+    "draftRestored": "We restored your saved draft.",
+    "startOver": "Start over",
+    "vehicle": {
+      "eyebrow": "STEP 1 · VEHICLE",
+      "title": "Which vehicle?",
+      "sub": "Choose the vehicle that needs the service.",
+      "mileageLabel": "CURRENT MILEAGE (MI)",
+      "mileagePlaceholder": "e.g. 42,180",
+      "mileageHint": "Helps the mechanic recommend the right services.",
+      "noVehicles": "You have no vehicles yet",
+      "noVehiclesSub": "Add the vehicle that needs the service.",
+      "addVehicle": "Add a vehicle"
+    },
+    "location": {
+      "eyebrow": "STEP 2 · LOCATION",
+      "title": "Where would you like your assistance?",
+      "sub": "A mobile technician comes to you: home, work or wherever your vehicle is.",
+      "yourAddresses": "YOUR ADDRESSES",
+      "currentLocation": "Use my current location",
+      "currentLocationSub": "Where this phone is right now.",
+      "locating": "Finding your location…",
+      "addAddress": "Add an address",
+      "permissionDenied": "Location permission is off. Turn it on in Settings, or pick a saved address.",
+      "locationFailed": "We couldn't find your location. Try again or pick a saved address.",
+      "noCoords": "We couldn't place that address on the map. Pick another one.",
+      "contactTitle": "WHO IS IN THE VEHICLE TO RECEIVE ASSISTANCE?",
+      "contactMe": "Me",
+      "contactSomeone": "Someone else",
+      "firstName": "FIRST NAME",
+      "lastName": "LAST NAME",
+      "phone": "PHONE",
+      "phonePlaceholder": "(954) 555-0100"
+    },
+    "services": {
+      "eyebrow": "STEP 3 · SERVICES",
+      "title": "What do you need done?",
+      "sub": "Open a category and select every service you want quoted.",
+      "loadFailed": "We couldn't load the services.",
+      "retry": "Try again",
+      "empty": "No services are available right now.",
+      "customLabel": "OTHER SERVICE (OPTIONAL)",
+      "customPlaceholder": "Something that isn't listed…"
+    },
+    "availability": {
+      "eyebrow": "STEP 4 · AVAILABILITY",
+      "title": "When do you need it?",
+      "sub": "Choose your preferred day and time window, and add anything that helps shops quote.",
+      "dayLabel": "SERVICE DATE",
+      "today": "Today",
+      "windowLabel": "PREFERRED TIME WINDOW",
+      "from": "Available from",
+      "to": "Available to",
+      "sameDayTitle": "Service for today: reduced quote window.",
+      "sameDayBody": "Offers close 1 hour before your requested time. Same-day availability depends on the mechanics in your area.",
+      "windowTitle": "Quote window open.",
+      "windowBody": "Offers stay open for up to 48 hours, or until 1 hour before your requested time if that comes first.",
+      "symptomsLabel": "SYMPTOMS OR SPECIAL REQUESTS (OPTIONAL)",
+      "symptomsPlaceholder": "Faults you noticed, specific requests…",
+      "evidenceLabel": "EVIDENCE PHOTOS OR VIDEOS (OPTIONAL)",
+      "addEvidence": "Add photos or videos",
+      "evidenceLimits": "Up to 5 files · photos up to 5 MB · videos up to 50 MB",
+      "tooBig": "Some files were skipped because they are too large.",
+      "remove": "Remove"
+    },
+    "review": {
+      "eyebrow": "STEP 5 · REVIEW",
+      "title": "Review your request",
+      "sub": "Check everything before it's sent to mechanics and shops for quotes.",
+      "vehicle": "VEHICLE",
+      "location": "LOCATION",
+      "contact": "ONSITE CONTACT",
+      "services": "SERVICES",
+      "availability": "AVAILABILITY",
+      "symptoms": "SYMPTOMS / SPECIAL REQUIREMENTS",
+      "evidence": "EVIDENCE",
+      "edit": "Edit",
+      "me": "You",
+      "files": "{{count}} file",
+      "files_other": "{{count}} files",
+      "noChargeTitle": "You won't be charged now.",
+      "noChargeBody": "Publishing only requests quotes. Offers stay open for up to 48 hours, or until 1 hour before your requested time if that comes first. Your exact address and plate are shared only after you accept an offer and payment is secured.",
+      "send": "Send request for quotes",
+      "sending": "Sending…",
+      "uploading": "Uploading file {{current}} of {{total}}…"
+    },
+    "sent": {
+      "title": "Request sent",
+      "body": "Nothing has been charged. Eligible mechanics and shops can now quote, and you'll be notified as each offer arrives.",
+      "ref": "Reference",
+      "view": "View request",
+      "home": "Back to dashboard"
+    },
+    "errors": {
+      "publishFailedTitle": "We couldn't send your request",
+      "publishFailedMessage": "Your progress is saved as a draft. Check your connection and try again.",
+      "serviceUnavailableTitle": "A service is no longer available",
+      "serviceUnavailableMessage": "Please review the services you selected.",
+      "dateInvalidTitle": "Pick a later time",
+      "dateInvalidMessage": "The requested time has to be at least an hour from now."
+    },
+    "requestAgain": {
+      "action": "Request again",
+      "error": "We couldn't prepare a new request. Please try again."
+    },
+    "cancelNote": "Cancelling before the provider heads out releases the held amount. After that, the hold stays and support decides how much is charged."
+  },
+  "scheduledOffers": {
+    "title": "Offers",
+    "eyebrow": "OFFERS",
+    "retry": "Try again",
+    "listTitle_one": "{{count}} offer received",
+    "listTitle_other": "{{count}} offers received",
+    "waitingTitle": "Waiting for offers",
+    "waitingSub": "Providers near you are reviewing your request. We'll notify you when an offer arrives.",
+    "windowLeft": "Offers open for {{hours}}h {{minutes}}m",
+    "windowClosed": "The offer window is closed",
+    "extend": "+{{hours}}h",
+    "bestPrice": "Best price",
+    "finalPrice": "Final price",
+    "diagnosticThenQuote": "Diagnostic first, then a quote",
+    "service": "Service",
+    "diagnosticFee": "Diagnostic fee",
+    "fees": "Service fee",
+    "taxes": "Taxes",
+    "total": "Total",
+    "detail": {
+      "eyebrow": "OFFER",
+      "finalSub": "Final price, all included.",
+      "diagnosticSub": "This is the diagnostic fee. The provider quotes the repair after inspecting.",
+      "slot": "PROPOSED TIME",
+      "description": "DETAILS",
+      "parts": "PARTS",
+      "warranty": "{{days}}-day warranty",
+      "select": "Select this offer",
+      "unavailable": "This offer is no longer available."
+    },
+    "pay": {
+      "eyebrow": "CONFIRM",
+      "title": "Review and pay",
+      "change": "Change",
+      "confirm": "Confirm · {{total}}",
+      "holdNow": "The amount is held on your payment method now and only charged when the service is done.",
+      "holdLater": "The amount is held 24 hours before the service and only charged when it is done.",
+      "diagnosticNote": "Only the diagnostic fee is held now. You approve any repair quote before it is charged."
+    },
+    "done": {
+      "eyebrow": "CONFIRMED",
+      "title": "Offer selected",
+      "sub": "Your provider has been notified.",
+      "home": "Back to home",
+      "holdNow": "The amount is held on your payment method.",
+      "holdLater": "The amount will be held 24 hours before the service."
+    },
+    "cancel": {
+      "action": "Cancel request",
+      "title": "Cancel request?",
+      "message": "You will stop receiving offers.",
+      "keep": "Keep it",
+      "confirm": "Cancel request"
+    },
+    "errors": {
+      "generic": "Something went wrong. Please try again.",
+      "load": "We couldn't load your offers.",
+      "priceChanged": "The price changed. Review the new total and confirm again.",
+      "offerGone": "That offer is no longer available.",
+      "funds": "Not enough balance. Add funds or use another payment method.",
+      "disabled": "Accepting offers isn't available for your account yet.",
+      "location": "We couldn't determine taxes for this location."
+    },
+    "reopened": "Your provider cancelled and your request is receiving offers again.",
+    "cancelledTitle": "Request cancelled",
+    "cancelledSub": "This request is cancelled. You can start a new one with the same details.",
+    "noOffersTitle": "No offers yet",
+    "noOffersSub": "The offer window closed without offers. Give providers more time or start a new request with other dates.",
+    "extendLong": "Keep it open {{hours}} more hours"
+  },
+  "finalQuote": {
+    "title": "Final quote",
+    "eyebrow": "FINAL QUOTE",
+    "sub": "The provider inspected your vehicle and proposed the final price for the whole job.",
+    "alreadyHeld": "Already held (diagnostic)",
+    "additional": "Additional to hold",
+    "approve": "Approve · {{amount}}",
+    "note": "Approving holds only the difference. You are charged when the service is done.",
+    "closed": "This quote can no longer be decided.",
+    "none": "There is no quote to review.",
+    "back": "Back",
+    "banner": {
+      "title": "Final quote to review",
+      "sub": "Your provider proposed the final price.",
+      "withTotal": "New total {{total}} · tap to review"
+    },
+    "approved": {
+      "eyebrow": "APPROVED",
+      "title": "Quote approved",
+      "sub": "The additional amount was held and your provider can continue."
+    },
+    "rejected": {
+      "eyebrow": "DECLINED",
+      "title": "Quote declined",
+      "sub": "No extra money was held. The service ends with only the diagnostic."
+    },
+    "reject": {
+      "action": "Decline quote",
+      "title": "Decline this quote?",
+      "message": "The service will end with only the diagnostic fee.",
+      "keep": "Keep reviewing",
+      "confirm": "Decline"
+    },
+    "errors": {
+      "load": "We couldn't load the quote.",
+      "gone": "This quote is no longer available."
+    }
   }
 }

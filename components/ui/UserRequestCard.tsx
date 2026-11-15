@@ -134,17 +134,30 @@ export function UserRequestCard({
                 >
                     {getTypeIcon()}
                 </View>
-                <View className="flex-1">
-                    <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 1, color: '#6B7490' }}>
-                        {getTypeTitle().toUpperCase()}
-                    </Text>
-                    <Text
-                        className="font-outfit-bold"
-                        style={{ fontSize: 18, letterSpacing: -0.3, color: '#0B1530', marginTop: 1 }}
-                        numberOfLines={1}
-                    >
-                        {title}
-                    </Text>
+                <View className="flex-1 justify-center">
+                    {title?.trim() ? (
+                        <>
+                            <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 1, color: '#6B7490' }}>
+                                {getTypeTitle().toUpperCase()}
+                            </Text>
+                            <Text
+                                className="font-outfit-bold"
+                                style={{ fontSize: 18, letterSpacing: -0.3, color: '#0B1530', marginTop: 1 }}
+                                numberOfLines={1}
+                            >
+                                {title}
+                            </Text>
+                        </>
+                    ) : (
+                        // No issue title (older requests): the type is the title, centred on the icon.
+                        <Text
+                            className="font-outfit-bold"
+                            style={{ fontSize: 18, letterSpacing: -0.3, color: '#0B1530' }}
+                            numberOfLines={1}
+                        >
+                            {getTypeTitle()}
+                        </Text>
+                    )}
                 </View>
             </View>
 

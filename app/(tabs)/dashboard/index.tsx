@@ -3,6 +3,7 @@ import { AseCta, AttentionList, AvailabilityCard, RequestTypeTabs, SectionTitle,
 import { useNotifications } from '@/context/NotificationsContext';
 import { attentionKey, visibleAttention } from '@/lib/dashboard/attention';
 import { useAttentionState } from '@/lib/dashboard/useAttentionState';
+import { useScheduledAttention } from '@/lib/scheduled/useScheduledAttention';
 import { connectDAO } from '@/lib/dao/ConnectDAO';
 import { UserRequestCard } from '@/components/ui/UserRequestCard';
 import { MechanicActiveJobCard } from '@/components/ui/MechanicActiveJobCard';
@@ -23,7 +24,7 @@ import { countCompletedToday } from '@/lib/dashboard/mechanicKpis';
 import { useMechanicKpis } from '@/lib/dashboard/useMechanicKpis';
 import { formatMoney } from '@/lib/payments/paymentSource';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Calendar, Video, Zap, MapPin, Wrench, DollarSign, Circle, Clock, Car, Lock, Power, Bell, CreditCard, AlertTriangle } from 'lucide-react-native';
+import { FileText, RotateCcw, Calendar, Video, Zap, MapPin, Wrench, DollarSign, Circle, Clock, Car, Lock, Power, Bell, CreditCard, AlertTriangle } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useScrollPressGuard } from '@/hooks/useScrollPressGuard';
@@ -94,6 +95,7 @@ export default function DashboardScreen() {
         }, [user?.role]),
     );
     const { lastMessage } = useSocket();
+    const scheduledAttention = useScheduledAttention(user?.role === 'user', user?.id, getActiveRequests(), lastMessage);
     const { mechanicStatus, setMechanicStatus, isUpdatingStatus } = useMechanicStatus();
 
     const getStatusStyles = () => {
@@ -765,6 +767,10 @@ export default function DashboardScreen() {
         // pending/offered have no appointment row yet — the searching screen is the
         // canonical "waiting for a mechanic" view and handles the offer hand-off.
         if (req.status === 'pending' || req.status === 'offered') {
+            if (req.type === 'scheduled') {
+                router.push({ pathname: '/(tabs)/request-assistance/scheduled-offers', params: { requestId: req.id } });
+                return;
+            }
             router.push({
                 pathname: '/(tabs)/request-assistance/searching',
                 params: { requestId: req.id, type: req.type }
@@ -814,6 +820,36 @@ export default function DashboardScreen() {
             sub: t('dashboard.user.attention.offers.sub'),
             cta: t('dashboard.user.attention.offers.cta'),
             onPress: guard(() => openRequest(offered[0])),
+        });
+    }
+    if (scheduledAttention.withOffers.length > 0) {
+        const total = scheduledAttention.withOffers.reduce((n, o) => n + o.count, 0);
+        const first = scheduledAttention.withOffers[0];
+        attentionItems.push({
+            id: 'scheduled-offers', signature: `scheduled-offers:${scheduledAttention.withOffers.map((o) => `${o.id}=${o.count}`).join(',')}`, tone: 'blue', icon: Zap,
+            title: t('dashboard.user.attention.offers.title', { count: total }),
+            sub: t('dashboard.user.attention.offers.sub'),
+            cta: t('dashboard.user.attention.offers.cta'),
+            onPress: guard(() => router.push({ pathname: '/(tabs)/request-assistance/scheduled-offers', params: { requestId: first.id } })),
+        });
+    }
+    if (scheduledAttention.quotes.length > 0) {
+        const first = scheduledAttention.quotes[0];
+        attentionItems.push({
+            id: 'scheduled-quote', signature: `scheduled-quote:${scheduledAttention.quotes.join(',')}`, tone: 'amber', icon: FileText,
+            title: t('dashboard.user.attention.finalQuote.title'),
+            sub: t('dashboard.user.attention.finalQuote.sub'),
+            cta: t('dashboard.user.attention.finalQuote.cta'),
+            onPress: guard(() => router.push({ pathname: '/(tabs)/request-assistance/scheduled-final-quote', params: { requestId: first } })),
+        });
+    }
+    if (scheduledAttention.draft) {
+        attentionItems.push({
+            id: 'scheduled-draft', signature: 'scheduled-draft', tone: 'blue', icon: RotateCcw,
+            title: t('dashboard.user.attention.draft.title'),
+            sub: t('dashboard.user.attention.draft.sub'),
+            cta: t('dashboard.user.attention.draft.cta'),
+            onPress: guard(() => router.push({ pathname: '/(tabs)/request-assistance/scheduled', params: { type: 'scheduled', entry: String(Date.now()) } })),
         });
     }
     if (toConfirm.length > 0) {

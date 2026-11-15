@@ -1,6 +1,7 @@
 import { apiClient } from '../api/apiClient';
+import { ApiError } from '../api/types';
 import { ConfigService } from '../config/ConfigService';
-import { AssistanceClientSummary, AssistanceOfferSummary, AssistanceRequest, AssistanceSummary, IAssistanceDAO } from './interfaces';
+import { AssistanceClientSummary, AssistanceOfferSummary, FinalQuoteView, MarketplaceOffer, AssistanceRequest, AssistanceSummary, IAssistanceDAO } from './interfaces';
 
 export class AssistanceDAO implements IAssistanceDAO {
     async getAll(filters?: { userId?: string; mechanicId?: string; status?: string; zip?: string; lat?: number; lng?: number; radiusKm?: number }): Promise<AssistanceRequest[]> {
@@ -46,6 +47,52 @@ export class AssistanceDAO implements IAssistanceDAO {
      */
     async reject(id: string): Promise<void> {
         await apiClient.post(`/api/assistance/${id}/reject`, {});
+    }
+
+    /**
+     * Offers received by a scheduled request. The owner sees all of them; the answer may come as a
+     * bare list or wrapped, so both are accepted.
+     */
+    async getOffers(id: string): Promise<MarketplaceOffer[]> {
+        const result = await apiClient.get<MarketplaceOffer[] | { offers?: MarketplaceOffer[]; items?: MarketplaceOffer[] }>(
+            `/api/assistance/${id}/offers`,
+        );
+        if (Array.isArray(result)) return result;
+        return result?.offers ?? result?.items ?? [];
+    }
+
+    /**
+     * Picks an offer. `expectedTotal` must be exactly the `customerTotal.amount` the owner was shown:
+     * the server recalculates and answers 409 `price_changed` if it moved, holding nothing.
+     */
+    async selectOffer(id: string, offerId: string, expectedTotal: string): Promise<void> {
+        await apiClient.post(`/api/assistance/${id}/offers/${offerId}/select`, { expectedTotal });
+    }
+
+    /** Reopens the offer window for more hours (1 to 168), counted from now or from the current close. */
+    async extendOffers(id: string, hours: number): Promise<void> {
+        await apiClient.post(`/api/assistance/${id}/offers/extend`, { hours });
+    }
+
+    /** The open final-quote proposal of a service, or null when there is none (404). */
+    async getFinalQuote(id: string): Promise<FinalQuoteView | null> {
+        try {
+            const result = await apiClient.get<FinalQuoteView | null>(`/api/assistance/${id}/final-quote`);
+            return result?.quote ? result : null;
+        } catch (error) {
+            if (error instanceof ApiError && error.statusCode === 404) return null;
+            throw error;
+        }
+    }
+
+    /** Approves the proposal. `expectedTotal` is the `customerTotal.amount` shown; only the difference is held. */
+    async approveFinalQuote(id: string, quoteId: string, expectedTotal: string): Promise<void> {
+        await apiClient.post(`/api/assistance/${id}/final-quote/${quoteId}/approve`, { expectedTotal });
+    }
+
+    /** Rejects it: no money moves and the service ends with only the diagnostic. */
+    async rejectFinalQuote(id: string, quoteId: string): Promise<void> {
+        await apiClient.post(`/api/assistance/${id}/final-quote/${quoteId}/reject`, {});
     }
 
     /** Changes the card (or `'wallet'`) the request is charged to. Only its owner may. */

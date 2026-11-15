@@ -193,6 +193,13 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                 });
                 return;
             }
+            if (appointment.type === 'scheduled') {
+                router.push({
+                    pathname: '/request-assistance/scheduled-offers' as any,
+                    params: { requestId: appointment.id },
+                });
+                return;
+            }
             if (appointment.status === 'offered') {
                 router.push({
                     pathname: '/request-assistance/mechanic-found' as any,

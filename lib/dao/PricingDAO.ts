@@ -1,5 +1,5 @@
 import { apiClient } from '../api/apiClient';
-import { CalculatePricePayload, CatalogLanguage, IPricingDAO, PersistRequestPricePayload, PriceCalculationResult, VehicleIssue, VehicleIssueCategory, VehicleIssueSnapshot } from './interfaces';
+import { CalculatePricePayload, ScheduledServiceCategory, CatalogLanguage, IPricingDAO, PersistRequestPricePayload, PriceCalculationResult, VehicleIssue, VehicleIssueCategory, VehicleIssueSnapshot } from './interfaces';
 
 /**
  * Client for the pricing microservice (proxied by the gateway under /api/pricing).
@@ -29,6 +29,19 @@ export class PricingDAO implements IPricingDAO {
     /** Locale code → languageId, needed to read the right row out of `translations[]`. */
     async getLanguages(): Promise<CatalogLanguage[]> {
         return apiClient.get('/api/pricing/languages');
+    }
+
+    /**
+     * The scheduled-services tree (category → services) in one call. Language-agnostic like
+     * the issue catalog: every node carries its English `name` plus `translations[]`.
+     * `scope: 'app'` drops what the admin has hidden from the app.
+     */
+    async getServiceCategories(): Promise<ScheduledServiceCategory[]> {
+        return apiClient.get('/api/pricing/service-categories', {
+            assistanceType: 'scheduled',
+            scope: 'app',
+            includeServices: true,
+        });
     }
 
     async calculatePrice(payload: CalculatePricePayload): Promise<PriceCalculationResult> {

@@ -125,6 +125,10 @@ export interface AssistanceRequest {
     photos?: string[] | Attachment[] | string;
     /** How drivable the vehicle is: 'drivable' | 'unsafe_to_drive' | 'pushable_only'. */
     vehicleCondition?: string;
+    /** Scheduled requests only: the catalog services the owner asked for (max 20). */
+    services?: RequestedService[];
+    /** Scheduled requests: when the offer window closes (ISO). The owner can extend it. */
+    offersCloseAt?: string | null;
     vehicleId?: string;
     zip?: string;
     /** Odometer reading when the request was created. Snapshot: `Vehicle.mileage` gets overwritten, this doesn't. */
@@ -817,7 +821,102 @@ export interface PriceCalculationResult {
     };
 }
 
+/** A service of the scheduled-services catalog (pricing-service `service_catalog`). */
+export interface ScheduledServiceItem {
+    id: string;
+    /** Stable identifier: what the request sends. Never changes when the name does. */
+    code: string;
+    categoryId?: string | null;
+    /** English name; `translations` holds the other languages. */
+    name: string;
+    details?: string | null;
+    /** A hint to show, never the price charged (scheduled services are quoted by offers). */
+    estimatedPrice?: string | null;
+    /** Where it can be done: `shop` and/or `home`. Informational for now. */
+    availableModes?: string[];
+    sortOrder?: number | null;
+    translations?: { languageId: number; name: string; details?: string | null }[];
+}
+
+/** A category of the scheduled-services catalog, with its services nested. */
+export interface ScheduledServiceCategory {
+    id: string;
+    code: string;
+    name: string;
+    icon?: string | null;
+    sortOrder?: number | null;
+    translations?: { languageId: number; name: string }[];
+    services: ScheduledServiceItem[];
+}
+
+/** One service the owner asks to have done in a scheduled request. */
+export interface RequestedService {
+    code: string;
+    /** 1 to 10; the backend defaults it to 1. */
+    quantity?: number;
+}
+
+/** What the owner pays for an offer, as the backend calculated it. Amounts are decimal strings. */
+export interface OfferCustomerTotal {
+    /** `price`: the total is over the final price; `diagnostic_fee`: over the diagnostic fee only. */
+    basis: 'price' | 'diagnostic_fee';
+    /** The total to pay. Exactly this goes back as `expectedTotal` when the offer is selected. */
+    amount: string;
+    /** The provider's own price (what the provider is paid). */
+    baseAmount: string;
+    fees: string;
+    taxes: string;
+    state?: string | null;
+    county?: string | null;
+}
+
+/** An offer a provider sent to a scheduled request (`GET /assistance/:id/offers`). */
+export interface MarketplaceOffer {
+    id: string;
+    /** `submitted` is the only one that can be selected; the others must be tolerated when listing. */
+    status: 'submitted' | 'accepted' | 'not_selected' | 'withdrawn' | 'expired' | (string & {});
+    quoteType: 'final' | 'diagnostic_then_quote';
+    price?: string | null;
+    diagnosticFee?: string | null;
+    description?: string | null;
+    parts?: { name: string; quantity?: number | null; price?: string | null }[] | null;
+    proposedStart?: string | null;
+    proposedEnd?: string | null;
+    warrantyDays?: number | null;
+    warrantyCoverage?: string | null;
+    validUntil?: string | null;
+    createdAt?: string | null;
+    /** Null when it could not be calculated: that offer cannot be accepted. */
+    customerTotal: OfferCustomerTotal | null;
+}
+
+/** The provider's proposed final price for a service taken with a diagnostic (`GET /assistance/:id/final-quote`). */
+export interface FinalQuote {
+    id: string;
+    /** `pending` is the only one that can be decided. */
+    status: 'pending' | 'approved' | 'rejected' | 'expired' | 'replaced' | 'withdrawn' | (string & {});
+    price?: string | null;
+    description?: string | null;
+    parts?: { name: string; quantity?: number | null; price?: string | null }[] | null;
+    warrantyDays?: number | null;
+    warrantyCoverage?: string | null;
+    /** The proposal stays open 48 h. */
+    expiresAt?: string | null;
+    createdAt?: string | null;
+}
+
+export interface FinalQuoteView {
+    quote: FinalQuote;
+    /** The full total for the whole job, diagnostic included. Goes back as `expectedTotal` on approve. */
+    customerTotal: OfferCustomerTotal | null;
+    /** Already held for the diagnostic. */
+    alreadyHeld?: string | null;
+    /** What approving holds on top of `alreadyHeld`. */
+    additionalToHold?: string | null;
+}
+
 export interface IPricingDAO {
+    getServiceCategories(): Promise<ScheduledServiceCategory[]>;
     getVehicleIssues(): Promise<VehicleIssue[]>;
     getVehicleIssueCatalog(): Promise<VehicleIssueCategory[]>;
     getLanguages(): Promise<CatalogLanguage[]>;

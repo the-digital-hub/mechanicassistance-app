@@ -1,3 +1,5 @@
+import { RequestAgainButton } from '@/components/scheduled/RequestAgainButton';
+import { FinalQuoteBanner } from '@/components/scheduled/FinalQuoteBanner';
 import { CancellationDisputeBanner } from '@/components/appointments/CancellationDisputeBanner';
 import { CancelRequestLink, canCancelBeforeStart } from '@/components/appointments/CancelRequestLink';
 import { CancellationModal } from '@/components/appointments/CancellationModal';
@@ -614,6 +616,10 @@ export default function AppointmentDetailScreen() {
                                     <CancellationDisputeBanner dispute={cancellationDispute} role="owner" />
                                 )}
 
+                                {isCancelled && appointment.type === 'scheduled' && <RequestAgainButton requestId={appointment.id} />}
+
+                                <FinalQuoteBanner requestId={appointment.id} enabled={appointment.type === 'scheduled' && !isCancelled} />
+
                                 <OwnerMechanicCard
                                     mechanic={offer?.mechanic ?? null}
                                     onMessage={() => router.push(`/chat/${appointment.id}`)}
@@ -942,7 +948,7 @@ export default function AppointmentDetailScreen() {
                             )}
                             {appointment && canCancelBeforeStart(appointment.status) && (
                                 <View className="px-4 pb-10" style={{ marginTop: -20 }}>
-                                    <CancelRequestLink appointmentId={appointment.id} align="center" />
+                                    <CancelRequestLink appointmentId={appointment.id} align="center" scheduled={appointment.type === 'scheduled'} />
                                 </View>
                             )}
                             </>

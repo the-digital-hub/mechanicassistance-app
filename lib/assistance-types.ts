@@ -105,6 +105,10 @@ export const i18nKeyFor = (item: AssistanceTypeCatalogItem): string | undefined 
  */
 export const assistanceTypeRoute = (item: AssistanceTypeCatalogItem) => {
     const code = codeFor(item);
+    // Scheduled assistance has its own single-screen wizard (services catalog + offers).
+    if (code === 'scheduled') {
+        return { pathname: '/request-assistance/scheduled' as never, params: { type: code, entry: String(Date.now()) } };
+    }
     return code
         ? {
               pathname: (item.path ?? '/request-assistance/select-vehicle') as never,

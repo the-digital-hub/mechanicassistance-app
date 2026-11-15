@@ -13,7 +13,7 @@ export function canCancelBeforeStart(status?: string | null): boolean {
  * "Cancel request" link with the same confirmation the Appointments list uses;
  * confirming continues to the cancel-reason screen, which performs the cancel.
  */
-export function CancelRequestLink({ appointmentId, align = 'flex-end' }: { appointmentId: string; align?: 'flex-end' | 'center' }) {
+export function CancelRequestLink({ appointmentId, align = 'flex-end', scheduled = false }: { appointmentId: string; align?: 'flex-end' | 'center'; scheduled?: boolean }) {
     const { t } = useTranslation();
     const router = useRouter();
     const [visible, setVisible] = useState(false);
@@ -43,6 +43,7 @@ export function CancelRequestLink({ appointmentId, align = 'flex-end' }: { appoi
                         </View>
                         <Text className="text-xl font-outfit-medium text-blue-900 mb-2">{t('appointments.list.cancelModalTitle')}</Text>
                         <Text className="text-gray-500 text-center font-outfit-regular mb-6">{t('appointments.list.cancelModalMessage')}</Text>
+                        {scheduled ? <Text className="text-gray-500 text-center font-outfit-regular mb-6 -mt-3" style={{ fontSize: 13 }}>{t('scheduled.cancelNote')}</Text> : null}
                         <View className="flex-row gap-4 w-full">
                             <TouchableOpacity className="flex-1 py-3 border border-gray-200 rounded-lg" onPress={() => setVisible(false)}>
                                 <Text className="text-center font-outfit-medium text-gray-700">{t('appointments.list.no')}</Text>

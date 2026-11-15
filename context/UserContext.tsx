@@ -185,13 +185,37 @@ export function UserProvider({ children }: { children: ReactNode }) {
         [],
     );
 
+    /**
+     * Re-reads the full profile after a sign-in and merges it over what the login
+     * response carried. Login answers with auth-service's own, slimmer copy of the
+     * user (no mechanic details, expertise, ASE, availability…), so without this a
+     * technician who signs in sees an empty profile until the next app launch — the
+     * launch path already does the same re-read (`refreshFromServer`).
+     */
+    const mergeFullProfile = useCallback(async (userId: string): Promise<void> => {
+        try {
+            const fresh = await userDAO.getById(userId);
+            // Skip if the user signed out or changed while this was in flight.
+            if (!fresh || userRef.current?.id !== userId) return;
+            const merged = { ...userRef.current, ...fresh };
+            userRef.current = merged;
+            setUser(merged);
+            await saveCachedUser(merged);
+        } catch (error) {
+            // The login response stays; this is only a refresh.
+            console.warn('[UserContext] Profile refresh after login failed:', error);
+        }
+    }, []);
+
     /** Google/Apple sign-in. Phone sign-in uses `adoptSession` instead. */
     const login = useCallback(async (firebaseIdToken: string, phone?: string): Promise<boolean> => {
         try {
             const userData = await userDAO.loginWithFirebase(firebaseIdToken, phone);
             if (userData) {
+                userRef.current = userData;
                 setUser(userData);
                 await saveCachedUser(userData);
+                void mergeFullProfile(userData.id);
                 return true;
             }
             return false;
@@ -199,7 +223,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
             console.error('Login failed', error);
             return false;
         }
-    }, []);
+    }, [mergeFullProfile]);
 
     /**
      * Adopts a session the OTP flow has already established.
@@ -208,9 +232,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
      * the same response. This is what puts the user into React state.
      */
     const adoptSession = useCallback(async (userData: UserData): Promise<void> => {
+        userRef.current = userData;
         setUser(userData);
         await saveCachedUser(userData);
-    }, []);
+        void mergeFullProfile(userData.id);
+    }, [mergeFullProfile]);
 
     const logout = useCallback(async () => {
         try {

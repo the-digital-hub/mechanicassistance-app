@@ -31,7 +31,9 @@ export default function RequestAssistanceLayout() {
         <Stack.Screen name="date-time" options={{ headerShown: false }} />
         <Stack.Screen name="obd-scanner" options={{ headerShown: false }} />
         <Stack.Screen name="when" options={{ headerShown: false }} />
-        <Stack.Screen name="searching" options={{ headerShown: false }} />
+        <Stack.Screen name="scheduled" options={{ headerShown: false }} />
+        <Stack.Screen name="scheduled-offers" options={{ headerShown: false }} />
+        <Stack.Screen name="searching"options={{ headerShown: false }} />
         <Stack.Screen name="mechanic-found" options={{ headerShown: false }} />
         <Stack.Screen name="confirmation" options={{ headerShown: false }} />
       </Stack>

@@ -180,7 +180,17 @@
           "sub": "Confirmá que se resolvió para que el técnico cobre.",
           "cta": "Revisar"
         },
-        "hide": "Ocultar"
+        "hide": "Ocultar",
+        "finalQuote": {
+          "title": "Presupuesto final por revisar",
+          "sub": "Tu proveedor propuso el precio final.",
+          "cta": "Revisar"
+        },
+        "draft": {
+          "title": "Termina tu solicitud",
+          "sub": "Dejaste una solicitud agendada sin terminar.",
+          "cta": "Continuar"
+        }
       },
       "upcoming": {
         "title": "Próxima cita",
@@ -2819,5 +2829,230 @@
     "fieldAdd": "Agregar",
     "fieldChange": "Cambiar",
     "noEmail": "Sin email"
+  },
+  "scheduled": {
+    "title": "Asistencia programada",
+    "stepLabel": "Paso {{n}} de {{total}} · {{name}}",
+    "steps": {
+      "vehicle": "Vehículo",
+      "location": "Ubicación",
+      "services": "Servicios",
+      "availability": "Disponibilidad",
+      "review": "Revisión"
+    },
+    "next": "Continuar",
+    "draftRestored": "Recuperamos tu borrador guardado.",
+    "startOver": "Empezar de nuevo",
+    "vehicle": {
+      "eyebrow": "PASO 1 · VEHÍCULO",
+      "title": "¿Qué vehículo?",
+      "sub": "Elegí el vehículo que necesita el servicio.",
+      "mileageLabel": "KILOMETRAJE ACTUAL (MI)",
+      "mileagePlaceholder": "ej. 42,180",
+      "mileageHint": "Ayuda al mecánico a recomendar los servicios correctos.",
+      "noVehicles": "Todavía no tenés vehículos",
+      "noVehiclesSub": "Agregá el vehículo que necesita el servicio.",
+      "addVehicle": "Agregar un vehículo"
+    },
+    "location": {
+      "eyebrow": "PASO 2 · UBICACIÓN",
+      "title": "¿Dónde querés recibir la asistencia?",
+      "sub": "Un técnico móvil va hasta vos: tu casa, el trabajo o donde esté tu vehículo.",
+      "yourAddresses": "TUS DIRECCIONES",
+      "currentLocation": "Usar mi ubicación actual",
+      "currentLocationSub": "Donde está este teléfono ahora.",
+      "locating": "Buscando tu ubicación…",
+      "addAddress": "Agregar una dirección",
+      "permissionDenied": "El permiso de ubicación está apagado. Activalo en Ajustes o elegí una dirección guardada.",
+      "locationFailed": "No pudimos encontrar tu ubicación. Probá de nuevo o elegí una dirección guardada.",
+      "noCoords": "No pudimos ubicar esa dirección en el mapa. Elegí otra.",
+      "contactTitle": "¿QUIÉN ESTÁ CON EL VEHÍCULO PARA RECIBIR LA ASISTENCIA?",
+      "contactMe": "Yo",
+      "contactSomeone": "Otra persona",
+      "firstName": "NOMBRE",
+      "lastName": "APELLIDO",
+      "phone": "TELÉFONO",
+      "phonePlaceholder": "(954) 555-0100"
+    },
+    "services": {
+      "eyebrow": "PASO 3 · SERVICIOS",
+      "title": "¿Qué necesitás que hagan?",
+      "sub": "Abrí una categoría y elegí todos los servicios que querés cotizar.",
+      "loadFailed": "No pudimos cargar los servicios.",
+      "retry": "Reintentar",
+      "empty": "No hay servicios disponibles por ahora.",
+      "customLabel": "OTRO SERVICIO (OPCIONAL)",
+      "customPlaceholder": "Algo que no esté en la lista…"
+    },
+    "availability": {
+      "eyebrow": "PASO 4 · DISPONIBILIDAD",
+      "title": "¿Cuándo lo necesitás?",
+      "sub": "Elegí el día y la franja horaria que preferís, y agregá lo que ayude a los talleres a cotizar.",
+      "dayLabel": "FECHA DEL SERVICIO",
+      "today": "Hoy",
+      "windowLabel": "FRANJA HORARIA PREFERIDA",
+      "from": "Disponible desde",
+      "to": "Disponible hasta",
+      "sameDayTitle": "Servicio para hoy: ventana de cotización reducida.",
+      "sameDayBody": "Las ofertas se cierran 1 hora antes del horario pedido. La disponibilidad para hoy depende de los mecánicos de tu zona.",
+      "windowTitle": "Ventana de cotización abierta.",
+      "windowBody": "Las ofertas quedan abiertas hasta 48 horas, o hasta 1 hora antes del horario pedido si eso ocurre primero.",
+      "symptomsLabel": "SÍNTOMAS O PEDIDOS ESPECIALES (OPCIONAL)",
+      "symptomsPlaceholder": "Fallas que notaste, pedidos específicos…",
+      "evidenceLabel": "FOTOS O VIDEOS DE EVIDENCIA (OPCIONAL)",
+      "addEvidence": "Agregar fotos o videos",
+      "evidenceLimits": "Hasta 5 archivos · fotos hasta 5 MB · videos hasta 50 MB",
+      "tooBig": "Se omitieron algunos archivos por ser muy pesados.",
+      "remove": "Quitar"
+    },
+    "review": {
+      "eyebrow": "PASO 5 · REVISIÓN",
+      "title": "Revisá tu solicitud",
+      "sub": "Verificá todo antes de enviarla a mecánicos y talleres para que coticen.",
+      "vehicle": "VEHÍCULO",
+      "location": "UBICACIÓN",
+      "contact": "CONTACTO EN EL LUGAR",
+      "services": "SERVICIOS",
+      "availability": "DISPONIBILIDAD",
+      "symptoms": "SÍNTOMAS / REQUISITOS ESPECIALES",
+      "evidence": "EVIDENCIA",
+      "edit": "Editar",
+      "me": "Vos",
+      "files": "{{count}} archivo",
+      "files_other": "{{count}} archivos",
+      "noChargeTitle": "No se te cobra ahora.",
+      "noChargeBody": "Publicar solo pide cotizaciones. Las ofertas quedan abiertas hasta 48 horas, o hasta 1 hora antes del horario pedido si eso ocurre primero. Tu dirección exacta y la patente se comparten recién cuando aceptás una oferta y el pago queda asegurado.",
+      "send": "Enviar solicitud de cotización",
+      "sending": "Enviando…",
+      "uploading": "Subiendo archivo {{current}} de {{total}}…"
+    },
+    "sent": {
+      "title": "Solicitud enviada",
+      "body": "No se cobró nada. Los mecánicos y talleres elegibles ya pueden cotizar, y te avisamos cuando llegue cada oferta.",
+      "ref": "Referencia",
+      "view": "Ver solicitud",
+      "home": "Volver al dashboard"
+    },
+    "errors": {
+      "publishFailedTitle": "No pudimos enviar tu solicitud",
+      "publishFailedMessage": "Tu avance quedó guardado como borrador. Revisá tu conexión y probá de nuevo.",
+      "serviceUnavailableTitle": "Un servicio ya no está disponible",
+      "serviceUnavailableMessage": "Revisá los servicios que elegiste.",
+      "dateInvalidTitle": "Elegí un horario más tarde",
+      "dateInvalidMessage": "El horario pedido tiene que ser al menos una hora desde ahora."
+    },
+    "requestAgain": {
+      "action": "Solicitar de nuevo",
+      "error": "No pudimos preparar una nueva solicitud. Inténtalo de nuevo."
+    },
+    "cancelNote": "Si cancelas antes de que el proveedor salga, se libera el monto retenido. Después, la retención se mantiene y soporte decide cuánto se cobra."
+  },
+  "scheduledOffers": {
+    "title": "Ofertas",
+    "eyebrow": "OFERTAS",
+    "retry": "Reintentar",
+    "listTitle_one": "{{count}} oferta recibida",
+    "listTitle_other": "{{count}} ofertas recibidas",
+    "waitingTitle": "Esperando ofertas",
+    "waitingSub": "Proveedores cercanos están revisando tu solicitud. Te avisaremos cuando llegue una oferta.",
+    "windowLeft": "Ofertas abiertas por {{hours}}h {{minutes}}m",
+    "windowClosed": "La ventana de ofertas está cerrada",
+    "extend": "+{{hours}}h",
+    "bestPrice": "Mejor precio",
+    "finalPrice": "Precio final",
+    "diagnosticThenQuote": "Primero diagnóstico, luego cotización",
+    "service": "Servicio",
+    "diagnosticFee": "Tarifa de diagnóstico",
+    "fees": "Tarifa de servicio",
+    "taxes": "Impuestos",
+    "total": "Total",
+    "detail": {
+      "eyebrow": "OFERTA",
+      "finalSub": "Precio final, todo incluido.",
+      "diagnosticSub": "Esta es la tarifa de diagnóstico. El proveedor cotiza la reparación tras inspeccionar.",
+      "slot": "HORARIO PROPUESTO",
+      "description": "DETALLES",
+      "parts": "REPUESTOS",
+      "warranty": "Garantía de {{days}} días",
+      "select": "Elegir esta oferta",
+      "unavailable": "Esta oferta ya no está disponible."
+    },
+    "pay": {
+      "eyebrow": "CONFIRMAR",
+      "title": "Revisa y paga",
+      "change": "Cambiar",
+      "confirm": "Confirmar · {{total}}",
+      "holdNow": "El monto se retiene ahora en tu método de pago y solo se cobra cuando se realiza el servicio.",
+      "holdLater": "El monto se retiene 24 horas antes del servicio y solo se cobra cuando se realiza.",
+      "diagnosticNote": "Ahora solo se retiene la tarifa de diagnóstico. Apruebas cualquier cotización de reparación antes de que se cobre."
+    },
+    "done": {
+      "eyebrow": "CONFIRMADO",
+      "title": "Oferta elegida",
+      "sub": "Tu proveedor fue notificado.",
+      "home": "Volver al inicio",
+      "holdNow": "El monto está retenido en tu método de pago.",
+      "holdLater": "El monto se retendrá 24 horas antes del servicio."
+    },
+    "cancel": {
+      "action": "Cancelar solicitud",
+      "title": "¿Cancelar solicitud?",
+      "message": "Dejarás de recibir ofertas.",
+      "keep": "Mantenerla",
+      "confirm": "Cancelar solicitud"
+    },
+    "errors": {
+      "generic": "Algo salió mal. Inténtalo de nuevo.",
+      "load": "No pudimos cargar tus ofertas.",
+      "priceChanged": "El precio cambió. Revisa el nuevo total y confirma de nuevo.",
+      "offerGone": "Esa oferta ya no está disponible.",
+      "funds": "Saldo insuficiente. Agrega fondos o usa otro método de pago.",
+      "disabled": "Aceptar ofertas aún no está disponible para tu cuenta.",
+      "location": "No pudimos determinar los impuestos para esta ubicación."
+    },
+    "reopened": "Tu proveedor canceló y tu solicitud vuelve a recibir ofertas.",
+    "cancelledTitle": "Solicitud cancelada",
+    "cancelledSub": "Esta solicitud está cancelada. Puedes crear una nueva con los mismos datos.",
+    "noOffersTitle": "Aún sin ofertas",
+    "noOffersSub": "La ventana de ofertas cerró sin ofertas. Dale más tiempo a los proveedores o crea una nueva solicitud con otras fechas.",
+    "extendLong": "Mantener abierta {{hours}} horas más"
+  },
+  "finalQuote": {
+    "title": "Presupuesto final",
+    "eyebrow": "PRESUPUESTO FINAL",
+    "sub": "El proveedor inspeccionó tu vehículo y propuso el precio final de todo el trabajo.",
+    "alreadyHeld": "Ya retenido (diagnóstico)",
+    "additional": "Adicional a retener",
+    "approve": "Aprobar · {{amount}}",
+    "note": "Al aprobar solo se retiene la diferencia. Se cobra cuando se realiza el servicio.",
+    "closed": "Este presupuesto ya no se puede decidir.",
+    "none": "No hay presupuesto para revisar.",
+    "back": "Volver",
+    "banner": {
+      "title": "Presupuesto final por revisar",
+      "sub": "Tu proveedor propuso el precio final.",
+      "withTotal": "Nuevo total {{total}} · toca para revisar"
+    },
+    "approved": {
+      "eyebrow": "APROBADO",
+      "title": "Presupuesto aprobado",
+      "sub": "Se retuvo el monto adicional y tu proveedor puede continuar."
+    },
+    "rejected": {
+      "eyebrow": "RECHAZADO",
+      "title": "Presupuesto rechazado",
+      "sub": "No se retuvo dinero extra. El servicio termina solo con el diagnóstico."
+    },
+    "reject": {
+      "action": "Rechazar presupuesto",
+      "title": "¿Rechazar este presupuesto?",
+      "message": "El servicio terminará solo con la tarifa de diagnóstico.",
+      "keep": "Seguir revisando",
+      "confirm": "Rechazar"
+    },
+    "errors": {
+      "load": "No pudimos cargar el presupuesto.",
+      "gone": "Este presupuesto ya no está disponible."
+    }
   }
 }

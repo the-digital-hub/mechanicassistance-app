@@ -379,8 +379,8 @@ export function MileageField({
                 placeholderTextColor="#9CA3AF"
                 autoFocus
                 maxLength={7}
-                className="font-outfit-bold"
-                style={{ fontSize: 24, color: C.text, paddingHorizontal: 16, paddingVertical: 14, borderRadius: 14, borderWidth: 1.5, borderColor: '#CFDDFB', backgroundColor: C.blueSofter }}
+                className="font-outfit-medium"
+                style={{ height: 52, fontSize: 17, color: C.text, paddingHorizontal: 16, borderRadius: 14, borderWidth: 1.5, borderColor: '#CFDDFB', backgroundColor: C.blueSofter }}
             />
             {error ? <Text className="font-outfit-regular" style={{ fontSize: 12.5, color: C.red }}>{error}</Text> : null}
             <TouchableOpacity onPress={onSave} disabled={saving || value.length === 0} activeOpacity={0.85} accessibilityRole="button" style={{ opacity: saving || value.length === 0 ? 0.6 : 1 }}>
