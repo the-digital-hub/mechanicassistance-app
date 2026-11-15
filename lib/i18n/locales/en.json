@@ -654,7 +654,7 @@
   "appointments": {
     "list": {
       "badge": "YOUR REQUESTS",
-      "title": "Your requests, all in one place.",
+      "title": "Your jobs, all in one place.",
       "subtitle": "Track active requests, view past jobs, and manage your bookings from here.",
       "upcoming": "Upcoming",
       "pendingApproval": "Pending",
@@ -767,7 +767,8 @@
         "pending_one": "{{count}} PENDING REQUEST",
         "pending_other": "{{count}} PENDING REQUESTS",
         "caughtUp": "ALL CAUGHT UP"
-      }
+      },
+      "titleOwner": "Your assistances, all in one place."
     },
     "cancelReason": {
       "badge": "CANCEL REQUEST",
@@ -1808,30 +1809,11 @@
   },
   "help": {
     "badge": "HELP & SUPPORT",
-    "title": "Help center",
-    "subtitle": "We're here to guide you, check out our frequently asked questions or contact us directly",
-    "contactUs": "Contact Us",
-    "liveChat": "Live chat",
-    "faq": "FAQ",
-    "website": "Website",
-    "faqs": {
-      "q1": {
-        "question": "Lorem ipsum dolor sit amet?",
-        "answer": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent pellentesque congue lorem, vel tincidunt tortor placerat a. Proin ac diam quam."
-      },
-      "q2": {
-        "question": "Lorem ipsum dolor sit amet?",
-        "answer": "Answer for item 2..."
-      },
-      "q3": {
-        "question": "Lorem ipsum dolor sit amet?",
-        "answer": "Answer for item 3..."
-      },
-      "q4": {
-        "question": "Lorem ipsum dolor sit amet?",
-        "answer": "Answer for item 4..."
-      }
-    }
+    "title": "How can we help?",
+    "subtitle": "Start with your profile or search the complete support library. This center explains how requests, assignments, accounts, service and network participation work.",
+    "searchPlaceholder": "Search help topics, services or questions",
+    "searchLabel": "Search the Help Center",
+    "noResults": "No help topics match your search."
   },
   "notifications": {
     "deleteConfirmTitle": "Delete Notification",

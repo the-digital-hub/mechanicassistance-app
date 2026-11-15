@@ -1,8 +1,19 @@
-import { useRouter } from 'expo-router';
-import { ChevronDown, ChevronUp } from 'lucide-react-native';
-import { useState } from 'react';
+import { Car, ChevronDown, CreditCard, LayoutGrid, Search, ShieldCheck, Wrench, X, type LucideIcon } from 'lucide-react-native';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { LayoutAnimation, Platform, ScrollView, Text, TouchableOpacity, UIManager, View } from 'react-native';
+import { LayoutAnimation, Platform, ScrollView, Text, TextInput, TouchableOpacity, UIManager, View } from 'react-native';
+import { useUser } from '@/context/UserContext';
+import { HELP_SECTIONS } from '@/lib/help/helpContent';
+
+const SECTION_ICONS: Record<string, LucideIcon> = {
+    platform: LayoutGrid,
+    accounts: CreditCard,
+    safety: ShieldCheck,
+    drivers: Car,
+    technicians: Wrench,
+};
+
+const CARD_SHADOW = { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 4 } as const;
 
 if (Platform.OS === 'android') {
     if (UIManager.setLayoutAnimationEnabledExperimental) {
@@ -11,11 +22,30 @@ if (Platform.OS === 'android') {
 }
 
 export default function HelpScreen() {
-    const router = useRouter();
-    const { t } = useTranslation();
-    const [expandedIds, setExpandedIds] = useState<number[]>([]);
+    const { t, i18n } = useTranslation();
+    const { user } = useUser();
+    const [query, setQuery] = useState('');
+    const [searchFocused, setSearchFocused] = useState(false);
+    const [expandedIds, setExpandedIds] = useState<string[]>([]);
+    const lang = i18n.language?.startsWith('es') ? 'es' : 'en';
 
-    const toggleExpand = (id: number) => {
+    // General help + the section for the user's role (technicians vs drivers).
+    const sections = useMemo(() => {
+        const roleGroup = user?.role === 'mechanic' ? 'technicians' : 'drivers';
+        const needle = query.trim().toLowerCase();
+        return HELP_SECTIONS[lang]
+            .filter((s) => s.group === 'general' || s.group === roleGroup)
+            .map((s) => ({
+                ...s,
+                items: needle
+                    ? s.items.filter((i) => `${s.title} ${i.q} ${i.a}`.toLowerCase().includes(needle))
+                    : s.items,
+            }))
+            .filter((s) => s.items.length > 0);
+    }, [lang, user?.role, query]);
+
+
+    const toggleExpand = (id: string) => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         if (expandedIds.includes(id)) {
             setExpandedIds(expandedIds.filter(i => i !== id));
@@ -23,12 +53,6 @@ export default function HelpScreen() {
             setExpandedIds([...expandedIds, id]);
         }
     };
-
-    const faqs = [1, 2, 3, 4].map((id) => ({
-        id,
-        question: t(`help.faqs.q${id}.question`),
-        answer: t(`help.faqs.q${id}.answer`),
-    }));
 
     return (
         <View className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
@@ -49,51 +73,91 @@ export default function HelpScreen() {
                 {t('help.subtitle')}
             </Text>
 
-            {/* Action Buttons */}
-            <View className="flex-row flex-wrap gap-3 mb-8">
-                <TouchableOpacity className="flex-1 min-w-[45%] border border-gray-800 rounded-lg py-3 items-center">
-                    <Text className="font-outfit-bold text-gray-900">{t('help.contactUs')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    className="flex-1 min-w-[45%] border border-gray-800 rounded-lg py-3 items-center"
-                    onPress={() => router.push('/live-chat')}
-                >
-                    <Text className="font-outfit-bold text-gray-900">{t('help.liveChat')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity className="flex-1 min-w-[45%] border border-gray-800 rounded-lg py-3 items-center">
-                    <Text className="font-outfit-bold text-gray-900">{t('help.faq')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity className="flex-1 min-w-[45%] border border-gray-200 rounded-lg py-3 items-center">
-                    <Text className="font-outfit-bold text-gray-900">{t('help.website')}</Text>
-                </TouchableOpacity>
+            {/* Search */}
+            <View
+                className="flex-row items-center bg-white rounded-2xl px-4 mb-8"
+                style={{ ...CARD_SHADOW, borderWidth: 1.5, borderColor: searchFocused ? '#2B66F8' : 'transparent' }}
+            >
+                <Search size={20} color={searchFocused ? '#2B66F8' : '#6B7280'} />
+                <TextInput
+                    value={query}
+                    onChangeText={setQuery}
+                    onFocus={() => setSearchFocused(true)}
+                    onBlur={() => setSearchFocused(false)}
+                    placeholder={t('help.searchPlaceholder')}
+                    accessibilityLabel={t('help.searchLabel')}
+                    placeholderTextColor="#9CA3AF"
+                    autoCorrect={false}
+                    returnKeyType="search"
+                    className="flex-1 py-4 px-3 font-outfit-regular text-base text-gray-900"
+                />
+                {query.length > 0 && (
+                    <TouchableOpacity onPress={() => setQuery('')} hitSlop={10} className="w-6 h-6 rounded-full items-center justify-center" style={{ backgroundColor: '#E5E7EB' }}>
+                        <X size={14} color="#4B5563" />
+                    </TouchableOpacity>
+                )}
             </View>
+            {sections.length === 0 && (
+                <View className="items-center py-10">
+                    <Search size={32} color="#9CA3AF" />
+                    <Text className="text-gray-500 font-outfit-regular text-base mt-3 text-center">{t('help.noResults')}</Text>
+                </View>
+            )}
 
-            {/* Accordion FAQ */}
-            <View className="gap-3 mb-10">
-                {faqs.map((faq) => {
-                    const isExpanded = expandedIds.includes(faq.id);
-                    return (
-                        <View key={faq.id} className="border border-blue-100 rounded-lg overflow-hidden bg-blue-50/30">
-                            <TouchableOpacity
-                                onPress={() => toggleExpand(faq.id)}
-                                className={`flex-row justify-between items-center p-4 ${isExpanded ? 'bg-blue-600' : 'bg-transparent'}`}
-                            >
-                                <Text className={`font-outfit-bold text-base ${isExpanded ? 'text-white' : 'text-blue-900'}`}>
-                                    {faq.question}
-                                </Text>
-                                {isExpanded ? <ChevronUp size={20} color="white" /> : <ChevronDown size={20} color="#0047AB" />}
-                            </TouchableOpacity>
-                            {isExpanded && (
-                                <View className="p-4 bg-gray-50">
-                                    <Text className="text-gray-600 font-outfit-regular leading-5">
-                                        {faq.answer}
-                                    </Text>
-                                </View>
-                            )}
+            {/* Accordion FAQ, grouped by section (content mirrored from the website) */}
+            {sections.map((section) => {
+                const Icon = SECTION_ICONS[section.id] ?? LayoutGrid;
+                return (
+                    <View key={section.id} className="mb-8">
+                        <View className="flex-row items-center mb-3 gap-3">
+                            <View className="w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: '#E9F1FF' }}>
+                                <Icon size={20} color="#0047AB" />
+                            </View>
+                            <Text className="flex-1 text-gray-900 font-outfit-medium text-lg">{section.title}</Text>
+                            <View className="px-2.5 py-0.5 rounded-full" style={{ backgroundColor: '#E9F1FF' }}>
+                                <Text className="text-blue-600 font-outfit-semibold text-xs">{section.items.length}</Text>
+                            </View>
                         </View>
-                    );
-                })}
-            </View>
+                        <View className="bg-white rounded-2xl" style={CARD_SHADOW}>
+                            <View className="rounded-2xl overflow-hidden bg-white">
+                                {section.items.map((faq, idx) => {
+                                    const key = `${section.id}-${faq.q}`;
+                                    const isExpanded = expandedIds.includes(key);
+                                    return (
+                                        <View key={key} style={idx > 0 ? { borderTopWidth: 1, borderTopColor: '#F1F3F7' } : undefined}>
+                                            <TouchableOpacity
+                                                onPress={() => toggleExpand(key)}
+                                                activeOpacity={0.7}
+                                                className="flex-row items-center px-4 py-4"
+                                                style={isExpanded ? { backgroundColor: '#F4F8FF' } : undefined}
+                                            >
+                                                <Text className={`flex-1 pr-3 font-outfit-semibold text-base ${isExpanded ? 'text-blue-700' : 'text-gray-900'}`}>
+                                                    {faq.q}
+                                                </Text>
+                                                <ChevronDown
+                                                    size={20}
+                                                    color={isExpanded ? '#0047AB' : '#9CA3AF'}
+                                                    style={{ transform: [{ rotate: isExpanded ? '180deg' : '0deg' }] }}
+                                                />
+                                            </TouchableOpacity>
+                                            {isExpanded && (
+                                                <View className="px-4 pb-4 pt-1" style={{ backgroundColor: '#F4F8FF' }}>
+                                                    <View className="pl-3" style={{ borderLeftWidth: 3, borderLeftColor: '#2B66F8' }}>
+                                                        <Text className="text-gray-600 font-outfit-regular text-[15px] leading-6">
+                                                            {faq.a}
+                                                        </Text>
+                                                    </View>
+                                                </View>
+                                            )}
+                                        </View>
+                                    );
+                                })}
+                            </View>
+                        </View>
+                    </View>
+                );
+            })}
+            <View className="h-10" />
         </ScrollView>
         </View>
     );

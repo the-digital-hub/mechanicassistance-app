@@ -1,5 +1,6 @@
 import { AppointmentCard } from '@/components/ui/AppointmentCard';
 import { Appointment, isCancelledStatus, useAppointments } from '@/context/AppointmentsContext';
+import { useUser } from '@/context/UserContext';
 import { ScrollPressGuardContext, useScrollPressGuard } from '@/hooks/useScrollPressGuard';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowDown, ArrowUp, X } from 'lucide-react-native';
@@ -11,6 +12,7 @@ export default function AppointmentsScreen() {
     const { t } = useTranslation();
     const { getUpcoming, getPendingApproval, getPast, refresh, appointments: allAppointments } = useAppointments();
     const router = useRouter();
+    const { user } = useUser();
     const { tab: tabParam } = useLocalSearchParams<{ tab?: string }>();
     const { scrollProps, guard } = useScrollPressGuard();
 
@@ -93,7 +95,7 @@ export default function AppointmentsScreen() {
                         </View>
 
                         {/* Title */}
-                        <Text className="text-gray-900 font-outfit-medium text-3xl">{t('appointments.list.title')}</Text>
+                        <Text className="text-gray-900 font-outfit-medium text-3xl">{t(user?.role === 'mechanic' ? 'appointments.list.title' : 'appointments.list.titleOwner')}</Text>
 
                         {/* Tab Switcher */}
                         <View className="flex-row" style={{ marginTop: 16, gap: 4, padding: 4, borderRadius: 14, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E4EAF5' }}>
