@@ -1,6 +1,6 @@
 import type { MarketplaceOffer } from '@/lib/dao/interfaces';
 
-import { bestOfferId, canSelect, holdsNow, money, offerErrorAction, openOffersByTotal, quoteErrorAction, quoteIsOpen, requestPhase, totalOf, windowLeft } from '../offers';
+import { bestOfferId, canSelect, holdsNow, money, offerErrorAction, openOffersByTotal, quoteErrorAction, quoteIsOpen, requestPhase, splitQuoteDescription, totalOf, windowLeft } from '../offers';
 
 const NOW = new Date('2026-11-15T12:00:00.000Z');
 
@@ -141,5 +141,24 @@ describe('requestPhase', () => {
         expect(requestPhase({ status: 'pending', offersCloseAt: past }, [offer('a', '10.00')], NOW)).toBe('closedWithOffers');
         expect(requestPhase({ status: 'pending', offersCloseAt: past }, [], NOW)).toBe('closedEmpty');
         expect(requestPhase({ status: 'pending', offersCloseAt: past }, [offer('a', null)], NOW)).toBe('closedEmpty');
+    });
+});
+
+describe('splitQuoteDescription', () => {
+    const block = '[MA_ITEMIZED_QUOTE:v1]{"items":[{"serviceName":"Oil change","status":"quoted","laborPrice":50,"partsPrice":40,"itemTotal":90,"notes":" ok "},{"serviceName":"Brakes","status":"cannot_quote"}]}[/MA_ITEMIZED_QUOTE]';
+    it('separates the readable text from the itemized block', () => {
+        const r = splitQuoteDescription(`Takes 45 minutes.\n\n${block}`);
+        expect(r.text).toBe('Takes 45 minutes.');
+        expect(r.items).toHaveLength(2);
+        expect(r.items[0]).toEqual({ name: 'Oil change', quoted: true, labor: 50, parts: 40, total: 90, notes: 'ok' });
+        expect(r.items[1]).toMatchObject({ name: 'Brakes', quoted: false, total: null });
+    });
+    it('never shows a block it cannot parse', () => {
+        const r = splitQuoteDescription('Hi [MA_ITEMIZED_QUOTE:v1]{broken[/MA_ITEMIZED_QUOTE]');
+        expect(r).toEqual({ text: 'Hi', items: [] });
+    });
+    it('handles plain and empty descriptions', () => {
+        expect(splitQuoteDescription('Just text')).toEqual({ text: 'Just text', items: [] });
+        expect(splitQuoteDescription(null)).toEqual({ text: '', items: [] });
     });
 });

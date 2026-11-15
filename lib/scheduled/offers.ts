@@ -144,3 +144,44 @@ export function requestPhase(
     if (!closed) return 'collecting';
     return open ? 'closedWithOffers' : 'closedEmpty';
 }
+
+/** One service line of an itemized quote. Amounts are numbers (dollars) as the provider app wrote them. */
+export interface QuoteItem {
+    name: string;
+    quoted: boolean;
+    labor: number | null;
+    parts: number | null;
+    total: number | null;
+    notes: string;
+}
+
+const ITEMIZED = /\[MA_ITEMIZED_QUOTE:v1\]([\s\S]*?)\[\/MA_ITEMIZED_QUOTE\]/;
+
+/**
+ * Providers' apps append a machine-readable block to the description of a quote. People must read
+ * the text only; the block becomes a list of service lines. A block that cannot be parsed is dropped
+ * (never shown raw).
+ */
+export function splitQuoteDescription(description: string | null | undefined): { text: string; items: QuoteItem[] } {
+    if (!description) return { text: '', items: [] };
+    const match = description.match(ITEMIZED);
+    const text = description.replace(/\[MA_ITEMIZED_QUOTE:v1\][\s\S]*?\[\/MA_ITEMIZED_QUOTE\]/g, '').trim();
+    if (!match) return { text, items: [] };
+    try {
+        const data = JSON.parse(match[1]) as { items?: Record<string, unknown>[] };
+        const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+        const items = (data.items ?? [])
+            .filter((i) => typeof i?.serviceName === 'string' && (i.serviceName as string).trim() !== '')
+            .map((i) => ({
+                name: i.serviceName as string,
+                quoted: i.status === 'quoted',
+                labor: num(i.laborPrice),
+                parts: num(i.partsPrice),
+                total: num(i.itemTotal),
+                notes: typeof i.notes === 'string' ? i.notes.trim() : '',
+            }));
+        return { text, items };
+    } catch {
+        return { text, items: [] };
+    }
+}

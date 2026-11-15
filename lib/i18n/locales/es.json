@@ -2975,7 +2975,11 @@
       "parts": "REPUESTOS",
       "warranty": "Garantía de {{days}} días",
       "select": "Elegir esta oferta",
-      "unavailable": "Esta oferta ya no está disponible."
+      "unavailable": "Esta oferta ya no está disponible.",
+      "services": "SERVICIOS",
+      "labor": "Mano de obra",
+      "partsLine": "Repuestos",
+      "notQuoted": "Sin cotizar"
     },
     "pay": {
       "eyebrow": "CONFIRMAR",

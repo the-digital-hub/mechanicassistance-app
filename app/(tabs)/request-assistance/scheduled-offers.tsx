@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 import { CARD_STYLE, Footer, Note, SC, StepHead, WizardHeader } from '@/components/scheduled/ui';
+import { QuoteDetails } from '@/components/scheduled/QuoteDetails';
 import { RequestAgainButton } from '@/components/scheduled/RequestAgainButton';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { useSocket } from '@/context/SocketContext';
@@ -289,7 +290,7 @@ export default function ScheduledOffersScreen() {
                     <StepHead eyebrow={t('scheduledOffers.detail.eyebrow')} title={money(chosenTotal)} sub={chosen.quoteType === 'diagnostic_then_quote' ? t('scheduledOffers.detail.diagnosticSub') : t('scheduledOffers.detail.finalSub')} />
                     {notice ? <Note tone="amber">{notice}</Note> : null}
                     {slot ? <Info label={t('scheduledOffers.detail.slot')} value={slot} /> : null}
-                    {chosen.description ? <Info label={t('scheduledOffers.detail.description')} value={chosen.description} /> : null}
+                    <QuoteDetails description={chosen.description} />
                     {chosen.parts?.length ? (
                         <View style={{ ...CARD_STYLE, padding: 14, gap: 6 }}>
                             <Text className="font-outfit-bold" style={{ fontSize: 11, letterSpacing: 1.2, color: SC.muted }}>{t('scheduledOffers.detail.parts')}</Text>
@@ -415,6 +416,7 @@ function Row({ label, value, bold }: { label: string; value: string; bold?: bool
         </View>
     );
 }
+
 
 function Info({ label, value }: { label: string; value: string }) {
     return (

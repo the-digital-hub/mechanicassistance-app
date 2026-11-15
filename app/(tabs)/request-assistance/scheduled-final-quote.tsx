@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
+import { QuoteDetails } from '@/components/scheduled/QuoteDetails';
 import { CARD_STYLE, Footer, Note, SC, StepHead, WizardHeader } from '@/components/scheduled/ui';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
@@ -146,12 +147,7 @@ export default function ScheduledFinalQuoteScreen() {
             <ScrollView contentContainerStyle={{ padding: 24, gap: 16 }}>
                 <StepHead eyebrow={t('finalQuote.eyebrow')} title={money(customerTotal?.amount)} sub={t('finalQuote.sub')} />
                 {notice ? <Note tone="amber">{notice}</Note> : null}
-                {quote.description ? (
-                    <View style={{ ...CARD_STYLE, padding: 14, gap: 4 }}>
-                        <Text className="font-outfit-bold" style={{ fontSize: 11, letterSpacing: 1.2, color: SC.muted }}>{t('scheduledOffers.detail.description')}</Text>
-                        <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: SC.text }}>{quote.description}</Text>
-                    </View>
-                ) : null}
+                <QuoteDetails description={quote.description} />
                 {quote.parts?.length ? (
                     <View style={{ ...CARD_STYLE, padding: 14, gap: 6 }}>
                         <Text className="font-outfit-bold" style={{ fontSize: 11, letterSpacing: 1.2, color: SC.muted }}>{t('scheduledOffers.detail.parts')}</Text>

@@ -2975,7 +2975,11 @@
       "parts": "PARTS",
       "warranty": "{{days}}-day warranty",
       "select": "Select this offer",
-      "unavailable": "This offer is no longer available."
+      "unavailable": "This offer is no longer available.",
+      "services": "SERVICES",
+      "labor": "Labor",
+      "partsLine": "Parts",
+      "notQuoted": "Not quoted"
     },
     "pay": {
       "eyebrow": "CONFIRM",
