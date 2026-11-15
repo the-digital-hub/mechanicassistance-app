@@ -10,10 +10,18 @@ export const LAST_FATAL_ERROR_KEY = 'last_fatal_js_error';
 const SHOW_ERROR_DETAILS = true;
 let alertVisible = false;
 
+/** React attaches the component tree (with names) to render errors it reports. */
+function componentStackOf(err: Error): string {
+    const stack = (err as Error & { componentStack?: unknown }).componentStack;
+    return typeof stack === 'string' ? stack.trim() : '';
+}
+
 function showErrorDetails(err: Error): void {
     if (!SHOW_ERROR_DETAILS || alertVisible) return;
     alertVisible = true;
-    const stackHead = (err.stack ?? '').split('\n').slice(0, 6).join('\n');
+    // The component tree names the screen; the JS stack of a render error is only React internals.
+    const components = componentStackOf(err).split('\n').slice(0, 8).join('\n');
+    const stackHead = components || (err.stack ?? '').split('\n').slice(0, 6).join('\n');
     const close = () => { alertVisible = false; };
     Alert.alert(
         'Error',
@@ -24,7 +32,7 @@ function showErrorDetails(err: Error): void {
                 text: 'Copy / Share',
                 onPress: () => {
                     close();
-                    void Share.share({ message: `${new Date().toISOString()}\n${err.message}\n\n${err.stack ?? ''}` }).catch(() => {});
+                    void Share.share({ message: `${new Date().toISOString()}\n${err.message}\n\nComponents:\n${componentStackOf(err)}\n\n${err.stack ?? ''}` }).catch(() => {});
                 },
             },
             { text: 'OK', onPress: close },
@@ -36,6 +44,7 @@ function showErrorDetails(err: Error): void {
 export interface FatalErrorRecord {
     message: string;
     stack?: string;
+    componentStack?: string;
     isFatal: boolean;
     at: string;
 }
@@ -46,6 +55,7 @@ export function recordFatalError(error: unknown, isFatal: boolean): void {
     const record: FatalErrorRecord = {
         message: err.message,
         stack: err.stack,
+        componentStack: componentStackOf(err) || undefined,
         isFatal,
         at: new Date().toISOString(),
     };
