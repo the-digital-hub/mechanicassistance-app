@@ -89,11 +89,16 @@ export default function NotificationsScreen() {
     const { user } = useUser();
 
     const deleteAndReport = async (ids: string[]) => {
-        if (await deleteNotifications(ids)) return;
+        const result = await deleteNotifications(ids);
+        if (result.ok) return;
+        // A status means the server answered: the connection is fine, so say so.
+        const message = result.status
+            ? t('notifications.deleteFailedServer', { status: result.status })
+            : t('notifications.deleteFailedMessage');
         if (Platform.OS === 'web') {
-            window.alert(t('notifications.deleteFailedMessage'));
+            window.alert(message);
         } else {
-            Alert.alert(t('notifications.deleteFailedTitle'), t('notifications.deleteFailedMessage'));
+            Alert.alert(t('notifications.deleteFailedTitle'), message);
         }
     };
 

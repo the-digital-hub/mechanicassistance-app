@@ -1,3 +1,4 @@
+import { ApiError } from '@/lib/api/types';
 import React, { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import { useUser } from '@/context/UserContext';
@@ -40,7 +41,8 @@ interface NotificationsContextType {
      * restart and on other phones. Removed from the list at once; put back if
      * the backend call fails. Resolves false on failure, never throws.
      */
-    deleteNotifications: (ids: string[]) => Promise<boolean>;
+    /** `ok: false` carries the HTTP status when the server answered, none when it was unreachable. */
+    deleteNotifications: (ids: string[]) => Promise<{ ok: boolean; status?: number }>;
 }
 
 const NotificationsContext = createContext<NotificationsContextType | undefined>(undefined);
@@ -147,18 +149,18 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     // `hidden` keeps a refresh that is already in flight from bringing back
     // what is being deleted; once the backend has them hidden, it never lists them.
     const deleteNotifications = useCallback(async (ids: string[]) => {
-        if (ids.length === 0) return true;
+        if (ids.length === 0) return { ok: true };
         const gone = new Set(ids);
         ids.forEach((id) => hidden.current.add(id));
         setNotifications(prev => prev.filter(n => !gone.has(n.id)));
         try {
             await notificationDAO.deleteInbox(ids);
-            return true;
+            return { ok: true };
         } catch (err) {
             console.warn('[inbox] delete failed:', (err as Error).message);
             ids.forEach((id) => hidden.current.delete(id));
             void refresh();
-            return false;
+            return { ok: false, status: err instanceof ApiError ? err.statusCode : undefined };
         }
     }, [refresh]);
 

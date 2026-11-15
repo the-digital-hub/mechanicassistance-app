@@ -425,9 +425,9 @@ export default function DashboardScreen() {
                         value={
                             !mechanicStats
                                 ? '—'
-                                : mechanicStats.avgRating === null
-                                  ? t('dashboard.mechanic.noRating')
-                                  : mechanicStats.avgRating.toFixed(1)
+                                : Number.isFinite(Number(mechanicStats.avgRating)) && mechanicStats.avgRating != null
+                                  ? Number(mechanicStats.avgRating).toFixed(1)
+                                  : t('dashboard.mechanic.noRating')
                         }
                         label={t('dashboard.mechanic.rating')}
                         bgColor="#FFF7ED"
