@@ -4,11 +4,11 @@ import {
     Outfit_600SemiBold,
     Outfit_700Bold,
 } from "@expo-google-fonts/outfit";
-import { LogBox } from "react-native";
+import { LogBox, Text, TouchableOpacity, View } from "react-native";
 
 import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
-import { Stack, useRouter } from "expo-router";
+import { Stack, useRouter, type ErrorBoundaryProps } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
@@ -26,7 +26,8 @@ import { onSessionExpired } from "@/lib/auth/session";
 import { VerificationProvider } from "@/context/VerificationContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { ConfigService } from "@/lib/config/ConfigService";
-import "@/lib/i18n";
+import { installGlobalErrorHandler, recordFatalError } from "@/lib/errors/globalErrorHandler";
+import i18n from "@/lib/i18n";
 // Defines the background location task at startup, including headless relaunches.
 import "@/lib/location/backgroundLocationTask";
 import "../global.css";
@@ -107,6 +108,32 @@ function AppShell() {
       </Stack>
       <StatusBar style="dark" />
     </UpdateRequiredGate>
+  );
+}
+
+installGlobalErrorHandler();
+
+// Shown by expo-router when a screen throws while rendering, instead of closing the app.
+export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  useEffect(() => {
+    recordFatalError(error, false);
+  }, [error]);
+
+  return (
+    <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24, backgroundColor: "#F6F8FC" }}>
+      <Text style={{ fontFamily: "Outfit_500Medium", fontSize: 20, color: "#0B1530", marginBottom: 8 }}>
+        {i18n.t("crash.title")}
+      </Text>
+      <Text style={{ fontFamily: "Outfit_400Regular", fontSize: 14, color: "#6B7490", textAlign: "center", marginBottom: 20 }}>
+        {i18n.t("crash.message")}
+      </Text>
+      <TouchableOpacity
+        onPress={retry}
+        style={{ backgroundColor: "#1E56E3", paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 }}
+      >
+        <Text style={{ fontFamily: "Outfit_500Medium", fontSize: 15, color: "#FFFFFF" }}>{i18n.t("crash.retry")}</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 

@@ -2690,5 +2690,10 @@
         "other": "—"
       }
     }
+  },
+  "crash": {
+    "title": "Something went wrong",
+    "message": "The app ran into an unexpected error. You can try again.",
+    "retry": "Try again"
   }
 }

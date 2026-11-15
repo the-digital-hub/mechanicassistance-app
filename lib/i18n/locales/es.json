@@ -2690,5 +2690,10 @@
         "other": "—"
       }
     }
+  },
+  "crash": {
+    "title": "Algo salió mal",
+    "message": "La app tuvo un error inesperado. Puedes intentarlo de nuevo.",
+    "retry": "Reintentar"
   }
 }
