@@ -145,17 +145,17 @@
         "disputed": "Under review"
       },
       "requestStatusDetail": {
-        "pending": "Looking for a mechanic",
-        "offered": "Mechanic found",
+        "pending": "Looking for a technician",
+        "offered": "Technician found",
         "accepted": "Technician assigned",
         "started": "Service underway",
-        "awaitingConfirmation": "The mechanic finished — confirm it",
+        "awaitingConfirmation": "The technician finished — confirm it",
         "disputed": "Support is reviewing it"
       },
       "viewRequest": "View request",
       "cancelRequest": "Cancel",
       "cancelConfirmTitle": "Cancel this request?",
-      "cancelConfirmMessage": "Mechanics stop seeing it and it cannot be reopened.",
+      "cancelConfirmMessage": "Technicians stop seeing it and it cannot be reopened.",
       "cancelConfirmYes": "Yes, cancel",
       "cancelConfirmNo": "No",
       "cancelFailedTitle": "Could not cancel",
@@ -215,9 +215,9 @@
       },
       "sheet": {
         "title": "Request assistance",
-        "immediate": "A nearby mechanic dispatched right away",
+        "immediate": "A nearby technician dispatched right away",
         "scheduled": "Request quotes and pick a date that works for you",
-        "videoCall": "Talk a mechanic through it from your phone",
+        "videoCall": "Talk a technician through it from your phone",
         "subtitle": "How do you want to be helped?"
       }
     },
@@ -276,7 +276,7 @@
       "priceCalculating": "Calculating…",
       "feedBanner": {
         "offlineTitle": "You're offline",
-        "offlineMessage": "We won't notify you about new requests. These are still waiting for a mechanic.",
+        "offlineMessage": "We won't notify you about new requests. These are still waiting for a technician.",
         "busyTitle": "You're busy",
         "busyMessage": "We won't notify you about new requests until you're available.",
         "goAvailable": "Go available"
@@ -349,13 +349,13 @@
       "other": "Other"
     },
     "type": {
-      "badge": "REQUEST A MECHANIC",
+      "badge": "REQUEST A TECHNICIAN",
       "title": "How can we help today?",
       "subtitle": "Pick the type of assistance — we'll route you to the right specialist.",
       "immediate": {
         "badge": "RECOMMENDED · 24H PERIOD",
         "title": "Immediate Assistance",
-        "description": "A nearby mechanic dispatched right away."
+        "description": "A nearby technician dispatched right away."
       },
       "scheduled": {
         "title": "Scheduled Assistance",
@@ -364,7 +364,7 @@
       },
       "videoCall": {
         "title": "Video Call Assistance",
-        "description": "Talk a mechanic through it from your phone.",
+        "description": "Talk a technician through it from your phone.",
         "badge": "DIY · ON DEMAND"
       },
       "accident": {
@@ -438,8 +438,8 @@
       "continue": "Continue"
     },
     "vehicleDocumentation": {
-      "title": "Document what needs repair",
-      "subtitle": "Record or photograph the exact issue. Clear documentation helps your mechanic understand the problem and quote accurately.",
+      "title": "Add photos or video",
+      "subtitle": "Record or photograph the exact issue. Clear documentation helps your technician understand the problem and quote accurately.",
       "optional": "OPTIONAL",
       "sectionTitle": "Video or photos",
       "sectionOptional": "(optional)",
@@ -511,7 +511,7 @@
       "confirmAndRequest": "Confirm and Request",
       "scheduledFor": "Scheduled for",
       "pricingUnavailableTitle": "Price pending",
-      "pricingUnavailableMessage": "Your request was sent, but we couldn't calculate the price right now. A mechanic will confirm it with you.",
+      "pricingUnavailableMessage": "Your request was sent, but we couldn't calculate the price right now. A technician will confirm it with you.",
       "requestSummary": "REQUEST SUMMARY",
       "assistanceTypeLabel": "Assistance type",
       "priceLabel": "PRICE",
@@ -527,7 +527,7 @@
       "header": "Pick a date and time",
       "badge": "WHEN",
       "title": "When do you need it?",
-      "subtitle": "Choose the day and time you want the mechanic to arrive",
+      "subtitle": "Choose the day and time you want the technician to arrive",
       "dayLabel": "Day",
       "timeLabel": "Time",
       "noSlots": "No times left today. Pick another day.",
@@ -536,20 +536,20 @@
     "searching": {
       "step1Title": "Request sent",
       "step1Subtitle": "Your request is live.",
-      "step2Title": "Notifying mechanics",
-      "step2Subtitle": "Mechanics have been alerted.",
+      "step2Title": "Notifying technicians",
+      "step2Subtitle": "Technicians have been alerted.",
       "step3Title": "Reviewing offers",
       "step3Subtitle": "Waiting for the best match to accept...",
       "cancelledAlert": "Assistance search cancelled.",
-      "expiredAlert": "No mechanic took your request within 45 minutes, so it was cancelled. You can request again.",
+      "expiredAlert": "No technician took your request within 45 minutes, so it was cancelled. You can request again.",
       "maxWait": "We keep searching for up to 45 minutes",
       "cancelErrorAlert": "Error cancelling request. Please try again.",
-      "badge": "FINDING A MECHANIC",
-      "title": "Hang tight — we're finding your mechanic",
+      "badge": "FINDING A TECHNICIAN",
+      "title": "Hang tight — we're finding your technician",
       "subtitle": "We're scanning your area in real-time to find the best match.",
       "searchingNearby": "SEARCHING NEARBY",
       "averageMatchTime": "Average match time is under 8 minutes",
-      "mechanicsNotified": "{{count}} mechanics notified",
+      "mechanicsNotified": "{{count}} technicians notified",
       "yourRequest": "Your request",
       "service": "Service",
       "vehicle": "Vehicle",
@@ -560,7 +560,7 @@
       "vinCheck": {
         "mismatch": {
           "title": "This report is from another vehicle",
-          "body": "The VIN on the scanner report you attached is not the VIN of the vehicle on this request. The mechanic will see a warning. You can carry on, send another report or cancel the request."
+          "body": "The VIN on the scanner report you attached is not the VIN of the vehicle on this request. The technician will see a warning. You can carry on, send another report or cancel the request."
         },
         "unknown": {
           "title": "Is this report from your vehicle?",
@@ -648,7 +648,7 @@
       "expiredTitle": "This offer expired",
       "expiredMessage": "The offer was not confirmed in time. We'll keep looking for a technician for you.",
       "cancelTitle": "Cancel request?",
-      "cancelMessage": "The mechanic will be told and your request will be closed. This cannot be undone.",
+      "cancelMessage": "The technician will be told and your request will be closed. This cannot be undone.",
       "cancelKeep": "Keep request",
       "cancelConfirm": "Cancel request",
       "subtitleVideoCall": "Review the offer and confirm to start your video call.",
@@ -725,11 +725,11 @@
       "skip": "Skip",
       "badge": "VIDEO CALL",
       "title": "Do you have an OBD scanner?",
-      "subtitle": "If you have one, send the mechanic the trouble codes it reads. They'll see them before the call starts.",
+      "subtitle": "If you have one, send the technician the trouble codes it reads. They'll see them before the call starts.",
       "yesTitle": "Yes, I have one",
       "yesSubtitle": "I'll plug it in and send the report",
       "noTitle": "No, I don't",
-      "noSubtitle": "The mechanic will diagnose it on the call",
+      "noSubtitle": "The technician will diagnose it on the call",
       "howTitle": "How to do it",
       "steps": {
         "plug": "Plug the scanner into the OBD-II port, under the dashboard on the driver's side.",
@@ -738,7 +738,7 @@
         "capture": "Take a photo of the scanner's screen, or upload a screenshot or PDF from its app."
       },
       "placeholder": "Add the scanner report",
-      "privacy": "Only the mechanic who takes your call will see the codes. Before that, mechanics only see that you sent a report.",
+      "privacy": "Only the technician who takes your call will see the codes. Before that, technicians only see that you sent a report.",
       "cta": "Continue",
       "ctaNeedFile": "Add the report to continue",
       "uploadFailedTitle": "We couldn't send the scanner report",
@@ -756,7 +756,7 @@
       "noUpcoming": "No upcoming appointments",
       "noPendingApproval": "No requests waiting for approval",
       "noPast": "No past appointments",
-      "waitingForMechanic": "Waiting for mechanic",
+      "waitingForMechanic": "Waiting for technician",
       "mechanicOffered": "Service offered",
       "tapToViewOffer": "Tap to view offer",
       "cancelModalTitle": "Cancel Request",
@@ -766,14 +766,14 @@
       "card": {
         "statusLabel": "Status",
         "status": {
-          "pending": "Waiting for mechanic",
-          "pendingHint": "We're looking for a mechanic",
+          "pending": "Waiting for technician",
+          "pendingHint": "We're looking for a technician",
           "offered": "Service offered",
           "offeredHint": "Tap to view offer",
-          "ready": "Mechanic hasn't left yet",
-          "readyHint": "Waiting for the mechanic to head out",
-          "enRoute": "Mechanic en route",
-          "enRouteHint": "Mechanic is on the way",
+          "ready": "Technician hasn't left yet",
+          "readyHint": "Waiting for the technician to head out",
+          "enRoute": "Technician en route",
+          "enRouteHint": "Technician is on the way",
           "scheduled": "Scheduled",
           "scheduledHint": "Your appointment is confirmed",
           "completed": "Completed",
@@ -781,7 +781,7 @@
           "canceled": "Cancelled",
           "canceledHint": "Request was cancelled",
           "awaitingConfirmation": "Awaiting confirmation",
-          "awaitingConfirmationHint": "Mechanic finished the video call",
+          "awaitingConfirmationHint": "Technician finished the video call",
           "disputed": "Under review",
           "disputedHint": "Support is reviewing it",
           "notCharged": "Not charged",
@@ -883,7 +883,7 @@
     "detail": {
       "tabs": {
         "assistanceInfo": "Assistance info",
-        "mechanicInfo": "Mechanic info",
+        "mechanicInfo": "Technician info",
         "clientInfo": "Client info",
         "assistStatus": "Assist status",
         "budget": "Budget"
@@ -943,28 +943,28 @@
       "cancelOpenSettings": "Not now"
     },
     "userTracking": {
-      "mechanicMatch": "Mechanic Match!",
+      "mechanicMatch": "Technician Match!",
       "calculating": "Calculating...",
       "minAway": "{{minutes}} min away",
       "onTheWay": "On the way",
       "etaValue": "ETA: {{eta}}",
       "etaUnknown": "ETA: --",
       "posted": "Posted: 07/07/2025 - 03:15 AM",
-      "mechanicLabel": "Mechanic:",
+      "mechanicLabel": "Technician:",
       "unknown": "Unknown",
-      "loadingMechanic": "Loading mechanic...",
+      "loadingMechanic": "Loading technician...",
       "call": "Call",
       "message": "Message"
     },
     "userMechanicInfo": {
-      "loading": "Loading mechanic info...",
+      "loading": "Loading technician info...",
       "backToProfile": "Back to Profile",
       "reviewsHistory": "Reviews History",
       "sampleReviewDate": "February 20th, 2019",
       "sampleReviewText": "Great service! Highly recommended.",
       "identifyMe": "Identify Me: {{vehicle}}",
       "defaultVehicle": "Ford Focus, Blue",
-      "mechanicSince": "Mechanic Since: July 2018",
+      "mechanicSince": "Technician Since: July 2018",
       "yearsExperience": "{{years}} years experience",
       "schedule": "Mon-Sat / 9:00AM - 5:00PM",
       "aboutMe": "About Me",
@@ -987,22 +987,22 @@
       "notes": "Notes:",
       "submittedPhotos": "Submitted photos ({{count}}):",
       "yourLocation": "Your location",
-      "mechanic": "Mechanic",
-      "mechanicLocation": "Mechanic's location",
+      "mechanic": "Technician",
+      "mechanicLocation": "Technician's location",
       "locationNotAvailable": "Location not available"
     },
     "cancellationModal": {
-      "message": "Are you sure you'd like to cancel this request?\nYour mechanic is already on their way to you.",
+      "message": "Are you sure you'd like to cancel this request?\nYour technician is already on their way to you.",
       "notDeparted": "Are you sure you'd like to cancel this request?",
-      "freeWindow": "Your mechanic is already on their way, but you can still cancel at no charge for {{time}} more.",
-      "chargeReview": "Your mechanic already left for your location. If you cancel now, the charge goes to review: the amount on hold is kept and the mechanic may be compensated for the trip."
+      "freeWindow": "Your technician is already on their way, but you can still cancel at no charge for {{time}} more.",
+      "chargeReview": "Your technician already left for your location. If you cancel now, the charge goes to review: the amount on hold is kept and the technician may be compensated for the trip."
     },
     "cancellationDispute": {
       "cancelledTitle": "Request cancelled",
       "ownerReviewTitle": "Charge under review",
-      "ownerReviewBody": "The mechanic had already left when you cancelled. Our team is reviewing the charge; up to {{amount}} is on hold.",
+      "ownerReviewBody": "The technician had already left when you cancelled. Our team is reviewing the charge; up to {{amount}} is on hold.",
       "ownerChargedTitle": "Charged {{amount}}",
-      "ownerChargedBody": "Charged to your card for the mechanic's trip. The rest of the hold was released.",
+      "ownerChargedBody": "Charged to your card for the technician's trip. The rest of the hold was released.",
       "ownerNoChargeTitle": "No charge",
       "ownerNoChargeBody": "The hold on your card was released.",
       "mechanicReviewTitle": "Compensation under review",
@@ -1107,7 +1107,7 @@
       "incident": {
         "eyebrow": "VALIDATED",
         "title": "Review what the client reported",
-        "subtitle": "Match found between mechanic and vehicle — you're good to continue.",
+        "subtitle": "Match found between technician and vehicle — you're good to continue.",
         "vehicle": "Vehicle",
         "issue": "Reported issue",
         "notes": "Notes",
@@ -1179,12 +1179,12 @@
         },
         "ownerVinCheck": {
           "mismatch": {
-            "title": "The mechanic scanned another vehicle",
-            "body": "The VIN read by the mechanic's scanner is not the VIN of your vehicle. The mechanic has been asked to explain it, and their answer goes on the service report."
+            "title": "The technician scanned another vehicle",
+            "body": "The VIN read by the technician's scanner is not the VIN of your vehicle. The technician has been asked to explain it, and their answer goes on the service report."
           },
           "unknown": {
             "title": "Your vehicle has no VIN saved",
-            "body": "The mechanic's scanner read the VIN below, but your vehicle has none saved, so we cannot check it is yours. Make sure it matches your vehicle."
+            "body": "The technician's scanner read the VIN below, but your vehicle has none saved, so we cannot check it is yours. Make sure it matches your vehicle."
           },
           "vehicleVin": "Your vehicle",
           "reportVin": "Scanner",
@@ -1297,7 +1297,7 @@
       "videoOut": {
         "eyebrow": "BEFORE YOU GO · OPTIONAL",
         "title": "Capture the vehicle's condition on exit",
-        "subtitle": "This step is optional, but a quick video or a few photos protect you if the client ever raises a claim — and it boosts your mechanic rating.",
+        "subtitle": "This step is optional, but a quick video or a few photos protect you if the client ever raises a claim — and it boosts your technician rating.",
         "obdTitle": "OBD scan report",
         "obdSub": "You still haven't uploaded the scanner file from step 2 — you can do it now.",
         "mediaTitle": "Video or photos",
@@ -1348,7 +1348,7 @@
     },
     "customerCheckIn": {
       "title": "Your check-in code",
-      "subtitle": "Show this to your mechanic when they arrive. They will scan the QR or type the PIN.",
+      "subtitle": "Show this to your technician when they arrive. They will scan the QR or type the PIN.",
       "pin": "PIN",
       "unavailable": "Couldn't load your check-in code."
     },
@@ -1372,7 +1372,7 @@
       "reviewResend": "Ask again",
       "reviewReceived": "The owner left a review — thanks!",
       "rateTitle": "Rate the vehicle owner",
-      "rateBody": "Your feedback stays private and helps keep the community reliable for other mechanics.",
+      "rateBody": "Your feedback stays private and helps keep the community reliable for other technicians.",
       "ratePh": "Optional note about the client (e.g. easy to reach, clear access to the vehicle)…",
       "rateSubmit": "Submit rating",
       "rateDone": "Thanks — your {{rating}}-star rating was submitted",
@@ -1413,7 +1413,7 @@
       "notCharged": "This service has not been charged yet, so there is no payment to show."
     },
     "ownerReview": {
-      "title": "Rate your mechanic",
+      "title": "Rate your technician",
       "subtitle": "How did the assistance go?",
       "tagsTitle": "What stood out?",
       "tags": {
@@ -1428,10 +1428,10 @@
       "thanks": "Thanks for your review!",
       "already": "You already reviewed this service.",
       "error": "Couldn't send your review. Please try again.",
-      "cardTitle": "Rate your mechanic",
-      "cardBody": "Your review helps other drivers and your mechanic.",
+      "cardTitle": "Rate your technician",
+      "cardBody": "Your review helps other drivers and your technician.",
       "cardButton": "Leave a review",
-      "mechanic": "Your mechanic"
+      "mechanic": "Your technician"
     },
     "ownerAccepted": {
       "title": "Assistance accepted",
@@ -1462,7 +1462,7 @@
       "yourLocation": "Your location",
       "openInMaps": "Open in Maps",
       "expandMap": "Expand map",
-      "mapTitle": "Mechanic's route",
+      "mapTitle": "Technician's route",
       "recenter": "Recenter",
       "closeMap": "Close",
       "checkInDone": "Your technician already checked in",
@@ -1511,7 +1511,7 @@
       "owner": {
         "awaitingTitle": "Did the video call solve your problem?",
         "awaitingBody": "{{name}} marked the assistance as finished. Confirm it to complete the service.",
-        "mechanicNote": "Mechanic's note",
+        "mechanicNote": "Technician's note",
         "confirm": "Confirm",
         "notResolved": "It wasn't resolved",
         "confirmFailed": "We couldn't confirm the assistance. Please try again.",
@@ -1920,7 +1920,7 @@
     "all": "All",
     "unread": "Unread",
     "empty": "No notifications yet",
-    "emptyHint": "When a mechanic responds to your request, it will appear here.",
+    "emptyHint": "When a technician responds to your request, it will appear here.",
     "tapToView": "Tap to view details →",
     "deleteFailedTitle": "Could not delete",
     "deleteFailedMessage": "The notifications could not be deleted. Check your connection and try again.",
@@ -2244,7 +2244,7 @@
       "searchModel": "Search Model..."
     },
     "credentials": {
-      "notFound": "No ASE mechanic found with that ID. Please verify and try again.",
+      "notFound": "No ASE technician found with that ID. Please verify and try again.",
       "searchError": "An error occurred while searching. Please try again.",
       "noExpiration": "No expiration",
       "badge": "ASE CERTIFICATIONS",
@@ -2361,7 +2361,7 @@
       "loading": "Loading...",
       "noOptions": "No options available",
       "done": "Done",
-      "title": "Mechanic expertise Info",
+      "title": "Technician expertise Info",
       "subtitle": "Help us get to know your skills — it means more job matches for you",
       "assistanceTypeLabel": "Prefered type of assistance",
       "servicesLabel": "Services offered",
@@ -2414,7 +2414,7 @@
       "identityVerified": "Your identity is already verified.",
       "finishing": "Adding the role to your account...",
       "roleUser": "vehicle owner",
-      "roleMechanic": "mechanic",
+      "roleMechanic": "technician",
       "registeredOnly": "Your profile is saved. This role is coming soon to the app — you'll keep using your current role meanwhile."
     }
   },
@@ -2426,7 +2426,7 @@
     "all": "All"
   },
   "ase": {
-    "notFound": "No ASE mechanic found with that ID. Please verify and try again.",
+    "notFound": "No ASE technician found with that ID. Please verify and try again.",
     "searchError": "An error occurred while searching. Please try again.",
     "linkFailed": "Failed to link your ASE membership. Please try again.",
     "noExpiration": "No expiration",
@@ -2640,7 +2640,7 @@
     "declinedReason": "Reason: {{reason}}",
     "notStartedTitle": "Verify your identity",
     "notStartedBody": "Taking jobs needs a verified identity. Everything else works without it.",
-    "notStartedBodyOptional": "Verifying is optional. You do not need it to request assistance — it just shows mechanics who they are dealing with. You can do it whenever you want.",
+    "notStartedBodyOptional": "Verifying is optional. You do not need it to request assistance — it just shows technicians who they are dealing with. You can do it whenever you want.",
     "startButton": "Verify my identity",
     "retryButton": "Try again",
     "refreshButton": "Check again",
@@ -2849,7 +2849,7 @@
       "sub": "Choose the vehicle that needs the service.",
       "mileageLabel": "CURRENT MILEAGE (MI)",
       "mileagePlaceholder": "e.g. 42,180",
-      "mileageHint": "Helps the mechanic recommend the right services.",
+      "mileageHint": "Helps the technician recommend the right services.",
       "noVehicles": "You have no vehicles yet",
       "noVehiclesSub": "Add the vehicle that needs the service.",
       "addVehicle": "Add a vehicle"
@@ -2894,7 +2894,7 @@
       "from": "Available from",
       "to": "Available to",
       "sameDayTitle": "Service for today: reduced quote window.",
-      "sameDayBody": "Offers close 1 hour before your requested time. Same-day availability depends on the mechanics in your area.",
+      "sameDayBody": "Offers close 1 hour before your requested time. Same-day availability depends on the technicians in your area.",
       "windowTitle": "Quote window open.",
       "windowBody": "Offers stay open for up to 48 hours, or until 1 hour before your requested time if that comes first.",
       "symptomsLabel": "SYMPTOMS OR SPECIAL REQUESTS (OPTIONAL)",
@@ -2908,7 +2908,7 @@
     "review": {
       "eyebrow": "STEP 5 · REVIEW",
       "title": "Review your request",
-      "sub": "Check everything before it's sent to mechanics and shops for quotes.",
+      "sub": "Check everything before it's sent to technicians and shops for quotes.",
       "vehicle": "VEHICLE",
       "location": "LOCATION",
       "contact": "ONSITE CONTACT",
@@ -2928,7 +2928,7 @@
     },
     "sent": {
       "title": "Request sent",
-      "body": "Nothing has been charged. Eligible mechanics and shops can now quote, and you'll be notified as each offer arrives.",
+      "body": "Nothing has been charged. Eligible technicians and shops can now quote, and you'll be notified as each offer arrives.",
       "ref": "Reference",
       "view": "View request",
       "home": "Back to dashboard"
