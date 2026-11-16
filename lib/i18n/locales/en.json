@@ -2123,6 +2123,7 @@
     "countryNotSupportedMessage": "We don't support phone numbers from that country yet.",
     "noCodeHint": "Didn't get the code?",
     "noCodeHintDetail": "It can take a minute. If it never arrives, that number may not have an account yet.",
+    "rememberMe": "Remember me on this device",
     "forgotPassword": "Forgot password?",
     "forgotModalTitle": "Reset your password",
     "forgotModalSubtitle": "Enter your registered email address and we will send you instructions to reset your password.",
@@ -3300,6 +3301,10 @@
       "send": "Send quote"
     },
     "sent": {
+      "travel": "Travel fee",
+      "notQuoted": "Not quoted",
+      "total": "Total",
+      "yourMessage": "YOUR MESSAGE",
       "title": "Quote sent",
       "sub": "The customer is comparing offers. We'll notify you as soon as they decide.",
       "edit": "Edit quote",

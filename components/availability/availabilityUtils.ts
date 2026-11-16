@@ -39,7 +39,7 @@ export const DEFAULT_START_TIME = "09:00";
 export const DEFAULT_END_TIME = "17:00";
 export const DEFAULT_SERVICE_RADIUS = 15;
 export const RADIUS_MIN = 1;
-export const RADIUS_MAX = 50;
+export const RADIUS_MAX = 100;
 
 /**
  * Shown until the mechanic's own address is known. Never borrowed for an address

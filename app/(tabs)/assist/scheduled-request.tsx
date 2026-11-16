@@ -259,11 +259,9 @@ export default function ScheduledRequestScreen() {
                     title={t('scheduledProvider.sent.title')}
                     sub={t('scheduledProvider.sent.sub')}
                     footer={
-                        <View style={{ ...FLOATING_FOOTER, gap: 10 }}>
-                            <View className="flex-row" style={{ gap: 10 }}>
-                                <Ghost label={t('scheduledProvider.sent.edit')} onPress={editSent} flex={1} outlined />
-                                <Primary label={t('scheduledProvider.back')} onPress={toRequests} flex={1.25} />
-                            </View>
+                        <View className="flex-row" style={{ gap: 10 }}>
+                            <Ghost label={t('scheduledProvider.sent.edit')} onPress={editSent} flex={1} outlined />
+                            <Primary label={t('scheduledProvider.back')} onPress={toRequests} flex={1.25} />
                         </View>
                     }
                 >
@@ -277,6 +275,28 @@ export default function ScheduledRequestScreen() {
                             <Text className="font-outfit-regular" style={{ fontSize: 13, color: SC.muted, marginTop: 2 }}>
                                 {t('scheduledProvider.sent.servicesCount', { quoted: sentSplit.items.filter((i) => i.quoted && i.name !== 'Travel fee').length, total: sentSplit.items.filter((i) => i.name !== 'Travel fee').length })}
                             </Text>
+                        ) : null}
+                        {sentSplit.items.length > 0 ? (
+                            <View style={{ marginTop: 12, paddingTop: 4, borderTopWidth: 1, borderTopColor: SC.borderSoft }}>
+                                {sentSplit.items.map((item) => (
+                                    <View key={item.name} className="flex-row items-center justify-between" style={{ paddingVertical: 8, gap: 12 }}>
+                                        <Text className="font-outfit-medium flex-1" style={{ fontSize: 14, color: SC.text }}>{item.name === 'Travel fee' ? t('scheduledProvider.sent.travel') : item.name}</Text>
+                                        <Text className="font-outfit-bold" style={{ fontSize: 14, color: item.quoted ? SC.text : SC.muted }}>
+                                            {item.quoted ? money(item.total ?? 0) : t('scheduledProvider.sent.notQuoted')}
+                                        </Text>
+                                    </View>
+                                ))}
+                                <View className="flex-row items-center justify-between" style={{ paddingTop: 10, marginTop: 2, borderTopWidth: 1, borderTopColor: SC.borderSoft }}>
+                                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: SC.text }}>{t('scheduledProvider.sent.total')}</Text>
+                                    <Text className="font-outfit-bold" style={{ fontSize: 16, color: SC.blueDark }}>{money(sentPrice)}</Text>
+                                </View>
+                            </View>
+                        ) : null}
+                        {sentSplit.text ? (
+                            <View style={{ marginTop: 12, padding: 12, borderRadius: 12, backgroundColor: SC.blueSofter }}>
+                                <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1, color: SC.muted }}>{t('scheduledProvider.sent.yourMessage')}</Text>
+                                <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: SC.text, marginTop: 4 }}>{sentSplit.text}</Text>
+                            </View>
                         ) : null}
                     </View>
                     <View style={{ alignSelf: 'stretch', borderRadius: 18, backgroundColor: SC.blueSoft, padding: 14 }} className="flex-row items-center">

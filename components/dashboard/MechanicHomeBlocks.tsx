@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { Award, ChevronDown, ChevronRight, Star, Wrench, type LucideIcon } from 'lucide-react-native';
+import { Award, ChevronDown, ChevronRight, Star, Wallet, Wrench, type LucideIcon } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 
@@ -141,20 +141,24 @@ export function AvailabilityCard({
     );
 }
 
-function MiniStat({ icon, accent, label, value, sub }: { icon: ReactNode; accent: string; label: string; value: string; sub?: string }) {
+/** A stat tile: icon chip, big number, label; `children` sits under the number (the rating stars). */
+function MiniStat({ icon, accent, label, value, sub, children }: { icon: ReactNode; accent: string; label: string; value: string; sub?: string; children?: ReactNode }) {
     return (
-        <View className="flex-1 flex-row" style={{ ...CARD, padding: 14, gap: 10, minWidth: 0 }}>
-            <View className="items-center justify-center" style={{ width: 34, height: 34, borderRadius: 11, backgroundColor: `${accent}22` }}>{icon}</View>
-            <View className="flex-1" style={{ minWidth: 0 }}>
-                <Text className="font-outfit-semibold" style={{ fontSize: 13, color: C.muted }} numberOfLines={1}>{label}</Text>
-                <Text className="font-outfit-bold" style={{ fontSize: 24, letterSpacing: -0.6, color: C.text, marginTop: 4 }} numberOfLines={1}>{value}</Text>
-                {sub ? <Text className="font-outfit-regular" style={{ fontSize: 13, color: C.muted, marginTop: 3 }} numberOfLines={1}>{sub}</Text> : null}
+        <View className="flex-1" style={{ ...CARD, padding: 14, minWidth: 0 }}>
+            <View className="flex-row items-center" style={{ gap: 10 }}>
+                <View className="items-center justify-center" style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: `${accent}1F` }}>{icon}</View>
+                <Text className="font-outfit-semibold flex-1" style={{ fontSize: 13, color: C.muted }} numberOfLines={1}>{label}</Text>
             </View>
+            <View className="flex-row items-baseline" style={{ gap: 6, marginTop: 12 }}>
+                <Text className="font-outfit-bold" style={{ fontSize: value.length > 6 ? 18 : 30, letterSpacing: -0.9, lineHeight: 34, color: value.length > 6 ? C.muted : C.text }} numberOfLines={1}>{value}</Text>
+                {sub ? <Text className="font-outfit-regular" style={{ fontSize: 13, color: C.muted }} numberOfLines={1}>({sub})</Text> : null}
+            </View>
+            {children}
         </View>
     );
 }
 
-/** Earned today as a hero amount plus two mini stats (jobs done, rating). */
+/** Earned today as a hero amount plus two stat tiles (jobs done, rating). */
 export function TodayBlock({
     earnedLabel,
     earned,
@@ -174,16 +178,41 @@ export function TodayBlock({
     rating: string;
     ratingSub?: string;
 }) {
+    const stars = Number.parseFloat(rating);
+    const hasStars = Number.isFinite(stars);
     return (
         <View style={{ gap: 12 }}>
-            <View style={{ ...CARD, padding: 16 }}>
-                <Text className="font-outfit-semibold" style={{ fontSize: 13, color: C.muted }}>{earnedLabel}</Text>
-                <Text className="font-outfit-bold" style={{ fontSize: 34, letterSpacing: -1, color: C.text, marginTop: 8 }} numberOfLines={1}>{earned}</Text>
-                {footer ? <View style={{ marginTop: 8 }}>{footer}</View> : null}
-            </View>
+            <LinearGradient
+                colors={['#2F6BFF', '#1E56E3', '#0B2A8E']}
+                locations={[0, 0.5, 1]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0.9, y: 1 }}
+                style={{ borderRadius: 22, padding: 18, shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.22, shadowRadius: 14, elevation: 4 }}
+            >
+                <View className="flex-row items-center" style={{ gap: 10 }}>
+                    <View className="items-center justify-center" style={{ width: 34, height: 34, borderRadius: 11, backgroundColor: 'rgba(255,255,255,0.18)' }}>
+                        <Wallet size={18} color="#FFFFFF" />
+                    </View>
+                    <Text className="font-outfit-semibold" style={{ fontSize: 14, color: 'rgba(255,255,255,0.88)' }}>{earnedLabel}</Text>
+                </View>
+                <Text className="font-outfit-bold" style={{ fontSize: 42, letterSpacing: -1.4, lineHeight: 48, color: '#FFFFFF', marginTop: 14 }} numberOfLines={1}>{earned}</Text>
+                {footer ? (
+                    <View className="self-start" style={{ marginTop: 12, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.16)' }}>
+                        {footer}
+                    </View>
+                ) : null}
+            </LinearGradient>
             <View className="flex-row" style={{ gap: 12 }}>
-                <MiniStat icon={<Wrench size={16} color={C.blue} />} accent={C.blue} label={jobsLabel} value={jobs} />
-                <MiniStat icon={<Star size={16} color={C.orange} />} accent={C.orange} label={ratingLabel} value={rating} sub={ratingSub} />
+                <MiniStat icon={<Wrench size={18} color={C.blue} />} accent={C.blue} label={jobsLabel} value={jobs} />
+                <MiniStat icon={<Star size={18} color={C.orange} fill={C.orange} />} accent={C.orange} label={ratingLabel} value={rating} sub={ratingSub}>
+                    {hasStars ? (
+                        <View className="flex-row" style={{ gap: 2, marginTop: 8 }}>
+                            {[1, 2, 3, 4, 5].map((n) => (
+                                <Star key={n} size={14} color={n <= Math.round(stars) ? C.orange : C.blueIce} fill={n <= Math.round(stars) ? C.orange : 'transparent'} />
+                            ))}
+                        </View>
+                    ) : null}
+                </MiniStat>
             </View>
         </View>
     );

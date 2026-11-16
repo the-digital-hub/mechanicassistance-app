@@ -26,6 +26,7 @@ import {
 } from "@/lib/firebase/auth";
 import { userDAO } from "@/lib/dao/UserDAO";
 import { getLastPhone, saveLastPhone } from "@/lib/storage";
+import { clearSavedLogin, getSavedLogin, saveLogin } from "@/lib/auth/savedLogin";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
@@ -98,6 +99,7 @@ export default function LoginScreen() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberLogin, setRememberLogin] = useState(true);
   const [otpCode, setOtpCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showKeypad, setShowKeypad] = useState(true);
@@ -189,6 +191,14 @@ export default function LoginScreen() {
       }
     };
     loadLastPhone();
+    // Email + password remembered on this device from a previous sign-in.
+    getSavedLogin().then((saved) => {
+      if (saved) {
+        setEmailAddress(saved.email);
+        setPassword(saved.password);
+        setRememberLogin(true);
+      }
+    });
   }, []);
 
   const formatPhoneNumber = (text: string) => {
@@ -393,6 +403,8 @@ export default function LoginScreen() {
         password,
       );
       if (!user) throw new Error();
+      if (rememberLogin) await saveLogin({ email: emailAddress.trim(), password });
+      else await clearSavedLogin();
       await adoptSession(user);
       router.replace("/choose-role");
     } catch (err: unknown) {
@@ -653,6 +665,7 @@ export default function LoginScreen() {
                       keyboardType="email-address"
                       autoCapitalize="none"
                       autoComplete="email"
+                      textContentType="username"
                       value={emailAddress}
                       onChangeText={setEmailAddress}
                       leftIcon={<Ionicons name="mail-outline" size={20} color="#8C96AE" />}
@@ -661,15 +674,33 @@ export default function LoginScreen() {
                       variant="light"
                       placeholder={t("login.password")}
                       isPassword
+                      autoComplete="current-password"
+                      textContentType="password"
                       value={password}
                       onChangeText={setPassword}
                       leftIcon={<Ionicons name="lock-closed-outline" size={20} color="#8C96AE" />}
                     />
-                    <TouchableOpacity onPress={openForgot} className="self-end" hitSlop={8}>
-                      <Text className="font-outfit-bold" style={{ ...TYPE.helper, color: "#1E56E3" }}>
-                        {t("login.forgotPassword")}
-                      </Text>
-                    </TouchableOpacity>
+                    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                      <TouchableOpacity
+                        onPress={() => setRememberLogin((v) => !v)}
+                        hitSlop={8}
+                        accessibilityRole="checkbox"
+                        accessibilityState={{ checked: rememberLogin }}
+                        style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+                      >
+                        <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 1.5, borderColor: rememberLogin ? "#1E56E3" : "#C5CEE3", backgroundColor: rememberLogin ? "#1E56E3" : "#FFFFFF", alignItems: "center", justifyContent: "center" }}>
+                          {rememberLogin && <Ionicons name="checkmark" size={16} color="#FFFFFF" />}
+                        </View>
+                        <Text className="font-outfit-medium" style={{ ...TYPE.helper, color: "#6B7490" }}>
+                          {t("login.rememberMe")}
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={openForgot} hitSlop={8}>
+                        <Text className="font-outfit-bold" style={{ ...TYPE.helper, color: "#1E56E3" }}>
+                          {t("login.forgotPassword")}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 ) : (
                   <View style={{ flexDirection: "row", gap: 10 }}>
@@ -715,17 +746,12 @@ export default function LoginScreen() {
                     icon={<Image source={require("@/assets/brands/google.png")} style={{ width: 20, height: 20 }} resizeMode="contain" />}
                   />
                   {Platform.OS === "ios" && (
-                    <TouchableOpacity
+                    <SocialButton
+                      label={t("login.signInWithApple")}
                       onPress={handleAppleLogin}
                       disabled={isLoading}
-                      activeOpacity={0.85}
-                      accessibilityRole="button"
-                      accessibilityLabel={t("login.signInWithApple")}
-                      style={{ height: 56, borderRadius: 16, backgroundColor: "#000000", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, opacity: isLoading ? 0.6 : 1 }}
-                    >
-                      <Ionicons name="logo-apple" size={22} color="#FFFFFF" />
-                      <Text className="font-outfit-bold" style={{ ...TYPE.body, color: "#FFFFFF" }}>{t("login.signInWithApple")}</Text>
-                    </TouchableOpacity>
+                      icon={<Ionicons name="logo-apple" size={22} color="#000000" />}
+                    />
                   )}
                   <SocialButton
                     label={method === "email" ? t("login.signInWithMobile") : t("login.signInWithEmail")}

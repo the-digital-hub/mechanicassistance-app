@@ -208,6 +208,8 @@ export default function TabLayout() {
   const pathname = usePathname();
 
   const isRequestAssistanceRoot = pathname === "/request-assistance" || pathname === "/request-assistance/";
+  // The mechanic's quote screens (build, review, sent...) draw their own wizard header.
+  const isScheduledQuote = pathname.startsWith("/assist/scheduled-request");
   // Only the appointment detail itself (/appointments/<id>) borrows the tab
   // header's back button: check-in, review and cancel-reason draw their own.
   const isAppointmentDetail =
@@ -260,6 +262,7 @@ export default function TabLayout() {
         name="assist"
         options={{
           href: user?.role === "mechanic" ? undefined : null,
+          headerShown: !isScheduledQuote,
           title: t('tabs.requests'),
           tabBarIcon: ({ color }) => <Wrench size={24} color={color} />,
           headerLeft: () => <MechanicStatusHeaderLeft />,

@@ -629,8 +629,8 @@ export default function DashboardScreen() {
                             earnedLabel={t('dashboard.mechanic.earnedToday')}
                             earned={earnedToday === null ? '—' : formatMoney(earnedToday)}
                             footer={earningsSummary ? (
-                                <Text className="font-outfit-regular" style={{ fontSize: 13, color: '#6B7490' }}>
-                                    {t('dashboard.mechanic.readyToPay')} · <Text className="font-outfit-bold" style={{ color: '#0B1530' }}>{formatMoney(Number(earningsSummary.readyNet) || 0)}</Text>
+                                <Text className="font-outfit-regular" style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)' }}>
+                                    {t('dashboard.mechanic.readyToPay')} · <Text className="font-outfit-bold" style={{ color: '#FFFFFF' }}>{formatMoney(Number(earningsSummary.readyNet) || 0)}</Text>
                                 </Text>
                             ) : undefined}
                             jobsLabel={t('dashboard.mechanic.jobsToday')}

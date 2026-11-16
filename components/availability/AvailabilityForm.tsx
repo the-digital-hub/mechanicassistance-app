@@ -612,10 +612,10 @@ export function AvailabilityForm({
                   {t('setup.availability.milesAbbr', { count: 1 })}
                 </Text>
                 <Text className="text-[#94A3B8] font-outfit-regular text-[13px]">
-                  {t('setup.availability.milesAbbr', { count: 25 })}
+                  {t('setup.availability.milesAbbr', { count: Math.round(RADIUS_MAX / 2) })}
                 </Text>
                 <Text className="text-[#94A3B8] font-outfit-regular text-[13px]">
-                  {t('setup.availability.milesAbbr', { count: 50 })}
+                  {t('setup.availability.milesAbbr', { count: RADIUS_MAX })}
                 </Text>
               </View>
 

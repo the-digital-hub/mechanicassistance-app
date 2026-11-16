@@ -11,7 +11,7 @@ step or building anything on top of the schedule.
 | `selectedDays` | `["Monday", …]`, English weekday names | one `mechanic_availability` row per day |
 | `startTime` / `endTime` | **`HH:mm`, 24-hour** (`"09:00"`, `"17:00"`) | `mechanic_availability.startTime` / `.endTime` |
 | `schedule` | `[{day, startTime, endTime}]` | one row per entry; **wins over `selectedDays`** |
-| `serviceRadius` | integer, 1–50 miles | `mechanic_details.serviceRadiusMiles` |
+| `serviceRadius` | integer, 1–100 miles (app limit; the backend must accept it too) | `mechanic_details.serviceRadiusMiles` |
 | `applySameTime` | boolean | nothing — accepted and ignored |
 
 Times are naive local strings: there is no timezone column and no UTC
