@@ -934,7 +934,9 @@
         "onTheWay": "On the way",
         "pending": "Pending",
         "noNotes": "No notes provided.",
-        "locationNotAvailable": "Location not available"
+        "locationNotAvailable": "Location not available",
+        "viewInMaps": "View in Maps",
+        "mapsFailed": "Couldn't open Maps. Try again."
       },
       "readyBadge": "READY TO GO",
       "acceptedTitle": "Request accepted.",

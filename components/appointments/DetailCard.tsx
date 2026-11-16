@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { Text, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -30,13 +30,15 @@ interface DetailRowProps {
     label: string;
     value: React.ReactNode;
     last?: boolean;
+    /** A small badge under the value that does something with it (e.g. open the address in Maps). */
+    action?: { label: string; icon: IconName; onPress: () => void };
 }
 
 /** Icon tile + uppercase label + bold value, separated by a hairline. */
-export function DetailRow({ icon, label, value, last }: DetailRowProps) {
+export function DetailRow({ icon, label, value, last, action }: DetailRowProps) {
     return (
         <View
-            className="flex-row items-center px-5 py-4"
+            className={`flex-row px-5 py-4 ${action ? 'items-start' : 'items-center'}`}
             onLayout={(e) => console.log("[ROWH] DetailRow", label, e.nativeEvent.layout.height)}
             style={[{ minHeight: 77 }, last ? undefined : { borderBottomWidth: 1, borderBottomColor: '#EEF2FA' }]}
         >
@@ -53,6 +55,18 @@ export function DetailRow({ icon, label, value, last }: DetailRowProps) {
                 <Text className="font-outfit-bold text-base" style={{ color: '#0B1530' }}>
                     {value}
                 </Text>
+                {action ? (
+                    <TouchableOpacity
+                        onPress={action.onPress}
+                        activeOpacity={0.7}
+                        accessibilityRole="button"
+                        className="flex-row items-center self-start"
+                        style={{ gap: 6, marginTop: 10, minHeight: 36, paddingHorizontal: 14, borderRadius: 100, backgroundColor: '#EAF1FF' }}
+                    >
+                        <Ionicons name={action.icon} size={16} color="#1E56E3" />
+                        <Text className="font-outfit-bold" style={{ fontSize: 14, color: '#1E56E3' }}>{action.label}</Text>
+                    </TouchableOpacity>
+                ) : null}
             </View>
         </View>
     );

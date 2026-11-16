@@ -5,6 +5,7 @@ import { View } from 'react-native';
 import { DetailCard, DetailRow } from './DetailCard';
 import { OwnerRouteMap } from './owner/OwnerRouteMap';
 import { formatEtaTime, useAppointmentEta } from '@/hooks/useAppointmentEta';
+import { openDirections } from '@/lib/maps/directions';
 import { videoCallBookedLabel } from '@/lib/video/videoCallTime';
 
 interface MechanicAssistanceInfoTabProps {
@@ -108,7 +109,20 @@ export function MechanicAssistanceInfoTab({ appointment, section }: MechanicAssi
                     <DetailCard>
                         <DetailRow icon="time-outline" label={t('appointments.detail.info.arrivalTime')} value={arrivalValue} />
                         <DetailRow icon="calendar-outline" label={t('appointments.detail.info.estimatedArrival')} value={etaValue} />
-                        <DetailRow icon="location-outline" label={t('appointments.detail.info.address')} value={appointment.address} last />
+                        <DetailRow
+                            icon="location-outline"
+                            label={t('appointments.detail.info.address')}
+                            value={appointment.address}
+                            last
+                            action={{
+                                label: t('appointments.detail.info.viewInMaps'),
+                                icon: 'navigate-outline',
+                                onPress: () => void openDirections(
+                                    { address: appointment.address, lat: appointment.locationLat, lng: appointment.locationLng },
+                                    t('appointments.detail.info.mapsFailed'),
+                                ),
+                            }}
+                        />
                     </DetailCard>
 
                     {/* Route map — client pin, own GPS dot, road route; tap for full screen */}
