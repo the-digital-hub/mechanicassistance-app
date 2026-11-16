@@ -2912,7 +2912,14 @@
       "addEvidence": "Agregar fotos o videos",
       "evidenceLimits": "Hasta 5 archivos · fotos hasta 5 MB · videos hasta 50 MB",
       "tooBig": "Se omitieron algunos archivos por ser muy pesados.",
-      "remove": "Quitar"
+      "remove": "Quitar",
+      "presets": {
+        "morning": "Mañana",
+        "afternoon": "Tarde",
+        "evening": "Noche",
+        "any": "Cualquier hora"
+      },
+      "custom": "Horario personalizado"
     },
     "review": {
       "eyebrow": "PASO 5 · REVISIÓN",
@@ -2948,7 +2955,9 @@
       "serviceUnavailableTitle": "Un servicio ya no está disponible",
       "serviceUnavailableMessage": "Revisá los servicios que elegiste.",
       "dateInvalidTitle": "Elegí un horario más tarde",
-      "dateInvalidMessage": "El horario pedido tiene que ser al menos una hora desde ahora."
+      "dateInvalidMessage": "El horario pedido tiene que ser al menos una hora desde ahora.",
+      "sessionExpiredTitle": "Tu sesión expiró",
+      "sessionExpiredMessage": "Iniciá sesión de nuevo. Tu avance quedó guardado como borrador."
     },
     "requestAgain": {
       "action": "Solicitar de nuevo",
@@ -3066,6 +3075,96 @@
     "errors": {
       "load": "No pudimos cargar el presupuesto.",
       "gone": "Este presupuesto ya no está disponible."
+    }
+  },
+  "scheduledProvider": {
+    "title": "Solicitud programada",
+    "eyebrow": "COTIZÁ ESTE SERVICIO",
+    "sendQuote": "Enviá tu cotización",
+    "back": "Volver a solicitudes",
+    "gone": "Esta solicitud ya no está disponible.",
+    "closes": "Las ofertas cierran {{date}}",
+    "when": "HORARIO PEDIDO",
+    "vehicle": "VEHÍCULO",
+    "services": "SERVICIOS",
+    "area": "ZONA",
+    "areaHint": "La dirección exacta se comparte solo si te eligen.",
+    "away": "a {{distance}}",
+    "notes": "NOTAS DEL DUEÑO",
+    "diagnostic": "Diagnóstico",
+    "mine": {
+      "title": "Ya enviaste una cotización",
+      "editHint": "si enviás otra, la reemplaza.",
+      "status": {
+        "submitted": "Esperando al dueño",
+        "accepted": "Te eligieron",
+        "not_selected": "No te eligieron",
+        "withdrawn": "Retirada",
+        "expired": "Vencida"
+      }
+    },
+    "form": {
+      "type": "TIPO DE COTIZACIÓN",
+      "final": "Precio final",
+      "diagnostic": "Primero diagnóstico",
+      "finalHint": "Un solo precio por todo el trabajo.",
+      "diagnosticHint": "El dueño paga ahora solo el diagnóstico. Vos proponés el precio final después de la visita.",
+      "price": "TU PRECIO (USD)",
+      "diagnosticFee": "TARIFA DE DIAGNÓSTICO (USD)",
+      "priceHint": "Es lo que cobrás. Las tarifas de la plataforma y los impuestos se suman al dueño por encima.",
+      "description": "QUÉ INCLUYE LA COTIZACIÓN",
+      "descriptionPlaceholder": "Describí el trabajo, los repuestos y lo que el dueño deba saber (mínimo 10 caracteres).",
+      "slotTitle": "CUÁNDO PODÉS HACERLO",
+      "slotAsked": "El horario pedido",
+      "slotPropose": "Proponer otro horario",
+      "slotHint": "Si el dueño elige tu cotización, este pasa a ser el horario del servicio.",
+      "from": "Desde",
+      "to": "Hasta",
+      "warrantyDays": "GARANTÍA (DÍAS)",
+      "warrantyCoverage": "CUBRE (OPCIONAL)",
+      "warrantyCoveragePlaceholder": "Repuestos y mano de obra",
+      "send": "Enviar cotización",
+      "update": "Actualizar cotización"
+    },
+    "sent": {
+      "eyebrow": "COTIZACIÓN ENVIADA",
+      "title": "El dueño ya puede ver tu cotización",
+      "sub": "Te vamos a avisar si te eligen. Podés actualizarla desde esta solicitud hasta que cierren las ofertas."
+    },
+    "errors": {
+      "price": "Ingresá un precio válido.",
+      "diagnosticFee": "Ingresá una tarifa de diagnóstico válida.",
+      "description": "Describí qué incluye la cotización (mínimo 10 caracteres).",
+      "slot": "Elegí un horario a futuro, con el final después del inicio.",
+      "closed": "Las ofertas de esta solicitud están cerradas.",
+      "generic": "No pudimos enviar tu cotización. Revisá tu conexión y probá de nuevo.",
+      "load": "No pudimos cargar esta solicitud. Probá de nuevo en un momento."
+    },
+    "problems": {
+      "notProvider": {
+        "title": "Esta cuenta no es de prestador",
+        "body": "Las solicitudes programadas son solo para cuentas de técnico."
+      },
+      "identityPending": {
+        "title": "Verificá tu identidad para ver solicitudes programadas",
+        "body": "Tu verificación de identidad todavía no está aprobada. Terminala para empezar a cotizar."
+      },
+      "suspended": {
+        "title": "Las solicitudes programadas están en pausa para vos",
+        "body": "Contactá a soporte para recuperar el acceso."
+      },
+      "notEnabled": {
+        "title": "Las solicitudes programadas todavía no están habilitadas",
+        "body": "Tu cuenta aún no está habilitada para solicitudes programadas. Probá más tarde o contactá a soporte."
+      },
+      "baseLocationMissing": {
+        "title": "Cargá tu dirección base",
+        "body": "Necesitamos una dirección con ubicación para mostrarte solicitudes programadas cercanas."
+      },
+      "noCategories": {
+        "title": "Sin categorías de servicio asignadas",
+        "body": "Tu cuenta todavía no tiene categorías de servicio, así que no hay nada para mostrar. Contactá a soporte."
+      }
     }
   }
 }

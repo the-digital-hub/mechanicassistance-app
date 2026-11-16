@@ -1,7 +1,7 @@
 import { apiClient } from '../api/apiClient';
 import { ApiError } from '../api/types';
 import { ConfigService } from '../config/ConfigService';
-import { AssistanceClientSummary, AssistanceOfferSummary, FinalQuoteView, MarketplaceOffer, AssistanceRequest, AssistanceSummary, IAssistanceDAO } from './interfaces';
+import { AssistanceClientSummary, AssistanceOfferSummary, FinalQuoteView, MarketplaceOffer, AssistanceRequest, AssistanceSummary, IAssistanceDAO, MarketplaceRequest, OfferInput } from './interfaces';
 
 export class AssistanceDAO implements IAssistanceDAO {
     async getAll(filters?: { userId?: string; mechanicId?: string; status?: string; zip?: string; lat?: number; lng?: number; radiusKm?: number }): Promise<AssistanceRequest[]> {
@@ -47,6 +47,30 @@ export class AssistanceDAO implements IAssistanceDAO {
      */
     async reject(id: string): Promise<void> {
         await apiClient.post(`/api/assistance/${id}/reject`, {});
+    }
+
+    /** Provider side: open scheduled requests inside the provider's services and reach, nearest first. */
+    async getMarketplaceRequests(): Promise<MarketplaceRequest[]> {
+        const result = await apiClient.get<MarketplaceRequest[] | { requests?: MarketplaceRequest[]; items?: MarketplaceRequest[] }>(
+            '/api/marketplace/requests',
+        );
+        if (Array.isArray(result)) return result;
+        return result?.requests ?? result?.items ?? [];
+    }
+
+    /** One request of the marketplace feed. Outside the provider's reach it is a 404. */
+    async getMarketplaceRequest(id: string): Promise<MarketplaceRequest | null> {
+        try {
+            return await apiClient.get<MarketplaceRequest>(`/api/marketplace/requests/${id}`);
+        } catch (error) {
+            if (error instanceof ApiError && error.statusCode === 404) return null;
+            throw error;
+        }
+    }
+
+    /** Sends (or replaces) the provider's quote. */
+    async submitOffer(id: string, offer: OfferInput): Promise<void> {
+        await apiClient.post(`/api/assistance/${id}/offers`, offer);
     }
 
     /**

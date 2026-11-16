@@ -3,6 +3,8 @@ import { useMechanicStatus } from '@/context/MechanicStatusContext';
 import { useSocket } from '@/context/SocketContext';
 import { useUser } from '@/context/UserContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
+import { useMarketplaceFeed } from '@/lib/scheduled/useMarketplaceFeed';
+import { Note } from '@/components/scheduled/ui';
 import { buildMechanicFeedFilters } from '@/lib/mechanic-feed';
 import { pricingDAO } from '@/lib/dao/PricingDAO';
 import { AssistanceRequest } from '@/lib/dao/interfaces';
@@ -23,6 +25,7 @@ export default function AssistanceRequestsScreen() {
   const { lastMessage } = useSocket();
   const { mechanicStatus } = useMechanicStatus();
   const [requests, setRequests] = useState<AssistanceRequest[]>([]);
+  const marketplaceFeed = useMarketplaceFeed(user?.role === 'mechanic', lastMessage);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
@@ -41,8 +44,8 @@ export default function AssistanceRequestsScreen() {
     });
   }, []);
   const visibleRequests = useMemo(
-    () => requests.filter((req) => !declinedIds.has(req.id)),
-    [requests, declinedIds]
+    () => [...requests, ...marketplaceFeed.items].filter((req) => !declinedIds.has(req.id)),
+    [requests, marketplaceFeed.items, declinedIds]
   );
 
   // Same service-type labels used across the app (dashboard, cards, request detail).
@@ -178,6 +181,14 @@ export default function AssistanceRequestsScreen() {
 
         <MechanicFeedStatusBanner />
 
+        {marketplaceFeed.problem && marketplaceFeed.problem !== 'generic' ? (
+          <View className="mb-6">
+            <Note tone="amber" title={t(`scheduledProvider.problems.${marketplaceFeed.problem}.title`)}>
+              {t(`scheduledProvider.problems.${marketplaceFeed.problem}.body`)}
+            </Note>
+          </View>
+        ) : null}
+
         {/* Search Bar */}
         <View className="flex-row items-center bg-white rounded-2xl px-4 mb-6 border border-gray-200">
           <Search size={20} color="#9CA3AF" />
@@ -300,7 +311,7 @@ export default function AssistanceRequestsScreen() {
                       <View className="flex-1">
                         <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">{t('dashboard.mechanic.budget')}</Text>
                         <Text className="font-outfit-bold text-base text-gray-900">
-                          {request.price ? `$${request.price}` : request.budget || t('dashboard.mechanic.priceCalculating')}
+                          {request.price ? `$${request.price}` : request.budget || (request.type === 'scheduled' ? t('scheduledProvider.sendQuote') : t('dashboard.mechanic.priceCalculating'))}
                         </Text>
                       </View>
                     </View>
@@ -345,10 +356,11 @@ export default function AssistanceRequestsScreen() {
                     {/* Buttons Row (inside card) */}
                     <View className="flex-row gap-3 px-5 py-4 border-t border-gray-100">
                       <TouchableOpacity
-                        style={{ flex: 0.65 }}
+                        style={{ flex: request.type === 'scheduled' ? 1 : 0.65 }}
                         onPress={guard(() => router.push({
-                          pathname: `/assist/${request.id}` as any,
+                          pathname: (request.type === 'scheduled' ? '/assist/scheduled-request' : `/assist/${request.id}`) as any,
                           params: {
+                              requestId: request.id,
                             type: request.type,
                             assistanceType: request.assistanceType || '',
                             title: request.title,
@@ -385,6 +397,7 @@ export default function AssistanceRequestsScreen() {
                           </Text>
                         </LinearGradient>
                       </TouchableOpacity>
+                      {request.type !== 'scheduled' && (
                       <TouchableOpacity
                         className="py-3 rounded-2xl items-center justify-center"
                         style={{ flex: 0.35, backgroundColor: '#F3F4F6' }}
@@ -395,6 +408,7 @@ export default function AssistanceRequestsScreen() {
                           {t('dashboard.mechanic.decline')}
                         </Text>
                       </TouchableOpacity>
+                      )}
                     </View>
                   </View>
                 </View>

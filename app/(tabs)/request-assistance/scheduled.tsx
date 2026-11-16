@@ -18,6 +18,7 @@ import { vehicleDAO } from '@/lib/dao/VehicleDAO';
 import type { Address, AssistanceRequest, ScheduledServiceCategory, Vehicle } from '@/lib/dao/interfaces';
 import { getLanguageId } from '@/lib/i18n/catalogTranslations';
 import type { Attachment, PendingAttachment } from '@/lib/media/attachments';
+import { ApiError } from '@/lib/api/types';
 import { apiErrorCode, isPaymentMethodRequired, RETURN_TO_BACK } from '@/lib/payments/cardRequired';
 import { usePaymentChoice } from '@/lib/payments/usePaymentChoice';
 import {
@@ -351,6 +352,9 @@ export default function ScheduledRequestScreen() {
             } else if (code === 'scheduled_date_in_past' || code === 'scheduled_date_too_soon') {
                 goTo(4);
                 Alert.alert(t('scheduled.errors.dateInvalidTitle'), t('scheduled.errors.dateInvalidMessage'));
+            } else if (error instanceof ApiError && error.statusCode === 401) {
+                // The session died while sending: the app is already back at the login screen.
+                Alert.alert(t('scheduled.errors.sessionExpiredTitle'), t('scheduled.errors.sessionExpiredMessage'));
             } else {
                 console.error('Failed to publish the scheduled request', error);
                 Alert.alert(t('scheduled.errors.publishFailedTitle'), t('scheduled.errors.publishFailedMessage'));

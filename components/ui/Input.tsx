@@ -44,6 +44,8 @@ export function Input({
         }}
         secureTextEntry={isPassword && !showPassword}
         placeholderTextColor="#9CA3AF"
+        // A password must be typed exactly: no auto-capital on the first letter, no autocorrect.
+        {...(isPassword ? { autoCapitalize: 'none', autoCorrect: false } : {})}
         {...props}
       />
       {isPassword && (

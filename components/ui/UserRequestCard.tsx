@@ -142,8 +142,8 @@ export function UserRequestCard({
                             </Text>
                             <Text
                                 className="font-outfit-bold"
-                                style={{ fontSize: 18, letterSpacing: -0.3, color: '#0B1530', marginTop: 1 }}
-                                numberOfLines={1}
+                                style={{ fontSize: 15, lineHeight: 19, letterSpacing: -0.2, color: '#0B1530', marginTop: 1 }}
+                                numberOfLines={2}
                             >
                                 {title}
                             </Text>

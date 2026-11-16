@@ -2911,7 +2911,14 @@
       "addEvidence": "Add photos or videos",
       "evidenceLimits": "Up to 5 files · photos up to 5 MB · videos up to 50 MB",
       "tooBig": "Some files were skipped because they are too large.",
-      "remove": "Remove"
+      "remove": "Remove",
+      "presets": {
+        "morning": "Morning",
+        "afternoon": "Afternoon",
+        "evening": "Evening",
+        "any": "Any time"
+      },
+      "custom": "Custom hours"
     },
     "review": {
       "eyebrow": "STEP 5 · REVIEW",
@@ -2947,7 +2954,9 @@
       "serviceUnavailableTitle": "A service is no longer available",
       "serviceUnavailableMessage": "Please review the services you selected.",
       "dateInvalidTitle": "Pick a later time",
-      "dateInvalidMessage": "The requested time has to be at least an hour from now."
+      "dateInvalidMessage": "The requested time has to be at least an hour from now.",
+      "sessionExpiredTitle": "Your session expired",
+      "sessionExpiredMessage": "Please sign in again. Your progress is saved as a draft."
     },
     "requestAgain": {
       "action": "Request again",
@@ -3065,6 +3074,96 @@
     "errors": {
       "load": "We couldn't load the quote.",
       "gone": "This quote is no longer available."
+    }
+  },
+  "scheduledProvider": {
+    "title": "Scheduled request",
+    "eyebrow": "QUOTE THIS SERVICE",
+    "sendQuote": "Send your quote",
+    "back": "Back to requests",
+    "gone": "This request is no longer available.",
+    "closes": "Offers close {{date}}",
+    "when": "REQUESTED TIME",
+    "vehicle": "VEHICLE",
+    "services": "SERVICES",
+    "area": "AREA",
+    "areaHint": "The exact address is shared only if you are chosen.",
+    "away": "{{distance}} away",
+    "notes": "NOTES FROM THE OWNER",
+    "diagnostic": "Diagnostic",
+    "mine": {
+      "title": "You already sent a quote",
+      "editHint": "sending again replaces it.",
+      "status": {
+        "submitted": "Waiting for the owner",
+        "accepted": "Chosen",
+        "not_selected": "Not chosen",
+        "withdrawn": "Withdrawn",
+        "expired": "Expired"
+      }
+    },
+    "form": {
+      "type": "TYPE OF QUOTE",
+      "final": "Final price",
+      "diagnostic": "Diagnostic first",
+      "finalHint": "One price for the whole job.",
+      "diagnosticHint": "The owner pays only the diagnostic fee now. You propose the final price after the visit.",
+      "price": "YOUR PRICE (USD)",
+      "diagnosticFee": "DIAGNOSTIC FEE (USD)",
+      "priceHint": "This is what you get paid. Platform fees and taxes are added for the owner on top.",
+      "description": "WHAT THE QUOTE INCLUDES",
+      "descriptionPlaceholder": "Describe the work, parts and anything the owner should know (at least 10 characters).",
+      "slotTitle": "WHEN CAN YOU DO IT",
+      "slotAsked": "The time asked",
+      "slotPropose": "Propose another time",
+      "slotHint": "If the owner picks your quote, this becomes the service time.",
+      "from": "From",
+      "to": "To",
+      "warrantyDays": "WARRANTY (DAYS)",
+      "warrantyCoverage": "COVERS (OPTIONAL)",
+      "warrantyCoveragePlaceholder": "Parts and labor",
+      "send": "Send quote",
+      "update": "Update quote"
+    },
+    "sent": {
+      "eyebrow": "QUOTE SENT",
+      "title": "The owner can see your quote",
+      "sub": "You will get a notice if they choose you. You can update the quote from this request until offers close."
+    },
+    "errors": {
+      "price": "Enter a valid price.",
+      "diagnosticFee": "Enter a valid diagnostic fee.",
+      "description": "Describe what the quote includes (at least 10 characters).",
+      "slot": "Pick a time in the future, with the end after the start.",
+      "closed": "Offers for this request are closed.",
+      "generic": "We couldn't send your quote. Check your connection and try again.",
+      "load": "We couldn't load this request. Try again in a moment."
+    },
+    "problems": {
+      "notProvider": {
+        "title": "This account is not a provider",
+        "body": "Scheduled requests are only for technician accounts."
+      },
+      "identityPending": {
+        "title": "Verify your identity to see scheduled requests",
+        "body": "Your identity check is not approved yet. Finish it to start quoting."
+      },
+      "suspended": {
+        "title": "Scheduled requests are paused for you",
+        "body": "Contact support to get access back."
+      },
+      "notEnabled": {
+        "title": "Scheduled requests are not enabled yet",
+        "body": "Your account is not enabled for scheduled requests yet. Try again later or contact support."
+      },
+      "baseLocationMissing": {
+        "title": "Add your base address",
+        "body": "We need an address with a location to show you nearby scheduled requests."
+      },
+      "noCategories": {
+        "title": "No service categories assigned",
+        "body": "Your account has no service categories yet, so there is nothing to match. Contact support."
+      }
     }
   }
 }

@@ -890,6 +890,46 @@ export interface MarketplaceOffer {
     customerTotal: OfferCustomerTotal | null;
 }
 
+/**
+ * A scheduled request as a provider sees it (`GET /marketplace/requests`): the reduced view.
+ * Never carries the customer, the exact address, the plate or any price.
+ */
+export interface MarketplaceRequest {
+    id: string;
+    assistanceType?: string | null;
+    title?: string | null;
+    notes?: string | null;
+    /** The service day / start the owner asked for (ISO). */
+    date?: string | null;
+    zip?: string | null;
+    /** Coordinates rounded to ~1 km. */
+    approximateLocation?: { lat?: number; lng?: number; latitude?: number; longitude?: number } | null;
+    distanceMiles?: number | null;
+    vehicle?: { make?: string | null; model?: string | null; year?: number | string | null; vin?: string | null; mileage?: number | null; condition?: string | null } | null;
+    services?: { name: string; quantity?: number | null }[] | null;
+    photos?: unknown;
+    /** When the offer window closes (ISO). */
+    offersCloseAt?: string | null;
+    /** The provider's own quote, when it already sent one. */
+    myOffer?: Partial<MarketplaceOffer> | null;
+}
+
+/** What a provider sends to quote a scheduled request (`POST /assistance/:id/offers`). */
+export interface OfferInput {
+    quoteType: 'final' | 'diagnostic_then_quote';
+    /** `"150.00"`. Required on `final`. */
+    price?: string;
+    /** Required on `diagnostic_then_quote`, forbidden on `final`. */
+    diagnosticFee?: string;
+    /** At least 10 characters. */
+    description: string;
+    parts?: { name: string; quantity?: number; price?: string }[];
+    proposedStart?: string;
+    proposedEnd?: string;
+    warrantyDays?: number;
+    warrantyCoverage?: string;
+}
+
 /** The provider's proposed final price for a service taken with a diagnostic (`GET /assistance/:id/final-quote`). */
 export interface FinalQuote {
     id: string;

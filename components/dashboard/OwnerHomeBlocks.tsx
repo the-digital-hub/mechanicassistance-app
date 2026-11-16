@@ -132,7 +132,7 @@ export function EmergencyRow({ label, items, horizontalInset = 40 }: { label: st
                             <View className="items-center justify-center" style={{ width: 38, height: 38, borderRadius: 11, backgroundColor: C.blueSoft }}>
                                 <Icon size={20} color={C.blue} />
                             </View>
-                            <Text className="font-outfit-bold text-center" style={{ fontSize: 12, lineHeight: 15, color: C.text }} numberOfLines={2}>{e.label}</Text>
+                            <Text className="font-outfit-bold text-center" style={{ fontSize: 13.5, lineHeight: 17, color: C.text }} numberOfLines={2}>{e.label}</Text>
                         </TouchableOpacity>
                     );
                 })}

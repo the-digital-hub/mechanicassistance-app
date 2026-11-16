@@ -4,6 +4,7 @@ import { useNotifications } from '@/context/NotificationsContext';
 import { attentionKey, visibleAttention } from '@/lib/dashboard/attention';
 import { useAttentionState } from '@/lib/dashboard/useAttentionState';
 import { useScheduledAttention } from '@/lib/scheduled/useScheduledAttention';
+import { useMarketplaceFeed } from '@/lib/scheduled/useMarketplaceFeed';
 import { connectDAO } from '@/lib/dao/ConnectDAO';
 import { UserRequestCard } from '@/components/ui/UserRequestCard';
 import { MechanicActiveJobCard } from '@/components/ui/MechanicActiveJobCard';
@@ -95,6 +96,7 @@ export default function DashboardScreen() {
         }, [user?.role]),
     );
     const { lastMessage } = useSocket();
+    const marketplaceFeed = useMarketplaceFeed(user?.role === 'mechanic', lastMessage);
     const scheduledAttention = useScheduledAttention(user?.role === 'user', user?.id, getActiveRequests(), lastMessage);
     const { mechanicStatus, setMechanicStatus, isUpdatingStatus } = useMechanicStatus();
 
@@ -252,7 +254,7 @@ export default function DashboardScreen() {
 
         const tabOf = (r: AssistanceRequest): 'immediate' | 'scheduled' | 'video' =>
             r.type === 'videocall' ? 'video' : r.type === 'scheduled' ? 'scheduled' : 'immediate';
-        const openRequests = requests.filter((r) => !declinedIds.has(r.id));
+        const openRequests = [...requests, ...marketplaceFeed.items].filter((r) => !declinedIds.has(r.id));
         // Only the types that have requests get a tab.
         const requestTabs = (['immediate', 'scheduled', 'video'] as const)
             .map((id) => ({
@@ -485,7 +487,7 @@ export default function DashboardScreen() {
                                                 <View className="flex-1">
                                                     <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">{t('dashboard.mechanic.budget')}</Text>
                                                     <Text className="font-outfit-bold text-base text-gray-900">
-                                                        {request.price ? `$${request.price}` : request.budget || t('dashboard.mechanic.priceCalculating')}
+                                                        {request.price ? `$${request.price}` : request.budget || (request.type === 'scheduled' ? t('scheduledProvider.sendQuote') : t('dashboard.mechanic.priceCalculating'))}
                                                     </Text>
                                                 </View>
                                             </View>
@@ -530,10 +532,11 @@ export default function DashboardScreen() {
                                             {/* Buttons Row (inside card) */}
                                             <View className="flex-row gap-3 px-5 py-4 border-t border-gray-100">
                                                 <TouchableOpacity
-                                                    style={{ flex: 0.65 }}
+                                                    style={{ flex: request.type === 'scheduled' ? 1 : 0.65 }}
                                                     onPress={guard(() => router.push({
-                                                        pathname: `/assist/${request.id}` as any,
+                                                        pathname: (request.type === 'scheduled' ? '/assist/scheduled-request' : `/assist/${request.id}`) as any,
                                                         params: {
+                                                            requestId: request.id,
                                                             type: request.type,
                                                             assistanceType: request.assistanceType || '',
                                                             title: request.title,
@@ -568,6 +571,7 @@ export default function DashboardScreen() {
                                                         </Text>
                                                     </LinearGradient>
                                                 </TouchableOpacity>
+                                                {request.type !== 'scheduled' && (
                                                 <TouchableOpacity
                                                     className="py-3 rounded-2xl items-center justify-center"
                                                     style={{ flex: 0.35, backgroundColor: '#F3F4F6' }}
@@ -578,6 +582,7 @@ export default function DashboardScreen() {
                                                         {t('dashboard.mechanic.decline')}
                                                     </Text>
                                                 </TouchableOpacity>
+                                                )}
                                             </View>
                                         </View>
                                     </View>

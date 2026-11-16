@@ -24,12 +24,13 @@ import {
     Zap,
     type LucideIcon,
 } from 'lucide-react-native';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, Text, TouchableOpacity, View } from 'react-native';
 
 import type { Address, ScheduledServiceCategory, ScheduledServiceItem, Vehicle } from '@/lib/dao/interfaces';
 import { addressDisplayName } from '@/lib/address';
+import { DayCalendar, TimeWheel } from '@/components/scheduled/DateTime';
 import type { PendingAttachment } from '@/lib/media/attachments';
 import {
     bookableDates,
@@ -39,11 +40,13 @@ import {
     isSameDay,
     MAX_EVIDENCE,
     MAX_SERVICES,
-    timeSlots,
     type ScheduledDraft,
 } from '@/lib/scheduled/draft';
 
 import { CARD_STYLE, Checkbox, ChoiceCard, Chip, FieldLabel, Note, SC, StepHead, TextField } from './ui';
+
+const SLOT_MIN = 6 * 60;
+const SLOT_MAX = 21 * 60;
 
 type Patch = (p: Partial<ScheduledDraft>) => void;
 
@@ -349,9 +352,11 @@ export function AvailabilityStep({
 }) {
     const { t, i18n } = useTranslation();
     const days = bookableDates(now);
-    const slots = timeSlots();
     const earliest = draft.date ? earliestMinutes(draft.date, now) : 0;
     const sameDay = draft.date ? isSameDay(draft.date, now) : false;
+    // First selectable start on the picked day, on the 30-minute grid.
+    const firstStart = Math.max(SLOT_MIN, Math.ceil(earliest / 30) * 30);
+    const [custom, setCustom] = useState(false);
 
     const pickDay = (key: string) => {
         // The window picked for another day may fall inside today's lead time (or end before it starts).
@@ -360,7 +365,31 @@ export function AvailabilityStep({
         patch({ date: key, ...(fromOk ? {} : { fromMin: null, toMin: null }) });
     };
 
-    const pickFrom = (m: number) => patch({ fromMin: m, ...(draft.toMin != null && draft.toMin <= m ? { toMin: null } : {}) });
+    // Preselect the first day that still has time left, so the calendar never shows a day that is not in the draft.
+    useEffect(() => {
+        if (draft.date) return;
+        const first = days.find((k) => Math.ceil(earliestMinutes(k, now) / 30) * 30 + 30 <= SLOT_MAX) ?? days[0];
+        pickDay(first);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const presets = [
+        { id: 'morning', from: 8 * 60, to: 12 * 60 },
+        { id: 'afternoon', from: 12 * 60, to: 16 * 60 },
+        { id: 'evening', from: 16 * 60, to: 20 * 60 },
+        { id: 'any', from: SLOT_MIN, to: SLOT_MAX },
+    ].map((p) => {
+        const from = Math.max(p.from, firstStart);
+        return { ...p, start: from, ok: p.to - from >= 60 };
+    });
+    const activePreset = !custom ? presets.find((p) => p.start === draft.fromMin && p.to === draft.toMin)?.id : undefined;
+
+    const dayText = draft.date ? dateFromKey(draft.date).toLocaleDateString(i18n.language, { weekday: 'long', month: 'long', day: 'numeric' }) : '';
+    const summary = draft.date && draft.fromMin != null && draft.toMin != null
+        ? `${dayText} · ${formatMinutes(draft.fromMin)} – ${formatMinutes(draft.toMin)}`
+        : null;
+
+    const setFrom = (m: number) => patch({ fromMin: m, ...(draft.toMin != null && draft.toMin <= m ? { toMin: Math.min(SLOT_MAX, m + 60) } : {}) });
 
     return (
         <View style={{ gap: 20 }}>
@@ -368,42 +397,69 @@ export function AvailabilityStep({
 
             <View>
                 <FieldLabel>{t('scheduled.availability.dayLabel')}</FieldLabel>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-                    {days.map((key, i) => {
-                        const d = dateFromKey(key);
-                        const label = i === 0 ? t('scheduled.availability.today') : d.toLocaleDateString(i18n.language, { weekday: 'short' });
-                        return (
-                            <Chip key={key} on={draft.date === key} onPress={() => pickDay(key)}>
-                                {`${label} ${d.getDate()}`}
-                            </Chip>
-                        );
-                    })}
-                </ScrollView>
+                <DayCalendar
+                    value={draft.date}
+                    min={dateFromKey(days[0])}
+                    max={dateFromKey(days[days.length - 1])}
+                    locale={i18n.language}
+                    onChange={pickDay}
+                />
             </View>
 
             {draft.date ? (
-                <View style={{ gap: 14 }}>
+                <View style={{ gap: 12 }}>
                     <FieldLabel>{t('scheduled.availability.windowLabel')}</FieldLabel>
-                    <View>
-                        <Text className="font-outfit-semibold" style={{ fontSize: 12, color: SC.muted, marginBottom: 8 }}>{t('scheduled.availability.from')}</Text>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-                            {slots.map((m) => (
-                                <Chip key={`f${m}`} on={draft.fromMin === m} disabled={m < earliest} onPress={() => pickFrom(m)}>
-                                    {formatMinutes(m)}
-                                </Chip>
-                            ))}
-                        </ScrollView>
+                    <View className="flex-row flex-wrap" style={{ gap: 10 }}>
+                        {presets.map((p) => {
+                            const on = activePreset === p.id;
+                            return (
+                                <TouchableOpacity
+                                    key={p.id}
+                                    disabled={!p.ok}
+                                    activeOpacity={0.8}
+                                    accessibilityRole="button"
+                                    accessibilityState={{ selected: on, disabled: !p.ok }}
+                                    onPress={() => { setCustom(false); patch({ fromMin: p.start, toMin: p.to }); }}
+                                    style={{
+                                        width: '48%',
+                                        padding: 14,
+                                        borderRadius: 16,
+                                        backgroundColor: on ? SC.blue : '#FFFFFF',
+                                        borderWidth: 1,
+                                        borderColor: on ? SC.blue : SC.border,
+                                        opacity: p.ok ? 1 : 0.4,
+                                    }}
+                                >
+                                    <Text className="font-outfit-bold" style={{ fontSize: 15, color: on ? '#FFFFFF' : SC.text }}>{t(`scheduled.availability.presets.${p.id}`)}</Text>
+                                    <Text className="font-outfit-regular" style={{ fontSize: 12.5, marginTop: 2, color: on ? '#DCE8FF' : SC.muted }}>
+                                        {`${formatMinutes(p.start)} – ${formatMinutes(p.to)}`}
+                                    </Text>
+                                </TouchableOpacity>
+                            );
+                        })}
                     </View>
-                    <View>
-                        <Text className="font-outfit-semibold" style={{ fontSize: 12, color: SC.muted, marginBottom: 8 }}>{t('scheduled.availability.to')}</Text>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-                            {slots.map((m) => (
-                                <Chip key={`t${m}`} on={draft.toMin === m} disabled={draft.fromMin == null || m <= draft.fromMin} onPress={() => patch({ toMin: m })}>
-                                    {formatMinutes(m)}
-                                </Chip>
-                            ))}
-                        </ScrollView>
-                    </View>
+                    <TouchableOpacity
+                        onPress={() => {
+                            if (!custom && draft.fromMin == null) patch({ fromMin: firstStart, toMin: Math.min(SLOT_MAX, firstStart + 120) });
+                            setCustom(!custom);
+                        }}
+                        accessibilityRole="button"
+                        className="flex-row items-center"
+                        style={{ gap: 8, paddingVertical: 4 }}
+                    >
+                        <Clock size={16} color={SC.blue} />
+                        <Text className="font-outfit-bold" style={{ color: SC.blue }}>{t('scheduled.availability.custom')}</Text>
+                        <ChevronDown size={16} color={SC.blue} style={{ transform: [{ rotate: custom ? '180deg' : '0deg' }] }} />
+                    </TouchableOpacity>
+                    {custom && draft.fromMin != null && draft.toMin != null ? (
+                        <View className="flex-row" style={{ gap: 12 }}>
+                            <TimeWheel label={t('scheduled.availability.from')} minutes={draft.fromMin} min={firstStart} max={SLOT_MAX - 30} onChange={setFrom} />
+                            <TimeWheel label={t('scheduled.availability.to')} minutes={draft.toMin} min={Math.min(SLOT_MAX, draft.fromMin + 30)} max={SLOT_MAX} onChange={(m) => patch({ toMin: m })} />
+                        </View>
+                    ) : null}
+                    {summary ? (
+                        <Text className="font-outfit-semibold" style={{ fontSize: 13.5, color: SC.text }}>{summary}</Text>
+                    ) : null}
                     {sameDay ? (
                         <Note tone="amber" title={t('scheduled.availability.sameDayTitle')}>{t('scheduled.availability.sameDayBody')}</Note>
                     ) : (
