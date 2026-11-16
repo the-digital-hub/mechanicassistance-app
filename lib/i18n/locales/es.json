@@ -1861,6 +1861,7 @@
         "vinPlaceholder": "ej. 1HGCM82633A004352",
         "vinManual": "También podés completar los campos a mano.",
         "vinFound": "✓ Vehículo encontrado — completamos los campos de abajo",
+        "identityLocked": "El VIN, la marca y el modelo no se pueden cambiar. Si es otro auto, agregalo como vehículo nuevo.",
         "decode": "Decodificar",
         "decoding": "Decodificando…",
         "infoSubtitle": "Datos básicos para identificar tu vehículo",

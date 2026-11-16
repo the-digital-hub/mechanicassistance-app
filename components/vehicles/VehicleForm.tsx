@@ -443,6 +443,13 @@ export function VehicleForm({ initialValue, submitLabel, submitting, onSubmit, h
         variant: 'vehicle' as const,
     });
 
+    // Editing a saved car: VIN, make and model identify it and cannot change
+    // (the backend refuses it too). A field still empty can be filled in.
+    const isEdit = Boolean(initialValue?.id);
+    const vinLocked = isEdit && Boolean(initialValue?.vin?.trim());
+    const makeLocked = isEdit && Boolean(toValues(initialValue).make);
+    const modelLocked = isEdit && Boolean(toValues(initialValue).model);
+
     const vinReady = values.vin.trim().length === VIN_LENGTH;
     const canSave = vinReady && !submitting;
     const optional = t('vehicles.form.design.optional');
@@ -472,6 +479,7 @@ export function VehicleForm({ initialValue, submitLabel, submitting, onSubmit, h
                     decoding={isVinSearching}
                     decoded={decoded}
                     error={errorText('vin')}
+                    locked={vinLocked}
                 />
 
                 <VehicleFormSection
@@ -485,6 +493,9 @@ export function VehicleForm({ initialValue, submitLabel, submitting, onSubmit, h
                 >
                     <AVRow>
                         <AVField label={t('vehicles.form.design.make')}>
+                            {makeLocked ? (
+                                <AVTextInput value={values.make} editable={false} style={{ color: AV.muted }} />
+                            ) : (
                             <SearchableSelect
                                 {...select(t('vehicles.selectMake'))}
                                 options={makeOptions}
@@ -494,9 +505,13 @@ export function VehicleForm({ initialValue, submitLabel, submitting, onSubmit, h
                                 loading={isLoadingMakes}
                                 fallbackLabel={values.make || undefined}
                             />
+                            )}
                         </AVField>
                         <View style={{ opacity: values.make ? 1 : 0.5 }} pointerEvents={values.make ? 'auto' : 'none'}>
                             <AVField label={t('vehicles.form.design.model')}>
+                                {modelLocked ? (
+                                    <AVTextInput value={values.model} editable={false} style={{ color: AV.muted }} />
+                                ) : (
                                 <SearchableSelect
                                     {...select(t('vehicles.selectModel'))}
                                     options={modelOptions}
@@ -506,6 +521,7 @@ export function VehicleForm({ initialValue, submitLabel, submitting, onSubmit, h
                                     loading={isLoadingModels}
                                     fallbackLabel={values.model || undefined}
                                 />
+                                )}
                             </AVField>
                         </View>
                     </AVRow>

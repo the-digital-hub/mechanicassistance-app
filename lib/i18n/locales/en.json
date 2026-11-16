@@ -1860,6 +1860,7 @@
         "vinPlaceholder": "e.g. 1HGCM82633A004352",
         "vinManual": "You can also fill the fields manually.",
         "vinFound": "✓ Vehicle found — fields filled below",
+        "identityLocked": "VIN, make and model can't be changed. For a different car, add a new vehicle.",
         "decode": "Decode",
         "decoding": "Decoding…",
         "infoSubtitle": "Basic details to identify your vehicle",

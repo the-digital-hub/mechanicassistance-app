@@ -13,13 +13,15 @@ interface VinCardProps {
     /** The last decode filled the form; cleared when the VIN changes. */
     decoded: boolean;
     error?: string | null;
+    /** Editing a saved car: the VIN is shown but cannot be changed or decoded again. */
+    locked?: boolean;
 }
 
 /**
  * The blue "Start with your VIN" card that opens the vehicle form: the VIN is
  * the one required field, and decoding it (NHTSA) fills most of the rest.
  */
-export function VinCard({ value, onChange, onDecode, decoding, decoded, error }: VinCardProps) {
+export function VinCard({ value, onChange, onDecode, decoding, decoded, error, locked }: VinCardProps) {
     const { t } = useTranslation();
     const ready = value.replace(/\s/g, '').length === VIN_LENGTH;
     const canDecode = ready && !decoding;
@@ -58,6 +60,7 @@ export function VinCard({ value, onChange, onDecode, decoding, decoded, error }:
                 <TextInput
                     value={value}
                     onChangeText={v => onChange(v.toUpperCase())}
+                    editable={!locked}
                     maxLength={VIN_LENGTH}
                     autoCapitalize="characters"
                     autoCorrect={false}
@@ -68,7 +71,7 @@ export function VinCard({ value, onChange, onDecode, decoding, decoded, error }:
                         height: 48,
                         borderRadius: 12,
                         paddingHorizontal: 14,
-                        backgroundColor: '#fff',
+                        backgroundColor: locked ? 'rgba(255,255,255,0.85)' : '#fff',
                         borderWidth: 1,
                         borderColor: error ? '#FCA5A5' : 'transparent',
                         fontFamily: MONO_FONT,
@@ -77,6 +80,7 @@ export function VinCard({ value, onChange, onDecode, decoding, decoded, error }:
                         color: AV.text,
                     }}
                 />
+                {locked ? null : (
                 <TouchableOpacity
                     onPress={onDecode}
                     disabled={!canDecode}
@@ -97,6 +101,7 @@ export function VinCard({ value, onChange, onDecode, decoding, decoded, error }:
                         {decoding ? t('vehicles.form.design.decoding') : t('vehicles.form.design.decode')}
                     </Text>
                 </TouchableOpacity>
+                )}
             </View>
 
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 8, marginTop: 8 }}>
@@ -104,7 +109,12 @@ export function VinCard({ value, onChange, onDecode, decoding, decoded, error }:
                     className="font-outfit-regular"
                     style={{ flex: 1, fontSize: 11.5, color: error ? '#FECACA' : 'rgba(255,255,255,0.8)' }}
                 >
-                    {error ?? (decoded ? t('vehicles.form.design.vinFound') : t('vehicles.form.design.vinManual'))}
+                    {error ??
+                        (locked
+                            ? t('vehicles.form.design.identityLocked')
+                            : decoded
+                              ? t('vehicles.form.design.vinFound')
+                              : t('vehicles.form.design.vinManual'))}
                 </Text>
                 <Text className="font-outfit-regular" style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.8)', fontVariant: ['tabular-nums'] }}>
                     {value.length}/{VIN_LENGTH}
