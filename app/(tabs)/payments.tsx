@@ -97,7 +97,7 @@ export default function PaymentsScreen() {
                     testID="earnings-statement"
                 >
                     {downloading ? <ActivityIndicator color="#0047AB" /> : <FileDown size={16} color="#0047AB" />}
-                    <Text className="font-outfit-semibold text-xs" style={{ color: '#0047AB', flexShrink: 1 }} numberOfLines={2}>
+                    <Text className="font-outfit-semibold text-[13px]" style={{ color: '#0047AB', flexShrink: 1 }} numberOfLines={2}>
                         {t(`${K}.actions.statement`)}
                     </Text>
                 </TouchableOpacity>
@@ -115,7 +115,7 @@ export default function PaymentsScreen() {
                     testID="earnings-pending-toggle"
                 >
                     <Clock size={16} color="#B45309" />
-                    <Text className="font-outfit-semibold text-xs" style={{ color: '#B45309' }}>
+                    <Text className="font-outfit-semibold text-[13px]" style={{ color: '#B45309' }}>
                         {pendingOnly ? t(`${K}.actions.all`) : t(`${K}.actions.pending`)}
                     </Text>
                 </TouchableOpacity>
@@ -125,12 +125,12 @@ export default function PaymentsScreen() {
                     {t(`${K}.actions.statementFailed`)}
                 </Text>
             )}
-            <Text className="text-gray-500 font-outfit-regular text-xs mb-6">{t(`${K}.howItWorks`)}</Text>
+            <Text className="text-gray-500 font-outfit-regular text-[13px] mb-6">{t(`${K}.howItWorks`)}</Text>
 
             <View className="flex-row items-end justify-between mb-3">
                 <Text className="text-gray-900 font-outfit-semibold text-lg">{t(`${K}.activity.title`)}</Text>
                 {rows && (
-                    <Text className="font-outfit-semibold text-xs" style={{ color: '#0047AB' }}>
+                    <Text className="font-outfit-semibold text-[13px]" style={{ color: '#0047AB' }}>
                         {t(`${K}.activity.count`, { count: rows.length })}
                     </Text>
                 )}

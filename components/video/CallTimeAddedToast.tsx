@@ -74,7 +74,7 @@ export function CallTimeAddedToast({ appointmentId, variant = 'light', top = 12 
                     }}
                 >
                     <Ionicons name="time-outline" size={18} color={fg} />
-                    <Text className="font-outfit-bold" style={{ fontSize: 13.5, color: fg }} testID="call-time-added-text">
+                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: fg }} testID="call-time-added-text">
                         {t(shown.role === 'owner' ? `${K}.addedBySelf` : `${K}.addedByOwner`, { minutes: shown.minutes })}
                     </Text>
                 </Pressable>

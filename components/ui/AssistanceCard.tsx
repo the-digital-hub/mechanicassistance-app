@@ -61,7 +61,7 @@ export function AssistanceCard({ id, type, assistanceType, title, car, notes, ad
             <View className={`${getHeaderColor()} px-4 py-3 flex-row items-center gap-2`}>
                 {getIcon()}
                 <Text className="text-white font-outfit-bold text-base flex-1">{getHeaderTitle()}</Text>
-                <Text className="text-white/70 font-mono text-[10px]">#{id.slice(0, 8)}</Text>
+                <Text className="text-white/70 font-mono text-[13px]">#{id.slice(0, 8)}</Text>
             </View>
 
             {/* Content Body */}
@@ -110,7 +110,7 @@ export function AssistanceCard({ id, type, assistanceType, title, car, notes, ad
                 {distance && (
                     <View className="flex-row items-center mb-4">
                         <MapPin size={12} color="#6B7280" />
-                        <Text className="text-gray-500 text-xs ml-1">{t('assistanceCard.distance', { distance })}</Text>
+                        <Text className="text-gray-500 text-[13px] ml-1">{t('assistanceCard.distance', { distance })}</Text>
                     </View>
                 )}
 

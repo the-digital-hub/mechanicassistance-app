@@ -1,3 +1,4 @@
+import { TYPE } from '@/lib/ui/type';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Check, ChevronLeft, Lightbulb } from 'lucide-react-native';
@@ -114,7 +115,7 @@ export default function VehicleInformationScreen() {
 
                 {/* Condition */}
                 <View className="rounded-2xl p-4 mb-6" style={{ backgroundColor: '#E9F1FF' }}>
-                    <Text className="text-gray-900 font-outfit-semibold text-sm mb-3">
+                    <Text className="text-gray-900 font-outfit-bold mb-3" style={TYPE.question}>
                         {t('requestAssistance.vehicleInformation.question')}
                     </Text>
 
@@ -125,7 +126,7 @@ export default function VehicleInformationScreen() {
                                 key={option}
                                 onPress={() => setCondition(option)}
                                 activeOpacity={0.85}
-                                className="flex-row items-center justify-between rounded-xl px-4 py-3 mb-2"
+                                className="flex-row items-center justify-between rounded-xl px-4 py-4 mb-2.5"
                                 style={{
                                     backgroundColor: selected ? '#0047AB' : '#FFFFFF',
                                     borderWidth: selected ? 0 : 1,
@@ -133,12 +134,12 @@ export default function VehicleInformationScreen() {
                                 }}
                             >
                                 <Text
-                                    className="font-outfit-semibold text-sm flex-1 pr-2"
-                                    style={{ color: selected ? '#FFFFFF' : '#0F172A' }}
+                                    className="font-outfit-semibold flex-1 pr-2"
+                                    style={{ ...TYPE.option, color: selected ? '#FFFFFF' : '#0F172A' }}
                                 >
                                     {t(`requestAssistance.vehicleInformation.condition.${option}`)}
                                 </Text>
-                                {selected && <Check size={18} color="#FFFFFF" />}
+                                {selected && <Check size={20} color="#FFFFFF" />}
                             </TouchableOpacity>
                         );
                     })}
@@ -146,9 +147,9 @@ export default function VehicleInformationScreen() {
 
                 {/* Detailed explanation */}
                 <View className="rounded-2xl p-4 mb-8" style={{ backgroundColor: '#F4F8FF' }}>
-                    <Text className="text-gray-900 font-outfit-semibold text-sm mb-3">
+                    <Text className="text-gray-900 font-outfit-bold mb-3" style={TYPE.question}>
                         {t('requestAssistance.vehicleInformation.explanationLabel')}{' '}
-                        <Text className="text-gray-500 font-outfit-regular text-xs">
+                        <Text className="text-gray-500 font-outfit-regular" style={TYPE.helper}>
                             {t('requestAssistance.vehicleInformation.optional')}
                         </Text>
                     </Text>
@@ -160,8 +161,8 @@ export default function VehicleInformationScreen() {
                         placeholderTextColor="#D1D5DB"
                         value={details}
                         onChangeText={setDetails}
-                        className="bg-white border border-gray-200 rounded-2xl p-4 font-outfit-regular text-[#0F172A] text-base h-32"
-                        style={{ textAlignVertical: 'top' }}
+                        className="bg-white border border-gray-200 rounded-2xl p-4 font-outfit-regular text-[#0F172A] h-32"
+                        style={{ ...TYPE.body, textAlignVertical: 'top' }}
                     />
 
                     <TouchableOpacity
@@ -169,18 +170,18 @@ export default function VehicleInformationScreen() {
                         className="flex-row items-center self-end mt-3 px-3 py-1.5 rounded-lg bg-white"
                         style={{ borderWidth: 1, borderColor: '#E4EAF5' }}
                     >
-                        <Lightbulb size={14} color="#0047AB" />
-                        <Text className="text-[#0047AB] font-outfit-bold text-xs ml-1.5">
+                        <Lightbulb size={16} color="#0047AB" />
+                        <Text className="text-[#0047AB] font-outfit-bold ml-1.5" style={TYPE.helper}>
                             {t('requestAssistance.vehicleInformation.suggestionToggle')}
                         </Text>
                     </TouchableOpacity>
 
                     {suggestionOpen && (
                         <View className="bg-white rounded-xl p-3 mt-3" style={{ borderWidth: 1, borderColor: '#E4EAF5' }}>
-                            <Text className="text-gray-900 font-outfit-semibold text-xs mb-1.5">
+                            <Text className="text-gray-900 font-outfit-bold mb-1.5" style={TYPE.body}>
                                 {t('requestAssistance.vehicleInformation.suggestionTitle')}
                             </Text>
-                            <Text className="text-gray-600 font-outfit-regular text-xs mb-3">
+                            <Text className="text-gray-600 font-outfit-regular mb-3" style={TYPE.helper}>
                                 {t('requestAssistance.vehicleInformation.suggestionHint')}
                             </Text>
                             <TouchableOpacity
@@ -189,7 +190,7 @@ export default function VehicleInformationScreen() {
                                 className="self-start px-3.5 py-2 rounded-lg"
                                 style={{ backgroundColor: '#0047AB', opacity: condition ? 1 : 0.5 }}
                             >
-                                <Text className="text-white font-outfit-bold text-xs">
+                                <Text className="text-white font-outfit-bold" style={TYPE.helper}>
                                     {t('requestAssistance.vehicleInformation.suggestionGenerate')}
                                 </Text>
                             </TouchableOpacity>
@@ -211,7 +212,7 @@ export default function VehicleInformationScreen() {
                             justifyContent: 'center',
                         }}
                     >
-                        <Text className="text-white font-outfit-bold text-center">
+                        <Text className="text-white font-outfit-bold text-[18px] text-center">
                             {t('requestAssistance.vehicleInformation.continue')}
                         </Text>
                     </LinearGradient>

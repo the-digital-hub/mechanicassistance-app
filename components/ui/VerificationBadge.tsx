@@ -78,7 +78,7 @@ export function VerificationBadge() {
             style={{ backgroundColor: bg }}
         >
             <Ionicons name={icon} size={14} color={fg} />
-            <Text className="font-outfit-semibold text-xs" style={{ color: fg }}>
+            <Text className="font-outfit-semibold text-[13px]" style={{ color: fg }}>
                 {t(`verification.badge.${labelKey}`)}
             </Text>
             {!isVerified && <Ionicons name="chevron-forward" size={12} color={fg} />}

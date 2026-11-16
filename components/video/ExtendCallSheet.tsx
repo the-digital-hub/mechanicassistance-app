@@ -115,7 +115,7 @@ export function ExtendCallSheet({ visible, appointmentId, onClose, onExtended }:
                     testID="extend-call-sheet"
                 >
                     <Text className="font-outfit-bold" style={{ fontSize: 17, color: AO.text }}>{t(`${K}.title`)}</Text>
-                    <Text className="font-outfit-regular" style={{ fontSize: 12.5, color: AO.muted, marginTop: 4, lineHeight: 17 }}>
+                    <Text className="font-outfit-regular" style={{ fontSize: 13, color: AO.muted, marginTop: 4, lineHeight: 17 }}>
                         {t(`${K}.body`)}
                     </Text>
 
@@ -149,31 +149,31 @@ export function ExtendCallSheet({ visible, appointmentId, onClose, onExtended }:
                                             accessibilityState={{ selected }}
                                         >
                                             <Text className="font-outfit-bold" style={{ fontSize: 20, color: selected ? AO.blue : AO.text }}>+{o.minutes}</Text>
-                                            <Text className="font-outfit-semibold" style={{ fontSize: 11, color: AO.muted }}>{t(`${K}.minutes`)}</Text>
+                                            <Text className="font-outfit-semibold" style={{ fontSize: 13, color: AO.muted }}>{t(`${K}.minutes`)}</Text>
                                             <Text className="font-outfit-bold" style={{ fontSize: 14, color: AO.text, marginTop: 6 }}>{formatMoney(o.price, o.currency)}</Text>
                                         </TouchableOpacity>
                                     );
                                 })}
                             </View>
-                            <Text className="font-outfit-regular" style={{ fontSize: 11.5, color: AO.muted, marginTop: 8 }}>
+                            <Text className="font-outfit-regular" style={{ fontSize: 13, color: AO.muted, marginTop: 8 }}>
                                 {t(`${K}.remaining`, { left: catalog.maxExtensions - catalog.extensionsUsed })}
                             </Text>
 
                             <View className="flex-row items-center" style={{ marginTop: 16, padding: 12, borderRadius: 14, backgroundColor: AO.page, gap: 10 }}>
                                 <Ionicons name={source === WALLET_METHOD ? 'wallet-outline' : 'card-outline'} size={18} color={AO.blue} />
                                 <View style={{ flex: 1 }}>
-                                    <Text className="font-outfit-semibold" style={{ fontSize: 11, color: AO.muted }}>{t(`${K}.payWith`)}</Text>
-                                    <Text className="font-outfit-bold" style={{ fontSize: 13.5, color: AO.text }} testID="extend-call-source">{sourceLabel}</Text>
+                                    <Text className="font-outfit-semibold" style={{ fontSize: 13, color: AO.muted }}>{t(`${K}.payWith`)}</Text>
+                                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: AO.text }} testID="extend-call-source">{sourceLabel}</Text>
                                 </View>
                                 <TouchableOpacity onPress={() => setPickerOpen(true)} hitSlop={8} testID="extend-call-change-source">
-                                    <Text className="font-outfit-bold" style={{ fontSize: 12.5, color: AO.blue }}>{t(`${K}.change`)}</Text>
+                                    <Text className="font-outfit-bold" style={{ fontSize: 13, color: AO.blue }}>{t(`${K}.change`)}</Text>
                                 </TouchableOpacity>
                             </View>
                         </>
                     )}
 
                     {error && (
-                        <Text className="font-outfit-semibold" style={{ fontSize: 12.5, color: AO.red, marginTop: 10 }} testID="extend-call-error">
+                        <Text className="font-outfit-semibold" style={{ fontSize: 13, color: AO.red, marginTop: 10 }} testID="extend-call-error">
                             {error}
                         </Text>
                     )}

@@ -55,8 +55,8 @@ export function OwnerReviewCard({ appointmentId, status }: { appointmentId: stri
                     <Ionicons name="star-outline" size={19} color="#F08A1C" />
                 </View>
                 <View className="flex-1">
-                    <Text className="font-outfit-bold text-[14.5px]" style={{ color: '#0B1530' }}>{t(`${k}.cardTitle`)}</Text>
-                    <Text className="font-outfit-regular text-xs mt-0.5" style={{ color: '#6B7490' }}>{t(`${k}.cardBody`)}</Text>
+                    <Text className="font-outfit-bold text-[15px]" style={{ color: '#0B1530' }}>{t(`${k}.cardTitle`)}</Text>
+                    <Text className="font-outfit-regular text-[13px] mt-0.5" style={{ color: '#6B7490' }}>{t(`${k}.cardBody`)}</Text>
                 </View>
             </View>
             <TouchableOpacity

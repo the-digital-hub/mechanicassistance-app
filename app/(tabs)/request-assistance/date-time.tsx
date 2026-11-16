@@ -225,7 +225,7 @@ export default function DateTimeScreen() {
                             justifyContent: 'center',
                         }}
                     >
-                        <Text className="text-white font-outfit-bold text-center">
+                        <Text className="text-white font-outfit-bold text-[18px] text-center">
                             {t('requestAssistance.dateTime.continue')}
                         </Text>
                     </LinearGradient>

@@ -95,7 +95,7 @@ export default function LiveChatScreen() {
                                 {item.content}
                             </Text>
                         </View>
-                        <Text className={`text-[10px] text-gray-400 mt-1 ${item.is_user ? 'text-right' : 'text-left'}`}>
+                        <Text className={`text-[13px] text-gray-400 mt-1 ${item.is_user ? 'text-right' : 'text-left'}`}>
                             {item.created_at}
                         </Text>
                     </View>

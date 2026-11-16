@@ -466,7 +466,7 @@ export default function DashboardScreen() {
                                                         </Text>
                                                         {badge && (
                                                             <View className="px-2 py-0.5 rounded-md" style={{ backgroundColor: '#FEE2E2' }}>
-                                                                <Text className="font-outfit-bold text-[10px] tracking-widest" style={{ color: '#EF4444' }}>
+                                                                <Text className="font-outfit-bold text-[12px] tracking-widest" style={{ color: '#EF4444' }}>
                                                                     {badge}
                                                                 </Text>
                                                             </View>
@@ -597,7 +597,7 @@ export default function DashboardScreen() {
                                                 <View key={r.id} style={{ width: i === requestPageIdx ? 16 : 6, height: 6, borderRadius: 3, backgroundColor: i === requestPageIdx ? '#1E56E3' : '#DCE7FA' }} />
                                             ))}
                                         </View>
-                                        <Text className="font-outfit-semibold" style={{ fontSize: 12.5, color: '#6B7490' }}>
+                                        <Text className="font-outfit-semibold" style={{ fontSize: 13, color: '#6B7490' }}>
                                             {requestPageIdx + 1} / {visibleRequests.length}
                                         </Text>
                                     </View>
@@ -629,7 +629,7 @@ export default function DashboardScreen() {
                             earnedLabel={t('dashboard.mechanic.earnedToday')}
                             earned={earnedToday === null ? '—' : formatMoney(earnedToday)}
                             footer={earningsSummary ? (
-                                <Text className="font-outfit-regular" style={{ fontSize: 12.5, color: '#6B7490' }}>
+                                <Text className="font-outfit-regular" style={{ fontSize: 13, color: '#6B7490' }}>
                                     {t('dashboard.mechanic.readyToPay')} · <Text className="font-outfit-bold" style={{ color: '#0B1530' }}>{formatMoney(Number(earningsSummary.readyNet) || 0)}</Text>
                                 </Text>
                             ) : undefined}
@@ -706,7 +706,7 @@ export default function DashboardScreen() {
                                                 }`}>
                                                     {option.label}
                                                 </Text>
-                                                <Text className="text-gray-600 font-outfit-regular text-xs mt-1">
+                                                <Text className="text-gray-600 font-outfit-regular text-[13px] mt-1">
                                                     {option.description}
                                                 </Text>
                                             </View>
@@ -930,7 +930,7 @@ export default function DashboardScreen() {
                 {/* Section Badge */}
                 <View className="flex-row items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#EAF1FF', alignSelf: 'flex-start', marginBottom: 12 }}>
                     <View className="rounded-full" style={{ width: 5, height: 5, backgroundColor: '#1E56E3' }} />
-                    <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 1.3, color: '#1E56E3' }}>
+                    <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1.3, color: '#1E56E3' }}>
                         {t(getTimeGreetingKey())}
                     </Text>
                 </View>

@@ -48,13 +48,13 @@ export function TireSizeSelect({ title, value, onChange }: TireSizeSelectProps) 
             }}
         >
             <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
-                <Text className="font-outfit-bold" style={{ fontSize: 11, letterSpacing: 1, color: AV.text }}>
+                <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1, color: AV.text }}>
                     {title}
                 </Text>
                 <Text
                     className="font-outfit-bold"
                     style={{
-                        fontSize: 11.5,
+                        fontSize: 13,
                         color: complete ? AV.blue : AV.mutedLight,
                         fontStyle: complete ? 'normal' : 'italic',
                     }}

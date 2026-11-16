@@ -97,7 +97,7 @@ export function ScreenBuyParts({ obdFilled, onDone }: { obdFilled: boolean; onDo
                         <Tip tone="orange">{t(`${k}.noObd`)}</Tip>
                         {!showObdUpload ? (
                             <TouchableOpacity onPress={() => setShowObdUpload(true)} className="mx-4 mt-2.5 items-center py-3 rounded-xl" style={{ backgroundColor: OS.blueSoft }}>
-                                <Text className="font-outfit-bold text-[12.5px]" style={{ color: OS.blue }}>{t(`${k}.uploadObd`)}</Text>
+                                <Text className="font-outfit-bold text-[13px]" style={{ color: OS.blue }}>{t(`${k}.uploadObd`)}</Text>
                             </TouchableOpacity>
                         ) : (
                             <Card>
@@ -111,7 +111,7 @@ export function ScreenBuyParts({ obdFilled, onDone }: { obdFilled: boolean; onDo
                 <Card>
                     <View className="px-4 py-3" style={{ borderBottomWidth: 1, borderBottomColor: OS.borderSoft }}>
                         <Text className="font-outfit-bold text-[13px]" style={{ color: OS.text }}>{t(`${k}.listTitle`)}</Text>
-                        <Text className="font-outfit-medium text-[11px] mt-0.5" style={{ color: OS.mutedLight }}>
+                        <Text className="font-outfit-medium text-[13px] mt-0.5" style={{ color: OS.mutedLight }}>
                             {localObd ? t(`${k}.matched`) : t(`${k}.searchHint`)}
                         </Text>
                     </View>
@@ -135,15 +135,15 @@ export function ScreenBuyParts({ obdFilled, onDone }: { obdFilled: boolean; onDo
                             placeholder={t(`${k}.searchPh`)}
                             placeholderTextColor={OS.mutedLight}
                             returnKeyType="done"
-                            className="flex-1 font-outfit-regular text-[12.5px] px-3 py-2.5"
+                            className="flex-1 font-outfit-regular text-[13px] px-3 py-2.5"
                             style={{ borderRadius: 12, borderWidth: 1.5, borderColor: OS.border, backgroundColor: OS.page, color: OS.text }}
                         />
                         <TouchableOpacity onPress={addSearched} className="justify-center px-3.5 rounded-xl" style={{ backgroundColor: OS.blueSoft }}>
-                            <Text className="font-outfit-bold text-[12.5px]" style={{ color: OS.blue }}>{t(`${k}.add`)}</Text>
+                            <Text className="font-outfit-bold text-[13px]" style={{ color: OS.blue }}>{t(`${k}.add`)}</Text>
                         </TouchableOpacity>
                     </View>
                     <View className="flex-row justify-between px-4 py-3" style={{ borderTopWidth: 1, borderTopColor: OS.borderSoft }}>
-                        <Text className="font-outfit-bold text-[12.5px]" style={{ color: OS.muted }}>{t(`${k}.total`)}</Text>
+                        <Text className="font-outfit-bold text-[13px]" style={{ color: OS.muted }}>{t(`${k}.total`)}</Text>
                         <Text className="font-outfit-bold text-sm" style={{ color: OS.blueDark }}>${partsTotal}</Text>
                     </View>
                 </Card>
@@ -153,16 +153,16 @@ export function ScreenBuyParts({ obdFilled, onDone }: { obdFilled: boolean; onDo
                         <View style={{ marginTop: 1 }}><Checkbox checked={shopOpen} size={20} /></View>
                         <View className="flex-1">
                             <Text className="font-outfit-bold text-[13px]" style={{ color: OS.text }}>{t(`${k}.shopOpen`)}</Text>
-                            <Text className="font-outfit-regular text-[11.5px] mt-0.5" style={{ color: OS.muted }}>{t(`${k}.shopOpenSub`)}</Text>
+                            <Text className="font-outfit-regular text-[13px] mt-0.5" style={{ color: OS.muted }}>{t(`${k}.shopOpenSub`)}</Text>
                             <View className="flex-row items-center gap-1.5 mt-2 px-2.5 py-1 rounded-full" style={{ backgroundColor: OS.greenSoft, alignSelf: 'flex-start' }}>
                                 <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: OS.green }} />
-                                <Text className="font-outfit-bold text-[11px]" style={{ color: OS.greenDark }}>{t(`${k}.shopBadge`)}</Text>
+                                <Text className="font-outfit-bold text-[13px]" style={{ color: OS.greenDark }}>{t(`${k}.shopBadge`)}</Text>
                             </View>
                         </View>
                     </TouchableOpacity>
                     <View className="p-4">
-                        <Text className="font-outfit-bold text-xs mb-1" style={{ color: OS.text }}>{t(`${k}.approvalTitle`)}</Text>
-                        <Text className="font-outfit-regular text-[11.5px] mb-3" style={{ color: OS.muted }}>{t(`${k}.approvalSub`)}</Text>
+                        <Text className="font-outfit-bold text-[13px] mb-1" style={{ color: OS.text }}>{t(`${k}.approvalTitle`)}</Text>
+                        <Text className="font-outfit-regular text-[13px] mb-3" style={{ color: OS.muted }}>{t(`${k}.approvalSub`)}</Text>
                         {approval === 'idle' ? (
                             <TouchableOpacity
                                 onPress={() => setApproval('sent')}
@@ -181,8 +181,8 @@ export function ScreenBuyParts({ obdFilled, onDone }: { obdFilled: boolean; onDo
                             <View className="flex-row items-center gap-2.5 px-3.5 py-3" style={{ borderRadius: 13, backgroundColor: OS.greenSoft }}>
                                 <Ionicons name="checkmark-circle" size={20} color={OS.green} />
                                 <View className="flex-1">
-                                    <Text className="font-outfit-bold text-[13.5px]" style={{ color: OS.greenDark }}>{t(`${k}.approved`)}</Text>
-                                    <Text className="font-outfit-medium text-[11.5px] mt-0.5" style={{ color: OS.greenDark }}>{t(`${k}.approvedSub`)}</Text>
+                                    <Text className="font-outfit-bold text-[14px]" style={{ color: OS.greenDark }}>{t(`${k}.approved`)}</Text>
+                                    <Text className="font-outfit-medium text-[13px] mt-0.5" style={{ color: OS.greenDark }}>{t(`${k}.approvedSub`)}</Text>
                                 </View>
                             </View>
                         )}
@@ -237,7 +237,7 @@ export function ScreenEvaluateOptions({ context, onSelect, checklist: initialChe
                                 style={{ borderRadius: 14, borderWidth: 1, borderColor: OS.borderSoft }}
                             >
                                 <View style={{ width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: OS.border }} />
-                                <Text className="flex-1 font-outfit-bold text-[12.5px]" style={{ color: OS.text }}>{label(id)}</Text>
+                                <Text className="flex-1 font-outfit-bold text-[13px]" style={{ color: OS.text }}>{label(id)}</Text>
                             </TouchableOpacity>
                         ))
                     ) : (
@@ -250,8 +250,8 @@ export function ScreenEvaluateOptions({ context, onSelect, checklist: initialChe
                                 <View className="items-center justify-center" style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: OS.blue }}>
                                     <Ionicons name="checkmark" size={11} color="#FFFFFF" />
                                 </View>
-                                <Text className="flex-1 font-outfit-bold text-[12.5px]" style={{ color: OS.blueDark }}>{label(reason)}</Text>
-                                <Text className="font-outfit-bold text-[11.5px]" style={{ color: OS.blue }}>{t('appointments.onSite.common.change')}</Text>
+                                <Text className="flex-1 font-outfit-bold text-[13px]" style={{ color: OS.blueDark }}>{label(reason)}</Text>
+                                <Text className="font-outfit-bold text-[13px]" style={{ color: OS.blue }}>{t('appointments.onSite.common.change')}</Text>
                             </TouchableOpacity>
                             <NoteInput value={note} onChangeText={setNote} white placeholder={reason === 'other' ? t(`${k}.otherPh`) : t(`${k}.notePh`)} />
                         </>
@@ -262,7 +262,7 @@ export function ScreenEvaluateOptions({ context, onSelect, checklist: initialChe
                     <View className="mt-4" style={{ borderTopWidth: 1, borderTopColor: OS.borderSoft }}>
                         <View className="px-5 pt-4">
                             <Eyebrow>{t(`${k}.checklistEyebrow`)}</Eyebrow>
-                            <Text className="font-outfit-regular text-[13.5px] leading-5" style={{ color: OS.muted }}>{t(`${k}.checklistIntro`)}</Text>
+                            <Text className="font-outfit-regular text-[14px] leading-5" style={{ color: OS.muted }}>{t(`${k}.checklistIntro`)}</Text>
                         </View>
                         <MaintenanceChecklist state={checklist} />
                         <Tip>{t(`${k}.tip`)}</Tip>
@@ -331,7 +331,7 @@ export function ScreenResolveIncident({
                 <View className="mx-4 mt-3.5 flex-row items-center justify-between px-4 py-3 rounded-2xl" style={{ backgroundColor: OS.blueSoft }}>
                     <View className="flex-row items-center gap-2">
                         <Ionicons name="time-outline" size={15} color={OS.blue} />
-                        <Text className="font-outfit-bold text-[11.5px]" style={{ color: OS.blueDark }}>{t(`${k}.timer`)}</Text>
+                        <Text className="font-outfit-bold text-[13px]" style={{ color: OS.blueDark }}>{t(`${k}.timer`)}</Text>
                     </View>
                     <Text className="font-outfit-bold text-[15px]" style={{ color: OS.blueDark, fontVariant: ['tabular-nums'] }}>{mm}:{ss}</Text>
                 </View>
@@ -342,13 +342,13 @@ export function ScreenResolveIncident({
                         <View className="px-5 flex-row items-center flex-wrap gap-2.5">
                             <Text className="font-outfit-bold text-2xl" style={{ color: OS.text }}>{t(`${k}.pickupTitle`)}</Text>
                             <View className="px-2.5 py-1 rounded-full" style={{ backgroundColor: OS.greenSoft }}>
-                                <Text className="font-outfit-bold text-[11.5px]" style={{ color: OS.greenDark }}>{t(`${k}.paid`)}</Text>
+                                <Text className="font-outfit-bold text-[13px]" style={{ color: OS.greenDark }}>{t(`${k}.paid`)}</Text>
                             </View>
                         </View>
                         <Card>
                             <View className="px-4 py-3" style={{ borderBottomWidth: 1, borderBottomColor: OS.borderSoft }}>
                                 <Text className="font-outfit-bold text-[13px]" style={{ color: OS.text }}>{t(`${k}.approvedTitle`)}</Text>
-                                <Text className="font-outfit-medium text-[11px] mt-0.5" style={{ color: OS.mutedLight }}>{t(`${k}.approvedSub`)}</Text>
+                                <Text className="font-outfit-medium text-[13px] mt-0.5" style={{ color: OS.mutedLight }}>{t(`${k}.approvedSub`)}</Text>
                             </View>
                             {partsOrder.parts.map((p, i) => (
                                 <View
@@ -356,22 +356,22 @@ export function ScreenResolveIncident({
                                     className="flex-row justify-between gap-3 px-4 py-2.5"
                                     style={i < partsOrder.parts.length - 1 ? { borderBottomWidth: 1, borderBottomColor: OS.borderSoft } : undefined}
                                 >
-                                    <Text className="flex-1 font-outfit-medium text-[12.5px]" style={{ color: OS.text }}>{p.label}</Text>
-                                    <Text className="font-outfit-bold text-[12.5px]" style={{ color: OS.blueDark }}>{p.price != null ? `$${p.price}` : '—'}</Text>
+                                    <Text className="flex-1 font-outfit-medium text-[13px]" style={{ color: OS.text }}>{p.label}</Text>
+                                    <Text className="font-outfit-bold text-[13px]" style={{ color: OS.blueDark }}>{p.price != null ? `$${p.price}` : '—'}</Text>
                                 </View>
                             ))}
                             <View className="mx-4 mt-3.5 px-4 py-3.5 rounded-2xl items-center" style={{ backgroundColor: OS.blueSoft }}>
-                                <Text className="font-outfit-bold text-[10.5px] text-center" style={{ color: OS.blueDark }}>{t(`${k}.ticket`)}</Text>
+                                <Text className="font-outfit-bold text-[13px] text-center" style={{ color: OS.blueDark }}>{t(`${k}.ticket`)}</Text>
                                 <Text className="font-outfit-bold text-[22px] mt-1.5" style={{ color: OS.blueDark, letterSpacing: 1 }}>{partsOrder.receiptCode}</Text>
                             </View>
                             <View className="px-4 pt-3.5">
                                 <Text className="font-outfit-bold text-[13px]" style={{ color: OS.text }}>{partsOrder.store.name}</Text>
-                                <Text className="font-outfit-regular text-[11.5px] mt-0.5" style={{ color: OS.muted }}>{partsOrder.store.address}</Text>
+                                <Text className="font-outfit-regular text-[13px] mt-0.5" style={{ color: OS.muted }}>{partsOrder.store.address}</Text>
                             </View>
                             <View className="flex-row items-center gap-1.5 px-4 pt-2.5">
                                 <Ionicons name="time-outline" size={14} color={OS.blueDark} />
-                                <Text className="font-outfit-bold text-xs" style={{ color: OS.blueDark }}>{t(`${k}.eta`, { minutes: partsOrder.store.etaMinutes })}</Text>
-                                <Text className="font-outfit-medium text-[11.5px]" style={{ color: OS.mutedLight }}>{t(`${k}.distance`, { miles: partsOrder.store.distanceMiles })}</Text>
+                                <Text className="font-outfit-bold text-[13px]" style={{ color: OS.blueDark }}>{t(`${k}.eta`, { minutes: partsOrder.store.etaMinutes })}</Text>
+                                <Text className="font-outfit-medium text-[13px]" style={{ color: OS.mutedLight }}>{t(`${k}.distance`, { miles: partsOrder.store.distanceMiles })}</Text>
                             </View>
                             <View className="p-4">
                                 <View className="overflow-hidden" style={{ height: 180, borderRadius: 14 }}>
@@ -393,8 +393,8 @@ export function ScreenResolveIncident({
                     <View className="flex-row items-center gap-2.5 px-4 py-3">
                         <Ionicons name="construct-outline" size={16} color={OS.mutedLight} />
                         <Text className="flex-1">
-                            <Text className="font-outfit-bold text-[10.5px]" style={{ color: OS.mutedLight }}>{t(`${k}.reportedIssue`)} </Text>
-                            <Text className="font-outfit-bold text-[12.5px]" style={{ color: OS.text }}>{issue}</Text>
+                            <Text className="font-outfit-bold text-[13px]" style={{ color: OS.mutedLight }}>{t(`${k}.reportedIssue`)} </Text>
+                            <Text className="font-outfit-bold text-[13px]" style={{ color: OS.text }}>{issue}</Text>
                         </Text>
                     </View>
                 </Card>
@@ -405,7 +405,7 @@ export function ScreenResolveIncident({
                         optional
                         right={
                             <TouchableOpacity onPress={() => setPhotos((p) => [...p, { id: nextPhoto.current++ }])}>
-                                <Text className="font-outfit-bold text-xs" style={{ color: OS.blue }}>{t(`${k}.addPhoto`)}</Text>
+                                <Text className="font-outfit-bold text-[13px]" style={{ color: OS.blue }}>{t(`${k}.addPhoto`)}</Text>
                             </TouchableOpacity>
                         }
                     />
@@ -429,7 +429,7 @@ export function ScreenResolveIncident({
                 <MaintenanceChecklist state={checklist} />
             </Body>
             <ActionBar stacked>
-                <Text className="font-outfit-bold text-xs text-center" style={{ color: OS.mutedLight }}>{t(`${k}.question`)}</Text>
+                <Text className="font-outfit-bold text-[13px] text-center" style={{ color: OS.mutedLight }}>{t(`${k}.question`)}</Text>
                 <View className="flex-row gap-3">
                     <GhostButton label={t(`${k}.no`)} onPress={onNotResolved} flex />
                     <PrimaryButton label={t(`${k}.yes`)} onPress={onResolved} tone="green" />

@@ -31,7 +31,7 @@ export function PayoutHistory({ payouts }: { payouts: Payout[] | null }) {
                         </View>
                         <View className="flex-1">
                             <Text className="font-outfit-semibold text-sm text-gray-900">{formatLocalDateTime(p.createdAt, i18n.language)}</Text>
-                            <Text className="font-outfit-regular text-xs text-gray-500">{t(`${K}.services`, { count: p.earningsCount })}</Text>
+                            <Text className="font-outfit-regular text-[13px] text-gray-500">{t(`${K}.services`, { count: p.earningsCount })}</Text>
                         </View>
                         <Text className="font-outfit-bold text-base" style={{ color: '#15803D' }}>
                             {formatMoney(p.amount)}

@@ -149,7 +149,7 @@ export function RequestObdPanel({ requestId, role, editable, state }: RequestObd
             {status === 'processing' ? (
                 <View className="mx-4 mt-3 flex-row items-center gap-2.5 px-3.5 py-3 rounded-2xl" style={{ backgroundColor: OS.blueSofter }}>
                     <ActivityIndicator size="small" color={OS.blue} />
-                    <Text className="flex-1 font-outfit-medium text-[12px]" style={{ color: OS.blueDark }}>{t(`${k}.processing`)}</Text>
+                    <Text className="flex-1 font-outfit-medium text-[13px]" style={{ color: OS.blueDark }}>{t(`${k}.processing`)}</Text>
                 </View>
             ) : null}
             {status === 'failed' ? (
@@ -158,7 +158,7 @@ export function RequestObdPanel({ requestId, role, editable, state }: RequestObd
             {report.vinMismatch ? <Tip tone="orange">{t(`${kv}.vinMismatch`, { vin: report.vin ?? '' })}</Tip> : null}
             {role === 'mechanic' && fileName ? (
                 <View className="mx-5 mt-3 flex-row items-center gap-3">
-                    <Text className="flex-1 font-outfit-medium text-[11.5px]" style={{ color: OS.muted }} numberOfLines={1}>
+                    <Text className="flex-1 font-outfit-medium text-[13px]" style={{ color: OS.muted }} numberOfLines={1}>
                         {t(`${kv}.fileSent`, { name: fileName })}
                     </Text>
                     <TouchableOpacity
@@ -171,7 +171,7 @@ export function RequestObdPanel({ requestId, role, editable, state }: RequestObd
                         testID="request-obd-open-file"
                     >
                         {openingFile ? <ActivityIndicator size="small" color={OS.blue} /> : (
-                            <Text className="font-outfit-bold text-[11.5px]" style={{ color: OS.blue }}>{t(`${kv}.openFile`)}</Text>
+                            <Text className="font-outfit-bold text-[13px]" style={{ color: OS.blue }}>{t(`${kv}.openFile`)}</Text>
                         )}
                     </TouchableOpacity>
                 </View>
@@ -179,7 +179,7 @@ export function RequestObdPanel({ requestId, role, editable, state }: RequestObd
 
             {codes.length ? (
                 <Card>
-                    <Text className="font-outfit-bold text-xs px-4 pt-3.5 pb-1" style={{ color: OS.text }}>
+                    <Text className="font-outfit-bold text-[13px] px-4 pt-3.5 pb-1" style={{ color: OS.text }}>
                         {status === 'manual' ? t(`${k}.manualTitle`) : t(`${k}.codesFound`)}
                     </Text>
                     {codes.map((c, i) => {
@@ -191,25 +191,25 @@ export function RequestObdPanel({ requestId, role, editable, state }: RequestObd
                                     <View className="flex-row items-center gap-3">
                                         {severity && c.severity ? (
                                             <View className="px-2.5 py-0.5 rounded-full" style={{ backgroundColor: severity.bg }}>
-                                                <Text className="font-outfit-bold text-[10.5px]" style={{ color: severity.color }}>
+                                                <Text className="font-outfit-bold text-[13px]" style={{ color: severity.color }}>
                                                     {t(`${k}.severity.${c.severity}`)}
                                                 </Text>
                                             </View>
                                         ) : null}
                                         {canType ? (
                                             <TouchableOpacity onPress={() => removeCode(c.code)} disabled={saving}>
-                                                <Text className="font-outfit-bold text-[11px]" style={{ color: OS.red }}>{t(`${k}.remove`)}</Text>
+                                                <Text className="font-outfit-bold text-[13px]" style={{ color: OS.red }}>{t(`${k}.remove`)}</Text>
                                             </TouchableOpacity>
                                         ) : null}
                                     </View>
                                 </View>
-                                <Text className="font-outfit-regular text-[12.5px] mt-1" style={{ color: OS.muted }}>
+                                <Text className="font-outfit-regular text-[13px] mt-1" style={{ color: OS.muted }}>
                                     {c.description ? c.description[lang] : t(`${k}.noDescription`)}
                                 </Text>
                                 {role === 'mechanic' && suggestionsOpen && c.suggestion ? (
                                     <View className="mt-2 px-3 py-2.5 rounded-xl" style={{ backgroundColor: OS.blueSofter }}>
-                                        <Text className="font-outfit-bold text-[11px] mb-0.5" style={{ color: OS.blueDark }}>{t(`${k}.aiFix`)}</Text>
-                                        <Text className="font-outfit-regular text-[12.5px] leading-5" style={{ color: OS.text }}>{c.suggestion[lang]}</Text>
+                                        <Text className="font-outfit-bold text-[13px] mb-0.5" style={{ color: OS.blueDark }}>{t(`${k}.aiFix`)}</Text>
+                                        <Text className="font-outfit-regular text-[13px] leading-5" style={{ color: OS.text }}>{c.suggestion[lang]}</Text>
                                     </View>
                                 ) : null}
                             </View>
@@ -233,7 +233,7 @@ export function RequestObdPanel({ requestId, role, editable, state }: RequestObd
 
             {canType ? (
                 <Card>
-                    <Text className="font-outfit-bold text-xs px-4 pt-3.5" style={{ color: OS.text }}>{t(`${k}.manualHint`)}</Text>
+                    <Text className="font-outfit-bold text-[13px] px-4 pt-3.5" style={{ color: OS.text }}>{t(`${k}.manualHint`)}</Text>
                     <View className="flex-row gap-2 px-4 pt-2 pb-3">
                         <TextInput
                             value={input}
@@ -257,12 +257,12 @@ export function RequestObdPanel({ requestId, role, editable, state }: RequestObd
                             style={{ backgroundColor: OS.blueSoft, opacity: saving || !input.trim() ? 0.6 : 1 }}
                         >
                             {saving ? <ActivityIndicator size="small" color={OS.blue} /> : (
-                                <Text className="font-outfit-bold text-[12.5px]" style={{ color: OS.blue }}>{t(`${k}.add`)}</Text>
+                                <Text className="font-outfit-bold text-[13px]" style={{ color: OS.blue }}>{t(`${k}.add`)}</Text>
                             )}
                         </TouchableOpacity>
                     </View>
                     {inputError ? (
-                        <Text className="font-outfit-medium text-[11px] px-4 pb-3 -mt-1" style={{ color: OS.red }}>{inputError}</Text>
+                        <Text className="font-outfit-medium text-[13px] px-4 pb-3 -mt-1" style={{ color: OS.red }}>{inputError}</Text>
                     ) : null}
                 </Card>
             ) : null}

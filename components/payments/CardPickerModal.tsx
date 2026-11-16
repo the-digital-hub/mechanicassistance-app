@@ -75,12 +75,12 @@ export function CardPickerModal({ visible, cards, selectedId, onSelect, onClose,
             >
               <Ionicons name="wallet-outline" size={20} color={AO.blue} />
               <View style={{ flex: 1 }}>
-                <Text className="font-outfit-semibold" style={{ fontSize: 14.5, color: AO.text }}>
+                <Text className="font-outfit-semibold" style={{ fontSize: 15, color: AO.text }}>
                   {t('paymentCards.wallet')}
                 </Text>
                 <Text
                   className="font-outfit-regular"
-                  style={{ fontSize: 12, color: wallet && amount != null && !walletCovers(wallet, amount) ? AO.orange : AO.muted }}
+                  style={{ fontSize: 13, color: wallet && amount != null && !walletCovers(wallet, amount) ? AO.orange : AO.muted }}
                 >
                   {wallet
                     ? amount != null && !walletCovers(wallet, amount)
@@ -114,11 +114,11 @@ export function CardPickerModal({ visible, cards, selectedId, onSelect, onClose,
               >
                 <Ionicons name="card-outline" size={20} color={AO.blue} />
                 <View style={{ flex: 1 }}>
-                  <Text className="font-outfit-semibold" style={{ fontSize: 14.5, color: AO.text }}>
+                  <Text className="font-outfit-semibold" style={{ fontSize: 15, color: AO.text }}>
                     {cardLabel(card)}
                   </Text>
                   {(expired || card.isDefault) && (
-                    <Text className="font-outfit-regular" style={{ fontSize: 12, color: expired ? AO.red : AO.muted }}>
+                    <Text className="font-outfit-regular" style={{ fontSize: 13, color: expired ? AO.red : AO.muted }}>
                       {expired ? t('paymentCards.picker.expired') : t('paymentCards.picker.default')}
                     </Text>
                   )}

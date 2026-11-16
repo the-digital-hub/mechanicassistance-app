@@ -259,16 +259,16 @@ export default function BasicInfoScreen() {
               autoCapitalize="none"
             />
             {emailStatus === 'checking' && (
-              <Text className="font-outfit-regular text-xs text-slate-400 mt-1">{t("setup.basicInfo.checkingAvailability")}</Text>
+              <Text className="font-outfit-regular text-[13px] text-slate-400 mt-1">{t("setup.basicInfo.checkingAvailability")}</Text>
             )}
             {emailStatus === 'taken' && (
-              <Text className="font-outfit-regular text-xs text-red-500 mt-1">{t("setup.basicInfo.emailTaken")}</Text>
+              <Text className="font-outfit-regular text-[13px] text-red-500 mt-1">{t("setup.basicInfo.emailTaken")}</Text>
             )}
             {emailStatus === 'available' && (
-              <Text className="font-outfit-regular text-xs text-green-600 mt-1">{t("setup.basicInfo.emailAvailable")}</Text>
+              <Text className="font-outfit-regular text-[13px] text-green-600 mt-1">{t("setup.basicInfo.emailAvailable")}</Text>
             )}
             {emailStatus === 'error' && (
-              <Text className="font-outfit-regular text-xs text-orange-500 mt-1">{t("setup.basicInfo.emailCheckError")}</Text>
+              <Text className="font-outfit-regular text-[13px] text-orange-500 mt-1">{t("setup.basicInfo.emailCheckError")}</Text>
             )}
           </View>
 

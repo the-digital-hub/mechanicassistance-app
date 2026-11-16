@@ -133,7 +133,7 @@ export function AVField({ label, required, error, children }: AVFieldProps) {
             ) : null}
             {children}
             {error ? (
-                <Text className="font-outfit-regular" style={{ fontSize: 11.5, color: AV.error, lineHeight: 15 }}>
+                <Text className="font-outfit-regular" style={{ fontSize: 13, color: AV.error, lineHeight: 18 }}>
                     {error}
                 </Text>
             ) : null}
@@ -173,7 +173,7 @@ export function AVTextInput({ hasError, mono, style, multiline, onFocus, onBlur,
                     backgroundColor: '#fff',
                     borderWidth: 1,
                     borderColor: hasError ? '#FCA5A5' : focused ? AV.blue : AV.border,
-                    fontSize: 14.5,
+                    fontSize: 15,
                     color: AV.text,
                     textAlignVertical: multiline ? 'top' : 'center',
                     fontFamily: mono ? MONO_FONT : undefined,
@@ -237,7 +237,7 @@ export function VehicleFormHeader({ badge, title, subtitle }: { badge: string; t
                 }}
             >
                 <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: AV.blue }} />
-                <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 1.3, color: AV.blue }}>
+                <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1.3, color: AV.blue }}>
                     {badge}
                 </Text>
             </View>

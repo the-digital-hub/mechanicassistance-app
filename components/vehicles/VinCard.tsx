@@ -44,14 +44,14 @@ export function VinCard({ value, onChange, onDecode, decoding, decoded, error, l
         >
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <AVIcon name="sparkle" color="#fff" />
-                <Text className="font-outfit-bold" style={{ color: '#fff', fontSize: 14.5 }}>
+                <Text className="font-outfit-bold" style={{ color: '#fff', fontSize: 15 }}>
                     {t('vehicles.form.design.vinTitle')}
                     <Text style={{ opacity: 0.8 }}>*</Text>
                 </Text>
             </View>
             <Text
                 className="font-outfit-regular"
-                style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.85)', marginTop: 4, lineHeight: 18 }}
+                style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', marginTop: 4, lineHeight: 18 }}
             >
                 {t('vehicles.form.design.vinDescription')}
             </Text>
@@ -75,7 +75,7 @@ export function VinCard({ value, onChange, onDecode, decoding, decoded, error, l
                         borderWidth: 1,
                         borderColor: error ? '#FCA5A5' : 'transparent',
                         fontFamily: MONO_FONT,
-                        fontSize: 13.5,
+                        fontSize: 14,
                         letterSpacing: 0.5,
                         color: AV.text,
                     }}
@@ -97,7 +97,7 @@ export function VinCard({ value, onChange, onDecode, decoding, decoded, error, l
                     }}
                 >
                     <AVIcon name="search" color={buttonInk} />
-                    <Text className="font-outfit-bold" style={{ fontSize: 13.5, color: buttonInk }}>
+                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: buttonInk }}>
                         {decoding ? t('vehicles.form.design.decoding') : t('vehicles.form.design.decode')}
                     </Text>
                 </TouchableOpacity>
@@ -107,7 +107,7 @@ export function VinCard({ value, onChange, onDecode, decoding, decoded, error, l
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 8, marginTop: 8 }}>
                 <Text
                     className="font-outfit-regular"
-                    style={{ flex: 1, fontSize: 11.5, color: error ? '#FECACA' : 'rgba(255,255,255,0.8)' }}
+                    style={{ flex: 1, fontSize: 13, color: error ? '#FECACA' : 'rgba(255,255,255,0.8)' }}
                 >
                     {error ??
                         (locked
@@ -116,7 +116,7 @@ export function VinCard({ value, onChange, onDecode, decoding, decoded, error, l
                               ? t('vehicles.form.design.vinFound')
                               : t('vehicles.form.design.vinManual'))}
                 </Text>
-                <Text className="font-outfit-regular" style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.8)', fontVariant: ['tabular-nums'] }}>
+                <Text className="font-outfit-regular" style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', fontVariant: ['tabular-nums'] }}>
                     {value.length}/{VIN_LENGTH}
                 </Text>
             </View>

@@ -331,7 +331,7 @@ export default function VideoCallWhenScreen() {
                         </Text>
                         {badge}
                     </View>
-                    <Text className="font-outfit-regular" style={{ fontSize: 12.5, color: C.muted, marginTop: 2 }}>
+                    <Text className="font-outfit-regular" style={{ fontSize: 13, color: C.muted, marginTop: 2 }}>
                         {subtitle}
                     </Text>
                 </View>
@@ -367,10 +367,10 @@ export default function VideoCallWhenScreen() {
             <View style={{ width: 32, height: 32, borderRadius: 9, alignItems: 'center', justifyContent: 'center', backgroundColor: C.blueSoft }}>
                 <Icon size={16} color={C.blue} />
             </View>
-            <Text className="font-outfit-medium" style={{ fontSize: 12, color: C.muted }}>
+            <Text className="font-outfit-medium" style={{ fontSize: 13, color: C.muted }}>
                 {label}
             </Text>
-            <Text className="font-outfit-bold" style={{ flex: 1, textAlign: 'right', fontSize: 13, color: C.ink }}>
+            <Text className="font-outfit-bold" style={{ flex: 1, textAlign: 'right', fontSize: 15, color: C.ink }}>
                 {value}
             </Text>
             {action}
@@ -378,7 +378,7 @@ export default function VideoCallWhenScreen() {
     );
 
     const SectionLabel = ({ children }: { children: string }) => (
-        <Text className="font-outfit-bold" style={{ fontSize: 11, letterSpacing: 1.2, color: C.muted }}>
+        <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1.2, color: C.muted }}>
             {children.toUpperCase()}
         </Text>
     );
@@ -491,7 +491,7 @@ export default function VideoCallWhenScreen() {
                                 online > 0 ? (
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, backgroundColor: C.greenSoft }}>
                                         <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: C.green }} />
-                                        <Text className="font-outfit-semibold" style={{ fontSize: 11, color: C.green }}>
+                                        <Text className="font-outfit-semibold" style={{ fontSize: 13, color: C.green }}>
                                             {t('requestAssistance.when.online', { count: online })}
                                         </Text>
                                     </View>
@@ -518,14 +518,14 @@ export default function VideoCallWhenScreen() {
                                         const anchor = dayAnchor(d);
                                         const body = (
                                             <>
-                                                <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 1, color: selected ? 'rgba(255,255,255,0.8)' : C.faint }}>
+                                                <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1, color: selected ? 'rgba(255,255,255,0.8)' : C.faint }}>
                                                     {fmt(anchor, { weekday: 'short' }).toUpperCase()}
                                                 </Text>
                                                 <Text className="font-outfit-bold" style={{ fontSize: 20, color: selected ? '#FFFFFF' : C.ink }}>
                                                     {fmt(anchor, { day: 'numeric' })}
                                                 </Text>
                                                 {rel ? (
-                                                    <Text className="font-outfit-bold" style={{ fontSize: 9.5, color: selected ? 'rgba(255,255,255,0.85)' : C.faint }}>
+                                                    <Text className="font-outfit-bold" style={{ fontSize: 13, color: selected ? 'rgba(255,255,255,0.85)' : C.faint }}>
                                                         {rel}
                                                     </Text>
                                                 ) : null}
@@ -580,7 +580,7 @@ export default function VideoCallWhenScreen() {
                                                             <Text
                                                                 className="font-outfit-bold"
                                                                 style={{
-                                                                    fontSize: 13.5,
+                                                                    fontSize: 15,
                                                                     color: selected ? '#FFFFFF' : s.available ? C.ink : C.taken,
                                                                     textDecorationLine: s.available ? 'none' : 'line-through',
                                                                 }}
@@ -596,12 +596,12 @@ export default function VideoCallWhenScreen() {
                                 })}
 
                                 {!day.slots.some((s) => s.available) && (
-                                    <Text className="font-outfit-medium" style={{ fontSize: 13, color: C.muted }}>
+                                    <Text className="font-outfit-medium" style={{ fontSize: 15, color: C.muted }}>
                                         {t('requestAssistance.when.noSlots')}
                                     </Text>
                                 )}
 
-                                <Text className="font-outfit-regular" style={{ fontSize: 11.5, color: C.faint, lineHeight: 16 }}>
+                                <Text className="font-outfit-regular" style={{ fontSize: 13, color: C.faint, lineHeight: 16 }}>
                                     {t('requestAssistance.when.footnote', { zone: zoneLabel })}
                                 </Text>
                             </View>
@@ -634,14 +634,14 @@ export default function VideoCallWhenScreen() {
                                 value={paymentLabel}
                                 action={
                                     <TouchableOpacity onPress={() => setCardPickerOpen(true)} hitSlop={8}>
-                                        <Text className="font-outfit-bold" style={{ fontSize: 12.5, color: C.blue }}>
+                                        <Text className="font-outfit-bold" style={{ fontSize: 13, color: C.blue }}>
                                             {t('requestAssistance.mechanicFound.change')}
                                         </Text>
                                     </TouchableOpacity>
                                 }
                             />
                         </View>
-                        <Text className="font-outfit-regular" style={{ fontSize: 11.5, color: C.faint, lineHeight: 16, marginTop: 8 }} testID="when-duration-note">
+                        <Text className="font-outfit-regular" style={{ fontSize: 13, color: C.faint, lineHeight: 16, marginTop: 8 }} testID="when-duration-note">
                             {t('requestAssistance.when.durationNote', { count: callMinutes })}
                         </Text>
                     </>
@@ -662,13 +662,13 @@ export default function VideoCallWhenScreen() {
                                 style={{ borderRadius: 12, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                             >
                                 {mode === 'now' && <Video size={18} color="#FFFFFF" />}
-                                <Text className="text-white font-outfit-bold" style={{ fontSize: 16 }}>
+                                <Text className="text-white font-outfit-bold" style={{ fontSize: 18 }}>
                                     {ctaLabel}
                                 </Text>
                             </LinearGradient>
                         ) : (
                             <View style={{ borderRadius: 12, paddingVertical: 16, alignItems: 'center', backgroundColor: '#B9C0CF' }}>
-                                <Text className="text-white font-outfit-bold" style={{ fontSize: 16 }}>
+                                <Text className="text-white font-outfit-bold" style={{ fontSize: 18 }}>
                                     {ctaLabel}
                                 </Text>
                             </View>

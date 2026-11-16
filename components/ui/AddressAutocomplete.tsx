@@ -132,7 +132,7 @@ export function AddressAutocomplete({
             )}
 
             {error && (
-                <Text className="font-outfit-regular text-red-500 text-xs mt-2">{error}</Text>
+                <Text className="font-outfit-regular text-red-500 text-[13px] mt-2">{error}</Text>
             )}
 
             {suggestions.length > 0 && (
@@ -155,7 +155,7 @@ export function AddressAutocomplete({
                                 </Text>
                                 {!!suggestion.secondaryText && (
                                     <Text
-                                        className="font-outfit-regular text-gray-500 text-xs"
+                                        className="font-outfit-regular text-gray-500 text-[13px]"
                                         numberOfLines={1}
                                     >
                                         {suggestion.secondaryText}

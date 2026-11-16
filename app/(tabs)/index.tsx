@@ -414,7 +414,7 @@ export default function ProfileScreen() {
                 </Text>
                 {item.value ? (
                   <View className="px-2.5 py-1 rounded-full mr-2" style={{ backgroundColor: '#EAF1FF' }}>
-                    <Text className="font-outfit-bold" style={{ fontSize: 12.5, color: '#1E56E3' }} numberOfLines={1}>{item.value}</Text>
+                    <Text className="font-outfit-bold" style={{ fontSize: 13, color: '#1E56E3' }} numberOfLines={1}>{item.value}</Text>
                   </View>
                 ) : null}
                 {item.busy ? (
@@ -529,7 +529,7 @@ export default function ProfileScreen() {
                       }`}>
                         {option.label}
                       </Text>
-                      <Text className="text-gray-600 font-outfit-regular text-xs mt-1">
+                      <Text className="text-gray-600 font-outfit-regular text-[13px] mt-1">
                         {option.description}
                       </Text>
                     </View>

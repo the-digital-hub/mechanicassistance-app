@@ -150,7 +150,7 @@ export default function ScheduledFinalQuoteScreen() {
                 <QuoteDetails description={quote.description} />
                 {quote.parts?.length ? (
                     <View style={{ ...CARD_STYLE, padding: 14, gap: 6 }}>
-                        <Text className="font-outfit-bold" style={{ fontSize: 11, letterSpacing: 1.2, color: SC.muted }}>{t('scheduledOffers.detail.parts')}</Text>
+                        <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1.2, color: SC.muted }}>{t('scheduledOffers.detail.parts')}</Text>
                         {quote.parts.map((p, i) => (
                             <Line key={i} label={`${p.name}${p.quantity && p.quantity > 1 ? ` ×${p.quantity}` : ''}`} value={p.price ? money(p.price) : ''} />
                         ))}

@@ -40,9 +40,9 @@ export function ScreenVideoOut({ appointmentId, visit, onVisit, onNext }: {
                         <View className="px-5 pt-3.5">
                             <Text className="font-outfit-bold text-[15px]" style={{ color: OS.text }}>
                                 {t(`${k}.obdTitle`)}
-                                <Text className="font-outfit-medium text-xs" style={{ color: OS.mutedLight }}>  {t('appointments.onSite.common.optional')}</Text>
+                                <Text className="font-outfit-medium text-[13px]" style={{ color: OS.mutedLight }}>  {t('appointments.onSite.common.optional')}</Text>
                             </Text>
-                            <Text className="font-outfit-regular text-[12.5px] mt-1" style={{ color: OS.muted }}>{t(`${k}.obdSub`)}</Text>
+                            <Text className="font-outfit-regular text-[13px] mt-1" style={{ color: OS.muted }}>{t(`${k}.obdSub`)}</Text>
                         </View>
                         <ObdPanel appointmentId={appointmentId} visit={visit} onVisit={onVisit} />
                     </>
@@ -51,9 +51,9 @@ export function ScreenVideoOut({ appointmentId, visit, onVisit, onNext }: {
                 <View className="px-5 pt-4">
                     <Text className="font-outfit-bold text-[15px]" style={{ color: OS.text }}>
                         {t(`${k}.mediaTitle`)}
-                        <Text className="font-outfit-medium text-xs" style={{ color: OS.mutedLight }}>  {t('appointments.onSite.common.optional')}</Text>
+                        <Text className="font-outfit-medium text-[13px]" style={{ color: OS.mutedLight }}>  {t('appointments.onSite.common.optional')}</Text>
                     </Text>
-                    <Text className="font-outfit-regular text-[12.5px] mt-1" style={{ color: OS.muted }}>{t(`${k}.mediaSub`)}</Text>
+                    <Text className="font-outfit-regular text-[13px] mt-1" style={{ color: OS.muted }}>{t(`${k}.mediaSub`)}</Text>
                 </View>
                 <View className="mt-2.5">
                     <Segmented
@@ -157,9 +157,9 @@ export function ScreenCloseService({ variant, partsCost, redirectReason, service
                     <>
                         <View className="px-5 pt-4"><Eyebrow>{t(`${k}.paidEyebrow`)}</Eyebrow></View>
                         <View className="mx-4 flex-row items-center justify-between px-4 py-3" style={cardShadow}>
-                            <Text className="font-outfit-medium text-[12.5px]" style={{ color: OS.muted }}>{t(`${k}.partsPaid`)}</Text>
+                            <Text className="font-outfit-medium text-[13px]" style={{ color: OS.muted }}>{t(`${k}.partsPaid`)}</Text>
                             <View className="px-2.5 py-1 rounded-full" style={{ backgroundColor: OS.greenSoft }}>
-                                <Text className="font-outfit-bold text-xs" style={{ color: OS.greenDark }}>{t(`${k}.paidBadge`, { amount: partsCost })}</Text>
+                                <Text className="font-outfit-bold text-[13px]" style={{ color: OS.greenDark }}>{t(`${k}.paidBadge`, { amount: partsCost })}</Text>
                             </View>
                         </View>
                     </>
@@ -168,7 +168,7 @@ export function ScreenCloseService({ variant, partsCost, redirectReason, service
                 <View className="px-5 pt-4"><Eyebrow>{t(`${k}.chargesEyebrow`)}</Eyebrow></View>
                 <View className="mx-4" style={cardShadow}>
                     <View className="flex-row justify-between px-4 py-3" style={{ borderBottomWidth: 1, borderBottomColor: OS.borderSoft }}>
-                        <Text className="font-outfit-medium text-[12.5px]" style={{ color: OS.muted }}>{t(`${k}.serviceValue`)}</Text>
+                        <Text className="font-outfit-medium text-[13px]" style={{ color: OS.muted }}>{t(`${k}.serviceValue`)}</Text>
                         <Text className="font-outfit-bold text-[13px]" style={{ color: OS.text }}>{amount}</Text>
                     </View>
                     <View className="flex-row justify-between px-4 py-3">
@@ -231,10 +231,10 @@ export function ScreenDone({ variant, appointmentId, visit, onVisit, clientName,
                         <Ionicons name="checkmark" size={28} color={completed ? OS.green : OS.orange} />
                     </View>
                     <Text className="font-outfit-bold text-xl" style={{ color: OS.text }}>{completed ? t(`${k}.completed`) : t(`${k}.finished`)}</Text>
-                    <Text className="font-outfit-bold text-[10.5px]" style={{ color: OS.mutedLight }}>
+                    <Text className="font-outfit-bold text-[13px]" style={{ color: OS.mutedLight }}>
                         {t('appointments.detail.idLabel', { id: `#${appointmentId.slice(0, 8)}` })}
                     </Text>
-                    <Text className="font-outfit-regular text-[13.5px] text-center leading-5" style={{ color: OS.muted }}>
+                    <Text className="font-outfit-regular text-[14px] text-center leading-5" style={{ color: OS.muted }}>
                         {completed ? t(`${k}.completedBody`) : t(`${k}.finishedBody`)}
                     </Text>
                 </View>
@@ -255,10 +255,10 @@ export function ScreenDone({ variant, appointmentId, visit, onVisit, clientName,
                                 <Text className="font-outfit-bold text-[22px]" style={{ color: OS.blue }}>{initials(clientName)}</Text>
                             </View>
                             <Text className="font-outfit-bold text-[17px]" style={{ color: OS.text }}>{clientName}</Text>
-                            <Text className="font-outfit-medium text-[12.5px]" style={{ color: OS.mutedLight }}>{t(`${k}.owner`)}</Text>
+                            <Text className="font-outfit-medium text-[13px]" style={{ color: OS.mutedLight }}>{t(`${k}.owner`)}</Text>
                         </View>
-                        <Text className="font-outfit-bold text-[15.5px] text-center mt-4" style={{ color: OS.text }}>{t(`${k}.rateTitle`)}</Text>
-                        <Text className="font-outfit-regular text-[12.5px] text-center mt-1" style={{ color: OS.muted }}>{t(`${k}.rateSub`)}</Text>
+                        <Text className="font-outfit-bold text-[16px] text-center mt-4" style={{ color: OS.text }}>{t(`${k}.rateTitle`)}</Text>
+                        <Text className="font-outfit-regular text-[13px] text-center mt-1" style={{ color: OS.muted }}>{t(`${k}.rateSub`)}</Text>
                         <View className="flex-row justify-center gap-1.5 mt-3.5">
                             {[1, 2, 3, 4, 5].map((n) => (
                                 <TouchableOpacity key={n} onPress={() => setRating(n)} testID={`rate-${n}`}>
@@ -273,20 +273,20 @@ export function ScreenDone({ variant, appointmentId, visit, onVisit, clientName,
                             className="items-center py-3 mt-3.5 rounded-xl"
                             style={{ backgroundColor: rating && !sending ? OS.blue : OS.blueIce }}
                         >
-                            <Text className="text-white font-outfit-bold text-[13.5px]">{t(`${k}.submit`)}</Text>
+                            <Text className="text-white font-outfit-bold text-[14px]">{t(`${k}.submit`)}</Text>
                         </TouchableOpacity>
                     </View>
                 ) : (
                     <>
                         <View className="w-full mt-7 flex-row items-center gap-2.5 px-4 py-3.5 rounded-2xl" style={{ backgroundColor: OS.greenSoft }}>
                             <Ionicons name="checkmark" size={16} color={OS.green} />
-                            <Text className="flex-1 font-outfit-bold text-[12.5px]" style={{ color: OS.greenDark }}>{t(`${k}.sent`)}</Text>
+                            <Text className="flex-1 font-outfit-bold text-[13px]" style={{ color: OS.greenDark }}>{t(`${k}.sent`)}</Text>
                         </View>
                         <View className="w-full mt-4 flex-row items-center gap-2.5 px-4 py-3.5" style={[cardShadow, { borderRadius: 16 }]}>
                             <View className="items-center justify-center" style={{ width: 34, height: 34, borderRadius: 11, backgroundColor: OS.blueSoft }}>
                                 <Text className="font-outfit-bold text-base" style={{ color: OS.blue }}>$</Text>
                             </View>
-                            <Text className="flex-1 font-outfit-medium text-xs leading-4" style={{ color: OS.muted }}>{t(`${k}.payment`)}</Text>
+                            <Text className="flex-1 font-outfit-medium text-[13px] leading-4" style={{ color: OS.muted }}>{t(`${k}.payment`)}</Text>
                         </View>
                         <TouchableOpacity onPress={onBackToDashboard} className="mt-4 px-5 py-3 rounded-full" style={{ backgroundColor: OS.blueSoft }} testID="on-site-back-dashboard">
                             <Text className="font-outfit-bold text-[13px]" style={{ color: OS.blue }}>{t(`${k}.back`)}</Text>

@@ -23,7 +23,7 @@ export function OwnerRouteMap({ destination, mechanic, height = 190 }: OwnerRout
             testID="owner-route-map"
         >
             <Ionicons name="map-outline" size={28} color={AO.mutedLight} />
-            <Text className="font-outfit-bold" style={{ color: destination ? AO.blue : AO.muted, marginTop: 6, fontSize: 12 }}>
+            <Text className="font-outfit-bold" style={{ color: destination ? AO.blue : AO.muted, marginTop: 6, fontSize: 13 }}>
                 {destination ? t('appointments.ownerAccepted.openInMaps') : t('appointments.userStatus.locationNotAvailable')}
             </Text>
         </Pressable>

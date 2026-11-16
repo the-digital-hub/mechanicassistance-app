@@ -56,7 +56,7 @@ export function OfferHoldPill({ secondsLeft }: { secondsLeft: number }) {
     return (
         <View className="flex-row items-center self-start rounded-full" style={{ gap: 6, paddingHorizontal: 10, paddingVertical: 4, backgroundColor: AO.orangeSoft }}>
             <Ionicons name="time-outline" size={13} color={AO.orange} />
-            <Text className="font-outfit-bold" style={{ fontSize: 11, color: AO.orange }}>
+            <Text className="font-outfit-bold" style={{ fontSize: 13, color: AO.orange }}>
                 {t('requestAssistance.mechanicFound.heldFor', { time: `${mm}:${ss}` })}
             </Text>
         </View>
@@ -79,12 +79,12 @@ function Stat({ icon, label, value, caption, valueColor }: { icon: IconName; lab
         <View style={{ flex: 1, padding: 12, borderRadius: 14, backgroundColor: AO.blueSofter, borderWidth: 1, borderColor: AO.blueSoft }}>
             <View className="flex-row items-center" style={{ gap: 6 }}>
                 <Ionicons name={icon} size={14} color={AO.blue} />
-                <Text className="font-outfit-semibold" style={{ fontSize: 11.5, color: AO.muted }}>{label}</Text>
+                <Text className="font-outfit-semibold" style={{ fontSize: 13, color: AO.muted }}>{label}</Text>
             </View>
             <Text className="font-outfit-bold" numberOfLines={1} adjustsFontSizeToFit style={{ fontSize: 24, color: valueColor, letterSpacing: -0.6, marginTop: 4 }}>
                 {value}
             </Text>
-            {!!caption && <Text className="font-outfit-regular" style={{ fontSize: 11.5, color: AO.muted }}>{caption}</Text>}
+            {!!caption && <Text className="font-outfit-regular" style={{ fontSize: 13, color: AO.muted }}>{caption}</Text>}
         </View>
     );
 }
@@ -127,13 +127,13 @@ export function TechnicianCard({ mechanic, eta, etaCaption, etaLabel, etaIcon = 
                     )}
                 </View>
                 <View style={{ flex: 1, minWidth: 0 }}>
-                    <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 1, color: AO.muted }}>{t(`${k}.yourTechnician`)}</Text>
+                    <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1, color: AO.muted }}>{t(`${k}.yourTechnician`)}</Text>
                     <Text className="font-outfit-bold" numberOfLines={1} style={{ fontSize: 17, color: AO.text, letterSpacing: -0.3, marginTop: 1 }}>
                         {mechanic?.displayName ?? t(`${k}.technicianFallback`)}
                     </Text>
                     <View className="flex-row items-center" style={{ gap: 6, marginTop: 2 }}>
                         {mechanic?.avgRating != null && <Stars rating={mechanic.avgRating} />}
-                        <Text className="font-outfit-regular" style={{ fontSize: 11.5, color: AO.muted }}>
+                        <Text className="font-outfit-regular" style={{ fontSize: 13, color: AO.muted }}>
                             {mechanic && mechanic.servicesCount > 0
                                 ? t(`${k}.servicesCount`, { count: mechanic.servicesCount })
                                 : t(`${k}.newOnPlatform`)}
@@ -146,7 +146,7 @@ export function TechnicianCard({ mechanic, eta, etaCaption, etaLabel, etaIcon = 
                 <View className="flex-row flex-wrap" style={{ gap: 6, marginTop: 12 }}>
                     {badges.map((b) => (
                         <View key={b} className="rounded-full" style={{ paddingHorizontal: 10, paddingVertical: 5, backgroundColor: AO.blueSoft }}>
-                            <Text className="font-outfit-bold" style={{ fontSize: 11, color: AO.blue }}>{b}</Text>
+                            <Text className="font-outfit-bold" style={{ fontSize: 13, color: AO.blue }}>{b}</Text>
                         </View>
                     ))}
                 </View>
@@ -172,8 +172,8 @@ export function OfferBreakdown({ included, lines, total }: {
         <View style={[card, { overflow: 'hidden' }]}>
             <TouchableOpacity onPress={() => setOpen((o) => !o)} className="flex-row items-center" style={{ gap: 12, paddingHorizontal: 14, paddingVertical: 12 }}>
                 <IconTile name="document-text-outline" />
-                <Text className="font-outfit-bold" style={{ flex: 1, fontSize: 13.5, color: AO.text }}>{t(`${k}.whatsIncluded`)}</Text>
-                <Text className="font-outfit-bold" style={{ fontSize: 12, color: AO.blue }}>{open ? t(`${k}.hide`) : t(`${k}.seeBreakdown`)}</Text>
+                <Text className="font-outfit-bold" style={{ flex: 1, fontSize: 14, color: AO.text }}>{t(`${k}.whatsIncluded`)}</Text>
+                <Text className="font-outfit-bold" style={{ fontSize: 13, color: AO.blue }}>{open ? t(`${k}.hide`) : t(`${k}.seeBreakdown`)}</Text>
                 <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={12} color={AO.blue} />
             </TouchableOpacity>
             {open && (
@@ -184,7 +184,7 @@ export function OfferBreakdown({ included, lines, total }: {
                                 <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: AO.greenSoft, alignItems: 'center', justifyContent: 'center' }}>
                                     <Ionicons name="checkmark" size={10} color={AO.greenText} />
                                 </View>
-                                <Text className="font-outfit-regular" style={{ flex: 1, fontSize: 12.5, color: AO.text }}>{item}</Text>
+                                <Text className="font-outfit-regular" style={{ flex: 1, fontSize: 13, color: AO.text }}>{item}</Text>
                             </View>
                         ))}
                     </View>
@@ -192,8 +192,8 @@ export function OfferBreakdown({ included, lines, total }: {
                         <View style={{ marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderStyle: 'dashed', borderTopColor: AO.border, gap: 6 }}>
                             {lines.map((l) => (
                                 <View key={l.label} className="flex-row justify-between">
-                                    <Text className="font-outfit-regular" style={{ fontSize: 12.5, color: AO.muted }}>{l.label}</Text>
-                                    <Text className="font-outfit-semibold" style={{ fontSize: 12.5, color: AO.text }}>{l.amount}</Text>
+                                    <Text className="font-outfit-regular" style={{ fontSize: 13, color: AO.muted }}>{l.label}</Text>
+                                    <Text className="font-outfit-semibold" style={{ fontSize: 13, color: AO.text }}>{l.amount}</Text>
                                 </View>
                             ))}
                             <View className="flex-row justify-between" style={{ marginTop: 4 }}>
@@ -202,7 +202,7 @@ export function OfferBreakdown({ included, lines, total }: {
                             </View>
                         </View>
                     )}
-                    <Text className="font-outfit-regular" style={{ marginTop: 10, fontSize: 11.5, color: AO.muted, lineHeight: 16 }}>
+                    <Text className="font-outfit-regular" style={{ marginTop: 10, fontSize: 13, color: AO.muted, lineHeight: 16 }}>
                         {t(`${k}.partsNotIncluded`)}
                     </Text>
                 </View>
@@ -229,7 +229,7 @@ export function RequestSummaryRows({ rows }: { rows: SummaryRow[] }) {
                     style={{ gap: 12, paddingHorizontal: 14, paddingVertical: 11, borderBottomWidth: i < rows.length - 1 ? 1 : 0, borderBottomColor: AO.borderSoft }}
                 >
                     <IconTile name={r.icon} tone={r.tone} />
-                    <Text className="font-outfit-medium" style={{ width: 80, fontSize: 12, color: AO.muted }}>{r.label}</Text>
+                    <Text className="font-outfit-medium" style={{ width: 80, fontSize: 13, color: AO.muted }}>{r.label}</Text>
                     <View style={{ flex: 1, minWidth: 0, alignItems: 'flex-end' }}>
                         {typeof r.value === 'string' ? (
                             <Text className="font-outfit-bold" style={{ fontSize: r.strong ? 14 : 13, color: r.tone === 'green' ? AO.greenText : AO.text, textAlign: 'right', lineHeight: 18 }}>{r.value}</Text>
@@ -257,7 +257,7 @@ export function ProtectionBox() {
                 {items.map((item) => (
                     <View key={item} className="flex-row items-start" style={{ gap: 8 }}>
                         <Ionicons name="checkmark" size={11} color={AO.greenText} style={{ marginTop: 3 }} />
-                        <Text className="font-outfit-regular" style={{ flex: 1, fontSize: 12, color: AO.greenText, lineHeight: 17 }}>{item}</Text>
+                        <Text className="font-outfit-regular" style={{ flex: 1, fontSize: 13, color: AO.greenText, lineHeight: 17 }}>{item}</Text>
                     </View>
                 ))}
             </View>

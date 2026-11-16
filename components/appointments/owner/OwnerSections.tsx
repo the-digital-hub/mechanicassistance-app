@@ -31,7 +31,7 @@ export function AcceptedHeader({ id, refCode, title, icon = 'checkmark', color =
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>
                 <Text className="font-outfit-bold" style={{ fontSize: 22, color: AO.text, letterSpacing: -0.6 }} testID="owner-accepted-title">{title ?? t(`${K}.title`)}</Text>
-                <Text style={{ fontSize: 12, color: AO.mutedLight, marginTop: 2, fontFamily: 'Menlo' }}>ID: {refLabel(refCode, id)}</Text>
+                <Text style={{ fontSize: 13, color: AO.mutedLight, marginTop: 2, fontFamily: 'Menlo' }}>ID: {refLabel(refCode, id)}</Text>
             </View>
         </View>
     );
@@ -54,7 +54,7 @@ export function OwnerMechanicCard({ mechanic, onMessage, onCall }: { mechanic: M
                 </LinearGradient>
             )}
             <View style={{ flex: 1, minWidth: 0 }}>
-                <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 0.8, color: AO.muted }}>{t(`${K}.assignedTechnician`)}</Text>
+                <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 0.8, color: AO.muted }}>{t(`${K}.assignedTechnician`)}</Text>
                 <View className="flex-row items-center" style={{ gap: 6, marginTop: 1 }}>
                     <Text className="font-outfit-bold" numberOfLines={1} style={{ fontSize: 15, color: AO.text, letterSpacing: -0.2, flexShrink: 1 }}>
                         {mechanic?.displayName ?? t('requestAssistance.mechanicFound.technicianFallback')}
@@ -102,7 +102,7 @@ export function OwnerTabs({ active, onChange, checkInDot, hideCheckIn = false, s
                         style={{ flex: 1, alignItems: 'center', gap: 4, paddingTop: 9, paddingBottom: 8, borderRadius: 12, backgroundColor: on ? AO.blue : 'transparent', ...(on ? { shadowColor: AO.blue, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 8, elevation: 3 } : null) }}
                     >
                         <Ionicons name={tab.icon} size={17} color={on ? '#fff' : AO.muted} />
-                        <Text className="font-outfit-bold" numberOfLines={1} adjustsFontSizeToFit style={{ fontSize: 10.5, color: on ? '#fff' : AO.muted }}>
+                        <Text className="font-outfit-bold" numberOfLines={1} adjustsFontSizeToFit style={{ fontSize: 13, color: on ? '#fff' : AO.muted }}>
                             {labels?.[tab.id] ?? t(`${K}.tabs.${tab.id}`)}
                         </Text>
                         {((tab.id === 'checkin' && checkInDot) || (tab.id === 'obd' && obdDot)) && !on && (
@@ -122,7 +122,7 @@ export function CheckInBanner({ onPress }: { onPress: () => void }) {
             <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
                 <Ionicons name="qr-code-outline" size={18} color={AO.blue} />
             </View>
-            <Text className="font-outfit-regular" style={{ flex: 1, fontSize: 12.5, color: AO.text, lineHeight: 17 }}>
+            <Text className="font-outfit-regular" style={{ flex: 1, fontSize: 13, color: AO.text, lineHeight: 17 }}>
                 <Text className="font-outfit-bold">{t(`${K}.checkInBannerBold`)}</Text> {t(`${K}.checkInBannerRest`)}
             </Text>
             <Ionicons name="chevron-forward" size={14} color={AO.blue} />
@@ -197,7 +197,7 @@ export function OwnerEtaCard({ status, departed, scheduledFor, minutesAway, etaT
                     {enRoute && minutesAway !== null ? (
                         <>
                             <Text className="font-outfit-bold" style={{ fontSize: 26, color: AO.blueDark, letterSpacing: -0.8, lineHeight: 28 }}>{minutesAway}</Text>
-                            <Text className="font-outfit-bold" style={{ fontSize: 11, color: AO.muted }}>{t(`${K}.min`)}</Text>
+                            <Text className="font-outfit-bold" style={{ fontSize: 13, color: AO.muted }}>{t(`${K}.min`)}</Text>
                         </>
                     ) : (
                         <Ionicons name={upcoming ? 'calendar-outline' : live ? 'time-outline' : 'checkmark'} size={30} color={live ? AO.blue : AO.greenText} />
@@ -206,9 +206,9 @@ export function OwnerEtaCard({ status, departed, scheduledFor, minutesAway, etaT
                 <View style={{ flex: 1, minWidth: 0 }}>
                     <View className="flex-row items-center self-start" style={{ gap: 6, paddingHorizontal: 9, paddingVertical: 3, borderRadius: 100, backgroundColor: pillBg }}>
                         {enRoute ? <PulseDot color={AO.blue} size={6} /> : <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: pillColor }} />}
-                        <Text className="font-outfit-bold" style={{ fontSize: 10, letterSpacing: 1, color: pillColor }}>{pill}</Text>
+                        <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1, color: pillColor }}>{pill}</Text>
                     </View>
-                    <Text className="font-outfit-bold" style={{ fontSize: 19, color: AO.text, letterSpacing: -0.4, marginTop: 8 }}>{headline}</Text>
+                    <Text className="font-outfit-bold" style={{ fontSize: 18, color: AO.text, letterSpacing: -0.4, marginTop: 8 }}>{headline}</Text>
                     {upcoming && (
                         <Text className="font-outfit-regular" style={{ fontSize: 13, color: AO.muted, marginTop: 2 }} testID="owner-eta-upcoming">
                             {t(`${K}.upcomingHint`, { name: mechanicName })}
@@ -233,12 +233,12 @@ export function OwnerEtaCard({ status, departed, scheduledFor, minutesAway, etaT
             <View className="flex-row items-center" style={{ gap: 10, marginTop: 10 }}>
                 <View className="flex-row items-center" style={{ gap: 6 }}>
                     <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: AO.blue }} />
-                    <Text className="font-outfit-regular" style={{ fontSize: 12, color: AO.muted }}>{mechanicName}</Text>
+                    <Text className="font-outfit-regular" style={{ fontSize: 13, color: AO.muted }}>{mechanicName}</Text>
                 </View>
                 <View style={{ flex: 1, height: 1, backgroundColor: AO.border }} />
                 <View className="flex-row items-center" style={{ gap: 4 }}>
                     <Ionicons name="location-outline" size={15} color={AO.red} />
-                    <Text className="font-outfit-regular" style={{ fontSize: 12, color: AO.muted }}>{t(`${K}.yourLocation`)}</Text>
+                    <Text className="font-outfit-regular" style={{ fontSize: 13, color: AO.muted }}>{t(`${K}.yourLocation`)}</Text>
                 </View>
             </View>
         </View>
@@ -263,7 +263,7 @@ export function OwnerTechnicianPanel({ mechanic }: { mechanic: Mechanic | null }
             value: (
                 <View className="flex-row items-center flex-wrap justify-end" style={{ gap: 6 }}>
                     {mechanic.avgRating != null && <Stars rating={mechanic.avgRating} size={13} />}
-                    <Text className="font-outfit-medium" style={{ fontSize: 12.5, color: AO.muted }}>
+                    <Text className="font-outfit-medium" style={{ fontSize: 13, color: AO.muted }}>
                         {mechanic.servicesCount > 0
                             ? t('requestAssistance.mechanicFound.servicesCount', { count: mechanic.servicesCount })
                             : t('requestAssistance.mechanicFound.newOnPlatform')}
@@ -283,7 +283,7 @@ export function OwnerTechnicianPanel({ mechanic }: { mechanic: Mechanic | null }
         <View style={{ gap: 12 }} testID="owner-technician-panel">
             {(mechanic.about || specialties.length > 0) && (
                 <View style={[card, { borderRadius: 16, padding: 14, paddingBottom: 16 }]}>
-                    <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 0.8, color: AO.muted }}>
+                    <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 0.8, color: AO.muted }}>
                         {t(`${K}.about`, { name: firstName.toUpperCase() })}
                     </Text>
                     {!!mechanic.about && (
@@ -293,7 +293,7 @@ export function OwnerTechnicianPanel({ mechanic }: { mechanic: Mechanic | null }
                         <View className="flex-row flex-wrap" style={{ gap: 6, marginTop: 12 }}>
                             {specialties.map((s) => (
                                 <View key={s} style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 100, backgroundColor: AO.blueSoft }}>
-                                    <Text className="font-outfit-bold" style={{ fontSize: 11.5, color: AO.blue }}>{s}</Text>
+                                    <Text className="font-outfit-bold" style={{ fontSize: 13, color: AO.blue }}>{s}</Text>
                                 </View>
                             ))}
                         </View>
@@ -341,7 +341,7 @@ export function MechanicClientCard({ client, onMessage, onCall }: { client: Clie
                 </LinearGradient>
             )}
             <View style={{ flex: 1, minWidth: 0 }}>
-                <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 0.8, color: AO.muted }}>{t('appointments.videoCall.mechanic.clientLabel')}</Text>
+                <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 0.8, color: AO.muted }}>{t('appointments.videoCall.mechanic.clientLabel')}</Text>
                 <View className="flex-row items-center" style={{ gap: 6, marginTop: 1 }}>
                     <Text className="font-outfit-bold" numberOfLines={1} style={{ fontSize: 15, color: AO.text, letterSpacing: -0.2, flexShrink: 1 }}>
                         {client.displayName ?? t('appointments.videoCall.mechanic.clientFallback')}
@@ -382,7 +382,7 @@ export function ClientInfoPanel({ client }: { client: ClientLike }) {
                   value: (
                       <View className="flex-row items-center flex-wrap justify-end" style={{ gap: 6 }}>
                           {client.avgRating != null && <Stars rating={client.avgRating} size={13} />}
-                          <Text className="font-outfit-medium" style={{ fontSize: 12.5, color: AO.muted }}>
+                          <Text className="font-outfit-medium" style={{ fontSize: 13, color: AO.muted }}>
                               {client.servicesCount! > 0
                                   ? t('requestAssistance.mechanicFound.servicesCount', { count: client.servicesCount })
                                   : t('requestAssistance.mechanicFound.newOnPlatform')}

@@ -1,8 +1,11 @@
+import { TYPE } from '@/lib/ui/type';
 import {
     Calendar,
     Camera,
     Car,
     Check,
+    Clock,
+    Radio,
     ChevronDown,
     ChevronRight,
     CircleDot,
@@ -141,7 +144,7 @@ export function VehicleStep({
                         placeholder={t('scheduled.vehicle.mileagePlaceholder')}
                         maxLength={9}
                     />
-                    <Text className="font-outfit-regular" style={{ fontSize: 12, color: SC.muted, marginTop: 6 }}>{t('scheduled.vehicle.mileageHint')}</Text>
+                    <Text className="font-outfit-regular" style={{ fontSize: 13, color: SC.muted, marginTop: 6 }}>{t('scheduled.vehicle.mileageHint')}</Text>
                 </View>
             ) : null}
         </View>
@@ -192,7 +195,7 @@ export function LocationStep({
                     <View className="flex-row items-center justify-between">
                         <FieldLabel>{t('scheduled.location.yourChoice')}</FieldLabel>
                         <TouchableOpacity onPress={() => patch({ mode: null })} accessibilityRole="button" hitSlop={8}>
-                            <Text className="font-outfit-bold" style={{ fontSize: 13, color: SC.blue }}>{t('scheduled.location.change')}</Text>
+                            <Text className="font-outfit-bold" style={{ ...TYPE.helper, color: SC.blue }}>{t('scheduled.location.change')}</Text>
                         </TouchableOpacity>
                     </View>
                     <ChoiceCard on onPress={() => undefined} icon={chosen.icon} title={chosen.title} sub={chosen.sub} />
@@ -226,11 +229,11 @@ export function LocationStep({
                         {addresses.length === 0 ? (
                             <TouchableOpacity onPress={onAddAddress} accessibilityRole="button" className="flex-row items-center" style={{ gap: 6, paddingVertical: 4 }}>
                                 <Plus size={16} color={SC.blue} />
-                                <Text className="font-outfit-bold" style={{ fontSize: 14, color: SC.blue }}>{t('scheduled.location.addAddress')}</Text>
+                                <Text className="font-outfit-bold" style={{ ...TYPE.body, color: SC.blue }}>{t('scheduled.location.addAddress')}</Text>
                             </TouchableOpacity>
                         ) : null}
                     </View>
-                    {error ? <Text className="font-outfit-regular" style={{ fontSize: 12.5, color: SC.red, marginTop: 8 }}>{error}</Text> : null}
+                    {error ? <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: SC.red, marginTop: 8 }}>{error}</Text> : null}
                 </View>
             ) : null}
 
@@ -335,16 +338,16 @@ export function ServicesStep({
                         return (
                             <View key={cat.id} style={{ ...CARD_STYLE, overflow: 'hidden', borderColor: count > 0 ? SC.blue : SC.borderSoft }}>
                                 <TouchableOpacity onPress={() => toggleOpen(cat.id)} activeOpacity={0.8} accessibilityRole="button" accessibilityState={{ expanded }} className="flex-row items-center" style={{ padding: 14, gap: 12 }}>
-                                    <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: SC.blueSoft }}>
-                                        <Icon size={20} color={SC.blue} />
+                                    <View className="items-center justify-center" style={{ width: 44, height: 44, borderRadius: 13, backgroundColor: SC.blueSoft }}>
+                                        <Icon size={22} color={SC.blue} />
                                     </View>
-                                    <Text className="font-outfit-bold flex-1" style={{ fontSize: 15, color: SC.text }}>{itemName(cat, languageId)}</Text>
+                                    <Text className="font-outfit-bold flex-1" style={{ ...TYPE.group, color: SC.text }}>{itemName(cat, languageId)}</Text>
                                     {count > 0 ? (
-                                        <View className="rounded-full items-center justify-center" style={{ minWidth: 22, height: 22, paddingHorizontal: 6, backgroundColor: SC.blue }}>
-                                            <Text className="font-outfit-bold" style={{ fontSize: 11.5, color: '#FFFFFF' }}>{count}</Text>
+                                        <View className="rounded-full items-center justify-center" style={{ minWidth: 26, height: 26, paddingHorizontal: 6, backgroundColor: SC.blue }}>
+                                            <Text className="font-outfit-bold" style={{ ...TYPE.caption, color: '#FFFFFF' }}>{count}</Text>
                                         </View>
                                     ) : null}
-                                    {expanded ? <ChevronDown size={18} color={SC.mutedLight} /> : <ChevronRight size={18} color={SC.mutedLight} />}
+                                    {expanded ? <ChevronDown size={20} color={SC.mutedLight} /> : <ChevronRight size={20} color={SC.mutedLight} />}
                                 </TouchableOpacity>
                                 {expanded ? (
                                     <View style={{ borderTopWidth: 1, borderTopColor: SC.borderSoft }}>
@@ -363,8 +366,8 @@ export function ServicesStep({
                                                     >
                                                         <View style={{ marginTop: 1 }}><Checkbox on={on} /></View>
                                                         <View className="flex-1">
-                                                            <Text className="font-outfit-semibold" style={{ fontSize: 14.5, color: SC.text }}>{itemName(s, languageId)}</Text>
-                                                            {details ? <Text className="font-outfit-regular" style={{ fontSize: 12, lineHeight: 17, color: SC.muted, marginTop: 2 }} numberOfLines={3}>{details}</Text> : null}
+                                                            <Text className="font-outfit-semibold" style={{ ...TYPE.option, color: SC.text }}>{itemName(s, languageId)}</Text>
+                                                            {details ? <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: SC.muted, marginTop: 2 }} numberOfLines={3}>{details}</Text> : null}
                                                         </View>
                                                     </TouchableOpacity>
                                                     {on ? (
@@ -458,7 +461,7 @@ export function AvailabilityStep({
 
     const card = { ...CARD_STYLE, padding: 14, gap: 12 } as const;
     const Required = ({ children }: { children: string }) => (
-        <Text className="font-outfit-bold" style={{ fontSize: 13, color: SC.text, marginBottom: 6 }}>{children} *</Text>
+        <Text className="font-outfit-bold" style={{ ...TYPE.body, color: SC.text, marginBottom: 6 }}>{children} *</Text>
     );
 
     return (
@@ -468,7 +471,7 @@ export function AvailabilityStep({
             <View style={{ ...card, gap: 14 }}>
                 <View className="flex-row items-center" style={{ gap: 10 }}>
                     <View className="items-center justify-center" style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: SC.blueSoft }}><Calendar size={18} color={SC.blue} /></View>
-                    <Text className="font-outfit-bold" style={{ fontSize: 15, letterSpacing: -0.2, color: SC.text }}>{t('scheduled.availability.cardTitle')}</Text>
+                    <Text className="font-outfit-bold" style={{ ...TYPE.group, letterSpacing: -0.2, color: SC.text }}>{t('scheduled.availability.cardTitle')}</Text>
                 </View>
 
                 <View className="flex-row" style={{ gap: 8 }}>
@@ -483,7 +486,7 @@ export function AvailabilityStep({
                                 accessibilityState={{ selected: on }}
                                 style={{ flex: 1, alignItems: 'center', paddingVertical: 12, borderRadius: 12, backgroundColor: on ? SC.blue : '#FFFFFF', borderWidth: on ? 0 : 1, borderColor: SC.border }}
                             >
-                                <Text className="font-outfit-bold" style={{ fontSize: 13.5, color: on ? '#FFFFFF' : SC.text }}>{t(mode === 'exact' ? 'scheduled.availability.exactDate' : 'scheduled.availability.dateRange')}</Text>
+                                <Text className="font-outfit-bold" style={{ ...TYPE.option, color: on ? '#FFFFFF' : SC.text }}>{t(mode === 'exact' ? 'scheduled.availability.exactDate' : 'scheduled.availability.dateRange')}</Text>
                             </TouchableOpacity>
                         );
                     })}
@@ -492,10 +495,10 @@ export function AvailabilityStep({
                 {draft.dateMode === 'exact' ? (
                     <View>
                         <View className="flex-row items-center justify-between" style={{ marginBottom: 6 }}>
-                            <Text className="font-outfit-bold" style={{ fontSize: 13, color: SC.text }}>{t('scheduled.availability.serviceDate')} *</Text>
+                            <Text className="font-outfit-bold" style={{ ...TYPE.body, color: SC.text }}>{t('scheduled.availability.serviceDate')} *</Text>
                             {sameDay ? (
                                 <View className="rounded-full" style={{ paddingHorizontal: 9, paddingVertical: 3, backgroundColor: SC.blueSoft }}>
-                                    <Text className="font-outfit-bold" style={{ fontSize: 10, letterSpacing: 0.8, color: SC.blue }}>{t('scheduled.availability.sameDayBadge')}</Text>
+                                    <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 0.8, color: SC.blue }}>{t('scheduled.availability.sameDayBadge')}</Text>
                                 </View>
                             ) : null}
                         </View>
@@ -503,12 +506,12 @@ export function AvailabilityStep({
                     </View>
                 ) : (
                     <View style={{ gap: 10 }}>
-                        <View className="flex-row" style={{ gap: 10 }}>
-                            <View style={{ flex: 1 }}>
+                        <View className="flex-row" style={{ justifyContent: 'space-between' }}>
+                            <View style={{ width: '48.5%' }}>
                                 <Required>{t('scheduled.availability.rangeFromLabel')}</Required>
                                 <DateField hidePicker open={openEnd === 'from'} onToggle={() => setOpenEnd(openEnd === 'from' ? null : 'from')} value={draft.date} min={minDate} max={maxDate} locale={i18n.language} onChange={pickDay} accessibilityLabel={t('scheduled.availability.rangeFromLabel')} />
                             </View>
-                            <View style={{ flex: 1 }}>
+                            <View style={{ width: '48.5%' }}>
                                 <Required>{t('scheduled.availability.rangeToLabel')}</Required>
                                 <DateField hidePicker open={openEnd === 'to'} onToggle={() => setOpenEnd(openEnd === 'to' ? null : 'to')} value={draft.dateTo} min={dateFromKey(draft.date || days[0])} max={maxDate} locale={i18n.language} onChange={(dateTo) => patch({ dateTo })} accessibilityLabel={t('scheduled.availability.rangeToLabel')} />
                             </View>
@@ -529,7 +532,7 @@ export function AvailabilityStep({
                 <View style={{ height: 1, backgroundColor: SC.borderSoft }} />
 
                 <View>
-                    <Text className="font-outfit-bold" style={{ fontSize: 11, letterSpacing: 1.2, color: SC.muted, marginBottom: 10 }}>{t('scheduled.availability.windowLabel')} *</Text>
+                    <Text className="font-outfit-bold" style={{ ...TYPE.caption, letterSpacing: 1.2, color: SC.muted, marginBottom: 10 }}>{t('scheduled.availability.windowLabel')} *</Text>
                     <View className="flex-row" style={{ gap: 10 }}>
                         <View style={{ flex: 1 }}>
                             <Required>{t('scheduled.availability.from')}</Required>
@@ -544,7 +547,7 @@ export function AvailabilityStep({
 
                 <View className="flex-row" style={{ gap: 10, padding: 12, borderRadius: 12, backgroundColor: SC.blueSofter, borderWidth: 1, borderColor: SC.blueSoft }}>
                     <ShieldCheck size={18} color={SC.blue} style={{ marginTop: 1 }} />
-                    <Text className="font-outfit-regular flex-1" style={{ fontSize: 12.5, lineHeight: 18, color: SC.text }}>
+                    <Text className="font-outfit-regular flex-1" style={{ ...TYPE.helper, color: SC.text }}>
                         <Text className="font-outfit-bold">{sameDay ? t('scheduled.availability.sameDayTitle') : t('scheduled.availability.windowTitle')} </Text>
                         {sameDay ? t('scheduled.availability.sameDayBody') : t('scheduled.availability.windowBody')}
                     </Text>
@@ -553,10 +556,10 @@ export function AvailabilityStep({
 
             <View style={{ ...card, gap: 10 }}>
                 <View>
-                    <Text className="font-outfit-bold" style={{ fontSize: 15, letterSpacing: -0.2, color: SC.text }}>
+                    <Text className="font-outfit-bold" style={{ ...TYPE.group, letterSpacing: -0.2, color: SC.text }}>
                         {t('scheduled.availability.detailsTitle')} <Text className="font-outfit-semibold" style={{ color: SC.muted }}>{t('scheduled.availability.optional')}</Text>
                     </Text>
-                    <Text className="font-outfit-regular" style={{ fontSize: 12.5, lineHeight: 18, color: SC.muted, marginTop: 4 }}>{t('scheduled.availability.detailsSub')}</Text>
+                    <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: SC.muted, marginTop: 4 }}>{t('scheduled.availability.detailsSub')}</Text>
                 </View>
                 <TextField multiline value={draft.symptoms} onChangeText={(v) => patch({ symptoms: v })} placeholder={t('scheduled.availability.symptomsPlaceholder')} maxLength={1000} style={{ borderColor: SC.border, borderRadius: 14 }} />
             </View>
@@ -564,7 +567,7 @@ export function AvailabilityStep({
             <View style={card}>
                 <View className="flex-row items-center" style={{ gap: 10 }}>
                     <View className="items-center justify-center" style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: SC.blueSoft }}><Camera size={18} color={SC.blue} /></View>
-                    <Text className="font-outfit-bold flex-1" style={{ fontSize: 15, letterSpacing: -0.2, color: SC.text }}>
+                    <Text className="font-outfit-bold flex-1" style={{ ...TYPE.group, letterSpacing: -0.2, color: SC.text }}>
                         {t('scheduled.availability.evidenceTitle')} <Text className="font-outfit-semibold" style={{ color: SC.muted }}>{t('scheduled.availability.optional')}</Text>
                     </Text>
                 </View>
@@ -578,8 +581,8 @@ export function AvailabilityStep({
                 >
                     <Upload size={20} color={SC.blue} />
                     <View>
-                        <Text className="font-outfit-semibold text-center" style={{ fontSize: 13, lineHeight: 18, color: SC.text }}>{t('scheduled.availability.uploadTitle')}</Text>
-                        <Text className="font-outfit-regular text-center" style={{ fontSize: 13, lineHeight: 18, color: SC.muted }}>{t('scheduled.availability.uploadHint')}</Text>
+                        <Text className="font-outfit-semibold text-center" style={{ fontSize: 15, lineHeight: 20, color: SC.text }}>{t('scheduled.availability.uploadTitle')}</Text>
+                        <Text className="font-outfit-regular text-center" style={{ ...TYPE.caption, color: SC.muted }}>{t('scheduled.availability.uploadHint')}</Text>
                     </View>
                 </TouchableOpacity>
                 {evidence.length > 0 ? (
@@ -620,12 +623,12 @@ function ReviewRow({ icon: Icon, label, value, onEdit, last }: { icon: LucideIco
                 <Icon size={17} color={SC.blue} />
             </View>
             <View className="flex-1">
-                <Text className="font-outfit-bold" style={{ fontSize: 11, letterSpacing: 1, color: SC.muted }}>{label}</Text>
-                <Text className="font-outfit-bold" style={{ fontSize: 13.5, lineHeight: 19, color: SC.text, marginTop: 2 }}>{value}</Text>
+                <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1, color: SC.muted }}>{label}</Text>
+                <Text className="font-outfit-bold" style={{ fontSize: 14, lineHeight: 19, color: SC.text, marginTop: 2 }}>{value}</Text>
             </View>
             {onEdit ? (
                 <TouchableOpacity onPress={onEdit} hitSlop={8} accessibilityRole="button" accessibilityLabel={`${t('scheduled.review.edit')} ${label}`}>
-                    <Text className="font-outfit-bold" style={{ fontSize: 12.5, color: SC.blue }}>{t('scheduled.review.edit')}</Text>
+                    <Text className="font-outfit-bold" style={{ fontSize: 13, color: SC.blue }}>{t('scheduled.review.edit')}</Text>
                 </TouchableOpacity>
             ) : null}
         </View>
@@ -685,7 +688,7 @@ export function ReviewStep({
             </View>
             <View className="flex-row" style={{ gap: 10, padding: 12, borderRadius: 12, backgroundColor: SC.blueSofter, borderWidth: 1, borderColor: SC.blueSoft }}>
                 <ShieldCheck size={18} color={SC.blue} style={{ marginTop: 1 }} />
-                <Text className="font-outfit-regular flex-1" style={{ fontSize: 12.5, lineHeight: 18, color: SC.text }}>
+                <Text className="font-outfit-regular flex-1" style={{ fontSize: 13, lineHeight: 18, color: SC.text }}>
                     <Text className="font-outfit-bold">{t('scheduled.review.noChargeTitle')} </Text>
                     {t('scheduled.review.noChargeBody')}
                 </Text>
@@ -708,12 +711,12 @@ export function SentStep({
     onView: () => void;
 }) {
     const { t } = useTranslation();
-    const rows: [string, string][] = [
-        [t('scheduled.sent.service'), t('scheduled.sent.serviceValue')],
-        [t('scheduled.sent.status'), t('scheduled.sent.statusValue')],
-        [t('scheduled.sent.vehicle'), vehicle],
-        [t('scheduled.sent.when'), when],
-        [t('scheduled.sent.offersUntil'), t('scheduled.sent.offersUntilValue')],
+    const rows: [LucideIcon, string, string][] = [
+        [Wrench, t('scheduled.sent.service'), t('scheduled.sent.serviceValue')],
+        [Radio, t('scheduled.sent.status'), t('scheduled.sent.statusValue')],
+        [Car, t('scheduled.sent.vehicle'), vehicle],
+        [Calendar, t('scheduled.sent.when'), when],
+        [Clock, t('scheduled.sent.offersUntil'), t('scheduled.sent.offersUntilValue')],
     ];
     return (
         <View className="flex-1">
@@ -723,22 +726,27 @@ export function SentStep({
                 </LinearGradient>
                 <View>
                     <Text className="font-outfit-bold text-center" style={{ fontSize: 26, letterSpacing: -0.7, lineHeight: 29, color: SC.text }}>{t('scheduled.sent.title')}</Text>
-                    <Text className="font-outfit-regular text-center" style={{ fontSize: 14, lineHeight: 20, color: SC.muted, marginTop: 8 }}>{t('scheduled.sent.body')}</Text>
+                    <Text className="font-outfit-regular text-center" style={{ ...TYPE.helper, color: SC.muted, marginTop: 8 }}>{t('scheduled.sent.body')}</Text>
                 </View>
                 <View style={{ ...CARD_STYLE, alignSelf: 'stretch', overflow: 'hidden' }}>
-                    {rows.map(([k, v], i) => (
-                        <View key={k} className="flex-row" style={{ paddingHorizontal: 14, paddingVertical: 11, gap: 12, borderBottomWidth: i < rows.length - 1 ? 1 : 0, borderBottomColor: SC.borderSoft }}>
-                            <Text className="font-outfit-regular" style={{ fontSize: 12, color: SC.muted, width: 62 }}>{k}</Text>
-                            <Text className="font-outfit-bold flex-1" style={{ fontSize: 13, lineHeight: 18, color: SC.text, textAlign: 'right' }}>{v}</Text>
+                    {rows.map(([Icon, k, v], i) => (
+                        <View key={k} className="flex-row items-center" style={{ paddingHorizontal: 14, paddingVertical: 12, gap: 12, borderBottomWidth: i < rows.length - 1 ? 1 : 0, borderBottomColor: SC.borderSoft }}>
+                            <View className="items-center justify-center" style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: SC.blueSoft }}>
+                                <Icon size={19} color={SC.blue} />
+                            </View>
+                            <View className="flex-1">
+                                <Text className="font-outfit-medium" style={{ ...TYPE.caption, color: SC.muted }}>{k}</Text>
+                                <Text className="font-outfit-bold" style={{ ...TYPE.option, color: SC.text, marginTop: 1 }}>{v}</Text>
+                            </View>
                         </View>
                     ))}
                 </View>
-                {refCode ? <Text style={{ fontSize: 11, letterSpacing: 0.5, color: SC.muted, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }}>{`#${refCode}`}</Text> : null}
+                {refCode ? <Text style={{ fontSize: 12, letterSpacing: 0.5, color: SC.muted, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }}>{`#${refCode}`}</Text> : null}
             </ScrollView>
             <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 28 }}>
                 <TouchableOpacity onPress={onView} activeOpacity={0.85} accessibilityRole="button">
                     <LinearGradient colors={[SC.blue, SC.blueDark]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ borderRadius: 14, paddingVertical: 15, alignItems: 'center' }}>
-                        <Text className="font-outfit-bold" style={{ fontSize: 15.5, color: '#FFFFFF' }}>{t('scheduled.sent.view')}</Text>
+                        <Text className="font-outfit-bold" style={{ ...TYPE.button, color: '#FFFFFF' }}>{t('scheduled.sent.view')}</Text>
                     </LinearGradient>
                 </TouchableOpacity>
             </View>

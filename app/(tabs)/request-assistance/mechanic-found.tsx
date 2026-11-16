@@ -383,7 +383,7 @@ export default function MechanicFoundScreen() {
                     <Text className="font-outfit-bold" style={{ fontSize: 24, color: AO.text, letterSpacing: -0.6, marginTop: 10 }}>
                         {t(`${k}.title`)}
                     </Text>
-                    <Text className="font-outfit-regular" style={{ fontSize: 13.5, color: AO.muted, marginTop: 4, lineHeight: 19 }}>
+                    <Text className="font-outfit-regular" style={{ fontSize: 15, color: AO.muted, marginTop: 4, lineHeight: 19 }}>
                         {t(isVideoCall ? `${k}.subtitleVideoCall` : `${k}.subtitle`)}
                     </Text>
                 </View>
@@ -419,7 +419,7 @@ export default function MechanicFoundScreen() {
                     {holdNotice !== null && confirmState !== 'done' && (
                         <View className="flex-row items-start" style={{ gap: 8, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, backgroundColor: AO.blueSofter, borderWidth: 1, borderColor: AO.border }}>
                             <Ionicons name="lock-closed-outline" size={14} color={AO.blue} style={{ marginTop: 2 }} />
-                            <Text className="font-outfit-regular" style={{ flex: 1, fontSize: 12, color: AO.muted, lineHeight: 17 }}>{holdNotice}</Text>
+                            <Text className="font-outfit-regular" style={{ flex: 1, fontSize: 13, color: AO.muted, lineHeight: 17 }}>{holdNotice}</Text>
                         </View>
                     )}
                 </View>
@@ -427,7 +427,7 @@ export default function MechanicFoundScreen() {
                 <ProtectionBox />
 
                 {!!requestId && (
-                    <Text className="text-center font-outfit-regular" style={{ fontSize: 11, color: AO.mutedLight, lineHeight: 16 }}>
+                    <Text className="text-center font-outfit-regular" style={{ fontSize: 13, color: AO.mutedLight, lineHeight: 16 }}>
                         {t(`${k}.requestNumber`)}
                         <Text style={{ fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }}>{request?.refCode ?? `#${requestId.slice(0, 8).toUpperCase()}`}</Text>
                     </Text>
@@ -447,13 +447,13 @@ export default function MechanicFoundScreen() {
                     >
                         {confirmState === 'done' && <Ionicons name="checkmark" size={16} color="#fff" />}
                         {confirmState === 'loading' && <ActivityIndicator size="small" color="#fff" />}
-                        <Text className="font-outfit-bold" style={{ color: '#fff', fontSize: 15.5 }}>
+                        <Text className="font-outfit-bold" style={{ color: '#fff', fontSize: 16 }}>
                             {confirmState === 'done' ? t(`${k}.requestConfirmed`) : confirmState === 'loading' ? t(`${k}.confirming`) : t(`${k}.confirm`)}
                         </Text>
                     </LinearGradient>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={handleCancel} disabled={confirmState !== 'idle'} style={{ paddingTop: 10, paddingBottom: 2, alignItems: 'center' }}>
-                    <Text className="font-outfit-bold" style={{ fontSize: 13.5, color: AO.red }}>{t('requestAssistance.searching.cancelRequest')}</Text>
+                    <Text className="font-outfit-bold" style={{ fontSize: 15, color: AO.red }}>{t('requestAssistance.searching.cancelRequest')}</Text>
                 </TouchableOpacity>
             </View>
         </View>

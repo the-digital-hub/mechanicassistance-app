@@ -197,15 +197,15 @@ export function MediaSlot({
                 {!picked ? (
                     <View className="items-center gap-2 px-3">
                         <Ionicons name={kind === 'video' ? 'videocam-outline' : kind === 'file' ? 'document-attach-outline' : 'camera-outline'} size={30} color={OS.mutedLight} />
-                        <Text className="font-outfit-medium text-xs text-center" style={{ color: OS.mutedLight }}>{placeholder}</Text>
-                        <Text className="font-outfit-bold text-[11px] underline" style={{ color: OS.blue }}>{t('appointments.onSite.common.tapToAdd')}</Text>
+                        <Text className="font-outfit-medium text-[13px] text-center" style={{ color: OS.mutedLight }}>{placeholder}</Text>
+                        <Text className="font-outfit-bold text-[13px] underline" style={{ color: OS.blue }}>{t('appointments.onSite.common.tapToAdd')}</Text>
                     </View>
                 ) : isImagePreview ? (
                     <Image source={{ uri: picked.uri }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
                 ) : (
                     <View className="items-center gap-2 px-4">
                         <Ionicons name={picked.isVideo ? 'play-circle-outline' : 'document-text-outline'} size={44} color="rgba(255,255,255,0.8)" />
-                        <Text className="font-outfit-medium text-xs text-center" style={{ color: 'rgba(255,255,255,0.8)' }} numberOfLines={1}>
+                        <Text className="font-outfit-medium text-[13px] text-center" style={{ color: 'rgba(255,255,255,0.8)' }} numberOfLines={1}>
                             {picked.name ?? (picked.isVideo ? t('appointments.onSite.common.video') : '')}
                         </Text>
                     </View>
@@ -224,22 +224,22 @@ export function MediaSlot({
                         size={14}
                         color={statusColor}
                     />
-                    <Text className="font-outfit-bold text-xs" style={{ color: statusColor }} numberOfLines={1}>{statusText}</Text>
+                    <Text className="font-outfit-bold text-[13px]" style={{ color: statusColor }} numberOfLines={1}>{statusText}</Text>
                 </View>
                 <View className="flex-row items-center gap-3.5">
                     {state === 'error' && picked ? (
                         <TouchableOpacity onPress={() => void upload(picked)}>
-                            <Text className="font-outfit-bold text-[11.5px]" style={{ color: OS.blue }}>{t('appointments.onSite.common.retry')}</Text>
+                            <Text className="font-outfit-bold text-[13px]" style={{ color: OS.blue }}>{t('appointments.onSite.common.retry')}</Text>
                         </TouchableOpacity>
                     ) : null}
                     {picked && state !== 'uploading' ? (
                         <TouchableOpacity onPress={() => void remove()}>
-                            <Text className="font-outfit-bold text-[11.5px]" style={{ color: OS.red }}>{t('appointments.onSite.common.remove')}</Text>
+                            <Text className="font-outfit-bold text-[13px]" style={{ color: OS.red }}>{t('appointments.onSite.common.remove')}</Text>
                         </TouchableOpacity>
                     ) : null}
                     {onDeleteSlot && state !== 'uploading' ? (
                         <TouchableOpacity onPress={() => void (mediaId ? remove().then(onDeleteSlot) : onDeleteSlot())}>
-                            <Text className="font-outfit-bold text-[11.5px]" style={{ color: OS.red }}>{t('appointments.onSite.common.deletePhoto')}</Text>
+                            <Text className="font-outfit-bold text-[13px]" style={{ color: OS.red }}>{t('appointments.onSite.common.deletePhoto')}</Text>
                         </TouchableOpacity>
                     ) : null}
                 </View>
@@ -297,7 +297,7 @@ export function PhotoList({
                 </View>
             ))}
             <TouchableOpacity onPress={() => setSlots((list) => [...list, { id: nextId.current++ }])} className="px-4 pb-4">
-                <Text className="font-outfit-bold text-xs" style={{ color: OS.blue }}>{t('appointments.onSite.common.addAnotherPhoto')}</Text>
+                <Text className="font-outfit-bold text-[13px]" style={{ color: OS.blue }}>{t('appointments.onSite.common.addAnotherPhoto')}</Text>
             </TouchableOpacity>
         </View>
     );

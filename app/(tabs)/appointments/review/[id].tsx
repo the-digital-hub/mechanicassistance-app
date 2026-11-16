@@ -128,7 +128,7 @@ export default function OwnerReviewScreen() {
                                             className="px-3 py-2 rounded-full"
                                             style={{ borderWidth: 1.5, borderColor: active ? OS.blue : OS.border, backgroundColor: active ? OS.blueSoft : '#FFFFFF' }}
                                         >
-                                            <Text className="font-outfit-bold text-xs" style={{ color: active ? OS.blue : OS.muted }}>{t(`${k}.tags.${tag}`)}</Text>
+                                            <Text className="font-outfit-bold text-[13px]" style={{ color: active ? OS.blue : OS.muted }}>{t(`${k}.tags.${tag}`)}</Text>
                                         </TouchableOpacity>
                                     );
                                 })}

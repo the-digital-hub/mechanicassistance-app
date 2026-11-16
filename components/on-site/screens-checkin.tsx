@@ -98,7 +98,7 @@ export function ScreenCheckIn({ onSubmit, onMismatch }: {
                         {!cameraOpen ? (
                             <View className="items-center gap-3 px-4">
                                 <Ionicons name="scan-outline" size={40} color={OS.mutedLight} />
-                                <Text className="font-outfit-bold text-xs text-center" style={{ color: OS.mutedLight }}>
+                                <Text className="font-outfit-bold text-[13px] text-center" style={{ color: OS.mutedLight }}>
                                     {permission && !permission.granted && !permission.canAskAgain
                                         ? t('appointments.checkIn.cameraPermission')
                                         : t('appointments.checkIn.cameraOff')}
@@ -118,7 +118,7 @@ export function ScreenCheckIn({ onSubmit, onMismatch }: {
                         )}
                     </View>
                     {cameraOpen ? (
-                        <Text className="font-outfit-medium text-xs text-center mt-3" style={{ color: OS.muted }}>
+                        <Text className="font-outfit-medium text-[13px] text-center mt-3" style={{ color: OS.muted }}>
                             {submitting ? t('appointments.checkIn.checking') : t('appointments.checkIn.scanHint')}
                         </Text>
                     ) : (
@@ -156,7 +156,7 @@ export function ScreenCheckIn({ onSubmit, onMismatch }: {
             <Tip>{t('appointments.checkIn.secureTip')}</Tip>
 
             <TouchableOpacity onPress={onMismatch} className="items-center mt-3.5" testID="check-in-mismatch">
-                <Text className="font-outfit-bold text-xs underline" style={{ color: OS.mutedLight }}>{t('appointments.checkIn.mismatchLink')}</Text>
+                <Text className="font-outfit-bold text-[13px] underline" style={{ color: OS.mutedLight }}>{t('appointments.checkIn.mismatchLink')}</Text>
             </TouchableOpacity>
         </Body>
     );
@@ -171,8 +171,8 @@ export function ScreenRetry({ onRetry }: { onRetry: () => void }) {
                 <View className="items-center justify-center mb-4" style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: OS.orangeSoft }}>
                     <Ionicons name="alert-circle-outline" size={28} color={OS.orange} />
                 </View>
-                <Text className="font-outfit-bold text-[19px] text-center" style={{ color: OS.text }}>{t('appointments.checkIn.mismatchTitle')}</Text>
-                <Text className="font-outfit-regular text-[13.5px] text-center mt-2 leading-5" style={{ color: OS.muted }}>{t('appointments.checkIn.mismatchBody')}</Text>
+                <Text className="font-outfit-bold text-[18px] text-center" style={{ color: OS.text }}>{t('appointments.checkIn.mismatchTitle')}</Text>
+                <Text className="font-outfit-regular text-[14px] text-center mt-2 leading-5" style={{ color: OS.muted }}>{t('appointments.checkIn.mismatchBody')}</Text>
             </View>
             <ActionBar>
                 <PrimaryButton label={t('appointments.checkIn.retry')} onPress={onRetry} tone="orange" testID="check-in-retry" />
@@ -255,9 +255,9 @@ export function ScreenDiagnosticsPhotos({ onNext }: { onNext: () => void }) {
                     <MediaSlot height={130} placeholder={t(`${k}.dashPh`)} captureKind="dashboard" existing={dashboard[0]} onChange={setDashFilled} />
                 </Card>
 
-                <Text className="font-outfit-bold text-xs mx-4 mt-3.5" style={{ color: OS.text }}>
+                <Text className="font-outfit-bold text-[13px] mx-4 mt-3.5" style={{ color: OS.text }}>
                     {t(`${k}.extra`)}
-                    <Text className="font-outfit-medium text-[10.5px]" style={{ color: OS.mutedLight }}>  {t('appointments.onSite.common.optional')}</Text>
+                    <Text className="font-outfit-medium text-[13px]" style={{ color: OS.mutedLight }}>  {t('appointments.onSite.common.optional')}</Text>
                 </Text>
                 <View className="mt-2">
                     <Segmented
@@ -308,7 +308,7 @@ export function ScreenValidating({ run, onDone, onFail }: {
         <View className="flex-1 items-center justify-center gap-4 px-8">
             <Spinner />
             <Text className="font-outfit-bold text-[15px] text-center" style={{ color: OS.text }}>{t('appointments.onSite.validating.title')}</Text>
-            <Text className="font-outfit-regular text-[12.5px] text-center" style={{ color: OS.muted }}>{t('appointments.onSite.validating.subtitle')}</Text>
+            <Text className="font-outfit-regular text-[13px] text-center" style={{ color: OS.muted }}>{t('appointments.onSite.validating.subtitle')}</Text>
         </View>
     );
 }

@@ -129,7 +129,7 @@ export default function HelpScreen() {
                             </View>
                             <Text className="flex-1 text-gray-900 font-outfit-medium text-lg">{section.title}</Text>
                             <View className="px-2.5 py-0.5 rounded-full" style={{ backgroundColor: '#E9F1FF' }}>
-                                <Text className="text-blue-600 font-outfit-semibold text-xs">{section.items.length}</Text>
+                                <Text className="text-blue-600 font-outfit-semibold text-[13px]">{section.items.length}</Text>
                             </View>
                             {collapsed ? <ChevronRight size={20} color="#9CA3AF" /> : <ChevronDown size={20} color="#9CA3AF" />}
                         </TouchableOpacity>

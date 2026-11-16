@@ -77,7 +77,7 @@ export default function PasswordScreen() {
             </TouchableOpacity>
           </View>
           <TouchableOpacity className="self-end mt-2">
-            <Text className="text-blue-600 font-outfit-medium text-xs">
+            <Text className="text-blue-600 font-outfit-medium text-[13px]">
               {t('password.forgotPassword')}
             </Text>
           </TouchableOpacity>
@@ -133,12 +133,12 @@ export default function PasswordScreen() {
       {/* Validation Feedback */}
       <View className="mb-10">
         <Text
-          className={`font-outfit-regular text-xs mb-1 ${!hasMinLength ? "text-red-500" : "text-green-500"}`}
+          className={`font-outfit-regular text-[13px] mb-1 ${!hasMinLength ? "text-red-500" : "text-green-500"}`}
         >
           {t('password.ruleMinLength')}
         </Text>
         <Text
-          className={`font-outfit-regular text-xs ${!hasSymbolOrNumber ? "text-red-500" : "text-green-500"}`}
+          className={`font-outfit-regular text-[13px] ${!hasSymbolOrNumber ? "text-red-500" : "text-green-500"}`}
         >
           {t('password.ruleSymbolOrNumber')}
         </Text>

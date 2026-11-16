@@ -46,7 +46,7 @@ export function PhaseBar({ phase }: { phase: Phase }) {
                         style={{ flex: active ? 1.3 : 1, backgroundColor: active ? OS.blueSoft : done ? OS.greenSoft : 'transparent' }}
                     >
                         <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: active ? OS.blue : done ? OS.green : OS.border }} />
-                        <Text className="font-outfit-bold text-[11px]" style={{ color: active ? OS.blue : done ? OS.greenDark : OS.mutedLight }}>
+                        <Text className="font-outfit-bold text-[13px]" style={{ color: active ? OS.blue : done ? OS.greenDark : OS.mutedLight }}>
                             {t(`appointments.onSite.phases.${p}`)}
                         </Text>
                     </View>
@@ -84,7 +84,7 @@ export function Intro({ eyebrow, title, subtitle, tone = 'blue' }: { eyebrow?: s
             {eyebrow ? <Eyebrow tone={tone}>{eyebrow}</Eyebrow> : null}
             <Text className="font-outfit-bold text-2xl" style={{ color: OS.text }}>{title}</Text>
             {subtitle ? (
-                <Text className="font-outfit-regular text-[13.5px] mt-1.5 leading-5" style={{ color: OS.muted }}>{subtitle}</Text>
+                <Text className="font-outfit-regular text-[14px] mt-1.5 leading-5" style={{ color: OS.muted }}>{subtitle}</Text>
             ) : null}
         </View>
     );
@@ -101,7 +101,7 @@ export function Eyebrow({ children, tone = 'blue' }: { children: React.ReactNode
     return (
         <View className="flex-row items-center gap-1.5 mb-3 px-2.5 py-1 rounded-full" style={{ backgroundColor: bg, alignSelf: 'flex-start' }}>
             <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
-            <Text className="font-outfit-bold text-[10.5px] tracking-widest" style={{ color }}>{children}</Text>
+            <Text className="font-outfit-bold text-[12px] tracking-widest" style={{ color }}>{children}</Text>
         </View>
     );
 }
@@ -126,9 +126,9 @@ export function CardTitle({ title, optional, right }: { title: string; optional?
     const { t } = useTranslation();
     return (
         <View className="flex-row items-center justify-between px-4 pt-3">
-            <Text className="font-outfit-bold text-xs" style={{ color: OS.text }}>
+            <Text className="font-outfit-bold text-[13px]" style={{ color: OS.text }}>
                 {title}
-                {optional ? <Text className="font-outfit-medium text-[10.5px]" style={{ color: OS.mutedLight }}>  {t('appointments.onSite.common.optional')}</Text> : null}
+                {optional ? <Text className="font-outfit-medium text-[13px]" style={{ color: OS.mutedLight }}>  {t('appointments.onSite.common.optional')}</Text> : null}
             </Text>
             {right}
         </View>
@@ -146,7 +146,7 @@ export function Tip({ children, tone = 'blue' }: { children: React.ReactNode; to
     return (
         <View className="mx-4 mt-3 flex-row items-start gap-2 px-3.5 py-3 rounded-2xl" style={{ backgroundColor: bg }}>
             <Ionicons name="information-circle-outline" size={15} color={color} style={{ marginTop: 1 }} />
-            <Text className="flex-1 font-outfit-medium text-[11.5px] leading-4" style={{ color }}>{children}</Text>
+            <Text className="flex-1 font-outfit-medium text-[13px] leading-4" style={{ color }}>{children}</Text>
         </View>
     );
 }
@@ -174,8 +174,8 @@ export function CheckRow({ checked, onToggle, label, sub, last, compact }: {
         >
             <Checkbox checked={checked} />
             <View className="flex-1">
-                <Text className={`font-outfit-bold ${compact ? 'text-[12.5px]' : 'text-[13.5px]'}`} style={{ color: OS.text }}>{label}</Text>
-                {sub && !compact ? <Text className="font-outfit-regular text-[11.5px] mt-0.5" style={{ color: OS.muted }}>{sub}</Text> : null}
+                <Text className={`font-outfit-bold ${compact ? 'text-[13px]' : 'text-[14px]'}`} style={{ color: OS.text }}>{label}</Text>
+                {sub && !compact ? <Text className="font-outfit-regular text-[13px] mt-0.5" style={{ color: OS.muted }}>{sub}</Text> : null}
             </View>
         </TouchableOpacity>
     );
@@ -200,7 +200,7 @@ export function InfoRow({ icon, label, value, last }: {
                 <Ionicons name={icon} size={15} color={OS.blue} />
             </View>
             <View className="flex-1">
-                <Text className="font-outfit-bold text-[10.5px] uppercase" style={{ color: OS.mutedLight }}>{label}</Text>
+                <Text className="font-outfit-bold text-[13px] uppercase" style={{ color: OS.mutedLight }}>{label}</Text>
                 {typeof value === 'string' ? (
                     <Text className="font-outfit-bold text-sm mt-0.5" style={{ color: OS.text }}>{value}</Text>
                 ) : value}
@@ -325,13 +325,13 @@ export function MaintenanceChecklist({ state, withHeader = true, compact = true 
                         <View className="flex-row items-center gap-2">
                             <Text className="font-outfit-bold text-[13px]" style={{ color: OS.text }}>{t('appointments.onSite.maintenance.title')}</Text>
                             <View className="px-2 py-0.5 rounded-full" style={{ backgroundColor: OS.greenSoft }}>
-                                <Text className="font-outfit-bold text-[9.5px] uppercase" style={{ color: OS.greenDark }}>{t('appointments.onSite.common.included')}</Text>
+                                <Text className="font-outfit-bold text-[13px] uppercase" style={{ color: OS.greenDark }}>{t('appointments.onSite.common.included')}</Text>
                             </View>
                         </View>
-                        <Text className="font-outfit-medium text-[11px] mt-0.5" style={{ color: OS.mutedLight }}>{t('appointments.onSite.maintenance.sub')}</Text>
+                        <Text className="font-outfit-medium text-[13px] mt-0.5" style={{ color: OS.mutedLight }}>{t('appointments.onSite.maintenance.sub')}</Text>
                     </View>
                     <TouchableOpacity onPress={state.toggleAll}>
-                        <Text className="font-outfit-bold text-[11.5px]" style={{ color: OS.blue }}>
+                        <Text className="font-outfit-bold text-[13px]" style={{ color: OS.blue }}>
                             {state.allChecked ? t('appointments.onSite.common.unselectAll') : t('appointments.onSite.common.selectAll')}
                         </Text>
                     </TouchableOpacity>
@@ -364,7 +364,7 @@ export function NoteInput({ value, onChangeText, placeholder, rows = 2, white }:
             placeholderTextColor={OS.mutedLight}
             multiline
             textAlignVertical="top"
-            className="font-outfit-regular text-[12.5px] mt-2 px-3 py-2.5"
+            className="font-outfit-regular text-[13px] mt-2 px-3 py-2.5"
             style={{ minHeight: rows * 22, borderRadius: 12, borderWidth: 1.5, borderColor: OS.border, backgroundColor: white ? '#FFFFFF' : OS.page, color: OS.text }}
         />
     );

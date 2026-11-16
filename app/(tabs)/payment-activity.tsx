@@ -102,12 +102,12 @@ export default function PaymentActivityScreen() {
                                     <Text className="text-gray-900 font-outfit-semibold text-sm">
                                         {statusLabel(p.status)} · {methodLabel(p.method)}
                                     </Text>
-                                    <Text className="text-gray-500 font-outfit-regular text-xs">{formatLocalDateTime(p.createdAt, i18n.language)}</Text>
+                                    <Text className="text-gray-500 font-outfit-regular text-[13px]">{formatLocalDateTime(p.createdAt, i18n.language)}</Text>
                                 </View>
                                 <Text className="font-outfit-bold text-sm text-gray-900">{formatMoney(headline(p))}</Text>
                             </View>
                             {Number(p.amountRefunded) > 0 && Number(p.amountCharged) > 0 && (
-                                <Text className="text-gray-500 font-outfit-regular text-xs mt-1">
+                                <Text className="text-gray-500 font-outfit-regular text-[13px] mt-1">
                                     {t(`${K}.activity.charged`, { amount: formatMoney(p.amountCharged) })}
                                 </Text>
                             )}
@@ -143,7 +143,7 @@ export default function PaymentActivityScreen() {
                                 <Text className="text-gray-900 font-outfit-semibold text-sm">
                                     {t(`${K}.movementType.${m.type}`, { defaultValue: t(`${K}.movementType.other`) })}
                                 </Text>
-                                <Text className="text-gray-500 font-outfit-regular text-xs">{formatLocalDateTime(m.createdAt, i18n.language)}</Text>
+                                <Text className="text-gray-500 font-outfit-regular text-[13px]">{formatLocalDateTime(m.createdAt, i18n.language)}</Text>
                             </View>
                             <Text className="font-outfit-bold text-sm" style={{ color: credit ? '#15803D' : '#111827' }}>
                                 {credit ? '+' : '−'}

@@ -70,14 +70,14 @@ export function VehicleFormSection({
                         </Text>
                         {optionalLabel ? (
                             <View style={{ paddingHorizontal: 8, paddingVertical: 2, borderRadius: 100, backgroundColor: AV.blueSoft }}>
-                                <Text className="font-outfit-bold" style={{ fontSize: 10.5, color: AV.blue }}>
+                                <Text className="font-outfit-bold" style={{ fontSize: 13, color: AV.blue }}>
                                     {optionalLabel}
                                 </Text>
                             </View>
                         ) : null}
                     </View>
                     {subtitle ? (
-                        <Text className="font-outfit-regular" style={{ fontSize: 12, color: AV.muted, marginTop: 2, lineHeight: 16 }}>
+                        <Text className="font-outfit-regular" style={{ fontSize: 13, color: AV.muted, marginTop: 2, lineHeight: 16 }}>
                             {subtitle}
                         </Text>
                     ) : null}

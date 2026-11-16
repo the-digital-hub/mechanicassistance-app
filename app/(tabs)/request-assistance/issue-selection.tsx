@@ -301,7 +301,7 @@ export default function IssueSelectionScreen() {
                         </View>
                     ) : normalizedQuery && filteredCatalog.length === 0 ? (
                         <View className="rounded-xl border border-gray-100 p-6 items-center">
-                            <Text className="text-gray-500 font-outfit-regular text-sm">{t('requestAssistance.issueSelection.noResults')}</Text>
+                            <Text className="text-gray-500 font-outfit-regular text-base">{t('requestAssistance.issueSelection.noResults')}</Text>
                         </View>
                     ) : (
                         filteredCatalog.map((category, categoryIndex) => {
@@ -333,16 +333,16 @@ export default function IssueSelectionScreen() {
                                         disabled={!heading}
                                     >
                                         {heading ? (
-                                            <View className="w-9 h-9 rounded-lg items-center justify-center mr-3" style={{ backgroundColor: '#E9F1FF' }}>
-                                                <CategoryIcon size={18} color="#0047AB" />
+                                            <View className="w-10 h-10 rounded-lg items-center justify-center mr-3" style={{ backgroundColor: '#E9F1FF' }}>
+                                                <CategoryIcon size={20} color="#0047AB" />
                                             </View>
                                         ) : null}
-                                        <Text className="flex-1 font-outfit-medium text-gray-900">
+                                        <Text className="flex-1 font-outfit-bold text-gray-900 text-[18px]">
                                             {heading || t('requestAssistance.issueSelection.otherIssues')}
                                         </Text>
                                         {categorySelectedCount > 0 && (
                                             <View className="px-2 py-1 rounded-full mr-2" style={{ backgroundColor: '#E9F1FF' }}>
-                                                <Text className="text-blue-600 font-outfit-semibold text-xs">
+                                                <Text className="text-blue-600 font-outfit-semibold text-[13px]">
                                                     {t('requestAssistance.issueSelection.selectedCount', { count: categorySelectedCount })}
                                                 </Text>
                                             </View>
@@ -368,7 +368,7 @@ export default function IssueSelectionScreen() {
                                                             style={{ backgroundColor: isDirectSelected ? '#F4F8FF' : 'white' }}
                                                         >
                                                             <Checkbox selected={isDirectSelected} />
-                                                            <Text className={`ml-3 flex-1 font-outfit-medium text-sm ${isDirectSelected ? 'text-blue-700' : 'text-gray-700'}`}>
+                                                            <Text className={`ml-3 flex-1 font-outfit-medium text-[16.5px] ${isDirectSelected ? 'text-blue-700' : 'text-gray-700'}`}>
                                                                 {translatedName(issue, languageId)}
                                                             </Text>
                                                         </TouchableOpacity>
@@ -381,8 +381,8 @@ export default function IssueSelectionScreen() {
                                                             onPress={() => toggleIssueExpanded(issue.id)}
                                                             className="flex-row items-center px-4 py-3"
                                                         >
-                                                            <IssueChevron size={14} color="#0047AB" />
-                                                            <Text className="ml-2 flex-1 font-outfit-medium text-gray-800 text-sm">
+                                                            <IssueChevron size={16} color="#0047AB" />
+                                                            <Text className="ml-2 flex-1 font-outfit-medium text-gray-800 text-[16.5px]">
                                                                 {translatedName(issue, languageId)}
                                                             </Text>
                                                         </TouchableOpacity>
@@ -398,12 +398,12 @@ export default function IssueSelectionScreen() {
                                                                             className="flex-row items-center pl-10 pr-4 py-2.5"
                                                                         >
                                                                             <Checkbox selected={isSymptomSelected} />
-                                                                            <Text className={`ml-3 flex-1 font-outfit-regular text-sm ${isSymptomSelected ? 'text-blue-700' : 'text-gray-600'}`}>
+                                                                            <Text className={`ml-3 flex-1 font-outfit-regular text-[16px] ${isSymptomSelected ? 'text-blue-700' : 'text-gray-600'}`}>
                                                                                 {translatedName(symptom, languageId)}
                                                                             </Text>
                                                                             {isSymptomSelected && (
                                                                                 <View className="px-2 py-0.5 rounded-full ml-2" style={{ backgroundColor: '#E9F1FF' }}>
-                                                                                    <Text className="text-blue-600 font-outfit-semibold text-[10px]">
+                                                                                    <Text className="text-blue-600 font-outfit-semibold text-[13px]">
                                                                                         {t('requestAssistance.issueSelection.selected')}
                                                                                     </Text>
                                                                                 </View>
@@ -449,7 +449,7 @@ export default function IssueSelectionScreen() {
                                 justifyContent: 'center',
                             }}
                         >
-                            <Text className="text-white font-outfit-bold text-center mr-2">{t('requestAssistance.continue')}</Text>
+                            <Text className="text-white font-outfit-bold text-[18px] text-center mr-2">{t('requestAssistance.continue')}</Text>
                             <ChevronRight size={20} color="white" />
                         </LinearGradient>
                     )}

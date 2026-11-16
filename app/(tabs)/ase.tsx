@@ -116,11 +116,11 @@ export default function ASEScreen() {
                     {/* ASE branding */}
                     <View className="flex-row items-center mb-6">
                         <View className="bg-blue-600 rounded-full w-10 h-10 items-center justify-center mr-3">
-                            <Text className="text-white font-bold text-xs">ASE</Text>
+                            <Text className="text-white font-bold text-[13px]">ASE</Text>
                         </View>
                         <View>
-                            <Text className="font-bold text-xs text-gray-800">{t('ase.instituteLine1')}</Text>
-                            <Text className="font-bold text-xs text-gray-800 uppercase">{t('ase.instituteLine2')}</Text>
+                            <Text className="font-bold text-[13px] text-gray-800">{t('ase.instituteLine1')}</Text>
+                            <Text className="font-bold text-[13px] text-gray-800 uppercase">{t('ase.instituteLine2')}</Text>
                         </View>
                     </View>
 
@@ -189,7 +189,7 @@ export default function ASEScreen() {
                                             <Text className="font-outfit-bold text-[#0F172A] mb-1">
                                                 {cert.code}{cert.name ? ` - ${cert.name}` : ''}
                                             </Text>
-                                            <Text className="text-blue-400 text-xs">
+                                            <Text className="text-blue-400 text-[13px]">
                                                 {t('ase.expiration', { date: formatExpiration(cert.expirationDate) })}
                                             </Text>
                                         </View>
@@ -244,7 +244,7 @@ export default function ASEScreen() {
             ) : (
                 <>
                     <View className="bg-white border border-gray-200 rounded-2xl p-4 mb-6">
-                        <Text className="text-gray-500 font-outfit-regular text-xs mb-1">{t('ase.memberIdLabel')}</Text>
+                        <Text className="text-gray-500 font-outfit-regular text-[13px] mb-1">{t('ase.memberIdLabel')}</Text>
                         <Text className="text-[#0047AB] font-outfit-bold text-base">{data.aseId}</Text>
                         <Text className="text-gray-700 font-outfit-regular text-sm mt-1">
                             {data.firstName} {data.lastName}
@@ -260,7 +260,7 @@ export default function ASEScreen() {
                                     <Text className="font-outfit-bold text-gray-900">
                                         {cert.code}{cert.name ? ` - ${cert.name}` : ''}
                                     </Text>
-                                    <Text className="text-gray-500 text-xs mt-1">
+                                    <Text className="text-gray-500 text-[13px] mt-1">
                                         {t('ase.expiration', { date: formatExpiration(cert.expirationDate) })}
                                     </Text>
                                 </View>

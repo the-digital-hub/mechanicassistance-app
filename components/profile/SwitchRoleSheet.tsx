@@ -105,7 +105,7 @@ export function SwitchRoleSheet({ visible, current, held, onClose, onPick }: {
                                         {!isHeld(id) && <Pill text={t('profile.switchRole.notSetUp')} bg={C.page} color={C.muted} border />}
                                         {disabled && <Pill text={t('profile.switchRole.comingSoon')} bg="#FFF4E6" color="#C2620A" />}
                                     </View>
-                                    <Text className="font-outfit-regular" style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>
+                                    <Text className="font-outfit-regular" style={{ fontSize: 13, color: C.muted, marginTop: 2 }}>
                                         {t(`profile.switchRole.roles.${id}.desc`)}
                                     </Text>
                                 </View>
@@ -131,7 +131,7 @@ export function SwitchRoleSheet({ visible, current, held, onClose, onPick }: {
                         end={{ x: 1, y: 0 }}
                         style={{ borderRadius: 14, paddingVertical: 15, alignItems: 'center' }}
                     >
-                        <Text className="font-outfit-bold" style={{ fontSize: 15.5, color: '#fff' }}>{buttonText}</Text>
+                        <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#fff' }}>{buttonText}</Text>
                     </LinearGradient>
                 </TouchableOpacity>
             </View>
@@ -142,7 +142,7 @@ export function SwitchRoleSheet({ visible, current, held, onClose, onPick }: {
 function Pill({ text, bg, color, border }: { text: string; bg: string; color: string; border?: boolean }) {
     return (
         <View style={{ paddingHorizontal: 8, paddingVertical: 2, borderRadius: 100, backgroundColor: bg, borderWidth: border ? 1 : 0, borderColor: C.border }}>
-            <Text className="font-outfit-bold" style={{ fontSize: 10.5, color }}>{text}</Text>
+            <Text className="font-outfit-bold" style={{ fontSize: 13, color }}>{text}</Text>
         </View>
     );
 }

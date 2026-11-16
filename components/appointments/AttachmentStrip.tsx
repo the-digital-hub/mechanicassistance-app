@@ -51,7 +51,7 @@ export function AttachmentStrip({ photos, size = 110 }: AttachmentStripProps) {
                             )}
                         </View>
                         {attachment.note ? (
-                            <Text className="text-gray-500 font-outfit-regular text-xs mt-1" numberOfLines={2}>
+                            <Text className="text-gray-500 font-outfit-regular text-[13px] mt-1" numberOfLines={2}>
                                 {attachment.note}
                             </Text>
                         ) : null}

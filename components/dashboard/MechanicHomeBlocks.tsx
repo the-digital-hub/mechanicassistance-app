@@ -53,7 +53,7 @@ export function SectionTitle({
             <Text className="font-outfit-bold" style={{ fontSize: 18, letterSpacing: -0.3, color: C.text }}>{title}</Text>
             {badge != null && badge > 0 && (
                 <View className="items-center justify-center rounded-full" style={{ minWidth: 20, height: 20, paddingHorizontal: 6, backgroundColor: C.blueSoft }}>
-                    <Text className="font-outfit-bold" style={{ fontSize: 11, color: C.blue }}>{badge}</Text>
+                    <Text className="font-outfit-bold" style={{ fontSize: 13, color: C.blue }}>{badge}</Text>
                 </View>
             )}
             {onToggle ? (collapsed ? <ChevronRight size={18} color={C.mutedLight} /> : <ChevronDown size={18} color={C.mutedLight} />) : null}
@@ -105,7 +105,7 @@ export function AvailabilityCard({
                 <Text className="font-outfit-bold flex-1 pr-2" style={{ fontSize: 15, color: C.text }}>{title}</Text>
                 <View className="flex-row items-center rounded-full" style={{ gap: 6, paddingHorizontal: 9, paddingVertical: 4, backgroundColor: active.bg }}>
                     <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: active.dot }} />
-                    <Text className="font-outfit-bold" style={{ fontSize: 10, letterSpacing: 0.6, color: active.fg }}>{liveLabel}</Text>
+                    <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 0.6, color: active.fg }}>{liveLabel}</Text>
                 </View>
             </View>
             <View className="flex-row" style={{ gap: 6, padding: 4, borderRadius: 14, backgroundColor: C.blueSofter }}>
@@ -136,7 +136,7 @@ export function AvailabilityCard({
                     );
                 })}
             </View>
-            <Text className="font-outfit-regular" style={{ fontSize: 12.5, lineHeight: 18, color: C.muted, marginTop: 11 }}>{description}</Text>
+            <Text className="font-outfit-regular" style={{ fontSize: 13, lineHeight: 18, color: C.muted, marginTop: 11 }}>{description}</Text>
         </View>
     );
 }
@@ -146,9 +146,9 @@ function MiniStat({ icon, accent, label, value, sub }: { icon: ReactNode; accent
         <View className="flex-1 flex-row" style={{ ...CARD, padding: 14, gap: 10, minWidth: 0 }}>
             <View className="items-center justify-center" style={{ width: 34, height: 34, borderRadius: 11, backgroundColor: `${accent}22` }}>{icon}</View>
             <View className="flex-1" style={{ minWidth: 0 }}>
-                <Text className="font-outfit-semibold" style={{ fontSize: 12, color: C.muted }} numberOfLines={1}>{label}</Text>
+                <Text className="font-outfit-semibold" style={{ fontSize: 13, color: C.muted }} numberOfLines={1}>{label}</Text>
                 <Text className="font-outfit-bold" style={{ fontSize: 24, letterSpacing: -0.6, color: C.text, marginTop: 4 }} numberOfLines={1}>{value}</Text>
-                {sub ? <Text className="font-outfit-regular" style={{ fontSize: 11.5, color: C.muted, marginTop: 3 }} numberOfLines={1}>{sub}</Text> : null}
+                {sub ? <Text className="font-outfit-regular" style={{ fontSize: 13, color: C.muted, marginTop: 3 }} numberOfLines={1}>{sub}</Text> : null}
             </View>
         </View>
     );
@@ -177,7 +177,7 @@ export function TodayBlock({
     return (
         <View style={{ gap: 12 }}>
             <View style={{ ...CARD, padding: 16 }}>
-                <Text className="font-outfit-semibold" style={{ fontSize: 12, color: C.muted }}>{earnedLabel}</Text>
+                <Text className="font-outfit-semibold" style={{ fontSize: 13, color: C.muted }}>{earnedLabel}</Text>
                 <Text className="font-outfit-bold" style={{ fontSize: 34, letterSpacing: -1, color: C.text, marginTop: 8 }} numberOfLines={1}>{earned}</Text>
                 {footer ? <View style={{ marginTop: 8 }}>{footer}</View> : null}
             </View>
@@ -210,7 +210,7 @@ export function WeeklyEarnings({
     const max = Math.max(1, ...days);
     return (
         <View style={{ ...CARD, padding: 16 }}>
-            <Text className="font-outfit-semibold" style={{ fontSize: 12, color: C.muted }}>{label}</Text>
+            <Text className="font-outfit-semibold" style={{ fontSize: 13, color: C.muted }}>{label}</Text>
             <Text className="font-outfit-bold" style={{ fontSize: 26, letterSpacing: -0.7, color: C.text, marginTop: 4 }} numberOfLines={1}>{total}</Text>
             <View className="flex-row items-end" style={{ gap: 8, height: 84, marginTop: 14 }}>
                 {days.map((v, i) => (
@@ -223,7 +223,7 @@ export function WeeklyEarnings({
                                 backgroundColor: i === todayIdx ? C.blue : v ? C.blueIce : C.borderSoft,
                             }}
                         />
-                        <Text className={i === todayIdx ? 'font-outfit-bold' : 'font-outfit-semibold'} style={{ fontSize: 10.5, marginTop: 6, color: i === todayIdx ? C.blue : C.mutedLight }}>
+                        <Text className={i === todayIdx ? 'font-outfit-bold' : 'font-outfit-semibold'} style={{ fontSize: 13, marginTop: 6, color: i === todayIdx ? C.blue : C.mutedLight }}>
                             {dayLabels[i]}
                         </Text>
                     </View>
@@ -281,7 +281,7 @@ export function RequestTypeTabs<T extends string>({
                     >
                         <Text className="font-outfit-bold" style={{ fontSize: 13, color: on ? '#FFFFFF' : C.muted }} numberOfLines={1}>{tab.label}</Text>
                         <View className="items-center justify-center rounded-full" style={{ minWidth: 18, height: 18, paddingHorizontal: 5, backgroundColor: on ? 'rgba(255,255,255,0.24)' : tab.alert ? '#E53E3E' : C.blueSoft }}>
-                            <Text className="font-outfit-bold" style={{ fontSize: 10.5, color: on || tab.alert ? '#FFFFFF' : C.blue }}>{tab.count}</Text>
+                            <Text className="font-outfit-bold" style={{ fontSize: 13, color: on || tab.alert ? '#FFFFFF' : C.blue }}>{tab.count}</Text>
                         </View>
                     </TouchableOpacity>
                 );
@@ -325,7 +325,7 @@ export function AttentionList({ items, hideLabel, onDismiss }: { items: Attentio
                         </View>
                         <View className="flex-1">
                             <Text className="font-outfit-bold" style={{ fontSize: 14, color: C.text }}>{a.title}</Text>
-                            <Text className="font-outfit-regular" style={{ fontSize: 12.5, color: C.muted, marginTop: 2, lineHeight: 17 }}>{a.sub}</Text>
+                            <Text className="font-outfit-regular" style={{ fontSize: 13, color: C.muted, marginTop: 2, lineHeight: 17 }}>{a.sub}</Text>
                         </View>
                         <View className="items-end" style={{ gap: 8 }}>
                             <View className="flex-row items-center" style={{ gap: 2 }}>
@@ -334,7 +334,7 @@ export function AttentionList({ items, hideLabel, onDismiss }: { items: Attentio
                             </View>
                             {onDismiss && hideLabel ? (
                                 <TouchableOpacity onPress={() => onDismiss(a)} hitSlop={{ top: 6, bottom: 6, left: 10, right: 6 }} accessibilityRole="button">
-                                    <Text className="font-outfit-semibold" style={{ fontSize: 12, color: C.mutedLight }}>{hideLabel}</Text>
+                                    <Text className="font-outfit-semibold" style={{ fontSize: 13, color: C.mutedLight }}>{hideLabel}</Text>
                                 </TouchableOpacity>
                             ) : null}
                         </View>
@@ -361,10 +361,10 @@ export function AseCta({ badge, title, subtitle, onPress }: { badge: string; tit
                 <View className="flex-1">
                     <View className="flex-row items-center self-start rounded-full" style={{ gap: 5, paddingHorizontal: 8, paddingVertical: 3, backgroundColor: 'rgba(255,255,255,0.16)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.22)', marginBottom: 6 }}>
                         <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: '#4ADE80' }} />
-                        <Text className="font-outfit-bold" style={{ fontSize: 9.5, letterSpacing: 1.1, color: '#FFFFFF' }}>{badge}</Text>
+                        <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1.1, color: '#FFFFFF' }}>{badge}</Text>
                     </View>
                     <Text className="font-outfit-bold" style={{ fontSize: 16.5, letterSpacing: -0.3, color: '#FFFFFF' }}>{title}</Text>
-                    <Text className="font-outfit-regular" style={{ fontSize: 12.5, lineHeight: 17, color: 'rgba(255,255,255,0.88)', marginTop: 4 }}>{subtitle}</Text>
+                    <Text className="font-outfit-regular" style={{ fontSize: 13, lineHeight: 17, color: 'rgba(255,255,255,0.88)', marginTop: 4 }}>{subtitle}</Text>
                 </View>
                 <View className="items-center justify-center" style={{ width: 30, height: 30, borderRadius: 12, backgroundColor: '#FFFFFF' }}>
                     <ChevronRight size={16} color={C.blueDark} />

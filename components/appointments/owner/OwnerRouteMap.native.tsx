@@ -160,7 +160,7 @@ export function OwnerRouteMap({ destination, mechanic, polyline, height = 190 }:
         return (
             <View style={[frame, { alignItems: 'center', justifyContent: 'center' }]}>
                 <Ionicons name="map-outline" size={28} color={AO.mutedLight} />
-                <Text className="font-outfit-regular" style={{ color: AO.muted, marginTop: 6, fontSize: 12 }}>
+                <Text className="font-outfit-regular" style={{ color: AO.muted, marginTop: 6, fontSize: 13 }}>
                     {t('appointments.userStatus.locationNotAvailable')}
                 </Text>
             </View>
@@ -195,7 +195,7 @@ export function OwnerRouteMap({ destination, mechanic, polyline, height = 190 }:
                 </View>
                 <View style={{ position: 'absolute', right: 8, bottom: 8, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.92)' }}>
                     <Ionicons name="expand-outline" size={11} color={AO.blue} />
-                    <Text className="font-outfit-bold" style={{ fontSize: 10.5, color: AO.blue }}>{t('appointments.ownerAccepted.expandMap')}</Text>
+                    <Text className="font-outfit-bold" style={{ fontSize: 13, color: AO.blue }}>{t('appointments.ownerAccepted.expandMap')}</Text>
                 </View>
             </Pressable>
             <Modal visible={expanded} transparent animationType="fade" statusBarTranslucent onRequestClose={() => setExpanded(false)}>

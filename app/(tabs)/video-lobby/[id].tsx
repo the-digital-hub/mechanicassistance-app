@@ -433,7 +433,7 @@ const styles = StyleSheet.create({
     },
     footerText: {
         fontFamily: 'Outfit_400Regular',
-        fontSize: 11,
+        fontSize: 13,
         color: '#9CA3AF',
         textAlign: 'center',
     },

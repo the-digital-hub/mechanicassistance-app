@@ -101,7 +101,7 @@ export default function ChatScreen() {
                         <Text className="text-white font-outfit-bold text-lg">{recipient?.name} {recipient?.surname}</Text>
                         <View className="flex-row items-center">
                             <View className="w-2 h-2 bg-emerald-400 rounded-full mr-1.5" />
-                            <Text className="text-white/80 text-xs font-outfit-regular">{t('chat.online')}</Text>
+                            <Text className="text-white/80 text-[13px] font-outfit-regular">{t('chat.online')}</Text>
                         </View>
                     </View>
                 </View>
@@ -123,7 +123,7 @@ export default function ChatScreen() {
                 {messages.length === 0 && (
                     <View className="items-center justify-center mt-10">
                         <Text className="text-gray-400 font-outfit-regular text-sm">{t('chat.noMessages')}</Text>
-                        <Text className="text-gray-300 text-[10px] mt-2 italic">{t('chat.ephemeralNotice')}</Text>
+                        <Text className="text-gray-300 text-[13px] mt-2 italic">{t('chat.ephemeralNotice')}</Text>
                     </View>
                 )}
                 {messages.map((msg) => {
@@ -138,7 +138,7 @@ export default function ChatScreen() {
                                         {msg.text}
                                     </Text>
                                 </View>
-                                <Text className={`text-gray-400 text-[10px] mt-1 font-outfit-medium ${isMe ? 'text-right' : 'text-left'}`}>
+                                <Text className={`text-gray-400 text-[13px] mt-1 font-outfit-medium ${isMe ? 'text-right' : 'text-left'}`}>
                                     {time}
                                 </Text>
                             </View>

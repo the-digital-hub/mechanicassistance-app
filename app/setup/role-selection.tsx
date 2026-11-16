@@ -226,7 +226,7 @@ export default function RoleSelectionScreen() {
                     >
                         {alreadyHeld && (
                             <View className="px-2.5 py-1 rounded-md mb-4" style={{ alignSelf: 'flex-start', backgroundColor: 'rgba(255, 255, 255, 0.15)', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.3)' }}>
-                                <Text className="text-white font-outfit-bold text-[10px] tracking-widest">
+                                <Text className="text-white font-outfit-bold text-[12px] tracking-widest">
                                     {t('setup.addRole.alreadyYours')}
                                 </Text>
                             </View>
@@ -251,7 +251,7 @@ export default function RoleSelectionScreen() {
                         <View className="flex-row flex-wrap gap-2 mb-8">
                             {roleText.highlights.map((highlight, idx) => (
                                 <View key={idx} className="px-3 py-2 rounded-full" style={{ backgroundColor: 'rgba(255, 255, 255, 0.15)', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.3)' }}>
-                                    <Text className="text-white font-outfit-medium text-xs">
+                                    <Text className="text-white font-outfit-medium text-[13px]">
                                         {highlight}
                                     </Text>
                                 </View>

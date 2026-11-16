@@ -58,7 +58,7 @@ export function TopUpForm({ cards, initialAmount, onDone, onCancel }: {
     return (
         <View testID="wallet-topup-form">
             <Text className="font-outfit-bold" style={{ fontSize: 17, color: AO.text }}>{t(`${K}.title`)}</Text>
-            <Text className="font-outfit-regular" style={{ fontSize: 12.5, color: AO.muted, marginTop: 4 }}>
+            <Text className="font-outfit-regular" style={{ fontSize: 13, color: AO.muted, marginTop: 4 }}>
                 {t(`${K}.limits`, { min: MIN_TOP_UP, max: MAX_TOP_UP })}
             </Text>
 
@@ -120,7 +120,7 @@ export function TopUpForm({ cards, initialAmount, onDone, onCancel }: {
             )}
 
             {error && (
-                <Text className="font-outfit-semibold" style={{ fontSize: 12.5, color: AO.red, marginTop: 8 }} testID="wallet-topup-error">
+                <Text className="font-outfit-semibold" style={{ fontSize: 13, color: AO.red, marginTop: 8 }} testID="wallet-topup-error">
                     {error}
                 </Text>
             )}

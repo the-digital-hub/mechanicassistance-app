@@ -82,7 +82,7 @@ function Hero({ redirected }: { redirected: boolean }) {
             </Animated.View>
             <View className="flex-row items-center gap-1.5 mb-2.5 px-2.5 py-1 rounded-full" style={{ backgroundColor: soft }}>
                 <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: color }} />
-                <Text className="font-outfit-bold text-[10px] tracking-widest" style={{ color: dark }}>
+                <Text className="font-outfit-bold text-[12px] tracking-widest" style={{ color: dark }}>
                     {redirected ? t(`${k}.heroBadgeRedirected`) : t(`${k}.heroBadge`)}
                 </Text>
             </View>
@@ -110,15 +110,15 @@ function Payout({ visit }: { visit: OnSiteVisit }) {
         <Card style={{ padding: 16 }}>
             <View className="flex-row items-center justify-between">
                 <View>
-                    <Text className="font-outfit-bold text-[11px] tracking-widest" style={{ color: OS.muted }}>{t(`${k}.payoutLabel`)}</Text>
+                    <Text className="font-outfit-bold text-[12px] tracking-widest" style={{ color: OS.muted }}>{t(`${k}.payoutLabel`)}</Text>
                     <Text className="font-outfit-bold mt-0.5" style={{ fontSize: 26, color: OS.blueDark }}>
                         {formatAmount(visit.payoutAmount ?? visit.serviceAmount, t(`${k}.unknownAmount`))}
                     </Text>
                 </View>
                 {payoutDate ? (
                     <View className="items-end px-3 py-2 rounded-xl" style={{ backgroundColor: settled ? OS.greenSoft : OS.blueSofter }}>
-                        <Text className="font-outfit-bold text-[10px] tracking-wide" style={{ color: OS.muted }}>{dateLabel}</Text>
-                        <Text className="font-outfit-bold text-[13.5px] mt-0.5" style={{ color: settled ? OS.greenDark : OS.blueDark }}>{fmt.date(payoutDate)}</Text>
+                        <Text className="font-outfit-bold text-[12px] tracking-wide" style={{ color: OS.muted }}>{dateLabel}</Text>
+                        <Text className="font-outfit-bold text-[14px] mt-0.5" style={{ color: settled ? OS.greenDark : OS.blueDark }}>{fmt.date(payoutDate)}</Text>
                     </View>
                 ) : null}
             </View>
@@ -143,7 +143,7 @@ function Payout({ visit }: { visit: OnSiteVisit }) {
                                 )}
                             </View>
                             <Text
-                                className="font-outfit-bold text-[9.5px] text-center"
+                                className="font-outfit-bold text-[13px] text-center"
                                 style={{ color: s.state === 'done' ? OS.greenDark : s.state === 'active' ? OS.blue : OS.mutedLight }}
                             >
                                 {s.label}
@@ -155,7 +155,7 @@ function Payout({ visit }: { visit: OnSiteVisit }) {
                     </React.Fragment>
                 ))}
             </View>
-            <Text className="font-outfit-regular text-[11.5px] mt-2.5 leading-4" style={{ color: OS.mutedLight }}>{t(`${k}.payoutNote`)}</Text>
+            <Text className="font-outfit-regular text-[13px] mt-2.5 leading-4" style={{ color: OS.mutedLight }}>{t(`${k}.payoutNote`)}</Text>
         </Card>
     );
 }
@@ -195,23 +195,23 @@ function ReviewRequest({ visit, onVisit }: { visit: OnSiteVisit; onVisit: (v: On
                 <View className="items-center justify-center" style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: OS.orangeSoft }}>
                     <Ionicons name="star-outline" size={19} color={OS.orange} />
                 </View>
-                <Text className="font-outfit-bold text-[14.5px]" style={{ color: OS.text }}>{t(`${k}.reviewTitle`)}</Text>
+                <Text className="font-outfit-bold text-[15px]" style={{ color: OS.text }}>{t(`${k}.reviewTitle`)}</Text>
             </View>
-            <Text className="font-outfit-regular text-[12.5px] px-4 pt-1.5 pb-4 leading-5" style={{ color: OS.muted }}>{t(`${k}.reviewBody`)}</Text>
+            <Text className="font-outfit-regular text-[13px] px-4 pt-1.5 pb-4 leading-5" style={{ color: OS.muted }}>{t(`${k}.reviewBody`)}</Text>
             <View className="px-4 pb-4">
                 {visit.ownerReviewSubmitted ? (
                     <View className="flex-row items-center gap-2.5 px-3.5 py-3 rounded-xl" style={{ backgroundColor: OS.greenSoft }}>
                         <Ionicons name="checkmark" size={16} color={OS.green} />
-                        <Text className="flex-1 font-outfit-bold text-[12.5px]" style={{ color: OS.greenDark }}>{t(`${k}.reviewReceived`)}</Text>
+                        <Text className="flex-1 font-outfit-bold text-[13px]" style={{ color: OS.greenDark }}>{t(`${k}.reviewReceived`)}</Text>
                     </View>
                 ) : requestedAt !== null && !canAsk ? (
                     <View className="px-3.5 py-3 rounded-xl" style={{ backgroundColor: OS.greenSoft }}>
                         <View className="flex-row items-center gap-2.5">
                             <PulseDot size={8} color={OS.green} />
-                            <Text className="flex-1 font-outfit-bold text-[12.5px]" style={{ color: OS.greenDark }}>{t(`${k}.reviewSent`)}</Text>
+                            <Text className="flex-1 font-outfit-bold text-[13px]" style={{ color: OS.greenDark }}>{t(`${k}.reviewSent`)}</Text>
                         </View>
                         {nextAllowed ? (
-                            <Text className="font-outfit-medium text-[11px] mt-1.5" style={{ color: OS.greenDark }}>
+                            <Text className="font-outfit-medium text-[13px] mt-1.5" style={{ color: OS.greenDark }}>
                                 {t(`${k}.reviewAgainAt`, { time: `${fmt.date(new Date(nextAllowed).toISOString())} ${fmt.time(new Date(nextAllowed).toISOString())}` })}
                             </Text>
                         ) : null}
@@ -263,14 +263,14 @@ function RateOwner({ visit, onVisit }: { visit: OnSiteVisit; onVisit: (v: OnSite
                 <View className="items-center justify-center" style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: OS.blueSoft }}>
                     <Ionicons name="person-outline" size={19} color={OS.blue} />
                 </View>
-                <Text className="font-outfit-bold text-[14.5px]" style={{ color: OS.text }}>{t(`${k}.rateTitle`)}</Text>
+                <Text className="font-outfit-bold text-[15px]" style={{ color: OS.text }}>{t(`${k}.rateTitle`)}</Text>
             </View>
-            <Text className="font-outfit-regular text-[12.5px] px-4 pt-1.5 pb-4 leading-5" style={{ color: OS.muted }}>{t(`${k}.rateBody`)}</Text>
+            <Text className="font-outfit-regular text-[13px] px-4 pt-1.5 pb-4 leading-5" style={{ color: OS.muted }}>{t(`${k}.rateBody`)}</Text>
             <View className="px-4 pb-4">
                 {visit.clientRating ? (
                     <View className="flex-row items-center gap-2.5 px-3.5 py-3 rounded-xl" style={{ backgroundColor: OS.greenSoft }}>
                         <Ionicons name="checkmark" size={16} color={OS.green} />
-                        <Text className="flex-1 font-outfit-bold text-[12.5px]" style={{ color: OS.greenDark }}>
+                        <Text className="flex-1 font-outfit-bold text-[13px]" style={{ color: OS.greenDark }}>
                             {t(`${k}.rateDone`, { rating: visit.clientRating })}
                         </Text>
                     </View>
@@ -318,7 +318,7 @@ function Checklist({ visit }: { visit: OnSiteVisit }) {
         <Card>
             <View className="flex-row items-center justify-between px-4 py-3" style={{ borderBottomWidth: 1, borderBottomColor: OS.borderSoft }}>
                 <Text className="font-outfit-bold text-[13px]" style={{ color: OS.text }}>{t(`${k}.checklistTitle`)}</Text>
-                <Text className="font-outfit-bold text-[11.5px]" style={{ color: OS.mutedLight }}>{doneCount}/{items.length}</Text>
+                <Text className="font-outfit-bold text-[13px]" style={{ color: OS.mutedLight }}>{doneCount}/{items.length}</Text>
             </View>
             {items.map((it, i) => (
                 <View
@@ -363,7 +363,7 @@ export function ScreenCloseout({ visit, onVisit, onBackToDashboard }: {
                     </View>
                 ) : null}
                 <Checklist visit={visit} />
-                <Text className="font-outfit-regular text-[11.5px] text-center mx-5 mt-4 leading-4" style={{ color: visit.closeoutCompletedAt ? OS.greenDark : OS.mutedLight }}>
+                <Text className="font-outfit-regular text-[13px] text-center mx-5 mt-4 leading-4" style={{ color: visit.closeoutCompletedAt ? OS.greenDark : OS.mutedLight }}>
                     {visit.closeoutCompletedAt ? t(`${k}.footerClosed`) : t(`${k}.footer`)}
                 </Text>
             </Body>

@@ -67,14 +67,14 @@ export function VinMismatchModal({ appointmentId, visit, onVisit }: VinMismatchM
                             </View>
                             <Text className="flex-1 font-outfit-bold text-[16px]" style={{ color: OS.text }}>{t(`${k}.title`)}</Text>
                         </View>
-                        <Text className="font-outfit-regular text-[12.5px] mt-2 leading-5" style={{ color: OS.muted }}>{t(`${k}.body`)}</Text>
+                        <Text className="font-outfit-regular text-[13px] mt-2 leading-5" style={{ color: OS.muted }}>{t(`${k}.body`)}</Text>
 
                         <View className="mt-3 px-3.5 py-3 rounded-2xl" style={{ backgroundColor: OS.page }}>
                             <VinRow label={t(`${k}.requestVin`)} value={visit.vehicleVin} />
                             <VinRow label={t(`${k}.scannerVin`)} value={visit.obdVin} highlight />
                         </View>
 
-                        <Text className="font-outfit-bold text-xs mt-4" style={{ color: OS.text }}>{t(`${k}.question`)}</Text>
+                        <Text className="font-outfit-bold text-[13px] mt-4" style={{ color: OS.text }}>{t(`${k}.question`)}</Text>
                         <View className="mt-2" style={{ borderRadius: 14, borderWidth: 1.5, borderColor: OS.border }}>
                             {OPTIONS.map((o, i) => (
                                 <TouchableOpacity
@@ -120,7 +120,7 @@ export function VinMismatchModal({ appointmentId, visit, onVisit }: VinMismatchM
                             />
                         ) : null}
 
-                        {error ? <Text className="font-outfit-medium text-[11.5px] mt-2" style={{ color: OS.red }}>{error}</Text> : null}
+                        {error ? <Text className="font-outfit-medium text-[13px] mt-2" style={{ color: OS.red }}>{error}</Text> : null}
 
                         <TouchableOpacity
                             onPress={submit}
@@ -145,8 +145,8 @@ function VinRow({ label, value, highlight }: { label: string; value?: string | n
     const { t } = useTranslation();
     return (
         <View className="flex-row items-center justify-between gap-2 py-1">
-            <Text className="font-outfit-medium text-[11.5px]" style={{ color: OS.muted }}>{label}</Text>
-            <Text className="font-outfit-bold text-[12.5px]" style={{ color: highlight ? OS.red : OS.text, letterSpacing: 0.5 }}>
+            <Text className="font-outfit-medium text-[13px]" style={{ color: OS.muted }}>{label}</Text>
+            <Text className="font-outfit-bold text-[12px]" style={{ color: highlight ? OS.red : OS.text, letterSpacing: 0.5 }}>
                 {value || t('appointments.onSite.obd.vinMismatch.unknown')}
             </Text>
         </View>

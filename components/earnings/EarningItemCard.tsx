@@ -33,14 +33,14 @@ export function EarningItemCard({ row }: { row: EarningRow }) {
                     <Text className="font-outfit-semibold text-base text-gray-900" numberOfLines={1}>
                         {job?.title || t(`${K}.activity.fallbackTitle`)}
                     </Text>
-                    <Text className="font-outfit-regular text-xs text-gray-500 mt-0.5" numberOfLines={1} selectable>
+                    <Text className="font-outfit-regular text-[13px] text-gray-500 mt-0.5" numberOfLines={1} selectable>
                         {t(`${K}.activity.assistanceId`, { id: row.assistanceRequestId })}
                     </Text>
-                    <Text className="font-outfit-medium text-xs mt-1" style={{ color: '#0047AB' }}>
+                    <Text className="font-outfit-medium text-[13px] mt-1" style={{ color: '#0047AB' }}>
                         {formatLocalDateTime(row.createdAt, i18n.language)}
                     </Text>
                     {(!job || job.address) && (
-                        <Text className="font-outfit-medium text-xs mt-0.5" style={{ color: job ? '#0047AB' : '#9CA3AF' }} numberOfLines={2}>
+                        <Text className="font-outfit-medium text-[13px] mt-0.5" style={{ color: job ? '#0047AB' : '#9CA3AF' }} numberOfLines={2}>
                             {job ? t(`${K}.activity.location`, { address: job.address }) : t(`${K}.activity.unavailable`)}
                         </Text>
                     )}
@@ -53,14 +53,14 @@ export function EarningItemCard({ row }: { row: EarningRow }) {
                         {formatMoney(row.netAmount)}
                     </Text>
                     <View className="px-2 py-0.5 rounded-full" style={{ backgroundColor: badge.bg, borderWidth: 1, borderColor: badge.border }}>
-                        <Text className="font-outfit-bold text-[10px] tracking-widest" style={{ color: badge.text }}>
+                        <Text className="font-outfit-bold text-[12px] tracking-widest" style={{ color: badge.text }}>
                             {t(`${K}.status.${row.status}`)}
                         </Text>
                     </View>
                 </View>
             </View>
             {(row.status === 'pending' || row.status === 'ready') && (
-                <Text className="font-outfit-regular text-[11px] text-gray-500 mt-2">{t(`${K}.statusHint.${row.status}`)}</Text>
+                <Text className="font-outfit-regular text-[13px] text-gray-500 mt-2">{t(`${K}.statusHint.${row.status}`)}</Text>
             )}
         </View>
     );

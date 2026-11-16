@@ -32,12 +32,12 @@ export default function PromotionsScreen() {
                 {/* Header */}
                 <View className="flex-row items-center mb-4">
                     <View className="w-12 h-12 bg-cyan-50 rounded-full justify-center items-center mr-3 border border-cyan-100">
-                        <Text className="text-cyan-500 text-center font-outfit-bold text-xs leading-3">10%{'\n'}Off</Text>
+                        <Text className="text-cyan-500 text-center font-outfit-bold text-[13px] leading-3">10%{'\n'}Off</Text>
                     </View>
                     <View className="flex-1">
                         <Text className="text-blue-900 font-outfit-bold text-base">{t('promotions.examTitle')}</Text>
                         <View className="flex-row items-center">
-                            <Text className="text-cyan-500 text-xs font-outfit-medium mr-2">{t('promotions.recommended')}</Text>
+                            <Text className="text-cyan-500 text-[13px] font-outfit-medium mr-2">{t('promotions.recommended')}</Text>
                             {[...Array(5)].map((_, i) => (
                                 <Star key={i} size={10} color="#06b6d4" fill="#06b6d4" style={{ marginRight: 1 }} />
                             ))}
@@ -50,14 +50,14 @@ export default function PromotionsScreen() {
                 <View className="w-full h-24 bg-gray-100 rounded-lg mb-3 justify-center items-center overflow-hidden">
                     {/* Placeholder for Map Image - Using a simple pattern or icon */}
                     <MapPin size={24} color="#9CA3AF" />
-                    <Text className="text-gray-400 text-xs mt-1">{t('promotions.mapView')}</Text>
+                    <Text className="text-gray-400 text-[13px] mt-1">{t('promotions.mapView')}</Text>
                 </View>
 
-                <Text className="text-gray-800 text-xs font-outfit-medium">{t('promotions.address')}</Text>
-                <Text className="text-gray-500 text-xs font-outfit-regular mb-1">7:00 am - 6:30 pm</Text>
+                <Text className="text-gray-800 text-[13px] font-outfit-medium">{t('promotions.address')}</Text>
+                <Text className="text-gray-500 text-[13px] font-outfit-regular mb-1">7:00 am - 6:30 pm</Text>
                 <View className="flex-row items-center">
                     <View className="w-2 h-2 rounded-full bg-gray-300 mr-1" />
-                    <Text className="text-gray-400 text-[10px] font-outfit-regular">{t('promotions.distance')}</Text>
+                    <Text className="text-gray-400 text-[13px] font-outfit-regular">{t('promotions.distance')}</Text>
                 </View>
             </View>
 
@@ -70,7 +70,7 @@ export default function PromotionsScreen() {
 
             <View className="bg-blue-50/50 p-4 rounded-xl items-center mb-4 border border-blue-100">
                 <Text className="text-blue-900 font-outfit-bold text-lg mb-1">{t('promotions.askForBenefit')}</Text>
-                <Text className="text-cyan-500 font-outfit-medium text-xs text-center">{promoCode}</Text>
+                <Text className="text-cyan-500 font-outfit-medium text-[13px] text-center">{promoCode}</Text>
             </View>
 
             <View className="items-center justify-center p-4 bg-blue-900 rounded-2xl mb-10">

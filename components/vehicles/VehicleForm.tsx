@@ -743,14 +743,14 @@ export function VehicleForm({ initialValue, submitLabel, submitting, onSubmit, h
                         {submitting ? (
                             <ActivityIndicator color="white" />
                         ) : (
-                            <Text className="font-outfit-bold" style={{ color: '#fff', fontSize: 15.5 }}>
+                            <Text className="font-outfit-bold" style={{ color: '#fff', fontSize: 16 }}>
                                 {submitLabel}
                             </Text>
                         )}
                     </LinearGradient>
                 </TouchableOpacity>
                 {!vinReady ? (
-                    <Text className="font-outfit-regular" style={{ fontSize: 11.5, color: AV.muted, textAlign: 'center', marginTop: 8 }}>
+                    <Text className="font-outfit-regular" style={{ fontSize: 13, color: AV.muted, textAlign: 'center', marginTop: 8 }}>
                         {t('vehicles.form.design.saveHint')}
                     </Text>
                 ) : null}

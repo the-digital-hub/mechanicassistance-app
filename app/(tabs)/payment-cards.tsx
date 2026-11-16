@@ -294,7 +294,7 @@ function PaymentCardsContent() {
                   </View>
                   {card.isDefault && (
                     <View className="px-2 py-0.5 rounded-md" style={{ backgroundColor: '#E9F1FF' }}>
-                      <Text className="font-outfit-bold text-[10px] tracking-widest" style={{ color: '#0047AB' }}>
+                      <Text className="font-outfit-bold text-[12px] tracking-widest" style={{ color: '#0047AB' }}>
                         {t('paymentCards.defaultBadge')}
                       </Text>
                     </View>
@@ -424,7 +424,7 @@ function PaymentCardsContent() {
 
             <View className="flex-row items-start gap-2 mt-6 px-1">
               <Lock size={14} color="#9CA3AF" style={{ marginTop: 2 }} />
-              <Text className="flex-1 text-gray-400 font-outfit-regular text-xs">
+              <Text className="flex-1 text-gray-400 font-outfit-regular text-[13px]">
                 {t('paymentCards.securityNote')}
               </Text>
             </View>

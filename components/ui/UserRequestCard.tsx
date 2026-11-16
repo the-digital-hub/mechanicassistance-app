@@ -137,7 +137,7 @@ export function UserRequestCard({
                 <View className="flex-1 justify-center">
                     {title?.trim() ? (
                         <>
-                            <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 1, color: '#6B7490' }}>
+                            <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1, color: '#6B7490' }}>
                                 {getTypeTitle().toUpperCase()}
                             </Text>
                             <Text
@@ -167,12 +167,12 @@ export function UserRequestCard({
                 style={{ marginTop: 12, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 12, backgroundColor: badge.bg }}
             >
                 <View style={{ width: 7, height: 7, borderRadius: 3.5, backgroundColor: badge.dot, marginRight: 8 }} />
-                <Text className="font-outfit-bold" style={{ fontSize: 11, letterSpacing: 0.8, color: badge.color }}>
+                <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 0.8, color: badge.color }}>
                     {badge.label.toUpperCase()}
                 </Text>
                 <Text
                     className="font-outfit-regular"
-                    style={{ flex: 1, fontSize: 12, color: badge.color, marginLeft: 8 }}
+                    style={{ flex: 1, fontSize: 13, color: badge.color, marginLeft: 8 }}
                     numberOfLines={1}
                 >
                     · {badge.detail}
@@ -199,7 +199,7 @@ export function UserRequestCard({
                             >
                                 <Icon size={17} color="#1E56E3" />
                             </View>
-                            <Text className="font-outfit-medium" style={{ fontSize: 12, color: '#6B7490', width: 60 }}>
+                            <Text className="font-outfit-medium" style={{ fontSize: 13, color: '#6B7490', width: 60 }}>
                                 {label}
                             </Text>
                             <Text
@@ -261,7 +261,7 @@ export function UserRequestCard({
                 )}
             </View>
 
-            <Text className="font-mono text-right" style={{ fontSize: 11, letterSpacing: 0.5, color: '#8C96AE', marginTop: 10 }}>
+            <Text className="font-mono text-right" style={{ fontSize: 12, letterSpacing: 0.5, color: '#8C96AE', marginTop: 10 }}>
                 {refLabel(refCode, id)}
             </Text>
         </View>

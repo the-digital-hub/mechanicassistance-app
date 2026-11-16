@@ -35,7 +35,7 @@ export function NotificationBell({ size = 24, color = '#0047AB' }: { size?: numb
                     }}
                 >
                     <Text
-                        style={{ color: '#FFFFFF', fontSize: 10, lineHeight: 12, fontFamily: 'Outfit_600SemiBold' }}
+                        style={{ color: '#FFFFFF', fontSize: 13, lineHeight: 18, fontFamily: 'Outfit_600SemiBold' }}
                         numberOfLines={1}
                     >
                         {label}

@@ -31,13 +31,13 @@ function Tile({
 }) {
     return (
         <View className="flex-1 rounded-2xl p-3" style={{ backgroundColor: bg, borderWidth: 1, borderColor: border, minWidth: 0 }} testID={testID}>
-            <Text className="font-outfit-bold text-[10px] tracking-widest" style={{ color: labelColor }} numberOfLines={1}>
+            <Text className="font-outfit-bold text-[12px] tracking-widest" style={{ color: labelColor }} numberOfLines={1}>
                 {label}
             </Text>
             <Text className="font-outfit-bold mt-1" style={{ fontSize: 20, color: valueColor }} numberOfLines={1} adjustsFontSizeToFit>
                 {value}
             </Text>
-            <Text className="font-outfit-regular text-[11px] mt-0.5 text-gray-500" numberOfLines={2}>
+            <Text className="font-outfit-regular text-[13px] mt-0.5 text-gray-500" numberOfLines={2}>
                 {hint}
             </Text>
         </View>

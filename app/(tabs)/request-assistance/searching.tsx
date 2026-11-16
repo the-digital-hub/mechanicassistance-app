@@ -292,7 +292,7 @@ export default function SearchingScreen() {
                             {t('requestAssistance.searching.averageMatchTime')}
                         </Text>
                         {isTimeBoxed && (
-                            <Text className="text-white text-center font-outfit-regular text-sm mb-6" style={{ marginTop: -16, opacity: 0.8 }}>
+                            <Text className="text-white text-center font-outfit-regular text-[16px] mb-6" style={{ marginTop: -16, opacity: 0.8 }}>
                                 {t('requestAssistance.searching.maxWait')}
                             </Text>
                         )}
@@ -419,10 +419,10 @@ export default function SearchingScreen() {
                 </TouchableOpacity>
 
                 <View className="mt-4 pb-6">
-                    <Text className="text-[10px] text-gray-400 text-center font-outfit-medium">
+                    <Text className="text-[13px] text-gray-400 text-center font-outfit-medium">
                         {t('requestAssistance.searching.footer')}
                     </Text>
-                    <Text className="text-[10px] text-gray-400 text-center font-outfit-medium">
+                    <Text className="text-[13px] text-gray-400 text-center font-outfit-medium">
                         FL-{new Date().toISOString().split('T')[0]}-{requestId || 'PENDING'}
                     </Text>
                 </View>

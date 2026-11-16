@@ -31,7 +31,7 @@ export function KPICard({ icon: Icon, iconColor, value, label, bgColor }: KPICar
       <Text className="text-gray-900 font-outfit-bold text-2xl mb-1">
         {value}
       </Text>
-      <Text className="text-gray-600 font-outfit-regular text-xs text-center">
+      <Text className="text-gray-600 font-outfit-regular text-[13px] text-center">
         {label}
       </Text>
     </View>

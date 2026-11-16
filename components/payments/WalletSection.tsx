@@ -66,7 +66,7 @@ export function WalletSection({ cards }: { cards: PaymentCard[] }) {
                     <WalletIcon size={18} color="#DCE8FF" />
                     <Text className="font-outfit-semibold text-sm flex-1" style={{ color: '#DCE8FF' }}>{t(`${K}.available`)}</Text>
                     <View className="px-2 py-0.5 rounded-full" style={{ borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' }}>
-                        <Text className="font-outfit-bold text-[10px] tracking-widest" style={{ color: '#fff' }}>{t(`${K}.currency`)}</Text>
+                        <Text className="font-outfit-bold text-[12px] tracking-widest" style={{ color: '#fff' }}>{t(`${K}.currency`)}</Text>
                     </View>
                 </View>
                 {wallet ? (
@@ -79,13 +79,13 @@ export function WalletSection({ cards }: { cards: PaymentCard[] }) {
                 {wallet && (
                     <View className="flex-row mt-3 pt-3" style={{ borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.2)', gap: 12 }}>
                         <View className="flex-1">
-                            <Text className="font-outfit-semibold text-[11px] uppercase" style={{ color: '#DCE8FF' }}>{t(`${K}.totalBalance`)}</Text>
+                            <Text className="font-outfit-semibold text-[13px] uppercase" style={{ color: '#DCE8FF' }}>{t(`${K}.totalBalance`)}</Text>
                             <Text className="font-outfit-bold text-base" style={{ color: '#fff' }} testID="wallet-total">
                                 {formatMoney(wallet.balance)}
                             </Text>
                         </View>
                         <View className="flex-1">
-                            <Text className="font-outfit-semibold text-[11px] uppercase" style={{ color: '#DCE8FF' }}>{t(`${K}.heldForServices`)}</Text>
+                            <Text className="font-outfit-semibold text-[13px] uppercase" style={{ color: '#DCE8FF' }}>{t(`${K}.heldForServices`)}</Text>
                             <Text className="font-outfit-bold text-base" style={{ color: '#fff' }} testID="wallet-held">
                                 {formatMoney(held)}
                             </Text>
@@ -134,7 +134,7 @@ export function WalletSection({ cards }: { cards: PaymentCard[] }) {
                                 <Text className="text-gray-900 font-outfit-semibold text-sm">
                                     {t(`${K}.movementType.${m.type}`, { defaultValue: t(`${K}.movementType.other`) })}
                                 </Text>
-                                <Text className="text-gray-500 font-outfit-regular text-xs">{formatLocalDateTime(m.createdAt, i18n.language)}</Text>
+                                <Text className="text-gray-500 font-outfit-regular text-[13px]">{formatLocalDateTime(m.createdAt, i18n.language)}</Text>
                             </View>
                             <Text className="font-outfit-bold text-sm" style={{ color: credit ? '#15803D' : '#111827' }}>
                                 {credit ? '+' : '−'}

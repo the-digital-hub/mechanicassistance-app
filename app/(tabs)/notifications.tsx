@@ -164,31 +164,31 @@ export default function NotificationsScreen() {
                 </View>
 
                 {/* Tabs */}
-                <View className="px-6 flex-row items-center justify-between mb-2">
-                    <View className="flex-row gap-6">
-                        <TouchableOpacity
-                            onPress={() => setActiveTab('all')}
-                            className={`pb-2 ${activeTab === 'all' ? 'border-b-2 border-blue-600' : ''}`}
-                        >
-                            <Text className={`font-outfit-bold ${activeTab === 'all' ? 'text-blue-900' : 'text-gray-400'}`}>
-                                {t('notifications.all')} {notifications.length > 0 && <Text className="text-[10px] ml-1">{notifications.length}</Text>}
-                            </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            onPress={() => setActiveTab('unread')}
-                            className={`pb-2 ${activeTab === 'unread' ? 'border-b-2 border-blue-600' : ''}`}
-                        >
-                            <Text className={`font-outfit-bold ${activeTab === 'unread' ? 'text-blue-900' : 'text-gray-400'}`}>
-                                {t('notifications.unread')} {unreadCount > 0 && <Text className="text-[10px] ml-1">{unreadCount}</Text>}
-                            </Text>
-                        </TouchableOpacity>
+                <View className="px-6 flex-row items-center justify-between mb-3">
+                    <View className="flex-row" style={{ gap: 8 }}>
+                        {([['all', t('notifications.all'), notifications.length], ['unread', t('notifications.unread'), unreadCount]] as const).map(([id, label, count]) => {
+                            const on = activeTab === id;
+                            return (
+                                <TouchableOpacity
+                                    key={id}
+                                    onPress={() => setActiveTab(id)}
+                                    accessibilityRole="button"
+                                    accessibilityState={{ selected: on }}
+                                    style={{ paddingHorizontal: 15, paddingVertical: 9, borderRadius: 100, backgroundColor: on ? '#1E56E3' : '#FFFFFF', borderWidth: on ? 0 : 1, borderColor: '#E3E8F2' }}
+                                >
+                                    <Text className="font-outfit-bold" style={{ fontSize: 15, color: on ? '#FFFFFF' : '#0B1530' }}>
+                                        {label}{count > 0 ? `  ${count}` : ''}
+                                    </Text>
+                                </TouchableOpacity>
+                            );
+                        })}
                     </View>
                     <View className="flex-row gap-4">
                         <TouchableOpacity onPress={markAllRead}>
-                            <Check size={18} color="#9CA3AF" />
+                            <Check size={20} color="#9CA3AF" />
                         </TouchableOpacity>
                         <TouchableOpacity onPress={() => void deleteAndReport(filteredNotifications.map(n => n.id))}>
-                            <X size={18} color="#9CA3AF" />
+                            <X size={20} color="#9CA3AF" />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -220,14 +220,14 @@ export default function NotificationsScreen() {
                                 <View className="flex-1">
                                     <View className="flex-row justify-between items-start mb-1">
                                         <View className="flex-1 pr-2">
-                                            <Text className="text-gray-900 font-outfit-bold text-sm mb-0.5">{notif.title}</Text>
-                                            <Text className="text-gray-500 font-outfit-regular text-[13px] leading-4">{notif.body}</Text>
+                                            <Text className="text-gray-900 font-outfit-bold text-lg mb-1">{notif.title}</Text>
+                                            <Text className="text-gray-500 font-outfit-regular text-[16.5px] leading-6">{notif.body}</Text>
                                             {notif.type === 'mechanic_found' && notif.requestId && (
-                                                <Text className="text-blue-500 font-outfit-medium text-xs mt-1">{t('notifications.tapToView')}</Text>
+                                                <Text className="text-blue-500 font-outfit-medium text-[15px] mt-1">{t('notifications.tapToView')}</Text>
                                             )}
                                         </View>
                                         <View className="items-end min-w-[30px]">
-                                            <Text className="text-gray-400 text-[10px] mb-2">{notif.time}</Text>
+                                            <Text className="text-gray-400 text-[13px] mb-2">{notif.time}</Text>
                                             <TouchableOpacity
                                                 onPress={() => handleDelete(notif.id)}
                                                 hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}

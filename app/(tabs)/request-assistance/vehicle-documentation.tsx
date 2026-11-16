@@ -1,3 +1,4 @@
+import { TYPE } from '@/lib/ui/type';
 import * as ImagePicker from 'expo-image-picker';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -132,12 +133,12 @@ export default function VehicleDocumentationScreen() {
     const Tab = ({ id, label }: { id: 'video' | 'photos'; label: string }) => (
         <TouchableOpacity
             onPress={() => setTab(id)}
-            className="flex-1 items-center py-2.5 rounded-xl"
+            className="flex-1 items-center py-3 rounded-xl"
             style={tab === id
                 ? { backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 }
                 : undefined}
         >
-            <Text className="font-outfit-bold text-sm" style={{ color: tab === id ? '#0047AB' : '#8C96AE' }}>
+            <Text className="font-outfit-bold" style={{ ...TYPE.option, color: tab === id ? '#0047AB' : '#8C96AE' }}>
                 {label}
             </Text>
         </TouchableOpacity>
@@ -147,9 +148,9 @@ export default function VehicleDocumentationScreen() {
         <View className="flex-row items-center justify-between mt-2.5">
             <View className="flex-row items-center">
                 {filled
-                    ? <Check size={14} color="#10B981" />
-                    : <ImageIcon size={14} color="#8C96AE" />}
-                <Text className="font-outfit-bold text-xs ml-2" style={{ color: filled ? '#0F8A55' : '#8C96AE' }}>
+                    ? <Check size={16} color="#10B981" />
+                    : <ImageIcon size={16} color="#8C96AE" />}
+                <Text className="font-outfit-bold ml-2" style={{ ...TYPE.helper, color: filled ? '#0F8A55' : '#8C96AE' }}>
                     {filled
                         ? t('requestAssistance.vehicleDocumentation.captured')
                         : t('requestAssistance.vehicleDocumentation.pending')}
@@ -157,7 +158,7 @@ export default function VehicleDocumentationScreen() {
             </View>
             {filled && onRemove && (
                 <TouchableOpacity onPress={onRemove}>
-                    <Text className="font-outfit-bold text-xs" style={{ color: '#E53E3E' }}>
+                    <Text className="font-outfit-bold" style={{ ...TYPE.helper, color: '#E53E3E' }}>
                         {t('requestAssistance.vehicleDocumentation.remove')}
                     </Text>
                 </TouchableOpacity>
@@ -195,9 +196,9 @@ export default function VehicleDocumentationScreen() {
                     {t('requestAssistance.vehicleDocumentation.subtitle')}
                 </Text>
 
-                <Text className="text-gray-900 font-outfit-semibold text-base mb-3">
+                <Text className="text-gray-900 font-outfit-bold mb-3" style={TYPE.question}>
                     {t('requestAssistance.vehicleDocumentation.sectionTitle')}{' '}
-                    <Text className="text-gray-400 font-outfit-regular text-xs">
+                    <Text className="text-gray-500 font-outfit-regular" style={TYPE.helper}>
                         {t('requestAssistance.vehicleDocumentation.sectionOptional')}
                     </Text>
                 </Text>
@@ -228,10 +229,10 @@ export default function VehicleDocumentationScreen() {
                             ) : (
                                 <View className="items-center px-6">
                                     <VideoIcon size={30} color="#8C96AE" />
-                                    <Text className="text-gray-400 font-outfit-semibold text-xs mt-2 text-center">
+                                    <Text className="text-gray-500 font-outfit-semibold mt-2 text-center" style={TYPE.helper}>
                                         {t('requestAssistance.vehicleDocumentation.recordIssue')}
                                     </Text>
-                                    <Text className="text-[#0047AB] font-outfit-bold text-xs mt-1 text-center underline">
+                                    <Text className="text-[#0047AB] font-outfit-bold mt-1 text-center underline" style={TYPE.helper}>
                                         {t('requestAssistance.vehicleDocumentation.browseVideo')}
                                     </Text>
                                 </View>
@@ -247,8 +248,8 @@ export default function VehicleDocumentationScreen() {
                             value={video?.note ?? ''}
                             editable={!!video}
                             onChangeText={(note) => video && setVideo({ ...video, note })}
-                            className="rounded-xl p-3 mt-3 font-outfit-regular text-[#0F172A] text-sm"
-                            style={{ borderWidth: 1.5, borderColor: '#E4EAF5', backgroundColor: '#F4F6FC', height: 64, textAlignVertical: 'top' }}
+                            className="rounded-xl p-3 mt-3 font-outfit-regular text-[#0F172A]"
+                            style={{ borderWidth: 1.5, borderColor: '#E4EAF5', backgroundColor: '#F4F6FC', height: 72, textAlignVertical: 'top', ...TYPE.body }}
                         />
                     </View>
                 ) : (
@@ -263,8 +264,8 @@ export default function VehicleDocumentationScreen() {
                                     placeholderTextColor="#D1D5DB"
                                     value={photo.note}
                                     onChangeText={(note) => setPhotoNote(index, note)}
-                                    className="rounded-xl p-3 mt-3 font-outfit-regular text-[#0F172A] text-sm"
-                                    style={{ borderWidth: 1.5, borderColor: '#E4EAF5', backgroundColor: '#F4F6FC', height: 64, textAlignVertical: 'top' }}
+                                    className="rounded-xl p-3 mt-3 font-outfit-regular text-[#0F172A]"
+                                    style={{ borderWidth: 1.5, borderColor: '#E4EAF5', backgroundColor: '#F4F6FC', height: 72, textAlignVertical: 'top', ...TYPE.body }}
                                 />
                             </View>
                         ))}
@@ -276,10 +277,10 @@ export default function VehicleDocumentationScreen() {
                                 style={{ height: 150, borderWidth: 2, borderStyle: 'dashed', borderColor: '#E4EAF5', backgroundColor: '#F4F6FC' }}
                             >
                                 <Camera size={28} color="#8C96AE" />
-                                <Text className="text-gray-400 font-outfit-semibold text-xs mt-2">
+                                <Text className="text-gray-500 font-outfit-semibold mt-2" style={TYPE.helper}>
                                     {t('requestAssistance.vehicleDocumentation.photoOfIssue')}
                                 </Text>
-                                <Text className="text-[#0047AB] font-outfit-bold text-xs mt-1 underline">
+                                <Text className="text-[#0047AB] font-outfit-bold mt-1 underline" style={TYPE.helper}>
                                     {photos.length === 0
                                         ? t('requestAssistance.vehicleDocumentation.browsePhoto')
                                         : t('requestAssistance.vehicleDocumentation.addAnotherPhoto')}
@@ -303,7 +304,7 @@ export default function VehicleDocumentationScreen() {
                             justifyContent: 'center',
                         }}
                     >
-                        <Text className="text-white font-outfit-bold text-center">
+                        <Text className="text-white font-outfit-bold text-[18px] text-center">
                             {hasMedia
                                 ? t('requestAssistance.vehicleDocumentation.submit')
                                 : t('requestAssistance.vehicleDocumentation.skip')}

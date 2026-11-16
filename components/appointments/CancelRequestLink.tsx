@@ -32,7 +32,7 @@ export function CancelRequestLink({ appointmentId, align = 'flex-end', scheduled
                 accessibilityRole="button"
                 testID="cancel-request-link"
             >
-                <Text className="font-outfit-bold text-xs" style={{ color: '#E53E3E' }}>{t('appointments.list.card.cancelRequest')}</Text>
+                <Text className="font-outfit-bold text-[13px]" style={{ color: '#E53E3E' }}>{t('appointments.list.card.cancelRequest')}</Text>
             </TouchableOpacity>
 
             <Modal transparent visible={visible} animationType="fade" onRequestClose={() => setVisible(false)}>

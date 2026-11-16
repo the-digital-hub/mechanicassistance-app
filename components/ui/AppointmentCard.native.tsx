@@ -59,7 +59,7 @@ function InfoRows({ rows }: { rows: { icon: LucideIcon; label: string; value?: s
                             <RowIcon size={16} color={C.blue} />
                         </View>
                         {/* Plain rows keep a short fixed label; rating rows give the label all the room the stars leave. */}
-                        <Text className="font-outfit-medium text-xs" style={r.node ? { color: C.muted, flex: 1 } : { color: C.muted, width: 66 }}>{r.label}</Text>
+                        <Text className="font-outfit-medium text-[13px]" style={r.node ? { color: C.muted, flex: 1 } : { color: C.muted, width: 66 }}>{r.label}</Text>
                         {r.node ? (
                             <View className="flex-row items-center justify-end" style={{ flexShrink: 0 }}>{r.node}</View>
                         ) : (
@@ -96,20 +96,20 @@ function TechnicianRow({ mechanic, label, onMessage, messageLabel }: {
                 </LinearGradient>
             )}
             <View className="flex-1">
-                <Text className="font-outfit-bold text-[10.5px] uppercase" style={{ color: C.muted, letterSpacing: 0.8 }}>{label}</Text>
+                <Text className="font-outfit-bold text-[12px] uppercase" style={{ color: C.muted, letterSpacing: 0.8 }}>{label}</Text>
                 <View className="flex-row items-center" style={{ gap: 6, marginTop: 1 }}>
-                    <Text className="font-outfit-bold text-[14.5px] flex-shrink" style={{ color: C.text, letterSpacing: -0.2 }} numberOfLines={1}>
+                    <Text className="font-outfit-bold text-[15px] flex-shrink" style={{ color: C.text, letterSpacing: -0.2 }} numberOfLines={1}>
                         {mechanic.displayName ?? t('requestAssistance.mechanicFound.technicianFallback')}
                     </Text>
                     {mechanic.avgRating != null ? (
                         <View className="flex-row items-center" style={{ gap: 4 }}>
                             <Stars rating={mechanic.avgRating} />
-                            <Text className="font-outfit-semibold text-[11px]" style={{ color: C.muted }}>
+                            <Text className="font-outfit-semibold text-[13px]" style={{ color: C.muted }}>
                                 {t('appointments.list.card.ratingValue', { rating: Number(mechanic.avgRating).toFixed(1), count: mechanic.ratingCount })}
                             </Text>
                         </View>
                     ) : (
-                        <Text className="font-outfit-semibold text-[11px]" style={{ color: C.muted }}>{t('appointments.list.card.noRatings')}</Text>
+                        <Text className="font-outfit-semibold text-[13px]" style={{ color: C.muted }}>{t('appointments.list.card.noRatings')}</Text>
                     )}
                 </View>
             </View>
@@ -313,7 +313,7 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
                     <TypeIcon size={20} color={isPast ? C.muted : C.blue} />
                 </View>
                 <View className="flex-1">
-                    <Text className="font-outfit-bold text-[10.5px] uppercase" style={{ color: C.muted, letterSpacing: 0.9 }}>
+                    <Text className="font-outfit-bold text-[12px] uppercase" style={{ color: C.muted, letterSpacing: 0.9 }}>
                         {t(typeBar.labelKey)}
                     </Text>
                     <Text className="font-outfit-bold text-[17px]" style={{ color: C.text, letterSpacing: -0.3 }} numberOfLines={1}>
@@ -325,7 +325,7 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
             {/* Status pill */}
             <View className="flex-row items-center mt-3" style={{ gap: 8, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 12, backgroundColor: status.bg }}>
                 <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: status.title }} />
-                <Text className="font-outfit-bold text-[11px] uppercase" style={{ color: status.title, letterSpacing: 0.8 }}>
+                <Text className="font-outfit-bold text-[12px] uppercase" style={{ color: status.title, letterSpacing: 0.8 }}>
                     {t(`appointments.list.card.status.${state}`)}
                 </Text>
             </View>
@@ -342,7 +342,7 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
                                 seed={appointment.id}
                             />
                             {isMechanic && (
-                                <Text className="font-outfit-medium text-[11px] mt-1.5" style={{ color: C.mutedLight }}>
+                                <Text className="font-outfit-medium text-[13px] mt-1.5" style={{ color: C.mutedLight }}>
                                     {t('appointments.list.card.approximateArea')}
                                 </Text>
                             )}
@@ -350,7 +350,7 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
                     ) : (
                         <View className="items-center justify-center" style={{ height: 120, borderRadius: 14, backgroundColor: C.page, borderWidth: 1, borderColor: C.borderSoft }}>
                             <MapPin size={24} color={C.mutedLight} />
-                            <Text className="font-outfit-regular text-xs mt-1" style={{ color: C.mutedLight }}>
+                            <Text className="font-outfit-regular text-[13px] mt-1" style={{ color: C.mutedLight }}>
                                 {t('appointments.list.card.locationNotAvailable')}
                             </Text>
                         </View>
@@ -388,7 +388,7 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
                             borderColor: isPast ? C.borderSoft : C.blueSoft,
                         }}
                     >
-                        <Text className="font-outfit-bold text-[10.5px] uppercase" style={{ color: C.muted, letterSpacing: 0.4 }}>{amountLabel}</Text>
+                        <Text className="font-outfit-bold text-[12px] uppercase" style={{ color: C.muted, letterSpacing: 0.4 }}>{amountLabel}</Text>
                         <Text className="font-outfit-bold text-xl" style={{ color: isPast ? C.text : C.blue, letterSpacing: -0.5, lineHeight: 23 }} numberOfLines={1}>{amount}</Text>
                     </View>
                 </View>
@@ -406,7 +406,7 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
                             className="flex-1 items-center justify-center"
                             style={{ borderRadius: 13, backgroundColor: C.blueSoft }}
                         >
-                            <Text className="font-outfit-bold text-[14.5px]" style={{ color: C.blue }}>{ctaLabel}</Text>
+                            <Text className="font-outfit-bold text-[15px]" style={{ color: C.blue }}>{ctaLabel}</Text>
                         </View>
                     ) : (
                         <LinearGradient
@@ -415,7 +415,7 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
                             end={{ x: 1, y: 0 }}
                             style={{ flex: 1, borderRadius: 13, alignItems: 'center', justifyContent: 'center' }}
                         >
-                            <Text className="font-outfit-bold text-[14.5px] text-white">{ctaLabel}</Text>
+                            <Text className="font-outfit-bold text-[15px] text-white">{ctaLabel}</Text>
                         </LinearGradient>
                     )}
                 </TouchableOpacity>
@@ -424,10 +424,10 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
 
             {/* Footer: id + cancel */}
             <View className="flex-row items-center justify-between mt-2.5">
-                <Text style={{ fontFamily: MONO, fontSize: 11, color: C.mutedLight }}>{refLabel(appointment.refCode, appointment.id)}</Text>
+                <Text style={{ fontFamily: MONO, fontSize: 13, color: C.mutedLight }}>{refLabel(appointment.refCode, appointment.id)}</Text>
                 {!isPast && (
                     <TouchableOpacity onPress={guardPress(() => onCancel(appointment.id))} hitSlop={8}>
-                        <Text className="font-outfit-bold text-xs" style={{ color: C.red }}>{t('appointments.list.card.cancelRequest')}</Text>
+                        <Text className="font-outfit-bold text-[13px]" style={{ color: C.red }}>{t('appointments.list.card.cancelRequest')}</Text>
                     </TouchableOpacity>
                 )}
             </View>

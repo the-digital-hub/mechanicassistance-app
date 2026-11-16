@@ -65,7 +65,7 @@ export function CancellationDisputeBanner({ dispute, role }: CancellationDispute
             <Ionicons name={icon} size={22} color={c.icon} />
             <View style={{ flex: 1 }}>
                 <Text className="font-outfit-bold" style={{ fontSize: 15, color: c.title }}>{title}</Text>
-                <Text className="font-outfit-regular" style={{ fontSize: 12.5, lineHeight: 17, marginTop: 3, color: c.body }}>{body}</Text>
+                <Text className="font-outfit-regular" style={{ fontSize: 13, lineHeight: 17, marginTop: 3, color: c.body }}>{body}</Text>
             </View>
         </View>
     );

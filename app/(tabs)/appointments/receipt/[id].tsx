@@ -72,19 +72,19 @@ export default function JobReceiptScreen() {
                 <Body>
                     <Card>
                         <View className="px-4 pt-4 pb-2">
-                            <Text className="font-outfit-bold text-[10.5px] uppercase tracking-widest" style={{ color: OS.mutedLight }}>
+                            <Text className="font-outfit-bold text-[12px] uppercase tracking-widest" style={{ color: OS.mutedLight }}>
                                 {t(`${k}.earnings`)}
                             </Text>
                             <Text className="font-outfit-bold text-[32px]" style={{ color: OS.text }}>{money(net)}</Text>
                             {appointment?.car ? (
-                                <Text className="font-outfit-medium text-xs mt-0.5" style={{ color: OS.muted }}>{appointment.car}</Text>
+                                <Text className="font-outfit-medium text-[13px] mt-0.5" style={{ color: OS.muted }}>{appointment.car}</Text>
                             ) : null}
                         </View>
                     </Card>
 
                     {breakdown && (
                         <Card>
-                            <Text className="font-outfit-bold text-xs px-4 pt-3" style={{ color: OS.text }}>{t(`${k}.yourService`)}</Text>
+                            <Text className="font-outfit-bold text-[13px] px-4 pt-3" style={{ color: OS.text }}>{t(`${k}.yourService`)}</Text>
                             <Line label={t(`${k}.base`)} value={money(breakdown.base)} />
                             {breakdown.timeBand && Number(breakdown.timeBand.amount) !== 0 && (
                                 <Line label={t(`${k}.timeBand`)} value={money(breakdown.timeBand.amount)} />
@@ -98,11 +98,11 @@ export default function JobReceiptScreen() {
 
                     {earning ? (
                         <Card>
-                            <Text className="font-outfit-bold text-xs px-4 pt-3" style={{ color: OS.text }}>{t(`${k}.payment`)}</Text>
+                            <Text className="font-outfit-bold text-[13px] px-4 pt-3" style={{ color: OS.text }}>{t(`${k}.payment`)}</Text>
                             {/* Providers see what they get, never the fee or what the customer paid. */}
                             <Line label={t(`${k}.youEarn`)} value={money(earning.netAmount)} strong />
                             <View className="px-4 pb-3">
-                                <Text className="font-outfit-bold text-[10.5px] uppercase" style={{ color: OS.mutedLight }}>{t(`${k}.status`)}</Text>
+                                <Text className="font-outfit-bold text-[13px] uppercase" style={{ color: OS.mutedLight }}>{t(`${k}.status`)}</Text>
                                 <Text className="font-outfit-bold text-sm mt-0.5" style={{ color: OS.text }}>
                                     {t(`${k}.statusValue.${earning.status}`)}
                                 </Text>

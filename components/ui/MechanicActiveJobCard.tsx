@@ -64,7 +64,7 @@ export function MechanicActiveJobCard({ appointment }: { appointment: Appointmen
                     <TypeIcon size={20} color="#1E56E3" />
                 </View>
                 <View className="flex-1">
-                    <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 1, color: '#6B7490' }}>
+                    <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1, color: '#6B7490' }}>
                         {t(typeBar.labelKey).toUpperCase()}
                     </Text>
                     <Text
@@ -82,7 +82,7 @@ export function MechanicActiveJobCard({ appointment }: { appointment: Appointmen
                 <Text className="font-outfit-bold" style={{ fontSize: 14, color: colors.title }}>
                     {t(`appointments.list.card.title.${state}`)}
                 </Text>
-                <Text className="font-outfit-medium" style={{ fontSize: 12, color: colors.hint, marginTop: 2 }}>
+                <Text className="font-outfit-medium" style={{ fontSize: 13, color: colors.hint, marginTop: 2 }}>
                     {t(`appointments.list.card.status.${state}Hint`)}
                 </Text>
             </View>
@@ -97,7 +97,7 @@ export function MechanicActiveJobCard({ appointment }: { appointment: Appointmen
                             style={index > 0 ? { borderTopWidth: 1, borderTopColor: '#E1EAFB' } : undefined}
                         >
                             <Icon size={16} color="#6B7490" />
-                            <Text className="font-outfit-medium ml-2" style={{ fontSize: 12, color: '#6B7490' }}>
+                            <Text className="font-outfit-medium ml-2" style={{ fontSize: 13, color: '#6B7490' }}>
                                 {label}
                             </Text>
                             <Text className="font-outfit-semibold flex-1 text-right ml-2" style={{ fontSize: 13, color: '#0B1530' }} numberOfLines={1}>

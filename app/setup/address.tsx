@@ -265,7 +265,7 @@ export default function AddressScreen() {
                   <Text className="font-outfit-medium text-sm text-gray-900" numberOfLines={1}>
                     {address.street}
                   </Text>
-                  <Text className="font-outfit-regular text-xs text-gray-500" numberOfLines={1}>
+                  <Text className="font-outfit-regular text-[13px] text-gray-500" numberOfLines={1}>
                     {[address.city, address.state, address.zip].filter(Boolean).join(', ')}
                   </Text>
                 </View>
@@ -274,7 +274,7 @@ export default function AddressScreen() {
                   className="px-3 py-2 rounded-full"
                   style={{ backgroundColor: '#E9F1FF' }}
                 >
-                  <Text className="text-blue-600 font-outfit-semibold text-xs">
+                  <Text className="text-blue-600 font-outfit-semibold text-[13px]">
                     {t('setup.addRole.useThis')}
                   </Text>
                 </TouchableOpacity>

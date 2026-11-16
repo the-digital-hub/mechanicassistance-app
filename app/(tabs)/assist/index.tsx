@@ -290,7 +290,7 @@ export default function AssistanceRequestsScreen() {
                           </Text>
                           {badge && (
                             <View className="px-2 py-0.5 rounded-md" style={{ backgroundColor: '#FEE2E2' }}>
-                              <Text className="font-outfit-bold text-[10px] tracking-widest" style={{ color: '#EF4444' }}>
+                              <Text className="font-outfit-bold text-[12px] tracking-widest" style={{ color: '#EF4444' }}>
                                 {badge}
                               </Text>
                             </View>

@@ -35,7 +35,7 @@ export function AseStatusBadge() {
                 style={{ backgroundColor: '#F3F4F6' }}
             >
                 <Ionicons name="ribbon-outline" size={14} color="#4B5563" />
-                <Text className="font-outfit-semibold text-xs" style={{ color: '#4B5563' }}>
+                <Text className="font-outfit-semibold text-[13px]" style={{ color: '#4B5563' }}>
                     {t('profile.aseBadge.pending')}
                 </Text>
                 <Ionicons name="chevron-forward" size={12} color="#4B5563" />

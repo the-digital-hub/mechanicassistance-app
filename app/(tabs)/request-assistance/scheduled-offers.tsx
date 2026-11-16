@@ -309,7 +309,7 @@ export default function ScheduledOffersScreen() {
                     <QuoteDetails description={chosen.description} />
                     {chosen.parts?.length ? (
                         <View style={{ ...CARD_STYLE, padding: 14, gap: 6 }}>
-                            <Text className="font-outfit-bold" style={{ fontSize: 11, letterSpacing: 1.2, color: SC.muted }}>{t('scheduledOffers.detail.parts')}</Text>
+                            <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1.2, color: SC.muted }}>{t('scheduledOffers.detail.parts')}</Text>
                             {chosen.parts.map((p, i) => (
                                 <Row key={i} label={`${p.name}${p.quantity && p.quantity > 1 ? ` ×${p.quantity}` : ''}`} value={p.price ? money(p.price) : ''} />
                             ))}
@@ -387,7 +387,7 @@ export default function ScheduledOffersScreen() {
         const tag = { coverage: t('scheduledOffers.compare.mostCoverage'), price: t('scheduledOffers.compare.lowestPrice'), date: '', distance: t('scheduledOffers.compare.nearest') }[sort];
         const chip = (id: SortId, label: string) => (
             <TouchableOpacity key={id} onPress={() => setSort(id)} accessibilityRole="button" accessibilityState={{ selected: sort === id }} style={{ paddingHorizontal: 13, paddingVertical: 8, borderRadius: 100, backgroundColor: sort === id ? SC.blue : '#FFFFFF', borderWidth: sort === id ? 0 : 1, borderColor: SC.border }}>
-                <Text className="font-outfit-bold" style={{ fontSize: 12.5, color: sort === id ? '#FFFFFF' : SC.text }}>{label}</Text>
+                <Text className="font-outfit-bold" style={{ fontSize: 13, color: sort === id ? '#FFFFFF' : SC.text }}>{label}</Text>
             </TouchableOpacity>
         );
         return (
@@ -415,22 +415,22 @@ export default function ScheduledOffersScreen() {
                                     <View className="items-center justify-center" style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: SC.blueSoft }}><Store size={20} color={SC.blue} /></View>
                                     <View className="flex-1">
                                         <Text className="font-outfit-bold" style={{ fontSize: 15, color: SC.text }}>{t('scheduledOffers.compare.offerN', { n: i + 1 })}</Text>
-                                        <Text className="font-outfit-regular" style={{ fontSize: 12, color: SC.muted, marginTop: 2 }}>{o.quoteType === 'diagnostic_then_quote' ? t('scheduledOffers.diagnosticThenQuote') : t('scheduledOffers.finalPrice')}{typeof o.distanceMiles === 'number' ? ` · ${o.distanceMiles < 10 ? o.distanceMiles.toFixed(1) : Math.round(o.distanceMiles)} mi` : ''}{agoLabel(o.createdAt) ? ` · ${agoLabel(o.createdAt)}` : ''}</Text>
+                                        <Text className="font-outfit-regular" style={{ fontSize: 13, color: SC.muted, marginTop: 2 }}>{o.quoteType === 'diagnostic_then_quote' ? t('scheduledOffers.diagnosticThenQuote') : t('scheduledOffers.finalPrice')}{typeof o.distanceMiles === 'number' ? ` · ${o.distanceMiles < 10 ? o.distanceMiles.toFixed(1) : Math.round(o.distanceMiles)} mi` : ''}{agoLabel(o.createdAt) ? ` · ${agoLabel(o.createdAt)}` : ''}</Text>
                                     </View>
                                 </View>
                                 {cov !== null ? (
                                     <View>
                                         <View className="flex-row items-center justify-between" style={{ marginBottom: 6 }}>
                                             <View style={{ paddingHorizontal: 8, paddingVertical: 2, borderRadius: 100, backgroundColor: full ? SC.greenSoft : SC.amberSoft }}>
-                                                <Text className="font-outfit-bold" style={{ fontSize: 12, color: full ? SC.greenText : SC.amberText }}>{full ? t('scheduledOffers.compare.coversAll') : t('scheduledOffers.compare.partial', { n: cov, total: requested.length })}</Text>
+                                                <Text className="font-outfit-bold" style={{ fontSize: 13, color: full ? SC.greenText : SC.amberText }}>{full ? t('scheduledOffers.compare.coversAll') : t('scheduledOffers.compare.partial', { n: cov, total: requested.length })}</Text>
                                             </View>
-                                            {i === 0 && tag ? <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 0.8, color: SC.blue }}>{tag}</Text> : null}
+                                            {i === 0 && tag ? <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 0.8, color: SC.blue }}>{tag}</Text> : null}
                                         </View>
                                         <View className="flex-row" style={{ gap: 3 }}>
                                             {requested.map((n, k) => <View key={`${n}-${k}`} style={{ flex: 1, height: 5, borderRadius: 3, backgroundColor: names.has(n) ? SC.blue : '#DCE3F0' }} />)}
                                         </View>
                                     </View>
-                                ) : i === 0 && tag ? <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 0.8, color: SC.blue }}>{tag}</Text> : null}
+                                ) : i === 0 && tag ? <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 0.8, color: SC.blue }}>{tag}</Text> : null}
                                 {items.length > 0 ? (
                                     <View style={{ gap: 5 }}>
                                         {items.map((it) => (
@@ -438,44 +438,44 @@ export default function ScheduledOffersScreen() {
                                                 <View className="items-center justify-center" style={{ width: 16, height: 16, borderRadius: 5, backgroundColor: it.quoted ? SC.blue : '#E8ECF4' }}>
                                                     {it.quoted ? <Check size={10} color="#FFFFFF" strokeWidth={3} /> : <Minus size={10} color="#5A6482" strokeWidth={3} />}
                                                 </View>
-                                                <Text className="font-outfit-semibold flex-1" style={{ fontSize: 12.5, color: it.quoted ? SC.text : SC.muted }}>{it.name}</Text>
-                                                <Text className="font-outfit-bold" style={{ fontSize: 12.5, color: it.quoted ? SC.text : SC.muted }}>{it.quoted && it.total !== null ? money(it.total) : t('scheduledOffers.compare.notQuoted')}</Text>
+                                                <Text className="font-outfit-semibold flex-1" style={{ fontSize: 13, color: it.quoted ? SC.text : SC.muted }}>{it.name}</Text>
+                                                <Text className="font-outfit-bold" style={{ fontSize: 13, color: it.quoted ? SC.text : SC.muted }}>{it.quoted && it.total !== null ? money(it.total) : t('scheduledOffers.compare.notQuoted')}</Text>
                                             </View>
                                         ))}
                                     </View>
                                 ) : null}
                                 <View className="flex-row items-baseline justify-between" style={{ marginTop: 2, paddingTop: 10, borderTopWidth: 1, borderTopColor: SC.border, borderStyle: 'dashed' }}>
-                                    <Text className="font-outfit-bold" style={{ fontSize: 12.5, color: SC.muted }}>{t('scheduledOffers.compare.yourTotal')}</Text>
+                                    <Text className="font-outfit-bold" style={{ fontSize: 13, color: SC.muted }}>{t('scheduledOffers.compare.yourTotal')}</Text>
                                     <Text className="font-outfit-bold" style={{ fontSize: 20, letterSpacing: -0.5, color: SC.blue }}>{money(totalOf(o))}</Text>
                                 </View>
                                 <View className="flex-row" style={{ gap: 10, paddingTop: 12, borderTopWidth: 1, borderTopColor: SC.borderSoft }}>
                                     <View className="flex-1 flex-row items-center" style={{ gap: 7 }}>
                                         <Calendar size={16} color={SC.blue} />
                                         <View className="flex-1">
-                                            <Text className="font-outfit-bold" style={{ fontSize: 9.5, letterSpacing: 1, color: SC.muted }}>{t('scheduledOffers.compare.available')}</Text>
-                                            <Text className="font-outfit-bold" style={{ fontSize: 12, lineHeight: 15, color: SC.text, marginTop: 1 }}>{slot || '—'}</Text>
+                                            <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1, color: SC.muted }}>{t('scheduledOffers.compare.available')}</Text>
+                                            <Text className="font-outfit-bold" style={{ fontSize: 13, lineHeight: 18, color: SC.text, marginTop: 1 }}>{slot || '—'}</Text>
                                         </View>
                                     </View>
                                     <View className="flex-1 flex-row items-center" style={{ gap: 7 }}>
                                         <ShieldCheck size={16} color={SC.blue} />
                                         <View className="flex-1">
-                                            <Text className="font-outfit-bold" style={{ fontSize: 9.5, letterSpacing: 1, color: SC.muted }}>{t('scheduledOffers.compare.warranty')}</Text>
-                                            <Text className="font-outfit-bold" style={{ fontSize: 12, lineHeight: 15, color: SC.text, marginTop: 1 }}>{o.warrantyDays ? t('scheduledOffers.detail.warranty', { days: o.warrantyDays }) : '—'}</Text>
+                                            <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1, color: SC.muted }}>{t('scheduledOffers.compare.warranty')}</Text>
+                                            <Text className="font-outfit-bold" style={{ fontSize: 13, lineHeight: 18, color: SC.text, marginTop: 1 }}>{o.warrantyDays ? t('scheduledOffers.detail.warranty', { days: o.warrantyDays }) : '—'}</Text>
                                         </View>
                                     </View>
                                 </View>
                                 <View className="flex-row items-center" style={{ gap: 10 }}>
                                     <TouchableOpacity onPress={() => { setOpenId(o.id); setNotice(null); setView('detail'); }} accessibilityRole="button" style={{ paddingHorizontal: 4 }}>
-                                        <Text className="font-outfit-bold" style={{ fontSize: 12.5, color: SC.blue }}>{t('scheduledOffers.compare.details')}</Text>
+                                        <Text className="font-outfit-bold" style={{ fontSize: 13, color: SC.blue }}>{t('scheduledOffers.compare.details')}</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity onPress={() => { setOpenId(o.id); setNotice(null); setView('pay'); }} disabled={!ok} activeOpacity={0.85} accessibilityRole="button" style={{ flex: 1, alignItems: 'center', paddingVertical: 13, borderRadius: 14, backgroundColor: ok ? SC.blue : '#DCE7FA' }}>
-                                        <Text className="font-outfit-bold" style={{ fontSize: 14.5, color: '#FFFFFF' }}>{t('scheduledOffers.compare.select')}</Text>
+                                        <Text className="font-outfit-bold" style={{ fontSize: 15, color: '#FFFFFF' }}>{t('scheduledOffers.compare.select')}</Text>
                                     </TouchableOpacity>
                                 </View>
                             </View>
                         );
                     })}
-                    <Text className="font-outfit-regular" style={{ fontSize: 11.5, lineHeight: 17, color: SC.muted }}>{t('scheduledOffers.compare.totalNote')}</Text>
+                    <Text className="font-outfit-regular" style={{ fontSize: 13, lineHeight: 17, color: SC.muted }}>{t('scheduledOffers.compare.totalNote')}</Text>
                 </ScrollView>
             </View>
         );
@@ -567,12 +567,12 @@ export default function ScheduledOffersScreen() {
                                     {o.id === best ? (
                                         <View className="flex-row items-center rounded-full" style={{ gap: 4, paddingHorizontal: 8, paddingVertical: 3, backgroundColor: SC.greenSoft }}>
                                             <Star size={12} color={SC.greenText} />
-                                            <Text className="font-outfit-bold" style={{ fontSize: 11, color: SC.greenText }}>{t('scheduledOffers.bestPrice')}</Text>
+                                            <Text className="font-outfit-bold" style={{ fontSize: 13, color: SC.greenText }}>{t('scheduledOffers.bestPrice')}</Text>
                                         </View>
                                     ) : null}
                                 </View>
                                 {slot ? <Text className="font-outfit-regular" style={{ color: SC.muted }}>{slot}</Text> : null}
-                                <Text className="font-outfit-regular" style={{ fontSize: 12.5, color: SC.muted }}>
+                                <Text className="font-outfit-regular" style={{ fontSize: 13, color: SC.muted }}>
                                     {o.quoteType === 'diagnostic_then_quote' ? t('scheduledOffers.diagnosticThenQuote') : t('scheduledOffers.finalPrice')}
                                     {o.warrantyDays ? ` · ${t('scheduledOffers.detail.warranty', { days: o.warrantyDays })}` : ''}
                                 </Text>
@@ -603,7 +603,7 @@ function Row({ label, value, bold }: { label: string; value: string; bold?: bool
 function Info({ label, value }: { label: string; value: string }) {
     return (
         <View style={{ ...CARD_STYLE, padding: 14, gap: 4 }}>
-            <Text className="font-outfit-bold" style={{ fontSize: 11, letterSpacing: 1.2, color: SC.muted }}>{label}</Text>
+            <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1.2, color: SC.muted }}>{label}</Text>
             <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: SC.text }}>{value}</Text>
         </View>
     );

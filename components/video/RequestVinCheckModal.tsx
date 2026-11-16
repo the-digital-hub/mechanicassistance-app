@@ -71,7 +71,7 @@ export function RequestVinCheckModal({
                                 {t(`${k}.${variant}.title`)}
                             </Text>
                         </View>
-                        <Text className="font-outfit-regular text-[12.5px] mt-2 leading-5" style={{ color: OS.muted }}>
+                        <Text className="font-outfit-regular text-[13px] mt-2 leading-5" style={{ color: OS.muted }}>
                             {t(`${k}.${variant}.body`)}
                         </Text>
 
@@ -131,8 +131,8 @@ export function RequestVinCheckModal({
 function VinRow({ label, value, color, noVin }: { label: string; value?: string | null; color?: string; noVin: string }) {
     return (
         <View className="flex-row items-center justify-between gap-2 py-1">
-            <Text className="font-outfit-medium text-[11.5px]" style={{ color: OS.muted }}>{label}</Text>
-            <Text className="font-outfit-bold text-[12.5px]" style={{ color: color ?? OS.text, letterSpacing: 0.5 }}>
+            <Text className="font-outfit-medium text-[13px]" style={{ color: OS.muted }}>{label}</Text>
+            <Text className="font-outfit-bold text-[12px]" style={{ color: color ?? OS.text, letterSpacing: 0.5 }}>
                 {value || noVin}
             </Text>
         </View>

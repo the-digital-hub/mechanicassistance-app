@@ -63,7 +63,7 @@ export function MechanicArrivalCard({ onStartCheckIn, inProgress, disabled }: Me
                     {t('appointments.detail.arrival.title')}
                 </Text>
             </View>
-            <Text className="px-4 font-outfit-regular text-xs" style={{ color: '#6B7490' }}>
+            <Text className="px-4 font-outfit-regular text-[13px]" style={{ color: '#6B7490' }}>
                 {t('appointments.detail.arrival.subtitle')}
             </Text>
 
@@ -98,7 +98,7 @@ export function MechanicArrivalCard({ onStartCheckIn, inProgress, disabled }: Me
 
                         <View className="flex-row items-start gap-2 mt-3 px-3 py-2.5 rounded-xl" style={{ backgroundColor: '#F4F8FF' }}>
                             <Ionicons name="information-circle-outline" size={15} color={BLUE} style={{ marginTop: 1 }} />
-                            <Text className="flex-1 font-outfit-medium text-[11px] leading-4" style={{ color: BLUE }}>
+                            <Text className="flex-1 font-outfit-medium text-[13px] leading-4" style={{ color: BLUE }}>
                                 {t('appointments.detail.arrival.notice')}
                             </Text>
                         </View>

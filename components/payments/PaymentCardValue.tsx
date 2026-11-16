@@ -36,7 +36,7 @@ export function PaymentCardValue({ paymentMethodId, card, onChange }: Props) {
       </Text>
       {onChange && (
         <TouchableOpacity onPress={onChange} hitSlop={8}>
-          <Text className="font-outfit-bold" style={{ color: AO.blue, fontSize: 12.5 }}>
+          <Text className="font-outfit-bold" style={{ color: AO.blue, fontSize: 13 }}>
             {t('requestAssistance.mechanicFound.change')}
           </Text>
         </TouchableOpacity>

@@ -37,7 +37,7 @@ export function ClientReviewCard({ rating, setRating, selectedOption, setSelecte
             {hint && !isSubmitted && (
                 <View className="flex-row items-center" style={{ gap: 8, padding: 10, borderRadius: 12, backgroundColor: AO.blueSofter }}>
                     <Ionicons name="information-circle-outline" size={16} color={AO.blue} />
-                    <Text className="font-outfit-regular" style={{ flex: 1, fontSize: 12, color: AO.muted, lineHeight: 17 }}>{hint}</Text>
+                    <Text className="font-outfit-regular" style={{ flex: 1, fontSize: 13, color: AO.muted, lineHeight: 17 }}>{hint}</Text>
                 </View>
             )}
 
@@ -60,7 +60,7 @@ export function ClientReviewCard({ rating, setRating, selectedOption, setSelecte
                     className="flex-row justify-between items-center"
                     style={{ padding: 14, borderRadius: 12, borderWidth: 1, borderColor: AO.border, backgroundColor: '#fff' }}
                 >
-                    <Text className={selectedLabel ? 'font-outfit-medium' : 'font-outfit-regular'} style={{ fontSize: 13.5, color: selectedLabel ? AO.text : AO.mutedLight }}>
+                    <Text className={selectedLabel ? 'font-outfit-medium' : 'font-outfit-regular'} style={{ fontSize: 14, color: selectedLabel ? AO.text : AO.mutedLight }}>
                         {selectedLabel ? t(`${K}.options.${selectedLabel.key}`) : selectedOption || t(`${K}.selectOption`)}
                     </Text>
                     <Ionicons name={isDropdownOpen ? 'chevron-up' : 'chevron-down'} size={18} color={AO.muted} />
@@ -79,7 +79,7 @@ export function ClientReviewCard({ rating, setRating, selectedOption, setSelecte
                                     className="flex-row items-center justify-between"
                                     style={{ padding: 14, borderBottomWidth: index < OPTIONS.length - 1 ? 1 : 0, borderBottomColor: AO.borderSoft }}
                                 >
-                                    <Text className={on ? 'font-outfit-bold' : 'font-outfit-regular'} style={{ fontSize: 13.5, color: on ? AO.blue : AO.text }}>
+                                    <Text className={on ? 'font-outfit-bold' : 'font-outfit-regular'} style={{ fontSize: 14, color: on ? AO.blue : AO.text }}>
                                         {t(`${K}.options.${option.key}`)}
                                     </Text>
                                     {on && <Ionicons name="checkmark" size={18} color={AO.blue} />}
@@ -94,7 +94,7 @@ export function ClientReviewCard({ rating, setRating, selectedOption, setSelecte
                 <Text className="font-outfit-bold" style={{ fontSize: 13, color: AO.text, marginBottom: 8 }}>{t(`${K}.review`)}</Text>
                 <TextInput
                     className="font-outfit-regular"
-                    style={{ minHeight: 96, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: AO.border, backgroundColor: '#fff', fontSize: 13.5, color: AO.text }}
+                    style={{ minHeight: 96, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: AO.border, backgroundColor: '#fff', fontSize: 14, color: AO.text }}
                     placeholder={t(`${K}.placeholder`)}
                     placeholderTextColor={AO.mutedLight}
                     multiline

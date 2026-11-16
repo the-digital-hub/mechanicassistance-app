@@ -158,7 +158,7 @@ export default function LegalDocumentsScreen() {
             ))}
 
             {documents.length === 0 && (
-              <Text className="text-gray-400 font-outfit-regular text-xs text-center mt-2">
+              <Text className="text-gray-400 font-outfit-regular text-[13px] text-center mt-2">
                 {t('setup.legalDocs.profileEmpty')}
               </Text>
             )}

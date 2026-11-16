@@ -58,7 +58,7 @@ function FeaturedTypeCard({ item, title, description, badge, onPress, checking }
                                 style={{ backgroundColor: 'transparent', borderWidth: 1, borderColor: '#6789F1' }}
                             >
                                 <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#49DE7F' }} />
-                                <Text className="font-outfit-bold text-[9px] tracking-widest" style={{ color: '#FFFFFF' }}>
+                                <Text className="font-outfit-bold text-[12px] tracking-widest" style={{ color: '#FFFFFF' }}>
                                     {badge}
                                 </Text>
                             </View>
@@ -142,7 +142,7 @@ function TypeCard({
                     >
                         <Clock size={10} color={isGradient ? '#FFFFFF' : '#0047AB'} />
                         <Text
-                            className="font-outfit-bold text-[9px] tracking-widest"
+                            className="font-outfit-bold text-[12px] tracking-widest"
                             style={{ color: isGradient ? '#FFFFFF' : '#0047AB' }}
                         >
                             {badge}
@@ -322,7 +322,7 @@ export default function RequestAssistanceTypeScreen() {
 
                 {additional.length > 0 ? (
                     <View className="mt-6">
-                        <Text className="font-outfit-bold text-[11px] tracking-widest mb-3" style={{ color: '#8C96AE' }}>
+                        <Text className="font-outfit-bold text-[12px] tracking-widest mb-3" style={{ color: '#8C96AE' }}>
                             {t('requestAssistance.type.additionalServices')}
                         </Text>
                         <View className="gap-2">

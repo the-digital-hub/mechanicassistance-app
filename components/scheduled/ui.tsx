@@ -1,3 +1,4 @@
+import { TYPE } from '@/lib/ui/type';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Check, ChevronRight, type LucideIcon } from 'lucide-react-native';
 import type { ReactNode } from 'react';
@@ -47,7 +48,7 @@ export function WizardHeader({ title, onBack, right }: { title: string; onBack?:
             {onBack ? <HeaderBackButton onPress={onBack} marginLeft={0} /> : <View style={{ width: 40 }} />}
             <Text style={{ fontFamily: 'Outfit_500Medium', fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>{title}</Text>
             <View style={{ width: 40, alignItems: 'flex-end' }}>
-                {right ? <Text className="font-outfit-bold" style={{ fontSize: 12, color: SC.muted }}>{right}</Text> : null}
+                {right ? <Text className="font-outfit-bold" style={{ fontSize: 13, color: SC.muted }}>{right}</Text> : null}
             </View>
         </View>
     );
@@ -62,7 +63,7 @@ export function ProgressBar({ step, total, label }: { step: number; total: numbe
                     <View key={i} style={{ flex: 1, height: 4, borderRadius: 2, backgroundColor: i < step ? SC.blue : SC.border }} />
                 ))}
             </View>
-            <Text className="font-outfit-semibold" style={{ fontSize: 12, color: SC.muted }}>{label}</Text>
+            <Text className="font-outfit-semibold" style={{ fontSize: 13, color: SC.muted }}>{label}</Text>
         </View>
     );
 }
@@ -72,7 +73,7 @@ export function StepHead({ eyebrow, title, sub }: { eyebrow: string; title: stri
         <View>
             <View className="flex-row items-center self-start rounded-full" style={{ gap: 6, paddingHorizontal: 10, paddingVertical: 4, backgroundColor: SC.blueSoft, marginBottom: 12 }}>
                 <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: SC.blue }} />
-                <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 1.3, color: SC.blue }}>{eyebrow}</Text>
+                <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1.3, color: SC.blue }}>{eyebrow}</Text>
             </View>
             <Text className="font-outfit-bold" style={{ fontSize: 26, lineHeight: 30, letterSpacing: -0.6, color: SC.text }}>{title}</Text>
             {sub ? <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: SC.muted, marginTop: 8 }}>{sub}</Text> : null}
@@ -83,7 +84,7 @@ export function StepHead({ eyebrow, title, sub }: { eyebrow: string; title: stri
 export function FieldLabel({ children, right }: { children: ReactNode; right?: ReactNode }) {
     return (
         <View className="flex-row items-center justify-between" style={{ marginBottom: 8 }}>
-            <Text className="font-outfit-bold" style={{ fontSize: 11, letterSpacing: 1.2, color: SC.muted }}>{children}</Text>
+            <Text className="font-outfit-bold" style={{ fontSize: 13, letterSpacing: 1, color: SC.muted }}>{children}</Text>
             {right}
         </View>
     );
@@ -150,12 +151,12 @@ export function ChoiceCard({
                 <View className="flex-row items-center" style={{ gap: 8 }}>
                     {badge ? (
                         <View className="rounded-full" style={{ paddingHorizontal: 8, paddingVertical: 2, backgroundColor: SC.blueSoft }}>
-                            <Text className="font-outfit-bold" style={{ fontSize: 11, color: SC.blue }}>{badge}</Text>
+                            <Text className="font-outfit-bold" style={{ ...TYPE.caption, color: SC.blue }}>{badge}</Text>
                         </View>
                     ) : null}
-                    <Text className="font-outfit-bold flex-1" style={{ fontSize: 15, color: SC.text }} numberOfLines={2}>{title}</Text>
+                    <Text className="font-outfit-bold flex-1" style={{ ...TYPE.group, color: SC.text }} numberOfLines={2}>{title}</Text>
                 </View>
-                {sub ? <Text className="font-outfit-regular" style={{ fontSize: 12.5, lineHeight: 17, color: SC.muted, marginTop: 2 }}>{sub}</Text> : null}
+                {sub ? <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: SC.muted, marginTop: 2 }}>{sub}</Text> : null}
             </View>
             <View className="items-center justify-center" style={{ width: 22, height: 22, borderRadius: 11, borderWidth: 1.5, borderColor: on ? SC.blue : SC.border, backgroundColor: on ? SC.blue : '#FFFFFF' }}>
                 {on ? <Check size={13} color="#FFFFFF" strokeWidth={3} /> : null}
@@ -190,7 +191,7 @@ export function Chip({ on, onPress, children, disabled }: { on: boolean; onPress
                 opacity: disabled ? 0.4 : 1,
             }}
         >
-            <Text className="font-outfit-semibold" style={{ fontSize: 13.5, color: on ? '#FFFFFF' : SC.text }}>{children}</Text>
+            <Text className="font-outfit-semibold" style={{ ...TYPE.option, color: on ? '#FFFFFF' : SC.text }}>{children}</Text>
         </TouchableOpacity>
     );
 }
@@ -204,8 +205,8 @@ export function Note({ tone = 'blue', title, children }: { tone?: 'blue' | 'ambe
     }[tone];
     return (
         <View style={{ padding: 12, borderRadius: 12, backgroundColor: palette.bg }}>
-            {title ? <Text className="font-outfit-bold" style={{ fontSize: 13, color: palette.fg }}>{title}</Text> : null}
-            <Text className="font-outfit-regular" style={{ fontSize: 12.5, lineHeight: 18, color: palette.fg, marginTop: title ? 2 : 0 }}>{children}</Text>
+            {title ? <Text className="font-outfit-bold" style={{ ...TYPE.helper, color: palette.fg }}>{title}</Text> : null}
+            <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: palette.fg, marginTop: title ? 2 : 0 }}>{children}</Text>
         </View>
     );
 }
@@ -227,7 +228,7 @@ export function Footer({
     const off = disabled || loading;
     return (
         <View style={{ paddingHorizontal: 24, paddingTop: 12, paddingBottom: 32, backgroundColor: '#F4F5FA', borderTopWidth: 0.5, borderTopColor: '#D1D5DB', gap: 8 }}>
-            {hint ? <Text className="font-outfit-regular text-center" style={{ fontSize: 12, color: SC.muted }}>{hint}</Text> : null}
+            {hint ? <Text className="font-outfit-regular text-center" style={{ fontSize: 13, color: SC.muted }}>{hint}</Text> : null}
             <TouchableOpacity onPress={onPress} disabled={off} activeOpacity={0.85} accessibilityRole="button" accessibilityState={{ disabled: !!off }} style={{ opacity: off ? 0.55 : 1 }}>
                 <LinearGradient colors={['#2B66F8', '#081E72']} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }} style={{ borderRadius: 14, paddingVertical: 16, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}>
                     {loading ? <ActivityIndicator color="#FFFFFF" /> : null}

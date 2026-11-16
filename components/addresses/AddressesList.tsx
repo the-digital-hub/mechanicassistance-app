@@ -116,7 +116,7 @@ export function AddressesList({ picking = false }: { picking?: boolean }) {
                                         </Text>
                                         {address.isServiceBase && (
                                             <View className="mt-1.5 px-2 py-0.5 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
-                                                <Text className="text-blue-600 font-outfit-semibold text-xs">
+                                                <Text className="text-blue-600 font-outfit-semibold text-[13px]">
                                                     {t('addresses.baseBadge')}
                                                 </Text>
                                             </View>

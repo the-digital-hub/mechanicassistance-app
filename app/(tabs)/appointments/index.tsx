@@ -114,7 +114,7 @@ export default function AppointmentsScreen() {
 
                         {/* Past has its own Completed / Cancelled selector, which says the same thing. */}
                         {activeTab !== 'past' && (
-                            <Text className="font-outfit-regular text-[12.5px] mt-2.5" style={{ color: '#6B7490' }}>
+                            <Text className="font-outfit-regular text-[13px] mt-2.5" style={{ color: '#6B7490' }}>
                                 {t(`appointments.list.hint.${activeTab}`)}
                             </Text>
                         )}
@@ -180,7 +180,7 @@ export default function AppointmentsScreen() {
                 contentContainerStyle={{ paddingBottom: 20 }}
                 ListEmptyComponent={
                     <View className="items-center justify-center py-10">
-                        <Text className="font-outfit-medium text-[14.5px]" style={{ color: '#0B1530' }}>{activeTab === 'upcoming'
+                        <Text className="font-outfit-medium text-[15px]" style={{ color: '#0B1530' }}>{activeTab === 'upcoming'
                             ? t('appointments.list.noUpcoming')
                             : activeTab === 'pending'
                                 ? t('appointments.list.noPendingApproval')

@@ -701,7 +701,7 @@ export default function AppointmentDetailScreen() {
                             <View className="px-5 pt-5 pb-1">
                                 <View className="flex-row items-center gap-1.5 mb-3 px-2.5 py-1 rounded-full" style={{ backgroundColor: MECH.blueSoft, alignSelf: 'flex-start' }}>
                                     <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: MECH.blue }} />
-                                    <Text className="font-outfit-bold text-[10.5px] tracking-widest" style={{ color: MECH.blue }}>
+                                    <Text className="font-outfit-bold text-[12px] tracking-widest" style={{ color: MECH.blue }}>
                                         {isVideoCall
                                             ? t('appointments.videoCall.badge')
                                             : awaitingHeadOut
@@ -721,7 +721,7 @@ export default function AppointmentDetailScreen() {
                                             <Text className="font-outfit-bold text-[22px] leading-6" style={{ color: MECH.text, letterSpacing: -0.6 }}>
                                                 {t('appointments.videoCall.mechanic.title')}
                                             </Text>
-                                            <Text className="text-xs mt-0.5" style={{ color: MECH.mutedLight, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }}>
+                                            <Text className="text-[13px] mt-0.5" style={{ color: MECH.mutedLight, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }}>
                                                 {t('appointments.detail.idLabel', { id: refLabel(appointment.refCode, appointment.id) })}
                                             </Text>
                                         </View>
@@ -740,12 +740,12 @@ export default function AppointmentDetailScreen() {
                                         <View className="items-center justify-center" style={{ width: 26, height: 26, borderRadius: 9, backgroundColor: isVideoCall ? MECH.blueSoft : 'rgba(229,62,62,0.08)' }}>
                                             <Ionicons name={isVideoCall ? 'videocam-outline' : 'flash-outline'} size={14} color={isVideoCall ? MECH.blue : MECH.red} />
                                         </View>
-                                        <Text className="font-outfit-bold text-[13.5px]" style={{ color: MECH.text }}>
+                                        <Text className="font-outfit-bold text-[14px]" style={{ color: MECH.text }}>
                                             {t(assistanceTypeKey(appointment))}
                                         </Text>
                                     </View>
                                     <Text style={{ color: MECH.border }}>·</Text>
-                                    <Text className="font-outfit-medium text-xs" style={{ color: MECH.mutedLight }}>
+                                    <Text className="font-outfit-medium text-[13px]" style={{ color: MECH.mutedLight }}>
                                         {t('appointments.detail.idLabel', { id: refLabel(appointment.refCode, appointment.id) })}
                                     </Text>
                                 </View>
@@ -819,12 +819,12 @@ export default function AppointmentDetailScreen() {
                                                     ) : (
                                                         <Ionicons name="navigate-outline" size={18} color="#fff" />
                                                     )}
-                                                    <Text className="text-white font-outfit-bold text-[15.5px]">
+                                                    <Text className="text-white font-outfit-bold text-[16px]">
                                                         {t('appointments.detail.headOut')}
                                                     </Text>
                                                 </LinearGradient>
                                             </TouchableOpacity>
-                                            <Text className="text-center mt-2 font-outfit-regular text-[11.5px] leading-4" style={{ color: MECH.muted }}>
+                                            <Text className="text-center mt-2 font-outfit-regular text-[13px] leading-4" style={{ color: MECH.muted }}>
                                                 {t('appointments.detail.headOutHint')}
                                             </Text>
                                         </>
@@ -839,7 +839,7 @@ export default function AppointmentDetailScreen() {
                                                 <Text className="font-outfit-bold text-[13px]" style={{ color: MECH.text }}>
                                                     {t('appointments.detail.leftAt', { time: departedAt ? formatEtaTime(departedAt) : '--' })}
                                                 </Text>
-                                                <Text className="font-outfit-regular text-[11.5px] mt-0.5" style={{ color: MECH.muted }}>
+                                                <Text className="font-outfit-regular text-[13px] mt-0.5" style={{ color: MECH.muted }}>
                                                     {t('appointments.detail.clientNotified')}
                                                 </Text>
                                             </View>
@@ -872,7 +872,7 @@ export default function AppointmentDetailScreen() {
                                                     accessibilityRole="button"
                                                 >
                                                     <Ionicons name="videocam" size={20} color={MECH.blue} />
-                                                    <Text className="font-outfit-bold text-[15.5px]" style={{ color: MECH.blue }}>
+                                                    <Text className="font-outfit-bold text-[16px]" style={{ color: MECH.blue }}>
                                                         {t('appointments.videoCall.timer.returnToCall')}
                                                     </Text>
                                                 </TouchableOpacity>
@@ -886,7 +886,7 @@ export default function AppointmentDetailScreen() {
                                                 testID="mechanic-video-finish"
                                             />
                                             {videoStartedAtMs === null && (
-                                                <Text className="text-center font-outfit-regular text-[11.5px] leading-4" style={{ color: MECH.muted }}>
+                                                <Text className="text-center font-outfit-regular text-[13px] leading-4" style={{ color: MECH.muted }}>
                                                     {t('appointments.videoCall.timer.startsOnJoin', { minutes: (videoState?.baseMinutes ?? DEFAULT_CALL_MINUTES) })}
                                                 </Text>
                                             )}
@@ -1041,14 +1041,14 @@ function InfoTab({ appointment, onScanComplete }: { appointment: any, onScanComp
         <View className="gap-5" testID="info-tab-content">
             {/* Title & Type */}
             <View>
-                <Text className="text-gray-500 font-outfit-medium text-xs mb-1">Issue Type</Text>
+                <Text className="text-gray-500 font-outfit-medium text-[13px] mb-1">Issue Type</Text>
                 <Text className="text-blue-900 font-outfit-bold text-xl">{appointment.title}</Text>
             </View>
 
             {/* Photos */}
             {parseAttachments(appointment.photos).length > 0 && (
                 <View>
-                    <Text className="text-gray-500 font-outfit-medium text-xs mb-2">Photos</Text>
+                    <Text className="text-gray-500 font-outfit-medium text-[13px] mb-2">Photos</Text>
                     <AttachmentStrip photos={appointment.photos} size={128} />
                 </View>
             )}
@@ -1059,14 +1059,14 @@ function InfoTab({ appointment, onScanComplete }: { appointment: any, onScanComp
                     <Ionicons name="car-sport" size={24} color="#0047AB" />
                 </View>
                 <View>
-                    <Text className="text-gray-500 text-xs font-outfit-medium">Vehicle</Text>
+                    <Text className="text-gray-500 text-[13px] font-outfit-medium">Vehicle</Text>
                     <Text className="text-blue-900 font-outfit-bold text-base">{appointment.car}</Text>
                 </View>
             </View>
 
             {/* Description */}
             <View>
-                <Text className="text-gray-500 font-outfit-medium text-xs mb-1">Description</Text>
+                <Text className="text-gray-500 font-outfit-medium text-[13px] mb-1">Description</Text>
                 <Text className="text-gray-700 font-outfit-regular leading-5">
                     {appointment.notes || 'No description provided.'}
                 </Text>
@@ -1074,7 +1074,7 @@ function InfoTab({ appointment, onScanComplete }: { appointment: any, onScanComp
 
             {/* Location (Simplified) */}
             <View>
-                <Text className="text-gray-500 font-outfit-medium text-xs mb-1">Location</Text>
+                <Text className="text-gray-500 font-outfit-medium text-[13px] mb-1">Location</Text>
                 <View className="flex-row items-center gap-2">
                     <Ionicons name="location" size={16} color="#0047AB" />
                     <Text className="text-blue-900 font-outfit-medium">{appointment.address}</Text>

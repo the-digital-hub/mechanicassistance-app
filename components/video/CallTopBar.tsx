@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   logo: { width: 24, height: 24 },
-  wordmark: { fontFamily: 'Outfit_700Bold', fontSize: 10.5, letterSpacing: 0.63, color: '#FFFFFF' },
+  wordmark: { fontFamily: 'Outfit_700Bold', fontSize: 12, letterSpacing: 0.63, color: '#FFFFFF' },
   right: { flex: 1, alignItems: 'flex-end' },
   timer: { fontFamily: 'Outfit_700Bold', fontSize: 17, fontVariant: ['tabular-nums'] },
 });

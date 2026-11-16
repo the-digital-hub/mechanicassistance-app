@@ -1,3 +1,4 @@
+import { TYPE } from '@/lib/ui/type';
 import { MapPin } from 'lucide-react-native';
 import { useMemo, useRef, useState } from 'react';
 import { PanResponder, Text, View } from 'react-native';
@@ -55,10 +56,10 @@ export function RadiusSlider({ value, onChange, label, unit }: { value: number; 
                 </View>
             </View>
             <View className="flex-row items-baseline justify-between" style={{ marginTop: 14 }}>
-                <Text className="font-outfit-semibold" style={{ fontSize: 12, color: SC.muted }}>{label}</Text>
+                <Text className="font-outfit-semibold" style={{ ...TYPE.helper, color: SC.muted }}>{label}</Text>
                 <Text>
-                    <Text className="font-outfit-bold" style={{ fontSize: 22, letterSpacing: -0.6, color: SC.blueDark }}>{value}</Text>
-                    <Text className="font-outfit-bold" style={{ fontSize: 12, color: SC.muted }}>{` ${unit}`}</Text>
+                    <Text className="font-outfit-bold" style={{ fontSize: 24, letterSpacing: -0.6, color: SC.blueDark }}>{value}</Text>
+                    <Text className="font-outfit-bold" style={{ ...TYPE.helper, color: SC.muted }}>{` ${unit}`}</Text>
                 </Text>
             </View>
             <View

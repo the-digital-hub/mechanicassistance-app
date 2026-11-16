@@ -64,7 +64,7 @@ function DateField({
 
     return (
         <View className="flex-1" style={{ minWidth: 0 }}>
-            <Text className="font-outfit-bold text-[10px] tracking-widest text-gray-500 mb-1">{label}</Text>
+            <Text className="font-outfit-bold text-[12px] tracking-widest text-gray-500 mb-1">{label}</Text>
             <TouchableOpacity
                 onPress={open}
                 className="flex-row items-center bg-white rounded-xl border px-3"

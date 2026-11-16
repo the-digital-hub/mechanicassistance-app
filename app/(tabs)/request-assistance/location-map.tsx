@@ -324,7 +324,7 @@ export default function LocationMapScreen() {
                             <View className="flex-row justify-between items-start mb-1">
                                 <Text numberOfLines={1} className="text-blue-900 font-outfit-bold">{addressDisplayName(homeAddress, t) ?? t('requestAssistance.locationMap.home')}</Text>
                             </View>
-                            <Text numberOfLines={1} className="text-gray-500 text-xs">
+                            <Text numberOfLines={1} className="text-gray-500 text-[14px]">
                                 {homeAddress ? `${homeAddress.street || ''}, ${homeAddress.city || ''}` : t('requestAssistance.locationMap.notSet')}
                             </Text>
                         </TouchableOpacity>
@@ -345,13 +345,13 @@ export default function LocationMapScreen() {
                             <View className="flex-row justify-between items-start mb-1">
                                 <Text numberOfLines={1} className="text-blue-900 font-outfit-bold">{addressDisplayName(workAddress, t) ?? t('requestAssistance.locationMap.work')}</Text>
                             </View>
-                            <Text numberOfLines={1} className="text-gray-500 text-xs">
+                            <Text numberOfLines={1} className="text-gray-500 text-[14px]">
                                 {workAddress ? `${workAddress.street || ''}, ${workAddress.city || ''}` : t('requestAssistance.locationMap.notSet')}
                             </Text>
                         </TouchableOpacity>
                     </View>
 
-                    <Text className="text-gray-600 font-outfit-medium text-sm mb-2">{t('requestAssistance.locationMap.selectedLocationLabel')}</Text>
+                    <Text className="text-gray-600 font-outfit-medium text-[16px] mb-2">{t('requestAssistance.locationMap.selectedLocationLabel')}</Text>
                     <Text className="text-gray-900 font-outfit-bold text-base mb-6">{locationName}</Text>
 
                     <TouchableOpacity
@@ -377,7 +377,7 @@ export default function LocationMapScreen() {
                                     justifyContent: 'center',
                                 }}
                             >
-                                <Text className="text-white font-outfit-bold text-center mr-2">{t('requestAssistance.locationMap.confirmLocation')}</Text>
+                                <Text className="text-white font-outfit-bold text-[18px] text-center mr-2">{t('requestAssistance.locationMap.confirmLocation')}</Text>
                                 <ChevronRight size={20} color="white" />
                             </LinearGradient>
                         )}

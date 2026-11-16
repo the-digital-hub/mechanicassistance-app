@@ -128,7 +128,7 @@ export function TimeWheel({
 
     return (
         <View style={{ flex: 1 }}>
-            <Text className="font-outfit-semibold" style={{ fontSize: 12, color: SC.muted, marginBottom: 6 }}>{label}</Text>
+            <Text className="font-outfit-semibold" style={{ fontSize: 13, color: SC.muted, marginBottom: 6 }}>{label}</Text>
             {IOS ? (
                 <View style={{ ...CARD_STYLE, overflow: 'hidden' }}>{picker}</View>
             ) : (

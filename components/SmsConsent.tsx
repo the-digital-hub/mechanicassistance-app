@@ -9,12 +9,12 @@ type Variant = "light" | "dark";
 const VARIANTS: Record<Variant, { container: string; text: string; link: string }> = {
   light: {
     container: "bg-blue-50/50 p-4 rounded-xl",
-    text: "text-xs text-slate-500 text-center font-outfit-regular leading-5",
+    text: "text-[13px] text-slate-500 text-center font-outfit-regular leading-5",
     link: "font-outfit-bold text-[#0047AB] underline",
   },
   dark: {
     container: "bg-white/10 border border-white/15 p-4 rounded-xl",
-    text: "text-xs text-white/70 text-center font-outfit-regular leading-5",
+    text: "text-[13px] text-white/70 text-center font-outfit-regular leading-5",
     link: "font-outfit-bold text-white underline",
   },
 };

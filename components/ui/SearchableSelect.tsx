@@ -92,7 +92,7 @@ export function SearchableSelect<T extends SearchableSelectOption>({
                         <Text
                             numberOfLines={1}
                             className="font-outfit-regular flex-1"
-                            style={{ fontSize: 14.5, color: fieldText ? '#0B1530' : '#8C96AE' }}
+                            style={{ fontSize: 15, color: fieldText ? '#0B1530' : '#8C96AE' }}
                         >
                             {fieldText ?? placeholder}
                         </Text>

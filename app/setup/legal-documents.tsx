@@ -145,7 +145,7 @@ export default function LegalDocumentsScreen() {
           <Text className="font-outfit-medium text-[#0F172A] text-sm mb-1">
             {t('setup.legalDocs.noticeTitle')}
           </Text>
-          <Text className="font-outfit-regular text-gray-500 text-xs leading-5">
+          <Text className="font-outfit-regular text-gray-500 text-[13px] leading-5">
             {t('setup.legalDocs.noticeBody', {
               cta: t('setup.legalDocs.submit'),
             })}

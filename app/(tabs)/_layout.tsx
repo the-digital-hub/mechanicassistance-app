@@ -119,7 +119,7 @@ function MechanicStatusBadge() {
         className="flex-row items-center gap-2 px-3 py-1.5 rounded-full"
       >
         <Circle size={8} color={styles.dotColor} fill={styles.dotColor} />
-        <Text style={{ color: styles.textColor }} className="font-outfit-semibold text-xs">
+        <Text style={{ color: styles.textColor }} className="font-outfit-semibold text-[13px]">
           {getStatusLabel()}
         </Text>
       </TouchableOpacity>
@@ -153,7 +153,7 @@ function MechanicStatusBadge() {
                     }`}>
                       {option.label}
                     </Text>
-                    <Text className="text-gray-600 font-outfit-regular text-xs mt-1">
+                    <Text className="text-gray-600 font-outfit-regular text-[13px] mt-1">
                       {option.description}
                     </Text>
                   </View>

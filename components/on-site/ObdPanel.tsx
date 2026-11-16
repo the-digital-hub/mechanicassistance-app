@@ -109,7 +109,7 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true }: 
             {status === 'processing' ? (
                 <View className="mx-4 mt-3 flex-row items-center gap-2.5 px-3.5 py-3 rounded-2xl" style={{ backgroundColor: OS.blueSofter }}>
                     <ActivityIndicator size="small" color={OS.blue} />
-                    <Text className="flex-1 font-outfit-medium text-[12px]" style={{ color: OS.blueDark }}>{t(`${k}.processing`)}</Text>
+                    <Text className="flex-1 font-outfit-medium text-[13px]" style={{ color: OS.blueDark }}>{t(`${k}.processing`)}</Text>
                 </View>
             ) : null}
             {status === 'failed' ? <Tip tone="orange">{t(`${k}.failed`)}</Tip> : null}
@@ -121,7 +121,7 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true }: 
 
             {codes.length ? (
                 <Card>
-                    <Text className="font-outfit-bold text-xs px-4 pt-3.5 pb-1" style={{ color: OS.text }}>
+                    <Text className="font-outfit-bold text-[13px] px-4 pt-3.5 pb-1" style={{ color: OS.text }}>
                         {status === 'manual' ? t(`${k}.manualTitle`) : t(`${k}.codesFound`)}
                     </Text>
                     {codes.map((c, i) => {
@@ -133,23 +133,23 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true }: 
                                     <View className="flex-row items-center gap-3">
                                         {severity && c.severity ? (
                                             <View className="px-2.5 py-0.5 rounded-full" style={{ backgroundColor: severity.bg }}>
-                                                <Text className="font-outfit-bold text-[10.5px]" style={{ color: severity.color }}>
+                                                <Text className="font-outfit-bold text-[13px]" style={{ color: severity.color }}>
                                                     {t(`${k}.severity.${c.severity}`)}
                                                 </Text>
                                             </View>
                                         ) : null}
                                         <TouchableOpacity onPress={() => removeCode(c.code)} disabled={saving}>
-                                            <Text className="font-outfit-bold text-[11px]" style={{ color: OS.red }}>{t(`${k}.remove`)}</Text>
+                                            <Text className="font-outfit-bold text-[13px]" style={{ color: OS.red }}>{t(`${k}.remove`)}</Text>
                                         </TouchableOpacity>
                                     </View>
                                 </View>
-                                <Text className="font-outfit-regular text-[12.5px] mt-1" style={{ color: OS.muted }}>
+                                <Text className="font-outfit-regular text-[13px] mt-1" style={{ color: OS.muted }}>
                                     {c.description ? c.description[lang] : t(`${k}.noDescription`)}
                                 </Text>
                                 {suggestionsOpen && c.suggestion ? (
                                     <View className="mt-2 px-3 py-2.5 rounded-xl" style={{ backgroundColor: OS.blueSofter }}>
-                                        <Text className="font-outfit-bold text-[11px] mb-0.5" style={{ color: OS.blueDark }}>{t(`${k}.aiFix`)}</Text>
-                                        <Text className="font-outfit-regular text-[12.5px] leading-5" style={{ color: OS.text }}>{c.suggestion[lang]}</Text>
+                                        <Text className="font-outfit-bold text-[13px] mb-0.5" style={{ color: OS.blueDark }}>{t(`${k}.aiFix`)}</Text>
+                                        <Text className="font-outfit-regular text-[13px] leading-5" style={{ color: OS.text }}>{c.suggestion[lang]}</Text>
                                     </View>
                                 ) : null}
                             </View>
@@ -172,7 +172,7 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true }: 
             ) : null}
 
             <Card>
-                <Text className="font-outfit-bold text-xs px-4 pt-3.5" style={{ color: OS.text }}>{t(`${k}.manualHint`)}</Text>
+                <Text className="font-outfit-bold text-[13px] px-4 pt-3.5" style={{ color: OS.text }}>{t(`${k}.manualHint`)}</Text>
                 <View className="flex-row gap-2 px-4 pt-2 pb-3">
                     <TextInput
                         value={input}
@@ -196,14 +196,14 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true }: 
                         style={{ backgroundColor: OS.blueSoft, opacity: saving || !input.trim() ? 0.6 : 1 }}
                     >
                         {saving ? <ActivityIndicator size="small" color={OS.blue} /> : (
-                            <Text className="font-outfit-bold text-[12.5px]" style={{ color: OS.blue }}>{t(`${k}.add`)}</Text>
+                            <Text className="font-outfit-bold text-[13px]" style={{ color: OS.blue }}>{t(`${k}.add`)}</Text>
                         )}
                     </TouchableOpacity>
                 </View>
                 {inputError ? (
-                    <Text className="font-outfit-medium text-[11px] px-4 pb-3 -mt-1" style={{ color: OS.red }}>{inputError}</Text>
+                    <Text className="font-outfit-medium text-[13px] px-4 pb-3 -mt-1" style={{ color: OS.red }}>{inputError}</Text>
                 ) : null}
-                <Text className="font-outfit-bold text-xs px-4 pt-1" style={{ color: OS.text }}>{t(`${k}.vinHint`)}</Text>
+                <Text className="font-outfit-bold text-[13px] px-4 pt-1" style={{ color: OS.text }}>{t(`${k}.vinHint`)}</Text>
                 <View className="flex-row gap-2 px-4 pt-2 pb-3">
                     <TextInput
                         value={vin}
@@ -224,11 +224,11 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true }: 
                         className="justify-center px-3.5 rounded-xl"
                         style={{ backgroundColor: OS.blueSoft, opacity: saving || !vin.trim() ? 0.6 : 1 }}
                     >
-                        <Text className="font-outfit-bold text-[12.5px]" style={{ color: OS.blue }}>{t(`${k}.vinSave`)}</Text>
+                        <Text className="font-outfit-bold text-[13px]" style={{ color: OS.blue }}>{t(`${k}.vinSave`)}</Text>
                     </TouchableOpacity>
                 </View>
                 {vinError ? (
-                    <Text className="font-outfit-medium text-[11px] px-4 pb-3 -mt-1" style={{ color: OS.red }}>{vinError}</Text>
+                    <Text className="font-outfit-medium text-[13px] px-4 pb-3 -mt-1" style={{ color: OS.red }}>{vinError}</Text>
                 ) : null}
             </Card>
         </>

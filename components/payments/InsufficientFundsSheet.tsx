@@ -71,7 +71,7 @@ export function InsufficientFundsSheet({ visible, amount, wallet, cards, busy, o
                                     testID={`insufficient-funds-card-${card.id}`}
                                 >
                                     <Ionicons name="card-outline" size={20} color={AO.blue} />
-                                    <Text className="font-outfit-semibold" style={{ flex: 1, fontSize: 14.5, color: AO.text }}>{cardLabel(card)}</Text>
+                                    <Text className="font-outfit-semibold" style={{ flex: 1, fontSize: 15, color: AO.text }}>{cardLabel(card)}</Text>
                                     <Text className="font-outfit-bold" style={{ fontSize: 14, color: AO.blue }}>{formatMoney(amount)}</Text>
                                 </TouchableOpacity>
                             ))}
@@ -88,7 +88,7 @@ export function InsufficientFundsSheet({ visible, amount, wallet, cards, busy, o
                             </View>
                             <Text className="font-outfit-bold" style={{ flex: 1, fontSize: 17, color: AO.text }}>{t(`${K}.title`)}</Text>
                         </View>
-                        <Text className="font-outfit-regular" style={{ fontSize: 13.5, color: AO.muted, marginTop: 10, lineHeight: 19 }} testID="insufficient-funds-body">
+                        <Text className="font-outfit-regular" style={{ fontSize: 14, color: AO.muted, marginTop: 10, lineHeight: 19 }} testID="insufficient-funds-body">
                             {t(`${K}.body`, {
                                 amount: formatMoney(amount),
                                 available: formatMoney(wallet?.availableBalance ?? 0),
@@ -104,7 +104,7 @@ export function InsufficientFundsSheet({ visible, amount, wallet, cards, busy, o
                             accessibilityRole="button"
                         >
                             <Ionicons name="add-circle-outline" size={18} color="#fff" />
-                            <Text className="font-outfit-bold" style={{ fontSize: 14.5, color: '#fff' }}>{t(`${K}.addFunds`, { missing: formatMoney(missing) })}</Text>
+                            <Text className="font-outfit-bold" style={{ fontSize: 15, color: '#fff' }}>{t(`${K}.addFunds`, { missing: formatMoney(missing) })}</Text>
                         </TouchableOpacity>
                         {usable.length > 0 && (
                             <TouchableOpacity
@@ -115,7 +115,7 @@ export function InsufficientFundsSheet({ visible, amount, wallet, cards, busy, o
                                 accessibilityRole="button"
                             >
                                 <Ionicons name="card-outline" size={18} color={AO.blue} />
-                                <Text className="font-outfit-bold" style={{ fontSize: 14.5, color: AO.blue }}>{t(`${K}.payWithCard`)}</Text>
+                                <Text className="font-outfit-bold" style={{ fontSize: 15, color: AO.blue }}>{t(`${K}.payWithCard`)}</Text>
                             </TouchableOpacity>
                         )}
                         <TouchableOpacity onPress={onClose} className="items-center" style={{ paddingVertical: 12, marginTop: 4 }}>

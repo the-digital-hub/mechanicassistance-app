@@ -375,10 +375,10 @@ export default function ConfirmationScreen() {
                 >
                     <CheckCircle2 size={20} color="#FFFFFF" />
                     <View className="flex-1">
-                        <Text className="font-outfit-bold text-[11px] tracking-wide" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                        <Text className="font-outfit-bold text-[13px] tracking-wide" style={{ color: 'rgba(255,255,255,0.8)' }}>
                             {t('requestAssistance.confirmation.assistanceTypeLabel')}
                         </Text>
-                        <Text className="text-white font-outfit-semibold text-sm mt-0.5">{getTypeLabel()}</Text>
+                        <Text className="text-white font-outfit-bold text-[18px] mt-1">{getTypeLabel()}</Text>
                     </View>
                 </LinearGradient>
 
@@ -394,7 +394,7 @@ export default function ConfirmationScreen() {
                     }}
                 >
                     <View className="px-2.5 py-1 rounded-full mb-3" style={{ backgroundColor: '#1E56E3', alignSelf: 'flex-start' }}>
-                        <Text className="text-white font-outfit-bold text-[11px] tracking-widest">
+                        <Text className="text-white font-outfit-bold text-[13px] tracking-widest">
                             {t('requestAssistance.confirmation.priceLabel')}
                         </Text>
                     </View>
@@ -405,7 +405,7 @@ export default function ConfirmationScreen() {
                             {price != null ? `$${price.toFixed(2)}` : 'TBD'}
                         </Text>
                     )}
-                    <Text className="text-gray-500 font-outfit-regular text-xs mt-1.5">
+                    <Text className="text-gray-500 font-outfit-regular text-[14px] mt-1.5">
                         {t('requestAssistance.confirmation.priceDispatchNote')}
                     </Text>
                 </View>
@@ -436,7 +436,7 @@ export default function ConfirmationScreen() {
                         value={paymentLabel}
                         action={
                             <TouchableOpacity onPress={() => setCardPickerOpen(true)} hitSlop={8}>
-                                <Text className="font-outfit-bold text-[13px]" style={{ color: '#1E56E3' }}>
+                                <Text className="font-outfit-bold text-[14px]" style={{ color: '#1E56E3' }}>
                                     {t('requestAssistance.mechanicFound.change')}
                                 </Text>
                             </TouchableOpacity>
@@ -454,7 +454,7 @@ export default function ConfirmationScreen() {
                 <View style={{ backgroundColor: '#EFFAF3', borderRadius: 12, borderWidth: 1, borderColor: '#BFE8D0', paddingHorizontal: 16, paddingVertical: 14 }}>
                     <View className="flex-row items-center mb-3" style={{ gap: 8 }}>
                         <CheckCircle2 size={18} color="#1E9E5A" />
-                        <Text className="font-outfit-bold text-[13px]" style={{ color: '#0F6B3E' }}>
+                        <Text className="font-outfit-bold text-[14px]" style={{ color: '#0F6B3E' }}>
                             {t('requestAssistance.confirmation.includedTitle')}
                         </Text>
                     </View>
@@ -464,14 +464,14 @@ export default function ConfirmationScreen() {
                     ].map((item) => (
                         <View key={item} className="flex-row items-center mb-2" style={{ gap: 8 }}>
                             <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: '#1E9E5A' }} />
-                            <Text className="font-outfit-regular text-[13px]" style={{ color: '#3B7A57' }}>{item}</Text>
+                            <Text className="font-outfit-regular text-[14px]" style={{ color: '#3B7A57' }}>{item}</Text>
                         </View>
                     ))}
                 </View>
 
                 {/* Fees Info */}
                 <View style={{ backgroundColor: 'rgba(30,86,227,0.08)', borderRadius: 8, borderWidth: 1, borderColor: 'rgba(30,86,227,0.13)', paddingHorizontal: 16, paddingVertical: 12 }}>
-                    <Text className="font-outfit-medium text-xs" style={{ color: '#1E56E3', lineHeight: 19 }}>
+                    <Text className="font-outfit-medium text-[14px]" style={{ color: '#1E56E3', lineHeight: 19 }}>
                         {t('requestAssistance.confirmation.feesInfo')}
                     </Text>
                 </View>
@@ -492,7 +492,7 @@ export default function ConfirmationScreen() {
                     <View className="items-center">
                         <ActivityIndicator size="large" color="#0047AB" />
                         {uploadProgress ? (
-                            <Text className="text-gray-500 font-outfit-regular text-sm mt-2">{uploadProgress}</Text>
+                            <Text className="text-gray-500 font-outfit-regular text-[16px] mt-2">{uploadProgress}</Text>
                         ) : null}
                     </View>
                 ) : (
@@ -510,7 +510,7 @@ export default function ConfirmationScreen() {
                                 justifyContent: 'center',
                             }}
                         >
-                            <Text className="text-white font-outfit-bold text-center">{t('requestAssistance.confirmation.confirmAndRequest')}</Text>
+                            <Text className="text-white font-outfit-bold text-[18px] text-center">{t('requestAssistance.confirmation.confirmAndRequest')}</Text>
                         </LinearGradient>
                     </TouchableOpacity>
                 )}

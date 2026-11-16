@@ -86,7 +86,7 @@ export function DocumentUploadCard({
             style={{ backgroundColor: status.bg }}
           >
             <Text
-              className="font-outfit-bold text-[10px] tracking-widest"
+              className="font-outfit-bold text-[12px] tracking-widest"
               style={{ color: status.color }}
             >
               {t(status.key).toUpperCase()}
@@ -112,7 +112,7 @@ export function DocumentUploadCard({
               >
                 {document.originalName || document.fileKey}
               </Text>
-              <Text className="font-outfit-regular text-gray-400 text-xs mt-0.5">
+              <Text className="font-outfit-regular text-gray-400 text-[13px] mt-0.5">
                 {uploading
                   ? t('setup.legalDocs.uploading')
                   : t('setup.legalDocs.replace')}
@@ -124,14 +124,14 @@ export function DocumentUploadCard({
           {note && (
             <View className="flex-row items-start mt-2">
               <Info size={13} color="#0047AB" style={{ marginTop: 1 }} />
-              <Text className="font-outfit-regular text-[#0047AB] text-xs ml-1.5 flex-1">
+              <Text className="font-outfit-regular text-[#0047AB] text-[13px] ml-1.5 flex-1">
                 {note}
               </Text>
             </View>
           )}
 
           {document.declineReason && (
-            <Text className="font-outfit-regular text-red-500 text-xs mt-2">
+            <Text className="font-outfit-regular text-red-500 text-[13px] mt-2">
               {document.declineReason}
             </Text>
           )}
@@ -157,7 +157,7 @@ export function DocumentUploadCard({
           {uploading ? (
             <>
               <ActivityIndicator color="#0047AB" />
-              <Text className="text-gray-500 font-outfit-medium text-xs text-center mt-2">
+              <Text className="text-gray-500 font-outfit-medium text-[13px] text-center mt-2">
                 {t('setup.legalDocs.uploading')}
               </Text>
             </>
@@ -166,7 +166,7 @@ export function DocumentUploadCard({
               <View className="w-12 h-12 bg-blue-100 rounded-full justify-center items-center mb-2">
                 <Upload size={24} color="#0047AB" />
               </View>
-              <Text className="text-gray-500 font-outfit-medium text-xs text-center">
+              <Text className="text-gray-500 font-outfit-medium text-[13px] text-center">
                 {t('setup.legalDocs.dropzone')}
               </Text>
             </>
@@ -175,7 +175,7 @@ export function DocumentUploadCard({
       )}
 
       {error && (
-        <Text className="font-outfit-regular text-red-500 text-xs mt-2">
+        <Text className="font-outfit-regular text-red-500 text-[13px] mt-2">
           {error}
         </Text>
       )}

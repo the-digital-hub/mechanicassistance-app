@@ -37,7 +37,7 @@ const ClientSideMap = ({ appointment, emptyLabel }: { appointment: Appointment; 
         return (
             <View className="flex-1 items-center justify-center h-full">
                 <MapPin size={24} color="#9CA3AF" />
-                <Text className="text-gray-400 font-outfit-regular text-xs mt-1">{emptyLabel}</Text>
+                <Text className="text-gray-400 font-outfit-regular text-[13px] mt-1">{emptyLabel}</Text>
             </View>
         );
     }
@@ -99,13 +99,13 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
         >
             {/* Status banner */}
             <View className="px-3 py-3 items-center" style={{ backgroundColor: banner.bg }}>
-                <Text className="font-outfit-bold text-[10px] uppercase tracking-widest" style={{ color: banner.label }}>
+                <Text className="font-outfit-bold text-[12px] uppercase tracking-widest" style={{ color: banner.label }}>
                     {t('appointments.list.card.statusLabel')}
                 </Text>
                 <Text className="font-outfit-bold text-base uppercase" style={{ color: banner.title }}>
                     {t(`appointments.list.card.status.${state}`)}
                 </Text>
-                <Text className="font-outfit-medium text-xs" style={{ color: banner.hint }}>
+                <Text className="font-outfit-medium text-[13px]" style={{ color: banner.hint }}>
                     {t(`appointments.list.card.status.${state}Hint`)}
                 </Text>
             </View>
@@ -119,7 +119,7 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                     <Icon size={16} color="white" />
                     <Text className="text-white font-outfit-bold text-base">{t(typeBar.labelKey)}</Text>
                 </View>
-                <Text className="text-white/80 font-outfit-medium text-xs">{refLabel(appointment.refCode, appointment.id)}</Text>
+                <Text className="text-white/80 font-outfit-medium text-[13px]">{refLabel(appointment.refCode, appointment.id)}</Text>
             </View>
 
             <View className="p-4">
@@ -151,7 +151,7 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
                 <Text className="text-base font-outfit-bold text-gray-900 mb-1">{appointment.address}</Text>
                 <View className="flex-row items-center mb-4">
                     <MapPin size={12} color="#6B7280" />
-                    <Text className="text-gray-500 text-xs ml-1">{t('appointments.list.card.distanceNA')}</Text>
+                    <Text className="text-gray-500 text-[13px] ml-1">{t('appointments.list.card.distanceNA')}</Text>
                 </View>
                 </>
                 )}
@@ -200,7 +200,7 @@ export function AppointmentCard({ appointment, onCancel }: AppointmentCardProps)
 
                         <TouchableOpacity onPress={() => onCancel(appointment.id)} className="mt-4 items-center flex-row justify-center">
                             <Trash2 size={12} color="#9CA3AF" />
-                            <Text className="text-gray-400 font-outfit-medium text-xs ml-1">{t('appointments.list.card.cancelRequest')}</Text>
+                            <Text className="text-gray-400 font-outfit-medium text-[13px] ml-1">{t('appointments.list.card.cancelRequest')}</Text>
                         </TouchableOpacity>
                     </>
                 )}

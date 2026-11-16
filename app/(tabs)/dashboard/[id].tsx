@@ -233,7 +233,7 @@ export default function AssistDetailScreen() {
                                 seed={String(id)}
                                 height={200}
                             />
-                            <Text className="font-outfit-medium text-[11px] mt-1.5" style={{ color: '#8C96AE' }}>
+                            <Text className="font-outfit-medium text-[13px] mt-1.5" style={{ color: '#8C96AE' }}>
                                 {t('appointments.list.card.approximateArea')}
                             </Text>
                         </View>
@@ -307,7 +307,7 @@ export default function AssistDetailScreen() {
                         <Text className="text-white font-outfit-bold text-lg">{t('requestDetail.acceptRequest')}</Text>
                     </TouchableOpacity>
 
-                    <Text className="text-center text-[10px] text-gray-400 mt-4">
+                    <Text className="text-center text-[13px] text-gray-400 mt-4">
                         {t('dashboardDetail.posted', { date: '07/07/2026 - 03:15 AM' })}{'\n'}{t('dashboardDetail.idLabel', { id: '34532-2384-33327' })}
                     </Text>
                 </View>

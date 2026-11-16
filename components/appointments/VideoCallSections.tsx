@@ -27,7 +27,7 @@ export function VideoCallWhenCard({ date, startNow }: { date?: string | null; st
                 <Ionicons name="calendar-outline" size={19} color={AO.blue} />
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>
-                <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 0.8, color: AO.muted }}>{booked ? t(`${K}.scheduledFor`).toUpperCase() : t('requestDetail.videoCallWhen')}</Text>
+                <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 0.8, color: AO.muted }}>{booked ? t(`${K}.scheduledFor`).toUpperCase() : t('requestDetail.videoCallWhen')}</Text>
                 <Text className="font-outfit-bold" style={{ fontSize: 15, color: AO.text, marginTop: 2 }}>{label}</Text>
             </View>
         </View>
@@ -97,8 +97,8 @@ function InfoCard({ icon, tone, title, body, children, testID }: {
 function NoteBlock({ label, text }: { label: string; text: string }) {
     return (
         <View style={{ marginTop: 12, padding: 12, borderRadius: 12, backgroundColor: AO.blueSofter }}>
-            <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 0.8, color: AO.muted }}>{label.toUpperCase()}</Text>
-            <Text className="font-outfit-regular" style={{ fontSize: 13.5, color: AO.text, lineHeight: 19, marginTop: 4 }}>{text}</Text>
+            <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 0.8, color: AO.muted }}>{label.toUpperCase()}</Text>
+            <Text className="font-outfit-regular" style={{ fontSize: 14, color: AO.text, lineHeight: 19, marginTop: 4 }}>{text}</Text>
         </View>
     );
 }
@@ -110,7 +110,7 @@ function DeadlineLine({ deadline }: { deadline: string | null }) {
     return (
         <View className="flex-row items-center" style={{ gap: 6, marginTop: 12 }}>
             <Ionicons name="time-outline" size={14} color={AO.muted} />
-            <Text className="font-outfit-medium" style={{ flex: 1, fontSize: 12.5, color: AO.muted }}>{t(`${K}.confirmsAutomatically`, { date: when })}</Text>
+            <Text className="font-outfit-medium" style={{ flex: 1, fontSize: 13, color: AO.muted }}>{t(`${K}.confirmsAutomatically`, { date: when })}</Text>
         </View>
     );
 }
@@ -138,7 +138,7 @@ export function OwnerVideoCallStatusCard({ state, mechanicName, busy, onConfirm,
                         style={{ flex: 0.45, borderRadius: 10, paddingVertical: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F3F4F6' }}
                         testID="owner-video-not-resolved"
                     >
-                        <Text className="font-outfit-bold" style={{ fontSize: 13.5, color: AO.red }}>{t(`${k}.notResolved`)}</Text>
+                        <Text className="font-outfit-bold" style={{ fontSize: 14, color: AO.red }}>{t(`${k}.notResolved`)}</Text>
                     </TouchableOpacity>
                     <View style={{ flex: 0.55 }}>
                         <GradientButton label={t(`${k}.confirm`)} onPress={onConfirm} loading={busy} colors={['#10B981', '#047857']} testID="owner-video-confirm" />
@@ -236,7 +236,7 @@ export function NoteSheet({ visible, title, body, placeholder, confirmLabel, min
                         testID="note-sheet-input"
                     />
                     {minLength > 0 && (
-                        <Text className="font-outfit-regular" style={{ fontSize: 11.5, color: tooShort ? AO.mutedLight : AO.greenText, marginTop: 6, textAlign: 'right' }}>
+                        <Text className="font-outfit-regular" style={{ fontSize: 13, color: tooShort ? AO.mutedLight : AO.greenText, marginTop: 6, textAlign: 'right' }}>
                             {t(`${K}.minChars`, { count: minLength, current: trimmed.length })}
                         </Text>
                     )}

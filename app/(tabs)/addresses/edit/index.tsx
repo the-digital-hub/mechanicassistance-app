@@ -390,7 +390,7 @@ export default function EditAddressScreen() {
                                             }`}>
                                                 {option.label}
                                             </Text>
-                                            <Text className="text-gray-600 font-outfit-regular text-xs mt-1">
+                                            <Text className="text-gray-600 font-outfit-regular text-[13px] mt-1">
                                                 {option.description}
                                             </Text>
                                         </View>

@@ -12,13 +12,13 @@ export function QuoteDetails({ description }: { description?: string | null }) {
         <>
             {text ? (
                 <View style={{ ...CARD_STYLE, padding: 14, gap: 4 }}>
-                    <Text className="font-outfit-bold" style={{ fontSize: 11, letterSpacing: 1.2, color: SC.muted }}>{t('scheduledOffers.detail.description')}</Text>
+                    <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1.2, color: SC.muted }}>{t('scheduledOffers.detail.description')}</Text>
                     <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: SC.text }}>{text}</Text>
                 </View>
             ) : null}
             {items.length ? (
                 <View style={{ ...CARD_STYLE, padding: 14, gap: 12 }}>
-                    <Text className="font-outfit-bold" style={{ fontSize: 11, letterSpacing: 1.2, color: SC.muted }}>{t('scheduledOffers.detail.services')}</Text>
+                    <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1.2, color: SC.muted }}>{t('scheduledOffers.detail.services')}</Text>
                     {items.map((item, i) => (
                         <View key={i} style={{ gap: 2 }}>
                             <View className="flex-row items-center justify-between" style={{ gap: 12 }}>
@@ -28,14 +28,14 @@ export function QuoteDetails({ description }: { description?: string | null }) {
                                 </Text>
                             </View>
                             {item.quoted && (item.labor !== null || item.parts !== null) ? (
-                                <Text className="font-outfit-regular" style={{ fontSize: 12.5, color: SC.muted }}>
+                                <Text className="font-outfit-regular" style={{ fontSize: 13, color: SC.muted }}>
                                     {[
                                         item.labor !== null ? `${t('scheduledOffers.detail.labor')} ${money(item.labor)}` : null,
                                         item.parts !== null ? `${t('scheduledOffers.detail.partsLine')} ${money(item.parts)}` : null,
                                     ].filter(Boolean).join(' · ')}
                                 </Text>
                             ) : null}
-                            {item.notes ? <Text className="font-outfit-regular" style={{ fontSize: 12.5, color: SC.muted }}>{item.notes}</Text> : null}
+                            {item.notes ? <Text className="font-outfit-regular" style={{ fontSize: 13, color: SC.muted }}>{item.notes}</Text> : null}
                         </View>
                     ))}
                 </View>

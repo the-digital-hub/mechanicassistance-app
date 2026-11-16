@@ -328,7 +328,7 @@ export default function RequestDetailScreen() {
                                 <Text className="font-outfit-bold text-lg text-gray-900" numberOfLines={1}>{serviceLabel}</Text>
                                 {isUrgent && (
                                     <View className="px-2 py-0.5 rounded-md" style={{ backgroundColor: '#FEE2E2' }}>
-                                        <Text className="font-outfit-bold text-[11px] tracking-widest" style={{ color: '#EF4444' }}>{t('requestDetail.urgent')}</Text>
+                                        <Text className="font-outfit-bold text-[12px] tracking-widest" style={{ color: '#EF4444' }}>{t('requestDetail.urgent')}</Text>
                                     </View>
                                 )}
                             </View>
@@ -420,7 +420,7 @@ export default function RequestDetailScreen() {
                                     seed={String(id)}
                                     height={160}
                                 />
-                                <Text className="font-outfit-medium text-[11px] mt-1.5" style={{ color: '#8C96AE' }}>
+                                <Text className="font-outfit-medium text-[13px] mt-1.5" style={{ color: '#8C96AE' }}>
                                     {t('appointments.list.card.approximateArea')}
                                 </Text>
                             </View>
@@ -438,7 +438,7 @@ export default function RequestDetailScreen() {
                                 <Text className="font-outfit-bold text-lg text-gray-900">
                                     {videoCallStartLabel(typeof date === 'string' ? date : undefined, i18n.language) ?? t('requestDetail.videoCallNow')}
                                 </Text>
-                                <Text className="font-outfit-regular text-xs text-gray-600 mt-0.5" testID="video-call-duration">
+                                <Text className="font-outfit-regular text-[13px] text-gray-600 mt-0.5" testID="video-call-duration">
                                     {t('requestDetail.videoCallDuration', { count: callMinutes })}
                                 </Text>
                             </View>

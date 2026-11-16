@@ -69,7 +69,7 @@ export function PayoutAccountCard({
                                         borderColor: ready ? '#86EFAC' : '#FCD34D',
                                     }}
                                 >
-                                    <Text className="font-outfit-bold text-[10px] tracking-widest" style={{ color: ready ? '#15803D' : '#B45309' }}>
+                                    <Text className="font-outfit-bold text-[12px] tracking-widest" style={{ color: ready ? '#15803D' : '#B45309' }}>
                                         {ready ? t(`${K}.connected`) : t(`${K}.notReady`)}
                                     </Text>
                                 </View>
@@ -89,7 +89,7 @@ export function PayoutAccountCard({
             </View>
 
             {!ready && status !== null && (
-                <Text className="text-gray-500 font-outfit-regular text-xs mt-3">{t(`${K}.keepsAccruing`)}</Text>
+                <Text className="text-gray-500 font-outfit-regular text-[13px] mt-3">{t(`${K}.keepsAccruing`)}</Text>
             )}
 
             {status !== null &&

@@ -89,7 +89,7 @@ export function VideoCallTimerCard({ startedAtMs, limitSeconds = VIDEO_SESSION_S
                         >
                             {formatElapsed(remaining)}
                         </Text>
-                        <Text className="font-outfit-bold" style={{ fontSize: 10, color: AO.muted, marginTop: 3 }} testID="video-call-timer-label">
+                        <Text className="font-outfit-bold" style={{ fontSize: 13, color: AO.muted, marginTop: 3 }} testID="video-call-timer-label">
                             {t(tone === 'over' ? `${K}.timeUp` : `${K}.remaining`)}
                         </Text>
                     </View>
@@ -98,7 +98,7 @@ export function VideoCallTimerCard({ startedAtMs, limitSeconds = VIDEO_SESSION_S
                 <View style={{ flex: 1, minWidth: 0 }}>
                     <View className="flex-row items-center" style={{ alignSelf: 'flex-start', gap: 6, paddingHorizontal: 9, paddingVertical: 3, borderRadius: 100, backgroundColor: bg }}>
                         <PulseDot color={fg} size={6} />
-                        <Text className="font-outfit-bold" style={{ fontSize: 10, letterSpacing: 1, color: fg }}>
+                        <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1, color: fg }}>
                             {t(`${K}.inProgress`).toUpperCase()}
                         </Text>
                     </View>
@@ -111,7 +111,7 @@ export function VideoCallTimerCard({ startedAtMs, limitSeconds = VIDEO_SESSION_S
                     </Text>
                     {addedMinutes > 0 && (
                         <View style={{ alignSelf: 'flex-start', marginTop: 8, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 100, backgroundColor: AO.greenSoft }}>
-                            <Text className="font-outfit-bold" style={{ fontSize: 10.5, color: AO.greenText }} testID="video-call-timer-added">
+                            <Text className="font-outfit-bold" style={{ fontSize: 13, color: AO.greenText }} testID="video-call-timer-added">
                                 {t(`${K}.added`, { minutes: addedMinutes })}
                             </Text>
                         </View>

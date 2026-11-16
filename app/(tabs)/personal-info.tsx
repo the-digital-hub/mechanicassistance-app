@@ -214,14 +214,14 @@ export default function PersonalInfoScreen() {
                         </View>
                         {!isUploadingPhoto && (
                             <View className="absolute bottom-0 right-0 bg-blue-100 p-1.5 rounded-full border border-white">
-                                <Text className="text-xs">✏️</Text>
+                                <Text className="text-[13px]">✏️</Text>
                             </View>
                         )}
                     </TouchableOpacity>
-                    <Text className="text-gray-500 font-outfit-regular mt-2 text-xs">{t('personalInfo.tapToChangePhoto')}</Text>
+                    <Text className="text-gray-500 font-outfit-regular mt-2 text-[13px]">{t('personalInfo.tapToChangePhoto')}</Text>
                     {!!user?.refCode && (
                         // Selectable, so a long press copies it to read out or paste to support.
-                        <Text selectable className="text-gray-400 font-outfit-regular mt-3 text-xs" testID="personal-info-reference">
+                        <Text selectable className="text-gray-400 font-outfit-regular mt-3 text-[13px]" testID="personal-info-reference">
                             {t('personalInfo.reference')}: <Text className="font-outfit-semibold text-gray-600">{user.refCode}</Text>
                         </Text>
                     )}

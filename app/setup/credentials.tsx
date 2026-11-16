@@ -106,11 +106,11 @@ export default function CredentialsScreen() {
             <View className="mb-6">
                 <View className="flex-row items-center mb-4">
                     <View className="bg-blue-600 rounded-full w-10 h-10 items-center justify-center mr-2">
-                        <Text className="text-white font-bold text-xs">ASE</Text>
+                        <Text className="text-white font-bold text-[13px]">ASE</Text>
                     </View>
                     <View>
-                        <Text className="font-bold text-xs text-gray-800">{t('setup.credentials.instituteLine1')}</Text>
-                        <Text className="font-bold text-xs text-gray-800 uppercase">{t('setup.credentials.instituteLine2')}</Text>
+                        <Text className="font-bold text-[13px] text-gray-800">{t('setup.credentials.instituteLine1')}</Text>
+                        <Text className="font-bold text-[13px] text-gray-800 uppercase">{t('setup.credentials.instituteLine2')}</Text>
                     </View>
                 </View>
 
@@ -172,7 +172,7 @@ export default function CredentialsScreen() {
                         </Text>
                     </TouchableOpacity>
 
-                    <Text className="text-gray-400 font-outfit-regular text-xs text-center mt-2">
+                    <Text className="text-gray-400 font-outfit-regular text-[13px] text-center mt-2">
                         {t('setup.credentials.skipHint')}
                     </Text>
                 </View>
@@ -190,7 +190,7 @@ export default function CredentialsScreen() {
                                     <Text className="font-outfit-bold text-[#0F172A] mb-1">
                                         {cert.code}{cert.name ? ` - ${cert.name}` : ''}
                                     </Text>
-                                    <Text className="text-blue-400 text-xs">
+                                    <Text className="text-blue-400 text-[13px]">
                                         {t('setup.credentials.expiration', { date: formatExpiration(cert.expirationDate) })}
                                     </Text>
                                 </View>

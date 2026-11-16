@@ -193,7 +193,7 @@ export function MechanicStatusTab({
                     className="border border-dashed border-blue-300 bg-white p-6 rounded-xl items-center justify-center mb-6"
                 >
                     <Ionicons name="cloud-upload-outline" size={24} color="#3B82F6" />
-                    <Text className="text-blue-500 font-outfit-medium text-xs mt-2 text-center">Click here{'\n'}to upload images / auto scanner report</Text>
+                    <Text className="text-blue-500 font-outfit-medium text-[13px] mt-2 text-center">Click here{'\n'}to upload images / auto scanner report</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity

@@ -64,7 +64,7 @@ export function CheckInCodeCard({ appointmentId, status }: { appointmentId: stri
                 </View>
                 <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#0B1530', letterSpacing: -0.3 }}>{t('appointments.customerCheckIn.title')}</Text>
             </View>
-            <Text className="font-outfit-regular" style={{ fontSize: 12.5, color: '#6B7490', lineHeight: 18, marginTop: 8 }}>
+            <Text className="font-outfit-regular" style={{ fontSize: 13, color: '#6B7490', lineHeight: 18, marginTop: 8 }}>
                 {t('appointments.customerCheckIn.subtitle')}
             </Text>
 
@@ -73,13 +73,13 @@ export function CheckInCodeCard({ appointmentId, status }: { appointmentId: stri
                     <ActivityIndicator color="#1E56E3" />
                 </View>
             ) : state === 'error' || !code ? (
-                <Text className="font-outfit-medium text-xs mt-4" style={{ color: '#E53E3E' }}>{t('appointments.customerCheckIn.unavailable')}</Text>
+                <Text className="font-outfit-medium text-[13px] mt-4" style={{ color: '#E53E3E' }}>{t('appointments.customerCheckIn.unavailable')}</Text>
             ) : (
                 <View className="items-center">
                     <View style={{ marginTop: 16, padding: 12, borderRadius: 16, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E4EAF5' }}>
                         <QRCode value={code.qrPayload} size={184} color="#0B1530" backgroundColor="#FFFFFF" />
                     </View>
-                    <Text className="font-outfit-bold" style={{ marginTop: 14, fontSize: 11, letterSpacing: 1.4, color: '#8C96AE' }}>{t('appointments.customerCheckIn.pin')}</Text>
+                    <Text className="font-outfit-bold" style={{ marginTop: 14, fontSize: 12, letterSpacing: 1.4, color: '#8C96AE' }}>{t('appointments.customerCheckIn.pin')}</Text>
                     <View className="flex-row" style={{ gap: 8, marginTop: 6 }} testID="check-in-pin-value" accessibilityLabel={code.pin}>
                         {code.pin.split('').map((digit, i) => (
                             <View key={i} style={{ width: 46, height: 54, borderRadius: 12, backgroundColor: '#F4F8FF', borderWidth: 1, borderColor: '#EAF1FF', alignItems: 'center', justifyContent: 'center' }}>

@@ -69,7 +69,7 @@ export function CallTimeWarningBanner({ visible, isOwner, top = 12, onPress, onD
                     }}
                 >
                     <Ionicons name="time-outline" size={18} color="#FFFFFF" />
-                    <Text className="font-outfit-bold" style={{ flexShrink: 1, fontSize: 13.5, color: '#FFFFFF' }} testID="call-time-warning-text">
+                    <Text className="font-outfit-bold" style={{ flexShrink: 1, fontSize: 14, color: '#FFFFFF' }} testID="call-time-warning-text">
                         {t(isOwner ? `${K}.warnOwner` : `${K}.warnMechanic`)}
                     </Text>
                 </Pressable>

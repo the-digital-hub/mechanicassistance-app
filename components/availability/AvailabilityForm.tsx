@@ -608,13 +608,13 @@ export function AvailabilityForm({
 
               {/* Tick labels */}
               <View className="flex-row justify-between mt-1 mb-4">
-                <Text className="text-[#94A3B8] font-outfit-regular text-xs">
+                <Text className="text-[#94A3B8] font-outfit-regular text-[13px]">
                   {t('setup.availability.milesAbbr', { count: 1 })}
                 </Text>
-                <Text className="text-[#94A3B8] font-outfit-regular text-xs">
+                <Text className="text-[#94A3B8] font-outfit-regular text-[13px]">
                   {t('setup.availability.milesAbbr', { count: 25 })}
                 </Text>
-                <Text className="text-[#94A3B8] font-outfit-regular text-xs">
+                <Text className="text-[#94A3B8] font-outfit-regular text-[13px]">
                   {t('setup.availability.milesAbbr', { count: 50 })}
                 </Text>
               </View>
@@ -624,7 +624,7 @@ export function AvailabilityForm({
                 <View className="flex-row items-center gap-3 flex-1 mr-3">
                   <Ionicons name="globe-outline" size={18} color="#0047AB" />
                   <View className="flex-1">
-                    <Text className="text-[#94A3B8] font-outfit-medium text-[10px] uppercase tracking-widest mb-0.5">
+                    <Text className="text-[#94A3B8] font-outfit-medium text-[12px] uppercase tracking-widest mb-0.5">
                       {t('setup.availability.baseLocation')}
                     </Text>
                     <Text

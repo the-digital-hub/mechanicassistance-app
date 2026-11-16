@@ -85,7 +85,7 @@ export default function ObdScannerScreen() {
                 </View>
                 <View style={{ flex: 1 }}>
                     <Text className="font-outfit-bold" style={{ fontSize: 15, color: C.ink }}>{title}</Text>
-                    <Text className="font-outfit-regular" style={{ fontSize: 13, color: C.muted, marginTop: 2 }}>{subtitle}</Text>
+                    <Text className="font-outfit-regular" style={{ fontSize: 15, color: C.muted, marginTop: 2 }}>{subtitle}</Text>
                 </View>
                 <View
                     style={{
@@ -121,7 +121,7 @@ export default function ObdScannerScreen() {
                     {t(`${k}.headerTitle`)}
                 </Text>
                 <TouchableOpacity onPress={skip} testID="obd-scanner-skip" className="w-10 items-end">
-                    <Text className="font-outfit-semibold" style={{ fontSize: 13, color: C.blue }}>{t(`${k}.skip`)}</Text>
+                    <Text className="font-outfit-semibold" style={{ fontSize: 15, color: C.blue }}>{t(`${k}.skip`)}</Text>
                 </TouchableOpacity>
             </View>
 
@@ -147,9 +147,9 @@ export default function ObdScannerScreen() {
                             {STEPS.map((step, i) => (
                                 <View key={step} style={{ flexDirection: 'row', gap: 10, alignItems: 'flex-start' }}>
                                     <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: C.blueSoft, alignItems: 'center', justifyContent: 'center' }}>
-                                        <Text className="font-outfit-bold" style={{ fontSize: 12, color: C.blue }}>{i + 1}</Text>
+                                        <Text className="font-outfit-bold" style={{ fontSize: 13, color: C.blue }}>{i + 1}</Text>
                                     </View>
-                                    <Text className="font-outfit-regular" style={{ flex: 1, fontSize: 13.5, color: C.muted, lineHeight: 19 }}>
+                                    <Text className="font-outfit-regular" style={{ flex: 1, fontSize: 15, color: C.muted, lineHeight: 19 }}>
                                         {t(`${k}.steps.${step}`)}
                                     </Text>
                                 </View>
@@ -166,7 +166,7 @@ export default function ObdScannerScreen() {
                                 existingFileName={obdFile ? obdFile.name ?? obdFile.uri.split('/').pop() : undefined}
                             />
                         </View>
-                        <Text className="font-outfit-regular" style={{ fontSize: 12, color: C.muted, lineHeight: 17 }}>
+                        <Text className="font-outfit-regular" style={{ fontSize: 13, color: C.muted, lineHeight: 17 }}>
                             {t(`${k}.privacy`)}
                         </Text>
                     </>
@@ -183,11 +183,11 @@ export default function ObdScannerScreen() {
                             end={{ x: 1, y: 0 }}
                             style={{ borderRadius: 12, paddingVertical: 16, alignItems: 'center' }}
                         >
-                            <Text className="text-white font-outfit-bold" style={{ fontSize: 16 }}>{cta}</Text>
+                            <Text className="text-white font-outfit-bold" style={{ fontSize: 18 }}>{cta}</Text>
                         </LinearGradient>
                     ) : (
                         <View style={{ borderRadius: 12, paddingVertical: 16, alignItems: 'center', backgroundColor: '#B9C0CF' }}>
-                            <Text className="text-white font-outfit-bold" style={{ fontSize: 16 }}>{cta}</Text>
+                            <Text className="text-white font-outfit-bold" style={{ fontSize: 18 }}>{cta}</Text>
                         </View>
                     )}
                 </TouchableOpacity>

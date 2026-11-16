@@ -184,11 +184,11 @@ export default function SelectVehicleScreen() {
                                     placeholder={t('requestAssistance.vehicleDetails.mileagePlaceholder')}
                                     maxLength={9}
                                 />
-                                <Text className="font-outfit-regular" style={{ fontSize: 12, color: SC.muted, marginTop: 6 }}>{t('scheduled.vehicle.mileageHint')}</Text>
+                                <Text className="font-outfit-regular" style={{ fontSize: 13, color: SC.muted, marginTop: 6 }}>{t('scheduled.vehicle.mileageHint')}</Text>
                             </View>
 
                             <View>
-                                <FieldLabel>{t('requestAssistance.vehicleDetails.whoIsInVehicle')}</FieldLabel>
+                                <Text className="font-outfit-bold" style={{ fontSize: 17, lineHeight: 22, color: SC.text, marginBottom: 10 }}>{t('requestAssistance.vehicleDetails.whoIsInVehicle')}</Text>
                                 <View className="flex-row" style={{ gap: 8, marginBottom: isOwner ? 0 : 12 }}>
                                     <Chip on={isOwner} onPress={() => setIsOwner(true)}>{t('requestAssistance.vehicleDetails.iAm')}</Chip>
                                     <Chip on={!isOwner} onPress={() => setIsOwner(false)}>{t('requestAssistance.vehicleDetails.someoneElse')}</Chip>
@@ -211,7 +211,7 @@ export default function SelectVehicleScreen() {
                                         </View>
                                     </View>
                                 ) : (
-                                    <Text className="font-outfit-regular" style={{ fontSize: 12, color: SC.muted, marginTop: 6 }}>{t('requestAssistance.vehicleDetails.hintOwner')}</Text>
+                                    <Text className="font-outfit-regular" style={{ fontSize: 13, color: SC.muted, marginTop: 6 }}>{t('requestAssistance.vehicleDetails.hintOwner')}</Text>
                                 )}
                             </View>
                         </>

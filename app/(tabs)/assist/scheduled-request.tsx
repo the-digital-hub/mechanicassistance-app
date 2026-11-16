@@ -268,12 +268,12 @@ export default function ScheduledRequestScreen() {
                 >
                     <View style={{ ...CARD_STYLE, alignSelf: 'stretch', padding: 14 }}>
                         <View className="flex-row items-center justify-between">
-                            <Text className="font-outfit-bold" style={{ fontSize: 11, letterSpacing: 1.2, color: SC.muted }}>{t('scheduledProvider.sent.yourQuote')}</Text>
+                            <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1.2, color: SC.muted }}>{t('scheduledProvider.sent.yourQuote')}</Text>
                             <Pill bg={SC.amberSoft} fg={SC.amberText}>{t('scheduledProvider.sent.waiting')}</Pill>
                         </View>
                         <Text className="font-outfit-bold" style={{ fontSize: 28, letterSpacing: -0.8, color: SC.blueDark, marginTop: 6 }}>{money(sentPrice)}</Text>
                         {sentSplit.items.length > 0 ? (
-                            <Text className="font-outfit-regular" style={{ fontSize: 12.5, color: SC.muted, marginTop: 2 }}>
+                            <Text className="font-outfit-regular" style={{ fontSize: 13, color: SC.muted, marginTop: 2 }}>
                                 {t('scheduledProvider.sent.servicesCount', { quoted: sentSplit.items.filter((i) => i.quoted && i.name !== 'Travel fee').length, total: sentSplit.items.filter((i) => i.name !== 'Travel fee').length })}
                             </Text>
                         ) : null}
@@ -281,9 +281,9 @@ export default function ScheduledRequestScreen() {
                     <View style={{ alignSelf: 'stretch', borderRadius: 18, backgroundColor: SC.blueSoft, padding: 14 }} className="flex-row items-center">
                         <View className="items-center justify-center" style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: '#FFFFFF', marginRight: 12 }}><Clock size={18} color={SC.blue} /></View>
                         <View className="flex-1">
-                            <Text className="font-outfit-bold" style={{ fontSize: 11, letterSpacing: 0.9, color: SC.blue }}>{t('scheduledProvider.sent.decidesBy')}</Text>
+                            <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 0.9, color: SC.blue }}>{t('scheduledProvider.sent.decidesBy')}</Text>
                             <Text className="font-outfit-bold" style={{ fontSize: 17, letterSpacing: -0.3, color: SC.blueDark, marginTop: 2 }}>{closesLabel}</Text>
-                            <Text className="font-outfit-semibold" style={{ fontSize: 12.5, color: SC.muted, marginTop: 3 }}>{t('scheduledProvider.expired.request')} #{request.id.slice(0, 8).toUpperCase()}</Text>
+                            <Text className="font-outfit-semibold" style={{ fontSize: 13, color: SC.muted, marginTop: 3 }}>{t('scheduledProvider.expired.request')} #{request.id.slice(0, 8).toUpperCase()}</Text>
                         </View>
                     </View>
                     <KV rows={[[t('scheduledProvider.sentRows.arrival'), slotOf(mine?.proposedStart)], [t('scheduledProvider.sentRows.warranty'), mine?.warrantyDays ? t('scheduledProvider.days', { count: mine.warrantyDays }) : '—']]} />
@@ -351,7 +351,7 @@ export default function ScheduledRequestScreen() {
                             </View>
 
                             <View style={{ paddingHorizontal: 4 }}>
-                                <Text className="font-outfit-bold" style={{ fontSize: 11, letterSpacing: 1.2, color: SC.muted }}>{t('scheduledProvider.quote.servicesPrices')}</Text>
+                                <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1.2, color: SC.muted }}>{t('scheduledProvider.quote.servicesPrices')}</Text>
                                 <Text className="font-outfit-regular" style={{ fontSize: 13, lineHeight: 19, color: SC.muted, marginTop: 4 }}>{t('scheduledProvider.quote.servicesHint')}</Text>
                             </View>
                             {q.lines.map((l, i) => (
@@ -359,12 +359,12 @@ export default function ScheduledRequestScreen() {
                                     <View className="flex-row items-center" style={{ gap: 12 }}>
                                         <View className="flex-1">
                                             <Text className="font-outfit-bold" style={{ fontSize: 15, color: l.on ? SC.text : SC.muted }}>{l.name}</Text>
-                                            <Text className="font-outfit-regular" style={{ fontSize: 12, color: SC.muted, marginTop: 2 }}>{l.on ? t('scheduledProvider.quote.canDo') : t('scheduledProvider.quote.cantDo')}</Text>
+                                            <Text className="font-outfit-regular" style={{ fontSize: 13, color: SC.muted, marginTop: 2 }}>{l.on ? t('scheduledProvider.quote.canDo') : t('scheduledProvider.quote.cantDo')}</Text>
                                         </View>
                                         <Switch on={l.on} label={t('scheduledProvider.quote.quoteService', { name: l.name })} onChange={(on) => setLine(i, { on })} />
                                     </View>
                                     {notes.serviceNotes[l.name] ? (
-                                        <Text className="font-outfit-regular" style={{ fontSize: 12.5, lineHeight: 18, color: SC.muted, marginTop: 10, padding: 10, borderRadius: 10, backgroundColor: SC.blueSofter }}>{t('scheduledProvider.customerNote', { note: notes.serviceNotes[l.name] })}</Text>
+                                        <Text className="font-outfit-regular" style={{ fontSize: 13, lineHeight: 18, color: SC.muted, marginTop: 10, padding: 10, borderRadius: 10, backgroundColor: SC.blueSofter }}>{t('scheduledProvider.customerNote', { note: notes.serviceNotes[l.name] })}</Text>
                                     ) : null}
                                     {l.on ? <View style={{ marginTop: 12 }}>{money2(l.price, (price) => setLine(i, { price }), t('scheduledProvider.quote.priceOf', { name: l.name }))}</View> : null}
                                 </View>
@@ -378,7 +378,7 @@ export default function ScheduledRequestScreen() {
                                 <View className="flex-row items-center" style={{ gap: 12, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: SC.borderSoft }}>
                                     <View className="flex-1">
                                         <Text className="font-outfit-bold" style={{ fontSize: 14, color: SC.text }}>{t('scheduledProvider.quote.parts')}</Text>
-                                        <Text className="font-outfit-regular" style={{ fontSize: 12, color: SC.muted, marginTop: 2 }}>{t('scheduledProvider.quote.partsHint')}</Text>
+                                        <Text className="font-outfit-regular" style={{ fontSize: 13, color: SC.muted, marginTop: 2 }}>{t('scheduledProvider.quote.partsHint')}</Text>
                                     </View>
                                     <Switch on={q.partsIncluded} label={t('scheduledProvider.quote.parts')} onChange={(partsIncluded) => patch({ partsIncluded })} />
                                 </View>
@@ -391,7 +391,7 @@ export default function ScheduledRequestScreen() {
                             <SectionLabel>{t('scheduledProvider.quote.arriveTitle')}</SectionLabel>
                             <View style={{ ...CARD_STYLE, padding: 14 }}>
                                 <View style={{ marginBottom: 14, padding: 12, borderRadius: 14, backgroundColor: SC.blueSofter, gap: 8 }}>
-                                    <Text className="font-outfit-bold" style={{ fontSize: 11, letterSpacing: 0.8, color: SC.muted }}>{t('scheduledProvider.quote.customerAvailable')}</Text>
+                                    <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 0.8, color: SC.muted }}>{t('scheduledProvider.quote.customerAvailable')}</Text>
                                     <View className="flex-row items-center" style={{ gap: 10 }}>
                                         <IconBox icon={Calendar} size={30} />
                                         <Text className="font-outfit-bold flex-1" style={{ fontSize: 15, color: SC.text }}>{whenLabel || '—'}</Text>
@@ -405,11 +405,11 @@ export default function ScheduledRequestScreen() {
                                 </View>
                                 <Text className="font-outfit-bold" style={{ fontSize: 15, color: SC.text }}>{t('scheduledProvider.quote.setArrival')}</Text>
                                 <Text className="font-outfit-regular" style={{ fontSize: 13, lineHeight: 19, color: SC.muted, marginTop: 3, marginBottom: 14 }}>{t('scheduledProvider.quote.setArrivalHint')}</Text>
-                                <Text className="font-outfit-bold" style={{ fontSize: 12, color: SC.muted, marginBottom: 8 }}>{t('scheduledProvider.quote.day')}</Text>
+                                <Text className="font-outfit-bold" style={{ fontSize: 13, color: SC.muted, marginBottom: 8 }}>{t('scheduledProvider.quote.day')}</Text>
                                 <Chips>{days.map((d) => <ChipBtn key={d} on={q.day === d} onPress={() => patch({ day: d })}>{dayLabel(d)}</ChipBtn>)}</Chips>
-                                <Text className="font-outfit-bold" style={{ fontSize: 12, color: SC.muted, marginTop: 14, marginBottom: 8 }}>{t('scheduledProvider.quote.arrivalTime')}</Text>
+                                <Text className="font-outfit-bold" style={{ fontSize: 13, color: SC.muted, marginTop: 14, marginBottom: 8 }}>{t('scheduledProvider.quote.arrivalTime')}</Text>
                                 <Chips>{times.map((m) => <ChipBtn key={m} on={q.time === m} onPress={() => patch({ time: m })}>{formatMinutes(m)}</ChipBtn>)}</Chips>
-                                <Text className="font-outfit-bold" style={{ fontSize: 12, color: SC.muted, marginTop: 14, marginBottom: 8 }}>{t('scheduledProvider.quote.duration')}</Text>
+                                <Text className="font-outfit-bold" style={{ fontSize: 13, color: SC.muted, marginTop: 14, marginBottom: 8 }}>{t('scheduledProvider.quote.duration')}</Text>
                                 <Chips>{DURATIONS.map((d) => <ChipBtn key={d.id} on={q.durationId === d.id} onPress={() => patch({ durationId: d.id })}>{d.label}</ChipBtn>)}</Chips>
                             </View>
 
@@ -421,7 +421,7 @@ export default function ScheduledRequestScreen() {
                             <SectionLabel>{t('scheduledProvider.quote.messageTitle')} <Text className="font-outfit-regular" style={{ letterSpacing: 0 }}>{t('scheduledProvider.optional')}</Text></SectionLabel>
                             <View style={{ ...CARD_STYLE, padding: 14 }}>
                                 <TextField multiline value={q.message} onChangeText={(message) => patch({ message })} placeholder={t('scheduledProvider.quote.messagePlaceholder')} maxLength={300} />
-                                <Text className="font-outfit-regular" style={{ fontSize: 11, color: SC.mutedLight, textAlign: 'right', marginTop: 4 }}>{q.message.length}/300</Text>
+                                <Text className="font-outfit-regular" style={{ fontSize: 13, color: SC.mutedLight, textAlign: 'right', marginTop: 4 }}>{q.message.length}/300</Text>
                             </View>
                             <Note>{t('scheduledProvider.quote.protect')}</Note>
                         </ScrollView>
@@ -430,8 +430,8 @@ export default function ScheduledRequestScreen() {
                             <StepHead eyebrow={t('scheduledProvider.review.eyebrow')} title={t('scheduledProvider.review.title')} sub={t('scheduledProvider.review.sub')} />
                             <View style={{ ...CARD_STYLE, overflow: 'hidden' }}>
                                 <View className="flex-row items-center justify-between" style={{ paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: SC.borderSoft }}>
-                                    <Text className="font-outfit-bold" style={{ fontSize: 11, letterSpacing: 1.2, color: SC.muted }}>{t('scheduledProvider.services')}</Text>
-                                    <TouchableOpacity onPress={() => setView('quote')} accessibilityRole="button"><Text className="font-outfit-bold" style={{ fontSize: 12.5, color: SC.blue }}>{t('scheduledProvider.review.edit')}</Text></TouchableOpacity>
+                                    <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1.2, color: SC.muted }}>{t('scheduledProvider.services')}</Text>
+                                    <TouchableOpacity onPress={() => setView('quote')} accessibilityRole="button"><Text className="font-outfit-bold" style={{ fontSize: 13, color: SC.blue }}>{t('scheduledProvider.review.edit')}</Text></TouchableOpacity>
                                 </View>
                                 {q.lines.map((l) => (
                                     <ReviewLine key={l.name} label={l.name} value={l.on ? money(amountOf(l.price)) : t('scheduledProvider.review.notIncluded')} dim={!l.on} />
@@ -442,7 +442,7 @@ export default function ScheduledRequestScreen() {
                                     <Text className="font-outfit-bold" style={{ fontSize: 22, letterSpacing: -0.5, color: SC.blueDark }}>{money(totals.total)}</Text>
                                 </View>
                             </View>
-                            <Text className="font-outfit-regular" style={{ fontSize: 11.5, lineHeight: 17, color: SC.muted, paddingHorizontal: 4, marginTop: -6 }}>{t('scheduledProvider.review.feesNote')}</Text>
+                            <Text className="font-outfit-regular" style={{ fontSize: 13, lineHeight: 17, color: SC.muted, paddingHorizontal: 4, marginTop: -6 }}>{t('scheduledProvider.review.feesNote')}</Text>
                             {totals.notIncluded.length > 0 ? <Note tone="amber"><Text className="font-outfit-bold">{t('scheduledProvider.quote.partialTitle')} </Text>{t('scheduledProvider.review.partialBody', { list: totals.notIncluded.join(', ') })}</Note> : null}
                             <View style={{ ...CARD_STYLE, overflow: 'hidden' }}>
                                 <SummaryRow icon={Calendar} label={t('scheduledProvider.review.arrival')} value={`${slotDay} · ${q.time !== null ? formatMinutes(q.time) : '—'}`} />
@@ -452,7 +452,7 @@ export default function ScheduledRequestScreen() {
                             </View>
                             {q.message.trim() ? (
                                 <View style={{ ...CARD_STYLE, padding: 14 }}>
-                                    <Text className="font-outfit-bold" style={{ fontSize: 11, letterSpacing: 1.2, color: SC.muted }}>{t('scheduledProvider.review.yourMessage')}</Text>
+                                    <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1.2, color: SC.muted }}>{t('scheduledProvider.review.yourMessage')}</Text>
                                     <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 21, color: SC.text, marginTop: 6 }}>{q.message.trim()}</Text>
                                 </View>
                             ) : null}
@@ -472,7 +472,7 @@ export default function ScheduledRequestScreen() {
                             <Text className="font-outfit-bold" style={{ fontSize: 13, color: SC.muted }}>{t('scheduledProvider.sent.yourQuote')}</Text>
                             <Text className="font-outfit-bold" style={{ fontSize: 24, letterSpacing: -0.6, color: SC.blueDark }}>{money(totals.total)}</Text>
                         </View>
-                        {problem ? <Text className="font-outfit-regular" style={{ fontSize: 12, color: SC.amberText, marginBottom: 8 }}>{t(`scheduledProvider.quote.problems.${problem}`)}</Text> : null}
+                        {problem ? <Text className="font-outfit-regular" style={{ fontSize: 13, color: SC.amberText, marginBottom: 8 }}>{t(`scheduledProvider.quote.problems.${problem}`)}</Text> : null}
                         <View className="flex-row"><Primary label={t('scheduledProvider.quote.reviewCta')} disabled={!!problem} onPress={() => setView('review')} /></View>
                     </View>
                 ) : (
@@ -495,7 +495,7 @@ export default function ScheduledRequestScreen() {
                     <View className="items-center justify-center" style={{ width: 44, height: 44, borderRadius: 13, backgroundColor: SC.blueSoft, marginRight: 12 }}><Calendar size={22} color={SC.blue} /></View>
                     <View className="flex-1">
                         <View className="flex-row items-center flex-wrap" style={{ gap: 7 }}>
-                            <Text className="font-outfit-bold" style={{ fontSize: 14.5, color: SC.text }}>{t('scheduledProvider.scheduledAssistance')}</Text>
+                            <Text className="font-outfit-bold" style={{ fontSize: 15, color: SC.text }}>{t('scheduledProvider.scheduledAssistance')}</Text>
                             <Pill bg={SC.blueSoft} fg={SC.blue}>{notes.mode === 'workshop' ? t('scheduledProvider.atShop') : t('scheduledProvider.atClient')}</Pill>
                         </View>
                     </View>
@@ -508,8 +508,8 @@ export default function ScheduledRequestScreen() {
                         <IconBox icon={Wrench} size={36} />
                         <View className="flex-1">
                             <View className="flex-row items-center" style={{ gap: 7, marginBottom: 2 }}>
-                                <Text className="font-outfit-semibold" style={{ fontSize: 11.5, color: SC.muted }}>{t('scheduledProvider.servicesRequested')}</Text>
-                                <View className="items-center justify-center" style={{ minWidth: 20, height: 20, paddingHorizontal: 6, borderRadius: 10, backgroundColor: SC.blue }}><Text className="font-outfit-bold" style={{ fontSize: 11, color: '#FFFFFF' }}>{services.length}</Text></View>
+                                <Text className="font-outfit-semibold" style={{ fontSize: 13, color: SC.muted }}>{t('scheduledProvider.servicesRequested')}</Text>
+                                <View className="items-center justify-center" style={{ minWidth: 20, height: 20, paddingHorizontal: 6, borderRadius: 10, backgroundColor: SC.blue }}><Text className="font-outfit-bold" style={{ fontSize: 13, color: '#FFFFFF' }}>{services.length}</Text></View>
                             </View>
                             <View style={{ gap: 12, marginTop: 8 }}>
                                 {services.map((s) => (
@@ -517,11 +517,11 @@ export default function ScheduledRequestScreen() {
                                         <View className="items-center justify-center" style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: SC.blueSoft }}><Check size={12} color={SC.blue} strokeWidth={3} /></View>
                                         <View className="flex-1">
                                             <Text className="font-outfit-bold" style={{ fontSize: 14, color: SC.text }}>{s.quantity && s.quantity > 1 ? `${s.name} ×${s.quantity}` : s.name}</Text>
-                                            {notes.serviceNotes[s.name] ? <Text className="font-outfit-regular" style={{ fontSize: 12.5, color: SC.muted, marginTop: 1 }}>{t('scheduledProvider.customerNote', { note: notes.serviceNotes[s.name] })}</Text> : null}
+                                            {notes.serviceNotes[s.name] ? <Text className="font-outfit-regular" style={{ fontSize: 13, color: SC.muted, marginTop: 1 }}>{t('scheduledProvider.customerNote', { note: notes.serviceNotes[s.name] })}</Text> : null}
                                         </View>
                                     </View>
                                 ))}
-                                {notes.other ? <Text className="font-outfit-regular" style={{ fontSize: 12.5, color: SC.muted }}>{t('scheduledProvider.otherRequest', { note: notes.other })}</Text> : null}
+                                {notes.other ? <Text className="font-outfit-regular" style={{ fontSize: 13, color: SC.muted }}>{t('scheduledProvider.otherRequest', { note: notes.other })}</Text> : null}
                             </View>
                         </View>
                     </View>
@@ -533,17 +533,17 @@ export default function ScheduledRequestScreen() {
                     <View style={{ ...CARD_STYLE, padding: 16 }}>
                         {notes.symptoms ? (
                             <>
-                                <Text className="font-outfit-bold" style={{ fontSize: 11, letterSpacing: 1.2, color: SC.muted }}>{t('scheduledProvider.symptoms')}</Text>
+                                <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1.2, color: SC.muted }}>{t('scheduledProvider.symptoms')}</Text>
                                 <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 21, color: SC.text, marginTop: 6 }}>{notes.symptoms}</Text>
                             </>
                         ) : null}
                         {photos.length > 0 ? (
                             <>
-                                <Text className="font-outfit-bold" style={{ fontSize: 11, letterSpacing: 1.2, color: SC.muted, marginTop: notes.symptoms ? 14 : 0 }}>{t('scheduledProvider.evidence')}</Text>
+                                <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1.2, color: SC.muted, marginTop: notes.symptoms ? 14 : 0 }}>{t('scheduledProvider.evidence')}</Text>
                                 <View className="flex-row flex-wrap" style={{ gap: 8, marginTop: 8 }}>
                                     {photos.map((p, i) => (
                                         <View key={`${p.url}-${i}`} className="items-center justify-center" style={{ width: '31.5%', aspectRatio: 1, borderRadius: 12, overflow: 'hidden', backgroundColor: SC.blueSoft }}>
-                                            {p.type === 'photo' ? <Image source={{ uri: p.url }} style={{ width: '100%', height: '100%' }} /> : <Text className="font-outfit-bold" style={{ fontSize: 11, color: SC.blue }}>{t('scheduledProvider.video')}</Text>}
+                                            {p.type === 'photo' ? <Image source={{ uri: p.url }} style={{ width: '100%', height: '100%' }} /> : <Text className="font-outfit-bold" style={{ fontSize: 13, color: SC.blue }}>{t('scheduledProvider.video')}</Text>}
                                         </View>
                                     ))}
                                 </View>
@@ -556,12 +556,12 @@ export default function ScheduledRequestScreen() {
                     <View className="flex-row" style={{ borderRadius: 16, backgroundColor: SC.blueSoft, padding: 14, gap: 10 }}>
                         <IconBox icon={Clock} size={32} white />
                         <View>
-                            <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 0.8, color: SC.blue }}>{t('scheduledProvider.distance')}</Text>
+                            <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 0.8, color: SC.blue }}>{t('scheduledProvider.distance')}</Text>
                             <Text className="font-outfit-bold" style={{ fontSize: 15, color: SC.blueDark, marginTop: 1 }}>{dist}</Text>
                         </View>
                     </View>
                 ) : null}
-                <Text className="font-outfit-regular text-center" style={{ fontSize: 11.5, lineHeight: 19, color: SC.mutedLight }}>{t('scheduledProvider.id', { id: `#${request.id.slice(0, 8).toUpperCase()}` })}</Text>
+                <Text className="font-outfit-regular text-center" style={{ fontSize: 13, lineHeight: 19, color: SC.mutedLight }}>{t('scheduledProvider.id', { id: `#${request.id.slice(0, 8).toUpperCase()}` })}</Text>
             </ScrollView>
             <ActionBar>
                 <Primary label={t('scheduledProvider.sendQuoteCta')} onPress={() => setView('quote')} />
@@ -589,7 +589,7 @@ function Steps({ step, labels }: { step: number; labels: string[] }) {
                 return (
                     <View key={l} className="flex-1 flex-row items-center justify-center" style={{ gap: 6, paddingVertical: 9, borderRadius: 100, backgroundColor: on ? SC.blueSoft : 'transparent' }}>
                         {done ? <Check size={12} color={SC.blue} strokeWidth={3} /> : <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: on ? SC.blue : '#DCE3F0' }} />}
-                        <Text className="font-outfit-bold" style={{ fontSize: 12.5, color: on ? SC.blue : done ? SC.blueDark : SC.mutedLight }}>{l}</Text>
+                        <Text className="font-outfit-bold" style={{ fontSize: 13, color: on ? SC.blue : done ? SC.blueDark : SC.mutedLight }}>{l}</Text>
                     </View>
                 );
             })}
@@ -610,9 +610,9 @@ function SummaryRow({ icon, label, value, sub, last }: { icon: LucideIcon; label
         <View className="flex-row" style={{ padding: 16, paddingVertical: 13, gap: 12, borderBottomWidth: last ? 0 : 1, borderBottomColor: SC.borderSoft }}>
             <IconBox icon={icon} size={36} />
             <View className="flex-1">
-                <Text className="font-outfit-semibold" style={{ fontSize: 11.5, color: SC.muted, marginBottom: 2 }}>{label}</Text>
-                <Text className="font-outfit-bold" style={{ fontSize: 14.5, lineHeight: 20, letterSpacing: -0.2, color: SC.text }}>{value}</Text>
-                {sub ? <Text className="font-outfit-regular" style={{ fontSize: 12, lineHeight: 17, color: SC.mutedLight, marginTop: 3 }}>{sub}</Text> : null}
+                <Text className="font-outfit-semibold" style={{ fontSize: 13, color: SC.muted, marginBottom: 2 }}>{label}</Text>
+                <Text className="font-outfit-bold" style={{ fontSize: 15, lineHeight: 20, letterSpacing: -0.2, color: SC.text }}>{value}</Text>
+                {sub ? <Text className="font-outfit-regular" style={{ fontSize: 13, lineHeight: 17, color: SC.mutedLight, marginTop: 3 }}>{sub}</Text> : null}
             </View>
         </View>
     );
@@ -631,13 +631,13 @@ function Pill({ children, bg, fg, icon }: { children: ReactNode; bg: string; fg:
     return (
         <View className="flex-row items-center" style={{ gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 100, backgroundColor: bg }}>
             {icon}
-            <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 0.4, color: fg }}>{children}</Text>
+            <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 0.4, color: fg }}>{children}</Text>
         </View>
     );
 }
 
 function SectionLabel({ children }: { children: ReactNode }) {
-    return <Text className="font-outfit-bold" style={{ fontSize: 11, letterSpacing: 1.2, color: SC.muted, paddingHorizontal: 4 }}>{children}</Text>;
+    return <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1.2, color: SC.muted, paddingHorizontal: 4 }}>{children}</Text>;
 }
 
 function Chips({ children }: { children: ReactNode }) {
@@ -667,7 +667,7 @@ function ActionBar({ children }: { children: ReactNode }) {
 function Primary({ label, onPress, disabled, tone, flex = 1 }: { label: string; onPress: () => void; disabled?: boolean; tone?: 'green'; flex?: number }) {
     return (
         <TouchableOpacity onPress={onPress} disabled={disabled} activeOpacity={0.85} accessibilityRole="button" accessibilityState={{ disabled: !!disabled }} style={{ flex, alignItems: 'center', paddingVertical: 15, paddingHorizontal: 16, borderRadius: 14, backgroundColor: disabled ? '#DCE7FA' : tone === 'green' ? SC.green : SC.blue }}>
-            <Text className="font-outfit-bold" style={{ fontSize: 15.5, color: '#FFFFFF' }}>{label}</Text>
+            <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#FFFFFF' }}>{label}</Text>
         </TouchableOpacity>
     );
 }
@@ -700,7 +700,7 @@ function Outcome({ icon: Icon, tone = 'blue', title, sub, children, footer }: { 
             <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 32, paddingBottom: 20, alignItems: 'center', gap: 16 }}>
                 <View className="items-center justify-center" style={{ width: 76, height: 76, borderRadius: 38, backgroundColor: c[0] }}><Icon size={34} color={c[1]} /></View>
                 <View>
-                    <Text className="font-outfit-bold text-center" style={{ fontSize: 25, letterSpacing: -0.6, lineHeight: 29, color: SC.text }}>{title}</Text>
+                    <Text className="font-outfit-bold text-center" style={{ fontSize: 24, letterSpacing: -0.6, lineHeight: 29, color: SC.text }}>{title}</Text>
                     <Text className="font-outfit-regular text-center" style={{ fontSize: 14, lineHeight: 20, color: SC.muted, marginTop: 8 }}>{sub}</Text>
                 </View>
                 {children}

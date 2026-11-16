@@ -37,7 +37,7 @@ function Step({ index, text }: { index: number; text: string }) {
         className="w-6 h-6 rounded-full justify-center items-center mt-0.5"
         style={{ backgroundColor: "#E9F1FF" }}
       >
-        <Text className="font-outfit-bold text-xs" style={{ color: "#0047AB" }}>
+        <Text className="font-outfit-bold text-[13px]" style={{ color: "#0047AB" }}>
           {index}
         </Text>
       </View>
@@ -198,7 +198,7 @@ export default function IdentityScreen() {
         <Text className="text-[#0F172A] font-outfit-medium text-sm mb-2">
           {t("setup.identity.consentTitle")}
         </Text>
-        <Text className="text-slate-500 font-outfit-regular text-xs mb-4">
+        <Text className="text-slate-500 font-outfit-regular text-[13px] mb-4">
           {t("setup.identity.consentBody")}
         </Text>
 

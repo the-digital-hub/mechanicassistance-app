@@ -53,25 +53,25 @@ export default function CallScreen() {
                         <TouchableOpacity className="w-14 h-14 rounded-full items-center justify-center bg-gray-50 mb-2">
                             <MicOff size={24} color="#1F2937" />
                         </TouchableOpacity>
-                        <Text className="text-gray-500 font-outfit-medium text-xs">Mute</Text>
+                        <Text className="text-gray-500 font-outfit-medium text-[13px]">Mute</Text>
                     </View>
                     <View className="items-center w-1/4">
                         <TouchableOpacity className="w-14 h-14 rounded-full items-center justify-center bg-gray-50 mb-2">
                             <Bluetooth size={24} color="#1F2937" />
                         </TouchableOpacity>
-                        <Text className="text-gray-500 font-outfit-medium text-xs">Bluetooth</Text>
+                        <Text className="text-gray-500 font-outfit-medium text-[13px]">Bluetooth</Text>
                     </View>
                     <View className="items-center w-1/4">
                         <TouchableOpacity className="w-14 h-14 rounded-full items-center justify-center bg-gray-50 mb-2">
                             <Pause size={24} color="#1F2937" />
                         </TouchableOpacity>
-                        <Text className="text-gray-500 font-outfit-medium text-xs">Hold</Text>
+                        <Text className="text-gray-500 font-outfit-medium text-[13px]">Hold</Text>
                     </View>
                     <View className="items-center w-1/4">
                         <TouchableOpacity className="w-14 h-14 rounded-full items-center justify-center bg-gray-50 mb-2">
                             <Video size={24} color="#1F2937" />
                         </TouchableOpacity>
-                        <Text className="text-gray-500 font-outfit-medium text-xs">Video</Text>
+                        <Text className="text-gray-500 font-outfit-medium text-[13px]">Video</Text>
                     </View>
                 </View>
 
