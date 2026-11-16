@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import type { AssistanceRequest } from '@/lib/dao/interfaces';
 import { apiErrorCode } from '@/lib/payments/cardRequired';
+import { loadDeclined } from './declined';
 import { feedProblem, toFeedRequest, type FeedProblem } from './provider';
 
 /** Socket messages after which the feed may have changed. */
@@ -35,8 +36,9 @@ export function useMarketplaceFeed(enabled: boolean, lastMessage: { type: string
         }
         if (!loaded.current) setLoading(true);
         try {
-            const list = await assistanceDAO.getMarketplaceRequests();
-            setItems(list.map(toFeedRequest));
+            const [list, declined] = await Promise.all([assistanceDAO.getMarketplaceRequests(), loadDeclined()]);
+            // A request the technician already quoted stays listed even if it was skipped before.
+            setItems(list.filter((r) => r.myOffer || !declined.includes(r.id)).map(toFeedRequest));
             setProblem(null);
             loaded.current = true;
         } catch (error) {
