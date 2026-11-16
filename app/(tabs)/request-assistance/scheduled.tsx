@@ -324,6 +324,7 @@ export default function ScheduledRequestScreen() {
                     serviceNames: selectedServices.map((s) => s.name),
                     photos: uploaded,
                     paymentMethodId,
+                    serviceNamesByCode: Object.fromEntries(selectedServices.map((x) => [x.code, x.name])),
                 }),
             );
 

@@ -12,11 +12,13 @@ import {
     Disc,
     Flame,
     Gauge,
+    Home,
     ImagePlus,
     MapPin,
     Plus,
     Snowflake,
     SlidersHorizontal,
+    Store,
     Thermometer,
     Video,
     Wrench,
@@ -31,16 +33,19 @@ import { ActivityIndicator, Image, Text, TouchableOpacity, View } from 'react-na
 import type { Address, ScheduledServiceCategory, ScheduledServiceItem, Vehicle } from '@/lib/dao/interfaces';
 import { addressDisplayName } from '@/lib/address';
 import { DayCalendar, TimeWheel } from '@/components/scheduled/DateTime';
+import { RadiusSlider } from '@/components/scheduled/RadiusSlider';
 import type { PendingAttachment } from '@/lib/media/attachments';
 import {
     bookableDates,
     dateFromKey,
+    daysLabel,
     earliestMinutes,
     formatMinutes,
     isSameDay,
     MAX_EVIDENCE,
     MAX_SERVICES,
     type ScheduledDraft,
+    type ServiceMode,
 } from '@/lib/scheduled/draft';
 
 import { CARD_STYLE, Checkbox, ChoiceCard, Chip, FieldLabel, Note, SC, StepHead, TextField } from './ui';
@@ -115,6 +120,10 @@ export function VehicleStep({
                         const meta = [v.plate, v.plateState].filter(Boolean).join(' · ');
                         return <ChoiceCard key={v.id} on={draft.vehicleId === v.id} onPress={() => onPick(v)} icon={Car} title={name} sub={meta || undefined} />;
                     })}
+                    <TouchableOpacity onPress={onAddVehicle} accessibilityRole="button" className="flex-row items-center justify-center" style={{ gap: 8, paddingVertical: 13, borderRadius: 16, borderWidth: 1.5, borderColor: SC.border }}>
+                        <Plus size={16} color={SC.blue} />
+                        <Text className="font-outfit-bold" style={{ fontSize: 14, color: SC.blue }}>{t('scheduled.vehicle.addAnother')}</Text>
+                    </TouchableOpacity>
                 </View>
             )}
             {draft.vehicleId ? (
@@ -157,68 +166,106 @@ export function LocationStep({
 }) {
     const { t } = useTranslation();
     const loc = draft.location;
+    const mode = draft.mode;
+    const modes: { id: ServiceMode; icon: LucideIcon; title: string; sub: string }[] = [
+        { id: 'onsite', icon: Home, title: t('scheduled.location.modeOnsite'), sub: t('scheduled.location.modeOnsiteSub') },
+        { id: 'workshop', icon: Store, title: t('scheduled.location.modeShop'), sub: t('scheduled.location.modeShopSub') },
+    ];
+    const chosen = modes.find((m) => m.id === mode);
     return (
         <View style={{ gap: 20 }}>
-            <StepHead eyebrow={t('scheduled.location.eyebrow')} title={t('scheduled.location.title')} sub={t('scheduled.location.sub')} />
+            <StepHead eyebrow={t('scheduled.location.eyebrow')} title={t('scheduled.location.title')} sub={t('scheduled.location.subChoose')} />
 
-            <View>
-                <FieldLabel>{t('scheduled.location.yourAddresses')}</FieldLabel>
-                <View style={{ gap: 10 }}>
-                    {addresses.map((a) => {
-                        const line = [a.street, a.apartment, a.city, [a.state, a.zip].filter(Boolean).join(' ')].filter(Boolean).join(', ');
-                        return (
-                            <ChoiceCard
-                                key={a.id}
-                                on={loc?.source === 'saved' && loc.addressId === a.id}
-                                onPress={() => onPickSaved(a)}
-                                icon={MapPin}
-                                badge={addressDisplayName(a, t)}
-                                title={line}
-                            />
-                        );
-                    })}
-                    <ChoiceCard
-                        on={loc?.source === 'current'}
-                        onPress={onUseCurrent}
-                        icon={Crosshair}
-                        title={t('scheduled.location.currentLocation')}
-                        sub={busy ? t('scheduled.location.locating') : loc?.source === 'current' ? loc.line : t('scheduled.location.currentLocationSub')}
-                    />
-                    {addresses.length === 0 ? (
-                        <TouchableOpacity onPress={onAddAddress} accessibilityRole="button" className="flex-row items-center" style={{ gap: 6, paddingVertical: 4 }}>
-                            <Plus size={16} color={SC.blue} />
-                            <Text className="font-outfit-bold" style={{ fontSize: 14, color: SC.blue }}>{t('scheduled.location.addAddress')}</Text>
+            {!chosen ? (
+                <View style={{ gap: 10 }} accessibilityRole="radiogroup">
+                    {modes.map((m) => (
+                        <ChoiceCard key={m.id} on={false} onPress={() => patch({ mode: m.id })} icon={m.icon} title={m.title} sub={m.sub} />
+                    ))}
+                </View>
+            ) : (
+                <View style={{ gap: 8 }}>
+                    <View className="flex-row items-center justify-between">
+                        <FieldLabel>{t('scheduled.location.yourChoice')}</FieldLabel>
+                        <TouchableOpacity onPress={() => patch({ mode: null })} accessibilityRole="button" hitSlop={8}>
+                            <Text className="font-outfit-bold" style={{ fontSize: 13, color: SC.blue }}>{t('scheduled.location.change')}</Text>
                         </TouchableOpacity>
+                    </View>
+                    <ChoiceCard on onPress={() => undefined} icon={chosen.icon} title={chosen.title} sub={chosen.sub} />
+                </View>
+            )}
+
+            {chosen ? (
+                <View>
+                    <FieldLabel>{mode === 'workshop' ? t('scheduled.location.searchNear') : t('scheduled.location.yourAddresses')}</FieldLabel>
+                    <View style={{ gap: 10 }}>
+                        {addresses.map((a) => {
+                            const line = [a.street, a.apartment, a.city, [a.state, a.zip].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+                            return (
+                                <ChoiceCard
+                                    key={a.id}
+                                    on={loc?.source === 'saved' && loc.addressId === a.id}
+                                    onPress={() => onPickSaved(a)}
+                                    icon={MapPin}
+                                    badge={addressDisplayName(a, t)}
+                                    title={line}
+                                />
+                            );
+                        })}
+                        <ChoiceCard
+                            on={loc?.source === 'current'}
+                            onPress={onUseCurrent}
+                            icon={Crosshair}
+                            title={t('scheduled.location.currentLocation')}
+                            sub={busy ? t('scheduled.location.locating') : loc?.source === 'current' ? loc.line : t('scheduled.location.currentLocationSub')}
+                        />
+                        {addresses.length === 0 ? (
+                            <TouchableOpacity onPress={onAddAddress} accessibilityRole="button" className="flex-row items-center" style={{ gap: 6, paddingVertical: 4 }}>
+                                <Plus size={16} color={SC.blue} />
+                                <Text className="font-outfit-bold" style={{ fontSize: 14, color: SC.blue }}>{t('scheduled.location.addAddress')}</Text>
+                            </TouchableOpacity>
+                        ) : null}
+                    </View>
+                    {error ? <Text className="font-outfit-regular" style={{ fontSize: 12.5, color: SC.red, marginTop: 8 }}>{error}</Text> : null}
+                </View>
+            ) : null}
+
+            {mode === 'workshop' ? (
+                <View style={{ gap: 14 }}>
+                    <View>
+                        <FieldLabel>{t('scheduled.location.radius')}</FieldLabel>
+                        <RadiusSlider value={draft.radiusMiles} onChange={(radiusMiles) => patch({ radiusMiles })} label={t('scheduled.location.radiusLook')} unit={t('scheduled.location.miles', { count: draft.radiusMiles })} />
+                    </View>
+                    <Note>{t('scheduled.location.shopNote', { count: draft.radiusMiles })}</Note>
+                </View>
+            ) : null}
+
+            {mode === 'onsite' ? (
+                <View>
+                    <FieldLabel>{t('scheduled.location.contactTitle')}</FieldLabel>
+                    <View className="flex-row" style={{ gap: 8, marginBottom: draft.contactIsOwner ? 0 : 12 }}>
+                        <Chip on={draft.contactIsOwner} onPress={() => patch({ contactIsOwner: true })}>{t('scheduled.location.contactMe')}</Chip>
+                        <Chip on={!draft.contactIsOwner} onPress={() => patch({ contactIsOwner: false })}>{t('scheduled.location.contactSomeone')}</Chip>
+                    </View>
+                    {!draft.contactIsOwner ? (
+                        <View style={{ gap: 12 }}>
+                            <View className="flex-row" style={{ gap: 10 }}>
+                                <View style={{ flex: 1 }}>
+                                    <FieldLabel>{t('scheduled.location.firstName')}</FieldLabel>
+                                    <TextField value={draft.contactFirst} onChangeText={(v) => patch({ contactFirst: v })} autoCapitalize="words" />
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    <FieldLabel>{t('scheduled.location.lastName')}</FieldLabel>
+                                    <TextField value={draft.contactLast} onChangeText={(v) => patch({ contactLast: v })} autoCapitalize="words" />
+                                </View>
+                            </View>
+                            <View>
+                                <FieldLabel>{t('scheduled.location.phone')}</FieldLabel>
+                                <TextField value={draft.contactPhone} onChangeText={(v) => patch({ contactPhone: v })} keyboardType="phone-pad" placeholder={t('scheduled.location.phonePlaceholder')} />
+                            </View>
+                        </View>
                     ) : null}
                 </View>
-                {error ? <Text className="font-outfit-regular" style={{ fontSize: 12.5, color: SC.red, marginTop: 8 }}>{error}</Text> : null}
-            </View>
-
-            <View>
-                <FieldLabel>{t('scheduled.location.contactTitle')}</FieldLabel>
-                <View className="flex-row" style={{ gap: 8, marginBottom: draft.contactIsOwner ? 0 : 12 }}>
-                    <Chip on={draft.contactIsOwner} onPress={() => patch({ contactIsOwner: true })}>{t('scheduled.location.contactMe')}</Chip>
-                    <Chip on={!draft.contactIsOwner} onPress={() => patch({ contactIsOwner: false })}>{t('scheduled.location.contactSomeone')}</Chip>
-                </View>
-                {!draft.contactIsOwner ? (
-                    <View style={{ gap: 12 }}>
-                        <View className="flex-row" style={{ gap: 10 }}>
-                            <View style={{ flex: 1 }}>
-                                <FieldLabel>{t('scheduled.location.firstName')}</FieldLabel>
-                                <TextField value={draft.contactFirst} onChangeText={(v) => patch({ contactFirst: v })} autoCapitalize="words" />
-                            </View>
-                            <View style={{ flex: 1 }}>
-                                <FieldLabel>{t('scheduled.location.lastName')}</FieldLabel>
-                                <TextField value={draft.contactLast} onChangeText={(v) => patch({ contactLast: v })} autoCapitalize="words" />
-                            </View>
-                        </View>
-                        <View>
-                            <FieldLabel>{t('scheduled.location.phone')}</FieldLabel>
-                            <TextField value={draft.contactPhone} onChangeText={(v) => patch({ contactPhone: v })} keyboardType="phone-pad" placeholder={t('scheduled.location.phonePlaceholder')} />
-                        </View>
-                    </View>
-                ) : null}
-            </View>
+            ) : null}
         </View>
     );
 }
@@ -300,21 +347,34 @@ export function ServicesStep({
                                             const on = draft.services.includes(s.code);
                                             const details = itemDetails(s, languageId);
                                             return (
-                                                <TouchableOpacity
-                                                    key={s.code}
-                                                    onPress={() => toggleService(s.code)}
-                                                    activeOpacity={0.7}
-                                                    accessibilityRole="checkbox"
-                                                    accessibilityState={{ checked: on }}
-                                                    className="flex-row items-start"
-                                                    style={{ paddingHorizontal: 14, paddingVertical: 12, gap: 12, backgroundColor: on ? SC.blueSofter : '#FFFFFF', borderTopWidth: i === 0 ? 0 : 1, borderTopColor: SC.borderSoft }}
-                                                >
-                                                    <View style={{ marginTop: 1 }}><Checkbox on={on} /></View>
-                                                    <View className="flex-1">
-                                                        <Text className="font-outfit-semibold" style={{ fontSize: 14.5, color: SC.text }}>{itemName(s, languageId)}</Text>
-                                                        {details ? <Text className="font-outfit-regular" style={{ fontSize: 12, lineHeight: 17, color: SC.muted, marginTop: 2 }} numberOfLines={3}>{details}</Text> : null}
-                                                    </View>
-                                                </TouchableOpacity>
+                                                <View key={s.code} style={{ backgroundColor: on ? SC.blueSofter : '#FFFFFF', borderTopWidth: i === 0 ? 0 : 1, borderTopColor: SC.borderSoft }}>
+                                                    <TouchableOpacity
+                                                        onPress={() => toggleService(s.code)}
+                                                        activeOpacity={0.7}
+                                                        accessibilityRole="checkbox"
+                                                        accessibilityState={{ checked: on }}
+                                                        className="flex-row items-start"
+                                                        style={{ paddingHorizontal: 14, paddingVertical: 12, gap: 12 }}
+                                                    >
+                                                        <View style={{ marginTop: 1 }}><Checkbox on={on} /></View>
+                                                        <View className="flex-1">
+                                                            <Text className="font-outfit-semibold" style={{ fontSize: 14.5, color: SC.text }}>{itemName(s, languageId)}</Text>
+                                                            {details ? <Text className="font-outfit-regular" style={{ fontSize: 12, lineHeight: 17, color: SC.muted, marginTop: 2 }} numberOfLines={3}>{details}</Text> : null}
+                                                        </View>
+                                                    </TouchableOpacity>
+                                                    {on ? (
+                                                        <View style={{ paddingHorizontal: 14, paddingLeft: 48, paddingBottom: 12 }}>
+                                                            <TextField
+                                                                multiline
+                                                                value={draft.serviceDetails[s.code] ?? ''}
+                                                                onChangeText={(v) => patch({ serviceDetails: { ...draft.serviceDetails, [s.code]: v } })}
+                                                                placeholder={t('scheduled.services.detailsPlaceholder')}
+                                                                accessibilityLabel={t('scheduled.services.detailsLabel', { name: itemName(s, languageId) })}
+                                                                maxLength={300}
+                                                            />
+                                                        </View>
+                                                    ) : null}
+                                                </View>
                                             );
                                         })}
                                     </View>
@@ -362,8 +422,16 @@ export function AvailabilityStep({
         // The window picked for another day may fall inside today's lead time (or end before it starts).
         const min = earliestMinutes(key, now);
         const fromOk = draft.fromMin != null && draft.fromMin >= min;
-        patch({ date: key, ...(fromOk ? {} : { fromMin: null, toMin: null }) });
+        patch({
+            date: key,
+            // A range never ends before it starts.
+            ...(draft.dateMode === 'range' && (!draft.dateTo || draft.dateTo < key) ? { dateTo: key } : {}),
+            ...(fromOk ? {} : { fromMin: null, toMin: null }),
+        });
     };
+
+    const setDateMode = (dateMode: 'exact' | 'range') =>
+        patch({ dateMode, dateTo: dateMode === 'range' ? draft.dateTo || draft.date : '' });
 
     // Preselect the first day that still has time left, so the calendar never shows a day that is not in the draft.
     useEffect(() => {
@@ -384,7 +452,7 @@ export function AvailabilityStep({
     });
     const activePreset = !custom ? presets.find((p) => p.start === draft.fromMin && p.to === draft.toMin)?.id : undefined;
 
-    const dayText = draft.date ? dateFromKey(draft.date).toLocaleDateString(i18n.language, { weekday: 'long', month: 'long', day: 'numeric' }) : '';
+    const dayText = daysLabel(draft);
     const summary = draft.date && draft.fromMin != null && draft.toMin != null
         ? `${dayText} · ${formatMinutes(draft.fromMin)} – ${formatMinutes(draft.toMin)}`
         : null;
@@ -395,15 +463,36 @@ export function AvailabilityStep({
         <View style={{ gap: 20 }}>
             <StepHead eyebrow={t('scheduled.availability.eyebrow')} title={t('scheduled.availability.title')} sub={t('scheduled.availability.sub')} />
 
-            <View>
-                <FieldLabel>{t('scheduled.availability.dayLabel')}</FieldLabel>
-                <DayCalendar
-                    value={draft.date}
-                    min={dateFromKey(days[0])}
-                    max={dateFromKey(days[days.length - 1])}
-                    locale={i18n.language}
-                    onChange={pickDay}
-                />
+            <View style={{ gap: 12 }}>
+                <View className="flex-row" style={{ gap: 8 }}>
+                    <Chip on={draft.dateMode === 'exact'} onPress={() => setDateMode('exact')}>{t('scheduled.availability.exactDate')}</Chip>
+                    <Chip on={draft.dateMode === 'range'} onPress={() => setDateMode('range')}>{t('scheduled.availability.dateRange')}</Chip>
+                </View>
+                {draft.dateMode === 'exact' ? (
+                    <View>
+                        <FieldLabel right={sameDay ? <Text className="font-outfit-bold" style={{ fontSize: 10, letterSpacing: 0.8, color: SC.blue }}>{t('scheduled.availability.sameDayBadge')}</Text> : undefined}>
+                            {t('scheduled.availability.dayLabel')}
+                        </FieldLabel>
+                        <DayCalendar
+                            value={draft.date}
+                            min={dateFromKey(days[0])}
+                            max={dateFromKey(days[days.length - 1])}
+                            locale={i18n.language}
+                            onChange={pickDay}
+                        />
+                    </View>
+                ) : (
+                    <View className="flex-row" style={{ gap: 12 }}>
+                        <View style={{ flex: 1 }}>
+                            <FieldLabel>{t('scheduled.availability.rangeFrom')}</FieldLabel>
+                            <DayCalendar compact value={draft.date} min={dateFromKey(days[0])} max={dateFromKey(days[days.length - 1])} locale={i18n.language} onChange={pickDay} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <FieldLabel>{t('scheduled.availability.rangeTo')}</FieldLabel>
+                            <DayCalendar compact value={draft.dateTo} min={dateFromKey(draft.date || days[0])} max={dateFromKey(days[days.length - 1])} locale={i18n.language} onChange={(dateTo) => patch({ dateTo })} />
+                        </View>
+                    </View>
+                )}
             </View>
 
             {draft.date ? (
@@ -551,14 +640,16 @@ export function ReviewStep({
     now: Date;
 }) {
     const { t, i18n } = useTranslation();
-    const dateLabel = draft.date
-        ? dateFromKey(draft.date).toLocaleDateString(i18n.language, { weekday: 'short', month: 'short', day: 'numeric' })
-        : '—';
+    const dateLabel = draft.date ? daysLabel(draft) : '—';
     const windowLabel =
         draft.fromMin != null && draft.toMin != null ? `${dateLabel} · ${formatMinutes(draft.fromMin)} – ${formatMinutes(draft.toMin)}` : dateLabel;
     const contact = draft.contactIsOwner
         ? t('scheduled.review.me')
         : [draft.contactFirst, draft.contactLast].filter(Boolean).join(' ') + (draft.contactPhone ? ` · ${draft.contactPhone}` : '');
+    const shop = draft.mode === 'workshop';
+    const locationLabel = shop
+        ? t('scheduled.review.shopWithin', { count: draft.radiusMiles, place: draft.location?.line ?? '' })
+        : draft.location?.line ?? '—';
     void now;
 
     return (
@@ -566,8 +657,8 @@ export function ReviewStep({
             <StepHead eyebrow={t('scheduled.review.eyebrow')} title={t('scheduled.review.title')} sub={t('scheduled.review.sub')} />
             <View style={{ ...CARD_STYLE, paddingHorizontal: 14 }}>
                 <ReviewRow icon={Car} label={t('scheduled.review.vehicle')} value={draft.mileage ? `${draft.vehicleName} · ${draft.mileage} mi` : draft.vehicleName} onEdit={() => goTo(1)} />
-                <ReviewRow icon={MapPin} label={t('scheduled.review.location')} value={draft.location?.line ?? '—'} onEdit={() => goTo(2)} />
-                <ReviewRow icon={Check} label={t('scheduled.review.contact')} value={contact} onEdit={() => goTo(2)} />
+                <ReviewRow icon={MapPin} label={t('scheduled.review.location')} value={locationLabel} onEdit={() => goTo(2)} />
+                {shop ? null : <ReviewRow icon={Check} label={t('scheduled.review.contact')} value={contact} onEdit={() => goTo(2)} />}
                 <ReviewRow icon={Wrench} label={t('scheduled.review.services')} value={[...serviceNames, ...(draft.customRequest.trim() ? [draft.customRequest.trim()] : [])].join(', ')} onEdit={() => goTo(3)} />
                 <ReviewRow icon={Calendar} label={t('scheduled.review.availability')} value={windowLabel} onEdit={() => goTo(4)} last={!draft.symptoms.trim() && evidenceCount === 0} />
                 {draft.symptoms.trim() ? <ReviewRow icon={Clock} label={t('scheduled.review.symptoms')} value={draft.symptoms.trim()} onEdit={() => goTo(4)} last={evidenceCount === 0} /> : null}

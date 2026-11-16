@@ -2861,7 +2861,8 @@
       "mileageHint": "Ayuda al mecánico a recomendar los servicios correctos.",
       "noVehicles": "Todavía no tenés vehículos",
       "noVehiclesSub": "Agregá el vehículo que necesita el servicio.",
-      "addVehicle": "Agregar un vehículo"
+      "addVehicle": "Agregar un vehículo",
+      "addAnother": "Agregar otro vehículo"
     },
     "location": {
       "eyebrow": "PASO 2 · UBICACIÓN",
@@ -2881,7 +2882,21 @@
       "firstName": "NOMBRE",
       "lastName": "APELLIDO",
       "phone": "TELÉFONO",
-      "phonePlaceholder": "(954) 555-0100"
+      "phonePlaceholder": "(954) 555-0100",
+      "subChoose": "Un técnico va hasta vos, o llevás tu vehículo a un taller.",
+      "modeOnsite": "Tu ubicación",
+      "modeOnsiteSub": "Un técnico móvil va hasta vos. Tu casa, el trabajo o donde esté tu vehículo.",
+      "modeShop": "Taller",
+      "modeShopSub": "Llevás tu vehículo a un taller de tu zona. Los talleres cercanos te envían cotizaciones.",
+      "yourChoice": "TU ELECCIÓN",
+      "change": "Cambiar",
+      "searchNear": "BUSCAR TALLERES CERCA DE",
+      "radius": "RADIO DE BÚSQUEDA",
+      "radiusLook": "Buscar talleres a menos de",
+      "miles": "milla",
+      "miles_other": "millas",
+      "shopNote": "Vamos a invitar a talleres a menos de {{count}} milla de esta dirección a enviarte una cotización. Vos elegís cuál reservar.",
+      "shopNote_other": "Vamos a invitar a talleres a menos de {{count}} millas de esta dirección a enviarte una cotización. Vos elegís cuál reservar."
     },
     "services": {
       "eyebrow": "PASO 3 · SERVICIOS",
@@ -2891,7 +2906,9 @@
       "retry": "Reintentar",
       "empty": "No hay servicios disponibles por ahora.",
       "customLabel": "OTRO SERVICIO (OPCIONAL)",
-      "customPlaceholder": "Algo que no esté en la lista…"
+      "customPlaceholder": "Algo que no esté en la lista…",
+      "detailsPlaceholder": "Detalles adicionales (opcional)",
+      "detailsLabel": "Detalles adicionales de {{name}} (opcional)"
     },
     "availability": {
       "eyebrow": "PASO 4 · DISPONIBILIDAD",
@@ -2919,7 +2936,12 @@
         "evening": "Noche",
         "any": "Cualquier hora"
       },
-      "custom": "Horario personalizado"
+      "custom": "Horario personalizado",
+      "exactDate": "Fecha exacta",
+      "dateRange": "Rango de fechas",
+      "sameDayBadge": "MISMO DÍA (HOY)",
+      "rangeFrom": "DESDE",
+      "rangeTo": "HASTA"
     },
     "review": {
       "eyebrow": "PASO 5 · REVISIÓN",
@@ -2940,7 +2962,8 @@
       "noChargeBody": "Publicar solo pide cotizaciones. Las ofertas quedan abiertas hasta 48 horas, o hasta 1 hora antes del horario pedido si eso ocurre primero. Tu dirección exacta y la patente se comparten recién cuando aceptás una oferta y el pago queda asegurado.",
       "send": "Enviar solicitud de cotización",
       "sending": "Enviando…",
-      "uploading": "Subiendo archivo {{current}} de {{total}}…"
+      "uploading": "Subiendo archivo {{current}} de {{total}}…",
+      "shopWithin": "Taller a menos de {{count}} mi de {{place}}"
     },
     "sent": {
       "title": "Solicitud enviada",

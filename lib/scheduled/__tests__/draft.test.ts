@@ -7,6 +7,7 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
 import {
     bookableDates,
     buildNotes,
+    daysLabel,
     buildScheduledPayload,
     draftFromRequest,
     earliestMinutes,
@@ -32,6 +33,7 @@ const complete = (): ScheduledDraft => ({
     vehicleId: 'veh-1',
     vehicleName: '2024 Ford Mustang',
     mileage: '28,540',
+    mode: 'onsite',
     location: { source: 'saved', addressId: 'a1', label: 'Home', line: '16329 Malibu Dr, Weston, FL', lat: 26.1, lng: -80.4, zip: '33326' },
     services: ['tire_rotation', 'brake_fluid', 'wheel_alignment'],
     customRequest: 'Check the spare too',
@@ -116,6 +118,49 @@ describe('step validation', () => {
         expect(firstIncompleteStep(emptyDraft(), NOW)).toBe(1);
         expect(firstIncompleteStep({ ...complete(), services: [] }, NOW)).toBe(3);
         expect(firstIncompleteStep(complete(), NOW)).toBeNull();
+    });
+});
+
+describe('repair shop, date range and service details', () => {
+    it('needs a mode, and no contact for a repair shop', () => {
+        const d = complete();
+        expect(stepIsValid(2, { ...d, mode: null }, NOW)).toBe(false);
+        expect(stepIsValid(2, { ...d, mode: 'workshop', contactIsOwner: false }, NOW)).toBe(true);
+    });
+
+    it('needs a range that does not end before it starts', () => {
+        const d = { ...complete(), dateMode: 'range' as const };
+        expect(stepIsValid(4, { ...d, dateTo: '' }, NOW)).toBe(false);
+        expect(stepIsValid(4, { ...d, dateTo: '2026-11-12' }, NOW)).toBe(false);
+        expect(stepIsValid(4, { ...d, dateTo: '2026-11-15' }, NOW)).toBe(true);
+    });
+
+    it('labels one day or a range', () => {
+        expect(daysLabel({ dateMode: 'exact', date: '2026-11-13', dateTo: '' })).toBe('Fri, Nov 13');
+        expect(daysLabel({ dateMode: 'range', date: '2026-11-13', dateTo: '2026-11-15' })).toBe('Fri, Nov 13 – Sun, Nov 15');
+        expect(daysLabel({ dateMode: 'range', date: '2026-11-13', dateTo: '2026-11-13' })).toBe('Fri, Nov 13');
+    });
+
+    it('writes the shop, the days and the per-service details in the notes', () => {
+        const notes = buildNotes(
+            { ...complete(), mode: 'workshop', radiusMiles: 25, dateMode: 'range', dateTo: '2026-11-15', serviceDetails: { brake_fluid: ' squeaks ', tire_rotation: '' } },
+            { brake_fluid: 'Brake Fluid Flush' },
+        );
+        expect(notes).toContain('At a repair shop · within 25 miles of the service address');
+        expect(notes).toContain('Fri, Nov 13 – Sun, Nov 15 · 1:00 PM – 4:00 PM');
+        expect(notes).toContain('Brake Fluid Flush: squeaks');
+        expect(notes).not.toContain('tire_rotation:');
+    });
+
+    it('sends no contact for a repair shop', () => {
+        const payload = buildScheduledPayload({
+            draft: { ...complete(), mode: 'workshop', contactIsOwner: false, contactFirst: 'Ana', contactLast: 'Diaz', contactPhone: '9545550100' },
+            userId: 'user-1',
+            serviceNames: ['Tire Rotation'],
+            photos: [],
+        });
+        expect(payload.driverIsOwner).toBe(true);
+        expect(payload.driverFirstName).toBeUndefined();
     });
 });
 

@@ -2860,7 +2860,8 @@
       "mileageHint": "Helps the technician recommend the right services.",
       "noVehicles": "You have no vehicles yet",
       "noVehiclesSub": "Add the vehicle that needs the service.",
-      "addVehicle": "Add a vehicle"
+      "addVehicle": "Add a vehicle",
+      "addAnother": "Add another vehicle"
     },
     "location": {
       "eyebrow": "STEP 2 · LOCATION",
@@ -2880,7 +2881,21 @@
       "firstName": "FIRST NAME",
       "lastName": "LAST NAME",
       "phone": "PHONE",
-      "phonePlaceholder": "(954) 555-0100"
+      "phonePlaceholder": "(954) 555-0100",
+      "subChoose": "A technician comes to you, or you take your vehicle to a repair shop.",
+      "modeOnsite": "Your location",
+      "modeOnsiteSub": "A mobile technician comes to you. Home, work or wherever your vehicle is.",
+      "modeShop": "Repair shop",
+      "modeShopSub": "You take your vehicle to a repair shop in your area. Shops near you send quotes.",
+      "yourChoice": "YOUR CHOICE",
+      "change": "Change",
+      "searchNear": "SEARCH REPAIR SHOPS NEAR",
+      "radius": "SEARCH RADIUS",
+      "radiusLook": "Look for shops within",
+      "miles": "mile",
+      "miles_other": "miles",
+      "shopNote": "We'll invite repair shops within {{count}} mile of this address to send you a quote. You choose which one to book.",
+      "shopNote_other": "We'll invite repair shops within {{count}} miles of this address to send you a quote. You choose which one to book."
     },
     "services": {
       "eyebrow": "STEP 3 · SERVICES",
@@ -2890,7 +2905,9 @@
       "retry": "Try again",
       "empty": "No services are available right now.",
       "customLabel": "OTHER SERVICE (OPTIONAL)",
-      "customPlaceholder": "Something that isn't listed…"
+      "customPlaceholder": "Something that isn't listed…",
+      "detailsPlaceholder": "Additional details (optional)",
+      "detailsLabel": "Additional details for {{name}} (optional)"
     },
     "availability": {
       "eyebrow": "STEP 4 · AVAILABILITY",
@@ -2918,7 +2935,12 @@
         "evening": "Evening",
         "any": "Any time"
       },
-      "custom": "Custom hours"
+      "custom": "Custom hours",
+      "exactDate": "Exact date",
+      "dateRange": "Date range",
+      "sameDayBadge": "SAME DAY (TODAY)",
+      "rangeFrom": "FROM",
+      "rangeTo": "TO"
     },
     "review": {
       "eyebrow": "STEP 5 · REVIEW",
@@ -2939,7 +2961,8 @@
       "noChargeBody": "Publishing only requests quotes. Offers stay open for up to 48 hours, or until 1 hour before your requested time if that comes first. Your exact address and plate are shared only after you accept an offer and payment is secured.",
       "send": "Send request for quotes",
       "sending": "Sending…",
-      "uploading": "Uploading file {{current}} of {{total}}…"
+      "uploading": "Uploading file {{current}} of {{total}}…",
+      "shopWithin": "Repair shop within {{count}} mi of {{place}}"
     },
     "sent": {
       "title": "Request sent",

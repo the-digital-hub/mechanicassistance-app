@@ -30,12 +30,15 @@ export function DayCalendar({
     max,
     locale,
     onChange,
+    compact,
 }: {
     value: string;
     min: Date;
     max: Date;
     locale: string;
     onChange: (key: string) => void;
+    /** One tappable date (iOS compact picker) instead of the whole month. */
+    compact?: boolean;
 }) {
     const [open, setOpen] = useState(false);
     const current = value ? dateFromKey(value) : min;
@@ -49,7 +52,7 @@ export function DayCalendar({
         <DateTimePicker
             value={current}
             mode="date"
-            display={IOS ? 'inline' : 'default'}
+            display={IOS ? (compact ? 'compact' : 'inline') : 'default'}
             minimumDate={min}
             maximumDate={max}
             locale={locale}
@@ -59,6 +62,9 @@ export function DayCalendar({
         />
     );
 
+    if (IOS && compact) {
+        return <View style={{ alignItems: 'flex-start' }}>{picker}</View>;
+    }
     if (IOS) {
         return (
             <View style={{ ...CARD_STYLE, padding: 6, alignItems: 'center' }}>

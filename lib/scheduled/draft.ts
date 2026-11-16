@@ -26,6 +26,10 @@ export interface ScheduledDraft {
     vehicleName: string;
     mileage: string;
     location: ScheduledLocation | null;
+    /** Where the service happens: a mobile technician at the place above, or a repair shop near it. Null until chosen. */
+    mode: ServiceMode | null;
+    /** Repair shop only: how far from the place shops are invited from. */
+    radiusMiles: number;
     /** True when the account holder is the one in the vehicle; the contact fields are then ignored. */
     contactIsOwner: boolean;
     contactFirst: string;
@@ -33,15 +37,28 @@ export interface ScheduledDraft {
     contactPhone: string;
     /** Catalog `code` of every selected service. */
     services: string[];
+    /** Free text the owner adds to one selected service, by catalog `code`. */
+    serviceDetails: Record<string, string>;
     /** Free text for something the catalog does not list. */
     customRequest: string;
-    /** Service day, `YYYY-MM-DD` in the phone's local calendar. */
+    /** One day, or a range of days. */
+    dateMode: 'exact' | 'range';
+    /** Service day (or first day of the range), `YYYY-MM-DD` in the phone's local calendar. */
     date: string;
+    /** Last day of the range; empty on an exact date. */
+    dateTo: string;
     /** Preferred window, minutes from midnight. */
     fromMin: number | null;
     toMin: number | null;
     symptoms: string;
 }
+
+export type ServiceMode = 'onsite' | 'workshop';
+
+/** Default and limits of the repair-shop search radius. */
+export const DEFAULT_RADIUS_MILES = 10;
+export const MIN_RADIUS_MILES = 1;
+export const MAX_RADIUS_MILES = 100;
 
 export function emptyDraft(): ScheduledDraft {
     return {
@@ -50,13 +67,18 @@ export function emptyDraft(): ScheduledDraft {
         vehicleName: '',
         mileage: '',
         location: null,
+        mode: null,
+        radiusMiles: DEFAULT_RADIUS_MILES,
         contactIsOwner: true,
         contactFirst: '',
         contactLast: '',
         contactPhone: '',
         services: [],
+        serviceDetails: {},
         customRequest: '',
+        dateMode: 'exact',
         date: '',
+        dateTo: '',
         fromMin: null,
         toMin: null,
         symptoms: '',
@@ -138,13 +160,15 @@ export function stepIsValid(step: number, d: ScheduledDraft, now: Date = new Dat
         case 1:
             return !!d.vehicleId;
         case 2: {
-            const contactOk = d.contactIsOwner || (!!d.contactFirst.trim() && !!d.contactLast.trim() && !!d.contactPhone.trim());
-            return !!d.location && Number.isFinite(d.location.lat) && Number.isFinite(d.location.lng) && contactOk;
+            // Only a mobile technician meets someone: a repair shop needs no contact at the place.
+            const contactOk = d.mode === 'workshop' || d.contactIsOwner || (!!d.contactFirst.trim() && !!d.contactLast.trim() && !!d.contactPhone.trim());
+            return !!d.mode && !!d.location && Number.isFinite(d.location.lat) && Number.isFinite(d.location.lng) && contactOk;
         }
         case 3:
             return d.services.length > 0 && d.services.length <= MAX_SERVICES;
         case 4: {
             if (!d.date || d.fromMin == null || d.toMin == null) return false;
+            if (d.dateMode === 'range' && (!d.dateTo || d.dateTo < d.date)) return false;
             if (d.toMin <= d.fromMin) return false;
             return d.fromMin >= earliestMinutes(d.date, now);
         }
@@ -176,16 +200,30 @@ export function requestTitle(serviceNames: string[]): string {
     return serviceNames.length > 2 ? `${shown} +${serviceNames.length - 2}` : shown;
 }
 
+const shortDay = (key: string) => dateFromKey(key).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+/** "Fri, Nov 20" for one day, "Fri, Nov 20 – Sun, Nov 22" for a range. */
+export function daysLabel(d: Pick<ScheduledDraft, 'dateMode' | 'date' | 'dateTo'>): string {
+    if (!d.date) return '';
+    return d.dateMode === 'range' && d.dateTo && d.dateTo !== d.date ? `${shortDay(d.date)} – ${shortDay(d.dateTo)}` : shortDay(d.date);
+}
+
 /**
  * The free text mechanics read. The backend has one `notes` field and only one `date`, so the
- * preferred window's end and the owner's own words travel here.
+ * rest of the window (its end, the other days, repair shop or on site) and the owner's own words
+ * travel here. `serviceNames` maps a catalog `code` to the English name, for the per-service details.
  */
-export function buildNotes(d: ScheduledDraft): string {
+export function buildNotes(d: ScheduledDraft, serviceNames: Record<string, string> = {}): string {
     const lines: string[] = [];
+    if (d.mode === 'workshop') lines.push(`At a repair shop · within ${d.radiusMiles} ${d.radiusMiles === 1 ? 'mile' : 'miles'} of the service address`);
     if (d.fromMin != null && d.toMin != null) {
         // No label: technicians read this line on its own, as "Fri, Nov 20 · 9:00 AM – 12:00 PM".
-        const day = d.date ? `${dateFromKey(d.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} · ` : '';
-        lines.push(`${day}${formatMinutes(d.fromMin)} – ${formatMinutes(d.toMin)}`);
+        const days = daysLabel(d);
+        lines.push(`${days ? `${days} · ` : ''}${formatMinutes(d.fromMin)} – ${formatMinutes(d.toMin)}`);
+    }
+    for (const code of d.services) {
+        const text = (d.serviceDetails[code] ?? '').trim();
+        if (text) lines.push(`${serviceNames[code] ?? code}: ${text}`);
     }
     if (d.customRequest.trim()) lines.push(`Other request: ${d.customRequest.trim()}`);
     if (d.symptoms.trim()) lines.push(`Symptoms / special requests: ${d.symptoms.trim()}`);
@@ -199,14 +237,17 @@ export function buildScheduledPayload(args: {
     serviceNames: string[];
     photos: Attachment[];
     paymentMethodId?: string | null;
+    /** Catalog `code` → English name, for the per-service details in the notes. */
+    serviceNamesByCode?: Record<string, string>;
 }): Partial<AssistanceRequest> {
-    const { draft: d, userId, serviceNames, photos, paymentMethodId } = args;
+    const { draft: d, userId, serviceNames, photos, paymentMethodId, serviceNamesByCode } = args;
+    const onsite = d.mode !== 'workshop';
     const mileage = parseMileage(d.mileage);
     const date = serviceDateISO(d);
     return {
         userId,
         title: requestTitle(serviceNames),
-        notes: buildNotes(d),
+        notes: buildNotes(d, serviceNamesByCode),
         type: 'scheduled',
         assistanceType: 'scheduled',
         vehicleId: d.vehicleId ?? undefined,
@@ -220,10 +261,10 @@ export function buildScheduledPayload(args: {
         services: d.services.map((code) => ({ code })),
         ...(date ? { date } : {}),
         ...(mileage !== undefined ? { mileage } : {}),
-        driverIsOwner: d.contactIsOwner,
-        ...(!d.contactIsOwner && d.contactFirst.trim() ? { driverFirstName: d.contactFirst.trim() } : {}),
-        ...(!d.contactIsOwner && d.contactLast.trim() ? { driverLastName: d.contactLast.trim() } : {}),
-        ...(!d.contactIsOwner && d.contactPhone.trim() ? { driverPhone: d.contactPhone.trim() } : {}),
+        driverIsOwner: onsite ? d.contactIsOwner : true,
+        ...(onsite && !d.contactIsOwner && d.contactFirst.trim() ? { driverFirstName: d.contactFirst.trim() } : {}),
+        ...(onsite && !d.contactIsOwner && d.contactLast.trim() ? { driverLastName: d.contactLast.trim() } : {}),
+        ...(onsite && !d.contactIsOwner && d.contactPhone.trim() ? { driverPhone: d.contactPhone.trim() } : {}),
         ...(paymentMethodId ? { paymentMethodId } : {}),
     };
 }
@@ -238,7 +279,8 @@ export async function loadDraft(scope: string): Promise<ScheduledDraft | null> {
         if (!raw) return null;
         const parsed = JSON.parse(raw) as Partial<ScheduledDraft>;
         // Merge over the empty draft so a draft saved by an older build still has every field.
-        return { ...emptyDraft(), ...parsed };
+        // A draft saved before repair shops existed was always a mobile technician.
+        return { ...emptyDraft(), ...parsed, mode: parsed.mode ?? (parsed.location ? 'onsite' : null) };
     } catch {
         return null;
     }
@@ -266,6 +308,7 @@ export function hasProgress(d: ScheduledDraft): boolean {
         d.step > 1 ||
         !!d.vehicleId ||
         !!d.location ||
+        !!d.mode ||
         d.services.length > 0 ||
         !!d.customRequest.trim() ||
         !!d.symptoms.trim()
@@ -299,6 +342,7 @@ export function draftFromRequest(req: {
         step: 4,
         vehicleId: req.vehicleId ?? null,
         vehicleName: req.car ?? '',
+        mode: hasPlace ? 'onsite' : null,
         location: hasPlace
             ? { source: 'current', label: '', line: req.address as string, lat: req.locationLat as number, lng: req.locationLng as number, zip: req.zip ?? '' }
             : null,
