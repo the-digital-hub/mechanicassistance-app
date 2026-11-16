@@ -152,7 +152,49 @@ const FIELD_BOX = {
     paddingHorizontal: 14,
 } as const;
 
-/** A date as a bordered field with a calendar icon; tapping opens the calendar (inline on iOS, a dialog on Android). */
+/** The calendar itself: inline and full width on iOS, the system dialog on Android. Calls `onClose` once a day is picked. */
+export function CalendarPanel({
+    value,
+    min,
+    max,
+    locale,
+    onChange,
+    onClose,
+}: {
+    value: string;
+    min: Date;
+    max: Date;
+    locale: string;
+    onChange: (key: string) => void;
+    onClose: () => void;
+}) {
+    const current = value ? dateFromKey(value) : min;
+    const handle = (e: DateTimePickerEvent, d?: Date) => {
+        if (e.type === 'set' && d) onChange(toDateKey(d));
+        // Android reports a dismissal too; on iOS the inline calendar closes only after a day is picked.
+        if (!IOS || (e.type === 'set' && d)) onClose();
+    };
+    return (
+        <View style={IOS ? { ...CARD_STYLE, padding: 6, alignItems: 'center' } : undefined}>
+            <DateTimePicker
+                value={current}
+                mode="date"
+                display={IOS ? 'inline' : 'default'}
+                minimumDate={min}
+                maximumDate={max}
+                locale={locale}
+                accentColor={SC.blue}
+                themeVariant="light"
+                onChange={handle}
+            />
+        </View>
+    );
+}
+
+/**
+ * A date as a bordered field with a calendar icon. On its own it opens the calendar below itself;
+ * with `hidePicker` the caller shows the calendar (full width, for two fields side by side).
+ */
 export function DateField({
     value,
     min,
@@ -160,6 +202,9 @@ export function DateField({
     locale,
     onChange,
     accessibilityLabel,
+    hidePicker,
+    open: controlledOpen,
+    onToggle,
 }: {
     value: string;
     min: Date;
@@ -167,45 +212,32 @@ export function DateField({
     locale: string;
     onChange: (key: string) => void;
     accessibilityLabel: string;
+    hidePicker?: boolean;
+    open?: boolean;
+    onToggle?: () => void;
 }) {
-    const [open, setOpen] = useState(false);
-    const current = value ? dateFromKey(value) : min;
-    const text = value ? current.toLocaleDateString(locale, { month: '2-digit', day: '2-digit', year: 'numeric' }) : '';
-
-    const handle = (e: DateTimePickerEvent, d?: Date) => {
-        if (!IOS) setOpen(false);
-        if (e.type === 'set' && d) {
-            onChange(toDateKey(d));
-            if (IOS) setOpen(false);
-        }
-    };
+    const [localOpen, setLocalOpen] = useState(false);
+    const open = controlledOpen ?? localOpen;
+    const toggle = onToggle ?? (() => setLocalOpen(!localOpen));
+    const text = value ? dateFromKey(value).toLocaleDateString(locale, { month: '2-digit', day: '2-digit', year: 'numeric' }) : '';
 
     return (
         <View>
             <TouchableOpacity
-                onPress={() => setOpen(!open)}
+                onPress={toggle}
                 activeOpacity={0.8}
                 accessibilityRole="button"
                 accessibilityLabel={accessibilityLabel}
+                accessibilityState={{ expanded: open }}
                 className="flex-row items-center"
-                style={{ ...FIELD_BOX, borderColor: open ? SC.blue : '#E4EAF5', gap: 10 }}
+                style={{ ...FIELD_BOX, borderColor: open ? SC.blue : '#E4EAF5', gap: 8 }}
             >
-                <Text className="font-outfit-medium flex-1" style={{ fontSize: 16, color: text ? SC.text : SC.mutedLight }}>{text || '—'}</Text>
+                <Text className="font-outfit-medium flex-1" style={{ fontSize: 16, color: text ? SC.text : SC.mutedLight }} numberOfLines={1}>{text || '—'}</Text>
                 <Calendar size={18} color={SC.text} />
             </TouchableOpacity>
-            {open ? (
-                <View style={IOS ? { ...CARD_STYLE, padding: 6, alignItems: 'center', marginTop: 8 } : undefined}>
-                    <DateTimePicker
-                        value={current}
-                        mode="date"
-                        display={IOS ? 'inline' : 'default'}
-                        minimumDate={min}
-                        maximumDate={max}
-                        locale={locale}
-                        accentColor={SC.blue}
-                        themeVariant="light"
-                        onChange={handle}
-                    />
+            {open && !hidePicker ? (
+                <View style={{ marginTop: 8 }}>
+                    <CalendarPanel value={value} min={min} max={max} locale={locale} onChange={onChange} onClose={() => setLocalOpen(false)} />
                 </View>
             ) : null}
         </View>

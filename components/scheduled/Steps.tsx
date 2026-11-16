@@ -35,7 +35,7 @@ import { ActivityIndicator, Image, Text, TouchableOpacity, View } from 'react-na
 
 import type { Address, ScheduledServiceCategory, ScheduledServiceItem, Vehicle } from '@/lib/dao/interfaces';
 import { addressDisplayName } from '@/lib/address';
-import { DateField, SelectField, type SelectOption } from '@/components/scheduled/DateTime';
+import { CalendarPanel, DateField, SelectField, type SelectOption } from '@/components/scheduled/DateTime';
 import { RadiusSlider } from '@/components/scheduled/RadiusSlider';
 import type { PendingAttachment } from '@/lib/media/attachments';
 import {
@@ -418,6 +418,8 @@ export function AvailabilityStep({
     const days = bookableDates(now);
     const earliest = draft.date ? earliestMinutes(draft.date, now) : 0;
     const sameDay = draft.dateMode === 'exact' && draft.date ? isSameDay(draft.date, now) : false;
+    // Which end of a range has its calendar open: shown full width under both fields.
+    const [openEnd, setOpenEnd] = useState<'from' | 'to' | null>(null);
     const minDate = dateFromKey(days[0]);
     const maxDate = dateFromKey(days[days.length - 1]);
 
@@ -433,8 +435,10 @@ export function AvailabilityStep({
         });
     };
 
-    const setDateMode = (dateMode: 'exact' | 'range') =>
+    const setDateMode = (dateMode: 'exact' | 'range') => {
+        setOpenEnd(null);
         patch({ dateMode, dateTo: dateMode === 'range' ? draft.dateTo || draft.date : '' });
+    };
 
     // Start from the first day that still has time left and a window on it, as the design opens pre-filled.
     useEffect(() => {
@@ -497,15 +501,27 @@ export function AvailabilityStep({
                         <DateField value={draft.date} min={minDate} max={maxDate} locale={i18n.language} onChange={pickDay} accessibilityLabel={t('scheduled.availability.serviceDate')} />
                     </View>
                 ) : (
-                    <View className="flex-row" style={{ gap: 10 }}>
-                        <View style={{ flex: 1 }}>
-                            <Required>{t('scheduled.availability.rangeFromLabel')}</Required>
-                            <DateField value={draft.date} min={minDate} max={maxDate} locale={i18n.language} onChange={pickDay} accessibilityLabel={t('scheduled.availability.rangeFromLabel')} />
+                    <View style={{ gap: 10 }}>
+                        <View className="flex-row" style={{ gap: 10 }}>
+                            <View style={{ flex: 1 }}>
+                                <Required>{t('scheduled.availability.rangeFromLabel')}</Required>
+                                <DateField hidePicker open={openEnd === 'from'} onToggle={() => setOpenEnd(openEnd === 'from' ? null : 'from')} value={draft.date} min={minDate} max={maxDate} locale={i18n.language} onChange={pickDay} accessibilityLabel={t('scheduled.availability.rangeFromLabel')} />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <Required>{t('scheduled.availability.rangeToLabel')}</Required>
+                                <DateField hidePicker open={openEnd === 'to'} onToggle={() => setOpenEnd(openEnd === 'to' ? null : 'to')} value={draft.dateTo} min={dateFromKey(draft.date || days[0])} max={maxDate} locale={i18n.language} onChange={(dateTo) => patch({ dateTo })} accessibilityLabel={t('scheduled.availability.rangeToLabel')} />
+                            </View>
                         </View>
-                        <View style={{ flex: 1 }}>
-                            <Required>{t('scheduled.availability.rangeToLabel')}</Required>
-                            <DateField value={draft.dateTo} min={dateFromKey(draft.date || days[0])} max={maxDate} locale={i18n.language} onChange={(dateTo) => patch({ dateTo })} accessibilityLabel={t('scheduled.availability.rangeToLabel')} />
-                        </View>
+                        {openEnd ? (
+                            <CalendarPanel
+                                value={openEnd === 'from' ? draft.date : draft.dateTo}
+                                min={openEnd === 'from' ? minDate : dateFromKey(draft.date || days[0])}
+                                max={maxDate}
+                                locale={i18n.language}
+                                onChange={(key) => (openEnd === 'from' ? pickDay(key) : patch({ dateTo: key }))}
+                                onClose={() => setOpenEnd(null)}
+                            />
+                        ) : null}
                     </View>
                 )}
 
