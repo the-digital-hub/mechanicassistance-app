@@ -21,6 +21,7 @@ import {
 import { formatCountdown, useCountdown } from "@/hooks/useCountdown";
 import {
   getIdToken,
+  signInWithApple,
   signInWithGoogle,
 } from "@/lib/firebase/auth";
 import { userDAO } from "@/lib/dao/UserDAO";
@@ -376,6 +377,9 @@ export default function LoginScreen() {
   const handleGoogleLogin = () =>
     handleProviderLogin(() => signInWithGoogle(), "Google");
 
+  const handleAppleLogin = () =>
+    handleProviderLogin(() => signInWithApple(), "Apple");
+
 
   const handleEmailLogin = async () => {
     if (!emailAddress.trim() || !password.trim()) {
@@ -710,6 +714,19 @@ export default function LoginScreen() {
                     disabled={isLoading}
                     icon={<Image source={require("@/assets/brands/google.png")} style={{ width: 20, height: 20 }} resizeMode="contain" />}
                   />
+                  {Platform.OS === "ios" && (
+                    <TouchableOpacity
+                      onPress={handleAppleLogin}
+                      disabled={isLoading}
+                      activeOpacity={0.85}
+                      accessibilityRole="button"
+                      accessibilityLabel={t("login.signInWithApple")}
+                      style={{ height: 56, borderRadius: 16, backgroundColor: "#000000", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, opacity: isLoading ? 0.6 : 1 }}
+                    >
+                      <Ionicons name="logo-apple" size={22} color="#FFFFFF" />
+                      <Text className="font-outfit-bold" style={{ ...TYPE.body, color: "#FFFFFF" }}>{t("login.signInWithApple")}</Text>
+                    </TouchableOpacity>
+                  )}
                   <SocialButton
                     label={method === "email" ? t("login.signInWithMobile") : t("login.signInWithEmail")}
                     onPress={() => setMethod(method === "email" ? "mobile" : "email")}
