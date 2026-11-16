@@ -183,9 +183,9 @@ export function requestTitle(serviceNames: string[]): string {
 export function buildNotes(d: ScheduledDraft): string {
     const lines: string[] = [];
     if (d.fromMin != null && d.toMin != null) {
-        // The day goes with the window: technicians read this line on its own, in English.
-        const day = d.date ? `${dateFromKey(d.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}, ` : '';
-        lines.push(`Preferred window: ${day}${formatMinutes(d.fromMin)} – ${formatMinutes(d.toMin)}`);
+        // No label: technicians read this line on its own, as "Fri, Nov 20 · 9:00 AM – 12:00 PM".
+        const day = d.date ? `${dateFromKey(d.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} · ` : '';
+        lines.push(`${day}${formatMinutes(d.fromMin)} – ${formatMinutes(d.toMin)}`);
     }
     if (d.customRequest.trim()) lines.push(`Other request: ${d.customRequest.trim()}`);
     if (d.symptoms.trim()) lines.push(`Symptoms / special requests: ${d.symptoms.trim()}`);

@@ -126,12 +126,13 @@ describe('offerSubmitProblem', () => {
 });
 
 describe('notesWithDay', () => {
-    it('adds the day to an older window line', () => {
-        expect(notesWithDay('Preferred window: 9:00 AM – 12:00 PM\nSymptoms: noise', '2026-11-20T14:00:00.000Z')).toBe('Preferred window: Fri, Nov 20, 9:00 AM – 12:00 PM\nSymptoms: noise');
+    it('drops the label and puts the day in front of an older window line', () => {
+        expect(notesWithDay('Preferred window: 9:00 AM – 12:00 PM\nSymptoms: noise', '2026-11-20T14:00:00.000Z')).toBe('Fri, Nov 20 · 9:00 AM – 12:00 PM\nSymptoms: noise');
     });
-    it('leaves a line that already has the day, or no window, alone', () => {
-        const withDay = 'Preferred window: Fri, Nov 20, 9:00 AM – 12:00 PM';
-        expect(notesWithDay(withDay, '2026-11-20T14:00:00.000Z')).toBe(withDay);
+    it('also cleans the first version that had label and day', () => {
+        expect(notesWithDay('Preferred window: Fri, Nov 20, 9:00 AM – 12:00 PM', '2026-11-20T14:00:00.000Z')).toBe('Fri, Nov 20 · 9:00 AM – 12:00 PM');
+    });
+    it('leaves other lines alone', () => {
         expect(notesWithDay('Other request: x', '2026-11-20T14:00:00.000Z')).toBe('Other request: x');
         expect(notesWithDay(null, null)).toBeUndefined();
     });

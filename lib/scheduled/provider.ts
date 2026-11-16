@@ -38,13 +38,12 @@ export function distanceLabel(miles: number | null | undefined): string {
     return `${miles < 10 ? miles.toFixed(1) : Math.round(miles)} mi`;
 }
 
-/** Requests made before the day was written into the notes: put it in front of the window. */
+/** Requests made before the label was dropped: "Preferred window: 9 AM – 12 PM" becomes "Fri, Nov 20 · 9 AM – 12 PM". */
 export function notesWithDay(notes: string | null | undefined, date: string | null | undefined): string | undefined {
     if (!notes) return undefined;
     const d = date ? new Date(date) : null;
-    if (!d || isNaN(d.getTime())) return notes;
-    const day = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-    return notes.replace(/^Preferred window: (?!\w{3}, )/m, `Preferred window: ${day}, `);
+    const day = d && !isNaN(d.getTime()) ? d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : null;
+    return notes.replace(/^Preferred window: (?:\w{3}, \w{3} \d+, )?/m, day ? `${day} · ` : '');
 }
 
 /**
