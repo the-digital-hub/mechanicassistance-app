@@ -6,12 +6,26 @@ import type { OnSiteVisit } from '@/lib/dao/OnSiteDAO';
 import { MediaSlot, PhotoList, useExistingCaptures } from './MediaSlot';
 import { ObdPanel } from './ObdPanel';
 import type { RedirectReason } from './screens-execution';
-import { ActionBar, Body, Card, Eyebrow, InfoRow, Intro, NoteInput, OS, PrimaryButton, Segmented, Tip, cardShadow } from './ui';
+import { ActionBar, Body, Card, Eyebrow, GhostButton, InfoRow, Intro, NoteInput, OS, PrimaryButton, Segmented, Tip, cardShadow } from './ui';
 
 // Phase 3 of the on-site flow: exit capture, close-out summary and the final screen.
 // Charges and the owner rating are not sent anywhere yet.
 
 export type DoneVariant = 'completed' | 'redirected';
+
+/** Section heading of this screen: a title with its "optional" mark, and what it is for. */
+function SectionHead({ title, sub, first }: { title: string; sub: string; first?: boolean }) {
+    const { t } = useTranslation();
+    return (
+        <View className="px-5" style={{ paddingTop: first ? 16 : 22 }}>
+            <Text className="font-outfit-bold" style={{ fontSize: 17, lineHeight: 23, color: OS.text }}>
+                {title}
+                <Text className="font-outfit-medium" style={{ fontSize: 13, color: OS.mutedLight }}>  {t('appointments.onSite.common.optional')}</Text>
+            </Text>
+            <Text className="font-outfit-regular mt-1" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>{sub}</Text>
+        </View>
+    );
+}
 
 // ─────────── Check-out capture ───────────
 export function ScreenVideoOut({ appointmentId, visit, onVisit, onNext }: {
@@ -35,33 +49,14 @@ export function ScreenVideoOut({ appointmentId, visit, onVisit, onNext }: {
             <Body>
                 <Intro eyebrow={t(`${k}.eyebrow`)} title={t(`${k}.title`)} subtitle={t(`${k}.subtitle`)} />
 
-                {obdPending ? (
-                    <>
-                        <View className="px-5 pt-3.5">
-                            <Text className="font-outfit-bold text-[15px]" style={{ color: OS.text }}>
-                                {t(`${k}.obdTitle`)}
-                                <Text className="font-outfit-medium text-[13px]" style={{ color: OS.mutedLight }}>  {t('appointments.onSite.common.optional')}</Text>
-                            </Text>
-                            <Text className="font-outfit-regular text-[13px] mt-1" style={{ color: OS.muted }}>{t(`${k}.obdSub`)}</Text>
-                        </View>
-                        <ObdPanel appointmentId={appointmentId} visit={visit} onVisit={onVisit} />
-                    </>
-                ) : null}
-
-                <View className="px-5 pt-4">
-                    <Text className="font-outfit-bold text-[15px]" style={{ color: OS.text }}>
-                        {t(`${k}.mediaTitle`)}
-                        <Text className="font-outfit-medium text-[13px]" style={{ color: OS.mutedLight }}>  {t('appointments.onSite.common.optional')}</Text>
-                    </Text>
-                    <Text className="font-outfit-regular text-[13px] mt-1" style={{ color: OS.muted }}>{t(`${k}.mediaSub`)}</Text>
-                </View>
-                <View className="mt-2.5">
+                <SectionHead title={t(`${k}.mediaTitle`)} sub={t(`${k}.mediaSub`)} first />
+                <View className="mt-3">
                     <Segmented
                         value={tab}
                         onChange={setTab}
                         options={[
-                            { key: 'video', label: t('appointments.onSite.common.recordVideo') },
-                            { key: 'photos', label: t(`${k}.addPhotos`) },
+                            { key: 'video', label: t('appointments.onSite.common.recordVideo'), icon: 'videocam-outline' },
+                            { key: 'photos', label: t(`${k}.addPhotos`), icon: 'images-outline' },
                         ]}
                     />
                 </View>
@@ -79,9 +74,20 @@ export function ScreenVideoOut({ appointmentId, visit, onVisit, onNext }: {
                 </Card>
 
                 <Tip tone="green">{t(`${k}.tip`)}</Tip>
+
+                {obdPending ? (
+                    <>
+                        <SectionHead title={t(`${k}.obdTitle`)} sub={t(`${k}.obdSub`)} />
+                        <ObdPanel appointmentId={appointmentId} visit={visit} onVisit={onVisit} />
+                    </>
+                ) : null}
             </Body>
             <ActionBar>
-                <PrimaryButton label={ready ? t('appointments.onSite.common.continue') : t(`${k}.skip`)} onPress={() => onNext(!ready)} />
+                {ready ? (
+                    <PrimaryButton label={t('appointments.onSite.common.continue')} onPress={() => onNext(false)} />
+                ) : (
+                    <GhostButton label={t(`${k}.skip`)} onPress={() => onNext(true)} flex />
+                )}
             </ActionBar>
         </>
     );

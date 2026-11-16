@@ -5,6 +5,7 @@ import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'reac
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import type { ObdCode, OnSiteVisit } from '@/lib/dao/OnSiteDAO';
 import { ObdPanel } from './ObdPanel';
+import { VinCrossCheck } from './screens-vin';
 import { MediaSlot, PhotoList, useExistingCaptures } from './MediaSlot';
 import {
     ActionBar, Body, Card, CardTitle, GhostButton, InfoRow, Intro, OS, PrimaryButton, Segmented, Spinner, Tip, cardShadow,
@@ -206,11 +207,13 @@ export function ScreenIncidentDetails({ appointment, clientName, onNext }: { app
 }
 
 // ─────────── OBD scan ───────────
-export function ScreenDiagnosticsObd({ appointmentId, visit, onVisit, onNext }: {
+export function ScreenDiagnosticsObd({ appointmentId, visit, onVisit, onNext, enteredVin }: {
     appointmentId: string;
     visit: OnSiteVisit | null;
     onVisit: (v: OnSiteVisit) => void;
     onNext: () => void;
+    /** The VIN the mechanic scanned or typed on the VIN step, to cross-check with the OBD one. */
+    enteredVin?: string | null;
 }) {
     const { t } = useTranslation();
     const k = 'appointments.onSite.obd';
@@ -222,6 +225,7 @@ export function ScreenDiagnosticsObd({ appointmentId, visit, onVisit, onNext }: 
                 <Intro eyebrow={t(`${k}.eyebrow`)} title={t(`${k}.title`)} subtitle={t(`${k}.subtitle`)} />
                 <Tip>{t(`${k}.tipLater`)}</Tip>
                 <ObdPanel appointmentId={appointmentId} visit={visit} onVisit={onVisit} />
+                <VinCrossCheck entered={enteredVin} visit={visit} />
                 {status === 'none' ? <Tip tone="orange">{t(`${k}.reminderTip`)}</Tip> : null}
             </Body>
             <ActionBar>
@@ -242,30 +246,36 @@ export function ScreenDiagnosticsPhotos({ onNext }: { onNext: () => void }) {
     const [dashFilled, setDashFilled] = React.useState(false);
     const [tab, setTab] = React.useState<'video' | 'photos'>('video');
 
+    const doneCount = Number(plateFilled) + Number(dashFilled);
+    const ready = doneCount === 2;
+
     return (
         <>
             <Body>
                 <Intro eyebrow={t(`${k}.eyebrow`)} title={t(`${k}.title`)} subtitle={t(`${k}.subtitle`)} />
                 <Card>
-                    <CardTitle title={t(`${k}.plate`)} />
-                    <MediaSlot height={130} placeholder={t(`${k}.platePh`)} captureKind="plate" existing={plate[0]} onChange={setPlateFilled} />
+                    <CardTitle title={t(`${k}.plate`)} right={<RequiredPill done={plateFilled} />} />
+                    <MediaSlot height={150} placeholder={t(`${k}.platePh`)} captureKind="plate" existing={plate[0]} onChange={setPlateFilled} />
                 </Card>
                 <Card>
-                    <CardTitle title={t(`${k}.dash`)} />
-                    <MediaSlot height={130} placeholder={t(`${k}.dashPh`)} captureKind="dashboard" existing={dashboard[0]} onChange={setDashFilled} />
+                    <CardTitle title={t(`${k}.dash`)} right={<RequiredPill done={dashFilled} />} />
+                    <MediaSlot height={150} placeholder={t(`${k}.dashPh`)} captureKind="dashboard" existing={dashboard[0]} onChange={setDashFilled} />
                 </Card>
 
-                <Text className="font-outfit-bold text-[13px] mx-4 mt-3.5" style={{ color: OS.text }}>
-                    {t(`${k}.extra`)}
-                    <Text className="font-outfit-medium text-[13px]" style={{ color: OS.mutedLight }}>  {t('appointments.onSite.common.optional')}</Text>
-                </Text>
-                <View className="mt-2">
+                <View className="px-5 mt-6">
+                    <Text className="font-outfit-bold" style={{ fontSize: 17, lineHeight: 23, color: OS.text }}>
+                        {t(`${k}.extra`)}
+                        <Text className="font-outfit-medium" style={{ fontSize: 13, color: OS.mutedLight }}>  {t('appointments.onSite.common.optional')}</Text>
+                    </Text>
+                    <Text className="font-outfit-regular mt-1" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>{t(`${k}.extraSub`)}</Text>
+                </View>
+                <View className="mt-3">
                     <Segmented
                         value={tab}
                         onChange={setTab}
                         options={[
-                            { key: 'video', label: t('appointments.onSite.common.recordVideo') },
-                            { key: 'photos', label: t(`${k}.addExtra`) },
+                            { key: 'video', label: t('appointments.onSite.common.recordVideo'), icon: 'videocam-outline' },
+                            { key: 'photos', label: t(`${k}.addExtra`), icon: 'images-outline' },
                         ]}
                     />
                 </View>
@@ -277,10 +287,30 @@ export function ScreenDiagnosticsPhotos({ onNext }: { onNext: () => void }) {
                     )}
                 </Card>
             </Body>
-            <ActionBar>
-                <PrimaryButton label={t('appointments.onSite.common.continue')} onPress={onNext} disabled={!(plateFilled && dashFilled)} />
+            <ActionBar stacked>
+                {!ready ? (
+                    <Text className="font-outfit-medium text-center" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>
+                        {t(`${k}.needRequired`, { done: doneCount })}
+                    </Text>
+                ) : null}
+                <View className="flex-row">
+                    <PrimaryButton label={t('appointments.onSite.common.continue')} onPress={onNext} disabled={!ready} />
+                </View>
             </ActionBar>
         </>
+    );
+}
+
+/** "Required" until the capture is in, then a green "Added": the two mandatory photos are easy to tell apart. */
+function RequiredPill({ done }: { done: boolean }) {
+    const { t } = useTranslation();
+    return (
+        <View className="flex-row items-center" style={{ gap: 4, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 100, backgroundColor: done ? OS.greenSoft : OS.orangeSoft }}>
+            {done ? <Ionicons name="checkmark-circle" size={16} color={OS.greenDark} /> : null}
+            <Text className="font-outfit-bold" style={{ fontSize: 13, color: done ? OS.greenDark : OS.orangeText }}>
+                {done ? t('appointments.onSite.photos.added') : t('appointments.onSite.photos.required')}
+            </Text>
+        </View>
     );
 }
 
@@ -337,7 +367,7 @@ export function ScreenFeasibility({ appointment, obdCodes, onYes, onNeedParts, o
                     <InfoRow
                         icon="construct-outline"
                         label={t(`${k}.findings`)}
-                        value={<Text className="font-outfit-bold text-[13px] mt-1 leading-6" style={{ color: OS.text }}>{findings}</Text>}
+                        value={<Text className="font-outfit-bold mt-0.5" style={{ fontSize: 16, lineHeight: 24, color: OS.text }}>{findings}</Text>}
                         last
                     />
                 </View>

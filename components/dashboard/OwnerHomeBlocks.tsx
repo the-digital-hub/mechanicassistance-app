@@ -68,8 +68,16 @@ export function OwnerSectionTitle({
                 </TouchableOpacity>
             ) : heading}
             {actionLabel && onAction ? (
-                <TouchableOpacity onPress={onAction} hitSlop={8} accessibilityRole="button">
-                    <Text className="font-outfit-bold" style={{ fontSize: 13, color: C.blue }}>{actionLabel}</Text>
+                <TouchableOpacity
+                    onPress={onAction}
+                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                    accessibilityRole="button"
+                    activeOpacity={0.7}
+                    className="flex-row items-center"
+                    style={{ gap: 2, minHeight: 36, paddingLeft: 14, paddingRight: 8, borderRadius: 100, backgroundColor: '#EAF1FF' }}
+                >
+                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: C.blue }}>{actionLabel}</Text>
+                    <ChevronRight size={18} color={C.blue} />
                 </TouchableOpacity>
             ) : null}
         </View>
@@ -166,26 +174,26 @@ export function OwnerAttentionList({ items, hideLabel, onDismiss }: { items: Own
                         onPress={a.onPress}
                         activeOpacity={0.8}
                         accessibilityRole="button"
-                        className="flex-row items-center"
+                        className="flex-row"
                         style={{ ...CARD, padding: 14, gap: 12 }}
                     >
                         <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: amber ? C.amberSoft : C.blueSoft }}>
                             <Icon size={20} color={amber ? C.amberText : C.blue} />
                         </View>
-                        <View className="flex-1">
-                            <Text className="font-outfit-bold" style={{ fontSize: 15, letterSpacing: -0.2, color: C.text }}>{a.title}</Text>
-                            <Text className="font-outfit-regular" style={{ fontSize: 13, lineHeight: 17, color: C.muted, marginTop: 2 }}>{a.sub}</Text>
-                        </View>
-                        <View className="items-end" style={{ gap: 8 }}>
-                            <View className="flex-row items-center" style={{ gap: 2 }}>
-                                <Text className="font-outfit-bold" style={{ fontSize: 13, color: C.blue }}>{a.cta}</Text>
-                                <ChevronRight size={16} color={C.blue} />
+                        <View className="flex-1" style={{ minWidth: 0 }}>
+                            <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: C.text }}>{a.title}</Text>
+                            <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: C.muted, marginTop: 2 }}>{a.sub}</Text>
+                            <View className="flex-row items-center" style={{ gap: 16, marginTop: 10 }}>
+                                <View className="flex-row items-center" style={{ gap: 2, minHeight: 36, paddingLeft: 14, paddingRight: 8, borderRadius: 100, backgroundColor: amber ? C.amberSoft : C.blueSoft }}>
+                                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: amber ? C.amberText : C.blue }}>{a.cta}</Text>
+                                    <ChevronRight size={18} color={amber ? C.amberText : C.blue} />
+                                </View>
+                                {onDismiss && hideLabel ? (
+                                    <TouchableOpacity onPress={() => onDismiss(a)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} accessibilityRole="button">
+                                        <Text className="font-outfit-semibold" style={{ fontSize: 14, color: C.muted }}>{hideLabel}</Text>
+                                    </TouchableOpacity>
+                                ) : null}
                             </View>
-                            {onDismiss && hideLabel ? (
-                                <TouchableOpacity onPress={() => onDismiss(a)} hitSlop={{ top: 6, bottom: 6, left: 10, right: 6 }} accessibilityRole="button">
-                                    <Text className="font-outfit-semibold" style={{ fontSize: 13, color: C.mutedLight }}>{hideLabel}</Text>
-                                </TouchableOpacity>
-                            ) : null}
                         </View>
                     </TouchableOpacity>
                 );

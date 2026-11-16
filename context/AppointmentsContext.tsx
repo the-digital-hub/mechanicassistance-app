@@ -118,6 +118,12 @@ interface AppointmentsContextType {
     updateAppointment: (id: string, updates: Partial<Appointment>) => Promise<void>;
     cancelAppointment: (id: string, reason: string) => Promise<void>;
     refresh: () => Promise<void>;
+    /**
+     * Puts a request the mechanic just made an offer on into the list as `offered`, right away.
+     * The full reload takes a few round trips; this keeps Pending from looking empty meanwhile,
+     * and the reload then replaces the row with the server's.
+     */
+    markOffered: (row: Appointment) => void;
     getUpcoming: () => Appointment[];
     getPendingApproval: () => Appointment[];
     getPast: () => Appointment[];
@@ -291,6 +297,13 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
         }
     };
 
+    const markOffered = (row: Appointment) => {
+        setAppointments((prev) => [
+            { ...row, status: 'offered', source: 'assistance', updatedAt: new Date().toISOString() },
+            ...prev.filter((a) => a.id !== row.id),
+        ]);
+    };
+
     const updateAppointment = async (id: string, updates: Partial<Appointment>) => {
         try {
             await appointmentDAO.update(id, updates);
@@ -369,6 +382,7 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                 updateAppointment,
                 cancelAppointment,
                 refresh: loadAppointments,
+                markOffered,
                 getUpcoming,
                 getPendingApproval,
                 getPast,

@@ -1,12 +1,13 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Car, MapPin } from 'lucide-react-native';
+import { Car, MapPin, Navigation, Zap } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 
 import { CancelRequestLink, canCancelBeforeStart } from '@/components/appointments/CancelRequestLink';
 import type { Appointment } from '@/context/AppointmentsContext';
 import { useHeadOut } from '@/hooks/useHeadOut';
+import { TYPE } from '@/lib/ui/type';
 import { BANNER_COLORS, getCardState, getTypeBar } from './appointmentCardTheme';
 
 /**
@@ -27,7 +28,8 @@ export function MechanicActiveJobCard({ appointment }: { appointment: Appointmen
     const state = getCardState({ ...appointment, departedAt: appointment.departedAt ?? departedNow });
     const colors = BANNER_COLORS[state];
     const typeBar = getTypeBar(appointment);
-    const TypeIcon = typeBar.icon;
+    // On the dashboard an immediate job wears the same bolt as the request cards above it.
+    const TypeIcon = appointment.type === 'immediate' && appointment.assistanceType !== 'witness' ? Zap : typeBar.icon;
 
     const infoRows = [
         appointment.car ? { key: 'vehicle', Icon: Car, label: t('dashboard.user.requestVehicleLabel'), value: appointment.car } : null,
@@ -79,10 +81,10 @@ export function MechanicActiveJobCard({ appointment }: { appointment: Appointmen
 
             {/* Status */}
             <View className="mt-3 px-3 py-2.5" style={{ borderRadius: 12, backgroundColor: colors.bg }}>
-                <Text className="font-outfit-bold" style={{ fontSize: 14, color: colors.title }}>
+                <Text className="font-outfit-bold" style={{ ...TYPE.body, color: colors.title }}>
                     {t(`appointments.list.card.title.${state}`)}
                 </Text>
-                <Text className="font-outfit-medium" style={{ fontSize: 13, color: colors.hint, marginTop: 2 }}>
+                <Text className="font-outfit-medium" style={{ ...TYPE.helper, color: colors.hint, marginTop: 2 }}>
                     {t(`appointments.list.card.status.${state}Hint`)}
                 </Text>
             </View>
@@ -93,16 +95,20 @@ export function MechanicActiveJobCard({ appointment }: { appointment: Appointmen
                     {infoRows.map(({ key, Icon, label, value }, index) => (
                         <View
                             key={key}
-                            className="flex-row items-center px-3 py-2.5"
+                            className="flex-row items-center px-3 py-3"
                             style={index > 0 ? { borderTopWidth: 1, borderTopColor: '#E1EAFB' } : undefined}
                         >
-                            <Icon size={16} color="#6B7490" />
-                            <Text className="font-outfit-medium ml-2" style={{ fontSize: 13, color: '#6B7490' }}>
-                                {label}
-                            </Text>
-                            <Text className="font-outfit-semibold flex-1 text-right ml-2" style={{ fontSize: 13, color: '#0B1530' }} numberOfLines={1}>
-                                {value}
-                            </Text>
+                            <View className="items-center justify-center mr-3" style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: '#FFFFFF' }}>
+                                <Icon size={18} color="#1E56E3" />
+                            </View>
+                            <View className="flex-1">
+                                <Text className="font-outfit-semibold" style={{ ...TYPE.caption, color: '#6B7490' }}>
+                                    {label}
+                                </Text>
+                                <Text className="font-outfit-bold" style={{ ...TYPE.body, color: '#0B1530' }} numberOfLines={2}>
+                                    {value}
+                                </Text>
+                            </View>
                         </View>
                     ))}
                 </View>
@@ -123,25 +129,28 @@ export function MechanicActiveJobCard({ appointment }: { appointment: Appointmen
                             colors={['#2B66F8', '#081E72']}
                             start={{ x: 0, y: 1 }}
                             end={{ x: 1, y: 0 }}
-                            style={{ borderRadius: 10, paddingVertical: 14, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center', opacity: headingOut ? 0.6 : 1 }}
+                            style={{ borderRadius: 16, minHeight: 54, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center', opacity: headingOut ? 0.6 : 1 }}
                         >
                             {headingOut ? (
                                 <ActivityIndicator color="#FFFFFF" />
                             ) : (
-                                <Text className="text-white font-outfit-bold text-center" numberOfLines={1}>
-                                    {t('dashboard.mechanic.activeJob.headOut')}
-                                </Text>
+                                <View className="flex-row items-center" style={{ gap: 8 }}>
+                                    <Navigation size={18} color="#FFFFFF" />
+                                    <Text className="text-white font-outfit-semibold text-center" style={TYPE.button} numberOfLines={1}>
+                                        {t('dashboard.mechanic.activeJob.headOut')}
+                                    </Text>
+                                </View>
                             )}
                         </LinearGradient>
                     </TouchableOpacity>
                 )}
                 <TouchableOpacity
-                    style={{ flex: canHeadOut ? 0.4 : 1, borderRadius: 10, paddingVertical: 14, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' }}
+                    style={{ flex: canHeadOut ? 0.4 : 1, borderRadius: 16, minHeight: 54, paddingHorizontal: 8, backgroundColor: '#EAF1FF', alignItems: 'center', justifyContent: 'center' }}
                     onPress={openDetail}
                     activeOpacity={0.85}
                     accessibilityRole="button"
                 >
-                    <Text className="font-outfit-bold text-center" style={{ color: '#1E56E3' }} numberOfLines={1}>
+                    <Text className="font-outfit-semibold text-center" style={{ ...TYPE.button, color: '#1E56E3' }} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
                         {t('appointments.list.card.viewDetails')}
                     </Text>
                 </TouchableOpacity>

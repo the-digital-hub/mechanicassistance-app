@@ -135,11 +135,11 @@ function Payout({ visit }: { visit: OnSiteVisit }) {
                                 }}
                             >
                                 {s.state === 'done' ? (
-                                    <Ionicons name="checkmark" size={13} color={OS.green} />
+                                    <Ionicons name="checkmark" size={14} color={OS.green} />
                                 ) : s.state === 'active' ? (
                                     <PulseDot size={7} color={OS.blue} />
                                 ) : (
-                                    <Ionicons name="time-outline" size={12} color={OS.mutedLight} />
+                                    <Ionicons name="time-outline" size={14} color={OS.mutedLight} />
                                 )}
                             </View>
                             <Text
@@ -155,7 +155,7 @@ function Payout({ visit }: { visit: OnSiteVisit }) {
                     </React.Fragment>
                 ))}
             </View>
-            <Text className="font-outfit-regular text-[13px] mt-2.5 leading-4" style={{ color: OS.mutedLight }}>{t(`${k}.payoutNote`)}</Text>
+            <Text className="font-outfit-regular mt-3" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>{t(`${k}.payoutNote`)}</Text>
         </Card>
     );
 }
@@ -193,25 +193,25 @@ function ReviewRequest({ visit, onVisit }: { visit: OnSiteVisit; onVisit: (v: On
         <Card>
             <View className="flex-row items-center gap-2.5 px-4 pt-4 pb-1">
                 <View className="items-center justify-center" style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: OS.orangeSoft }}>
-                    <Ionicons name="star-outline" size={19} color={OS.orange} />
+                    <Ionicons name="star-outline" size={20} color={OS.orange} />
                 </View>
-                <Text className="font-outfit-bold text-[15px]" style={{ color: OS.text }}>{t(`${k}.reviewTitle`)}</Text>
+                <Text className="flex-1 font-outfit-bold" style={{ fontSize: 17, lineHeight: 23, color: OS.text }}>{t(`${k}.reviewTitle`)}</Text>
             </View>
-            <Text className="font-outfit-regular text-[13px] px-4 pt-1.5 pb-4 leading-5" style={{ color: OS.muted }}>{t(`${k}.reviewBody`)}</Text>
+            <Text className="font-outfit-regular px-4 pt-1.5 pb-4" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>{t(`${k}.reviewBody`)}</Text>
             <View className="px-4 pb-4">
                 {visit.ownerReviewSubmitted ? (
                     <View className="flex-row items-center gap-2.5 px-3.5 py-3 rounded-xl" style={{ backgroundColor: OS.greenSoft }}>
-                        <Ionicons name="checkmark" size={16} color={OS.green} />
-                        <Text className="flex-1 font-outfit-bold text-[13px]" style={{ color: OS.greenDark }}>{t(`${k}.reviewReceived`)}</Text>
+                        <Ionicons name="checkmark-circle" size={20} color={OS.green} />
+                        <Text className="flex-1 font-outfit-bold" style={{ fontSize: 14, lineHeight: 20, color: OS.greenDark }}>{t(`${k}.reviewReceived`)}</Text>
                     </View>
                 ) : requestedAt !== null && !canAsk ? (
                     <View className="px-3.5 py-3 rounded-xl" style={{ backgroundColor: OS.greenSoft }}>
                         <View className="flex-row items-center gap-2.5">
                             <PulseDot size={8} color={OS.green} />
-                            <Text className="flex-1 font-outfit-bold text-[13px]" style={{ color: OS.greenDark }}>{t(`${k}.reviewSent`)}</Text>
+                            <Text className="flex-1 font-outfit-bold" style={{ fontSize: 14, lineHeight: 20, color: OS.greenDark }}>{t(`${k}.reviewSent`)}</Text>
                         </View>
                         {nextAllowed ? (
-                            <Text className="font-outfit-medium text-[13px] mt-1.5" style={{ color: OS.greenDark }}>
+                            <Text className="font-outfit-medium mt-1.5" style={{ fontSize: 14, lineHeight: 20, color: OS.greenDark }}>
                                 {t(`${k}.reviewAgainAt`, { time: `${fmt.date(new Date(nextAllowed).toISOString())} ${fmt.time(new Date(nextAllowed).toISOString())}` })}
                             </Text>
                         ) : null}
@@ -221,12 +221,12 @@ function ReviewRequest({ visit, onVisit }: { visit: OnSiteVisit; onVisit: (v: On
                         onPress={() => void send()}
                         disabled={sending}
                         activeOpacity={0.85}
-                        className="flex-row items-center justify-center gap-2 py-3.5"
-                        style={{ borderRadius: 13, backgroundColor: OS.blue, opacity: sending ? 0.7 : 1 }}
+                        className="flex-row items-center justify-center gap-2"
+                        style={{ minHeight: 52, borderRadius: 14, backgroundColor: OS.blue, opacity: sending ? 0.7 : 1 }}
                         testID="closeout-request-review"
                     >
-                        {sending ? <ActivityIndicator color="#FFFFFF" /> : <Ionicons name="chatbubble-outline" size={15} color="#FFFFFF" />}
-                        <Text className="text-white font-outfit-bold text-sm">
+                        {sending ? <ActivityIndicator color="#FFFFFF" /> : <Ionicons name="chatbubble-outline" size={18} color="#FFFFFF" />}
+                        <Text className="text-white font-outfit-bold" style={{ fontSize: 16, lineHeight: 22 }}>
                             {requestedAt !== null ? t(`${k}.reviewResend`) : t(`${k}.reviewSend`)}
                         </Text>
                     </TouchableOpacity>
@@ -261,16 +261,16 @@ function RateOwner({ visit, onVisit }: { visit: OnSiteVisit; onVisit: (v: OnSite
         <Card>
             <View className="flex-row items-center gap-2.5 px-4 pt-4 pb-1">
                 <View className="items-center justify-center" style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: OS.blueSoft }}>
-                    <Ionicons name="person-outline" size={19} color={OS.blue} />
+                    <Ionicons name="person-outline" size={20} color={OS.blue} />
                 </View>
-                <Text className="font-outfit-bold text-[15px]" style={{ color: OS.text }}>{t(`${k}.rateTitle`)}</Text>
+                <Text className="flex-1 font-outfit-bold" style={{ fontSize: 17, lineHeight: 23, color: OS.text }}>{t(`${k}.rateTitle`)}</Text>
             </View>
-            <Text className="font-outfit-regular text-[13px] px-4 pt-1.5 pb-4 leading-5" style={{ color: OS.muted }}>{t(`${k}.rateBody`)}</Text>
+            <Text className="font-outfit-regular px-4 pt-1.5 pb-4" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>{t(`${k}.rateBody`)}</Text>
             <View className="px-4 pb-4">
                 {visit.clientRating ? (
                     <View className="flex-row items-center gap-2.5 px-3.5 py-3 rounded-xl" style={{ backgroundColor: OS.greenSoft }}>
-                        <Ionicons name="checkmark" size={16} color={OS.green} />
-                        <Text className="flex-1 font-outfit-bold text-[13px]" style={{ color: OS.greenDark }}>
+                        <Ionicons name="checkmark-circle" size={20} color={OS.green} />
+                        <Text className="flex-1 font-outfit-bold" style={{ fontSize: 14, lineHeight: 20, color: OS.greenDark }}>
                             {t(`${k}.rateDone`, { rating: visit.clientRating })}
                         </Text>
                     </View>
@@ -279,7 +279,7 @@ function RateOwner({ visit, onVisit }: { visit: OnSiteVisit; onVisit: (v: OnSite
                         <View className="flex-row justify-center gap-2" style={{ marginBottom: 14 }}>
                             {[1, 2, 3, 4, 5].map((n) => (
                                 <TouchableOpacity key={n} onPress={() => setRating(n)} testID={`closeout-rate-${n}`} className="p-0.5">
-                                    <Ionicons name={n <= rating ? 'star' : 'star-outline'} size={30} color={n <= rating ? OS.orange : OS.border} />
+                                    <Ionicons name={n <= rating ? 'star' : 'star-outline'} size={30} color={n <= rating ? OS.orange : '#C5CEE3'} />
                                 </TouchableOpacity>
                             ))}
                         </View>
@@ -287,11 +287,11 @@ function RateOwner({ visit, onVisit }: { visit: OnSiteVisit; onVisit: (v: OnSite
                         <TouchableOpacity
                             onPress={() => void submit()}
                             disabled={!rating || sending}
-                            className="items-center py-3.5 mt-3"
-                            style={{ borderRadius: 13, backgroundColor: rating && !sending ? OS.blue : OS.blueIce }}
+                            className="items-center justify-center mt-3"
+                            style={{ minHeight: 52, borderRadius: 14, backgroundColor: rating && !sending ? OS.blue : OS.blueIce }}
                         >
                             {sending ? <ActivityIndicator color="#FFFFFF" /> : (
-                                <Text className="text-white font-outfit-bold text-sm">{t(`${k}.rateSubmit`)}</Text>
+                                <Text className="text-white font-outfit-bold" style={{ fontSize: 16, lineHeight: 22 }}>{t(`${k}.rateSubmit`)}</Text>
                             )}
                         </TouchableOpacity>
                     </>
@@ -316,20 +316,20 @@ function Checklist({ visit }: { visit: OnSiteVisit }) {
     const doneCount = items.filter((i) => i.done).length;
     return (
         <Card>
-            <View className="flex-row items-center justify-between px-4 py-3" style={{ borderBottomWidth: 1, borderBottomColor: OS.borderSoft }}>
-                <Text className="font-outfit-bold text-[13px]" style={{ color: OS.text }}>{t(`${k}.checklistTitle`)}</Text>
-                <Text className="font-outfit-bold text-[13px]" style={{ color: OS.mutedLight }}>{doneCount}/{items.length}</Text>
+            <View className="flex-row items-center justify-between px-4 py-3.5" style={{ borderBottomWidth: 1, borderBottomColor: OS.borderSoft }}>
+                <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: OS.text }}>{t(`${k}.checklistTitle`)}</Text>
+                <Text className="font-outfit-bold" style={{ fontSize: 14, color: OS.muted }}>{doneCount}/{items.length}</Text>
             </View>
             {items.map((it, i) => (
                 <View
                     key={it.label}
-                    className="flex-row items-center gap-3 px-4 py-3"
+                    className="flex-row items-center gap-3 px-4 py-3.5"
                     style={i < items.length - 1 ? { borderBottomWidth: 1, borderBottomColor: OS.borderSoft } : undefined}
                 >
-                    <View className="items-center justify-center" style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: it.done ? OS.greenSoft : OS.borderSoft }}>
-                        {it.done ? <Ionicons name="checkmark" size={12} color={OS.green} /> : <Ionicons name="time-outline" size={11} color={OS.mutedLight} />}
+                    <View className="items-center justify-center" style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: it.done ? OS.greenSoft : OS.borderSoft }}>
+                        {it.done ? <Ionicons name="checkmark" size={14} color={OS.green} /> : <Ionicons name="time-outline" size={14} color={OS.mutedLight} />}
                     </View>
-                    <Text className="font-outfit-medium text-[13px]" style={{ color: it.done ? OS.text : OS.muted }}>{it.label}</Text>
+                    <Text className="flex-1 font-outfit-medium" style={{ fontSize: 16, lineHeight: 22, color: it.done ? OS.text : OS.muted }}>{it.label}</Text>
                 </View>
             ))}
         </Card>
@@ -356,14 +356,14 @@ export function ScreenCloseout({ visit, onVisit, onBackToDashboard }: {
                 <Payout visit={visit} />
                 <ReviewRequest visit={visit} onVisit={onVisit} />
                 <RateOwner visit={visit} onVisit={onVisit} />
+                <Checklist visit={visit} />
                 {obdPending ? (
-                    <View className="mt-4">
-                        <Text className="font-outfit-bold text-[15px] mx-5" style={{ color: OS.text }}>{t(`${k}.obdTitle`)}</Text>
+                    <View className="mt-5">
+                        <Text className="font-outfit-bold mx-5" style={{ fontSize: 17, lineHeight: 23, color: OS.text }}>{t(`${k}.obdTitle`)}</Text>
                         <ObdPanel appointmentId={visit.appointmentId} visit={visit} onVisit={onVisit} />
                     </View>
                 ) : null}
-                <Checklist visit={visit} />
-                <Text className="font-outfit-regular text-[13px] text-center mx-5 mt-4 leading-4" style={{ color: visit.closeoutCompletedAt ? OS.greenDark : OS.mutedLight }}>
+                <Text className="font-outfit-regular text-center mx-5 mt-5" style={{ fontSize: 14, lineHeight: 20, color: visit.closeoutCompletedAt ? OS.greenDark : OS.muted }}>
                     {visit.closeoutCompletedAt ? t(`${k}.footerClosed`) : t(`${k}.footer`)}
                 </Text>
             </Body>

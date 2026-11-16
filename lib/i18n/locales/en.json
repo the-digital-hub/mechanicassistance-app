@@ -1054,7 +1054,8 @@
         "maintenance": "Maintenance",
         "videoOut": "Check-out",
         "close": "Close service",
-        "done": "Service closed"
+        "done": "Service closed",
+        "diagnosticsVin": "Vehicle VIN"
       },
       "phases": {
         "checkin": "Check-in",
@@ -1069,7 +1070,7 @@
         "remove": "Remove",
         "deletePhoto": "Delete this photo slot",
         "photoNote": "Add a note about this photo (optional)…",
-        "addAnotherPhoto": "+ Add another photo",
+        "addAnotherPhoto": "Add another photo",
         "tapToAdd": "Tap to take or choose",
         "recordVideo": "Record video",
         "video": "Video captured",
@@ -1122,7 +1123,7 @@
         "start": "Start diagnostic"
       },
       "obd": {
-        "eyebrow": "STEP 2 · OBD SCAN",
+        "eyebrow": "STEP 3 · OBD SCAN",
         "title": "Scan the vehicle with the OBD reader",
         "subtitle": "Plug in the OBD-II scanner and run a full scan.",
         "tipLater": "You don't need to upload the scanner file right now — you can do it later from the service summary.",
@@ -1152,7 +1153,7 @@
         "failed": "We couldn't read any codes from this file. Type them in below.",
         "manualTitle": "Codes typed in",
         "manualHint": "Add a code by hand",
-        "manualPh": "e.g. P0301",
+        "manualPh": "P0301",
         "add": "Add",
         "invalid": "Use the format P0301 (P, B, C or U, then 4 characters).",
         "vinHint": "VIN shown by the scanner (optional)",
@@ -1198,7 +1199,7 @@
         }
       },
       "photos": {
-        "eyebrow": "STEP 3 · PHOTOS",
+        "eyebrow": "STEP 2 · PHOTOS",
         "title": "Capture photos of the vehicle",
         "subtitle": "Complete the following captures for the report.",
         "plate": "License plate photo",
@@ -1208,7 +1209,11 @@
         "extra": "360° video or extra photos",
         "addExtra": "Add extra photos",
         "videoPh": "Record a full walk-around of the vehicle",
-        "extraPh": "Something worth noting for the report"
+        "extraPh": "Something worth noting for the report",
+        "extraSub": "A short walk-around video or a few more photos help if the client ever raises a claim.",
+        "required": "Required",
+        "added": "Added",
+        "needRequired": "{{done}} of 2 required photos added"
       },
       "validating": {
         "title": "Validating the reported diagnostic…",
@@ -1273,7 +1278,8 @@
           "noParts": "Missing parts or tools for this repair",
           "needsShop": "Needs shop equipment (lift, alignment rack, etc.)",
           "other": "Other"
-        }
+        },
+        "whyTitle": "Why can't it be resolved here?"
       },
       "resolve": {
         "eyebrow": "REPAIR IN PROGRESS",
@@ -1291,20 +1297,28 @@
         "fixEyebrow": "STEP 2 · FIX THE ISSUE",
         "reportedIssue": "REPORTED ISSUE ·",
         "proof": "Proof of work",
-        "addPhoto": "+ Add photo",
+        "addPhoto": "Add photo",
         "proofPh": "Photo or video of the work performed",
         "removePhoto": "Remove photo",
         "workPh": "Describe the work performed…",
         "question": "Is the issue resolved?",
         "no": "No",
-        "yes": "Yes, resolved"
+        "yes": "Yes, resolved",
+        "timerLabel": "Time on the job",
+        "inProgress": "In progress",
+        "issueLabel": "Reported issue",
+        "workTitle": "Work notes",
+        "checklistWarnTitle": "Complete the maintenance checklist",
+        "checklistWarnBody": "You haven't finished the maintenance checklist. Closing this assistance without it can affect your rating and the assistance's compliance.",
+        "checklistWarnFix": "Complete checklist",
+        "checklistWarnSkip": "Continue anyway"
       },
       "videoOut": {
         "eyebrow": "BEFORE YOU GO · OPTIONAL",
         "title": "Capture the vehicle's condition on exit",
         "subtitle": "This step is optional, but a quick video or a few photos protect you if the client ever raises a claim — and it boosts your technician rating.",
         "obdTitle": "OBD scan report",
-        "obdSub": "You still haven't uploaded the scanner file from step 2 — you can do it now.",
+        "obdSub": "You haven't uploaded the OBD scanner file yet — you can do it now.",
         "mediaTitle": "Video or photos",
         "mediaSub": "Record a walk-around video, or add a few photos instead.",
         "addPhotos": "Add photos",
@@ -1349,6 +1363,47 @@
         "sent": "Review submitted — thanks for the feedback",
         "payment": "Payment is on its way to be charged — you'll be notified once it clears.",
         "back": "Back to dashboard"
+      },
+      "vin": {
+        "eyebrow": "STEP 1 · VEHICLE ID",
+        "title": "Identify the vehicle",
+        "subtitle": "Scan the VIN barcode or type it in. You'll find it on the driver's door jamb or at the base of the windshield.",
+        "label": "VIN",
+        "scan": "Scan VIN with camera",
+        "allowCamera": "Allow camera to scan",
+        "cameraBlocked": "Camera access is off. Enable it in Settings, or type the VIN below.",
+        "or": "or type it",
+        "placeholder": "17-character VIN",
+        "charCount": "{{count}} / 17",
+        "invalid": "A VIN has 17 letters and digits, without I, O or Q.",
+        "valid": "VIN looks right",
+        "scanned": "Read from the barcode",
+        "checkDigit": "This VIN's check digit doesn't add up. Double-check it against the label, or continue if the vehicle isn't a US model.",
+        "odometer": "Odometer",
+        "odometerPlaceholder": "Current reading",
+        "miles": "miles",
+        "tip": "We compare this VIN with the one on the request and the one from the OBD scan.",
+        "skip": "Continue without the VIN",
+        "scanTitle": "Scan the VIN barcode",
+        "scanHint": "Hold steady until it's read.",
+        "notVin": "That code isn't a VIN. Try the barcode on the door jamb or the windshield.",
+        "cross": {
+          "title": "VIN check",
+          "request": "On the request",
+          "mine": "You entered",
+          "obd": "OBD scanner",
+          "notAvailable": "Not available",
+          "match": "All the VINs match.",
+          "differ": "The VINs don't match. Double-check the vehicle before going on.",
+          "partial": "Not enough to compare yet. The OBD scan will complete the check."
+        },
+        "scanSubtitle": "Center the barcode inside the frame. It reads on its own.",
+        "tipDoor": "Sticker on the driver's door jamb",
+        "tipWindshield": "Plate at the base of the windshield, driver's side",
+        "tipLight": "Tilt the phone if there's glare, or turn on a light",
+        "typeInstead": "Type the VIN instead",
+        "skipSub": "You can still add the odometer reading.",
+        "skipWarn": "Without the VIN we can't check the vehicle against the request."
       }
     },
     "customerCheckIn": {

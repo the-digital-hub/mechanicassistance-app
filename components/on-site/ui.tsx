@@ -127,9 +127,9 @@ export function CardTitle({ title, optional, right }: { title: string; optional?
     const { t } = useTranslation();
     return (
         <View className="flex-row items-center justify-between px-4 pt-3">
-            <Text className="font-outfit-bold text-[13px]" style={{ color: OS.text }}>
+            <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: OS.text }}>
                 {title}
-                {optional ? <Text className="font-outfit-medium text-[13px]" style={{ color: OS.mutedLight }}>  {t('appointments.onSite.common.optional')}</Text> : null}
+                {optional ? <Text className="font-outfit-medium" style={{ fontSize: 13, color: OS.mutedLight }}>  {t('appointments.onSite.common.optional')}</Text> : null}
             </Text>
             {right}
         </View>
@@ -146,8 +146,8 @@ export function Tip({ children, tone = 'blue' }: { children: React.ReactNode; to
     const { color, bg } = TIP_TONES[tone];
     return (
         <View className="mx-4 mt-3 flex-row items-start gap-2 px-3.5 py-3 rounded-2xl" style={{ backgroundColor: bg }}>
-            <Ionicons name="information-circle-outline" size={15} color={color} style={{ marginTop: 1 }} />
-            <Text className="flex-1 font-outfit-medium text-[13px] leading-4" style={{ color }}>{children}</Text>
+            <Ionicons name="information-circle-outline" size={17} color={color} style={{ marginTop: 1.5 }} />
+            <Text className="flex-1 font-outfit-medium" style={{ fontSize: 14, lineHeight: 20, color }}>{children}</Text>
         </View>
     );
 }
@@ -156,9 +156,9 @@ export function Checkbox({ checked, size = 18 }: { checked: boolean; size?: numb
     return (
         <View
             className="items-center justify-center"
-            style={{ width: size, height: size, borderRadius: 6, borderWidth: 2, borderColor: checked ? OS.blue : OS.border, backgroundColor: checked ? OS.blue : '#FFFFFF' }}
+            style={{ width: size, height: size, borderRadius: 8, borderWidth: 2, borderColor: checked ? OS.blue : OS.border, backgroundColor: checked ? OS.blue : '#FFFFFF' }}
         >
-            {checked ? <Ionicons name="checkmark" size={size - 6} color="#FFFFFF" /> : null}
+            {checked ? <Ionicons name="checkmark" size={size - 7} color="#FFFFFF" /> : null}
         </View>
     );
 }
@@ -170,13 +170,13 @@ export function CheckRow({ checked, onToggle, label, sub, last, compact }: {
         <TouchableOpacity
             onPress={onToggle}
             activeOpacity={0.7}
-            className={`flex-row items-center gap-3 px-4 ${compact ? 'py-2.5' : 'py-3'}`}
+            className="flex-row items-center gap-3 px-4 py-3.5"
             style={last ? undefined : { borderBottomWidth: 1, borderBottomColor: OS.borderSoft }}
         >
-            <Checkbox checked={checked} />
+            <Checkbox checked={checked} size={24} />
             <View className="flex-1">
-                <Text className={`font-outfit-bold ${compact ? 'text-[13px]' : 'text-[14px]'}`} style={{ color: OS.text }}>{label}</Text>
-                {sub && !compact ? <Text className="font-outfit-regular text-[13px] mt-0.5" style={{ color: OS.muted }}>{sub}</Text> : null}
+                <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: OS.text }}>{label}</Text>
+                {sub && !compact ? <Text className="font-outfit-regular mt-0.5" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>{sub}</Text> : null}
             </View>
         </TouchableOpacity>
     );
@@ -203,7 +203,7 @@ export function InfoRow({ icon, label, value, last }: {
             <View className="flex-1">
                 <Text className="font-outfit-bold text-[13px] uppercase" style={{ color: OS.mutedLight }}>{label}</Text>
                 {typeof value === 'string' ? (
-                    <Text className="font-outfit-bold text-sm mt-0.5" style={{ color: OS.text }}>{value}</Text>
+                    <Text className="font-outfit-bold mt-0.5" style={{ fontSize: 16, lineHeight: 22, color: OS.text }}>{value}</Text>
                 ) : value}
             </View>
         </View>
@@ -236,7 +236,7 @@ export function PrimaryButton({ label, onPress, disabled, tone = 'blue', testID 
             style={{ borderRadius: 14, backgroundColor: disabled ? OS.blueIce : BUTTON_TONES[tone] }}
             testID={testID}
         >
-            <Text className="text-white font-outfit-bold text-[15px] text-center">{label}</Text>
+            <Text className="text-white font-outfit-bold text-center" style={{ fontSize: 17, lineHeight: 23 }}>{label}</Text>
         </TouchableOpacity>
     );
 }
@@ -246,10 +246,10 @@ export function GhostButton({ label, onPress, flex }: { label: string; onPress: 
         <TouchableOpacity
             onPress={onPress}
             activeOpacity={0.7}
-            className="items-center justify-center py-4 px-1.5"
-            style={{ borderRadius: 14, borderWidth: 1.5, borderColor: OS.border, flex: flex ? 1 : undefined }}
+            className="items-center justify-center py-3.5 px-3"
+            style={{ minHeight: 54, borderRadius: 14, borderWidth: 1.5, borderColor: OS.border, flex: flex ? 1 : undefined }}
         >
-            <Text className="font-outfit-bold text-sm text-center" style={{ color: OS.mutedLight }}>{label}</Text>
+            <Text className="font-outfit-bold text-center" style={{ fontSize: 16, lineHeight: 22, color: OS.text }}>{label}</Text>
         </TouchableOpacity>
     );
 }
@@ -312,30 +312,36 @@ export function useMaintenanceItems(
 }
 
 /** The 7-point general check every visit includes before closing the service. */
-export function MaintenanceChecklist({ state, withHeader = true, compact = true }: {
+export function MaintenanceChecklist({ state, withHeader = true, compact = true, highlight = false, bare = false }: {
     state: ReturnType<typeof useMaintenanceItems>;
     withHeader?: boolean;
     compact?: boolean;
+    /** Outline the card in orange: something still has to be completed here. */
+    highlight?: boolean;
+    /** No card of its own: for use inside another card. */
+    bare?: boolean;
 }) {
     const { t } = useTranslation();
-    return (
-        <Card>
+    const rows = (
+        <>
             {withHeader ? (
-                <View className="flex-row items-center justify-between px-4 py-3" style={{ borderBottomWidth: 1, borderBottomColor: OS.borderSoft }}>
-                    <View className="flex-1">
-                        <View className="flex-row items-center gap-2">
-                            <Text className="font-outfit-bold text-[13px]" style={{ color: OS.text }}>{t('appointments.onSite.maintenance.title')}</Text>
+                <View className="px-4 pt-3.5 pb-3" style={{ borderBottomWidth: 1, borderBottomColor: OS.borderSoft }}>
+                    <View className="flex-row items-center justify-between" style={{ gap: 8 }}>
+                        <View className="flex-row items-center flex-1" style={{ gap: 8 }}>
+                            <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: OS.text }}>{t('appointments.onSite.maintenance.title')}</Text>
                             <View className="px-2 py-0.5 rounded-full" style={{ backgroundColor: OS.greenSoft }}>
-                                <Text className="font-outfit-bold text-[13px] uppercase" style={{ color: OS.greenDark }}>{t('appointments.onSite.common.included')}</Text>
+                                <Text className="font-outfit-bold uppercase" style={{ fontSize: 12, letterSpacing: 1, color: OS.greenDark }}>{t('appointments.onSite.common.included')}</Text>
                             </View>
                         </View>
-                        <Text className="font-outfit-medium text-[13px] mt-0.5" style={{ color: OS.mutedLight }}>{t('appointments.onSite.maintenance.sub')}</Text>
+                        <TouchableOpacity onPress={state.toggleAll} hitSlop={8} accessibilityRole="button">
+                            <Text className="font-outfit-bold" style={{ fontSize: 14, color: OS.blue }}>
+                                {state.allChecked ? t('appointments.onSite.common.unselectAll') : t('appointments.onSite.common.selectAll')}
+                            </Text>
+                        </TouchableOpacity>
                     </View>
-                    <TouchableOpacity onPress={state.toggleAll}>
-                        <Text className="font-outfit-bold text-[13px]" style={{ color: OS.blue }}>
-                            {state.allChecked ? t('appointments.onSite.common.unselectAll') : t('appointments.onSite.common.selectAll')}
-                        </Text>
-                    </TouchableOpacity>
+                    <Text className="font-outfit-regular mt-1" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>
+                        {t('appointments.onSite.maintenance.sub')} · {Object.values(state.checked).filter(Boolean).length}/{MAINTENANCE_ITEMS.length}
+                    </Text>
                 </View>
             ) : null}
             {MAINTENANCE_ITEMS.map((id, idx) => (
@@ -349,8 +355,9 @@ export function MaintenanceChecklist({ state, withHeader = true, compact = true 
                     compact={compact}
                 />
             ))}
-        </Card>
+        </>
     );
+    return bare ? <View>{rows}</View> : <Card style={highlight ? { borderColor: OS.orange, borderWidth: 2 } : undefined}>{rows}</Card>;
 }
 
 /** Multiline note box used under photos, videos and work descriptions. */
@@ -365,8 +372,8 @@ export function NoteInput({ value, onChangeText, placeholder, rows = 2, white }:
             placeholderTextColor={OS.mutedLight}
             multiline
             textAlignVertical="top"
-            className="font-outfit-regular text-[13px] mt-2 px-3 py-2.5"
-            style={{ minHeight: rows * 22, borderRadius: 12, borderWidth: 1.5, borderColor: OS.border, backgroundColor: white ? '#FFFFFF' : OS.page, color: OS.text }}
+            className="font-outfit-regular mt-2 px-3 py-3"
+            style={{ fontSize: 16, lineHeight: 22, minHeight: rows * 24 + 12, borderRadius: 12, borderWidth: 1.5, borderColor: OS.border, backgroundColor: white ? '#FFFFFF' : OS.page, color: OS.text }}
         />
     );
 }

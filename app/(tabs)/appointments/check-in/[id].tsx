@@ -3,6 +3,8 @@ import { useSocket } from '@/context/SocketContext';
 import { userDAO } from '@/lib/dao/UserDAO';
 import { onSiteDAO, OnSiteStep, OnSiteVisit, RedirectReasonId } from '@/lib/dao/OnSiteDAO';
 import { OnSiteCaptureProvider } from '@/components/on-site/MediaSlot';
+import { ScreenDiagnosticsVin } from '@/components/on-site/screens-vin';
+import { getVinCapture, saveVinCapture, type VinCapture } from '@/lib/onsite/vin';
 import { reportedIssue, ScreenCheckIn, ScreenDiagnosticsObd, ScreenDiagnosticsPhotos, ScreenFeasibility, ScreenIncidentDetails, ScreenRetry, ScreenValidating } from '@/components/on-site/screens-checkin';
 import { DoneVariant, ScreenCloseService, ScreenVideoOut } from '@/components/on-site/screens-checkout';
 import { ScreenCloseout } from '@/components/on-site/screens-closeout';
@@ -21,17 +23,18 @@ import { Alert, KeyboardAvoidingView, Platform, Text, View } from 'react-native'
 // OBD codes are read off the uploaded scanner report by the document service
 // (an `obd_update` socket event says when). Still simulated: the "buy parts" branch.
 
-type Screen = 'checkin' | 'retry' | OnSiteStep;
+// 'diagnostics-vin' is app-only for now: the visit does not store it, so it is never saved as `step`.
+type Screen = 'checkin' | 'retry' | 'diagnostics-vin' | OnSiteStep;
 
 const TITLE_KEY: Record<Screen, string> = {
-    checkin: 'checkin', retry: 'retry', incident: 'incident', 'diagnostics-obd': 'diagnosticsObd',
+    checkin: 'checkin', retry: 'retry', incident: 'incident', 'diagnostics-vin': 'diagnosticsVin', 'diagnostics-obd': 'diagnosticsObd',
     'diagnostics-photos': 'diagnosticsPhotos', validating: 'validating', feasibility: 'feasibility',
     'options-checkin': 'options', 'buy-parts': 'buyParts', resolve: 'resolve', 'options-execution': 'options',
     'video-out': 'videoOut', close: 'close', done: 'done',
 };
 
 const PHASE_OF: Record<Screen, Phase> = {
-    checkin: 'checkin', retry: 'checkin', incident: 'checkin', 'diagnostics-obd': 'checkin', 'diagnostics-photos': 'checkin',
+    checkin: 'checkin', retry: 'checkin', incident: 'checkin', 'diagnostics-vin': 'checkin', 'diagnostics-obd': 'checkin', 'diagnostics-photos': 'checkin',
     validating: 'checkin', feasibility: 'checkin', 'options-checkin': 'checkin', 'buy-parts': 'checkin',
     resolve: 'execution', 'options-execution': 'execution',
     'video-out': 'checkout', close: 'checkout', done: 'checkout',
@@ -40,16 +43,16 @@ const PHASE_OF: Record<Screen, Phase> = {
 // Where the header's back button goes. Screens missing here have no in-flow back
 // (check-in leaves the flow; the rest are one-way, as in the design).
 const BACK_OF: Partial<Record<Screen, Screen>> = {
-    retry: 'checkin', 'diagnostics-obd': 'incident', 'diagnostics-photos': 'diagnostics-obd',
-    feasibility: 'diagnostics-photos', 'options-checkin': 'feasibility', 'buy-parts': 'feasibility', resolve: 'feasibility',
+    retry: 'checkin', 'diagnostics-vin': 'incident', 'diagnostics-photos': 'diagnostics-vin', 'diagnostics-obd': 'diagnostics-photos',
+    feasibility: 'diagnostics-obd', 'options-checkin': 'feasibility', 'buy-parts': 'feasibility', resolve: 'feasibility',
     'options-execution': 'resolve', 'video-out': 'resolve', close: 'video-out',
 };
 
 /** Screen to reopen a saved visit on. */
 function resumeScreen(visit: OnSiteVisit): Screen {
     if (visit.closedAt) return 'done';
-    // "Validating" is a transient check; rerun it from the photos.
-    if (visit.step === 'validating') return 'diagnostics-photos';
+    // "Validating" is a transient check; rerun it from the last capture step (OBD).
+    if (visit.step === 'validating') return 'diagnostics-obd';
     return visit.step;
 }
 
@@ -68,6 +71,12 @@ export default function OnSiteFlowScreen() {
     const [partsOrder, setPartsOrder] = React.useState<PartsOrder | null>(null);
     const [redirectReason, setRedirectReason] = React.useState<RedirectReason | null>(null);
     const [clientName, setClientName] = React.useState('—');
+    const [vinCapture, setVinCapture] = React.useState<VinCapture | null>(null);
+
+    // What the mechanic scanned or typed for the VIN lives on the device (the visit has no field for it yet).
+    React.useEffect(() => {
+        if (id) void getVinCapture(id).then(setVinCapture);
+    }, [id]);
 
     // A request not accepted yet has no appointment, and a video call has no
     // visit: asking would only earn a 404/409 from the server.
@@ -140,7 +149,7 @@ export default function OnSiteFlowScreen() {
 
     const go = (s: Screen) => {
         setScreen(s);
-        if (s !== 'checkin' && s !== 'retry' && s !== 'done') save({ step: s });
+        if (s !== 'checkin' && s !== 'retry' && s !== 'done' && s !== 'diagnostics-vin') save({ step: s });
     };
 
     const checkIn = async (method: 'pin' | 'qr', code: string) => {
@@ -197,11 +206,23 @@ export default function OnSiteFlowScreen() {
     switch (screen) {
         case 'checkin': body = <ScreenCheckIn onSubmit={checkIn} onMismatch={() => setScreen('retry')} />; break;
         case 'retry': body = <ScreenRetry onRetry={() => setScreen('checkin')} />; break;
-        case 'incident': body = <ScreenIncidentDetails appointment={appointment} clientName={clientName} onNext={() => go('diagnostics-obd')} />; break;
-        case 'diagnostics-obd':
-            body = <ScreenDiagnosticsObd appointmentId={id} visit={visit} onVisit={setVisit} onNext={() => go('diagnostics-photos')} />;
+        case 'incident': body = <ScreenIncidentDetails appointment={appointment} clientName={clientName} onNext={() => go('diagnostics-vin')} />; break;
+        case 'diagnostics-vin':
+            body = (
+                <ScreenDiagnosticsVin
+                    initial={vinCapture}
+                    onNext={(capture) => {
+                        setVinCapture(capture);
+                        void saveVinCapture(id, capture);
+                        go('diagnostics-photos');
+                    }}
+                />
+            );
             break;
-        case 'diagnostics-photos': body = <ScreenDiagnosticsPhotos onNext={() => go('validating')} />; break;
+        case 'diagnostics-photos': body = <ScreenDiagnosticsPhotos onNext={() => go('diagnostics-obd')} />; break;
+        case 'diagnostics-obd':
+            body = <ScreenDiagnosticsObd appointmentId={id} visit={visit} onVisit={setVisit} enteredVin={vinCapture?.vin} onNext={() => go('validating')} />;
+            break;
         case 'validating':
             body = (
                 <ScreenValidating

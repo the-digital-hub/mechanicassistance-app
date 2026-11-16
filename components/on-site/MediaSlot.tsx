@@ -197,8 +197,8 @@ export function MediaSlot({
                 {!picked ? (
                     <View className="items-center gap-2 px-3">
                         <Ionicons name={kind === 'video' ? 'videocam-outline' : kind === 'file' ? 'document-attach-outline' : 'camera-outline'} size={30} color={OS.mutedLight} />
-                        <Text className="font-outfit-medium text-[13px] text-center" style={{ color: OS.mutedLight }}>{placeholder}</Text>
-                        <Text className="font-outfit-bold text-[13px] underline" style={{ color: OS.blue }}>{t('appointments.onSite.common.tapToAdd')}</Text>
+                        <Text className="font-outfit-medium text-center" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>{placeholder}</Text>
+                        <Text className="font-outfit-bold underline" style={{ fontSize: 14, color: OS.blue }}>{t('appointments.onSite.common.tapToAdd')}</Text>
                     </View>
                 ) : isImagePreview ? (
                     <Image source={{ uri: picked.uri }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
@@ -220,26 +220,26 @@ export function MediaSlot({
             <View className="flex-row items-center justify-between mt-2.5">
                 <View className="flex-row items-center gap-2 flex-1">
                     <Ionicons
-                        name={state === 'error' ? 'alert-circle-outline' : filled ? 'checkmark' : 'camera-outline'}
-                        size={14}
+                        name={state === 'error' ? 'alert-circle-outline' : filled ? 'checkmark' : kind === 'video' ? 'videocam-outline' : kind === 'file' ? 'document-attach-outline' : 'camera-outline'}
+                        size={16}
                         color={statusColor}
                     />
-                    <Text className="font-outfit-bold text-[13px]" style={{ color: statusColor }} numberOfLines={1}>{statusText}</Text>
+                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: statusColor }} numberOfLines={1}>{statusText}</Text>
                 </View>
                 <View className="flex-row items-center gap-3.5">
                     {state === 'error' && picked ? (
-                        <TouchableOpacity onPress={() => void upload(picked)}>
-                            <Text className="font-outfit-bold text-[13px]" style={{ color: OS.blue }}>{t('appointments.onSite.common.retry')}</Text>
+                        <TouchableOpacity onPress={() => void upload(picked)} hitSlop={10}>
+                            <Text className="font-outfit-bold" style={{ fontSize: 14, color: OS.blue }}>{t('appointments.onSite.common.retry')}</Text>
                         </TouchableOpacity>
                     ) : null}
                     {picked && state !== 'uploading' ? (
-                        <TouchableOpacity onPress={() => void remove()}>
-                            <Text className="font-outfit-bold text-[13px]" style={{ color: OS.red }}>{t('appointments.onSite.common.remove')}</Text>
+                        <TouchableOpacity onPress={() => void remove()} hitSlop={10}>
+                            <Text className="font-outfit-bold" style={{ fontSize: 14, color: OS.red }}>{t('appointments.onSite.common.remove')}</Text>
                         </TouchableOpacity>
                     ) : null}
                     {onDeleteSlot && state !== 'uploading' ? (
-                        <TouchableOpacity onPress={() => void (mediaId ? remove().then(onDeleteSlot) : onDeleteSlot())}>
-                            <Text className="font-outfit-bold text-[13px]" style={{ color: OS.red }}>{t('appointments.onSite.common.deletePhoto')}</Text>
+                        <TouchableOpacity onPress={() => void (mediaId ? remove().then(onDeleteSlot) : onDeleteSlot())} hitSlop={10}>
+                            <Text className="font-outfit-bold" style={{ fontSize: 14, color: OS.red }}>{t('appointments.onSite.common.deletePhoto')}</Text>
                         </TouchableOpacity>
                     ) : null}
                 </View>
@@ -296,9 +296,17 @@ export function PhotoList({
                     </View>
                 </View>
             ))}
-            <TouchableOpacity onPress={() => setSlots((list) => [...list, { id: nextId.current++ }])} className="px-4 pb-4">
-                <Text className="font-outfit-bold text-[13px]" style={{ color: OS.blue }}>{t('appointments.onSite.common.addAnotherPhoto')}</Text>
-            </TouchableOpacity>
+            <View className="px-4 pb-4">
+                <TouchableOpacity
+                    onPress={() => setSlots((list) => [...list, { id: nextId.current++ }])}
+                    accessibilityRole="button"
+                    className="flex-row items-center justify-center"
+                    style={{ gap: 6, minHeight: 48, borderRadius: 14, backgroundColor: OS.blueSoft }}
+                >
+                    <Ionicons name="add" size={20} color={OS.blue} />
+                    <Text className="font-outfit-bold" style={{ fontSize: 16, color: OS.blue }}>{t('appointments.onSite.common.addAnotherPhoto')}</Text>
+                </TouchableOpacity>
+            </View>
         </View>
     );
 }

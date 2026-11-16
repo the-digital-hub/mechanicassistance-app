@@ -1,4 +1,5 @@
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
+import { useAppointments, type Appointment } from '@/context/AppointmentsContext';
 import { useUser } from '@/context/UserContext';
 import { useVerifiedAction } from '@/hooks/useVerifiedAction';
 import { useAvailableToOffer } from '@/hooks/useAvailableToOffer';
@@ -38,6 +39,14 @@ function formatEta(minutes: number): string {
     const m = Math.round(minutes % 60);
     return m > 0 ? `${h} hr ${m} min` : `${h} hr`;
 }
+
+// Distance / ETA (and video-call time) card: the brand blue with white icons and text.
+const HERO_GRADIENT = ['#2F6BFF', '#1E56E3', '#0B2A8E'] as const;
+const HERO_CARD = { borderRadius: 18, marginBottom: 16, overflow: 'hidden' as const, shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.18, shadowRadius: 12, elevation: 3 };
+const HERO_ICON = { backgroundColor: 'rgba(255,255,255,0.2)' };
+const HERO_LABEL = { color: 'rgba(255,255,255,0.8)' };
+const HERO_VALUE = { color: '#FFFFFF' };
+const HERO_SUB = { color: 'rgba(255,255,255,0.85)' };
 
 export default function RequestDetailScreen() {
     const params = useLocalSearchParams();
@@ -91,6 +100,7 @@ export default function RequestDetailScreen() {
     const router = useRouter();
     const navigation = useNavigation();
     const { user } = useUser();
+    const { markOffered } = useAppointments();
     const { t, i18n } = useTranslation();
 
     useFocusEffect(
@@ -244,6 +254,27 @@ export default function RequestDetailScreen() {
                 await assistanceDAO.updateStatus(appointmentId, user.id, 'offered', etaText && !isVideo ? { eta: etaText } : undefined);
             }
             setShowConfirm(false);
+            // Show it under Pending at once: Appointments reloads from the server on focus,
+            // which takes a few round trips, and until then the tab would look empty.
+            const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
+            markOffered({
+                id: appointmentId,
+                type: (one(type) ?? 'immediate') as Appointment['type'],
+                assistanceType: one(assistanceType),
+                title: one(title) ?? '',
+                date: String(date ?? ''),
+                time: etaText || 'Pending',
+                car: one(car) ?? '',
+                address: one(address) ?? '',
+                notes: one(notes),
+                budget: one(budget) ?? '',
+                status: 'offered',
+                zip: one(zip),
+                mechanicId: user?.id,
+                eta: etaText || undefined,
+                locationLat: locationLat ? Number(one(locationLat)) : undefined,
+                locationLng: locationLng ? Number(one(locationLng)) : undefined,
+            });
             // A sent offer is `offered`: it waits for the owner under Pending, not Upcoming.
             router.replace({ pathname: '/(tabs)/appointments', params: { tab: 'pending' } });
             navigation.dispatch(
@@ -429,45 +460,49 @@ export default function RequestDetailScreen() {
 
                     {/* Video call: when it is booked for, instead of distance / ETA */}
                     {isVideo && (
-                        <View className="flex-row items-center rounded-2xl mb-4 p-4" style={{ backgroundColor: '#E9F1FF', borderWidth: 1, borderColor: '#C7D7F5' }} testID="video-call-when">
-                            <View className="w-11 h-11 rounded-xl bg-white justify-center items-center mr-3">
-                                <Clock size={20} color="#0047AB" />
+                        <LinearGradient colors={HERO_GRADIENT} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 0.9, y: 1 }} style={HERO_CARD} testID="video-call-when">
+                            <View className="flex-row items-center p-4">
+                                <View className="w-11 h-11 rounded-xl justify-center items-center mr-3" style={HERO_ICON}>
+                                    <Clock size={20} color="#FFFFFF" />
+                                </View>
+                                <View className="flex-1">
+                                    <Text className="font-outfit-semibold text-xs tracking-widest mb-0.5" style={HERO_LABEL}>{t('requestDetail.videoCallWhen')}</Text>
+                                    <Text className="font-outfit-bold text-lg" style={HERO_VALUE}>
+                                        {videoCallStartLabel(typeof date === 'string' ? date : undefined, i18n.language) ?? t('requestDetail.videoCallNow')}
+                                    </Text>
+                                    <Text className="font-outfit-regular text-[13px] mt-0.5" style={HERO_SUB} testID="video-call-duration">
+                                        {t('requestDetail.videoCallDuration', { count: callMinutes })}
+                                    </Text>
+                                </View>
                             </View>
-                            <View className="flex-1">
-                                <Text className="font-outfit-semibold text-xs tracking-widest text-blue-500 mb-0.5">{t('requestDetail.videoCallWhen')}</Text>
-                                <Text className="font-outfit-bold text-lg text-gray-900">
-                                    {videoCallStartLabel(typeof date === 'string' ? date : undefined, i18n.language) ?? t('requestDetail.videoCallNow')}
-                                </Text>
-                                <Text className="font-outfit-regular text-[13px] text-gray-600 mt-0.5" testID="video-call-duration">
-                                    {t('requestDetail.videoCallDuration', { count: callMinutes })}
-                                </Text>
-                            </View>
-                        </View>
+                        </LinearGradient>
                     )}
 
                     {/* Distance / ETA Card */}
                     {!isVideo && (etaText || distKm !== null) && (
-                        <View className="flex-row rounded-2xl mb-4 overflow-hidden" style={{ backgroundColor: '#E9F1FF', borderWidth: 1, borderColor: '#C7D7F5' }}>
-                            <View className="flex-1 flex-row items-center p-4">
-                                <View className="w-11 h-11 rounded-xl bg-white justify-center items-center mr-3">
-                                    <ArrowUpRight size={20} color="#0047AB" />
+                        <LinearGradient colors={HERO_GRADIENT} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 0.9, y: 1 }} style={HERO_CARD}>
+                            <View className="flex-row">
+                                <View className="flex-1 flex-row items-center p-4">
+                                    <View className="w-11 h-11 rounded-xl justify-center items-center mr-3" style={HERO_ICON}>
+                                        <ArrowUpRight size={20} color="#FFFFFF" />
+                                    </View>
+                                    <View>
+                                        <Text className="font-outfit-semibold text-xs tracking-widest mb-0.5" style={HERO_LABEL}>{t('requestDetail.distance')}</Text>
+                                        <Text className="font-outfit-bold text-lg" style={HERO_VALUE}>{distKm !== null ? `${(distKm * 0.621371).toFixed(1)} mi` : '—'}</Text>
+                                    </View>
                                 </View>
-                                <View>
-                                    <Text className="font-outfit-semibold text-xs tracking-widest text-blue-500 mb-0.5">{t('requestDetail.distance')}</Text>
-                                    <Text className="font-outfit-bold text-lg text-gray-900">{distKm !== null ? `${(distKm * 0.621371).toFixed(1)} mi` : '—'}</Text>
+                                <View style={{ width: 1, backgroundColor: 'rgba(255,255,255,0.28)' }} className="my-4" />
+                                <View className="flex-1 flex-row items-center p-4">
+                                    <View className="w-11 h-11 rounded-xl justify-center items-center mr-3" style={HERO_ICON}>
+                                        <Clock size={20} color="#FFFFFF" />
+                                    </View>
+                                    <View>
+                                        <Text className="font-outfit-semibold text-xs tracking-widest mb-0.5" style={HERO_LABEL}>{t('requestDetail.eta')}</Text>
+                                        <Text className="font-outfit-bold text-lg" style={HERO_VALUE}>{etaText || '—'}</Text>
+                                    </View>
                                 </View>
                             </View>
-                            <View style={{ width: 1, backgroundColor: '#C7D7F5' }} className="my-4" />
-                            <View className="flex-1 flex-row items-center p-4">
-                                <View className="w-11 h-11 rounded-xl bg-white justify-center items-center mr-3">
-                                    <Clock size={20} color="#0047AB" />
-                                </View>
-                                <View>
-                                    <Text className="font-outfit-semibold text-xs tracking-widest text-blue-500 mb-0.5">{t('requestDetail.eta')}</Text>
-                                    <Text className="font-outfit-bold text-lg text-gray-900">{etaText || '—'}</Text>
-                                </View>
-                            </View>
-                        </View>
+                        </LinearGradient>
                     )}
 
                     {/* Date Selector */}

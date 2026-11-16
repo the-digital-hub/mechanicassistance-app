@@ -1055,7 +1055,8 @@
         "maintenance": "Mantenimiento",
         "videoOut": "Check-out",
         "close": "Cerrar servicio",
-        "done": "Servicio cerrado"
+        "done": "Servicio cerrado",
+        "diagnosticsVin": "VIN del vehículo"
       },
       "phases": {
         "checkin": "Check-in",
@@ -1070,7 +1071,7 @@
         "remove": "Quitar",
         "deletePhoto": "Borrar este espacio de foto",
         "photoNote": "Agregá una nota sobre esta foto (opcional)…",
-        "addAnotherPhoto": "+ Agregar otra foto",
+        "addAnotherPhoto": "Agregar otra foto",
         "tapToAdd": "Tocá para sacar o elegir",
         "recordVideo": "Grabar video",
         "video": "Video capturado",
@@ -1123,7 +1124,7 @@
         "start": "Empezar diagnóstico"
       },
       "obd": {
-        "eyebrow": "PASO 2 · ESCANEO OBD",
+        "eyebrow": "PASO 3 · ESCANEO OBD",
         "title": "Escaneá el vehículo con el lector OBD",
         "subtitle": "Conectá el escáner OBD-II y hacé un escaneo completo.",
         "tipLater": "No hace falta subir el archivo del escáner ahora — podés hacerlo después desde el resumen del servicio.",
@@ -1153,7 +1154,7 @@
         "failed": "No pudimos leer códigos de este archivo. Cargalos abajo.",
         "manualTitle": "Códigos cargados",
         "manualHint": "Agregá un código a mano",
-        "manualPh": "ej. P0301",
+        "manualPh": "P0301",
         "add": "Agregar",
         "invalid": "Usá el formato P0301 (P, B, C o U, y 4 caracteres).",
         "vinHint": "VIN que muestra el scanner (opcional)",
@@ -1199,7 +1200,7 @@
         }
       },
       "photos": {
-        "eyebrow": "PASO 3 · FOTOS",
+        "eyebrow": "PASO 2 · FOTOS",
         "title": "Sacá fotos del vehículo",
         "subtitle": "Completá estas capturas para el reporte.",
         "plate": "Foto de la patente",
@@ -1209,7 +1210,11 @@
         "extra": "Video 360° o fotos extra",
         "addExtra": "Agregar fotos extra",
         "videoPh": "Grabá una vuelta completa al vehículo",
-        "extraPh": "Algo que valga la pena anotar en el reporte"
+        "extraPh": "Algo que valga la pena anotar en el reporte",
+        "extraSub": "Un video corto alrededor del vehículo o más fotos te respaldan si el cliente hace un reclamo.",
+        "required": "Obligatoria",
+        "added": "Cargada",
+        "needRequired": "{{done}} de 2 fotos obligatorias cargadas"
       },
       "validating": {
         "title": "Validando el diagnóstico reportado…",
@@ -1274,7 +1279,8 @@
           "noParts": "Faltan repuestos o herramientas para esta reparación",
           "needsShop": "Necesita equipamiento de taller (elevador, alineadora, etc.)",
           "other": "Otro"
-        }
+        },
+        "whyTitle": "¿Por qué no se puede resolver acá?"
       },
       "resolve": {
         "eyebrow": "REPARACIÓN EN CURSO",
@@ -1291,21 +1297,29 @@
         "distance": "· a {{miles}} mi",
         "fixEyebrow": "PASO 2 · ARREGLAR EL PROBLEMA",
         "reportedIssue": "PROBLEMA REPORTADO ·",
-        "proof": "Evidencia del trabajo",
-        "addPhoto": "+ Agregar foto",
+        "proof": "Prueba del trabajo",
+        "addPhoto": "Agregar foto",
         "proofPh": "Foto o video del trabajo realizado",
         "removePhoto": "Quitar foto",
         "workPh": "Describí el trabajo realizado…",
         "question": "¿Se resolvió el problema?",
         "no": "No",
-        "yes": "Sí, resuelto"
+        "yes": "Sí, resuelto",
+        "timerLabel": "Tiempo en el trabajo",
+        "inProgress": "En curso",
+        "issueLabel": "Problema reportado",
+        "workTitle": "Notas del trabajo",
+        "checklistWarnTitle": "Completá el checklist de mantenimiento",
+        "checklistWarnBody": "Todavía no terminaste el checklist de mantenimiento. Cerrar esta asistencia sin completarlo puede afectar tu calificación y el cumplimiento de la asistencia.",
+        "checklistWarnFix": "Completar checklist",
+        "checklistWarnSkip": "Continuar igual"
       },
       "videoOut": {
         "eyebrow": "ANTES DE IRTE · OPCIONAL",
         "title": "Registrá cómo queda el vehículo",
         "subtitle": "Es opcional, pero un video rápido o unas fotos te protegen si el cliente reclama — y suben tu calificación.",
         "obdTitle": "Reporte del escaneo OBD",
-        "obdSub": "Todavía no subiste el archivo del escáner del paso 2 — podés hacerlo ahora.",
+        "obdSub": "Todavía no subiste el archivo del scanner OBD — podés hacerlo ahora.",
         "mediaTitle": "Video o fotos",
         "mediaSub": "Grabá un video alrededor del vehículo o agregá unas fotos.",
         "addPhotos": "Agregar fotos",
@@ -1350,6 +1364,47 @@
         "sent": "Calificación enviada — gracias",
         "payment": "El pago está en camino — te avisamos cuando se acredite.",
         "back": "Volver al inicio"
+      },
+      "vin": {
+        "eyebrow": "PASO 1 · IDENTIFICAR EL VEHÍCULO",
+        "title": "Identificá el vehículo",
+        "subtitle": "Escaneá el código de barras del VIN o escribilo. Lo encontrás en el marco de la puerta del conductor o en la base del parabrisas.",
+        "label": "VIN",
+        "scan": "Escanear VIN con la cámara",
+        "allowCamera": "Permitir la cámara para escanear",
+        "cameraBlocked": "El acceso a la cámara está desactivado. Activalo en Ajustes, o escribí el VIN abajo.",
+        "or": "o escribilo",
+        "placeholder": "VIN de 17 caracteres",
+        "charCount": "{{count}} / 17",
+        "invalid": "Un VIN tiene 17 letras y números, sin I, O ni Q.",
+        "valid": "El VIN parece correcto",
+        "scanned": "Leído del código de barras",
+        "checkDigit": "El dígito verificador de este VIN no cierra. Revisalo contra la etiqueta, o seguí si el vehículo no es de EE. UU.",
+        "odometer": "Odómetro",
+        "odometerPlaceholder": "Lectura actual",
+        "miles": "millas",
+        "tip": "Comparamos este VIN con el del pedido y con el del escaneo OBD.",
+        "skip": "Continuar sin el VIN",
+        "scanTitle": "Escaneá el código de barras del VIN",
+        "scanHint": "Mantenelo firme hasta que lo lea.",
+        "notVin": "Ese código no es un VIN. Probá con el de la puerta o el del parabrisas.",
+        "cross": {
+          "title": "Control de VIN",
+          "request": "En el pedido",
+          "mine": "El que cargaste",
+          "obd": "Scanner OBD",
+          "notAvailable": "No disponible",
+          "match": "Todos los VIN coinciden.",
+          "differ": "Los VIN no coinciden. Revisá el vehículo antes de seguir.",
+          "partial": "Todavía no hay con qué comparar. El escaneo OBD completa el control."
+        },
+        "scanSubtitle": "Centrá el código dentro del marco. Lo lee solo.",
+        "tipDoor": "Etiqueta en el marco de la puerta del conductor",
+        "tipWindshield": "Placa en la base del parabrisas, lado del conductor",
+        "tipLight": "Inclinalo si hay reflejo, o prendé una luz",
+        "typeInstead": "Escribir el VIN a mano",
+        "skipSub": "Igual podés cargar el kilometraje del odómetro.",
+        "skipWarn": "Sin el VIN no podemos verificar el vehículo contra el pedido."
       }
     },
     "customerCheckIn": {

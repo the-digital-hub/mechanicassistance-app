@@ -441,6 +441,11 @@ export default function AppointmentDetailScreen() {
                             mechanicCoords={mechanicCoords}
                             polyline={polyline}
                         />
+                        {/* The technician is on the way: show the code here too, so the owner is
+                            already holding the QR / PIN when they arrive (it is also in Check-in). */}
+                        {appointment.status === 'accepted' && departed && (
+                            <CheckInCodeCard appointmentId={appointment.id} status={appointment.status} />
+                        )}
                     </View>
                 );
             case 'checkin':

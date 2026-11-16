@@ -371,15 +371,21 @@ export default function ProfileScreen() {
             switchRole,
             logout,
           ];
+          // Same shape as the technician's: an Account group, then direct links.
           const ownerMenu: MenuItem[] = [
-            { key: 'personalInfo', icon: User, label: t('profile.menu.personalInfo'), route: '/personal-info' },
-            { key: 'addresses', icon: MapPin, label: t('profile.menu.addresses'), route: '/(tabs)/addresses' },
-            ...(user.role?.toLowerCase().trim() !== 'mechanic' ? [
-              { key: 'vehicles', icon: Car || User, label: t('profile.menu.vehicles'), route: '/vehicles' },
-              { key: 'paymentCards', icon: Wallet, label: t('profile.menu.paymentCards'), route: '/payment-cards' },
-            ] : []),
+            {
+              key: 'account',
+              icon: User,
+              label: t('profile.groups.account'),
+              children: [
+                { key: 'personalInfo', icon: User, label: t('profile.menu.personalInfo'), route: '/personal-info' },
+                { key: 'addresses', icon: MapPin, label: t('profile.menu.addresses'), route: '/(tabs)/addresses' },
+                { key: 'vehicles', icon: Car, label: t('profile.menu.vehicles'), route: '/vehicles' },
+                { key: 'privacy', icon: Lock, label: t('profile.menu.privacy'), route: '/privacy' },
+              ],
+            },
+            { key: 'paymentCards', icon: Wallet, label: t('profile.menu.paymentCards'), route: '/payment-cards' },
             { key: 'help', icon: HelpCircle, label: t('profile.menu.help'), route: '/help' },
-            { key: 'privacy', icon: Lock, label: t('profile.menu.privacy'), route: '/privacy' },
             { key: 'settings', icon: Settings, label: t('profile.menu.settings'), route: '/settings' },
             switchRole,
             logout,
@@ -420,11 +426,9 @@ export default function ProfileScreen() {
                 {item.busy ? (
                   <ActivityIndicator color="#0047AB" />
                 ) : isGroup ? (
-                  // Groups point right (closed) and turn down while open; technician direct links show no arrow.
+                  // Groups point right (closed) and turn down while open; direct links show no arrow.
                   open ? <ChevronDown size={24} color="#0047AB" /> : <ChevronRight size={24} color="#0047AB" />
-                ) : isTechnicianMenu ? null : (
-                  <ChevronRight size={24} color={item.color ? '#EF4444' : '#0047AB'} />
-                )}
+                ) : null}
               </TouchableOpacity>
             );
           };

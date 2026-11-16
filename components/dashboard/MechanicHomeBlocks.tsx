@@ -67,8 +67,16 @@ export function SectionTitle({
                 </TouchableOpacity>
             ) : heading}
             {actionLabel && onAction && (
-                <TouchableOpacity onPress={onAction} hitSlop={8} accessibilityRole="button">
-                    <Text className="font-outfit-semibold" style={{ fontSize: 13, color: C.blue }}>{actionLabel}</Text>
+                <TouchableOpacity
+                    onPress={onAction}
+                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                    accessibilityRole="button"
+                    activeOpacity={0.7}
+                    className="flex-row items-center"
+                    style={{ gap: 2, minHeight: 36, paddingLeft: 14, paddingRight: 8, borderRadius: 100, backgroundColor: C.blueSoft }}
+                >
+                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: C.blue }}>{actionLabel}</Text>
+                    <ChevronRight size={18} color={C.blue} />
                 </TouchableOpacity>
             )}
         </View>
@@ -144,16 +152,17 @@ export function AvailabilityCard({
 /** A stat tile: icon chip, big number, label; `children` sits under the number (the rating stars). */
 function MiniStat({ icon, accent, label, value, sub, children }: { icon: ReactNode; accent: string; label: string; value: string; sub?: string; children?: ReactNode }) {
     return (
-        <View className="flex-1" style={{ ...CARD, padding: 14, minWidth: 0 }}>
-            <View className="flex-row items-center" style={{ gap: 10 }}>
-                <View className="items-center justify-center" style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: `${accent}1F` }}>{icon}</View>
-                <Text className="font-outfit-semibold flex-1" style={{ fontSize: 13, color: C.muted }} numberOfLines={1}>{label}</Text>
+        <View className="flex-1 flex-row" style={{ ...CARD, padding: 14, gap: 10, minWidth: 0 }}>
+            <View className="items-center justify-center" style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: `${accent}1F` }}>{icon}</View>
+            {/* Label and number share one column, so the number lines up with the label, not with the icon. */}
+            <View className="flex-1" style={{ minWidth: 0 }}>
+                <Text className="font-outfit-semibold" style={{ fontSize: 14, lineHeight: 20, color: C.muted, marginTop: 7 }} numberOfLines={1}>{label}</Text>
+                <View className="flex-row items-baseline" style={{ gap: 6, marginTop: 6 }}>
+                    <Text className="font-outfit-bold" style={{ fontSize: value.length > 6 ? 18 : 30, letterSpacing: -0.9, lineHeight: 34, color: value.length > 6 ? C.muted : C.text }} numberOfLines={1}>{value}</Text>
+                    {sub ? <Text className="font-outfit-regular" style={{ fontSize: 13, color: C.muted }} numberOfLines={1}>({sub})</Text> : null}
+                </View>
+                {children}
             </View>
-            <View className="flex-row items-baseline" style={{ gap: 6, marginTop: 12 }}>
-                <Text className="font-outfit-bold" style={{ fontSize: value.length > 6 ? 18 : 30, letterSpacing: -0.9, lineHeight: 34, color: value.length > 6 ? C.muted : C.text }} numberOfLines={1}>{value}</Text>
-                {sub ? <Text className="font-outfit-regular" style={{ fontSize: 13, color: C.muted }} numberOfLines={1}>({sub})</Text> : null}
-            </View>
-            {children}
         </View>
     );
 }
@@ -189,18 +198,21 @@ export function TodayBlock({
                 end={{ x: 0.9, y: 1 }}
                 style={{ borderRadius: 22, padding: 18, shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.22, shadowRadius: 14, elevation: 4 }}
             >
-                <View className="flex-row items-center" style={{ gap: 10 }}>
-                    <View className="items-center justify-center" style={{ width: 34, height: 34, borderRadius: 11, backgroundColor: 'rgba(255,255,255,0.18)' }}>
-                        <Wallet size={18} color="#FFFFFF" />
+                <View className="flex-row" style={{ gap: 12 }}>
+                    <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 13, backgroundColor: 'rgba(255,255,255,0.18)' }}>
+                        <Wallet size={20} color="#FFFFFF" />
                     </View>
-                    <Text className="font-outfit-semibold" style={{ fontSize: 14, color: 'rgba(255,255,255,0.88)' }}>{earnedLabel}</Text>
+                    {/* The amount and the payout note sit in the label's column, under it, not under the icon. */}
+                    <View className="flex-1" style={{ minWidth: 0 }}>
+                        <Text className="font-outfit-semibold" style={{ fontSize: 14, lineHeight: 20, color: 'rgba(255,255,255,0.88)', marginTop: 9 }}>{earnedLabel}</Text>
+                        <Text className="font-outfit-bold" style={{ fontSize: 42, letterSpacing: -1.4, lineHeight: 48, color: '#FFFFFF', marginTop: 4 }} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{earned}</Text>
+                        {footer ? (
+                            <View className="self-start" style={{ marginTop: 10, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.16)' }}>
+                                {footer}
+                            </View>
+                        ) : null}
+                    </View>
                 </View>
-                <Text className="font-outfit-bold" style={{ fontSize: 42, letterSpacing: -1.4, lineHeight: 48, color: '#FFFFFF', marginTop: 14 }} numberOfLines={1}>{earned}</Text>
-                {footer ? (
-                    <View className="self-start" style={{ marginTop: 12, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.16)' }}>
-                        {footer}
-                    </View>
-                ) : null}
             </LinearGradient>
             <View className="flex-row" style={{ gap: 12 }}>
                 <MiniStat icon={<Wrench size={18} color={C.blue} />} accent={C.blue} label={jobsLabel} value={jobs} />
@@ -346,26 +358,27 @@ export function AttentionList({ items, hideLabel, onDismiss }: { items: Attentio
                         onPress={a.onPress}
                         activeOpacity={0.7}
                         accessibilityRole="button"
-                        className="flex-row items-center"
-                        style={{ gap: 12, paddingHorizontal: 14, paddingVertical: 12, borderBottomWidth: i < items.length - 1 ? 1 : 0, borderBottomColor: C.borderSoft }}
+                        className="flex-row"
+                        style={{ gap: 12, paddingHorizontal: 14, paddingVertical: 14, borderBottomWidth: i < items.length - 1 ? 1 : 0, borderBottomColor: C.borderSoft }}
                     >
-                        <View className="items-center justify-center" style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: tone.bg }}>
-                            <Icon size={18} color={tone.fg} />
+                        <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: tone.bg }}>
+                            <Icon size={20} color={tone.fg} />
                         </View>
-                        <View className="flex-1">
-                            <Text className="font-outfit-bold" style={{ fontSize: 14, color: C.text }}>{a.title}</Text>
-                            <Text className="font-outfit-regular" style={{ fontSize: 13, color: C.muted, marginTop: 2, lineHeight: 17 }}>{a.sub}</Text>
-                        </View>
-                        <View className="items-end" style={{ gap: 8 }}>
-                            <View className="flex-row items-center" style={{ gap: 2 }}>
-                                <Text className="font-outfit-bold" style={{ fontSize: 13, color: C.blue }}>{a.cta}</Text>
-                                <ChevronRight size={16} color={C.blue} />
+                        {/* Text first, then the actions under it: nothing is squeezed into a right-hand column. */}
+                        <View className="flex-1" style={{ minWidth: 0 }}>
+                            <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: C.text }}>{a.title}</Text>
+                            <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: C.muted, marginTop: 2 }}>{a.sub}</Text>
+                            <View className="flex-row items-center" style={{ gap: 16, marginTop: 10 }}>
+                                <View className="flex-row items-center" style={{ gap: 2, minHeight: 36, paddingLeft: 14, paddingRight: 8, borderRadius: 100, backgroundColor: tone.bg }}>
+                                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: tone.fg }}>{a.cta}</Text>
+                                    <ChevronRight size={18} color={tone.fg} />
+                                </View>
+                                {onDismiss && hideLabel ? (
+                                    <TouchableOpacity onPress={() => onDismiss(a)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} accessibilityRole="button">
+                                        <Text className="font-outfit-semibold" style={{ fontSize: 14, color: C.muted }}>{hideLabel}</Text>
+                                    </TouchableOpacity>
+                                ) : null}
                             </View>
-                            {onDismiss && hideLabel ? (
-                                <TouchableOpacity onPress={() => onDismiss(a)} hitSlop={{ top: 6, bottom: 6, left: 10, right: 6 }} accessibilityRole="button">
-                                    <Text className="font-outfit-semibold" style={{ fontSize: 13, color: C.mutedLight }}>{hideLabel}</Text>
-                                </TouchableOpacity>
-                            ) : null}
                         </View>
                     </TouchableOpacity>
                 );
