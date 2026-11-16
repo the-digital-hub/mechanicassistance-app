@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { Calendar, Car, Check, ChevronDown, ChevronRight, FileText, Wrench, X, type LucideIcon } from 'lucide-react-native';
-import type { ReactNode } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { Animated, Easing, KeyboardAvoidingView, Modal, Platform, Pressable, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 
 /** Building blocks of the vehicle owner home, following the Vehicle Owner Dashboard V2 design. */
 const C = {
@@ -286,11 +286,39 @@ export function RecentActivityList({ items }: { items: ActivityItem[] }) {
 
 /** Bottom sheet used by the service picker, the vehicle switcher and the mileage editor. */
 export function OwnerSheet({ visible, title, subtitle, onClose, children }: { visible: boolean; title: string; subtitle?: string; onClose: () => void; children: ReactNode }) {
+    // The backdrop fades in and the sheet slides up on their own: with the Modal's own "slide" the dark
+    // backdrop rides up with the sheet, which looks abrupt.
+    const [mounted, setMounted] = useState(visible);
+    const progress = useRef(new Animated.Value(0)).current;
+    useEffect(() => {
+        if (visible) {
+            setMounted(true);
+            Animated.timing(progress, { toValue: 1, duration: 280, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
+        } else {
+            Animated.timing(progress, { toValue: 0, duration: 200, easing: Easing.in(Easing.cubic), useNativeDriver: true }).start(({ finished }) => {
+                if (finished) setMounted(false);
+            });
+        }
+    }, [visible, progress]);
+
     return (
-        <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+        <Modal visible={mounted} transparent animationType="none" onRequestClose={onClose}>
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1 justify-end">
-                <Pressable className="absolute inset-0" style={{ backgroundColor: 'rgba(11,21,48,0.45)' }} onPress={onClose} accessibilityLabel={title} />
-                <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 26, borderTopRightRadius: 26, paddingHorizontal: 20, paddingTop: 10, paddingBottom: 34 }}>
+                <Animated.View pointerEvents="box-none" style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(11,21,48,0.32)', opacity: progress }}>
+                    <Pressable style={{ flex: 1 }} onPress={onClose} accessibilityLabel={title} />
+                </Animated.View>
+                <Animated.View
+                    style={{
+                        backgroundColor: '#FFFFFF',
+                        borderTopLeftRadius: 26,
+                        borderTopRightRadius: 26,
+                        paddingHorizontal: 20,
+                        paddingTop: 10,
+                        paddingBottom: 34,
+                        opacity: progress.interpolate({ inputRange: [0, 0.4, 1], outputRange: [0, 1, 1] }),
+                        transform: [{ translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [360, 0] }) }],
+                    }}
+                >
                     <View className="self-center" style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: '#DCE3F0', marginBottom: 14 }} />
                     <View className="flex-row items-start justify-between" style={{ marginBottom: subtitle ? 4 : 16 }}>
                         <Text className="font-outfit-bold" style={{ fontSize: 20, letterSpacing: -0.4, color: C.text }}>{title}</Text>
@@ -300,7 +328,7 @@ export function OwnerSheet({ visible, title, subtitle, onClose, children }: { vi
                     </View>
                     {subtitle ? <Text className="font-outfit-regular" style={{ fontSize: 13, color: C.muted, marginBottom: 14 }}>{subtitle}</Text> : null}
                     {children}
-                </View>
+                </Animated.View>
             </KeyboardAvoidingView>
         </Modal>
     );
