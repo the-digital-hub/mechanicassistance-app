@@ -2913,7 +2913,7 @@
     "availability": {
       "eyebrow": "PASO 4 · DISPONIBILIDAD",
       "title": "¿Cuándo lo necesitás?",
-      "sub": "Elegí el día y la franja horaria que preferís, y agregá lo que ayude a los talleres a cotizar.",
+      "sub": "Elegí tu fecha y franja horaria preferidas, y agregá lo que ayude a mecánicos y talleres a cotizar.",
       "dayLabel": "FECHA DEL SERVICIO",
       "today": "Hoy",
       "windowLabel": "FRANJA HORARIA PREFERIDA",
@@ -2924,7 +2924,7 @@
       "windowTitle": "Ventana de cotización abierta.",
       "windowBody": "Las ofertas quedan abiertas hasta 48 horas, o hasta 1 hora antes del horario pedido si eso ocurre primero.",
       "symptomsLabel": "SÍNTOMAS O PEDIDOS ESPECIALES (OPCIONAL)",
-      "symptomsPlaceholder": "Fallas que notaste, pedidos específicos…",
+      "symptomsPlaceholder": "Síntomas, fallas que notaste, pedidos específicos…",
       "evidenceLabel": "FOTOS O VIDEOS DE EVIDENCIA (OPCIONAL)",
       "addEvidence": "Agregar fotos o videos",
       "evidenceLimits": "Hasta 5 archivos · fotos hasta 5 MB · videos hasta 50 MB",
@@ -2941,7 +2941,18 @@
       "dateRange": "Rango de fechas",
       "sameDayBadge": "MISMO DÍA (HOY)",
       "rangeFrom": "DESDE",
-      "rangeTo": "HASTA"
+      "rangeTo": "HASTA",
+      "cardTitle": "Disponibilidad del servicio",
+      "serviceDate": "Fecha del servicio",
+      "rangeFromLabel": "Desde",
+      "rangeToLabel": "Hasta",
+      "selectTime": "Elegí una hora",
+      "detailsTitle": "Detalles adicionales",
+      "optional": "(opcional)",
+      "detailsSub": "Síntomas o pedidos especiales, para que las cotizaciones sean precisas.",
+      "evidenceTitle": "Fotos o videos de evidencia",
+      "uploadTitle": "Subir fotos o videos",
+      "uploadHint": "máx. 5MB fotos · 50MB videos"
     },
     "review": {
       "eyebrow": "PASO 5 · REVISIÓN",
@@ -3103,7 +3114,8 @@
       "warranty": "GARANTÍA",
       "details": "Ver detalles",
       "select": "Elegir esta oferta",
-      "totalNote": "\"Tu total\" lo calcula Mechanic Assistance e incluye las tarifas e impuestos que correspondan."
+      "totalNote": "\"Tu total\" lo calcula Mechanic Assistance e incluye las tarifas e impuestos que correspondan.",
+      "nearest": "Más cerca"
     }
   },
   "finalQuote": {

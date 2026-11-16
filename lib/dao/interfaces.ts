@@ -886,6 +886,8 @@ export interface MarketplaceOffer {
     warrantyCoverage?: string | null;
     validUntil?: string | null;
     createdAt?: string | null;
+    /** Straight-line miles from the provider's base to the service place, when the backend sends it. */
+    distanceMiles?: number | null;
     /** Null when it could not be calculated: that offer cannot be accepted. */
     customerTotal: OfferCustomerTotal | null;
 }

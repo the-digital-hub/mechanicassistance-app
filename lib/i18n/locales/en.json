@@ -2912,7 +2912,7 @@
     "availability": {
       "eyebrow": "STEP 4 · AVAILABILITY",
       "title": "When do you need it?",
-      "sub": "Choose your preferred day and time window, and add anything that helps shops quote.",
+      "sub": "Choose your preferred date and time window, and add anything that helps mechanics and shops quote.",
       "dayLabel": "SERVICE DATE",
       "today": "Today",
       "windowLabel": "PREFERRED TIME WINDOW",
@@ -2923,7 +2923,7 @@
       "windowTitle": "Quote window open.",
       "windowBody": "Offers stay open for up to 48 hours, or until 1 hour before your requested time if that comes first.",
       "symptomsLabel": "SYMPTOMS OR SPECIAL REQUESTS (OPTIONAL)",
-      "symptomsPlaceholder": "Faults you noticed, specific requests…",
+      "symptomsPlaceholder": "Symptoms, faults you noticed, specific requests…",
       "evidenceLabel": "EVIDENCE PHOTOS OR VIDEOS (OPTIONAL)",
       "addEvidence": "Add photos or videos",
       "evidenceLimits": "Up to 5 files · photos up to 5 MB · videos up to 50 MB",
@@ -2940,7 +2940,18 @@
       "dateRange": "Date range",
       "sameDayBadge": "SAME DAY (TODAY)",
       "rangeFrom": "FROM",
-      "rangeTo": "TO"
+      "rangeTo": "TO",
+      "cardTitle": "Service availability",
+      "serviceDate": "Service date",
+      "rangeFromLabel": "From",
+      "rangeToLabel": "To",
+      "selectTime": "Select a time",
+      "detailsTitle": "Additional details",
+      "optional": "(optional)",
+      "detailsSub": "Symptoms or special requests, so quotes are accurate.",
+      "evidenceTitle": "Evidence photos or videos",
+      "uploadTitle": "Upload photos or videos",
+      "uploadHint": "max 5MB photos · 50MB videos"
     },
     "review": {
       "eyebrow": "STEP 5 · REVIEW",
@@ -3102,7 +3113,8 @@
       "warranty": "WARRANTY",
       "details": "View details",
       "select": "Select this offer",
-      "totalNote": "\"Your total\" is calculated by Mechanic Assistance and includes applicable fees and taxes."
+      "totalNote": "\"Your total\" is calculated by Mechanic Assistance and includes applicable fees and taxes.",
+      "nearest": "Nearest"
     }
   },
   "finalQuote": {

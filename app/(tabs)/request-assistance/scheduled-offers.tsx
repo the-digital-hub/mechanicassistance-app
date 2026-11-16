@@ -31,7 +31,7 @@ import {
 } from '@/lib/scheduled/offers';
 
 type View_ = 'list' | 'compare' | 'detail' | 'pay' | 'done';
-type SortId = 'coverage' | 'price' | 'date';
+type SortId = 'coverage' | 'price' | 'date' | 'distance';
 
 const POLL_MS = 30000;
 const EXTEND_HOURS = 24;
@@ -381,9 +381,10 @@ export default function ScheduledOffersScreen() {
         const list = [...sorted].sort((x, y) => {
             if (sort === 'price') return (totalOf(x) ?? Infinity) - (totalOf(y) ?? Infinity);
             if (sort === 'date') return startOf(x) - startOf(y);
+            if (sort === 'distance') return (x.distanceMiles ?? Infinity) - (y.distanceMiles ?? Infinity) || (totalOf(x) ?? Infinity) - (totalOf(y) ?? Infinity);
             return (coverage(y) ?? requested.length) - (coverage(x) ?? requested.length) || (totalOf(x) ?? Infinity) - (totalOf(y) ?? Infinity);
         });
-        const tag = { coverage: t('scheduledOffers.compare.mostCoverage'), price: t('scheduledOffers.compare.lowestPrice'), date: '' }[sort];
+        const tag = { coverage: t('scheduledOffers.compare.mostCoverage'), price: t('scheduledOffers.compare.lowestPrice'), date: '', distance: t('scheduledOffers.compare.nearest') }[sort];
         const chip = (id: SortId, label: string) => (
             <TouchableOpacity key={id} onPress={() => setSort(id)} accessibilityRole="button" accessibilityState={{ selected: sort === id }} style={{ paddingHorizontal: 13, paddingVertical: 8, borderRadius: 100, backgroundColor: sort === id ? SC.blue : '#FFFFFF', borderWidth: sort === id ? 0 : 1, borderColor: SC.border }}>
                 <Text className="font-outfit-bold" style={{ fontSize: 12.5, color: sort === id ? '#FFFFFF' : SC.text }}>{label}</Text>
@@ -398,6 +399,7 @@ export default function ScheduledOffersScreen() {
                         {chip('coverage', t('scheduledOffers.compare.mostCoverage'))}
                         {chip('price', t('scheduledOffers.compare.lowestPrice'))}
                         {chip('date', t('scheduledOffers.compare.earliest'))}
+                        {chip('distance', t('scheduledOffers.compare.nearest'))}
                     </View>
                     {notice ? <Note tone="amber">{notice}</Note> : null}
                     {list.map((o, i) => {
@@ -413,7 +415,7 @@ export default function ScheduledOffersScreen() {
                                     <View className="items-center justify-center" style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: SC.blueSoft }}><Store size={20} color={SC.blue} /></View>
                                     <View className="flex-1">
                                         <Text className="font-outfit-bold" style={{ fontSize: 15, color: SC.text }}>{t('scheduledOffers.compare.offerN', { n: i + 1 })}</Text>
-                                        <Text className="font-outfit-regular" style={{ fontSize: 12, color: SC.muted, marginTop: 2 }}>{o.quoteType === 'diagnostic_then_quote' ? t('scheduledOffers.diagnosticThenQuote') : t('scheduledOffers.finalPrice')}{agoLabel(o.createdAt) ? ` · ${agoLabel(o.createdAt)}` : ''}</Text>
+                                        <Text className="font-outfit-regular" style={{ fontSize: 12, color: SC.muted, marginTop: 2 }}>{o.quoteType === 'diagnostic_then_quote' ? t('scheduledOffers.diagnosticThenQuote') : t('scheduledOffers.finalPrice')}{typeof o.distanceMiles === 'number' ? ` · ${o.distanceMiles < 10 ? o.distanceMiles.toFixed(1) : Math.round(o.distanceMiles)} mi` : ''}{agoLabel(o.createdAt) ? ` · ${agoLabel(o.createdAt)}` : ''}</Text>
                                     </View>
                                 </View>
                                 {cov !== null ? (

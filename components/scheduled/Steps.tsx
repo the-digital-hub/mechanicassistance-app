@@ -1,5 +1,6 @@
 import {
     Calendar,
+    Camera,
     Car,
     Check,
     ChevronDown,
@@ -17,9 +18,11 @@ import {
     MapPin,
     Plus,
     Snowflake,
+    ShieldCheck,
     SlidersHorizontal,
     Store,
     Thermometer,
+    Upload,
     Video,
     Wrench,
     X,
@@ -32,7 +35,7 @@ import { ActivityIndicator, Image, Text, TouchableOpacity, View } from 'react-na
 
 import type { Address, ScheduledServiceCategory, ScheduledServiceItem, Vehicle } from '@/lib/dao/interfaces';
 import { addressDisplayName } from '@/lib/address';
-import { DayCalendar, TimeWheel } from '@/components/scheduled/DateTime';
+import { DateField, SelectField, type SelectOption } from '@/components/scheduled/DateTime';
 import { RadiusSlider } from '@/components/scheduled/RadiusSlider';
 import type { PendingAttachment } from '@/lib/media/attachments';
 import {
@@ -44,6 +47,7 @@ import {
     isSameDay,
     MAX_EVIDENCE,
     MAX_SERVICES,
+    timeSlots,
     type ScheduledDraft,
     type ServiceMode,
 } from '@/lib/scheduled/draft';
@@ -413,10 +417,9 @@ export function AvailabilityStep({
     const { t, i18n } = useTranslation();
     const days = bookableDates(now);
     const earliest = draft.date ? earliestMinutes(draft.date, now) : 0;
-    const sameDay = draft.date ? isSameDay(draft.date, now) : false;
-    // First selectable start on the picked day, on the 30-minute grid.
-    const firstStart = Math.max(SLOT_MIN, Math.ceil(earliest / 30) * 30);
-    const [custom, setCustom] = useState(false);
+    const sameDay = draft.dateMode === 'exact' && draft.date ? isSameDay(draft.date, now) : false;
+    const minDate = dateFromKey(days[0]);
+    const maxDate = dateFromKey(days[days.length - 1]);
 
     const pickDay = (key: string) => {
         // The window picked for another day may fall inside today's lead time (or end before it starts).
@@ -433,139 +436,137 @@ export function AvailabilityStep({
     const setDateMode = (dateMode: 'exact' | 'range') =>
         patch({ dateMode, dateTo: dateMode === 'range' ? draft.dateTo || draft.date : '' });
 
-    // Preselect the first day that still has time left, so the calendar never shows a day that is not in the draft.
+    // Start from the first day that still has time left and a window on it, as the design opens pre-filled.
     useEffect(() => {
-        if (draft.date) return;
-        const first = days.find((k) => Math.ceil(earliestMinutes(k, now) / 30) * 30 + 30 <= SLOT_MAX) ?? days[0];
-        pickDay(first);
+        if (draft.date && draft.fromMin != null && draft.toMin != null) return;
+        const day = draft.date || days.find((k) => Math.ceil(earliestMinutes(k, now) / 30) * 30 + 30 <= SLOT_MAX) || days[0];
+        const start = Math.max(SLOT_MIN, Math.ceil(earliestMinutes(day, now) / 30) * 30, 12 * 60 + 30 <= SLOT_MAX ? 12 * 60 + 30 : SLOT_MIN);
+        const from = Math.min(start, SLOT_MAX - 60);
+        patch({ date: day, fromMin: from, toMin: Math.min(SLOT_MAX, from + 240) });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const presets = [
-        { id: 'morning', from: 8 * 60, to: 12 * 60 },
-        { id: 'afternoon', from: 12 * 60, to: 16 * 60 },
-        { id: 'evening', from: 16 * 60, to: 20 * 60 },
-        { id: 'any', from: SLOT_MIN, to: SLOT_MAX },
-    ].map((p) => {
-        const from = Math.max(p.from, firstStart);
-        return { ...p, start: from, ok: p.to - from >= 60 };
-    });
-    const activePreset = !custom ? presets.find((p) => p.start === draft.fromMin && p.to === draft.toMin)?.id : undefined;
-
-    const dayText = daysLabel(draft);
-    const summary = draft.date && draft.fromMin != null && draft.toMin != null
-        ? `${dayText} · ${formatMinutes(draft.fromMin)} – ${formatMinutes(draft.toMin)}`
-        : null;
+    const fromOptions: SelectOption[] = timeSlots().slice(0, -1).map((m) => ({ value: m, label: formatMinutes(m), disabled: m < earliest }));
+    const toOptions: SelectOption[] = timeSlots().map((m) => ({ value: m, label: formatMinutes(m), disabled: draft.fromMin == null || m <= draft.fromMin }));
 
     const setFrom = (m: number) => patch({ fromMin: m, ...(draft.toMin != null && draft.toMin <= m ? { toMin: Math.min(SLOT_MAX, m + 60) } : {}) });
 
+    const card = { ...CARD_STYLE, padding: 14, gap: 12 } as const;
+    const Required = ({ children }: { children: string }) => (
+        <Text className="font-outfit-bold" style={{ fontSize: 13, color: SC.text, marginBottom: 6 }}>{children} *</Text>
+    );
+
     return (
-        <View style={{ gap: 20 }}>
+        <View style={{ gap: 16 }}>
             <StepHead eyebrow={t('scheduled.availability.eyebrow')} title={t('scheduled.availability.title')} sub={t('scheduled.availability.sub')} />
 
-            <View style={{ gap: 12 }}>
-                <View className="flex-row" style={{ gap: 8 }}>
-                    <Chip on={draft.dateMode === 'exact'} onPress={() => setDateMode('exact')}>{t('scheduled.availability.exactDate')}</Chip>
-                    <Chip on={draft.dateMode === 'range'} onPress={() => setDateMode('range')}>{t('scheduled.availability.dateRange')}</Chip>
+            <View style={{ ...card, gap: 14 }}>
+                <View className="flex-row items-center" style={{ gap: 10 }}>
+                    <View className="items-center justify-center" style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: SC.blueSoft }}><Calendar size={18} color={SC.blue} /></View>
+                    <Text className="font-outfit-bold" style={{ fontSize: 15, letterSpacing: -0.2, color: SC.text }}>{t('scheduled.availability.cardTitle')}</Text>
                 </View>
+
+                <View className="flex-row" style={{ gap: 8 }}>
+                    {(['exact', 'range'] as const).map((mode) => {
+                        const on = draft.dateMode === mode;
+                        return (
+                            <TouchableOpacity
+                                key={mode}
+                                onPress={() => setDateMode(mode)}
+                                activeOpacity={0.85}
+                                accessibilityRole="button"
+                                accessibilityState={{ selected: on }}
+                                style={{ flex: 1, alignItems: 'center', paddingVertical: 12, borderRadius: 12, backgroundColor: on ? SC.blue : '#FFFFFF', borderWidth: on ? 0 : 1, borderColor: SC.border }}
+                            >
+                                <Text className="font-outfit-bold" style={{ fontSize: 13.5, color: on ? '#FFFFFF' : SC.text }}>{t(mode === 'exact' ? 'scheduled.availability.exactDate' : 'scheduled.availability.dateRange')}</Text>
+                            </TouchableOpacity>
+                        );
+                    })}
+                </View>
+
                 {draft.dateMode === 'exact' ? (
                     <View>
-                        <FieldLabel right={sameDay ? <Text className="font-outfit-bold" style={{ fontSize: 10, letterSpacing: 0.8, color: SC.blue }}>{t('scheduled.availability.sameDayBadge')}</Text> : undefined}>
-                            {t('scheduled.availability.dayLabel')}
-                        </FieldLabel>
-                        <DayCalendar
-                            value={draft.date}
-                            min={dateFromKey(days[0])}
-                            max={dateFromKey(days[days.length - 1])}
-                            locale={i18n.language}
-                            onChange={pickDay}
-                        />
+                        <View className="flex-row items-center justify-between" style={{ marginBottom: 6 }}>
+                            <Text className="font-outfit-bold" style={{ fontSize: 13, color: SC.text }}>{t('scheduled.availability.serviceDate')} *</Text>
+                            {sameDay ? (
+                                <View className="rounded-full" style={{ paddingHorizontal: 9, paddingVertical: 3, backgroundColor: SC.blueSoft }}>
+                                    <Text className="font-outfit-bold" style={{ fontSize: 10, letterSpacing: 0.8, color: SC.blue }}>{t('scheduled.availability.sameDayBadge')}</Text>
+                                </View>
+                            ) : null}
+                        </View>
+                        <DateField value={draft.date} min={minDate} max={maxDate} locale={i18n.language} onChange={pickDay} accessibilityLabel={t('scheduled.availability.serviceDate')} />
                     </View>
                 ) : (
-                    <View className="flex-row" style={{ gap: 12 }}>
+                    <View className="flex-row" style={{ gap: 10 }}>
                         <View style={{ flex: 1 }}>
-                            <FieldLabel>{t('scheduled.availability.rangeFrom')}</FieldLabel>
-                            <DayCalendar compact value={draft.date} min={dateFromKey(days[0])} max={dateFromKey(days[days.length - 1])} locale={i18n.language} onChange={pickDay} />
+                            <Required>{t('scheduled.availability.rangeFromLabel')}</Required>
+                            <DateField value={draft.date} min={minDate} max={maxDate} locale={i18n.language} onChange={pickDay} accessibilityLabel={t('scheduled.availability.rangeFromLabel')} />
                         </View>
                         <View style={{ flex: 1 }}>
-                            <FieldLabel>{t('scheduled.availability.rangeTo')}</FieldLabel>
-                            <DayCalendar compact value={draft.dateTo} min={dateFromKey(draft.date || days[0])} max={dateFromKey(days[days.length - 1])} locale={i18n.language} onChange={(dateTo) => patch({ dateTo })} />
+                            <Required>{t('scheduled.availability.rangeToLabel')}</Required>
+                            <DateField value={draft.dateTo} min={dateFromKey(draft.date || days[0])} max={maxDate} locale={i18n.language} onChange={(dateTo) => patch({ dateTo })} accessibilityLabel={t('scheduled.availability.rangeToLabel')} />
                         </View>
                     </View>
                 )}
-            </View>
 
-            {draft.date ? (
-                <View style={{ gap: 12 }}>
-                    <FieldLabel>{t('scheduled.availability.windowLabel')}</FieldLabel>
-                    <View className="flex-row flex-wrap" style={{ gap: 10 }}>
-                        {presets.map((p) => {
-                            const on = activePreset === p.id;
-                            return (
-                                <TouchableOpacity
-                                    key={p.id}
-                                    disabled={!p.ok}
-                                    activeOpacity={0.8}
-                                    accessibilityRole="button"
-                                    accessibilityState={{ selected: on, disabled: !p.ok }}
-                                    onPress={() => { setCustom(false); patch({ fromMin: p.start, toMin: p.to }); }}
-                                    style={{
-                                        width: '48%',
-                                        padding: 14,
-                                        borderRadius: 16,
-                                        backgroundColor: on ? SC.blue : '#FFFFFF',
-                                        borderWidth: 1,
-                                        borderColor: on ? SC.blue : SC.border,
-                                        opacity: p.ok ? 1 : 0.4,
-                                    }}
-                                >
-                                    <Text className="font-outfit-bold" style={{ fontSize: 15, color: on ? '#FFFFFF' : SC.text }}>{t(`scheduled.availability.presets.${p.id}`)}</Text>
-                                    <Text className="font-outfit-regular" style={{ fontSize: 12.5, marginTop: 2, color: on ? '#DCE8FF' : SC.muted }}>
-                                        {`${formatMinutes(p.start)} – ${formatMinutes(p.to)}`}
-                                    </Text>
-                                </TouchableOpacity>
-                            );
-                        })}
-                    </View>
-                    <TouchableOpacity
-                        onPress={() => {
-                            if (!custom && draft.fromMin == null) patch({ fromMin: firstStart, toMin: Math.min(SLOT_MAX, firstStart + 120) });
-                            setCustom(!custom);
-                        }}
-                        accessibilityRole="button"
-                        className="flex-row items-center"
-                        style={{ gap: 8, paddingVertical: 4 }}
-                    >
-                        <Clock size={16} color={SC.blue} />
-                        <Text className="font-outfit-bold" style={{ color: SC.blue }}>{t('scheduled.availability.custom')}</Text>
-                        <ChevronDown size={16} color={SC.blue} style={{ transform: [{ rotate: custom ? '180deg' : '0deg' }] }} />
-                    </TouchableOpacity>
-                    {custom && draft.fromMin != null && draft.toMin != null ? (
-                        <View className="flex-row" style={{ gap: 12 }}>
-                            <TimeWheel label={t('scheduled.availability.from')} minutes={draft.fromMin} min={firstStart} max={SLOT_MAX - 30} onChange={setFrom} />
-                            <TimeWheel label={t('scheduled.availability.to')} minutes={draft.toMin} min={Math.min(SLOT_MAX, draft.fromMin + 30)} max={SLOT_MAX} onChange={(m) => patch({ toMin: m })} />
+                <View style={{ height: 1, backgroundColor: SC.borderSoft }} />
+
+                <View>
+                    <Text className="font-outfit-bold" style={{ fontSize: 11, letterSpacing: 1.2, color: SC.muted, marginBottom: 10 }}>{t('scheduled.availability.windowLabel')} *</Text>
+                    <View className="flex-row" style={{ gap: 10 }}>
+                        <View style={{ flex: 1 }}>
+                            <Required>{t('scheduled.availability.from')}</Required>
+                            <SelectField value={draft.fromMin} options={fromOptions} placeholder={t('scheduled.availability.selectTime')} onSelect={setFrom} accessibilityLabel={t('scheduled.availability.from')} />
                         </View>
-                    ) : null}
-                    {summary ? (
-                        <Text className="font-outfit-semibold" style={{ fontSize: 13.5, color: SC.text }}>{summary}</Text>
-                    ) : null}
-                    {sameDay ? (
-                        <Note tone="amber" title={t('scheduled.availability.sameDayTitle')}>{t('scheduled.availability.sameDayBody')}</Note>
-                    ) : (
-                        <Note title={t('scheduled.availability.windowTitle')}>{t('scheduled.availability.windowBody')}</Note>
-                    )}
+                        <View style={{ flex: 1 }}>
+                            <Required>{t('scheduled.availability.to')}</Required>
+                            <SelectField value={draft.toMin} options={toOptions} placeholder={t('scheduled.availability.selectTime')} onSelect={(m) => patch({ toMin: m })} accessibilityLabel={t('scheduled.availability.to')} />
+                        </View>
+                    </View>
                 </View>
-            ) : null}
 
-            <View>
-                <FieldLabel>{t('scheduled.availability.symptomsLabel')}</FieldLabel>
-                <TextField multiline value={draft.symptoms} onChangeText={(v) => patch({ symptoms: v })} placeholder={t('scheduled.availability.symptomsPlaceholder')} maxLength={1000} />
+                <View className="flex-row" style={{ gap: 10, padding: 12, borderRadius: 12, backgroundColor: SC.blueSofter, borderWidth: 1, borderColor: SC.blueSoft }}>
+                    <ShieldCheck size={18} color={SC.blue} style={{ marginTop: 1 }} />
+                    <Text className="font-outfit-regular flex-1" style={{ fontSize: 12.5, lineHeight: 18, color: SC.text }}>
+                        <Text className="font-outfit-bold">{sameDay ? t('scheduled.availability.sameDayTitle') : t('scheduled.availability.windowTitle')} </Text>
+                        {sameDay ? t('scheduled.availability.sameDayBody') : t('scheduled.availability.windowBody')}
+                    </Text>
+                </View>
             </View>
 
-            <View>
-                <FieldLabel>{t('scheduled.availability.evidenceLabel')}</FieldLabel>
+            <View style={{ ...card, gap: 10 }}>
+                <View>
+                    <Text className="font-outfit-bold" style={{ fontSize: 15, letterSpacing: -0.2, color: SC.text }}>
+                        {t('scheduled.availability.detailsTitle')} <Text className="font-outfit-semibold" style={{ color: SC.muted }}>{t('scheduled.availability.optional')}</Text>
+                    </Text>
+                    <Text className="font-outfit-regular" style={{ fontSize: 12.5, lineHeight: 18, color: SC.muted, marginTop: 4 }}>{t('scheduled.availability.detailsSub')}</Text>
+                </View>
+                <TextField multiline value={draft.symptoms} onChangeText={(v) => patch({ symptoms: v })} placeholder={t('scheduled.availability.symptomsPlaceholder')} maxLength={1000} style={{ borderColor: SC.border, borderRadius: 14 }} />
+            </View>
+
+            <View style={card}>
+                <View className="flex-row items-center" style={{ gap: 10 }}>
+                    <View className="items-center justify-center" style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: SC.blueSoft }}><Camera size={18} color={SC.blue} /></View>
+                    <Text className="font-outfit-bold flex-1" style={{ fontSize: 15, letterSpacing: -0.2, color: SC.text }}>
+                        {t('scheduled.availability.evidenceTitle')} <Text className="font-outfit-semibold" style={{ color: SC.muted }}>{t('scheduled.availability.optional')}</Text>
+                    </Text>
+                </View>
+                <TouchableOpacity
+                    onPress={onAddEvidence}
+                    disabled={evidence.length >= MAX_EVIDENCE}
+                    activeOpacity={0.8}
+                    accessibilityRole="button"
+                    className="flex-row items-center justify-center"
+                    style={{ gap: 10, paddingVertical: 16, paddingHorizontal: 12, borderRadius: 14, borderWidth: 1.5, borderStyle: 'dashed', borderColor: SC.border, backgroundColor: SC.blueSofter, opacity: evidence.length >= MAX_EVIDENCE ? 0.5 : 1 }}
+                >
+                    <Upload size={20} color={SC.blue} />
+                    <View>
+                        <Text className="font-outfit-semibold text-center" style={{ fontSize: 13, lineHeight: 18, color: SC.text }}>{t('scheduled.availability.uploadTitle')}</Text>
+                        <Text className="font-outfit-regular text-center" style={{ fontSize: 13, lineHeight: 18, color: SC.muted }}>{t('scheduled.availability.uploadHint')}</Text>
+                    </View>
+                </TouchableOpacity>
                 {evidence.length > 0 ? (
-                    <View className="flex-row flex-wrap" style={{ gap: 10, marginBottom: 12 }}>
+                    <View className="flex-row flex-wrap" style={{ gap: 10 }}>
                         {evidence.map((file, i) => (
                             <View key={`${file.uri}-${i}`} style={{ width: 76, height: 76, borderRadius: 12, overflow: 'hidden', backgroundColor: SC.blueSoft }}>
                                 {file.type === 'photo' ? (
@@ -587,18 +588,6 @@ export function AvailabilityStep({
                         ))}
                     </View>
                 ) : null}
-                <TouchableOpacity
-                    onPress={onAddEvidence}
-                    disabled={evidence.length >= MAX_EVIDENCE}
-                    activeOpacity={0.8}
-                    accessibilityRole="button"
-                    className="flex-row items-center justify-center"
-                    style={{ gap: 8, paddingVertical: 14, borderRadius: 12, borderWidth: 1.5, borderStyle: 'dashed', borderColor: SC.border, backgroundColor: '#FFFFFF', opacity: evidence.length >= MAX_EVIDENCE ? 0.5 : 1 }}
-                >
-                    <ImagePlus size={18} color={SC.blue} />
-                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: SC.blue }}>{t('scheduled.availability.addEvidence')}</Text>
-                </TouchableOpacity>
-                <Text className="font-outfit-regular" style={{ fontSize: 12, color: SC.muted, marginTop: 6 }}>{t('scheduled.availability.evidenceLimits')}</Text>
             </View>
         </View>
     );
@@ -639,7 +628,7 @@ export function ReviewStep({
     goTo: (step: number) => void;
     now: Date;
 }) {
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
     const dateLabel = draft.date ? daysLabel(draft) : '—';
     const windowLabel =
         draft.fromMin != null && draft.toMin != null ? `${dateLabel} · ${formatMinutes(draft.fromMin)} – ${formatMinutes(draft.toMin)}` : dateLabel;
