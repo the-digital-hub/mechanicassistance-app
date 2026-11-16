@@ -1,5 +1,5 @@
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { Clock, CreditCard, ShieldCheck, Star } from 'lucide-react-native';
+import { Calendar, Check, Clock, CreditCard, Minus, ShieldCheck, Star, Store } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -8,12 +8,15 @@ import { CARD_STYLE, Footer, Note, SC, StepHead, WizardHeader } from '@/componen
 import { formatSlot } from '@/lib/scheduled/slot';
 import { QuoteDetails } from '@/components/scheduled/QuoteDetails';
 import { RequestAgainButton } from '@/components/scheduled/RequestAgainButton';
+import { WaitingHub, type HubRow } from '@/components/scheduled/WaitingHub';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { useSocket } from '@/context/SocketContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
+import { pricingDAO } from '@/lib/dao/PricingDAO';
 import type { AssistanceRequest, MarketplaceOffer } from '@/lib/dao/interfaces';
 import { apiErrorCode, RETURN_TO_BACK } from '@/lib/payments/cardRequired';
 import { usePaymentChoice } from '@/lib/payments/usePaymentChoice';
+import { parseRequestNotes } from '@/lib/scheduled/provider';
 import {
     bestOfferId,
     canSelect,
@@ -22,11 +25,13 @@ import {
     offerErrorAction,
     openOffersByTotal,
     requestPhase,
+    splitQuoteDescription,
     totalOf,
     windowLeft,
 } from '@/lib/scheduled/offers';
 
-type View_ = 'list' | 'detail' | 'pay' | 'done';
+type View_ = 'list' | 'compare' | 'detail' | 'pay' | 'done';
+type SortId = 'coverage' | 'price' | 'date';
 
 const POLL_MS = 30000;
 const EXTEND_HOURS = 24;
@@ -46,6 +51,9 @@ export default function ScheduledOffersScreen() {
     const [now, setNow] = useState(() => new Date());
     const [cardModal, setCardModal] = useState(false);
     const [notice, setNotice] = useState<string | null>(null);
+    const [sort, setSort] = useState<SortId>('coverage');
+    // Catalog names (English, as providers quote them) for the codes the request carries.
+    const [serviceNames, setServiceNames] = useState<Record<string, string>>({});
 
     const load = useCallback(async () => {
         if (!requestId) return;
@@ -62,6 +70,22 @@ export default function ScheduledOffersScreen() {
             setNow(new Date());
         }
     }, [requestId]);
+
+    useEffect(() => {
+        let alive = true;
+        pricingDAO
+            .getServiceCategories()
+            .then((cats) => {
+                if (!alive || !Array.isArray(cats)) return;
+                const map: Record<string, string> = {};
+                for (const c of cats) for (const sv of c.services) map[sv.code] = sv.name;
+                setServiceNames(map);
+            })
+            .catch(() => undefined);
+        return () => {
+            alive = false;
+        };
+    }, []);
 
     useFocusEffect(
         useCallback(() => {
@@ -107,7 +131,8 @@ export default function ScheduledOffersScreen() {
     const serviceDate = request?.date;
 
     const back = () => {
-        if (view === 'detail') setView('list');
+        if (view === 'compare') setView('list');
+        else if (view === 'detail') setView('compare');
         else if (view === 'pay') setView('detail');
         else if (view === 'done') router.replace('/(tabs)/dashboard');
         else if (router.canGoBack()) router.back();
@@ -311,6 +336,170 @@ export default function ScheduledOffersScreen() {
                     {!ok ? <Note tone="amber">{t('scheduledOffers.detail.unavailable')}</Note> : null}
                 </ScrollView>
                 <Footer label={t('scheduledOffers.detail.select')} onPress={() => { setNotice(null); setView('pay'); }} disabled={!ok} />
+            </View>
+        );
+    }
+
+    // What the owner asked, from the request and the notes the app wrote into it.
+    const notes = parseRequestNotes(request?.notes, request?.date);
+    const requested = (request?.services ?? []).map((x) => serviceNames[x.code] ?? x.code.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase()));
+    const agoLabel = (iso?: string | null) => {
+        const at = iso ? Date.parse(iso) : NaN;
+        if (!Number.isFinite(at)) return '';
+        const mins = Math.max(0, Math.floor((now.getTime() - at) / 60000));
+        if (mins < 1) return t('dashboard.timeAgo.justNow');
+        if (mins < 60) return t('dashboard.timeAgo.minutes', { count: mins });
+        if (mins < 1440) return t('dashboard.timeAgo.hours', { count: Math.floor(mins / 60) });
+        return t('dashboard.timeAgo.days', { count: Math.floor(mins / 1440) });
+    };
+    const newestOffer = [...offers].sort((x, y) => Date.parse(y.createdAt ?? '') - Date.parse(x.createdAt ?? ''))[0];
+    const radius = notes.mode === 'workshop' ? parseInt(request?.notes?.match(/within (\d+) mile/)?.[1] ?? '', 10) : NaN;
+    const whenValue = [notes.days, notes.window].filter(Boolean).join(' · ') ||
+        (request?.date ? new Date(request.date).toLocaleDateString(i18n.language, { weekday: 'short', month: 'short', day: 'numeric' }) : '—');
+    const hubRows: HubRow[] = [
+        { key: 'vehicle', kind: 'vehicle', label: t('scheduledOffers.hub.vehicle'), value: request?.car || '—' },
+        {
+            key: 'mode',
+            kind: notes.mode === 'workshop' ? 'shop' : 'home',
+            label: t('scheduledOffers.hub.modality'),
+            value: notes.mode === 'workshop'
+                ? Number.isFinite(radius) ? t('scheduledOffers.hub.modeShopWithin', { count: radius }) : t('scheduledOffers.hub.modeShop')
+                : t('scheduledOffers.hub.modeOnsite'),
+        },
+        { key: 'when', kind: 'when', label: t('scheduledOffers.hub.when'), value: whenValue },
+    ];
+
+    if (view === 'compare' && phase !== 'cancelled') {
+        const quotedNames = (o: MarketplaceOffer) => new Set(splitQuoteDescription(o.description).items.filter((i) => i.quoted).map((i) => i.name));
+        const coverage = (o: MarketplaceOffer) => {
+            const items = splitQuoteDescription(o.description).items.filter((i) => i.name !== 'Travel fee');
+            if (items.length === 0 || requested.length === 0) return null;
+            const names = quotedNames(o);
+            return requested.filter((n) => names.has(n)).length;
+        };
+        const startOf = (o: MarketplaceOffer) => Date.parse(o.proposedStart ?? '') || Number.MAX_SAFE_INTEGER;
+        const list = [...sorted].sort((x, y) => {
+            if (sort === 'price') return (totalOf(x) ?? Infinity) - (totalOf(y) ?? Infinity);
+            if (sort === 'date') return startOf(x) - startOf(y);
+            return (coverage(y) ?? requested.length) - (coverage(x) ?? requested.length) || (totalOf(x) ?? Infinity) - (totalOf(y) ?? Infinity);
+        });
+        const tag = { coverage: t('scheduledOffers.compare.mostCoverage'), price: t('scheduledOffers.compare.lowestPrice'), date: '' }[sort];
+        const chip = (id: SortId, label: string) => (
+            <TouchableOpacity key={id} onPress={() => setSort(id)} accessibilityRole="button" accessibilityState={{ selected: sort === id }} style={{ paddingHorizontal: 13, paddingVertical: 8, borderRadius: 100, backgroundColor: sort === id ? SC.blue : '#FFFFFF', borderWidth: sort === id ? 0 : 1, borderColor: SC.border }}>
+                <Text className="font-outfit-bold" style={{ fontSize: 12.5, color: sort === id ? '#FFFFFF' : SC.text }}>{label}</Text>
+            </TouchableOpacity>
+        );
+        return (
+            <View className="flex-1" style={{ backgroundColor: SC.page }}>
+                <WizardHeader title={t('scheduledOffers.title')} onBack={back} />
+                <ScrollView contentContainerStyle={{ padding: 20, gap: 14, paddingBottom: 40 }}>
+                    <StepHead eyebrow={t('scheduledOffers.compare.eyebrow', { count: list.length })} title={t('scheduledOffers.compare.title')} sub={t('scheduledOffers.compare.sub')} />
+                    <View className="flex-row flex-wrap" style={{ gap: 8 }}>
+                        {chip('coverage', t('scheduledOffers.compare.mostCoverage'))}
+                        {chip('price', t('scheduledOffers.compare.lowestPrice'))}
+                        {chip('date', t('scheduledOffers.compare.earliest'))}
+                    </View>
+                    {notice ? <Note tone="amber">{notice}</Note> : null}
+                    {list.map((o, i) => {
+                        const ok = canSelect(o, now);
+                        const items = splitQuoteDescription(o.description).items.filter((x) => x.name !== 'Travel fee');
+                        const cov = coverage(o);
+                        const full = cov !== null && cov === requested.length;
+                        const slot = formatSlot(o.proposedStart, o.proposedEnd, i18n.language);
+                        const names = quotedNames(o);
+                        return (
+                            <View key={o.id} style={{ ...CARD_STYLE, padding: 14, gap: 12, opacity: ok ? 1 : 0.6 }}>
+                                <View className="flex-row items-center" style={{ gap: 12 }}>
+                                    <View className="items-center justify-center" style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: SC.blueSoft }}><Store size={20} color={SC.blue} /></View>
+                                    <View className="flex-1">
+                                        <Text className="font-outfit-bold" style={{ fontSize: 15, color: SC.text }}>{t('scheduledOffers.compare.offerN', { n: i + 1 })}</Text>
+                                        <Text className="font-outfit-regular" style={{ fontSize: 12, color: SC.muted, marginTop: 2 }}>{o.quoteType === 'diagnostic_then_quote' ? t('scheduledOffers.diagnosticThenQuote') : t('scheduledOffers.finalPrice')}{agoLabel(o.createdAt) ? ` · ${agoLabel(o.createdAt)}` : ''}</Text>
+                                    </View>
+                                </View>
+                                {cov !== null ? (
+                                    <View>
+                                        <View className="flex-row items-center justify-between" style={{ marginBottom: 6 }}>
+                                            <View style={{ paddingHorizontal: 8, paddingVertical: 2, borderRadius: 100, backgroundColor: full ? SC.greenSoft : SC.amberSoft }}>
+                                                <Text className="font-outfit-bold" style={{ fontSize: 12, color: full ? SC.greenText : SC.amberText }}>{full ? t('scheduledOffers.compare.coversAll') : t('scheduledOffers.compare.partial', { n: cov, total: requested.length })}</Text>
+                                            </View>
+                                            {i === 0 && tag ? <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 0.8, color: SC.blue }}>{tag}</Text> : null}
+                                        </View>
+                                        <View className="flex-row" style={{ gap: 3 }}>
+                                            {requested.map((n, k) => <View key={`${n}-${k}`} style={{ flex: 1, height: 5, borderRadius: 3, backgroundColor: names.has(n) ? SC.blue : '#DCE3F0' }} />)}
+                                        </View>
+                                    </View>
+                                ) : i === 0 && tag ? <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 0.8, color: SC.blue }}>{tag}</Text> : null}
+                                {items.length > 0 ? (
+                                    <View style={{ gap: 5 }}>
+                                        {items.map((it) => (
+                                            <View key={it.name} className="flex-row items-center" style={{ gap: 8 }}>
+                                                <View className="items-center justify-center" style={{ width: 16, height: 16, borderRadius: 5, backgroundColor: it.quoted ? SC.blue : '#E8ECF4' }}>
+                                                    {it.quoted ? <Check size={10} color="#FFFFFF" strokeWidth={3} /> : <Minus size={10} color="#5A6482" strokeWidth={3} />}
+                                                </View>
+                                                <Text className="font-outfit-semibold flex-1" style={{ fontSize: 12.5, color: it.quoted ? SC.text : SC.muted }}>{it.name}</Text>
+                                                <Text className="font-outfit-bold" style={{ fontSize: 12.5, color: it.quoted ? SC.text : SC.muted }}>{it.quoted && it.total !== null ? money(it.total) : t('scheduledOffers.compare.notQuoted')}</Text>
+                                            </View>
+                                        ))}
+                                    </View>
+                                ) : null}
+                                <View className="flex-row items-baseline justify-between" style={{ marginTop: 2, paddingTop: 10, borderTopWidth: 1, borderTopColor: SC.border, borderStyle: 'dashed' }}>
+                                    <Text className="font-outfit-bold" style={{ fontSize: 12.5, color: SC.muted }}>{t('scheduledOffers.compare.yourTotal')}</Text>
+                                    <Text className="font-outfit-bold" style={{ fontSize: 20, letterSpacing: -0.5, color: SC.blue }}>{money(totalOf(o))}</Text>
+                                </View>
+                                <View className="flex-row" style={{ gap: 10, paddingTop: 12, borderTopWidth: 1, borderTopColor: SC.borderSoft }}>
+                                    <View className="flex-1 flex-row items-center" style={{ gap: 7 }}>
+                                        <Calendar size={16} color={SC.blue} />
+                                        <View className="flex-1">
+                                            <Text className="font-outfit-bold" style={{ fontSize: 9.5, letterSpacing: 1, color: SC.muted }}>{t('scheduledOffers.compare.available')}</Text>
+                                            <Text className="font-outfit-bold" style={{ fontSize: 12, lineHeight: 15, color: SC.text, marginTop: 1 }}>{slot || '—'}</Text>
+                                        </View>
+                                    </View>
+                                    <View className="flex-1 flex-row items-center" style={{ gap: 7 }}>
+                                        <ShieldCheck size={16} color={SC.blue} />
+                                        <View className="flex-1">
+                                            <Text className="font-outfit-bold" style={{ fontSize: 9.5, letterSpacing: 1, color: SC.muted }}>{t('scheduledOffers.compare.warranty')}</Text>
+                                            <Text className="font-outfit-bold" style={{ fontSize: 12, lineHeight: 15, color: SC.text, marginTop: 1 }}>{o.warrantyDays ? t('scheduledOffers.detail.warranty', { days: o.warrantyDays }) : '—'}</Text>
+                                        </View>
+                                    </View>
+                                </View>
+                                <View className="flex-row items-center" style={{ gap: 10 }}>
+                                    <TouchableOpacity onPress={() => { setOpenId(o.id); setNotice(null); setView('detail'); }} accessibilityRole="button" style={{ paddingHorizontal: 4 }}>
+                                        <Text className="font-outfit-bold" style={{ fontSize: 12.5, color: SC.blue }}>{t('scheduledOffers.compare.details')}</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={() => { setOpenId(o.id); setNotice(null); setView('pay'); }} disabled={!ok} activeOpacity={0.85} accessibilityRole="button" style={{ flex: 1, alignItems: 'center', paddingVertical: 13, borderRadius: 14, backgroundColor: ok ? SC.blue : '#DCE7FA' }}>
+                                        <Text className="font-outfit-bold" style={{ fontSize: 14.5, color: '#FFFFFF' }}>{t('scheduledOffers.compare.select')}</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        );
+                    })}
+                    <Text className="font-outfit-regular" style={{ fontSize: 11.5, lineHeight: 17, color: SC.muted }}>{t('scheduledOffers.compare.totalNote')}</Text>
+                </ScrollView>
+            </View>
+        );
+    }
+
+    if (view === 'list' && (phase === 'collecting' || phase === 'closedWithOffers')) {
+        return (
+            <View className="flex-1" style={{ backgroundColor: SC.page }}>
+                <WizardHeader title={t('scheduled.title')} onBack={back} />
+                {notice ? <View style={{ paddingHorizontal: 20, paddingTop: 12 }}><Note tone="amber">{notice}</Note></View> : null}
+                <WaitingHub
+                    closeAt={request?.offersCloseAt}
+                    createdAt={request?.createdAt}
+                    closed={left.closed}
+                    offerCount={sorted.length}
+                    latestAgo={agoLabel(newestOffer?.createdAt)}
+                    refCode={request?.refCode ? `#${request.refCode}` : `#${String(requestId).slice(0, 8)}`}
+                    rows={hubRows}
+                    services={requested}
+                    onCompare={() => { setNotice(null); setView('compare'); }}
+                    onExtend={extend}
+                    extendLabel={t('scheduledOffers.hub.extend', { hours: EXTEND_HOURS })}
+                    onCancel={cancelRequest}
+                    onHome={() => router.replace('/(tabs)/dashboard')}
+                    busy={busy}
+                />
             </View>
         );
     }
