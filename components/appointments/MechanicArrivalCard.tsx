@@ -46,36 +46,40 @@ export function MechanicArrivalCard({ onStartCheckIn, inProgress, disabled }: Me
             accessibilityState={{ disabled: !!disabled }}
             testID="mechanic-arrival-card"
             style={{
-                opacity: disabled ? 0.45 : 1,
+                opacity: disabled ? 0.5 : 1,
                 borderRadius: 20,
                 borderWidth: 1,
                 borderColor: '#EEF2FA',
                 shadowColor: BLUE,
-                shadowOffset: { width: 0, height: 8 },
-                shadowOpacity: 0.18,
-                shadowRadius: 16,
-                elevation: 6,
+                shadowOffset: { width: 0, height: 6 },
+                shadowOpacity: disabled ? 0.06 : 0.14,
+                shadowRadius: 14,
+                elevation: disabled ? 2 : 5,
             }}
         >
-            <View className="flex-row items-center gap-2 px-4 pt-4 pb-2">
-                <PulseDot color={BLUE} size={7} />
-                <Text className="font-outfit-bold text-[15px]" style={{ color: '#0B1530' }}>
-                    {t('appointments.detail.arrival.title')}
-                </Text>
+            <View className="flex-row px-4 pt-4" style={{ gap: 12 }}>
+                <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#EAF1FF' }}>
+                    <Ionicons name="location-outline" size={20} color={BLUE} />
+                </View>
+                <View className="flex-1">
+                    <Text className="font-outfit-bold" style={{ fontSize: 17, lineHeight: 23, color: '#0B1530' }}>
+                        {t('appointments.detail.arrival.title')}
+                    </Text>
+                    <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: '#6B7490' }}>
+                        {t('appointments.detail.arrival.subtitle')}
+                    </Text>
+                </View>
             </View>
-            <Text className="px-4 font-outfit-regular text-[13px]" style={{ color: '#6B7490' }}>
-                {t('appointments.detail.arrival.subtitle')}
-            </Text>
 
             <View className="p-4">
-                <TouchableOpacity onPress={onStartCheckIn} activeOpacity={0.85} testID="start-check-in">
+                <TouchableOpacity onPress={onStartCheckIn} activeOpacity={0.85} testID="start-check-in" accessibilityRole="button">
                     <LinearGradient
                         colors={['#1E56E3', '#0B2A8E']}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
                         style={{
-                            borderRadius: 14,
-                            paddingVertical: 16,
+                            borderRadius: 16,
+                            minHeight: 56,
                             paddingHorizontal: 16,
                             flexDirection: 'row',
                             alignItems: 'center',
@@ -83,26 +87,33 @@ export function MechanicArrivalCard({ onStartCheckIn, inProgress, disabled }: Me
                             gap: 10,
                         }}
                     >
-                        <Ionicons name="location-outline" size={20} color="white" />
-                        <Text className="text-white font-outfit-bold text-base">
+                        <Ionicons name="checkmark-circle-outline" size={22} color="white" />
+                        <Text className="text-white font-outfit-bold" style={{ fontSize: 17, lineHeight: 23 }}>
                             {inProgress ? t('appointments.detail.arrival.continueVisit') : t('appointments.detail.arrival.startCheckIn')}
                         </Text>
                     </LinearGradient>
                 </TouchableOpacity>
 
                 {!inProgress ? (
-                    <>
-                        <Text className="text-center mt-3 font-outfit-regular text-[13px]" style={{ color: '#6B7490' }}>
-                            {t('appointments.detail.arrival.hint')}
+                    disabled ? (
+                        // Not headed out yet: say why the button is off, instead of a notice that contradicts it.
+                        <Text className="text-center mt-3 font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: '#6B7490' }}>
+                            {t('appointments.detail.arrival.disabledNote')}
                         </Text>
-
-                        <View className="flex-row items-start gap-2 mt-3 px-3 py-2.5 rounded-xl" style={{ backgroundColor: '#F4F8FF' }}>
-                            <Ionicons name="information-circle-outline" size={15} color={BLUE} style={{ marginTop: 1 }} />
-                            <Text className="flex-1 font-outfit-medium text-[13px] leading-4" style={{ color: BLUE }}>
-                                {t('appointments.detail.arrival.notice')}
-                            </Text>
+                    ) : (
+                        // The two ways to check in, so it is clear what happens next.
+                        <View className="flex-row items-center justify-center mt-3.5" style={{ gap: 10 }}>
+                            <View className="flex-row items-center" style={{ gap: 6, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 100, backgroundColor: '#F4F8FF' }}>
+                                <Ionicons name="qr-code-outline" size={16} color={BLUE} />
+                                <Text className="font-outfit-semibold" style={{ fontSize: 14, color: '#0B1530' }}>{t('appointments.detail.arrival.chipQr')}</Text>
+                            </View>
+                            <Text className="font-outfit-regular" style={{ fontSize: 14, color: '#8C96AE' }}>{t('appointments.detail.arrival.or')}</Text>
+                            <View className="flex-row items-center" style={{ gap: 6, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 100, backgroundColor: '#F4F8FF' }}>
+                                <Ionicons name="keypad-outline" size={16} color={BLUE} />
+                                <Text className="font-outfit-semibold" style={{ fontSize: 14, color: '#0B1530' }}>{t('appointments.detail.arrival.chipPin')}</Text>
+                            </View>
                         </View>
-                    </>
+                    )
                 ) : null}
             </View>
         </View>

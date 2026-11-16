@@ -916,7 +916,11 @@
         "startCheckIn": "Start Check-in",
         "hint": "Scan QR to check in or Enter PIN instead",
         "notice": "This enables once you're arriving at the service site.",
-        "continueVisit": "Continue visit"
+        "continueVisit": "Continue visit",
+        "disabledNote": "Available once you head out.",
+        "chipQr": "Scan QR",
+        "chipPin": "Enter PIN",
+        "or": "or"
       },
       "info": {
         "arrivalTime": "Arrival time",
@@ -945,7 +949,8 @@
       "locationAlwaysNeeded": "To head out, set location access to \"Always\". The client keeps following you on the map while you drive, even with the app in the background or the phone locked.",
       "locationAlwaysNeededAndroid": "To head out, set location access to \"Allow all the time\". The client keeps following you on the map while you drive, even with the app in the background or the phone locked.",
       "openSettings": "Open settings",
-      "cancelOpenSettings": "Not now"
+      "cancelOpenSettings": "Not now",
+      "leftAtShort": "Left at {{time}}"
     },
     "userTracking": {
       "mechanicMatch": "Technician Match!",

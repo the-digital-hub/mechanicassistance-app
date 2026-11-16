@@ -72,6 +72,7 @@
     "expo-linking": "~55.0.15",
     "expo-location": "~55.1.10",
     "expo-router": "~55.0.16",
+    "expo-screen-orientation": "~55.0.20",
     "expo-secure-store": "~55.0.17",
     "expo-sharing": "~55.0.24",
     "expo-splash-screen": "~55.0.21",

@@ -29,6 +29,7 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 import { ConfigService } from "@/lib/config/ConfigService";
 import { installGlobalErrorHandler, recordFatalError } from "@/lib/errors/globalErrorHandler";
 import i18n from "@/lib/i18n";
+import { lockPortrait } from "@/lib/orientation";
 // Defines the background location task at startup, including headless relaunches.
 import "@/lib/location/backgroundLocationTask";
 import "../global.css";
@@ -160,6 +161,8 @@ export default function RootLayout() {
 
   useEffect(() => {
     ConfigService.init();
+    // The app is portrait-only (app.json allows rotation so that single screens can opt in).
+    lockPortrait();
   }, []);
 
   if (!loaded && !error) {

@@ -704,16 +704,14 @@ export default function AppointmentDetailScreen() {
                             <>
                             {/* Badge + title + assistance type */}
                             <View className="px-5 pt-5 pb-1">
-                                <View className="flex-row items-center gap-1.5 mb-3 px-2.5 py-1 rounded-full" style={{ backgroundColor: MECH.blueSoft, alignSelf: 'flex-start' }}>
-                                    <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: MECH.blue }} />
-                                    <Text className="font-outfit-bold text-[12px] tracking-widest" style={{ color: MECH.blue }}>
-                                        {isVideoCall
-                                            ? t('appointments.videoCall.badge')
-                                            : awaitingHeadOut
-                                                ? t('appointments.detail.readyBadge')
-                                                : t('appointments.detail.onTheWayBadge')}
-                                    </Text>
-                                </View>
+                                {isVideoCall ? (
+                                    <View className="flex-row items-center gap-1.5 mb-3 px-2.5 py-1 rounded-full" style={{ backgroundColor: MECH.blueSoft, alignSelf: 'flex-start' }}>
+                                        <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: MECH.blue }} />
+                                        <Text className="font-outfit-bold text-[12px] tracking-widest" style={{ color: MECH.blue }}>
+                                            {t('appointments.videoCall.badge')}
+                                        </Text>
+                                    </View>
+                                ) : null}
                                 {isVideoCall ? (
                                     <View className="flex-row items-center" style={{ gap: 12 }} testID="video-call-accepted-header">
                                         <View
@@ -733,26 +731,23 @@ export default function AppointmentDetailScreen() {
                                     </View>
                                 ) : (
                                 <>
-                                <Text className="font-outfit-bold text-[22px]" style={{ color: MECH.text }}>
-                                    {isCancelled
-                                        ? t('appointments.cancellationDispute.cancelledTitle')
-                                        : awaitingHeadOut
-                                            ? t('appointments.detail.acceptedTitle')
-                                            : t('appointments.detail.onTheWayTitle')}
-                                </Text>
-                                <View className="flex-row items-center flex-wrap gap-2 mt-2">
-                                    <View className="flex-row items-center gap-2">
-                                        <View className="items-center justify-center" style={{ width: 26, height: 26, borderRadius: 9, backgroundColor: isVideoCall ? MECH.blueSoft : 'rgba(229,62,62,0.08)' }}>
-                                            <Ionicons name={isVideoCall ? 'videocam-outline' : 'flash-outline'} size={14} color={isVideoCall ? MECH.blue : MECH.red} />
-                                        </View>
-                                        <Text className="font-outfit-bold text-[14px]" style={{ color: MECH.text }}>
+                                {isCancelled ? (
+                                    <Text className="font-outfit-bold text-[22px] mb-3" style={{ color: MECH.text }}>
+                                        {t('appointments.cancellationDispute.cancelledTitle')}
+                                    </Text>
+                                ) : null}
+                                <View className="flex-row items-center" style={{ gap: 12 }}>
+                                    <View className="items-center justify-center" style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: 'rgba(229,62,62,0.08)' }}>
+                                        <Ionicons name="flash-outline" size={22} color={MECH.red} />
+                                    </View>
+                                    <View className="flex-1">
+                                        <Text className="font-outfit-bold" style={{ fontSize: 22, lineHeight: 28, letterSpacing: -0.6, color: MECH.text }}>
                                             {t(assistanceTypeKey(appointment))}
                                         </Text>
+                                        <Text className="font-outfit-medium" style={{ fontSize: 14, lineHeight: 20, color: MECH.muted }}>
+                                            {t('appointments.detail.idLabel', { id: refLabel(appointment.refCode, appointment.id) })}
+                                        </Text>
                                     </View>
-                                    <Text style={{ color: MECH.border }}>·</Text>
-                                    <Text className="font-outfit-medium text-[13px]" style={{ color: MECH.mutedLight }}>
-                                        {t('appointments.detail.idLabel', { id: refLabel(appointment.refCode, appointment.id) })}
-                                    </Text>
                                 </View>
                                 </>
                                 )}
@@ -776,23 +771,30 @@ export default function AppointmentDetailScreen() {
 
                             {/* Status card — a finished video call shows its close-out card instead */}
                             {!isVideoCall && !isCancelled && (
-                            <View className="mx-4 mt-3.5 px-5 py-4 items-center" style={{ borderRadius: 20, backgroundColor: MECH.greenSoft }} testID="status-badge" nativeID="status-badge">
-                                <View className="flex-row items-center gap-2">
-                                    <PulseDot color={MECH.green} />
-                                    <Text className="font-outfit-bold text-[22px]" style={{ color: '#0F8A55' }} testID="status-value">
-                                        {t('appointments.detail.accepted')}
+                            <LinearGradient
+                                colors={['#2F6BFF', '#1E56E3', '#0B2A8E']}
+                                locations={[0, 0.5, 1]}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 0.9, y: 1 }}
+                                style={{ marginHorizontal: 16, marginTop: 14, borderRadius: 22, padding: 18 }}
+                                testID="status-badge"
+                                nativeID="status-badge"
+                            >
+                                <View className="flex-row items-center self-start" style={{ gap: 6, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.18)' }}>
+                                    <PulseDot color="#4ADE80" size={7} />
+                                    <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1.2, color: '#FFFFFF' }} testID="status-value">
+                                        {awaitingHeadOut ? t('appointments.detail.readyBadge') : t('appointments.detail.onTheWayBadge')}
                                     </Text>
                                 </View>
-                                <Text className="font-outfit-medium text-[13px] mt-1" style={{ color: '#19A368' }} testID="status-description">
-                                    {isVideoCall
-                                        ? videoCallBookedLabel(appointment, i18n.language)
-                                            ? t('appointments.videoCall.scheduledAt', { date: videoCallBookedLabel(appointment, i18n.language) })
-                                            : t('appointments.videoCall.remoteHint')
-                                        : awaitingHeadOut
-                                            ? t('appointments.detail.headOutPrompt')
-                                            : t('appointments.detail.onTrip')}
+                                <Text className="font-outfit-bold" style={{ fontSize: 26, lineHeight: 31, letterSpacing: -0.7, color: '#FFFFFF', marginTop: 12 }}>
+                                    {awaitingHeadOut ? t('appointments.detail.acceptedTitle') : t('appointments.detail.onTheWayTitle')}
                                 </Text>
-                            </View>
+                                <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: 'rgba(255,255,255,0.88)', marginTop: 6 }} testID="status-description">
+                                    {awaitingHeadOut
+                                        ? t('appointments.detail.headOutPrompt')
+                                        : `${t('appointments.detail.leftAtShort', { time: departedAt ? formatEtaTime(departedAt) : '--' })} · ${t('appointments.detail.clientNotified')}`}
+                                </Text>
+                            </LinearGradient>
                             )}
 
                             {/* Head out — starts the owner's live map and ETA */}
@@ -824,32 +826,16 @@ export default function AppointmentDetailScreen() {
                                                     ) : (
                                                         <Ionicons name="navigate-outline" size={18} color="#fff" />
                                                     )}
-                                                    <Text className="text-white font-outfit-bold text-[16px]">
+                                                    <Text className="text-white font-outfit-bold" style={{ fontSize: 17, lineHeight: 23 }}>
                                                         {t('appointments.detail.headOut')}
                                                     </Text>
                                                 </LinearGradient>
                                             </TouchableOpacity>
-                                            <Text className="text-center mt-2 font-outfit-regular text-[13px] leading-4" style={{ color: MECH.muted }}>
+                                            <Text className="text-center mt-2.5 font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: MECH.muted }}>
                                                 {t('appointments.detail.headOutHint')}
                                             </Text>
                                         </>
-                                    ) : (
-                                        <View
-                                            className="flex-row items-center bg-white"
-                                            style={{ gap: 10, paddingVertical: 11, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1, borderColor: '#EEF2FA' }}
-                                            testID="departed-row"
-                                        >
-                                            <Ionicons name="navigate-outline" size={18} color={MECH.blue} />
-                                            <View className="flex-1">
-                                                <Text className="font-outfit-bold text-[13px]" style={{ color: MECH.text }}>
-                                                    {t('appointments.detail.leftAt', { time: departedAt ? formatEtaTime(departedAt) : '--' })}
-                                                </Text>
-                                                <Text className="font-outfit-regular text-[13px] mt-0.5" style={{ color: MECH.muted }}>
-                                                    {t('appointments.detail.clientNotified')}
-                                                </Text>
-                                            </View>
-                                        </View>
-                                    )}
+                                    ) : null}
                                 </View>
                             ) : null}
 

@@ -4,7 +4,7 @@
     "slug": "mechanic-assistance",
     "owner": "elpixel",
     "version": "1.0.1",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/images/mechanic-icon.png",
     "scheme": "mechanic",
     "userInterfaceStyle": "automatic",
@@ -56,6 +56,12 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-screen-orientation",
+        {
+          "initialOrientation": "PORTRAIT_UP"
+        }
+      ],
       [
         "expo-location",
         {

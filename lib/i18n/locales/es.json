@@ -917,7 +917,11 @@
         "startCheckIn": "Iniciar check-in",
         "hint": "Escaneá el QR para hacer check-in o ingresá el PIN",
         "notice": "Se habilita cuando estés llegando al lugar del servicio.",
-        "continueVisit": "Continuar visita"
+        "continueVisit": "Continuar visita",
+        "disabledNote": "Disponible cuando salgas hacia el cliente.",
+        "chipQr": "Escanear QR",
+        "chipPin": "Ingresar PIN",
+        "or": "o"
       },
       "info": {
         "arrivalTime": "Tiempo de llegada",
@@ -946,7 +950,8 @@
       "locationAlwaysNeeded": "Para salir, configurá el acceso a la ubicación en \"Siempre\". Así el cliente te sigue en el mapa mientras manejás, aunque la app esté en segundo plano o el teléfono bloqueado.",
       "locationAlwaysNeededAndroid": "Para salir, configurá el acceso a la ubicación en \"Permitir todo el tiempo\". Así el cliente te sigue en el mapa mientras manejás, aunque la app esté en segundo plano o el teléfono bloqueado.",
       "openSettings": "Abrir ajustes",
-      "cancelOpenSettings": "Ahora no"
+      "cancelOpenSettings": "Ahora no",
+      "leftAtShort": "Saliste a las {{time}}"
     },
     "userTracking": {
       "mechanicMatch": "¡Mecánico encontrado!",
