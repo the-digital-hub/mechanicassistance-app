@@ -77,6 +77,8 @@ export interface Appointment {
      */
     freeCancelUntil?: string | null;
     updatedAt?: string;
+    /** When the request was made (ISO); the searching timer counts from it. */
+    createdAt?: string;
     additionalFunds?: AdditionalFunds[];
     clientReview?: ClientReview;
     isReviewSubmitted?: boolean;
@@ -192,6 +194,7 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                     zip: req.zip,
                     mechanicId: req.mechanicId,
                     updatedAt: (req as any).updatedAt,
+                    createdAt: req.createdAt,
                     // `photos` holds `{url,type,note}` objects now, and plain URL
                     // strings on older rows. `parseAttachments` is the one reader
                     // that handles both; hand-rolling it here crashed with

@@ -1,3 +1,4 @@
+import { FLOATING_CTA, FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
 import { Button } from '@/components/ui/Button';
 import { useRouter } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
@@ -64,19 +65,20 @@ export default function PrivacyScreen() {
                 <View className="h-10" />
             </ScrollView>
 
-            <View className="absolute bottom-0 w-full p-6 bg-white border-t border-gray-100">
+            <View className="absolute bottom-0 w-full" style={FLOATING_FOOTER}>
                 <TouchableOpacity
                     onPress={handleAccept}
                     disabled={loading}
                     activeOpacity={0.8}
+                    style={FLOATING_CTA}
                 >
                     <LinearGradient
                         colors={['#2B66F8', '#081E72']}
                         start={{ x: 0, y: 1 }}
                         end={{ x: 1, y: 0 }}
                         style={{
-                            borderRadius: 10,
-                            paddingVertical: 16,
+                            borderRadius: 16,
+                            paddingVertical: 17,
                             paddingHorizontal: 16,
                             flexDirection: 'row',
                             alignItems: 'center',

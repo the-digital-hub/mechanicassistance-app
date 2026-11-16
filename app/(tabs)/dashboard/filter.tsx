@@ -1,3 +1,4 @@
+import { FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
 import { useRouter } from 'expo-router';
 import { ChevronDown, SlidersHorizontal } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -33,7 +34,7 @@ export default function FilterScreen() {
 
             </ScrollView>
 
-            <View className="p-6 border-t border-gray-100">
+            <View style={FLOATING_FOOTER}>
                 <TouchableOpacity
                     className="bg-blue-700 w-full py-4 rounded-xl items-center"
                     onPress={() => router.back()}

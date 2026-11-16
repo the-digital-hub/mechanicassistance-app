@@ -170,8 +170,8 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
      * screen that can actually act on the request.
      */
     const openDetail = () => {
-        // A mechanic's finished job opens its receipt, not the request.
-        if (isMechanic && state === 'completed') {
+        // A finished job opens its receipt (each role sees its own side), not the request.
+        if (state === 'completed') {
             router.push({ pathname: '/(tabs)/appointments/receipt/[id]' as any, params: { id: appointment.id } });
             return;
         }

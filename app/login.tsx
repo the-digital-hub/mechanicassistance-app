@@ -1,4 +1,8 @@
 import { SmsConsent } from "@/components/SmsConsent";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
+import { FLOATING_CTA } from "@/lib/ui/floatingFooter";
+import { TYPE } from "@/lib/ui/type";
 import { Button } from "@/components/ui/Button";
 import { GradientLayout } from "@/components/ui/GradientLayout";
 import { Input } from "@/components/ui/Input";
@@ -17,7 +21,6 @@ import {
 import { formatCountdown, useCountdown } from "@/hooks/useCountdown";
 import {
   getIdToken,
-  signInWithApple,
   signInWithGoogle,
 } from "@/lib/firebase/auth";
 import { userDAO } from "@/lib/dao/UserDAO";
@@ -32,6 +35,7 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
+  ActivityIndicator,
   Text,
   TextInput,
   TouchableOpacity,
@@ -41,8 +45,51 @@ import {
 
 type Step = "phone" | "otp";
 
+/** The app's primary button: brand gradient, radius 16, 56px (same as the Footer in the request flows). */
+function PrimaryButton({ label, onPress, loading, disabled }: { label: string; onPress: () => void; loading?: boolean; disabled?: boolean }) {
+  const off = loading || disabled;
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      disabled={off}
+      activeOpacity={0.85}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: !!off }}
+      style={[FLOATING_CTA, { opacity: off ? 0.6 : 1 }]}
+    >
+      <LinearGradient
+        colors={["#2B66F8", "#081E72"]}
+        start={{ x: 0, y: 1 }}
+        end={{ x: 1, y: 0 }}
+        style={{ height: 56, borderRadius: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}
+      >
+        {loading ? <ActivityIndicator color="#FFFFFF" /> : null}
+        <Text className="font-outfit-bold" style={{ ...TYPE.button, color: "#FFFFFF" }}>{label}</Text>
+      </LinearGradient>
+    </TouchableOpacity>
+  );
+}
+
+/** Secondary option (Google, e-mail): white, 1.5px border, same height as the primary. */
+function SocialButton({ label, onPress, icon, disabled }: { label: string; onPress: () => void; icon: React.ReactNode; disabled?: boolean }) {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      disabled={disabled}
+      activeOpacity={0.8}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      style={{ height: 56, borderRadius: 16, borderWidth: 1.5, borderColor: "#E4EAF5", backgroundColor: "#FFFFFF", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, opacity: disabled ? 0.6 : 1 }}
+    >
+      {icon}
+      <Text className="font-outfit-bold" style={{ ...TYPE.body, color: "#0B1530" }}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
+
 export default function LoginScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const { login, adoptSession } = useUser();
   const [step, setStep] = useState<Step>("phone");
@@ -251,7 +298,7 @@ export default function LoginScreen() {
 
       await adoptSession(result.user);
       await saveLastPhone(fullPhoneRef.current.replace(/\D/g, "").slice(-10));
-      router.replace("/(tabs)/dashboard");
+      router.replace("/choose-role");
     } catch (err: unknown) {
       const authError = toAuthError(err);
 
@@ -291,7 +338,7 @@ export default function LoginScreen() {
 
       const success = await login(idToken);
       if (success) {
-        router.replace("/(tabs)/dashboard");
+        router.replace("/choose-role");
       } else {
         showError(
           t("login.accountNotFoundTitle"),
@@ -329,8 +376,6 @@ export default function LoginScreen() {
   const handleGoogleLogin = () =>
     handleProviderLogin(() => signInWithGoogle(), "Google");
 
-  const handleAppleLogin = () =>
-    handleProviderLogin(() => signInWithApple(), "Apple");
 
   const handleEmailLogin = async () => {
     if (!emailAddress.trim() || !password.trim()) {
@@ -345,7 +390,7 @@ export default function LoginScreen() {
       );
       if (!user) throw new Error();
       await adoptSession(user);
-      router.replace("/(tabs)/dashboard");
+      router.replace("/choose-role");
     } catch (err: unknown) {
       // A 401 means wrong email/password or an account without a password;
       // the backend deliberately doesn't say which.
@@ -477,19 +522,18 @@ export default function LoginScreen() {
               </View>
 
               <View className="mb-4">
-                <Button
-                  className="bg-blue-700 rounded-xl mb-6"
-                  size="lg"
-                  onPress={() => {
-                    Keyboard.dismiss();
-                    handleVerifyOTP();
-                  }}
-                  isLoading={isLoading}
-                  // An expired code cannot succeed; resending is the way out.
-                  disabled={expiresIn === 0}
-                >
-                  {t("login.verify")}
-                </Button>
+                <View style={{ marginBottom: 24 }}>
+                  <PrimaryButton
+                    label={t("login.verify")}
+                    onPress={() => {
+                      Keyboard.dismiss();
+                      handleVerifyOTP();
+                    }}
+                    loading={isLoading}
+                    // An expired code cannot succeed; resending is the way out.
+                    disabled={expiresIn === 0}
+                  />
+                </View>
                 <TouchableOpacity
                   onPress={handleResendOTP}
                   className="mb-6"
@@ -546,12 +590,12 @@ export default function LoginScreen() {
         </TouchableWithoutFeedback>
       ) : (
         /* --- Phone Step UI --- */
-        <View className="flex-1">
-          <TouchableWithoutFeedback
-            onPress={Keyboard.dismiss}
-            accessible={false}
-          >
-            <GradientLayout className="flex-1" resizeMode="cover">
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+          <GradientLayout className="flex-1" resizeMode="cover">
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "ios" ? "padding" : undefined}
+              style={{ flex: 1 }}
+            >
               {method === "email" && (
                 <TouchableOpacity
                   onPress={() => setMethod("mobile")}
@@ -566,159 +610,130 @@ export default function LoginScreen() {
                   </Text>
                 </TouchableOpacity>
               )}
-              <View className="flex-1 justify-end px-6 pb-[108px] gap-4">
-                <View className="flex-1" />
 
-                <Text className="text-white text-3xl font-outfit-bold text-center">
+              {/* Brand header over the blue backdrop */}
+              <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingTop: insets.top }}>
+                <Image
+                  source={require("@/assets/images/brand_ring_white.png")}
+                  style={{ width: 96, height: 96 }}
+                  resizeMode="contain"
+                />
+                <Image
+                  source={require("@/assets/images/brand_wordmark_white.png")}
+                  style={{ width: 250, height: 250 * (51 / 947), marginTop: 16 }}
+                  resizeMode="contain"
+                />
+              </View>
+
+              {/* The form: a white sheet using the app's own controls (same 56px height, radius and palette) */}
+              <View
+                style={{
+                  backgroundColor: "#FFFFFF",
+                  borderTopLeftRadius: 32,
+                  borderTopRightRadius: 32,
+                  paddingHorizontal: 24,
+                  paddingTop: 26,
+                  paddingBottom: Math.max(insets.bottom, 16) + 8,
+                  gap: 14,
+                }}
+              >
+                <Text className="font-outfit-bold" style={{ fontSize: 26, lineHeight: 32, letterSpacing: -0.5, color: "#0B1530" }}>
                   {t("login.getStarted")}
                 </Text>
 
-                <View className="w-full">
-                  {method === "email" ? (
-                    <View className="gap-4">
-                      <Input
-                        placeholder={t("login.email")}
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                        autoComplete="email"
-                        value={emailAddress}
-                        onChangeText={setEmailAddress}
-                        leftIcon={
-                          <Ionicons
-                            name="mail-outline"
-                            size={20}
-                            color="#9CA3AF"
-                          />
-                        }
-                      />
-                      <Input
-                        placeholder={t("login.password")}
-                        isPassword
-                        value={password}
-                        onChangeText={setPassword}
-                        leftIcon={
-                          <Ionicons
-                            name="lock-closed-outline"
-                            size={20}
-                            color="#9CA3AF"
-                          />
-                        }
-                      />
-                      <TouchableOpacity
-                        onPress={openForgot}
-                        className="self-end -mt-1"
-                        hitSlop={8}
-                      >
-                        <Text className="text-white/90 font-outfit-medium underline">
-                          {t("login.forgotPassword")}
-                        </Text>
-                      </TouchableOpacity>
+                {method === "email" ? (
+                  <View style={{ gap: 12 }}>
+                    <Input
+                      variant="light"
+                      placeholder={t("login.email")}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoComplete="email"
+                      value={emailAddress}
+                      onChangeText={setEmailAddress}
+                      leftIcon={<Ionicons name="mail-outline" size={20} color="#8C96AE" />}
+                    />
+                    <Input
+                      variant="light"
+                      placeholder={t("login.password")}
+                      isPassword
+                      value={password}
+                      onChangeText={setPassword}
+                      leftIcon={<Ionicons name="lock-closed-outline" size={20} color="#8C96AE" />}
+                    />
+                    <TouchableOpacity onPress={openForgot} className="self-end" hitSlop={8}>
+                      <Text className="font-outfit-bold" style={{ ...TYPE.helper, color: "#1E56E3" }}>
+                        {t("login.forgotPassword")}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <View style={{ flexDirection: "row", gap: 10 }}>
+                    <View
+                      style={{ height: 56, paddingHorizontal: 14, borderRadius: 14, backgroundColor: "#F6F8FC", borderWidth: 1.5, borderColor: "#E4EAF5", justifyContent: "center", alignItems: "center" }}
+                    >
+                      <Text className="font-outfit-medium" style={{ ...TYPE.body, color: "#0B1530" }}>
+                        🇺🇸 +1
+                      </Text>
                     </View>
-                  ) : (
-                    <View className="flex-row gap-3">
-                      <View className="bg-white rounded-xl px-4 justify-center items-center h-[52px]">
-                        <Text className="font-outfit-medium text-black text-base">
-                          🇺🇸 + 1
-                        </Text>
-                      </View>
-                      <Input
-                        placeholder="(000) 000-0000"
-                        containerClassName="flex-1"
-                        keyboardType="phone-pad"
-                        value={phoneNumber}
-                        onChangeText={handlePhoneChange}
-                        maxLength={14}
-                      />
-                    </View>
-                  )}
+                    <Input
+                      variant="light"
+                      placeholder="(000) 000-0000"
+                      containerClassName="flex-1"
+                      keyboardType="phone-pad"
+                      value={phoneNumber}
+                      onChangeText={handlePhoneChange}
+                      maxLength={14}
+                    />
+                  </View>
+                )}
+
+                <PrimaryButton
+                  label={t("login.loginButton")}
+                  onPress={method === "email" ? handleEmailLogin : handleSendOTP}
+                  loading={isLoading}
+                />
+
+                {/* Divider */}
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                  <View style={{ flex: 1, height: 1, backgroundColor: "#E4EAF5" }} />
+                  <Text className="font-outfit-medium" style={{ ...TYPE.helper, color: "#8C96AE" }}>
+                    {t("login.or")}
+                  </Text>
+                  <View style={{ flex: 1, height: 1, backgroundColor: "#E4EAF5" }} />
                 </View>
 
-                {method === "mobile" && <SmsConsent variant="dark" />}
-
-                <Button
-                  onPress={
-                    method === "email" ? handleEmailLogin : handleSendOTP
-                  }
-                  size="lg"
-                  className="border-white/40 border bg-blue-600/20 backdrop-blur-sm"
-                  isLoading={isLoading}
-                >
-                  {t("login.loginButton")}
-                </Button>
-
-                <Text className="text-white/80 text-center font-outfit-regular">
-                  {t("login.or")}
-                </Text>
-
-                <View className="gap-4">
-                  <Button
-                    variant="google"
-                    className="h-[52px]"
+                <View style={{ gap: 12 }}>
+                  <SocialButton
+                    label={t("login.signInWithGoogle")}
                     onPress={handleGoogleLogin}
-                    isLoading={isLoading}
-                    leftIcon={
-                      <Image
-                        source={require("@/assets/brands/google.png")}
-                        style={{ width: 16, height: 16 }}
-                        resizeMode="contain"
-                      />
-                    }
-                    accessibilityLabel={t("login.signInWithGoogle")}
-                  >
-                    {t("login.signInWithGoogle")}
-                  </Button>
-                  <Button
-                    variant="apple"
-                    className="h-[52px]"
-                    onPress={handleAppleLogin}
-                    isLoading={isLoading}
-                    leftIcon={
-                      <Image
-                        source={require("@/assets/brands/apple.png")}
-                        style={{ width: 32, height: 32 }}
-                        resizeMode="contain"
-                      />
-                    }
-                    accessibilityLabel={t("login.signInWithApple")}
-                  >
-                    {t("login.signInWithApple")}
-                  </Button>
-                  <Button
-                    variant="social"
-                    onPress={() =>
-                      setMethod(method === "email" ? "mobile" : "email")
-                    }
-                    leftIcon={
-                      <Ionicons
-                        name={method === "email" ? "call-outline" : "mail-outline"}
-                        size={20}
-                        color="black"
-                      />
-                    }
-                    className="h-[52px]"
-                  >
-                    {method === "email"
-                      ? t("login.signInWithMobile")
-                      : t("login.signInWithEmail")}
-                  </Button>
+                    disabled={isLoading}
+                    icon={<Image source={require("@/assets/brands/google.png")} style={{ width: 20, height: 20 }} resizeMode="contain" />}
+                  />
+                  <SocialButton
+                    label={method === "email" ? t("login.signInWithMobile") : t("login.signInWithEmail")}
+                    onPress={() => setMethod(method === "email" ? "mobile" : "email")}
+                    icon={<Ionicons name={method === "email" ? "call-outline" : "mail-outline"} size={22} color="#1E56E3" />}
+                  />
                 </View>
 
-                <View className="flex-row justify-center pt-2">
-                  <Text className="text-white/80 font-outfit-regular">
+                <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", paddingTop: 2 }}>
+                  <Text className="font-outfit-regular" style={{ ...TYPE.body, color: "#6B7490" }}>
                     {t("login.noAccount")}{" "}
                   </Text>
-                  <TouchableOpacity
-                    onPress={() => router.push("/setup")}
-                  >
-                    <Text className="text-white font-outfit-bold underline">
+                  <TouchableOpacity onPress={() => router.push("/setup")} hitSlop={{ top: 10, bottom: 10, left: 8, right: 8 }}>
+                    <Text className="font-outfit-bold" style={{ ...TYPE.question, color: "#1E56E3" }}>
                       {t("login.signUp")}
                     </Text>
                   </TouchableOpacity>
                 </View>
+
+                {/* Consent notice at the very bottom, away from the phone field */}
+                {method === "mobile" && <SmsConsent variant="light" />}
               </View>
-            </GradientLayout>
-          </TouchableWithoutFeedback>
-        </View>
+            </KeyboardAvoidingView>
+          </GradientLayout>
+        </TouchableWithoutFeedback>
       )}
 
       {/* Error Modal */}

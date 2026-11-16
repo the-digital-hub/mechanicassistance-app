@@ -1,3 +1,4 @@
+import { FLOATING_CTA, FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
 import { CardPickerModal } from '@/components/payments/CardPickerModal';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { useRequestDraft } from '@/context/RequestDraftContext';
@@ -479,14 +480,7 @@ export default function ConfirmationScreen() {
 
             {/* Fixed footer */}
             <View
-                style={{
-                    backgroundColor: '#F4F6FC',
-                    borderTopWidth: 1,
-                    borderTopColor: '#D5DCED',
-                    paddingHorizontal: 20,
-                    paddingTop: 16,
-                    paddingBottom: 28,
-                }}
+                style={FLOATING_FOOTER}
             >
                 {isSubmitting ? (
                     <View className="items-center">
@@ -496,14 +490,14 @@ export default function ConfirmationScreen() {
                         ) : null}
                     </View>
                 ) : (
-                    <TouchableOpacity onPress={handleConfirm} activeOpacity={0.8}>
+                    <TouchableOpacity onPress={handleConfirm} activeOpacity={0.8} style={FLOATING_CTA}>
                         <LinearGradient
                             colors={['#2B66F8', '#081E72']}
                             start={{ x: 0, y: 1 }}
                             end={{ x: 1, y: 0 }}
                             style={{
-                                borderRadius: 10,
-                                paddingVertical: 16,
+                                borderRadius: 16,
+                                paddingVertical: 17,
                                 paddingHorizontal: 16,
                                 flexDirection: 'row',
                                 alignItems: 'center',

@@ -1,3 +1,4 @@
+import { FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -213,8 +214,8 @@ export function InfoRow({ icon, label, value, last }: {
 export function ActionBar({ children, stacked }: { children: React.ReactNode; stacked?: boolean }) {
     return (
         <View
-            className={`px-4 pt-3.5 pb-6 bg-white gap-3 ${stacked ? '' : 'flex-row items-center'}`}
-            style={{ borderTopWidth: 1, borderTopColor: OS.borderSoft }}
+            className={`gap-3 ${stacked ? '' : 'flex-row items-center'}`}
+            style={FLOATING_FOOTER}
         >
             {children}
         </View>

@@ -1,3 +1,4 @@
+import { FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ban, Calendar, Car, Check, Clock, Hourglass, Lock, Send, ShieldCheck, Wrench, type LucideIcon } from 'lucide-react-native';
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
@@ -258,7 +259,7 @@ export default function ScheduledRequestScreen() {
                     title={t('scheduledProvider.sent.title')}
                     sub={t('scheduledProvider.sent.sub')}
                     footer={
-                        <View style={{ padding: 16, paddingBottom: 28, gap: 10, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: SC.borderSoft }}>
+                        <View style={{ ...FLOATING_FOOTER, gap: 10 }}>
                             <View className="flex-row" style={{ gap: 10 }}>
                                 <Ghost label={t('scheduledProvider.sent.edit')} onPress={editSent} flex={1} outlined />
                                 <Primary label={t('scheduledProvider.back')} onPress={toRequests} flex={1.25} />
@@ -467,7 +468,7 @@ export default function ScheduledRequestScreen() {
                     )}
                 </KeyboardAvoidingView>
                 {view === 'quote' ? (
-                    <View style={{ padding: 16, paddingBottom: 26, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: SC.borderSoft }}>
+                    <View style={{ ...FLOATING_FOOTER }}>
                         <View className="flex-row items-baseline justify-between" style={{ marginBottom: 10 }}>
                             <Text className="font-outfit-bold" style={{ fontSize: 13, color: SC.muted }}>{t('scheduledProvider.sent.yourQuote')}</Text>
                             <Text className="font-outfit-bold" style={{ fontSize: 24, letterSpacing: -0.6, color: SC.blueDark }}>{money(totals.total)}</Text>
@@ -661,7 +662,7 @@ function Switch({ on, onChange, label }: { on: boolean; onChange: (v: boolean) =
 }
 
 function ActionBar({ children }: { children: ReactNode }) {
-    return <View className="flex-row items-center" style={{ padding: 14, paddingBottom: 26, gap: 12, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: SC.borderSoft }}>{children}</View>;
+    return <View className="flex-row items-center" style={{ ...FLOATING_FOOTER, gap: 12 }}>{children}</View>;
 }
 
 function Primary({ label, onPress, disabled, tone, flex = 1 }: { label: string; onPress: () => void; disabled?: boolean; tone?: 'green'; flex?: number }) {
@@ -705,7 +706,7 @@ function Outcome({ icon: Icon, tone = 'blue', title, sub, children, footer }: { 
                 </View>
                 {children}
             </ScrollView>
-            {footer ? <View style={{ padding: 16, paddingBottom: 28, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: SC.borderSoft }}>{footer}</View> : null}
+            {footer ? <View style={FLOATING_FOOTER}>{footer}</View> : null}
         </View>
     );
 }

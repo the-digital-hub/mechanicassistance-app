@@ -1,3 +1,4 @@
+import { FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
 import {
     AO,
     OfferBreakdown,
@@ -436,14 +437,14 @@ export default function MechanicFoundScreen() {
 
             {/* Sticky footer */}
             <View
-                style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 10, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: AO.borderSoft, shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: -8 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 8 }}
+                style={FLOATING_FOOTER}
             >
                 <TouchableOpacity onPress={handleConfirm} disabled={confirmState !== 'idle' || !request?.mechanicId} activeOpacity={0.85}>
                     <LinearGradient
                         colors={confirmState === 'done' ? [AO.green, AO.green] : [AO.blue, AO.blueDark]}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
-                        style={{ borderRadius: 14, paddingVertical: 15, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                        style={{ borderRadius: 16, paddingVertical: 16, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                     >
                         {confirmState === 'done' && <Ionicons name="checkmark" size={16} color="#fff" />}
                         {confirmState === 'loading' && <ActivityIndicator size="small" color="#fff" />}

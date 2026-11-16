@@ -11,7 +11,8 @@ import { useFonts } from "expo-font";
 import { Stack, useRouter, type ErrorBoundaryProps } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { AnimatedSplash } from "@/components/brand/AnimatedSplash";
 import "react-native-reanimated";
 
 import { GlobalNotificationListener } from "@/components/GlobalNotificationListener";
@@ -55,13 +56,10 @@ function AppShell() {
   const { isLoading } = useUser();
   const router = useRouter();
 
-  useEffect(() => {
-    if (!isLoading) {
-      setTimeout(() => {
-        SplashScreen.hideAsync();
-      }, 3000);
-    }
-  }, [isLoading]);
+  // Once the session check is done, the animated brand splash takes over from
+  // the native one (which it hides as soon as it is on screen, no white flash).
+  const [splashDone, setSplashDone] = useState(false);
+  const showSplash = !isLoading && !splashDone;
 
   /**
    * Sends the user to the login screen when the session is unrecoverable.
@@ -92,21 +90,28 @@ function AppShell() {
             stacks (dashboard/[id], appointments/[id]…) keep their own swipe. */}
         <Stack.Screen name="(tabs)" options={{ gestureEnabled: false }} />
         <Stack.Screen name="index" />
-        <Stack.Screen name="login" />
+        <Stack.Screen name="login" options={{ animation: "fade" }} />
+        <Stack.Screen name="choose-role" options={{ gestureEnabled: false, animation: "fade" }} />
         <Stack.Screen name="onboarding" />
         {/* The mechanic availability step has a slider a few points from the
             left edge; the edge swipe-back recognizer stole the drag and slid
             the screen sideways. Disabling it on the child stack alone just
             handed the gesture to this one, which popped the whole setup flow.
             Every setup screen has its own back arrow in the header. */}
-        <Stack.Screen name="setup" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="setup" options={{ gestureEnabled: false, animation: "fade" }} />
         <Stack.Screen name="verify-identity" />
         <Stack.Screen
           name="modal"
           options={{ presentation: "modal", title: "Modal", headerShown: true }}
         />
       </Stack>
-      <StatusBar style="dark" />
+      <StatusBar style={showSplash ? "light" : "dark"} />
+      {showSplash ? (
+        <AnimatedSplash
+          onReady={() => SplashScreen.hideAsync()}
+          onFinish={() => setSplashDone(true)}
+        />
+      ) : null}
     </UpdateRequiredGate>
   );
 }

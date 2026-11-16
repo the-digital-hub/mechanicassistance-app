@@ -1,35 +1,32 @@
-import {
-    ImageBackground,
-    ImageResizeMode,
-    Platform,
-    View,
-    ViewProps,
-} from "react-native";
+import { MeshBackground } from "@/components/brand/MeshBackground";
+import { StatusBar } from "expo-status-bar";
+import React, { useEffect, useRef } from "react";
+import { Animated, Easing, View, ViewProps } from "react-native";
 
-interface GradientLayoutProps extends ViewProps {
-  resizeMode?: ImageResizeMode;
-}
+/**
+ * Brand backdrop for the signed-out screens (login): the blue mesh with soft
+ * drifting lights. The content rises in, so arriving from the welcome card
+ * (which grows to fill the screen) reads as one continuous movement.
+ */
+export function GradientLayout({ children, style, ...props }: ViewProps & { resizeMode?: string }) {
+  const v = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(v, { toValue: 1, duration: 520, delay: 120, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
+  }, [v]);
 
-export function GradientLayout({
-  children,
-  style,
-  resizeMode = "cover",
-  ...props
-}: GradientLayoutProps) {
-  const content = (
-    <ImageBackground
-      source={require("@/assets/images/background.jpeg")}
-      style={[{ flex: 1, width: "100%", height: "100%" }, style]}
-      resizeMode={resizeMode}
-      {...props}
-    >
-      {children}
-    </ImageBackground>
+  return (
+    <View style={[{ flex: 1, width: "100%", height: "100%", overflow: "hidden", backgroundColor: "#061A66" }, style]} {...props}>
+      <StatusBar style="light" />
+      <MeshBackground />
+      <Animated.View
+        style={{
+          flex: 1,
+          opacity: v,
+          transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [28, 0] }) }],
+        }}
+      >
+        {children}
+      </Animated.View>
+    </View>
   );
-
-  if (Platform.OS === "web") {
-    return <View style={{ flex: 1, overflow: "hidden" }}>{content}</View>;
-  }
-
-  return content;
 }

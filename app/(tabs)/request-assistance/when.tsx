@@ -1,3 +1,4 @@
+import { FLOATING_CTA, FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
 import { CardPickerModal } from '@/components/payments/CardPickerModal';
 import { useRequestDraft } from '@/context/RequestDraftContext';
 import { useUser } from '@/context/UserContext';
@@ -649,17 +650,17 @@ export default function VideoCallWhenScreen() {
             </ScrollView>
 
             {/* Sticky action */}
-            <View style={{ backgroundColor: C.page, borderTopWidth: 1, borderTopColor: C.line, paddingHorizontal: 20, paddingTop: 14, paddingBottom: 18 }}>
+            <View style={FLOATING_FOOTER}>
                 {submitting ? (
                     <ActivityIndicator size="large" color={C.blue} />
                 ) : (
-                    <TouchableOpacity onPress={handleSubmit} disabled={!canSubmit} activeOpacity={0.85} testID="when-submit">
+                    <TouchableOpacity onPress={handleSubmit} disabled={!canSubmit} activeOpacity={0.85} testID="when-submit" style={canSubmit ? FLOATING_CTA : undefined}>
                         {canSubmit ? (
                             <LinearGradient
                                 colors={['#2B66F8', '#081E72']}
                                 start={{ x: 0, y: 1 }}
                                 end={{ x: 1, y: 0 }}
-                                style={{ borderRadius: 12, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                                style={{ borderRadius: 16, paddingVertical: 17, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                             >
                                 {mode === 'now' && <Video size={18} color="#FFFFFF" />}
                                 <Text className="text-white font-outfit-bold" style={{ fontSize: 18 }}>
@@ -667,7 +668,7 @@ export default function VideoCallWhenScreen() {
                                 </Text>
                             </LinearGradient>
                         ) : (
-                            <View style={{ borderRadius: 12, paddingVertical: 16, alignItems: 'center', backgroundColor: '#B9C0CF' }}>
+                            <View style={{ borderRadius: 16, paddingVertical: 17, alignItems: 'center', backgroundColor: '#B9C0CF' }}>
                                 <Text className="text-white font-outfit-bold" style={{ fontSize: 18 }}>
                                     {ctaLabel}
                                 </Text>

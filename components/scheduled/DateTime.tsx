@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { Calendar, Check, ChevronDown, Clock } from 'lucide-react-native';
 import { useState } from 'react';
@@ -257,15 +258,26 @@ export function SelectField({
     placeholder,
     onSelect,
     accessibilityLabel,
+    timeGrid,
 }: {
     value: number | null;
     options: SelectOption[];
     placeholder: string;
     onSelect: (v: number) => void;
     accessibilityLabel: string;
+    /** Options are minutes from midnight: show them as a grid grouped by part of the day instead of a long list. */
+    timeGrid?: boolean;
 }) {
+    const { t } = useTranslation();
     const [open, setOpen] = useState(false);
     const selected = options.find((o) => o.value === value);
+    const groups = timeGrid
+        ? ([
+            { key: 'morning', label: t('scheduled.availability.morning'), items: options.filter((o) => o.value < 720) },
+            { key: 'afternoon', label: t('scheduled.availability.afternoon'), items: options.filter((o) => o.value >= 720 && o.value < 1020) },
+            { key: 'evening', label: t('scheduled.availability.evening'), items: options.filter((o) => o.value >= 1020) },
+        ].filter((g) => g.items.length > 0))
+        : [];
     return (
         <>
             <TouchableOpacity
@@ -276,6 +288,7 @@ export function SelectField({
                 className="flex-row items-center"
                 style={{ ...FIELD_BOX, gap: 8 }}
             >
+                {timeGrid ? <Clock size={18} color={SC.blue} /> : null}
                 <Text className="font-outfit-medium flex-1" style={{ fontSize: 16, color: selected ? SC.text : SC.mutedLight }}>{selected?.label ?? placeholder}</Text>
                 <ChevronDown size={16} color={SC.blue} />
             </TouchableOpacity>
@@ -284,6 +297,34 @@ export function SelectField({
                     <TouchableOpacity activeOpacity={1} onPress={() => setOpen(false)} accessibilityLabel="Close" style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(11,21,48,0.45)' }} />
                     <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingTop: 10, paddingBottom: 28, maxHeight: '60%' }}>
                         <View style={{ width: 40, height: 4, borderRadius: 4, backgroundColor: '#E4EAF5', alignSelf: 'center', marginBottom: 10 }} />
+                        {timeGrid ? (
+                            <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 8 }}>
+                                <Text className="font-outfit-bold" style={{ fontSize: 20, color: SC.text, marginBottom: 4 }}>{accessibilityLabel}</Text>
+                                {groups.map((g) => (
+                                    <View key={g.key} style={{ marginTop: 14 }}>
+                                        <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1.2, color: SC.muted, marginBottom: 8 }}>{g.label.toUpperCase()}</Text>
+                                        <View className="flex-row flex-wrap" style={{ gap: 8 }}>
+                                            {g.items.map((o) => {
+                                                const on = o.value === value;
+                                                return (
+                                                    <TouchableOpacity
+                                                        key={o.value}
+                                                        disabled={o.disabled}
+                                                        onPress={() => { onSelect(o.value); setOpen(false); }}
+                                                        accessibilityRole="button"
+                                                        accessibilityState={{ selected: on, disabled: o.disabled }}
+                                                        activeOpacity={0.8}
+                                                        style={{ width: '31.5%', alignItems: 'center', paddingVertical: 12, borderRadius: 14, borderWidth: 1.5, borderColor: on ? SC.blue : '#E4EAF5', backgroundColor: on ? SC.blue : '#FFFFFF', opacity: o.disabled ? 0.35 : 1 }}
+                                                    >
+                                                        <Text className="font-outfit-bold" style={{ fontSize: 15, color: on ? '#FFFFFF' : SC.text }}>{o.label}</Text>
+                                                    </TouchableOpacity>
+                                                );
+                                            })}
+                                        </View>
+                                    </View>
+                                ))}
+                            </ScrollView>
+                        ) : (
                         <ScrollView>
                             {options.map((o) => (
                                 <TouchableOpacity
@@ -300,6 +341,7 @@ export function SelectField({
                                 </TouchableOpacity>
                             ))}
                         </ScrollView>
+                        )}
                     </View>
                 </View>
             </Modal>

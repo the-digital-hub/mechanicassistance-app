@@ -165,11 +165,11 @@ export function WaitingHub({
                 <Text className="font-outfit-regular flex-1" style={{ fontSize: 13, lineHeight: 18, color: SC.text }}>{t('scheduledOffers.hub.privacy')}</Text>
             </View>
 
-            <TouchableOpacity onPress={onCancel} accessibilityRole="button" style={{ alignSelf: 'center', paddingVertical: 6, paddingHorizontal: 12 }}>
-                <Text className="font-outfit-bold" style={{ fontSize: 13, color: SC.red }}>{t('scheduledOffers.cancel.action')}</Text>
-            </TouchableOpacity>
             <TouchableOpacity onPress={onHome} accessibilityRole="button" style={{ alignItems: 'center', paddingVertical: 13, borderRadius: 14, backgroundColor: SC.blueSoft }}>
                 <Text className="font-outfit-bold" style={{ fontSize: 15, color: SC.blue }}>{t('scheduledOffers.hub.home')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={onCancel} accessibilityRole="button" style={{ alignSelf: 'center', paddingVertical: 6, paddingHorizontal: 12 }}>
+                <Text className="font-outfit-bold" style={{ fontSize: 14, color: SC.red }}>{t('scheduledOffers.cancel.action')}</Text>
             </TouchableOpacity>
         </ScrollView>
     );

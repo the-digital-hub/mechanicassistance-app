@@ -101,7 +101,7 @@ export default function OTPScreen() {
                 // The number acquired an account while the wizard was open.
                 // Adopt the session instead of continuing to register.
                 await clearSetupProgress();
-                router.replace('/(tabs)/dashboard');
+                router.replace('/choose-role');
                 return;
             }
 

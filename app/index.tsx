@@ -47,5 +47,5 @@ export default function Index() {
     if (user) return <Redirect href="/(tabs)/dashboard" />;
 
     if (resumeRoute) return <Redirect href={resumeRoute as any} />;
-    return <Redirect href="/setup" />;
+    return <Redirect href="/onboarding" />;
 }

@@ -102,6 +102,7 @@ Conditional/procedural knowledge lives in skills (loaded on-demand), not here:
 - **Use DAOs/Contexts, never raw `fetch`** — screens consume `lib/dao/` or `context/`.
 - **Never hardcode endpoints** — always `ConfigService.getApiBaseUrl()` / `getWsUrl()`.
 - **Typography** — use the scale in `lib/ui/type.ts` (nothing under 13px except uppercase eyebrows; no half sizes like 13.5/14.5). Screens ask a question → `TYPE.question`; options → `TYPE.option`; helper text → `TYPE.helper`.
+- **Fixed bottom action bars** — spread `FLOATING_FOOTER` (and `FLOATING_CTA` on the primary gradient button) from `lib/ui/floatingFooter.ts`; no hard `borderTop` lines.
 - **Styling** — NativeWind (Tailwind on RN); base components in `components/ui/`. Screen-title/card/button conventions live in the `ui-card-styling` skill.
 - **Files to ignore** — `._*` (Apple resource forks), `node_modules/`, `.expo/`, build artifacts.
 

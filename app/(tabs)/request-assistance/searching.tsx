@@ -1,3 +1,4 @@
+import { useAppointments } from '@/context/AppointmentsContext';
 import { RequestVinCheckModal } from '@/components/video/RequestVinCheckModal';
 import { isCancelledStatus } from '@/context/AppointmentsContext';
 import { useSocket } from '@/context/SocketContext';
@@ -24,6 +25,7 @@ export default function SearchingScreen() {
     const params = useLocalSearchParams();
     const { requestId, type } = params;
     const { lastMessage, clearChatHistory } = useSocket();
+    const { getAppointmentById } = useAppointments();
 
     const STEPS = [
         { title: t('requestAssistance.searching.step1Title'), subtitle: t('requestAssistance.searching.step1Subtitle') },
@@ -77,7 +79,10 @@ export default function SearchingScreen() {
     // so leaving and coming back does not restart it. Immediate requests and
     // video calls asked for now are capped: the backend's SearchExpiryService
     // cancels them once SEARCH_TIMEOUT_SECONDS pass with nobody taking them.
-    const startedAtMs = requestData?.createdAt ? new Date(requestData.createdAt).getTime() : null;
+    // The appointments list already has createdAt, so the timer starts at the real
+    // elapsed time on the first frame instead of 00:00 until the fetch returns.
+    const knownCreatedAt = requestData?.createdAt ?? getAppointmentById(requestId as string)?.createdAt;
+    const startedAtMs = knownCreatedAt ? new Date(knownCreatedAt).getTime() : null;
     const isTimeBoxed =
         requestData?.assistanceType === 'immediate' ||
         (requestData?.assistanceType === 'videocall' && requestData?.startNow === true);
@@ -123,19 +128,10 @@ export default function SearchingScreen() {
         if (isTimeBoxed && elapsedSeconds >= SEARCH_TIMEOUT_SECONDS && isFocused) handleExpired(false);
     }, [isTimeBoxed, elapsedSeconds, isFocused, handleExpired]);
 
+    // Progress follows the real elapsed time, so coming back later does not replay it from step 1.
     useEffect(() => {
-        const stepTimer = setInterval(() => {
-            setActiveStep(prev => {
-                if (prev >= 2) {
-                    clearInterval(stepTimer);
-                    return 2;
-                }
-                return prev + 1;
-            });
-        }, 3000);
-
-        return () => clearInterval(stepTimer);
-    }, []);
+        setActiveStep(Math.min(2, Math.floor(elapsedSeconds / 3)));
+    }, [elapsedSeconds]);
 
     useEffect(() => {
         Animated.loop(
@@ -283,7 +279,9 @@ export default function SearchingScreen() {
                         {/* Timer */}
                         <View className="flex-row items-center justify-center mb-4">
                             <Text className="text-white font-outfit-bold" style={{ fontSize: 48 }}>
-                                {String(Math.floor(elapsedSeconds / 60)).padStart(2, '0')}:{String(elapsedSeconds % 60).padStart(2, '0')}
+                                {startedAtMs === null || Number.isNaN(startedAtMs)
+                                    ? '--:--'
+                                    : `${String(Math.floor(elapsedSeconds / 60)).padStart(2, '0')}:${String(elapsedSeconds % 60).padStart(2, '0')}`}
                             </Text>
                         </View>
 

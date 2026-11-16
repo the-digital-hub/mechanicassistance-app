@@ -536,11 +536,11 @@ export function AvailabilityStep({
                     <View className="flex-row" style={{ gap: 10 }}>
                         <View style={{ flex: 1 }}>
                             <Required>{t('scheduled.availability.from')}</Required>
-                            <SelectField value={draft.fromMin} options={fromOptions} placeholder={t('scheduled.availability.selectTime')} onSelect={setFrom} accessibilityLabel={t('scheduled.availability.from')} />
+                            <SelectField value={draft.fromMin} options={fromOptions} placeholder={t('scheduled.availability.selectTime')} onSelect={setFrom} accessibilityLabel={t('scheduled.availability.from')} timeGrid />
                         </View>
                         <View style={{ flex: 1 }}>
                             <Required>{t('scheduled.availability.to')}</Required>
-                            <SelectField value={draft.toMin} options={toOptions} placeholder={t('scheduled.availability.selectTime')} onSelect={(m) => patch({ toMin: m })} accessibilityLabel={t('scheduled.availability.to')} />
+                            <SelectField value={draft.toMin} options={toOptions} placeholder={t('scheduled.availability.selectTime')} onSelect={(m) => patch({ toMin: m })} accessibilityLabel={t('scheduled.availability.to')} timeGrid />
                         </View>
                     </View>
                 </View>

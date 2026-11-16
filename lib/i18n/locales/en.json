@@ -1415,7 +1415,31 @@
         "settled": "Paid out",
         "void": "Cancelled"
       },
-      "notCharged": "This service has not been charged yet, so there is no payment to show."
+      "notCharged": "This service has not been charged yet, so there is no payment to show.",
+      "owner": {
+        "service": "Service",
+        "vehicle": "Vehicle",
+        "date": "Date",
+        "reference": "Reference",
+        "paidTitle": "You paid",
+        "payment": "Payment",
+        "paidWith": "Paid with",
+        "charged": "Charged",
+        "refunded": "Refunded",
+        "status": "Payment status",
+        "methodWallet": "Wallet",
+        "methodCard": "Card",
+        "paymentStatus": {
+          "succeeded": "Paid",
+          "charged": "Paid",
+          "held": "On hold",
+          "refunded": "Refunded",
+          "failed": "Failed",
+          "pending": "Pending",
+          "captured": "Paid"
+        },
+        "notFound": "We couldn't find a payment for this service yet."
+      }
     },
     "ownerReview": {
       "title": "Rate your technician",
@@ -2952,7 +2976,10 @@
       "detailsSub": "Symptoms or special requests, so quotes are accurate.",
       "evidenceTitle": "Evidence photos or videos",
       "uploadTitle": "Upload photos or videos",
-      "uploadHint": "max 5MB photos · 50MB videos"
+      "uploadHint": "max 5MB photos · 50MB videos",
+      "morning": "Morning",
+      "afternoon": "Afternoon",
+      "evening": "Evening"
     },
     "review": {
       "eyebrow": "STEP 5 · REVIEW",
@@ -3362,5 +3389,25 @@
         "body": "Your account has no service categories yet, so there is nothing to match. Contact support."
       }
     }
+  },
+  "welcome": {
+    "eyebrow": "Expert care for your vehicle.",
+    "titleA": "Vehicle assistance",
+    "titleB": "on demand",
+    "sub": "Certified technicians, right when you need them.",
+    "chipAse": "ASE-certified technicians",
+    "chipFlex": "Immediate or scheduled",
+    "chipVideo": "Video guidance",
+    "create": "Create account",
+    "haveAccount": "I already have an account",
+    "login": "Log in"
+  },
+  "chooseRole": {
+    "title": "Which profile do you want to use?",
+    "subtitle": "You can switch anytime from your profile.",
+    "lastUsed": "Last used",
+    "notYou": "Not you? Log out",
+    "notYouLabel": "Not you?",
+    "logOut": "Log out"
   }
 }

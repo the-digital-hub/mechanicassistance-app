@@ -1,3 +1,4 @@
+import { FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
 import { TYPE } from '@/lib/ui/type';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Check, ChevronRight, type LucideIcon } from 'lucide-react-native';
@@ -227,13 +228,15 @@ export function Footer({
 }) {
     const off = disabled || loading;
     return (
-        <View style={{ paddingHorizontal: 24, paddingTop: 12, paddingBottom: 32, backgroundColor: '#F4F5FA', borderTopWidth: 0.5, borderTopColor: '#D1D5DB', gap: 8 }}>
+        <View
+            style={{ ...FLOATING_FOOTER, gap: 10 }}
+        >
             {hint ? <Text className="font-outfit-regular text-center" style={{ fontSize: 13, color: SC.muted }}>{hint}</Text> : null}
-            <TouchableOpacity onPress={onPress} disabled={off} activeOpacity={0.85} accessibilityRole="button" accessibilityState={{ disabled: !!off }} style={{ opacity: off ? 0.55 : 1 }}>
-                <LinearGradient colors={['#2B66F8', '#081E72']} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }} style={{ borderRadius: 14, paddingVertical: 16, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}>
+            <TouchableOpacity onPress={onPress} disabled={off} activeOpacity={0.85} accessibilityRole="button" accessibilityState={{ disabled: !!off }} style={{ opacity: off ? 0.55 : 1, borderRadius: 16, shadowColor: '#2B66F8', shadowOffset: { width: 0, height: 6 }, shadowOpacity: off ? 0 : 0.3, shadowRadius: 12, elevation: off ? 0 : 6 }}>
+                <LinearGradient colors={['#2B66F8', '#081E72']} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }} style={{ borderRadius: 16, paddingVertical: 17, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}>
                     {loading ? <ActivityIndicator color="#FFFFFF" /> : null}
-                    <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#FFFFFF' }}>{label}</Text>
-                    {!loading ? <ChevronRight size={18} color="#FFFFFF" /> : null}
+                    <Text className="font-outfit-bold" style={{ ...TYPE.button, color: '#FFFFFF' }}>{label}</Text>
+                    {!loading ? <ChevronRight size={20} color="#FFFFFF" /> : null}
                 </LinearGradient>
             </TouchableOpacity>
         </View>

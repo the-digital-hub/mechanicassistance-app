@@ -1416,7 +1416,31 @@
         "settled": "Pagado",
         "void": "Cancelado"
       },
-      "notCharged": "Este servicio aún no se cobró, así que no hay un pago para mostrar."
+      "notCharged": "Este servicio aún no se cobró, así que no hay un pago para mostrar.",
+      "owner": {
+        "service": "Servicio",
+        "vehicle": "Vehículo",
+        "date": "Fecha",
+        "reference": "Referencia",
+        "paidTitle": "Pagaste",
+        "payment": "Pago",
+        "paidWith": "Pagado con",
+        "charged": "Cobrado",
+        "refunded": "Reembolsado",
+        "status": "Estado del pago",
+        "methodWallet": "Billetera",
+        "methodCard": "Tarjeta",
+        "paymentStatus": {
+          "succeeded": "Pagado",
+          "charged": "Pagado",
+          "held": "Retenido",
+          "refunded": "Reembolsado",
+          "failed": "Fallido",
+          "pending": "Pendiente",
+          "captured": "Pagado"
+        },
+        "notFound": "Todavía no encontramos un pago para este servicio."
+      }
     },
     "ownerReview": {
       "title": "Calificá a tu mecánico",
@@ -2953,7 +2977,10 @@
       "detailsSub": "Síntomas o pedidos especiales, para que las cotizaciones sean precisas.",
       "evidenceTitle": "Fotos o videos de evidencia",
       "uploadTitle": "Subir fotos o videos",
-      "uploadHint": "máx. 5MB fotos · 50MB videos"
+      "uploadHint": "máx. 5MB fotos · 50MB videos",
+      "morning": "Mañana",
+      "afternoon": "Tarde",
+      "evening": "Noche"
     },
     "review": {
       "eyebrow": "PASO 5 · REVISIÓN",
@@ -3363,5 +3390,25 @@
         "body": "Tu cuenta todavía no tiene categorías de servicio, así que no hay nada para mostrar. Contactá a soporte."
       }
     }
+  },
+  "welcome": {
+    "eyebrow": "Cuidado experto para tu vehículo.",
+    "titleA": "Asistencia vehicular",
+    "titleB": "a demanda",
+    "sub": "Técnicos certificados, justo cuando los necesitás.",
+    "chipAse": "Técnicos certificados ASE",
+    "chipFlex": "Inmediata o programada",
+    "chipVideo": "Guía por video",
+    "create": "Crear cuenta",
+    "haveAccount": "Ya tengo una cuenta",
+    "login": "Iniciar sesión"
+  },
+  "chooseRole": {
+    "title": "¿Qué perfil querés usar?",
+    "subtitle": "Podés cambiarlo cuando quieras desde tu perfil.",
+    "lastUsed": "Último uso",
+    "notYou": "¿No sos vos? Cerrar sesión",
+    "notYouLabel": "¿No sos vos?",
+    "logOut": "Cerrar sesión"
   }
 }

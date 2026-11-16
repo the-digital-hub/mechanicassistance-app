@@ -44,7 +44,7 @@
       "favicon": "./assets/images/mechanic-icon.png",
       "bundler": "metro",
       "display": "standalone",
-      "backgroundColor": "#ffffff",
+      "backgroundColor": "#1E56E3",
       "themeColor": "#0047AB",
       "description": "Professional Mechanic Assistance App",
       "orientation": "portrait",
@@ -100,10 +100,10 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 360,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "image": "./assets/images/splash-bg.png",
+          "imageWidth": 1000,
+          "resizeMode": "cover",
+          "backgroundColor": "#0B2A8E"
         }
       ],
       [

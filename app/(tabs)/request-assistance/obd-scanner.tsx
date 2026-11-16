@@ -1,3 +1,4 @@
+import { FLOATING_CTA, FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
 import { MediaSlot, type Picked } from '@/components/on-site/MediaSlot';
 import { useRequestDraft } from '@/context/RequestDraftContext';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -174,19 +175,19 @@ export default function ObdScannerScreen() {
             </ScrollView>
 
             {/* Sticky action */}
-            <View style={{ backgroundColor: C.page, borderTopWidth: 1, borderTopColor: C.line, paddingHorizontal: 20, paddingTop: 14, paddingBottom: 18 }}>
-                <TouchableOpacity onPress={next} disabled={!canContinue} activeOpacity={0.85} testID="obd-scanner-continue">
+            <View style={FLOATING_FOOTER}>
+                <TouchableOpacity onPress={next} disabled={!canContinue} activeOpacity={0.85} testID="obd-scanner-continue" style={canContinue ? FLOATING_CTA : undefined}>
                     {canContinue ? (
                         <LinearGradient
                             colors={['#2B66F8', '#081E72']}
                             start={{ x: 0, y: 1 }}
                             end={{ x: 1, y: 0 }}
-                            style={{ borderRadius: 12, paddingVertical: 16, alignItems: 'center' }}
+                            style={{ borderRadius: 16, paddingVertical: 17, alignItems: 'center' }}
                         >
                             <Text className="text-white font-outfit-bold" style={{ fontSize: 18 }}>{cta}</Text>
                         </LinearGradient>
                     ) : (
-                        <View style={{ borderRadius: 12, paddingVertical: 16, alignItems: 'center', backgroundColor: '#B9C0CF' }}>
+                        <View style={{ borderRadius: 16, paddingVertical: 17, alignItems: 'center', backgroundColor: '#B9C0CF' }}>
                             <Text className="text-white font-outfit-bold" style={{ fontSize: 18 }}>{cta}</Text>
                         </View>
                     )}
