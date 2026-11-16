@@ -138,7 +138,7 @@ describe('request body', () => {
 
     it('carries the window end and the owner words in the notes', () => {
         const notes = buildNotes(complete());
-        expect(notes).toContain('Preferred window: 1:00 PM – 4:00 PM');
+        expect(notes).toContain('Preferred window: Fri, Nov 13, 1:00 PM – 4:00 PM');
         expect(notes).toContain('Other request: Check the spare too');
         expect(notes).toContain('Symptoms / special requests: Pulls to the right');
     });

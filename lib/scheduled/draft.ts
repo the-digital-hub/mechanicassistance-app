@@ -183,7 +183,9 @@ export function requestTitle(serviceNames: string[]): string {
 export function buildNotes(d: ScheduledDraft): string {
     const lines: string[] = [];
     if (d.fromMin != null && d.toMin != null) {
-        lines.push(`Preferred window: ${formatMinutes(d.fromMin)} – ${formatMinutes(d.toMin)}`);
+        // The day goes with the window: technicians read this line on its own, in English.
+        const day = d.date ? `${dateFromKey(d.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}, ` : '';
+        lines.push(`Preferred window: ${day}${formatMinutes(d.fromMin)} – ${formatMinutes(d.toMin)}`);
     }
     if (d.customRequest.trim()) lines.push(`Other request: ${d.customRequest.trim()}`);
     if (d.symptoms.trim()) lines.push(`Symptoms / special requests: ${d.symptoms.trim()}`);

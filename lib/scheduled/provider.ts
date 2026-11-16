@@ -38,6 +38,15 @@ export function distanceLabel(miles: number | null | undefined): string {
     return `${miles < 10 ? miles.toFixed(1) : Math.round(miles)} mi`;
 }
 
+/** Requests made before the day was written into the notes: put it in front of the window. */
+export function notesWithDay(notes: string | null | undefined, date: string | null | undefined): string | undefined {
+    if (!notes) return undefined;
+    const d = date ? new Date(date) : null;
+    if (!d || isNaN(d.getTime())) return notes;
+    const day = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    return notes.replace(/^Preferred window: (?!\w{3}, )/m, `Preferred window: ${day}, `);
+}
+
 /**
  * Shapes a marketplace request like the rest of the feed so the existing cards can show it.
  * `address` carries only what the provider may see: the zip and the distance, never a street.
@@ -55,7 +64,7 @@ export function toFeedRequest(m: MarketplaceRequest): AssistanceRequest {
         car: vehicleLabel(m),
         address: m.zip ?? '',
         zip: m.zip ?? undefined,
-        notes: m.notes ?? undefined,
+        notes: notesWithDay(m.notes, m.date),
         budget: '',
         // Never a price from the customer: only the provider's own quote, once sent.
         price: m.myOffer?.price ?? undefined,

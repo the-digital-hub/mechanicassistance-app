@@ -1,6 +1,6 @@
 import type { MarketplaceRequest } from '@/lib/dao/interfaces';
 
-import { buildOffer, distanceLabel, feedProblem, offerSubmitProblem, parsePrice, toFeedRequest, validateOffer, vehicleLabel, type OfferForm } from '../provider';
+import { buildOffer, distanceLabel, notesWithDay, feedProblem, offerSubmitProblem, parsePrice, toFeedRequest, validateOffer, vehicleLabel, type OfferForm } from '../provider';
 
 const NOW = new Date('2026-11-15T12:00:00.000Z');
 const form = (extra: Partial<OfferForm> = {}): OfferForm => ({
@@ -122,5 +122,17 @@ describe('offerSubmitProblem', () => {
         expect(offerSubmitProblem('quote_description_required')).toBe('description');
         expect(offerSubmitProblem('marketplace_suspended')).toBe('suspended');
         expect(offerSubmitProblem(undefined)).toBe('generic');
+    });
+});
+
+describe('notesWithDay', () => {
+    it('adds the day to an older window line', () => {
+        expect(notesWithDay('Preferred window: 9:00 AM – 12:00 PM\nSymptoms: noise', '2026-11-20T14:00:00.000Z')).toBe('Preferred window: Fri, Nov 20, 9:00 AM – 12:00 PM\nSymptoms: noise');
+    });
+    it('leaves a line that already has the day, or no window, alone', () => {
+        const withDay = 'Preferred window: Fri, Nov 20, 9:00 AM – 12:00 PM';
+        expect(notesWithDay(withDay, '2026-11-20T14:00:00.000Z')).toBe(withDay);
+        expect(notesWithDay('Other request: x', '2026-11-20T14:00:00.000Z')).toBe('Other request: x');
+        expect(notesWithDay(null, null)).toBeUndefined();
     });
 });
