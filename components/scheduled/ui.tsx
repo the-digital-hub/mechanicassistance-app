@@ -38,15 +38,17 @@ export const CARD_STYLE = {
 } as const;
 
 /** Same header as the other request wizards: white circle back button and a centred title. */
-export function WizardHeader({ title, onBack }: { title: string; onBack: () => void }) {
+export function WizardHeader({ title, onBack, right }: { title: string; onBack?: () => void; right?: string }) {
     return (
         <View
             className="px-6 pt-20 pb-2 flex-row items-center justify-between"
             style={{ backgroundColor: '#F4F5FA', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 3, elevation: 3, borderBottomWidth: 0.5, borderBottomColor: '#D1D5DB' }}
         >
-            <HeaderBackButton onPress={onBack} marginLeft={0} />
+            {onBack ? <HeaderBackButton onPress={onBack} marginLeft={0} /> : <View style={{ width: 40 }} />}
             <Text style={{ fontFamily: 'Outfit_500Medium', fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>{title}</Text>
-            <View className="w-6" />
+            <View style={{ width: 40, alignItems: 'flex-end' }}>
+                {right ? <Text className="font-outfit-bold" style={{ fontSize: 12, color: SC.muted }}>{right}</Text> : null}
+            </View>
         </View>
     );
 }

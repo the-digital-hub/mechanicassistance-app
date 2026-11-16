@@ -7,14 +7,13 @@ import {
     ChevronRight,
     CircleDot,
     ClipboardCheck,
-    Clock,
     Cog,
     Crosshair,
     Disc,
+    FileText,
     Flame,
     Gauge,
     Home,
-    ImagePlus,
     MapPin,
     Plus,
     Snowflake,
@@ -23,15 +22,17 @@ import {
     Store,
     Thermometer,
     Upload,
+    User,
     Video,
     Wrench,
     X,
     Zap,
     type LucideIcon,
 } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Image, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 import type { Address, ScheduledServiceCategory, ScheduledServiceItem, Vehicle } from '@/lib/dao/interfaces';
 import { addressDisplayName } from '@/lib/address';
@@ -614,88 +615,131 @@ export function AvailabilityStep({
 function ReviewRow({ icon: Icon, label, value, onEdit, last }: { icon: LucideIcon; label: string; value: string; onEdit?: () => void; last?: boolean }) {
     const { t } = useTranslation();
     return (
-        <View className="flex-row items-start" style={{ gap: 12, paddingVertical: 14, borderBottomWidth: last ? 0 : 1, borderBottomColor: SC.borderSoft }}>
-            <View className="items-center justify-center" style={{ width: 38, height: 38, borderRadius: 11, backgroundColor: SC.blueSoft }}>
-                <Icon size={18} color={SC.blue} />
+        <View className="flex-row items-start" style={{ gap: 12, paddingHorizontal: 14, paddingVertical: 12, borderBottomWidth: last ? 0 : 1, borderBottomColor: SC.borderSoft }}>
+            <View className="items-center justify-center" style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: SC.blueSoft }}>
+                <Icon size={17} color={SC.blue} />
             </View>
             <View className="flex-1">
-                <Text className="font-outfit-bold" style={{ fontSize: 10.5, letterSpacing: 1.2, color: SC.mutedLight }}>{label}</Text>
-                <Text className="font-outfit-semibold" style={{ fontSize: 14.5, lineHeight: 20, color: SC.text, marginTop: 2 }}>{value}</Text>
+                <Text className="font-outfit-bold" style={{ fontSize: 11, letterSpacing: 1, color: SC.muted }}>{label}</Text>
+                <Text className="font-outfit-bold" style={{ fontSize: 13.5, lineHeight: 19, color: SC.text, marginTop: 2 }}>{value}</Text>
             </View>
             {onEdit ? (
                 <TouchableOpacity onPress={onEdit} hitSlop={8} accessibilityRole="button" accessibilityLabel={`${t('scheduled.review.edit')} ${label}`}>
-                    <Text className="font-outfit-bold" style={{ fontSize: 13, color: SC.blue }}>{t('scheduled.review.edit')}</Text>
+                    <Text className="font-outfit-bold" style={{ fontSize: 12.5, color: SC.blue }}>{t('scheduled.review.edit')}</Text>
                 </TouchableOpacity>
             ) : null}
         </View>
     );
 }
 
+/** "Fri, Nov 20 (today) · 12:30 PM – 4:30 PM", the way the review and the sent screens show the window. */
+export function windowText(draft: ScheduledDraft, now: Date, todayLabel: string): string {
+    const days = draft.date ? daysLabel(draft) : '—';
+    const today = draft.dateMode === 'exact' && draft.date && isSameDay(draft.date, now) ? ` (${todayLabel})` : '';
+    const hours = draft.fromMin != null && draft.toMin != null ? ` · ${formatMinutes(draft.fromMin)} – ${formatMinutes(draft.toMin)}` : '';
+    return `${days}${today}${hours}`;
+}
+
 export function ReviewStep({
     draft,
-    serviceNames,
+    services,
     evidenceCount,
     goTo,
     now,
 }: {
     draft: ScheduledDraft;
-    serviceNames: string[];
+    /** The selected services, with the name to show. */
+    services: { code: string; name: string }[];
     evidenceCount: number;
     goTo: (step: number) => void;
     now: Date;
 }) {
     const { t } = useTranslation();
-    const dateLabel = draft.date ? daysLabel(draft) : '—';
-    const windowLabel =
-        draft.fromMin != null && draft.toMin != null ? `${dateLabel} · ${formatMinutes(draft.fromMin)} – ${formatMinutes(draft.toMin)}` : dateLabel;
     const contact = draft.contactIsOwner
         ? t('scheduled.review.me')
         : [draft.contactFirst, draft.contactLast].filter(Boolean).join(' ') + (draft.contactPhone ? ` · ${draft.contactPhone}` : '');
     const shop = draft.mode === 'workshop';
+    const place = draft.location?.label || draft.location?.line || '';
     const locationLabel = shop
-        ? t('scheduled.review.shopWithin', { count: draft.radiusMiles, place: draft.location?.line ?? '' })
-        : draft.location?.line ?? '—';
-    void now;
+        ? t('scheduled.review.shopWithin', { count: draft.radiusMiles, place })
+        : t('scheduled.review.atYourLocation', { place: draft.location?.line ?? '—' });
+    const serviceLines = [
+        ...services.map((sv) => {
+            const detail = (draft.serviceDetails[sv.code] ?? '').trim();
+            return detail ? `${sv.name} — ${detail}` : sv.name;
+        }),
+        ...(draft.customRequest.trim() ? [draft.customRequest.trim()] : []),
+    ].join('\n');
 
     return (
-        <View style={{ gap: 20 }}>
+        <View style={{ gap: 16 }}>
             <StepHead eyebrow={t('scheduled.review.eyebrow')} title={t('scheduled.review.title')} sub={t('scheduled.review.sub')} />
-            <View style={{ ...CARD_STYLE, paddingHorizontal: 14 }}>
+            <View style={{ ...CARD_STYLE, overflow: 'hidden' }}>
                 <ReviewRow icon={Car} label={t('scheduled.review.vehicle')} value={draft.mileage ? `${draft.vehicleName} · ${draft.mileage} mi` : draft.vehicleName} onEdit={() => goTo(1)} />
                 <ReviewRow icon={MapPin} label={t('scheduled.review.location')} value={locationLabel} onEdit={() => goTo(2)} />
-                {shop ? null : <ReviewRow icon={Check} label={t('scheduled.review.contact')} value={contact} onEdit={() => goTo(2)} />}
-                <ReviewRow icon={Wrench} label={t('scheduled.review.services')} value={[...serviceNames, ...(draft.customRequest.trim() ? [draft.customRequest.trim()] : [])].join(', ')} onEdit={() => goTo(3)} />
-                <ReviewRow icon={Calendar} label={t('scheduled.review.availability')} value={windowLabel} onEdit={() => goTo(4)} last={!draft.symptoms.trim() && evidenceCount === 0} />
-                {draft.symptoms.trim() ? <ReviewRow icon={Clock} label={t('scheduled.review.symptoms')} value={draft.symptoms.trim()} onEdit={() => goTo(4)} last={evidenceCount === 0} /> : null}
-                {evidenceCount > 0 ? <ReviewRow icon={ImagePlus} label={t('scheduled.review.evidence')} value={t('scheduled.review.files', { count: evidenceCount })} onEdit={() => goTo(4)} last /> : null}
+                {shop ? null : <ReviewRow icon={User} label={t('scheduled.review.contact')} value={contact} onEdit={() => goTo(2)} />}
+                <ReviewRow icon={Wrench} label={t('scheduled.review.services')} value={serviceLines || '—'} onEdit={() => goTo(3)} />
+                <ReviewRow icon={Calendar} label={t('scheduled.review.availability')} value={windowText(draft, now, t('scheduled.review.today'))} onEdit={() => goTo(4)} />
+                <ReviewRow icon={FileText} label={t('scheduled.review.symptoms')} value={draft.symptoms.trim() || t('scheduled.review.noneProvided')} onEdit={() => goTo(4)} />
+                <ReviewRow icon={Camera} label={t('scheduled.review.evidence')} value={evidenceCount > 0 ? t('scheduled.review.files', { count: evidenceCount }) : t('scheduled.review.noneAttached')} onEdit={() => goTo(4)} last />
             </View>
-            <Note tone="green" title={t('scheduled.review.noChargeTitle')}>{t('scheduled.review.noChargeBody')}</Note>
+            <View className="flex-row" style={{ gap: 10, padding: 12, borderRadius: 12, backgroundColor: SC.blueSofter, borderWidth: 1, borderColor: SC.blueSoft }}>
+                <ShieldCheck size={18} color={SC.blue} style={{ marginTop: 1 }} />
+                <Text className="font-outfit-regular flex-1" style={{ fontSize: 12.5, lineHeight: 18, color: SC.text }}>
+                    <Text className="font-outfit-bold">{t('scheduled.review.noChargeTitle')} </Text>
+                    {t('scheduled.review.noChargeBody')}
+                </Text>
+            </View>
         </View>
     );
 }
 
 // ───────────── Sent ─────────────
 
-export function SentStep({ refCode, onView, onHome }: { refCode?: string; onView: () => void; onHome: () => void }) {
+export function SentStep({
+    refCode,
+    vehicle,
+    when,
+    onView,
+}: {
+    refCode?: string;
+    vehicle: string;
+    when: string;
+    onView: () => void;
+}) {
     const { t } = useTranslation();
+    const rows: [string, string][] = [
+        [t('scheduled.sent.service'), t('scheduled.sent.serviceValue')],
+        [t('scheduled.sent.status'), t('scheduled.sent.statusValue')],
+        [t('scheduled.sent.vehicle'), vehicle],
+        [t('scheduled.sent.when'), when],
+        [t('scheduled.sent.offersUntil'), t('scheduled.sent.offersUntilValue')],
+    ];
     return (
-        <View className="flex-1 items-center justify-center" style={{ padding: 24, gap: 16 }}>
-            <View className="items-center justify-center" style={{ width: 84, height: 84, borderRadius: 42, backgroundColor: SC.greenSoft }}>
-                <Check size={40} color={SC.greenText} strokeWidth={3} />
-            </View>
-            <Text className="font-outfit-bold text-center" style={{ fontSize: 26, letterSpacing: -0.6, color: SC.text }}>{t('scheduled.sent.title')}</Text>
-            <Text className="font-outfit-regular text-center" style={{ fontSize: 14.5, lineHeight: 21, color: SC.muted }}>{t('scheduled.sent.body')}</Text>
-            {refCode ? (
-                <View className="rounded-full" style={{ paddingHorizontal: 14, paddingVertical: 6, backgroundColor: SC.blueSoft }}>
-                    <Text className="font-outfit-bold" style={{ fontSize: 12.5, color: SC.blue }}>{`${t('scheduled.sent.ref')} · ${refCode}`}</Text>
+        <View className="flex-1">
+            <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 32, paddingBottom: 20, alignItems: 'center', gap: 18 }}>
+                <LinearGradient colors={[SC.blue, SC.blueDark]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ width: 76, height: 76, borderRadius: 38, alignItems: 'center', justifyContent: 'center', shadowColor: SC.blue, shadowOpacity: 0.5, shadowRadius: 14, shadowOffset: { width: 0, height: 10 }, elevation: 6 }}>
+                    <Check size={34} color="#FFFFFF" strokeWidth={3} />
+                </LinearGradient>
+                <View>
+                    <Text className="font-outfit-bold text-center" style={{ fontSize: 26, letterSpacing: -0.7, lineHeight: 29, color: SC.text }}>{t('scheduled.sent.title')}</Text>
+                    <Text className="font-outfit-regular text-center" style={{ fontSize: 14, lineHeight: 20, color: SC.muted, marginTop: 8 }}>{t('scheduled.sent.body')}</Text>
                 </View>
-            ) : null}
-            <View style={{ alignSelf: 'stretch', gap: 10, marginTop: 12 }}>
-                <TouchableOpacity onPress={onView} activeOpacity={0.85} accessibilityRole="button" style={{ backgroundColor: SC.blue, borderRadius: 14, paddingVertical: 15, alignItems: 'center' }}>
-                    <Text className="font-outfit-bold" style={{ fontSize: 15.5, color: '#FFFFFF' }}>{t('scheduled.sent.view')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={onHome} activeOpacity={0.7} accessibilityRole="button" style={{ paddingVertical: 12, alignItems: 'center' }}>
-                    <Text className="font-outfit-bold" style={{ fontSize: 15, color: SC.blue }}>{t('scheduled.sent.home')}</Text>
+                <View style={{ ...CARD_STYLE, alignSelf: 'stretch', overflow: 'hidden' }}>
+                    {rows.map(([k, v], i) => (
+                        <View key={k} className="flex-row" style={{ paddingHorizontal: 14, paddingVertical: 11, gap: 12, borderBottomWidth: i < rows.length - 1 ? 1 : 0, borderBottomColor: SC.borderSoft }}>
+                            <Text className="font-outfit-regular" style={{ fontSize: 12, color: SC.muted, width: 62 }}>{k}</Text>
+                            <Text className="font-outfit-bold flex-1" style={{ fontSize: 13, lineHeight: 18, color: SC.text, textAlign: 'right' }}>{v}</Text>
+                        </View>
+                    ))}
+                </View>
+                {refCode ? <Text style={{ fontSize: 11, letterSpacing: 0.5, color: SC.muted, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }}>{`#${refCode}`}</Text> : null}
+            </ScrollView>
+            <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 28 }}>
+                <TouchableOpacity onPress={onView} activeOpacity={0.85} accessibilityRole="button">
+                    <LinearGradient colors={[SC.blue, SC.blueDark]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ borderRadius: 14, paddingVertical: 15, alignItems: 'center' }}>
+                        <Text className="font-outfit-bold" style={{ fontSize: 15.5, color: '#FFFFFF' }}>{t('scheduled.sent.view')}</Text>
+                    </LinearGradient>
                 </TouchableOpacity>
             </View>
         </View>

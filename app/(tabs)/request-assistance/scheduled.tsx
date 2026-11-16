@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
-import { AvailabilityStep, itemName, LocationStep, ReviewStep, SentStep, ServicesStep, VehicleStep } from '@/components/scheduled/Steps';
+import { AvailabilityStep, itemName, windowText, LocationStep, ReviewStep, SentStep, ServicesStep, VehicleStep } from '@/components/scheduled/Steps';
 import { Footer, Note, ProgressBar, SC, WizardHeader } from '@/components/scheduled/ui';
 import { useAppointments } from '@/context/AppointmentsContext';
 import { useUser } from '@/context/UserContext';
@@ -368,10 +368,12 @@ export default function ScheduledRequestScreen() {
     if (sent) {
         return (
             <View className="flex-1" style={{ backgroundColor: SC.page }}>
+                <WizardHeader title={t('scheduled.title')} />
                 <SentStep
                     refCode={sent.refCode}
+                    vehicle={draft.mileage ? `${draft.vehicleName} · ${draft.mileage} mi` : draft.vehicleName}
+                    when={windowText(draft, now, t('scheduled.review.today'))}
                     onView={() => router.replace({ pathname: '/request-assistance/scheduled-offers', params: { requestId: sent.id } })}
-                    onHome={() => router.replace('/(tabs)/dashboard')}
                 />
             </View>
         );
@@ -397,7 +399,7 @@ export default function ScheduledRequestScreen() {
                 }}
                 onClose={() => setCardRequired(false)}
             />
-            <WizardHeader title={t('scheduled.title')} onBack={handleBack} />
+            <WizardHeader title={t('scheduled.title')} onBack={handleBack} right={`${step}/${SCHEDULED_STEPS}`} />
 
             <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
                 <ScrollView
@@ -454,7 +456,7 @@ export default function ScheduledRequestScreen() {
                     {step === 5 ? (
                         <ReviewStep
                             draft={draft}
-                            serviceNames={selectedServices.map((s) => itemName(s, languageId))}
+                            services={selectedServices.map((s) => ({ code: s.code, name: itemName(s, languageId) }))}
                             evidenceCount={evidence.length}
                             goTo={goTo}
                             now={now}

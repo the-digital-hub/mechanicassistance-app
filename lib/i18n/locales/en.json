@@ -2969,18 +2969,30 @@
       "files": "{{count}} file",
       "files_other": "{{count}} files",
       "noChargeTitle": "You won't be charged now.",
-      "noChargeBody": "Publishing only requests quotes. Offers stay open for up to 48 hours, or until 1 hour before your requested time if that comes first. Your exact address and plate are shared only after you accept an offer and payment is secured.",
+      "noChargeBody": "Publishing only requests quotes. Offers stay open for up to 48 hours, or until 1 hour before your requested time if that comes first. You can accept a valid offer as soon as it arrives. Your exact address and plate are shared only after you accept an offer and payment is secured.",
       "send": "Send request for quotes",
       "sending": "Sending…",
       "uploading": "Uploading file {{current}} of {{total}}…",
-      "shopWithin": "Repair shop within {{count}} mi of {{place}}"
+      "shopWithin": "Repair shop within {{count}} mi of {{place}}",
+      "atYourLocation": "At your location · {{place}}",
+      "today": "today",
+      "noneProvided": "None provided",
+      "noneAttached": "None attached"
     },
     "sent": {
       "title": "Request sent",
       "body": "Nothing has been charged. Eligible technicians and shops can now quote, and you'll be notified as each offer arrives.",
       "ref": "Reference",
       "view": "View request",
-      "home": "Back to dashboard"
+      "home": "Back to dashboard",
+      "service": "Service",
+      "serviceValue": "Scheduled Assistance",
+      "status": "Status",
+      "statusValue": "Published · receiving quotes",
+      "vehicle": "Vehicle",
+      "when": "When",
+      "offersUntil": "Offers until",
+      "offersUntilValue": "Up to 48 h, or 1 h before your time"
     },
     "errors": {
       "publishFailedTitle": "We couldn't send your request",

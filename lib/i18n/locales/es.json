@@ -2970,18 +2970,30 @@
       "files": "{{count}} archivo",
       "files_other": "{{count}} archivos",
       "noChargeTitle": "No se te cobra ahora.",
-      "noChargeBody": "Publicar solo pide cotizaciones. Las ofertas quedan abiertas hasta 48 horas, o hasta 1 hora antes del horario pedido si eso ocurre primero. Tu dirección exacta y la patente se comparten recién cuando aceptás una oferta y el pago queda asegurado.",
+      "noChargeBody": "Publicar solo pide cotizaciones. Las ofertas quedan abiertas hasta 48 horas, o hasta 1 hora antes del horario pedido si eso ocurre primero. Podés aceptar una oferta válida apenas llegue. Tu dirección exacta y la patente se comparten recién cuando aceptás una oferta y el pago queda asegurado.",
       "send": "Enviar solicitud de cotización",
       "sending": "Enviando…",
       "uploading": "Subiendo archivo {{current}} de {{total}}…",
-      "shopWithin": "Taller a menos de {{count}} mi de {{place}}"
+      "shopWithin": "Taller a menos de {{count}} mi de {{place}}",
+      "atYourLocation": "En tu ubicación · {{place}}",
+      "today": "hoy",
+      "noneProvided": "Sin datos",
+      "noneAttached": "Nada adjunto"
     },
     "sent": {
       "title": "Solicitud enviada",
       "body": "No se cobró nada. Los mecánicos y talleres elegibles ya pueden cotizar, y te avisamos cuando llegue cada oferta.",
       "ref": "Referencia",
       "view": "Ver solicitud",
-      "home": "Volver al dashboard"
+      "home": "Volver al dashboard",
+      "service": "Servicio",
+      "serviceValue": "Asistencia programada",
+      "status": "Estado",
+      "statusValue": "Publicada · recibiendo cotizaciones",
+      "vehicle": "Vehículo",
+      "when": "Cuándo",
+      "offersUntil": "Ofertas hasta",
+      "offersUntilValue": "Hasta 48 h, o 1 h antes de tu horario"
     },
     "errors": {
       "publishFailedTitle": "No pudimos enviar tu solicitud",
