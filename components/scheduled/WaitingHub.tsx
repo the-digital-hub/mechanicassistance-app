@@ -139,6 +139,12 @@ export function WaitingHub({
             </View>
 
             <View>
+                {services.length > 0 ? (
+                    <View style={{ ...CARD_STYLE, marginBottom: 14, paddingHorizontal: 14, paddingVertical: 12 }}>
+                        <Text className="font-outfit-bold" style={{ fontSize: 11, letterSpacing: 1, color: SC.muted }}>{t('scheduledOffers.hub.servicesRequested')}</Text>
+                        <Text className="font-outfit-bold" style={{ fontSize: 13.5, lineHeight: 20, color: SC.text, marginTop: 4 }}>{services.join(' · ')}</Text>
+                    </View>
+                ) : null}
                 <Text className="font-outfit-bold" style={{ fontSize: 11, letterSpacing: 1.2, color: SC.muted, marginBottom: 8 }}>{t('scheduledOffers.hub.yourRequest', { ref: refCode })}</Text>
                 <View style={{ ...CARD_STYLE, overflow: 'hidden' }}>
                     {rows.map((r, i) => {
@@ -152,12 +158,6 @@ export function WaitingHub({
                         );
                     })}
                 </View>
-                {services.length > 0 ? (
-                    <View style={{ ...CARD_STYLE, marginTop: 10, paddingHorizontal: 14, paddingVertical: 12 }}>
-                        <Text className="font-outfit-bold" style={{ fontSize: 11, letterSpacing: 1, color: SC.muted }}>{t('scheduledOffers.hub.servicesRequested')}</Text>
-                        <Text className="font-outfit-bold" style={{ fontSize: 13.5, lineHeight: 20, color: SC.text, marginTop: 4 }}>{services.join(' · ')}</Text>
-                    </View>
-                ) : null}
             </View>
 
             <View className="flex-row" style={{ gap: 10, padding: 12, borderRadius: 12, backgroundColor: SC.blueSofter, borderWidth: 1, borderColor: SC.blueSoft }}>
