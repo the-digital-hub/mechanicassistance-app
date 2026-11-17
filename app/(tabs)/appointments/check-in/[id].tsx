@@ -6,7 +6,7 @@ import { OnSiteCaptureProvider } from '@/components/on-site/MediaSlot';
 import { ScreenDiagnosticsVin } from '@/components/on-site/screens-vin';
 import { getVinCapture, saveVinCapture, type VinCapture } from '@/lib/onsite/vin';
 import { reportedIssue, ScreenCheckIn, ScreenDiagnosticsObd, ScreenDiagnosticsPhotos, ScreenFeasibility, ScreenRetry, ScreenValidating } from '@/components/on-site/screens-checkin';
-import { DoneVariant, ScreenCloseService, ScreenVideoOut } from '@/components/on-site/screens-checkout';
+import { DoneVariant, ScreenCloseService } from '@/components/on-site/screens-checkout';
 import { ScreenCloseout } from '@/components/on-site/screens-closeout';
 import { PartsOrder, RedirectReason, ScreenBuyParts, ScreenEvaluateOptions, ScreenResolveIncident } from '@/components/on-site/screens-execution';
 import { FlowHeader, OS, Phase, PhaseBar, Spinner } from '@/components/on-site/ui';
@@ -45,7 +45,7 @@ const PHASE_OF: Record<Screen, Phase> = {
 const BACK_OF: Partial<Record<Screen, Screen>> = {
     retry: 'checkin', 'diagnostics-photos': 'diagnostics-vin', 'diagnostics-obd': 'diagnostics-photos',
     feasibility: 'diagnostics-obd', 'options-checkin': 'feasibility', 'buy-parts': 'feasibility', resolve: 'feasibility',
-    'options-execution': 'resolve', 'video-out': 'resolve', close: 'video-out',
+    'options-execution': 'resolve', close: 'resolve',
 };
 
 /** Screen to reopen a saved visit on. */
@@ -55,6 +55,8 @@ function resumeScreen(visit: OnSiteVisit): Screen {
     if (visit.step === 'validating') return 'diagnostics-obd';
     // The "issue details" screen is gone: a visit still at that step starts at the VIN.
     if (visit.step === 'incident') return 'diagnostics-vin';
+    // The exit-capture step is gone (its photos are taken on the Resolve screen): a visit left there goes on to close.
+    if (visit.step === 'video-out') return 'close';
     return visit.step;
 }
 
@@ -178,7 +180,7 @@ export default function OnSiteFlowScreen() {
     const redirect = (r: RedirectReason) => {
         setDoneVariant('redirected');
         setRedirectReason(r);
-        go('video-out');
+        go('close');
     };
 
     const close = async () => {
@@ -262,26 +264,13 @@ export default function OnSiteFlowScreen() {
                     onWorkNotesChange={(workNotes) => save({ workNotes })}
                     checklist={checklist}
                     onChecklistChange={saveChecklist}
-                    onResolved={() => go('video-out')}
+                    onResolved={() => go('close')}
                     onNotResolved={() => go('options-execution')}
                 />
             );
             break;
         case 'options-execution':
             body = <ScreenEvaluateOptions context="execution" onSelect={redirect} checklist={checklist} onChecklistChange={saveChecklist} />;
-            break;
-        case 'video-out':
-            body = (
-                <ScreenVideoOut
-                    appointmentId={id}
-                    visit={visit}
-                    onVisit={setVisit}
-                    onNext={(skipped) => {
-                        save({ exitSkipped: skipped });
-                        go('close');
-                    }}
-                />
-            );
             break;
         case 'close':
             body = (

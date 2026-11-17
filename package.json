@@ -71,6 +71,7 @@
     "expo-linear-gradient": "~55.0.14",
     "expo-linking": "~55.0.15",
     "expo-location": "~55.1.10",
+    "expo-print": "~55.0.19",
     "expo-router": "~55.0.16",
     "expo-screen-orientation": "~55.0.20",
     "expo-secure-store": "~55.0.17",

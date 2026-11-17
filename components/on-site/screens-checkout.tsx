@@ -3,95 +3,14 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Text, TouchableOpacity, View } from 'react-native';
 import type { OnSiteVisit } from '@/lib/dao/OnSiteDAO';
-import { MediaSlot, PhotoList, useExistingCaptures } from './MediaSlot';
 import { ObdPanel } from './ObdPanel';
 import type { RedirectReason } from './screens-execution';
-import { ActionBar, Body, Card, Eyebrow, GhostButton, InfoRow, Intro, NoteInput, OS, PrimaryButton, Segmented, Tip, cardShadow } from './ui';
+import { ActionBar, Body, Card, Eyebrow, InfoRow, Intro, NoteInput, OS, PrimaryButton, cardShadow } from './ui';
 
-// Phase 3 of the on-site flow: exit capture, close-out summary and the final screen.
+// Phase 3 of the on-site flow: close-out summary and the final screen.
 // Charges and the owner rating are not sent anywhere yet.
 
 export type DoneVariant = 'completed' | 'redirected';
-
-/** Section heading of this screen: a title with its "optional" mark, and what it is for. */
-function SectionHead({ title, sub, first }: { title: string; sub: string; first?: boolean }) {
-    const { t } = useTranslation();
-    return (
-        <View className="px-5" style={{ paddingTop: first ? 16 : 22 }}>
-            <Text className="font-outfit-bold" style={{ fontSize: 17, lineHeight: 23, color: OS.text }}>
-                {title}
-                <Text className="font-outfit-medium" style={{ fontSize: 13, color: OS.mutedLight }}>  {t('appointments.onSite.common.optional')}</Text>
-            </Text>
-            <Text className="font-outfit-regular mt-1" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>{sub}</Text>
-        </View>
-    );
-}
-
-// ─────────── Check-out capture ───────────
-export function ScreenVideoOut({ appointmentId, visit, onVisit, onNext }: {
-    appointmentId: string;
-    visit: OnSiteVisit | null;
-    onVisit: (v: OnSiteVisit) => void;
-    onNext: (skipped: boolean) => void;
-}) {
-    const { t } = useTranslation();
-    const k = 'appointments.onSite.videoOut';
-    const walkaround = useExistingCaptures('walkaround_out');
-    const [tab, setTab] = React.useState<'video' | 'photos'>('video');
-    const [videoFilled, setVideoFilled] = React.useState(false);
-    const [photoFilled, setPhotoFilled] = React.useState(false);
-    const ready = videoFilled || photoFilled;
-    // Only offer the OBD report here while there is no usable one yet.
-    const [obdPending] = React.useState(() => visit?.obdStatus === 'none' || visit?.obdStatus === 'failed');
-
-    return (
-        <>
-            <Body>
-                <Intro eyebrow={t(`${k}.eyebrow`)} title={t(`${k}.title`)} subtitle={t(`${k}.subtitle`)} />
-
-                <SectionHead title={t(`${k}.mediaTitle`)} sub={t(`${k}.mediaSub`)} first />
-                <View className="mt-3">
-                    <Segmented
-                        value={tab}
-                        onChange={setTab}
-                        options={[
-                            { key: 'video', label: t('appointments.onSite.common.recordVideo'), icon: 'videocam-outline' },
-                            { key: 'photos', label: t(`${k}.addPhotos`), icon: 'images-outline' },
-                        ]}
-                    />
-                </View>
-                <Card>
-                    {tab === 'video' ? (
-                        <>
-                            <MediaSlot kind="video" height={220} placeholder={t('appointments.onSite.photos.videoPh')} captureKind="walkaround_out" existing={walkaround[0]} onChange={setVideoFilled} />
-                            <View className="px-4 pb-4 -mt-2">
-                                <NoteInput placeholder={t(`${k}.videoNotePh`)} />
-                            </View>
-                        </>
-                    ) : (
-                        <PhotoList placeholder={t(`${k}.photoPh`)} captureKind="exit_photo" height={150} onAnyFilled={setPhotoFilled} />
-                    )}
-                </Card>
-
-                <Tip tone="green">{t(`${k}.tip`)}</Tip>
-
-                {obdPending ? (
-                    <>
-                        <SectionHead title={t(`${k}.obdTitle`)} sub={t(`${k}.obdSub`)} />
-                        <ObdPanel appointmentId={appointmentId} visit={visit} onVisit={onVisit} />
-                    </>
-                ) : null}
-            </Body>
-            <ActionBar>
-                {ready ? (
-                    <PrimaryButton label={t('appointments.onSite.common.continue')} onPress={() => onNext(false)} />
-                ) : (
-                    <GhostButton label={t(`${k}.skip`)} onPress={() => onNext(true)} flex />
-                )}
-            </ActionBar>
-        </>
-    );
-}
 
 // ─────────── Close-out summary ───────────
 function formatAmount(amount: string | null): string {

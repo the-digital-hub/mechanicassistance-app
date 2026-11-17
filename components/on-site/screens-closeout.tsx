@@ -3,6 +3,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Animated, Text, TouchableOpacity, View } from 'react-native';
 import { onSiteDAO, OnSiteVisit } from '@/lib/dao/OnSiteDAO';
+import { FinalReportCard } from './FinalReportActions';
 import { ObdPanel } from './ObdPanel';
 import { Body, Card, NoteInput, OS, PrimaryButton, cardShadow } from './ui';
 
@@ -13,7 +14,6 @@ import { Body, Card, NoteInput, OS, PrimaryButton, cardShadow } from './ui';
 // charged (`payoutStatus`); otherwise it is an estimate. The owner's review
 // closes the assistance out (`closeoutCompletedAt`).
 
-const REVIEW_COOLDOWN_MS = 12 * 60 * 60 * 1000;
 
 /** A dot that breathes, for "waiting on someone" states (design: pr-pulse-dot). */
 function PulseDot({ size, color }: { size: number; color: string }) {
@@ -276,8 +276,9 @@ export function ScreenCloseout({ visit, onVisit, onBackToDashboard }: {
             <Body>
                 <Hero redirected={visit.outcome === 'redirected'} />
                 <Payout visit={visit} />
-                <RateOwner visit={visit} onVisit={onVisit} />
                 <Checklist visit={visit} />
+                <RateOwner visit={visit} onVisit={onVisit} />
+                <FinalReportCard appointmentId={visit.appointmentId} />
                 {obdPending ? (
                     <View className="mt-5">
                         <Text className="font-outfit-bold mx-5" style={{ fontSize: 17, lineHeight: 23, color: OS.text }}>{t(`${k}.obdTitle`)}</Text>
