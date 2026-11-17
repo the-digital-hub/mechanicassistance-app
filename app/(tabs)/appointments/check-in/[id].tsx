@@ -1,6 +1,7 @@
 import { useAppointments } from '@/context/AppointmentsContext';
 import { useSocket } from '@/context/SocketContext';
 import { userDAO } from '@/lib/dao/UserDAO';
+import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { onSiteDAO, OnSiteStep, OnSiteVisit, RedirectReasonId } from '@/lib/dao/OnSiteDAO';
 import { OnSiteCaptureProvider } from '@/components/on-site/MediaSlot';
 import { ScreenDiagnosticsVin } from '@/components/on-site/screens-vin';
@@ -67,6 +68,19 @@ export default function OnSiteFlowScreen() {
     const [loading, setLoading] = React.useState(true);
     const [visit, setVisit] = React.useState<OnSiteVisit | null>(null);
     const [screen, setScreen] = React.useState<Screen>('checkin');
+    // The VIN of the vehicle the owner asked help for, to check the one the mechanic captures against it.
+    const [requestVin, setRequestVin] = React.useState<string | null>(null);
+    React.useEffect(() => {
+        if (!id) return;
+        let cancelled = false;
+        assistanceDAO
+            .getById(id)
+            .then((req) => !cancelled && setRequestVin(req?.vehicle?.vin ?? null))
+            .catch(() => undefined); // no VIN to compare with: the step works as before
+        return () => {
+            cancelled = true;
+        };
+    }, [id]);
     const [doneVariant, setDoneVariant] = React.useState<DoneVariant>('completed');
     const [partsOrder, setPartsOrder] = React.useState<PartsOrder | null>(null);
     const [redirectReason, setRedirectReason] = React.useState<RedirectReason | null>(null);
@@ -211,6 +225,7 @@ export default function OnSiteFlowScreen() {
             body = (
                 <ScreenDiagnosticsVin
                     initial={vinCapture}
+                    requestVin={requestVin}
                     onNext={(capture) => {
                         setVinCapture(capture);
                         void saveVinCapture(id, capture);

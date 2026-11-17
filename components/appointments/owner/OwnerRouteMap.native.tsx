@@ -116,11 +116,11 @@ function RouteMapSheet({ destination, mechanic, route, onClose }: { destination:
                         <Pressable
                             onPress={() => Linking.openURL(googleDirectionsUrl(mechanic, destination))}
                             accessibilityRole="link"
-                            style={[floating, { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 100 }]}
+                            style={[floating, { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, paddingHorizontal: 16, borderRadius: 100 }]}
                             testID="owner-route-map-open-in-maps"
                         >
-                            <Ionicons name="navigate-outline" size={15} color={AO.blue} />
-                            <Text className="font-outfit-bold" style={{ fontSize: 13, color: AO.blue }}>{t('appointments.ownerAccepted.openInMaps')}</Text>
+                            <Ionicons name="navigate-outline" size={20} color={AO.blue} />
+                            <Text className="font-outfit-bold" style={{ fontSize: 16, color: AO.blue }}>{t('appointments.ownerAccepted.openInMaps')}</Text>
                         </Pressable>
                         <Pressable
                             onPress={recenter}
@@ -193,9 +193,9 @@ export function OwnerRouteMap({ destination, mechanic, polyline, height = 190 }:
                         <RouteLayers destination={destination} mechanic={mechanic} route={route} />
                     </MapView>
                 </View>
-                <View style={{ position: 'absolute', right: 8, bottom: 8, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.92)' }}>
-                    <Ionicons name="expand-outline" size={11} color={AO.blue} />
-                    <Text className="font-outfit-bold" style={{ fontSize: 13, color: AO.blue }}>{t('appointments.ownerAccepted.expandMap')}</Text>
+                <View style={{ position: 'absolute', right: 12, bottom: 12, flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, paddingHorizontal: 16, borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.96)', shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.18, shadowRadius: 8, elevation: 3 }}>
+                    <Ionicons name="expand-outline" size={20} color={AO.blue} />
+                    <Text className="font-outfit-bold" style={{ fontSize: 16, color: AO.blue }}>{t('appointments.ownerAccepted.expandMap')}</Text>
                 </View>
             </Pressable>
             <Modal visible={expanded} transparent animationType="fade" statusBarTranslucent onRequestClose={() => setExpanded(false)}>

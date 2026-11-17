@@ -1,15 +1,15 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Animated, Easing, Modal, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Alert, Animated, Easing, Modal, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BRAND_GRADIENT } from '@/components/brand/MeshBackground';
 import type { OnSiteVisit } from '@/lib/dao/OnSiteDAO';
-import { lockPortrait, unlockRotation } from '@/lib/orientation';
+import { lockLandscape, lockPortrait } from '@/lib/orientation';
 import { compareVins, declaredVin, extractVin, isValidVin, normalizeVin, vinCheckDigitOk, type VinCapture } from '@/lib/onsite/vin';
 import { ActionBar, Body, Card, CardTitle, Checkbox, Intro, OS, PrimaryButton, Tip } from './ui';
 
@@ -58,11 +58,10 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
     const handled = React.useRef(false);
     const line = React.useRef(new Animated.Value(0)).current;
 
-    // The app is portrait-only; while the scanner is open the screen may turn with the phone.
-    React.useEffect(() => {
-        unlockRotation();
-        return () => lockPortrait();
-    }, []);
+    // Opens upright, like the rest of the app. Turning it sideways is the mechanic's choice (the button), and
+    // it always goes back upright when the scanner closes, whether a VIN was read or not.
+    React.useEffect(() => () => lockPortrait(), []);
+    const toggleOrientation = () => (landscape ? lockPortrait() : lockLandscape());
 
     React.useEffect(() => {
         const loop = Animated.loop(
@@ -105,10 +104,30 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
             accessibilityRole="button"
             accessibilityLabel={t('appointments.onSite.common.cancel')}
             className="items-center justify-center"
-            style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(255,255,255,0.16)' }}
+            style={{ width: 46, height: 46, borderRadius: 23, backgroundColor: 'rgba(255,255,255,0.18)' }}
         >
             <Ionicons name="close" size={22} color="#FFFFFF" />
         </TouchableOpacity>
+    );
+
+    const rotateButton = (
+        <TouchableOpacity
+            onPress={toggleOrientation}
+            accessibilityRole="button"
+            accessibilityLabel={landscape ? t('appointments.onSite.vin.rotateToPortrait') : t('appointments.onSite.vin.rotateToLandscape')}
+            className="items-center justify-center"
+            style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(255,255,255,0.16)' }}
+            testID="vin-rotate"
+        >
+            <MaterialCommunityIcons name={landscape ? 'phone-rotate-portrait' : 'phone-rotate-landscape'} size={26} color="#FFFFFF" />
+        </TouchableOpacity>
+    );
+
+    const topButtons = (
+        <View className="flex-row items-center justify-between">
+            {closeButton}
+            {rotateButton}
+        </View>
     );
 
     const heading = (
@@ -177,7 +196,7 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
                     <View className="flex-1 flex-row" style={{ paddingTop: insets.top + 16, paddingBottom: insets.bottom + 16, paddingLeft: Math.max(insets.left, 20), paddingRight: Math.max(insets.right, 20), gap: 20 }}>
                         <View style={{ flex: 1, justifyContent: 'space-between' }}>
                             <View>
-                                {closeButton}
+                                {topButtons}
                                 {heading}
                                 {statusPill}
                             </View>
@@ -188,7 +207,7 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
                 ) : (
                     <>
                         <View style={{ paddingTop: insets.top + 10, paddingHorizontal: 20 }}>
-                            {closeButton}
+                            {topButtons}
                             {heading}
                         </View>
                         <View style={{ marginHorizontal: 20, marginTop: 22 }}>{viewfinder}</View>
@@ -230,8 +249,10 @@ function VinScanner({ visible, onClose, onVin }: { visible: boolean; onClose: ()
     );
 }
 
-export function ScreenDiagnosticsVin({ initial, onNext }: {
+export function ScreenDiagnosticsVin({ initial, requestVin, onNext }: {
     initial: VinCapture | null;
+    /** VIN of the vehicle on the request; null when the owner never gave one. */
+    requestVin?: string | null;
     onNext: (capture: VinCapture) => void;
 }) {
     const { t } = useTranslation();
@@ -256,6 +277,16 @@ export function ScreenDiagnosticsVin({ initial, onNext }: {
     const valid = isValidVin(clean);
     const typedSomething = clean.length > 0;
     const blocked = permission !== null && !permission.granted && !permission.canAskAgain;
+    // Once a full VIN is in, it is checked against the vehicle the owner requested help for.
+    const match = valid && !noVin ? compareVins(requestVin, clean) : 'unknown';
+
+    const next = () => onNext({ vin: noVin ? '' : clean, odometer });
+    const confirmDiffer = () => {
+        Alert.alert(t(`${k}.differTitle`), t(`${k}.differBody`, { request: requestVin ?? '', entered: clean }), [
+            { text: t(`${k}.recheck`), style: 'cancel' },
+            { text: t(`${k}.differContinue`), style: 'destructive', onPress: next },
+        ]);
+    };
 
     const openScanner = async () => {
         if (!permission?.granted) {
@@ -325,6 +356,27 @@ export function ScreenDiagnosticsVin({ initial, onNext }: {
 
                 {valid && !vinCheckDigitOk(clean) ? <Tip tone="orange">{t(`${k}.checkDigit`)}</Tip> : null}
 
+                {match === 'match' ? (
+                    <View className="mx-4 mt-3 flex-row items-center gap-2.5 px-4 py-3.5 rounded-2xl" style={{ backgroundColor: OS.greenSoft }} testID="vin-matched">
+                        <Ionicons name="checkmark-circle" size={22} color={OS.greenDark} />
+                        <Text className="flex-1 font-outfit-bold" style={{ fontSize: 15, lineHeight: 21, color: OS.greenDark }}>{t(`${k}.matched`)}</Text>
+                    </View>
+                ) : null}
+                {match === 'differ' ? (
+                    <View className="mx-4 mt-3 px-4 py-3.5 rounded-2xl" style={{ backgroundColor: OS.redSoft }} testID="vin-differs">
+                        <View className="flex-row items-center gap-2.5">
+                            <Ionicons name="alert-circle" size={22} color={OS.red} />
+                            <Text className="flex-1 font-outfit-bold" style={{ fontSize: 15, lineHeight: 21, color: OS.red }}>{t(`${k}.differs`)}</Text>
+                        </View>
+                        <Text className="font-outfit-medium mt-2" style={{ fontSize: 14, lineHeight: 20, color: OS.text }}>
+                            {t(`${k}.cross.request`)}: <Text className="font-outfit-bold" style={{ letterSpacing: 0.8 }}>{normalizeVin(requestVin ?? '')}</Text>
+                        </Text>
+                        <Text className="font-outfit-medium mt-0.5" style={{ fontSize: 14, lineHeight: 20, color: OS.text }}>
+                            {t(`${k}.cross.mine`)}: <Text className="font-outfit-bold" style={{ letterSpacing: 0.8 }}>{clean}</Text>
+                        </Text>
+                    </View>
+                ) : null}
+
                 <Card style={{ padding: 16 }}>
                     <CardTitle title={t(`${k}.odometer`)} optional />
                     <View className="flex-row items-center" style={{ borderWidth: 1.5, borderColor: OS.border, borderRadius: 14, backgroundColor: OS.page, paddingHorizontal: 14 }}>
@@ -366,7 +418,7 @@ export function ScreenDiagnosticsVin({ initial, onNext }: {
             <ActionBar>
                 <PrimaryButton
                     label={t('appointments.onSite.common.continue')}
-                    onPress={() => onNext({ vin: noVin ? '' : clean, odometer })}
+                    onPress={match === 'differ' ? confirmDiffer : next}
                     disabled={!(valid || noVin)}
                     testID="vin-continue"
                 />

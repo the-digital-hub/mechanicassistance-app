@@ -1,7 +1,7 @@
 import type * as ScreenOrientation from 'expo-screen-orientation';
 
-// The app is portrait-only; the VIN scanner is the one place that follows how the phone is held
-// (people often scan a wide barcode with the phone on its side).
+// The app is portrait-only; the VIN scanner can be turned sideways on request (a button), since a wide
+// barcode is easier to frame with the phone on its side. It always goes back upright afterwards.
 //
 // Loaded defensively: a build made before expo-screen-orientation was added (an old dev client) has no
 // native module, and importing it would take the whole app down. Without it these calls do nothing.
@@ -18,7 +18,7 @@ export function lockPortrait(): void {
     module?.lockAsync(module.OrientationLock.PORTRAIT_UP).catch(() => undefined);
 }
 
-/** Let the screen follow the phone: portrait or either landscape. */
-export function unlockRotation(): void {
-    module?.unlockAsync().catch(() => undefined);
+/** Turn the screen sideways (either landscape, whichever way the phone is held). */
+export function lockLandscape(): void {
+    module?.lockAsync(module.OrientationLock.LANDSCAPE).catch(() => undefined);
 }

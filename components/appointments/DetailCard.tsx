@@ -39,7 +39,6 @@ export function DetailRow({ icon, label, value, last, action }: DetailRowProps) 
     return (
         <View
             className={`flex-row px-5 py-4 ${action ? 'items-start' : 'items-center'}`}
-            onLayout={(e) => console.log("[ROWH] DetailRow", label, e.nativeEvent.layout.height)}
             style={[{ minHeight: 77 }, last ? undefined : { borderBottomWidth: 1, borderBottomColor: '#EEF2FA' }]}
         >
             <View
@@ -61,10 +60,10 @@ export function DetailRow({ icon, label, value, last, action }: DetailRowProps) 
                         activeOpacity={0.7}
                         accessibilityRole="button"
                         className="flex-row items-center self-start"
-                        style={{ gap: 6, marginTop: 10, minHeight: 36, paddingHorizontal: 14, borderRadius: 100, backgroundColor: '#EAF1FF' }}
+                        style={{ gap: 8, marginTop: 12, minHeight: 44, paddingHorizontal: 16, borderRadius: 100, backgroundColor: '#EAF1FF' }}
                     >
-                        <Ionicons name={action.icon} size={16} color="#1E56E3" />
-                        <Text className="font-outfit-bold" style={{ fontSize: 14, color: '#1E56E3' }}>{action.label}</Text>
+                        <Ionicons name={action.icon} size={20} color="#1E56E3" />
+                        <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#1E56E3' }}>{action.label}</Text>
                     </TouchableOpacity>
                 ) : null}
             </View>

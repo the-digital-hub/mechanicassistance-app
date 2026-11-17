@@ -1410,7 +1410,15 @@
         "tipLight": "Tilt the phone if there's glare, or turn on a light",
         "typeInstead": "Type the VIN instead",
         "skipSub": "You can still add the odometer reading.",
-        "skipWarn": "Without the VIN we can't check the vehicle against the request."
+        "skipWarn": "Without the VIN we can't check the vehicle against the request.",
+        "rotateToLandscape": "Rotate to landscape",
+        "rotateToPortrait": "Back to portrait",
+        "matched": "Matched: this is the vehicle on the request.",
+        "differs": "This VIN doesn't match the vehicle on the request.",
+        "differTitle": "VIN doesn't match",
+        "differBody": "The request says {{request}} and you entered {{entered}}.\n\nCheck you are working on the right vehicle and that the VIN is typed correctly.",
+        "recheck": "Check again",
+        "differContinue": "Continue anyway"
       }
     },
     "customerCheckIn": {

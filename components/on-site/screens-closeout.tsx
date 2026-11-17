@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Animated, Text, TouchableOpacity, View } from 'react-native';
 import { onSiteDAO, OnSiteVisit } from '@/lib/dao/OnSiteDAO';
 import { ObdPanel } from './ObdPanel';
-import { ActionBar, Body, Card, NoteInput, OS, PrimaryButton, cardShadow } from './ui';
+import { Body, Card, NoteInput, OS, PrimaryButton, cardShadow } from './ui';
 
 // The last screen of the on-site flow, after "Finish Service" (design:
 // "Assistance Closeout"). Confirms the charge was requested, shows the payout
@@ -101,9 +101,9 @@ function Payout({ visit }: { visit: OnSiteVisit }) {
     const settled = visit.payoutStatus === 'settled';
     const payoutDate = visit.fundsTransferredAt ?? visit.estimatedPayoutAt;
     const dateLabel = settled ? t(`${k}.arrivedOn`) : visit.payoutStatus ? t(`${k}.arrivesBy`) : t(`${k}.arrivesByEst`);
-    const steps = [
+    const steps: { label: string; state: 'done' | 'active' | 'pending' }[] = [
         { label: t(`${k}.stepRequested`), state: 'done' as const },
-        { label: t(`${k}.stepReview`), state: visit.ownerReviewSubmitted ? ('done' as const) : ('active' as const) },
+        ...(visit.ownerReviewSubmitted ? [{ label: t(`${k}.stepReview`), state: 'done' as const }] : []),
         { label: t(`${k}.stepFunds`), state: settled ? ('done' as const) : ('pending' as const) },
     ];
     return (
@@ -156,82 +156,6 @@ function Payout({ visit }: { visit: OnSiteVisit }) {
                 ))}
             </View>
             <Text className="font-outfit-regular mt-3" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>{t(`${k}.payoutNote`)}</Text>
-        </Card>
-    );
-}
-
-// ─────────── Ask the owner for a review ───────────
-function ReviewRequest({ visit, onVisit }: { visit: OnSiteVisit; onVisit: (v: OnSiteVisit) => void }) {
-    const { t } = useTranslation();
-    const k = 'appointments.closeout';
-    const fmt = useFormatters();
-    const [sending, setSending] = React.useState(false);
-    const [retryAt, setRetryAt] = React.useState<string | null>(null);
-
-    const requestedAt = visit.reviewRequestedAt ? new Date(visit.reviewRequestedAt).getTime() : null;
-    const nextAllowed = retryAt
-        ? new Date(retryAt).getTime()
-        : requestedAt !== null
-            ? requestedAt + REVIEW_COOLDOWN_MS
-            : null;
-    const canAsk = nextAllowed === null || Date.now() >= nextAllowed;
-
-    const send = async () => {
-        setSending(true);
-        try {
-            const result = await onSiteDAO.requestOwnerReview(visit.appointmentId);
-            if (result.ok) onVisit(result.visit);
-            else setRetryAt(result.retryAt);
-        } catch {
-            Alert.alert(t('appointments.onSite.common.error'));
-        } finally {
-            setSending(false);
-        }
-    };
-
-    return (
-        <Card>
-            <View className="flex-row items-center gap-2.5 px-4 pt-4 pb-1">
-                <View className="items-center justify-center" style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: OS.orangeSoft }}>
-                    <Ionicons name="star-outline" size={20} color={OS.orange} />
-                </View>
-                <Text className="flex-1 font-outfit-bold" style={{ fontSize: 17, lineHeight: 23, color: OS.text }}>{t(`${k}.reviewTitle`)}</Text>
-            </View>
-            <Text className="font-outfit-regular px-4 pt-1.5 pb-4" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>{t(`${k}.reviewBody`)}</Text>
-            <View className="px-4 pb-4">
-                {visit.ownerReviewSubmitted ? (
-                    <View className="flex-row items-center gap-2.5 px-3.5 py-3 rounded-xl" style={{ backgroundColor: OS.greenSoft }}>
-                        <Ionicons name="checkmark-circle" size={20} color={OS.green} />
-                        <Text className="flex-1 font-outfit-bold" style={{ fontSize: 14, lineHeight: 20, color: OS.greenDark }}>{t(`${k}.reviewReceived`)}</Text>
-                    </View>
-                ) : requestedAt !== null && !canAsk ? (
-                    <View className="px-3.5 py-3 rounded-xl" style={{ backgroundColor: OS.greenSoft }}>
-                        <View className="flex-row items-center gap-2.5">
-                            <PulseDot size={8} color={OS.green} />
-                            <Text className="flex-1 font-outfit-bold" style={{ fontSize: 14, lineHeight: 20, color: OS.greenDark }}>{t(`${k}.reviewSent`)}</Text>
-                        </View>
-                        {nextAllowed ? (
-                            <Text className="font-outfit-medium mt-1.5" style={{ fontSize: 14, lineHeight: 20, color: OS.greenDark }}>
-                                {t(`${k}.reviewAgainAt`, { time: `${fmt.date(new Date(nextAllowed).toISOString())} ${fmt.time(new Date(nextAllowed).toISOString())}` })}
-                            </Text>
-                        ) : null}
-                    </View>
-                ) : (
-                    <TouchableOpacity
-                        onPress={() => void send()}
-                        disabled={sending}
-                        activeOpacity={0.85}
-                        className="flex-row items-center justify-center gap-2"
-                        style={{ minHeight: 52, borderRadius: 14, backgroundColor: OS.blue, opacity: sending ? 0.7 : 1 }}
-                        testID="closeout-request-review"
-                    >
-                        {sending ? <ActivityIndicator color="#FFFFFF" /> : <Ionicons name="chatbubble-outline" size={18} color="#FFFFFF" />}
-                        <Text className="text-white font-outfit-bold" style={{ fontSize: 16, lineHeight: 22 }}>
-                            {requestedAt !== null ? t(`${k}.reviewResend`) : t(`${k}.reviewSend`)}
-                        </Text>
-                    </TouchableOpacity>
-                )}
-            </View>
         </Card>
     );
 }
@@ -308,9 +232,7 @@ function Checklist({ visit }: { visit: OnSiteVisit }) {
     const items = [
         { label: t(`${k}.itemDiagnosis`), done: visit.obdStatus === 'ready' || visit.obdStatus === 'manual' },
         { label: t(`${k}.itemPayment`), done: !!visit.closedAt },
-        visit.ownerReviewSubmitted
-            ? { label: t(`${k}.itemReviewReceived`), done: true }
-            : { label: t(`${k}.itemReviewRequested`), done: !!visit.reviewRequestedAt },
+        ...(visit.ownerReviewSubmitted ? [{ label: t(`${k}.itemReviewReceived`), done: true }] : []),
         { label: t(`${k}.itemFunds`), done: visit.payoutStatus === 'settled' },
     ];
     const doneCount = items.filter((i) => i.done).length;
@@ -354,7 +276,6 @@ export function ScreenCloseout({ visit, onVisit, onBackToDashboard }: {
             <Body>
                 <Hero redirected={visit.outcome === 'redirected'} />
                 <Payout visit={visit} />
-                <ReviewRequest visit={visit} onVisit={onVisit} />
                 <RateOwner visit={visit} onVisit={onVisit} />
                 <Checklist visit={visit} />
                 {obdPending ? (
@@ -366,10 +287,11 @@ export function ScreenCloseout({ visit, onVisit, onBackToDashboard }: {
                 <Text className="font-outfit-regular text-center mx-5 mt-5" style={{ fontSize: 14, lineHeight: 20, color: visit.closeoutCompletedAt ? OS.greenDark : OS.muted }}>
                     {visit.closeoutCompletedAt ? t(`${k}.footerClosed`) : t(`${k}.footer`)}
                 </Text>
+                {/* Part of the page, not a fixed bar: nothing here is required to leave. */}
+                <View className="flex-row mx-4 mt-4 mb-6">
+                    <PrimaryButton label={t(`${k}.back`)} onPress={onBackToDashboard} testID="closeout-back" />
+                </View>
             </Body>
-            <ActionBar>
-                <PrimaryButton label={t(`${k}.back`)} onPress={onBackToDashboard} testID="closeout-back" />
-            </ActionBar>
         </>
     );
 }

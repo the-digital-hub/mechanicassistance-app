@@ -1411,7 +1411,15 @@
         "tipLight": "Inclinalo si hay reflejo, o prendé una luz",
         "typeInstead": "Escribir el VIN a mano",
         "skipSub": "Igual podés cargar el kilometraje del odómetro.",
-        "skipWarn": "Sin el VIN no podemos verificar el vehículo contra el pedido."
+        "skipWarn": "Sin el VIN no podemos verificar el vehículo contra el pedido.",
+        "rotateToLandscape": "Girar a horizontal",
+        "rotateToPortrait": "Volver a vertical",
+        "matched": "Coincide: es el vehículo del pedido.",
+        "differs": "Este VIN no coincide con el vehículo del pedido.",
+        "differTitle": "El VIN no coincide",
+        "differBody": "El pedido indica {{request}} y cargaste {{entered}}.\n\nRevisá que sea el vehículo correcto y que el VIN esté bien escrito.",
+        "recheck": "Revisar de nuevo",
+        "differContinue": "Continuar igual"
       }
     },
     "customerCheckIn": {
