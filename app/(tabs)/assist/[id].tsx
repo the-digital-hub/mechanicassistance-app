@@ -156,21 +156,27 @@ export default function RequestDetailScreen() {
     const hasLocation = !isNaN(reqLat) && !isNaN(reqLng);
 
     const [showConfirm, setShowConfirm] = useState(false);
-    // How long the call lasts, from the hub's settings; the fallback covers older backends and offline.
-    const [callMinutes, setCallMinutes] = useState(DEFAULT_CALL_MINUTES);
+    // How long the call lasts: what the owner chose (`durationMinutes` on the request), else the
+    // hub's default; the fallback covers older requests, older backends and offline.
+    const [loadedMinutes, setLoadedMinutes] = useState<number | null>(null);
+    const chosenMinutes = Number(field('durationMinutes')) || loadedMinutes;
+    const [defaultMinutes, setDefaultMinutes] = useState(DEFAULT_CALL_MINUTES);
     useEffect(() => {
-        if (!isVideo) return;
+        if (!isVideo || chosenMinutes) return;
         let mounted = true;
-        videoCallDAO
-            .getNow()
+        const requestId = String(Array.isArray(id) ? id[0] : id);
+        assistanceDAO
+            .getById(requestId)
             .then((r) => {
-                if (mounted && r?.baseMinutes) setCallMinutes(r.baseMinutes);
+                if (mounted && r?.durationMinutes) setLoadedMinutes(r.durationMinutes);
+                else return videoCallDAO.getNow().then((n) => { if (mounted && n?.baseMinutes) setDefaultMinutes(n.baseMinutes); });
             })
             .catch((err) => console.warn('[assist] call length failed; using default', err));
         return () => {
             mounted = false;
         };
-    }, [isVideo]);
+    }, [isVideo, chosenMinutes, id]);
+    const callMinutes = chosenMinutes ?? defaultMinutes;
     const [submitting, setSubmitting] = useState(false);
     const [declining, setDeclining] = useState(false);
     const [etaText, setEtaText] = useState<string | null>(null);
@@ -381,8 +387,15 @@ export default function RequestDetailScreen() {
                                 <DollarSign size={20} color="#0047AB" />
                             </View>
                             <View className="flex-1">
-                                <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">{t('requestDetail.budget')}</Text>
-                                <Text className="font-outfit-bold text-base text-gray-900">{price ? `$${price}` : budget}</Text>
+                                <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">{t(isVideo ? 'requestDetail.videoPrice' : 'requestDetail.budget')}</Text>
+                                <Text className="font-outfit-bold text-base text-gray-900">
+                                    {isVideo && fetched?.providerBreakdown?.total
+                                        ? `$${fetched.providerBreakdown.total}`
+                                        : price ? `$${price}` : budget}
+                                </Text>
+                                {isVideo ? (
+                                    <Text className="font-outfit-regular text-sm text-gray-500 mt-1">{t('requestDetail.videoPriceNote')}</Text>
+                                ) : null}
                             </View>
                         </View>
 
@@ -622,14 +635,14 @@ export default function RequestDetailScreen() {
                 onConfirm={handleConfirmAccept}
                 icon={HelpCircle}
                 iconColor="#1E56E3"
-                title={t('requestDetail.confirmOfferTitle')}
+                title={t(isVideo ? 'requestDetail.confirmVideoTitle' : 'requestDetail.confirmOfferTitle')}
                 message={isVideo
-                    ? t('requestDetail.confirmOfferVideoCall', { title })
+                    ? t('requestDetail.confirmVideoCall', { title })
                     : isImmediate
                     ? t('requestDetail.confirmOfferImmediate', { title })
                     : t('requestDetail.confirmOfferScheduled', { date: selectedDate, time: selectedTime })
                 }
-                confirmText={submitting ? t('requestDetail.sendingOffer') : t('requestDetail.confirmOffer')}
+                confirmText={submitting ? t('requestDetail.sendingOffer') : t(isVideo ? 'requestDetail.confirmVideo' : 'requestDetail.confirmOffer')}
                 cancelText={t('requestDetail.cancel')}
             />
         </View>

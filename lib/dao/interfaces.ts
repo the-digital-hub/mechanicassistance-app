@@ -112,6 +112,8 @@ export interface AssistanceRequest {
     date?: string;
     /** Video calls only: asked for "now" rather than booked; the server dates it. */
     startNow?: boolean;
+    /** Video calls only: minutes the owner chose (15/30/45). Null/absent on older requests: the default applies. */
+    durationMinutes?: number | null;
     userId?: string;
     mechanicId?: string;
     status?: 'pending' | 'accepted' | 'cancelled' | 'canceled' | 'offered';
@@ -783,6 +785,8 @@ export interface CalculatePricePayload {
     service_at?: string;
     /** IANA zone of the phone; prices a video call (no location) in its local time band. */
     timezone?: string;
+    /** Video call: the length the owner chose; it picks the base price (15/30/45 → 60/70/80). */
+    duration_minutes?: number;
 }
 
 /** Body for POST /api/pricing/requests/:serviceRequestId/price. */
@@ -800,6 +804,8 @@ export interface PersistRequestPricePayload {
     service_at?: string;
     /** IANA zone of the phone; prices a video call (no location) in its local time band. */
     timezone?: string;
+    /** Video call: the length the owner chose. Same value as the quote. */
+    duration_minutes?: number;
 }
 
 /** A vehicle issue previously persisted for a request (GET /api/pricing/requests/:id/issues). */

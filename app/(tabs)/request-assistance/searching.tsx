@@ -7,7 +7,8 @@ import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { Ionicons } from '@expo/vector-icons';
 import { useIsFocused } from '@react-navigation/native';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { ChevronLeft, Clock, Zap, Car, MapPin, DollarSign } from 'lucide-react-native';
+import { ChevronLeft, Clock, Zap, Car, MapPin, DollarSign, Timer } from 'lucide-react-native';
+import { formatMoney } from '@/lib/payments/paymentSource';
 import { AssistanceRequest } from '@/lib/dao/interfaces';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -30,7 +31,9 @@ export default function SearchingScreen() {
     const STEPS = [
         { title: t('requestAssistance.searching.step1Title'), subtitle: t('requestAssistance.searching.step1Subtitle') },
         { title: t('requestAssistance.searching.step2Title'), subtitle: t('requestAssistance.searching.step2Subtitle') },
-        { title: t('requestAssistance.searching.step3Title'), subtitle: t('requestAssistance.searching.step3Subtitle') },
+        type === 'videocall'
+            ? { title: t('requestAssistance.searching.step3VideoTitle'), subtitle: t('requestAssistance.searching.step3VideoSubtitle') }
+            : { title: t('requestAssistance.searching.step3Title'), subtitle: t('requestAssistance.searching.step3Subtitle') },
     ];
 
     const [spinValue] = useState(new Animated.Value(0));
@@ -389,6 +392,18 @@ export default function SearchingScreen() {
                         <Text className="flex-1 text-right font-outfit-semibold text-base text-gray-900" numberOfLines={1}>{requestData?.car || '—'}</Text>
                     </View>
 
+                    {/* Video call: no location; how long it lasts */}
+                    {type === 'videocall' ? (
+                    <View className="flex-row items-center px-5 py-4 border-b border-gray-100">
+                        <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
+                            <Timer size={20} color="#0047AB" />
+                        </View>
+                        <Text className="font-outfit-medium text-base text-gray-500">{t('requestAssistance.searching.duration')}</Text>
+                        <Text className="flex-1 text-right font-outfit-semibold text-base text-gray-900" numberOfLines={1}>{requestData?.durationMinutes ? t('requestAssistance.when.durationValue', { count: requestData.durationMinutes }) : '—'}</Text>
+                    </View>
+
+                    ) : (
+                    <>
                     {/* Location */}
                     <View className="flex-row items-center px-5 py-4 border-b border-gray-100">
                         <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
@@ -398,13 +413,16 @@ export default function SearchingScreen() {
                         <Text className="flex-1 text-right font-outfit-semibold text-base text-gray-900" numberOfLines={1}>{requestData?.address || '—'}</Text>
                     </View>
 
+                    </>
+                    )}
+
                     {/* Budget */}
                     <View className="flex-row items-center px-5 py-4">
                         <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
                             <DollarSign size={20} color="#0047AB" />
                         </View>
                         <Text className="font-outfit-medium text-base text-gray-500">{t('requestAssistance.searching.budget')}</Text>
-                        <Text className="flex-1 text-right font-outfit-semibold text-base text-gray-900" numberOfLines={1}>{requestData?.budget || '—'}</Text>
+                        <Text className="flex-1 text-right font-outfit-semibold text-base text-gray-900" numberOfLines={1}>{type === 'videocall' && Number(requestData?.price) > 0 ? formatMoney(requestData?.price) : requestData?.budget || '—'}</Text>
                     </View>
                 </View>
 

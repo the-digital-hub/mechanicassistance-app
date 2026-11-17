@@ -32,6 +32,13 @@ export function isCancelledStatus(status?: string | null): boolean {
 /** Confirmed work that is not over yet — shown as active, never as past. */
 export const IN_FLIGHT_STATUSES: AppointmentStatus[] = ['scheduled', 'accepted', 'started', 'in_progress', 'awaiting_confirmation', 'disputed'];
 
+/** "$70.00" for a priced video call; null for anything else or while it has no price. */
+function videoCallBudget(req: AssistanceRequest, forMechanic: boolean): string | null {
+    if (req.type !== 'videocall' && req.assistanceType !== 'videocall') return null;
+    const amount = Number((forMechanic ? req.providerBreakdown?.total : null) ?? req.price);
+    return Number.isFinite(amount) && amount > 0 ? `$${amount.toFixed(2)}` : null;
+}
+
 export interface AdditionalFunds {
     amount: string;
     type: string;
@@ -195,7 +202,9 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                     car: req.car,
                     address: req.address,
                     notes: req.notes,
-                    budget: req.budget,
+                    // A video call is priced when it is requested (nobody quotes it): the owner sees
+                    // that price, the technician what they would earn (else the same price).
+                    budget: videoCallBudget(req, user?.role === 'mechanic') ?? req.budget,
                     status: (req.status as AppointmentStatus) || 'pending',
                     startNow: req.startNow,
                     userId: req.userId,

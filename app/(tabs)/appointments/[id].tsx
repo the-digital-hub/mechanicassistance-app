@@ -58,13 +58,14 @@ import { goBackOr } from '@/lib/navigation/goBackOr';
 import React from 'react';
 import { AttachmentStrip } from '@/components/appointments/AttachmentStrip';
 import { OnSiteDialog } from '@/components/on-site/ui';
+import { useMessageDialog } from '@/components/ui/useMessageDialog';
 import { RequestObdPanel, useRequestObd } from '@/components/video/RequestObdPanel';
 import { RequestVinCheckModal } from '@/components/video/RequestVinCheckModal';
 import { useVisitObdVinCheck } from '@/hooks/useRequestObdVinCheck';
 import { parseAttachments } from '@/lib/media/attachments';
 import { usePaymentCards } from '@/lib/payments/usePaymentCards';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Dimensions, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Dimensions, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -213,6 +214,7 @@ export default function AppointmentDetailScreen() {
     // Owner only: the paid "Add time" sheet.
     const [showExtendSheet, setShowExtendSheet] = React.useState(false);
     const [videoBusy, setVideoBusy] = React.useState(false);
+    const { notify, dialog: messageDialog } = useMessageDialog();
     const [finishAskOpen, setFinishAskOpen] = React.useState(false);
     const [videoErrorMsg, setVideoErrorMsg] = React.useState<string | null>(null);
     const [showDisputeSheet, setShowDisputeSheet] = React.useState(false);
@@ -498,12 +500,12 @@ export default function AppointmentDetailScreen() {
     const submitClientReview = () => {
         if (reviewSending.current || isReviewSubmitted) return;
         if (rating < 1) {
-            Alert.alert(t('appointments.clientReview.pickStars'));
+            void notify(t('appointments.clientReview.title'), t('appointments.clientReview.pickStars'), 'blue');
             return;
         }
         // A video call can be rated once it is completed.
         if (isVideoCall && videoStatus !== 'completed') {
-            Alert.alert(t('appointments.videoCall.mechanic.reviewAfterCompleted'));
+            void notify(t('appointments.clientReview.title'), t('appointments.videoCall.mechanic.reviewAfterCompleted'), 'blue');
             return;
         }
         reviewSending.current = true;
@@ -609,6 +611,7 @@ export default function AppointmentDetailScreen() {
             testID="appointment-detail-root"
             nativeID="appointment-detail-root"
         >
+            {messageDialog}
             <OnSiteDialog
                 visible={finishAskOpen}
                 tone="blue"

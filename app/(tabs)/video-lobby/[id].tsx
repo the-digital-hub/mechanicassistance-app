@@ -4,6 +4,7 @@ import { useUser } from '@/context/UserContext';
 import { apiClient } from '@/lib/api/apiClient';
 import { ApiError } from '@/lib/api/types';
 import { userDAO } from '@/lib/dao/UserDAO';
+import { useMessageDialog } from '@/components/ui/useMessageDialog';
 import { useVideoCallState } from '@/hooks/useVideoCallState';
 import { DEFAULT_CALL_MINUTES } from '@/lib/video/callLength';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,7 +14,6 @@ import { goBackOr } from '@/lib/navigation/goBackOr';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
     ActivityIndicator,
-    Alert,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -34,6 +34,7 @@ export default function VideoLobbyScreen() {
     const { getAppointmentById, refresh } = useAppointments();
     const { lastMessage } = useSocket();
     const { t } = useTranslation();
+    const { notify, dialog } = useMessageDialog();
 
     const appointmentId = Array.isArray(id) ? id[0] : id || '';
     const { state: callState } = useVideoCallState(appointmentId || undefined, !!appointmentId);
@@ -104,7 +105,7 @@ export default function VideoLobbyScreen() {
                 // 404 = no room yet, that's fine. 401/403 will not change by
                 // polling: say so instead of waiting forever.
                 if (e instanceof ApiError && (e.statusCode === 401 || e.statusCode === 403)) {
-                    Alert.alert('Error', 'You are not on this appointment, so you cannot join its video call.');
+                    void notify(t('videoCall.lobby.errorTitle'), t('videoCall.lobby.notOnAppointment'));
                     return true; // Stop polling
                 }
             } finally {
@@ -161,11 +162,11 @@ export default function VideoLobbyScreen() {
             });
         } catch (error) {
             console.error('Failed to create video room:', error);
-            Alert.alert('Error', 'Failed to start video call. Please try again.');
+            void notify(t('videoCall.lobby.errorTitle'), t('videoCall.lobby.startFailed'));
         } finally {
             setIsCreatingRoom(false);
         }
-    }, [appointmentId, router, participantName, participantRole]);
+    }, [appointmentId, router, participantName, participantRole, notify, t]);
 
     const handleJoinCall = useCallback(async () => {
         if (!roomUrl) return;
@@ -174,7 +175,7 @@ export default function VideoLobbyScreen() {
                 `/api/video-room/${appointmentId}?participantName=${encodeURIComponent(participantName)}&role=${participantRole}`
             );
             if (!data.token) {
-                Alert.alert('Error', 'The video room has expired. Please ask the user to start a new call.');
+                void notify(t('videoCall.lobby.errorTitle'), t('videoCall.lobby.roomExpired'));
                 return;
             }
             router.push({
@@ -183,9 +184,9 @@ export default function VideoLobbyScreen() {
             });
         } catch (error) {
             console.error('Failed to join video call:', error);
-            Alert.alert('Error', 'Failed to join video call. Please try again.');
+            void notify(t('videoCall.lobby.errorTitle'), t('videoCall.lobby.joinFailed'));
         }
-    }, [roomUrl, appointmentId, router, participantName, participantRole]);
+    }, [roomUrl, appointmentId, router, participantName, participantRole, notify, t]);
 
     if (!appointment) {
         return (
@@ -203,6 +204,7 @@ export default function VideoLobbyScreen() {
     if (isCheckingRoom) {
         return (
             <View style={styles.container}>
+                {dialog}
                 <View style={styles.centerContent}>
                     <ActivityIndicator size="large" color="#0047AB" />
                     <Text style={styles.loadingText}>Checking video room...</Text>
@@ -213,6 +215,7 @@ export default function VideoLobbyScreen() {
 
     return (
         <View style={styles.container}>
+            {dialog}
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => goBackOr(router, { pathname: '/appointments/[id]', params: { id: appointmentId } })} hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}>

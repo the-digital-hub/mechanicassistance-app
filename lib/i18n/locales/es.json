@@ -408,7 +408,9 @@
       "lastName": "APELLIDO",
       "lastNamePlaceholder": "Pérez",
       "phone": "TELÉFONO",
-      "phonePlaceholder": "(305) 555-0100"
+      "phonePlaceholder": "(305) 555-0100",
+      "whoJoinsCall": "¿Quién va a atender la videollamada?",
+      "iAmVideo": "Yo"
     },
     "issueSelection": {
       "title": "Indicá el problema",
@@ -584,7 +586,10 @@
         "uploadPlaceholder": "Adjuntá el reporte correcto",
         "cancel": "Cancelar solicitud"
       },
-      "mechanicsNotified_other": "{{count}} mecánicos notificados"
+      "mechanicsNotified_other": "{{count}} mecánicos notificados",
+      "step3VideoTitle": "Esperando a un técnico",
+      "step3VideoSubtitle": "Un técnico va a tomar tu llamada. El precio ya está definido.",
+      "duration": "Duración"
     },
     "mechanicFound": {
       "errorTitle": "Error",
@@ -679,9 +684,9 @@
     },
     "when": {
       "headerTitle": "Videollamada",
-      "badge": "CUÁNDO",
-      "title": "¿Cuándo la necesitás?",
-      "subtitle": "Hablá con un técnico ahora mismo, o reservá un horario que te quede cómodo.",
+      "badge": "TU LLAMADA",
+      "title": "Planificá tu videollamada",
+      "subtitle": "Elegí cuánto tiempo necesitás y después hablá con un técnico ahora o reservá un horario.",
       "nowTitle": "Ahora",
       "online_one": "{{count}} en línea",
       "online_other": "{{count}} en línea",
@@ -698,10 +703,11 @@
       "periods": {
         "morning": "Mañana",
         "afternoon": "Tarde",
-        "evening": "Noche"
+        "evening": "Noche",
+        "night": "Madrugada"
       },
-      "noSlots": "No quedan horarios este día. Elegí otro día.",
-      "footnote": "Horarios en tu hora local ({{zone}}). Los tachados ya están tomados.",
+      "noSlots": "No hay horarios este día. Elegí otro día.",
+      "footnote": "Horarios en tu hora local ({{zone}}).",
       "summary": "Resumen",
       "service": "Servicio",
       "whenLabel": "Cuándo",
@@ -712,18 +718,34 @@
       "duration": "Duración",
       "durationValue_one": "{{count}} min",
       "durationValue_other": "{{count}} min",
-      "durationNote_one": "La llamada dura {{count}} minuto. Si necesitás más tiempo, podés extenderla durante la llamada.",
-      "durationNote_other": "La llamada dura {{count}} minutos. Si necesitás más tiempo, podés extenderla durante la llamada.",
+      "durationNote_one": "La llamada dura {{count}} minuto. Si necesitás más tiempo, podés sumarlo durante la llamada.",
+      "durationNote_other": "La llamada dura {{count}} minutos. Si necesitás más tiempo, podés sumarlo durante la llamada.",
       "pickTime": "Elegí un horario",
       "price": "Precio",
       "priceTbd": "A definir",
       "ctaNow": "Confirmar y solicitar",
       "ctaSchedule": "Agendar para las {{time}}",
       "ctaPickTime": "Elegí un horario para seguir",
-      "loadFailed": "No pudimos cargar los horarios disponibles.",
+      "loadFailed": "No pudimos cargar los horarios.",
       "retry": "Reintentar",
       "slotGoneTitle": "Ese horario se acaba de ocupar",
-      "slotGoneMessage": "Alguien lo reservó hace un momento. Elegí otro horario."
+      "slotGoneMessage": "Alguien lo reservó hace un momento. Elegí otro horario.",
+      "durationLabel": "Duración de la llamada",
+      "durationTitle": "¿Cuánto tiempo necesitás?",
+      "durationHint": "Es lo que dura la llamada. Podés sumar más tiempo durante la llamada.",
+      "durationPriceNote": "Precio base. El precio final puede incluir un recargo por horario e impuestos.",
+      "durationMin": "min",
+      "durationRequired": "Elegí la duración de la llamada para seguir",
+      "ctaPickDuration": "Elegí la duración",
+      "whenLabelSection": "Cuándo",
+      "rangeLabel": "Franja horaria",
+      "pickRange": "Elegí una franja horaria",
+      "durationUnset": "Sin elegir",
+      "priceUnset": "Elegí la duración",
+      "priceNote": "El precio puede incluir un recargo por horario e impuestos.",
+      "durationMinutes": "minutos",
+      "onlineBadge": "Disponibles ahora",
+      "nowSubtitleSoft": "Suele conectar en pocos minutos"
     },
     "cardRequired": {
       "title": "Agregá una tarjeta",
@@ -1855,7 +1877,12 @@
     "videoCallNow": "Ahora",
     "videoCallDuration_one": "Llamada de {{count}} min · el cliente puede extenderla",
     "videoCallDuration_other": "Llamada de {{count}} min · el cliente puede extenderla",
-    "confirmOfferVideoCall": "Vas a ofrecer una videollamada para {{title}}. El cliente todavía tiene que aceptarla."
+    "confirmOfferVideoCall": "Vas a ofrecer una videollamada para {{title}}. El cliente todavía tiene que aceptarla.",
+    "videoPrice": "PRECIO",
+    "videoPriceNote": "Precio fijo, definido cuando el cliente pidió la llamada. Solo aceptás si querés tomarla.",
+    "confirmVideoTitle": "¿Tomar esta videollamada?",
+    "confirmVideoCall": "Vas a tomar la videollamada de {{title}} al precio indicado. El cliente todavía tiene que confirmarla.",
+    "confirmVideo": "Tomar la llamada"
   },
   "personalInfo": {
     "uploadFailedTitle": "Error al subir",
@@ -2841,7 +2868,8 @@
       "permissionMessage": "Permití el acceso a la ubicación en los ajustes para que podamos mostrarte asistencia cerca tuyo.",
       "openSettings": "Abrir ajustes",
       "notNow": "Ahora no"
-    }
+    },
+    "ok": "Entendido"
   },
   "vehicleColors": {
     "white": "Blanco",
@@ -2897,10 +2925,29 @@
       "notOwner": "Solo el cliente puede agregar tiempo a la llamada.",
       "failed": "No se pudo agregar el tiempo. Intentá de nuevo.",
       "addedByOwner": "El cliente agregó {{minutes}} minutos a la llamada",
-      "addedBySelf": "Agregaste {{minutes}} minutos a la llamada"
+      "addedBySelf": "Agregaste {{minutes}} minutos a la llamada",
+      "waitingOwner": "Esperando al técnico…",
+      "waitingOwnerHint": "Tiene que aceptar el tiempo extra. No se cobra nada hasta que lo haga.",
+      "requestedTitle": "El cliente pide {{minutes}} minutos más",
+      "requestedHint": "Aceptá para sumar el tiempo a la llamada.",
+      "accept": "Aceptar",
+      "decline": "Rechazar",
+      "acting": "Un momento…",
+      "answerFailed": "No pudimos enviar tu respuesta. Probá de nuevo.",
+      "answerExpired": "Esta solicitud ya venció.",
+      "outcomeTitle": "Tiempo extra",
+      "outcomeDeclined": "El técnico rechazó el tiempo extra. Podés pedirlo de nuevo.",
+      "outcomeExpired": "El técnico no respondió a tiempo, así que no se sumó ni se cobró nada. Podés pedirlo de nuevo.",
+      "outcomeFailed": "No pudimos retener el pago, así que no se sumó tiempo. Elegí otro medio de pago y pedilo de nuevo.",
+      "pendingSheet": "Ya pediste tiempo extra. Esperá la respuesta del técnico."
     },
     "lobby": {
-      "footer": "Las videollamadas duran {{minutes}} minutos; el cliente puede agregar más tiempo durante la llamada."
+      "footer": "Las videollamadas duran {{minutes}} minutos; el cliente puede agregar más tiempo durante la llamada.",
+      "errorTitle": "Algo salió mal",
+      "notOnAppointment": "No formás parte de esta cita, así que no podés unirte a su videollamada.",
+      "startFailed": "No pudimos iniciar la videollamada. Probá de nuevo.",
+      "roomExpired": "La sala de video venció. Pedile al dueño del vehículo que inicie una nueva llamada.",
+      "joinFailed": "No pudimos unirte a la videollamada. Probá de nuevo."
     }
   },
   "wallet": {

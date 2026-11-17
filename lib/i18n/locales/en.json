@@ -408,7 +408,9 @@
       "lastName": "LAST NAME",
       "lastNamePlaceholder": "Doe",
       "phone": "PHONE NUMBER",
-      "phonePlaceholder": "(305) 555-0100"
+      "phonePlaceholder": "(305) 555-0100",
+      "whoJoinsCall": "Who will take the video call?",
+      "iAmVideo": "Me"
     },
     "issueSelection": {
       "title": "Indicate the issue",
@@ -583,7 +585,10 @@
         "uploadPlaceholder": "Attach the correct report",
         "cancel": "Cancel request"
       },
-      "mechanicsNotified_other": "{{count}} technicians notified"
+      "mechanicsNotified_other": "{{count}} technicians notified",
+      "step3VideoTitle": "Waiting for a technician",
+      "step3VideoSubtitle": "A technician will take your call. The price is already set.",
+      "duration": "Duration"
     },
     "mechanicFound": {
       "errorTitle": "Error",
@@ -678,9 +683,9 @@
     },
     "when": {
       "headerTitle": "Video call",
-      "badge": "WHEN",
-      "title": "When do you need it?",
-      "subtitle": "Talk to a technician right away, or book a time that works for you.",
+      "badge": "YOUR CALL",
+      "title": "Plan your video call",
+      "subtitle": "Pick how long you need, then talk to a technician right away or book a time.",
       "nowTitle": "Now",
       "online_one": "{{count}} online",
       "online_other": "{{count}} online",
@@ -697,10 +702,11 @@
       "periods": {
         "morning": "Morning",
         "afternoon": "Afternoon",
-        "evening": "Evening"
+        "evening": "Evening",
+        "night": "Late night"
       },
-      "noSlots": "No times left on this day. Pick another day.",
-      "footnote": "Times shown in your local time ({{zone}}). Crossed-out slots are taken.",
+      "noSlots": "No times on this day. Pick another day.",
+      "footnote": "Times shown in your local time ({{zone}}).",
       "summary": "Summary",
       "service": "Service",
       "whenLabel": "When",
@@ -711,18 +717,34 @@
       "duration": "Duration",
       "durationValue_one": "{{count}} min",
       "durationValue_other": "{{count}} min",
-      "durationNote_one": "The call lasts {{count}} minute. If you need more time, you can extend it during the call.",
-      "durationNote_other": "The call lasts {{count}} minutes. If you need more time, you can extend it during the call.",
+      "durationNote_one": "The call lasts {{count}} minute. If you need more time, you can add it during the call.",
+      "durationNote_other": "The call lasts {{count}} minutes. If you need more time, you can add it during the call.",
       "pickTime": "Pick a time",
       "price": "Price",
       "priceTbd": "TBD",
       "ctaNow": "Confirm and request",
       "ctaSchedule": "Schedule for {{time}}",
       "ctaPickTime": "Pick a time to continue",
-      "loadFailed": "We couldn't load the available times.",
+      "loadFailed": "We couldn't load the times.",
       "retry": "Try again",
       "slotGoneTitle": "That time was just taken",
-      "slotGoneMessage": "Someone booked it a moment ago. Pick another time."
+      "slotGoneMessage": "Someone booked it a moment ago. Pick another time.",
+      "durationLabel": "Call length",
+      "durationTitle": "How long do you need?",
+      "durationHint": "This is how long the call lasts. You can add more time during the call.",
+      "durationPriceNote": "Base price. The final price may include a time-of-day rate and taxes.",
+      "durationMin": "min",
+      "durationRequired": "Pick the call length to continue",
+      "ctaPickDuration": "Choose the call length",
+      "whenLabelSection": "When",
+      "rangeLabel": "Time of day",
+      "pickRange": "Pick a time of day",
+      "durationUnset": "Not chosen yet",
+      "priceUnset": "Pick the length",
+      "priceNote": "The price may include a time-of-day rate and taxes.",
+      "durationMinutes": "minutes",
+      "onlineBadge": "Available now",
+      "nowSubtitleSoft": "Usually connects within a few minutes"
     },
     "cardRequired": {
       "title": "Add a card",
@@ -1854,7 +1876,12 @@
     "videoCallNow": "Now",
     "videoCallDuration_one": "{{count}}-minute call · the owner can extend it",
     "videoCallDuration_other": "{{count}}-minute call · the owner can extend it",
-    "confirmOfferVideoCall": "You are about to offer a video call for {{title}}. The client still has to accept it."
+    "confirmOfferVideoCall": "You are about to offer a video call for {{title}}. The client still has to accept it.",
+    "videoPrice": "PRICE",
+    "videoPriceNote": "Fixed price, set when the client requested the call. You only accept if you want to take it.",
+    "confirmVideoTitle": "Take this video call?",
+    "confirmVideoCall": "You are about to take the video call for {{title}} at the price shown. The client still has to confirm it.",
+    "confirmVideo": "Take the call"
   },
   "personalInfo": {
     "uploadFailedTitle": "Upload Failed",
@@ -2840,7 +2867,8 @@
       "permissionMessage": "Allow location access in settings so we can show you assistance near you.",
       "openSettings": "Open settings",
       "notNow": "Not now"
-    }
+    },
+    "ok": "OK"
   },
   "vehicleColors": {
     "white": "White",
@@ -2896,10 +2924,29 @@
       "notOwner": "Only the client can add time to the call.",
       "failed": "Could not add the time. Try again.",
       "addedByOwner": "The client added {{minutes}} minutes to the call",
-      "addedBySelf": "You added {{minutes}} minutes to the call"
+      "addedBySelf": "You added {{minutes}} minutes to the call",
+      "waitingOwner": "Waiting for the technician…",
+      "waitingOwnerHint": "They have to accept the extra time. Nothing is charged until they do.",
+      "requestedTitle": "The client asks for {{minutes}} more minutes",
+      "requestedHint": "Accept to add the time to the call.",
+      "accept": "Accept",
+      "decline": "Decline",
+      "acting": "One moment…",
+      "answerFailed": "We couldn't send your answer. Try again.",
+      "answerExpired": "This request already expired.",
+      "outcomeTitle": "Extra time",
+      "outcomeDeclined": "The technician declined the extra time. You can ask again.",
+      "outcomeExpired": "The technician didn't answer in time, so nothing was added or charged. You can ask again.",
+      "outcomeFailed": "We couldn't hold the payment, so no time was added. Choose another payment method and ask again.",
+      "pendingSheet": "You already asked for extra time. Wait for the technician's answer."
     },
     "lobby": {
-      "footer": "Video calls last {{minutes}} minutes; the client can add more time during the call."
+      "footer": "Video calls last {{minutes}} minutes; the client can add more time during the call.",
+      "errorTitle": "Something went wrong",
+      "notOnAppointment": "You are not on this appointment, so you cannot join its video call.",
+      "startFailed": "We couldn't start the video call. Please try again.",
+      "roomExpired": "The video room has expired. Ask the vehicle owner to start a new call.",
+      "joinFailed": "We couldn't join the video call. Please try again."
     }
   },
   "wallet": {

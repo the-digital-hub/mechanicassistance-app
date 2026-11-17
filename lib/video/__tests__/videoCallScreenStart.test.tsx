@@ -45,6 +45,7 @@ jest.mock('@/components/video/ExtendCallSheet', () => ({ ExtendCallSheet: () => 
 // The OBD report has its own tests; here the call has none.
 jest.mock('@/components/video/ObdCallSheet', () => ({ ObdCallSheet: () => null }));
 jest.mock('@/components/video/CallTimeAddedToast', () => ({ CallTimeAddedToast: () => null }));
+jest.mock('@/components/video/ExtensionRequestPanel', () => ({ ExtensionRequestPanel: () => null }));
 jest.mock('@/components/video/RequestObdPanel', () => ({ useRequestObd: () => ({ report: null }) }));
 // The server says how long the call has: 45 minutes, plus `mockAdded` the owner bought.
 let mockRole = 'user';

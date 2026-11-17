@@ -1,4 +1,7 @@
 import { FLOATING_CTA, FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
+import { TYPE } from '@/lib/ui/type';
+import { DEFAULT_CALL_MINUTES } from '@/lib/video/callLength';
+import { useMessageDialog } from '@/components/ui/useMessageDialog';
 import { CardPickerModal } from '@/components/payments/CardPickerModal';
 import { useRequestDraft } from '@/context/RequestDraftContext';
 import { useUser } from '@/context/UserContext';
@@ -14,9 +17,7 @@ import {
     type VideoCallNow,
     type VideoCallSlot,
     type VideoCallSlotDay,
-    type SlotPeriod,
 } from '@/lib/dao/VideoCallDAO';
-import { DEFAULT_CALL_MINUTES } from '@/lib/video/callLength';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
@@ -25,17 +26,19 @@ import {
     ChevronLeft,
     Clock,
     CreditCard,
+    Info,
     DollarSign,
-    Moon,
+    MoonStar,
     Sun,
     Sunrise,
+    Sunset,
     Timer,
     Video,
     Zap,
 } from 'lucide-react-native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 /**
  * Last step of the video-call wizard (vehicle → issue → OBD scanner → here): the owner picks
@@ -56,6 +59,7 @@ const C = {
     takenBg: '#F1F3F8',
     green: '#16A34A',
     greenSoft: '#E8F7EE',
+    note: '#3B4A78',
 };
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -64,34 +68,63 @@ const parseIds = (raw: unknown): string[] =>
 
 type Mode = 'now' | 'schedule';
 
-const PERIODS: { key: SlotPeriod; Icon: typeof Sun }[] = [
+// The day is split here, by the slot's local hour, instead of trusting the server's own
+// `period`: the grid covers all 24 hours (a video call can be asked for at any time) and a
+// new server value must never hide slots.
+type DayPart = 'night' | 'morning' | 'afternoon' | 'evening';
+
+const PERIODS: { key: DayPart; Icon: typeof Sun }[] = [
+    { key: 'night', Icon: MoonStar },
     { key: 'morning', Icon: Sunrise },
     { key: 'afternoon', Icon: Sun },
-    { key: 'evening', Icon: Moon },
+    { key: 'evening', Icon: Sunset },
 ];
+
+/** Which part of the day a slot falls in, from its local "HH:mm". */
+function partOf(slot: VideoCallSlot): DayPart {
+    const hour = Number(slot.time?.slice(0, 2));
+    if (!Number.isFinite(hour)) return slot.period === 'morning' || slot.period === 'afternoon' ? slot.period : 'evening';
+    if (hour < 6) return 'night';
+    if (hour < 12) return 'morning';
+    if (hour < 18) return 'afternoon';
+    return 'evening';
+}
+
+/** Open first the part of the day people most likely want: morning, then afternoon, evening, night. */
+const DEFAULT_PART_ORDER: DayPart[] = ['morning', 'afternoon', 'evening', 'night'];
 
 export default function VideoCallWhenScreen() {
     const router = useRouter();
     const { t, i18n } = useTranslation();
     const { user } = useUser();
+    const { notify, dialog } = useMessageDialog();
     const { vehicleDetails, obdFile, setObdFile } = useRequestDraft();
     const params = useLocalSearchParams();
     const { vehicleId, vehicleName, description, issues, symptomIds, details, condition } = params;
 
     const timezone = useMemo(() => deviceTimeZone(), []);
     const [now, setNow] = useState<VideoCallNow | null>(null);
+    // The backend asks for a call length only once it sends the menu (`durations`); until then the
+    // old flat-fee flow applies, and sending a length would be rejected (400).
+    const durationSupported = !!now?.durations?.length;
     const [days, setDays] = useState<VideoCallSlotDay[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadFailed, setLoadFailed] = useState(false);
     const [price, setPrice] = useState<number | null>(null);
     const [priceLoading, setPriceLoading] = useState(true);
     const [mode, setMode] = useState<Mode>('now');
+    // The call length is chosen first and has no default: nothing can be requested without it.
+    const [duration, setDuration] = useState<number | null>(null);
+    const [period, setPeriod] = useState<DayPart | null>(null);
     const [dayIndex, setDayIndex] = useState(0);
     const [slot, setSlot] = useState<VideoCallSlot | null>(null);
     const [submitting, setSubmitting] = useState(false);
     // How this request is paid: the wallet when its balance covers the price,
     // else the default card — until the user picks another.
-    const { cards, wallet, selectedId: paymentMethodId, selectedLabel: paymentLabel, pick: pickPayment } = usePaymentChoice(price);
+    // While pricing cannot quote this length, show the menu's base price instead of "TBD".
+    const menuPrice = duration !== null ? now?.durations?.find((d) => d.minutes === duration)?.price ?? null : null;
+    const shownPrice = price ?? menuPrice;
+    const { cards, wallet, selectedId: paymentMethodId, selectedLabel: paymentLabel, pick: pickPayment } = usePaymentChoice(shownPrice);
     const [cardPickerOpen, setCardPickerOpen] = useState(false);
 
     const load = useCallback(async () => {
@@ -122,12 +155,19 @@ export default function VideoCallWhenScreen() {
     // block the request.
     const serviceAt = mode === 'schedule' ? slot?.start : undefined;
     useEffect(() => {
+        // Nothing to quote until the length is chosen (when the backend asks for one).
+        if (durationSupported && duration === null) {
+            setPrice(null);
+            setPriceLoading(false);
+            return;
+        }
         let mounted = true;
         setPriceLoading(true);
         pricingDAO
             .calculatePrice({
                 assistance_type: 'videocall',
                 timezone,
+                ...(durationSupported && duration !== null ? { duration_minutes: duration } : {}),
                 ...(serviceAt ? { service_at: serviceAt } : {}),
             })
             .then((r) => {
@@ -143,7 +183,7 @@ export default function VideoCallWhenScreen() {
         return () => {
             mounted = false;
         };
-    }, [timezone, serviceAt]);
+    }, [timezone, serviceAt, duration, durationSupported]);
 
     // ─── Formatting (in the phone's own zone and language) ───
 
@@ -188,11 +228,12 @@ export default function VideoCallWhenScreen() {
     const selectDay = (index: number) => {
         setDayIndex(index);
         setSlot(null);
+        setPeriod(null);
     };
 
     // ─── Submit ───
 
-    const canSubmit = !submitting && !loading && (mode === 'now' ? (now?.mechanicsOnline ?? 0) > 0 : !!slot);
+    const canSubmit = !submitting && !loading && (!durationSupported || duration !== null) && (mode === 'now' ? (now?.mechanicsOnline ?? 0) > 0 : !!slot);
 
     const handleSubmit = async () => {
         if (!canSubmit) return;
@@ -204,6 +245,7 @@ export default function VideoCallWhenScreen() {
                 notes: typeof details === 'string' ? details : '',
                 type: 'videocall',
                 assistanceType: 'videocall',
+                ...(durationSupported && duration !== null ? { durationMinutes: duration } : {}),
                 vehicleId: vehicleId as string,
                 car: (vehicleName as string) || '',
                 status: 'pending',
@@ -220,20 +262,29 @@ export default function VideoCallWhenScreen() {
             // Records the price and the issues on the request, for the same
             // instant and zone the owner was quoted. The request already
             // exists, so a failure here must not undo it — but say so.
+            const priceBody = {
+                assistance_type: 'videocall',
+                timezone,
+                ...(mode === 'schedule' && slot ? { service_at: slot.start } : {}),
+                vehicle_issue_ids: parseIds(issues),
+                vehicle_issue_symptom_ids: parseIds(symptomIds),
+            };
             try {
-                await pricingDAO.persistRequestPrice(response.id, {
-                    assistance_type: 'videocall',
-                    timezone,
-                    ...(mode === 'schedule' && slot ? { service_at: slot.start } : {}),
-                    vehicle_issue_ids: parseIds(issues),
-                    vehicle_issue_symptom_ids: parseIds(symptomIds),
-                });
+                try {
+                    await pricingDAO.persistRequestPrice(response.id, {
+                        ...priceBody,
+                        ...(durationSupported && duration !== null ? { duration_minutes: duration } : {}),
+                    });
+                } catch (err) {
+                    // A pricing service that does not know the length yet rejects the field; the request
+                    // already carries its length, so price it without repeating it.
+                    if (!(err instanceof ApiError && err.statusCode === 400 && /should not exist/i.test(err.apiMessage ?? err.message))) throw err;
+                    await pricingDAO.persistRequestPrice(response.id, priceBody);
+                }
             } catch (err) {
+                // A video call has a fixed price and nobody quotes it: there is nothing to tell the
+                // owner here, so the failure is only logged (the price is read again from the request).
                 console.warn(`[when] persisting price failed for ${response.id}`, err);
-                Alert.alert(
-                    t('requestAssistance.confirmation.pricingUnavailableTitle'),
-                    t('requestAssistance.confirmation.pricingUnavailableMessage'),
-                );
             }
 
             // The OBD scanner report picked on the previous step. The request
@@ -245,9 +296,10 @@ export default function VideoCallWhenScreen() {
                     setObdFile(null);
                 } catch (err) {
                     console.warn(`[when] attaching the OBD report failed for ${response.id}`, err);
-                    Alert.alert(
+                    await notify(
                         t('requestAssistance.obdScanner.uploadFailedTitle'),
                         t('requestAssistance.obdScanner.uploadFailedMessage'),
+                        'blue',
                     );
                 }
             }
@@ -260,12 +312,12 @@ export default function VideoCallWhenScreen() {
             const code =
                 error instanceof ApiError ? (error.apiError as { code?: string } | null)?.code : undefined;
             if (code === 'slot_unavailable') {
-                Alert.alert(t('requestAssistance.when.slotGoneTitle'), t('requestAssistance.when.slotGoneMessage'));
+                void notify(t('requestAssistance.when.slotGoneTitle'), t('requestAssistance.when.slotGoneMessage'));
                 setSlot(null);
                 load();
             } else {
                 console.error(error);
-                Alert.alert(t('requestAssistance.confirmation.errorTitle'), t('requestAssistance.confirmation.errorMessage'));
+                void notify(t('requestAssistance.confirmation.errorTitle'), t('requestAssistance.confirmation.errorMessage'));
             }
         } finally {
             setSubmitting(false);
@@ -327,12 +379,12 @@ export default function VideoCallWhenScreen() {
                 </View>
                 <View style={{ flex: 1 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                        <Text className="font-outfit-bold" style={{ fontSize: 15, color: C.ink }}>
+                        <Text className="font-outfit-bold" style={{ ...TYPE.body, color: C.ink }}>
                             {title}
                         </Text>
                         {badge}
                     </View>
-                    <Text className="font-outfit-regular" style={{ fontSize: 13, color: C.muted, marginTop: 2 }}>
+                    <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: C.muted, marginTop: 2 }}>
                         {subtitle}
                     </Text>
                 </View>
@@ -368,33 +420,57 @@ export default function VideoCallWhenScreen() {
             <View style={{ width: 32, height: 32, borderRadius: 9, alignItems: 'center', justifyContent: 'center', backgroundColor: C.blueSoft }}>
                 <Icon size={16} color={C.blue} />
             </View>
-            <Text className="font-outfit-medium" style={{ fontSize: 13, color: C.muted }}>
+            <Text className="font-outfit-medium" style={{ ...TYPE.helper, color: C.muted }}>
                 {label}
             </Text>
-            <Text className="font-outfit-bold" style={{ flex: 1, textAlign: 'right', fontSize: 15, color: C.ink }}>
+            <Text className="font-outfit-bold" style={{ flex: 1, textAlign: 'right', ...TYPE.body, color: C.ink }}>
                 {value}
             </Text>
             {action}
         </View>
     );
 
+    const InfoNote = ({ children }: { children: React.ReactNode }) => (
+        <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10, padding: 14, borderRadius: 14, backgroundColor: C.blueSoft }}>
+            <Info size={18} color={C.blue} style={{ marginTop: 1 }} />
+            <View style={{ flex: 1, gap: 6 }}>{children}</View>
+        </View>
+    );
+
     const SectionLabel = ({ children }: { children: string }) => (
-        <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1.2, color: C.muted }}>
+        <Text className="font-outfit-bold" style={{ ...TYPE.eyebrow, color: C.muted }}>
             {children.toUpperCase()}
         </Text>
     );
 
     const online = now?.mechanicsOnline ?? 0;
     const wait = now?.estimatedWaitMinutes ?? null;
-    const callMinutes = now?.baseMinutes ?? DEFAULT_CALL_MINUTES;
-    const priceLabel = priceLoading
+    const callMinutes = durationSupported ? duration ?? 0 : now?.baseMinutes ?? DEFAULT_CALL_MINUTES;
+    // Only the parts of the day with something to book; the first one is open by default.
+    const periodsWithSlots = day
+        ? PERIODS.filter(({ key }) => day.slots.some((s) => partOf(s) === key && s.available))
+        : [];
+    const activePeriod =
+        period && periodsWithSlots.some((p) => p.key === period)
+            ? period
+            : DEFAULT_PART_ORDER.find((k) => periodsWithSlots.some((p) => p.key === k)) ?? null;
+    const periodSlots = day && activePeriod ? day.slots.filter((s) => partOf(s) === activePeriod && s.available) : [];
+    const periodRange = (key: DayPart) => {
+        const list = day?.slots.filter((s) => partOf(s) === key && s.available) ?? [];
+        return list.length ? `${slotLabel(list[0])} – ${slotLabel(list[list.length - 1])}` : '';
+    };
+    const priceLabel = durationSupported && duration === null
+        ? t('requestAssistance.when.priceUnset')
+        : priceLoading
         ? '…'
-        : price != null
-            ? `$${price.toFixed(2)}`
+        : shownPrice != null
+            ? `$${shownPrice.toFixed(2)}`
             : t('requestAssistance.when.priceTbd');
 
     const ctaLabel =
-        mode === 'now'
+        durationSupported && duration === null
+            ? t('requestAssistance.when.ctaPickDuration')
+            : mode === 'now'
             ? t('requestAssistance.when.ctaNow')
             : slot
                 ? t('requestAssistance.when.ctaSchedule', { time: slotLabel(slot) })
@@ -407,6 +483,7 @@ export default function VideoCallWhenScreen() {
 
     return (
         <View className="flex-1" style={{ backgroundColor: C.page }}>
+            {dialog}
             <CardPickerModal
                 visible={cardPickerOpen}
                 cards={cards}
@@ -420,7 +497,7 @@ export default function VideoCallWhenScreen() {
                     setCardPickerOpen(false);
                 }}
                 wallet={wallet}
-                amount={price}
+                amount={shownPrice}
                 onClose={() => setCardPickerOpen(false)}
             />
             {/* Header — same as the other wizard steps */}
@@ -450,7 +527,7 @@ export default function VideoCallWhenScreen() {
                     <Text className="font-outfit-bold" style={{ fontSize: 26, color: C.ink }}>
                         {t('requestAssistance.when.title')}
                     </Text>
-                    <Text className="font-outfit-regular" style={{ fontSize: 14, color: C.muted, marginTop: 6, lineHeight: 20 }}>
+                    <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: C.muted, marginTop: 6 }}>
                         {t('requestAssistance.when.subtitle')}
                     </Text>
                 </View>
@@ -476,6 +553,79 @@ export default function VideoCallWhenScreen() {
                     </View>
                 ) : (
                     <>
+                        {durationSupported && (
+                        <View style={{ gap: 12 }} testID="when-duration-section">
+                            <SectionLabel>{t('requestAssistance.when.durationLabel')}</SectionLabel>
+                            <Text className="font-outfit-bold" style={{ ...TYPE.group, color: C.ink }}>
+                                {t('requestAssistance.when.durationTitle')}
+                            </Text>
+                            <View style={{ flexDirection: 'row', gap: 10 }}>
+                                {(now?.durations ?? []).map((d) => {
+                                    const selected = duration === d.minutes;
+                                    const inner = (
+                                        <>
+                                            <View
+                                                style={{
+                                                    width: 28,
+                                                    height: 28,
+                                                    borderRadius: 9,
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    backgroundColor: selected ? 'rgba(255,255,255,0.18)' : C.blueSoft,
+                                                }}
+                                            >
+                                                {selected ? <Check size={15} color="#FFFFFF" strokeWidth={3} /> : <Timer size={15} color={C.blue} />}
+                                            </View>
+                                            <Text className="font-outfit-bold" style={{ fontSize: 28, lineHeight: 32, marginTop: 6, color: selected ? '#FFFFFF' : C.ink }}>
+                                                {d.minutes}
+                                            </Text>
+                                            <Text className="font-outfit-semibold" style={{ ...TYPE.caption, color: selected ? 'rgba(255,255,255,0.85)' : C.muted }}>
+                                                {t('requestAssistance.when.durationMinutes')}
+                                            </Text>
+                                        </>
+                                    );
+                                    const box = { borderRadius: 16, paddingVertical: 12, alignItems: 'center' as const, justifyContent: 'center' as const };
+                                    return (
+                                        <TouchableOpacity
+                                            key={d.minutes}
+                                            style={{ flex: 1 }}
+                                            activeOpacity={0.85}
+                                            onPress={() => setDuration(d.minutes)}
+                                            accessibilityRole="button"
+                                            accessibilityState={{ selected }}
+                                            testID={`when-duration-${d.minutes}`}
+                                        >
+                                            {selected ? (
+                                                <LinearGradient
+                                                    colors={['#2B66F8', '#081E72']}
+                                                    start={{ x: 0, y: 0 }}
+                                                    end={{ x: 1, y: 1 }}
+                                                    style={{ ...box, shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.28, shadowRadius: 10, elevation: 5 }}
+                                                >
+                                                    {inner}
+                                                </LinearGradient>
+                                            ) : (
+                                                <View style={{ ...box, backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: C.border, shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
+                                                    {inner}
+                                                </View>
+                                            )}
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </View>
+                            <InfoNote>
+                                <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: C.note }}>
+                                    {t('requestAssistance.when.durationHint')}
+                                </Text>
+                            </InfoNote>
+                        </View>
+                        )}
+
+                        {durationSupported && (
+                            <View style={{ marginTop: 6 }}>
+                                <SectionLabel>{t('requestAssistance.when.whenLabelSection')}</SectionLabel>
+                            </View>
+                        )}
                         <OptionCard
                             value="now"
                             Icon={Zap}
@@ -484,7 +634,7 @@ export default function VideoCallWhenScreen() {
                                 online === 0
                                     ? t('requestAssistance.when.nowNobody')
                                     : wait != null
-                                        ? t('requestAssistance.when.nowSubtitle', { count: wait })
+                                        ? t('requestAssistance.when.nowSubtitleSoft')
                                         : t('requestAssistance.when.nowSubtitleNoWait')
                             }
                             disabled={online === 0}
@@ -492,8 +642,8 @@ export default function VideoCallWhenScreen() {
                                 online > 0 ? (
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, backgroundColor: C.greenSoft }}>
                                         <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: C.green }} />
-                                        <Text className="font-outfit-semibold" style={{ fontSize: 13, color: C.green }}>
-                                            {t('requestAssistance.when.online', { count: online })}
+                                        <Text className="font-outfit-semibold" style={{ ...TYPE.caption, color: C.green }}>
+                                            {t('requestAssistance.when.onlineBadge')}
                                         </Text>
                                     </View>
                                 ) : undefined
@@ -511,98 +661,125 @@ export default function VideoCallWhenScreen() {
                                 style={{ backgroundColor: '#FFFFFF', borderRadius: 16, padding: 14, gap: 14, shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}
                                 testID="when-schedule-panel"
                             >
-                                <SectionLabel>{t('requestAssistance.when.day')}</SectionLabel>
-                                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                                    <SectionLabel>{t('requestAssistance.when.day')}</SectionLabel>
+                                    <View className="px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF' }}>
+                                        <Text className="font-outfit-bold" style={{ ...TYPE.caption, color: '#1E56E3' }}>
+                                            {selectedDayLabel}
+                                        </Text>
+                                    </View>
+                                </View>
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
                                     {days.map((d, index) => {
                                         const selected = index === dayIndex;
-                                        const rel = relativeDay(index);
+                                        const isToday = index === 0;
                                         const anchor = dayAnchor(d);
-                                        const body = (
-                                            <>
-                                                <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1, color: selected ? 'rgba(255,255,255,0.8)' : C.faint }}>
-                                                    {fmt(anchor, { weekday: 'short' }).toUpperCase()}
-                                                </Text>
-                                                <Text className="font-outfit-bold" style={{ fontSize: 20, color: selected ? '#FFFFFF' : C.ink }}>
-                                                    {fmt(anchor, { day: 'numeric' })}
-                                                </Text>
-                                                {rel ? (
-                                                    <Text className="font-outfit-bold" style={{ fontSize: 13, color: selected ? 'rgba(255,255,255,0.85)' : C.faint }}>
-                                                        {rel}
-                                                    </Text>
-                                                ) : null}
-                                            </>
+                                        const circle = { width: 46, height: 46, borderRadius: 23, alignItems: 'center' as const, justifyContent: 'center' as const };
+                                        const number = (
+                                            <Text className="font-outfit-bold" style={{ fontSize: 18, lineHeight: 22, color: selected ? '#FFFFFF' : C.ink }}>
+                                                {fmt(anchor, { day: 'numeric' })}
+                                            </Text>
                                         );
-                                        const box = { width: 58, height: 70, borderRadius: 12, alignItems: 'center' as const, justifyContent: 'center' as const, gap: 1 };
                                         return (
-                                            <TouchableOpacity key={d.date} onPress={() => selectDay(index)} activeOpacity={0.85} testID={`when-day-${d.date}`}>
+                                            <TouchableOpacity
+                                                key={d.date}
+                                                onPress={() => selectDay(index)}
+                                                activeOpacity={0.85}
+                                                style={{ width: 54, alignItems: 'center', gap: 6 }}
+                                                accessibilityState={{ selected }}
+                                                testID={`when-day-${d.date}`}
+                                            >
+                                                <Text className="font-outfit-semibold" numberOfLines={1} style={{ ...TYPE.caption, color: selected ? C.blue : C.faint }}>
+                                                    {fmt(anchor, { weekday: 'short' })}
+                                                </Text>
                                                 {selected ? (
-                                                    <LinearGradient colors={['#2B66F8', '#081E72']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={box}>
-                                                        {body}
+                                                    <LinearGradient colors={['#2B66F8', '#081E72']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={circle}>
+                                                        {number}
                                                     </LinearGradient>
                                                 ) : (
-                                                    <View style={{ ...box, backgroundColor: '#F4F6FB', borderWidth: 1, borderColor: C.border }}>{body}</View>
+                                                    <View style={{ ...circle, backgroundColor: '#F4F6FB', borderWidth: isToday ? 1.5 : 0, borderColor: C.blue }}>{number}</View>
                                                 )}
                                             </TouchableOpacity>
                                         );
                                     })}
                                 </ScrollView>
 
-                                {PERIODS.map(({ key, Icon }) => {
-                                    const list = day.slots.filter((s) => s.period === key);
-                                    // A part of the day with nothing left to book is noise.
-                                    if (!list.some((s) => s.available)) return null;
-                                    return (
-                                        <View key={key} style={{ gap: 8 }}>
-                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                                <Icon size={14} color={C.muted} />
-                                                <SectionLabel>{t(`requestAssistance.when.periods.${key}`)}</SectionLabel>
-                                            </View>
-                                            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                                                {list.map((s) => {
-                                                    const selected = slot?.start === s.start;
-                                                    return (
-                                                        <TouchableOpacity
-                                                            key={s.start}
-                                                            disabled={!s.available}
-                                                            onPress={() => setSlot(s)}
-                                                            activeOpacity={0.85}
-                                                            testID={`when-slot-${s.time}`}
-                                                            style={{
-                                                                width: '31.5%',
-                                                                height: 40,
-                                                                borderRadius: 10,
-                                                                alignItems: 'center',
-                                                                justifyContent: 'center',
-                                                                backgroundColor: selected ? C.blue : s.available ? '#FFFFFF' : C.takenBg,
-                                                                borderWidth: 1,
-                                                                borderColor: selected ? C.blue : s.available ? C.border : C.takenBg,
-                                                            }}
-                                                        >
-                                                            <Text
-                                                                className="font-outfit-bold"
-                                                                style={{
-                                                                    fontSize: 15,
-                                                                    color: selected ? '#FFFFFF' : s.available ? C.ink : C.taken,
-                                                                    textDecorationLine: s.available ? 'none' : 'line-through',
-                                                                }}
-                                                            >
-                                                                {slotLabel(s)}
-                                                            </Text>
-                                                        </TouchableOpacity>
-                                                    );
-                                                })}
-                                            </View>
+                                {periodsWithSlots.length > 0 ? (
+                                    <>
+                                        <SectionLabel>{t('requestAssistance.when.rangeLabel')}</SectionLabel>
+                                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                                            {periodsWithSlots.map(({ key, Icon }) => {
+                                                const selected = activePeriod === key;
+                                                return (
+                                                    <TouchableOpacity
+                                                        key={key}
+                                                        onPress={() => {
+                                                            setPeriod(key);
+                                                            setSlot(null);
+                                                        }}
+                                                        activeOpacity={0.85}
+                                                        accessibilityState={{ selected }}
+                                                        testID={`when-period-${key}`}
+                                                        style={{
+                                                            ...(periodsWithSlots.length > 3 ? { width: '48.5%' } : { flex: 1 }),
+                                                            alignItems: 'center',
+                                                            gap: 3,
+                                                            paddingVertical: 12,
+                                                            paddingHorizontal: 4,
+                                                            borderRadius: 14,
+                                                            backgroundColor: selected ? C.blueSoft : '#FFFFFF',
+                                                            borderWidth: 1.5,
+                                                            borderColor: selected ? C.blue : C.border,
+                                                        }}
+                                                    >
+                                                        <Icon size={18} color={selected ? C.blue : C.muted} />
+                                                        <Text className="font-outfit-bold" style={{ ...TYPE.body, color: selected ? C.blue : C.ink }}>
+                                                            {t(`requestAssistance.when.periods.${key}`)}
+                                                        </Text>
+                                                        <Text className="font-outfit-regular" numberOfLines={1} adjustsFontSizeToFit style={{ ...TYPE.caption, color: C.muted }}>
+                                                            {periodRange(key)}
+                                                        </Text>
+                                                    </TouchableOpacity>
+                                                );
+                                            })}
                                         </View>
-                                    );
-                                })}
 
-                                {!day.slots.some((s) => s.available) && (
-                                    <Text className="font-outfit-medium" style={{ fontSize: 15, color: C.muted }}>
+                                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+                                            {periodSlots.map((s) => {
+                                                const selected = slot?.start === s.start;
+                                                return (
+                                                    <TouchableOpacity
+                                                        key={s.start}
+                                                        onPress={() => setSlot(s)}
+                                                        activeOpacity={0.85}
+                                                        testID={`when-slot-${s.time}`}
+                                                        style={{
+                                                            minWidth: 92,
+                                                            height: 44,
+                                                            paddingHorizontal: 12,
+                                                            borderRadius: 12,
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            backgroundColor: selected ? C.blue : '#FFFFFF',
+                                                            borderWidth: 1,
+                                                            borderColor: selected ? C.blue : C.border,
+                                                        }}
+                                                    >
+                                                        <Text className="font-outfit-bold" style={{ ...TYPE.body, color: selected ? '#FFFFFF' : C.ink }}>
+                                                            {slotLabel(s)}
+                                                        </Text>
+                                                    </TouchableOpacity>
+                                                );
+                                            })}
+                                        </ScrollView>
+                                    </>
+                                ) : (
+                                    <Text className="font-outfit-medium" style={{ ...TYPE.helper, color: C.muted }}>
                                         {t('requestAssistance.when.noSlots')}
                                     </Text>
                                 )}
 
-                                <Text className="font-outfit-regular" style={{ fontSize: 13, color: C.faint, lineHeight: 16 }}>
+                                <Text className="font-outfit-regular" style={{ ...TYPE.caption, color: C.faint }}>
                                     {t('requestAssistance.when.footnote', { zone: zoneLabel })}
                                 </Text>
                             </View>
@@ -626,7 +803,7 @@ export default function VideoCallWhenScreen() {
                                     <SummaryRow Icon={Clock} label={t('requestAssistance.when.time')} value={slot ? slotLabel(slot) : t('requestAssistance.when.pickTime')} />
                                 </>
                             )}
-                            <SummaryRow Icon={Timer} label={t('requestAssistance.when.duration')} value={t('requestAssistance.when.durationValue', { count: callMinutes })} />
+                            <SummaryRow Icon={Timer} label={t('requestAssistance.when.duration')} value={durationSupported && duration === null ? t('requestAssistance.when.durationUnset') : t('requestAssistance.when.durationValue', { count: callMinutes })} />
                             <SummaryRow Icon={DollarSign} label={t('requestAssistance.when.price')} value={priceLabel} />
                             <SummaryRow
                                 last
@@ -635,16 +812,23 @@ export default function VideoCallWhenScreen() {
                                 value={paymentLabel}
                                 action={
                                     <TouchableOpacity onPress={() => setCardPickerOpen(true)} hitSlop={8}>
-                                        <Text className="font-outfit-bold" style={{ fontSize: 13, color: C.blue }}>
+                                        <Text className="font-outfit-bold" style={{ ...TYPE.caption, color: C.blue }}>
                                             {t('requestAssistance.mechanicFound.change')}
                                         </Text>
                                     </TouchableOpacity>
                                 }
                             />
                         </View>
-                        <Text className="font-outfit-regular" style={{ fontSize: 13, color: C.faint, lineHeight: 16, marginTop: 8 }} testID="when-duration-note">
-                            {t('requestAssistance.when.durationNote', { count: callMinutes })}
-                        </Text>
+                        <InfoNote>
+                            {(!durationSupported || duration !== null) && (
+                                <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: C.note }} testID="when-duration-note">
+                                    {t('requestAssistance.when.durationNote', { count: callMinutes })}
+                                </Text>
+                            )}
+                            <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: C.note }}>
+                                {t('requestAssistance.when.priceNote')}
+                            </Text>
+                        </InfoNote>
                     </>
                 )}
             </ScrollView>
@@ -663,13 +847,13 @@ export default function VideoCallWhenScreen() {
                                 style={{ borderRadius: 16, paddingVertical: 17, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                             >
                                 {mode === 'now' && <Video size={18} color="#FFFFFF" />}
-                                <Text className="text-white font-outfit-bold" style={{ fontSize: 18 }}>
+                                <Text className="text-white font-outfit-bold" style={TYPE.button}>
                                     {ctaLabel}
                                 </Text>
                             </LinearGradient>
                         ) : (
                             <View style={{ borderRadius: 16, paddingVertical: 17, alignItems: 'center', backgroundColor: '#B9C0CF' }}>
-                                <Text className="text-white font-outfit-bold" style={{ fontSize: 18 }}>
+                                <Text className="text-white font-outfit-bold" style={TYPE.button}>
                                     {ctaLabel}
                                 </Text>
                             </View>

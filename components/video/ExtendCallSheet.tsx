@@ -125,7 +125,7 @@ export function ExtendCallSheet({ visible, appointmentId, onClose, onExtended }:
                         <ActivityIndicator color={AO.blue} style={{ marginVertical: 24 }} />
                     ) : atLimit || catalog.options.length === 0 ? (
                         <Text className="font-outfit-semibold" style={{ fontSize: 13, color: AO.muted, marginTop: 16 }} testID="extend-call-limit">
-                            {atLimit ? t(`${K}.limit`, { max: catalog.maxExtensions }) : t(`${K}.unavailable`)}
+                            {catalog.pendingRequest ? t(`${K}.pendingSheet`) : atLimit ? t(`${K}.limit`, { max: catalog.maxExtensions }) : t(`${K}.unavailable`)}
                         </Text>
                     ) : (
                         <>

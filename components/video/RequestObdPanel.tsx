@@ -1,7 +1,8 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { openBrowserAsync, WebBrowserPresentationStyle } from 'expo-web-browser';
+import { useMessageDialog } from '@/components/ui/useMessageDialog';
 import { MediaSlot, Picked } from '@/components/on-site/MediaSlot';
 import { Card, CardTitle, OS, Tip } from '@/components/on-site/ui';
 import { useSocket } from '@/context/SocketContext';
@@ -58,6 +59,7 @@ export function RequestObdPanel({ requestId, role, editable, state }: RequestObd
     const own = useRequestObd(state ? undefined : requestId);
     const { report, setReport } = state ?? own;
     const { t, i18n } = useTranslation();
+    const { notify, dialog } = useMessageDialog();
     const k = 'appointments.onSite.obd';
     const kv = 'appointments.videoCall.obd';
     const lang: 'en' | 'es' = i18n.language?.startsWith('en') ? 'en' : 'es';
@@ -86,7 +88,7 @@ export function RequestObdPanel({ requestId, role, editable, state }: RequestObd
         try {
             setReport(await requestObdDAO.setCodes(requestId, list));
         } catch {
-            Alert.alert(t('appointments.onSite.common.error'));
+            void notify(t(`${kv}.sheetTitle`), t('appointments.onSite.common.error'));
         } finally {
             setSaving(false);
         }
@@ -113,7 +115,7 @@ export function RequestObdPanel({ requestId, role, editable, state }: RequestObd
                 presentationStyle: WebBrowserPresentationStyle.AUTOMATIC,
             });
         } catch {
-            Alert.alert(t(`${kv}.openFileError`));
+            void notify(t(`${kv}.sheetTitle`), t(`${kv}.openFileError`));
         } finally {
             setOpeningFile(false);
         }
@@ -131,6 +133,7 @@ export function RequestObdPanel({ requestId, role, editable, state }: RequestObd
 
     return (
         <>
+            {dialog}
             {canUpload && (!fileName || replacing) ? (
                 <Card>
                     <CardTitle title={t(`${kv}.file`)} optional />

@@ -2,8 +2,8 @@ import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import type { PaymentHistoryItem, WalletMovement } from '@/lib/dao/WalletDAO';
 
 /**
- * Which service each wallet movement was for: movement → its payment → the
- * assistance request → its title. Movements without a payment (top-ups) or
+ * Which service each wallet movement was for: the request on the movement (or, on older
+ * backends, movement → its payment → the request) → its title. Movements without a payment (top-ups) or
  * whose request can't be read are left out.
  */
 export async function movementServiceTitles(
@@ -13,7 +13,8 @@ export async function movementServiceTitles(
     const requestByPayment = new Map(payments.map((p) => [p.id, p.assistanceRequestId]));
     const requestByMovement = new Map<string, string>();
     for (const m of movements) {
-        const requestId = m.paymentId ? requestByPayment.get(m.paymentId) : null;
+        // The backend now names the service on the movement; older ones need its payment looked up.
+        const requestId = m.assistanceRequestId ?? (m.paymentId ? requestByPayment.get(m.paymentId) : null);
         if (requestId) requestByMovement.set(m.id, requestId);
     }
     if (requestByMovement.size === 0) return {};

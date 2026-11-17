@@ -1,4 +1,5 @@
 import { apiClient } from '../api/apiClient';
+import { ApiError } from '../api/types';
 
 // Video-call assistance (appointments-service src/video-calls). A video call is
 // remote: it has no check-in, PIN, QR or on-site close-out. Booking reads the
@@ -13,6 +14,13 @@ export interface VideoCallNow {
     estimatedWaitMinutes: number | null;
     /** Minutes the call lasts before the owner has to extend it; missing on older backends. */
     baseMinutes?: number;
+    /** The menu the owner picks from: base price in USD (before time band and tax). Missing on older backends. */
+    durations?: VideoCallDuration[];
+}
+
+export interface VideoCallDuration {
+    minutes: number;
+    price: number;
 }
 
 export type SlotPeriod = 'morning' | 'afternoon' | 'evening';
@@ -102,15 +110,32 @@ export interface VideoExtension {
     amount?: string;
     currency?: string;
     paymentMethodId?: string | null;
-    /** held | captured | released | unpaid add time; failed | pending do not. */
-    status: 'pending' | 'held' | 'failed' | 'captured' | 'released' | 'unpaid';
+    /**
+     * held | captured | released | unpaid add time. failed | pending do not, and neither do the
+     * three the technician's approval adds: requested (waiting for the technician, nothing held),
+     * declined and expired.
+     */
+    status: 'pending' | 'requested' | 'declined' | 'expired' | 'held' | 'failed' | 'captured' | 'released' | 'unpaid';
+    /** requested only: until when the technician can answer (ISO). */
+    expiresAt?: string | null;
     failureCode?: string | null;
     timestamp: string;
     newExpiryUnixSec: number | null;
 }
 
+/** An extra-time request still waiting for the technician (both sides see it; never with amounts). */
+export interface PendingExtensionRequest {
+    extensionId: string;
+    minutes: number;
+    /** ISO: the technician can answer until then (never past the end of the call). */
+    expiresAt: string;
+    requestedAt: string;
+}
+
 export interface VideoExtensions {
     appointmentId: string;
+    /** The request waiting for the technician, if any. With one pending, `options` comes empty. */
+    pendingRequest?: PendingExtensionRequest | null;
     baseMinutes: number;
     maxExtensions: number;
     extensionsUsed: number;
@@ -184,12 +209,30 @@ export class VideoCallDAO {
      * 402 `insufficient_funds` / `card_declined`: nothing added — retry with a
      * NEW `idempotencyKey`; the same key only repeats the first answer.
      */
-    extend(appointmentId: string, minutes: number, idempotencyKey: string, paymentMethodId?: string): Promise<VideoExtension> {
-        return apiClient.post(`/api/appointments/${appointmentId}/video/extensions`, {
-            minutes,
-            idempotencyKey,
-            ...(paymentMethodId ? { paymentMethodId } : {}),
-        });
+    async extend(appointmentId: string, minutes: number, idempotencyKey: string, paymentMethodId?: string): Promise<VideoExtension> {
+        const url = `/api/appointments/${appointmentId}/video/extensions`;
+        const body = { minutes, idempotencyKey, ...(paymentMethodId ? { paymentMethodId } : {}) };
+        // `requireApproval`: with the Hub's switch on, the request goes to the technician first
+        // (status `requested`, nothing held); without it the time is bought at once, as before.
+        try {
+            return await apiClient.post(url, { ...body, requireApproval: true });
+        } catch (error) {
+            // A backend that does not know the field yet answers 400 "should not exist": buy at once.
+            if (error instanceof ApiError && error.statusCode === 400 && /should not exist/i.test(error.apiMessage ?? error.message)) {
+                return apiClient.post(url, body);
+            }
+            throw error;
+        }
+    }
+
+    /** Technician: accepts a requested extension; only now the owner's money is held and the time added. */
+    acceptExtension(appointmentId: string, extensionId: string): Promise<VideoExtension> {
+        return apiClient.post(`/api/appointments/${appointmentId}/video/extensions/${extensionId}/accept`, {});
+    }
+
+    /** Technician: turns a requested extension down. Nothing is charged. */
+    declineExtension(appointmentId: string, extensionId: string, reason?: string): Promise<VideoExtension> {
+        return apiClient.post(`/api/appointments/${appointmentId}/video/extensions/${extensionId}/decline`, reason ? { reason } : {});
     }
 
     /** Owner: it was not resolved; nothing is charged until support decides. */

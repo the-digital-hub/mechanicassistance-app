@@ -17,6 +17,8 @@ export interface WalletMovement {
     amount: string;
     method: string | null;
     paymentId: string | null;
+    /** The service this movement belongs to (its payment's); null for a top-up. Newer backends only. */
+    assistanceRequestId?: string | null;
     createdAt: string;
 }
 

@@ -11,6 +11,7 @@ import { CallTopBar, VC, type CallStatus } from '@/components/video/CallTopBar';
 import { VideoTile } from '@/components/video/VideoTile';
 import { ExtendCallSheet } from '@/components/video/ExtendCallSheet';
 import { CallTimeAddedToast } from '@/components/video/CallTimeAddedToast';
+import { ExtensionRequestPanel } from '@/components/video/ExtensionRequestPanel';
 import { CallTimeWarningBanner } from '@/components/video/CallTimeWarningBanner';
 import { WARN_BEFORE_SECONDS } from '@/components/appointments/VideoCallTimerCard';
 import { ObdCallSheet } from '@/components/video/ObdCallSheet';
@@ -40,6 +41,8 @@ export default function VideoCallScreen() {
   // Only the vehicle owner buys extra time; the mechanic's timer follows it.
   const isOwner = user?.role === 'user';
   const [extendOpen, setExtendOpen] = useState(false);
+  // Bumped after the owner asks for extra time, so the "waiting for the technician" panel loads it.
+  const [extensionSent, setExtensionSent] = useState(0);
   // The owner's OBD scanner report (the appointment id is the request id).
   const obd = useRequestObd(appointmentId || undefined);
   const [obdOpen, setObdOpen] = useState(false);
@@ -170,6 +173,8 @@ export default function VideoCallScreen() {
       <CallTopBar remaining={remaining} limit={limitSeconds} status={status} topInset={insets.top} />
       {/* Just below the top bar: "the owner added N minutes". */}
       <CallTimeAddedToast appointmentId={appointmentId || undefined} variant="dark" top={insets.top + 64} />
+      {/* Extra time asked by the owner, waiting for the technician's answer. */}
+      {!!appointmentId && <ExtensionRequestPanel appointmentId={appointmentId} isOwner={isOwner} top={insets.top + 112} refreshKey={extensionSent} />}
       <CallTimeWarningBanner
         visible={warnVisible}
         isOwner={isOwner}
@@ -192,7 +197,10 @@ export default function VideoCallScreen() {
           visible={extendOpen}
           appointmentId={appointmentId}
           onClose={() => setExtendOpen(false)}
-          onExtended={() => reloadCallTime()}
+          onExtended={() => {
+            reloadCallTime();
+            setExtensionSent((n) => n + 1);
+          }}
         />
       )}
 
