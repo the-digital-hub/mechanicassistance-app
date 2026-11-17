@@ -262,16 +262,12 @@ export function ScreenDiagnosticsPhotos({ onNext }: { onNext: () => void }) {
                         <PhotoList placeholder={t(`${k}.extraPh`)} captureKind="extra_in" />
                     )}
                 </Card>
+
+                {/* How many required photos are in: part of the page, not of the Continue bar. */}
+                {!ready ? <Tip>{t(`${k}.needRequired`, { done: doneCount })}</Tip> : null}
             </Body>
-            <ActionBar stacked>
-                {!ready ? (
-                    <Text className="font-outfit-medium text-center" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>
-                        {t(`${k}.needRequired`, { done: doneCount })}
-                    </Text>
-                ) : null}
-                <View className="flex-row">
-                    <PrimaryButton label={t('appointments.onSite.common.continue')} onPress={onNext} disabled={!ready} />
-                </View>
+            <ActionBar>
+                <PrimaryButton label={t('appointments.onSite.common.continue')} onPress={onNext} disabled={!ready} />
             </ActionBar>
         </>
     );

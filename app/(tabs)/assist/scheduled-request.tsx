@@ -1,6 +1,6 @@
 import { FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { Ban, Calendar, Car, Check, Clock, Hourglass, Lock, Send, ShieldCheck, Wrench, type LucideIcon } from 'lucide-react-native';
+import { Ban, Calendar, Car, Check, Clock, Hourglass, Lock, MessageSquare, Send, ShieldCheck, Wrench, type LucideIcon } from 'lucide-react-native';
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -12,7 +12,7 @@ import { parseAttachments } from '@/lib/media/attachments';
 import { apiErrorCode } from '@/lib/payments/cardRequired';
 import { declineRequest } from '@/lib/scheduled/declined';
 import { dateFromKey, formatMinutes } from '@/lib/scheduled/draft';
-import { money, splitQuoteDescription } from '@/lib/scheduled/offers';
+import { money, parseSentQuote, splitQuoteDescription } from '@/lib/scheduled/offers';
 import {
     amountOf,
     arrivalTimes,
@@ -189,6 +189,11 @@ export default function ScheduledRequestScreen() {
     const problem = quoteProblem(q);
     const dayLabel = (key: string) => dateFromKey(key).toLocaleDateString(i18n.language, { weekday: 'short', month: 'short', day: 'numeric' });
     const sentSplit = splitQuoteDescription(mine?.description);
+    const sent = parseSentQuote(mine?.description);
+    const sentMinutes = mine?.proposedStart && mine?.proposedEnd
+        ? Math.round((Date.parse(mine.proposedEnd) - Date.parse(mine.proposedStart)) / 60000)
+        : null;
+    const sentDuration = sentMinutes && sentMinutes > 0 ? `${+(sentMinutes / 60).toFixed(1)} h` : '—';
     const sentPrice = mine?.price ? amountOf(String(mine.price)) : sentTotal;
     const slotOf = (iso?: string | null) => {
         const d = iso ? new Date(iso) : null;
@@ -280,6 +285,7 @@ export default function ScheduledRequestScreen() {
                             <View style={{ marginTop: 12, paddingTop: 4, borderTopWidth: 1, borderTopColor: SC.borderSoft }}>
                                 {sentSplit.items.map((item) => (
                                     <View key={item.name} className="flex-row items-center justify-between" style={{ paddingVertical: 8, gap: 12 }}>
+                                        <IconBox icon={item.name === 'Travel fee' ? Car : Wrench} size={30} />
                                         <Text className="font-outfit-medium flex-1" style={{ fontSize: 14, color: SC.text }}>{item.name === 'Travel fee' ? t('scheduledProvider.sent.travel') : item.name}</Text>
                                         <Text className="font-outfit-bold" style={{ fontSize: 14, color: item.quoted ? SC.text : SC.muted }}>
                                             {item.quoted ? money(item.total ?? 0) : t('scheduledProvider.sent.notQuoted')}
@@ -292,10 +298,13 @@ export default function ScheduledRequestScreen() {
                                 </View>
                             </View>
                         ) : null}
-                        {sentSplit.text ? (
-                            <View style={{ marginTop: 12, padding: 12, borderRadius: 12, backgroundColor: SC.blueSofter }}>
-                                <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1, color: SC.muted }}>{t('scheduledProvider.sent.yourMessage')}</Text>
-                                <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: SC.text, marginTop: 4 }}>{sentSplit.text}</Text>
+                        {sent.message ? (
+                            <View className="flex-row" style={{ marginTop: 12, padding: 12, borderRadius: 12, backgroundColor: SC.blueSofter, gap: 10 }}>
+                                <IconBox icon={MessageSquare} size={30} />
+                                <View className="flex-1">
+                                    <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1, color: SC.muted }}>{t('scheduledProvider.sent.yourMessage')}</Text>
+                                    <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: SC.text, marginTop: 4 }}>{sent.message}</Text>
+                                </View>
                             </View>
                         ) : null}
                     </View>
@@ -307,7 +316,27 @@ export default function ScheduledRequestScreen() {
                             <Text className="font-outfit-semibold" style={{ fontSize: 13, color: SC.muted, marginTop: 3 }}>{t('scheduledProvider.expired.request')} #{request.id.slice(0, 8).toUpperCase()}</Text>
                         </View>
                     </View>
-                    <KV rows={[[t('scheduledProvider.sentRows.arrival'), slotOf(mine?.proposedStart)], [t('scheduledProvider.sentRows.warranty'), mine?.warrantyDays ? t('scheduledProvider.days', { count: mine.warrantyDays }) : '—']]} />
+                    {/* Everything the customer is shown, as it was sent. */}
+                    <View style={{ ...CARD_STYLE, alignSelf: 'stretch', overflow: 'hidden' }}>
+                        {mine?.proposedStart ? <SummaryRow icon={Calendar} label={t('scheduledProvider.sentRows.arrival')} value={slotOf(mine.proposedStart)} /> : null}
+                        {sentMinutes && sentMinutes > 0 ? <SummaryRow icon={Clock} label={t('scheduledProvider.sentRows.duration')} value={sentDuration} /> : null}
+                        <SummaryRow
+                            icon={ShieldCheck}
+                            label={t('scheduledProvider.sentRows.warranty')}
+                            value={mine?.warrantyDays ? t('scheduledProvider.days', { count: mine.warrantyDays }) : '—'}
+                            sub={mine?.warrantyCoverage || undefined}
+                            last={sent.partsIncluded === null && !sent.notIncluded}
+                        />
+                        {sent.partsIncluded !== null ? (
+                            <SummaryRow
+                                icon={Wrench}
+                                label={t('scheduledProvider.sentRows.parts')}
+                                value={sent.partsIncluded ? t('scheduledProvider.review.partsIn') : t('scheduledProvider.review.partsCustomer')}
+                                last={!sent.notIncluded}
+                            />
+                        ) : null}
+                        {sent.notIncluded ? <SummaryRow icon={Ban} label={t('scheduledProvider.sentRows.notIncluded')} value={sent.notIncluded} last /> : null}
+                    </View>
                     <Note>{t('scheduledProvider.sent.note')}</Note>
                 </Outcome>
             </View>

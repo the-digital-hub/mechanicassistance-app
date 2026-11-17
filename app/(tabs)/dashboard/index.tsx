@@ -387,25 +387,6 @@ export default function DashboardScreen() {
                         />
                     </View>
 
-                    {/* Needs your attention */}
-                    {shownAttention.length > 0 && (
-                        <View className="mb-6">
-                            <SectionTitle
-                                title={t('dashboard.mechanic.attention.title')}
-                                badge={shownAttention.length}
-                                collapsed={attention.collapsed}
-                                onToggle={attention.toggleCollapsed}
-                            />
-                            {!attention.collapsed && (
-                                <AttentionList
-                                    items={shownAttention}
-                                    hideLabel={t('dashboard.mechanic.attention.hide')}
-                                    onDismiss={(item) => attention.dismiss(attentionKey(item))}
-                                />
-                            )}
-                        </View>
-                    )}
-
                     {showRequests && (
                         <View className="mb-2">
                             {/* New Requests: one tab per service type */}
@@ -619,6 +600,25 @@ export default function DashboardScreen() {
                                 </View>
                             );
                         })()}
+                        </View>
+                    )}
+
+                    {/* Needs your attention */}
+                    {shownAttention.length > 0 && (
+                        <View className="mt-4 mb-2">
+                            <SectionTitle
+                                title={t('dashboard.mechanic.attention.title')}
+                                badge={shownAttention.length}
+                                collapsed={attention.collapsed}
+                                onToggle={attention.toggleCollapsed}
+                            />
+                            {!attention.collapsed && (
+                                <AttentionList
+                                    items={shownAttention}
+                                    hideLabel={t('dashboard.mechanic.attention.hide')}
+                                    onDismiss={(item) => attention.dismiss(attentionKey(item))}
+                                />
+                            )}
                         </View>
                     )}
 

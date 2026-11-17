@@ -157,7 +157,7 @@ export function MechanicActiveJobCard({ appointment }: { appointment: Appointmen
             </View>
             {canCancelBeforeStart(appointment.status) && (
                 <View style={{ marginTop: 6 }}>
-                    <CancelRequestLink appointmentId={appointment.id} />
+                    <CancelRequestLink appointmentId={appointment.id} align="center" />
                 </View>
             )}
         </View>

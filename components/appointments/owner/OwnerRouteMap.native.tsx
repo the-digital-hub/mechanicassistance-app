@@ -13,6 +13,8 @@ export interface OwnerRouteMapProps {
     mechanic: LatLng | null;
     polyline: string | null;
     height?: number;
+    /** "Open in Maps" inside the expanded map. Off for the mechanic, whose address row already opens directions. */
+    showOpenInMaps?: boolean;
 }
 
 /** Frames the customer pin, the mechanic and the road route between them. */
@@ -54,7 +56,7 @@ const floating = { backgroundColor: 'rgba(255,255,255,0.95)', shadowColor: '#000
  * without leaving the app: pan and zoom freely; tapping outside closes it.
  * It keeps refitting as the mechanic moves until the owner pans; recenter resumes that.
  */
-function RouteMapSheet({ destination, mechanic, route, onClose }: { destination: LatLng; mechanic: LatLng | null; route: LatLng[]; onClose: () => void }) {
+function RouteMapSheet({ destination, mechanic, route, onClose, showOpenInMaps }: { destination: LatLng; mechanic: LatLng | null; route: LatLng[]; onClose: () => void; showOpenInMaps: boolean }) {
     const { t } = useTranslation();
     const insets = useSafeAreaInsets();
     const mapRef = React.useRef<MapView | null>(null);
@@ -112,7 +114,8 @@ function RouteMapSheet({ destination, mechanic, route, onClose }: { destination:
                         <RouteLayers destination={destination} mechanic={mechanic} route={route} />
                     </MapView>
 
-                    <View style={{ position: 'absolute', bottom: 12, left: 12, right: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <View style={{ position: 'absolute', bottom: 12, left: 12, right: 12, flexDirection: 'row', alignItems: 'center', justifyContent: showOpenInMaps ? 'space-between' : 'flex-end' }}>
+                        {showOpenInMaps && (
                         <Pressable
                             onPress={() => Linking.openURL(googleDirectionsUrl(mechanic, destination))}
                             accessibilityRole="link"
@@ -122,6 +125,7 @@ function RouteMapSheet({ destination, mechanic, route, onClose }: { destination:
                             <Ionicons name="navigate-outline" size={20} color={AO.blue} />
                             <Text className="font-outfit-bold" style={{ fontSize: 16, color: AO.blue }}>{t('appointments.ownerAccepted.openInMaps')}</Text>
                         </Pressable>
+                        )}
                         <Pressable
                             onPress={recenter}
                             accessibilityRole="button"
@@ -143,7 +147,7 @@ function RouteMapSheet({ destination, mechanic, route, onClose }: { destination:
  * the backend's Directions call, live mechanic dot, red pin for the customer.
  * Static inside the scroll view; a tap opens it full screen.
  */
-export function OwnerRouteMap({ destination, mechanic, polyline, height = 190 }: OwnerRouteMapProps) {
+export function OwnerRouteMap({ destination, mechanic, polyline, height = 190, showOpenInMaps = true }: OwnerRouteMapProps) {
     const { t } = useTranslation();
     const [expanded, setExpanded] = React.useState(false);
     const mapRef = React.useRef<MapView | null>(null);
@@ -199,7 +203,7 @@ export function OwnerRouteMap({ destination, mechanic, polyline, height = 190 }:
                 </View>
             </Pressable>
             <Modal visible={expanded} transparent animationType="fade" statusBarTranslucent onRequestClose={() => setExpanded(false)}>
-                <RouteMapSheet destination={destination} mechanic={mechanic} route={route} onClose={() => setExpanded(false)} />
+                <RouteMapSheet destination={destination} mechanic={mechanic} route={route} onClose={() => setExpanded(false)} showOpenInMaps={showOpenInMaps} />
             </Modal>
         </>
     );

@@ -1,14 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppointments } from '@/context/AppointmentsContext';
 import { onSiteDAO } from '@/lib/dao/OnSiteDAO';
 import { userDAO } from '@/lib/dao/UserDAO';
 import { buildFinalReport, finalReportHtml, type FinalReport } from '@/lib/onsite/finalReport';
 import { getVinCapture } from '@/lib/onsite/vin';
-import { Card, OS } from './ui';
+import { ActionBar, Card, OS } from './ui';
+import { FinalReportView } from './FinalReportView';
 
 // The final report of a visit, for the closeout screen and the report screen: the same data, as a page in
 // the app or as a PDF to keep and share.
@@ -118,13 +119,56 @@ export function DownloadPdfButton({ report, primary }: { report: FinalReport | n
     );
 }
 
+/**
+ * The report as a sheet over the screen that opened it: closing it just drops the sheet, so the closeout
+ * stays exactly as it was (scroll, rating typed…). A screen of its own would be a navigation away from it.
+ */
+function FinalReportSheet({ report, visible, onClose }: { report: FinalReport | null; visible: boolean; onClose: () => void }) {
+    const { t } = useTranslation();
+    return (
+        <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+            <SafeAreaProvider>
+                <SheetBody report={report} onClose={onClose} title={t('appointments.report.title')} />
+            </SafeAreaProvider>
+        </Modal>
+    );
+}
+
+function SheetBody({ report, onClose, title }: { report: FinalReport | null; onClose: () => void; title: string }) {
+    const insets = useSafeAreaInsets();
+    const { t } = useTranslation();
+    return (
+        <View className="flex-1" style={{ backgroundColor: OS.page, paddingTop: Math.max(insets.top, 12) }}>
+            <View className="flex-row items-center justify-between px-4 pb-2">
+                <Text className="font-outfit-bold" style={{ fontSize: 17, color: OS.text }}>{title}</Text>
+                <TouchableOpacity
+                    onPress={onClose}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('appointments.report.close')}
+                    hitSlop={8}
+                    className="items-center justify-center"
+                    style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: OS.blueSoft }}
+                    testID="report-close"
+                >
+                    <Ionicons name="close" size={22} color={OS.blue} />
+                </TouchableOpacity>
+            </View>
+            {report ? <FinalReportView report={report} /> : <View className="flex-1" />}
+            <ActionBar>
+                <View className="flex-1"><DownloadPdfButton report={report} primary /></View>
+            </ActionBar>
+        </View>
+    );
+}
+
 /** Closeout card: open the report, or take it as a PDF. */
 export function FinalReportCard({ appointmentId }: { appointmentId: string }) {
     const { t } = useTranslation();
-    const router = useRouter();
     const { report, loading } = useFinalReport(appointmentId);
+    const [open, setOpen] = React.useState(false);
     return (
         <Card style={{ padding: 16 }} >
+            <FinalReportSheet report={report} visible={open} onClose={() => setOpen(false)} />
             <View className="flex-row items-center" style={{ gap: 12 }}>
                 <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: OS.blueSoft }}>
                     <Ionicons name="document-text-outline" size={20} color={OS.blue} />
@@ -142,7 +186,7 @@ export function FinalReportCard({ appointmentId }: { appointmentId: string }) {
                     busy={loading && !report}
                     disabled={!report}
                     testID="report-view"
-                    onPress={() => router.push({ pathname: '/appointments/report/[id]' as never, params: { id: appointmentId } })}
+                    onPress={() => setOpen(true)}
                 />
                 <DownloadPdfButton report={report} />
             </View>

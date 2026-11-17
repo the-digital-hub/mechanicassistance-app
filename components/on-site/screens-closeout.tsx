@@ -8,43 +8,11 @@ import { ObdPanel } from './ObdPanel';
 import { Body, Card, NoteInput, OS, PrimaryButton, cardShadow } from './ui';
 
 // The last screen of the on-site flow, after "Finish Service" (design:
-// "Assistance Closeout"). Confirms the charge was requested, shows the payout
-// estimate, lets the mechanic ask the owner for a review and rate the owner,
-// and tracks the close-out steps. The payout comes from Billing once the job is
-// charged (`payoutStatus`); otherwise it is an estimate. The owner's review
-// closes the assistance out (`closeoutCompletedAt`).
-
-
-/** A dot that breathes, for "waiting on someone" states (design: pr-pulse-dot). */
-function PulseDot({ size, color }: { size: number; color: string }) {
-    const pulse = React.useRef(new Animated.Value(0)).current;
-    React.useEffect(() => {
-        const loop = Animated.loop(Animated.sequence([
-            Animated.timing(pulse, { toValue: 1, duration: 800, useNativeDriver: true }),
-            Animated.timing(pulse, { toValue: 0, duration: 800, useNativeDriver: true }),
-        ]));
-        loop.start();
-        return () => loop.stop();
-    }, [pulse]);
-    const ring = size * 2.4;
-    return (
-        <View className="items-center justify-center" style={{ width: size, height: size }}>
-            <Animated.View
-                style={{
-                    position: 'absolute', width: ring, height: ring, borderRadius: ring / 2, backgroundColor: color,
-                    opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.35, 0] }),
-                    transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.4, 1] }) }],
-                }}
-            />
-            <Animated.View
-                style={{
-                    width: size, height: size, borderRadius: size / 2, backgroundColor: color,
-                    opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 0.7] }),
-                }}
-            />
-        </View>
-    );
-}
+// "Assistance Closeout"). Confirms the charge was requested, says where the payout
+// goes (the wallet; paying it out to a bank account is the mechanic's own choice),
+// lets the mechanic rate the owner, and offers the final report. The payout comes
+// from Billing once the job is charged (`payoutStatus`); otherwise it is an estimate.
+// The owner's review closes the assistance out (`closeoutCompletedAt`).
 
 function formatAmount(amount: string | null, fallback: string): string {
     if (!amount) return fallback;
@@ -99,63 +67,28 @@ function Payout({ visit }: { visit: OnSiteVisit }) {
     const k = 'appointments.closeout';
     const fmt = useFormatters();
     const settled = visit.payoutStatus === 'settled';
-    const payoutDate = visit.fundsTransferredAt ?? visit.estimatedPayoutAt;
-    const dateLabel = settled ? t(`${k}.arrivedOn`) : visit.payoutStatus ? t(`${k}.arrivesBy`) : t(`${k}.arrivesByEst`);
-    const steps: { label: string; state: 'done' | 'active' | 'pending' }[] = [
-        { label: t(`${k}.stepRequested`), state: 'done' as const },
-        ...(visit.ownerReviewSubmitted ? [{ label: t(`${k}.stepReview`), state: 'done' as const }] : []),
-        { label: t(`${k}.stepFunds`), state: settled ? ('done' as const) : ('pending' as const) },
-    ];
+    // Paid money lands in the mechanic's wallet; paying it out to a bank account is their own choice, later.
+    const status = settled
+        ? {
+            icon: 'wallet' as const, bg: OS.greenSoft, fg: OS.greenDark,
+            title: visit.fundsTransferredAt ? t(`${k}.walletSentOn`, { date: fmt.date(visit.fundsTransferredAt) }) : t(`${k}.walletSent`),
+        }
+        : { icon: 'time-outline' as const, bg: OS.blueSofter, fg: OS.blueDark, title: t(`${k}.walletPending`) };
     return (
         <Card style={{ padding: 16 }}>
-            <View className="flex-row items-center justify-between">
-                <View>
-                    <Text className="font-outfit-bold text-[12px] tracking-widest" style={{ color: OS.muted }}>{t(`${k}.payoutLabel`)}</Text>
-                    <Text className="font-outfit-bold mt-0.5" style={{ fontSize: 26, color: OS.blueDark }}>
-                        {formatAmount(visit.payoutAmount ?? visit.serviceAmount, t(`${k}.unknownAmount`))}
-                    </Text>
+            <Text className="font-outfit-bold text-[12px] tracking-widest" style={{ color: OS.muted }}>{t(`${k}.payoutLabel`)}</Text>
+            <Text className="font-outfit-bold mt-0.5" style={{ fontSize: 30, lineHeight: 36, color: OS.blueDark }}>
+                {formatAmount(visit.payoutAmount ?? visit.serviceAmount, t(`${k}.unknownAmount`))}
+            </Text>
+            <View className="flex-row items-start mt-3" style={{ gap: 12, padding: 12, borderRadius: 14, backgroundColor: status.bg }} testID="payout-status">
+                <View className="items-center justify-center" style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: '#FFFFFF' }}>
+                    <Ionicons name={status.icon} size={19} color={status.fg} />
                 </View>
-                {payoutDate ? (
-                    <View className="items-end px-3 py-2 rounded-xl" style={{ backgroundColor: settled ? OS.greenSoft : OS.blueSofter }}>
-                        <Text className="font-outfit-bold text-[12px] tracking-wide" style={{ color: OS.muted }}>{dateLabel}</Text>
-                        <Text className="font-outfit-bold text-[14px] mt-0.5" style={{ color: settled ? OS.greenDark : OS.blueDark }}>{fmt.date(payoutDate)}</Text>
-                    </View>
-                ) : null}
+                <View className="flex-1">
+                    <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: status.fg }}>{status.title}</Text>
+                    <Text className="font-outfit-regular mt-0.5" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>{t(`${k}.walletNote`)}</Text>
+                </View>
             </View>
-
-            <View className="flex-row items-center mt-4">
-                {steps.map((s, i) => (
-                    <React.Fragment key={s.label}>
-                        <View className="items-center gap-1.5" style={{ maxWidth: 72 }}>
-                            <View
-                                className="items-center justify-center"
-                                style={{
-                                    width: 24, height: 24, borderRadius: 12,
-                                    backgroundColor: s.state === 'done' ? OS.greenSoft : s.state === 'active' ? OS.blueSoft : OS.borderSoft,
-                                }}
-                            >
-                                {s.state === 'done' ? (
-                                    <Ionicons name="checkmark" size={14} color={OS.green} />
-                                ) : s.state === 'active' ? (
-                                    <PulseDot size={7} color={OS.blue} />
-                                ) : (
-                                    <Ionicons name="time-outline" size={14} color={OS.mutedLight} />
-                                )}
-                            </View>
-                            <Text
-                                className="font-outfit-bold text-[13px] text-center"
-                                style={{ color: s.state === 'done' ? OS.greenDark : s.state === 'active' ? OS.blue : OS.mutedLight }}
-                            >
-                                {s.label}
-                            </Text>
-                        </View>
-                        {i < steps.length - 1 ? (
-                            <View className="flex-1 mx-1 mb-4" style={{ height: 2, backgroundColor: s.state === 'done' ? OS.green : OS.border }} />
-                        ) : null}
-                    </React.Fragment>
-                ))}
-            </View>
-            <Text className="font-outfit-regular mt-3" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>{t(`${k}.payoutNote`)}</Text>
         </Card>
     );
 }
@@ -233,7 +166,6 @@ function Checklist({ visit }: { visit: OnSiteVisit }) {
         { label: t(`${k}.itemDiagnosis`), done: visit.obdStatus === 'ready' || visit.obdStatus === 'manual' },
         { label: t(`${k}.itemPayment`), done: !!visit.closedAt },
         ...(visit.ownerReviewSubmitted ? [{ label: t(`${k}.itemReviewReceived`), done: true }] : []),
-        { label: t(`${k}.itemFunds`), done: visit.payoutStatus === 'settled' },
     ];
     const doneCount = items.filter((i) => i.done).length;
     return (

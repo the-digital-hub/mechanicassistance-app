@@ -40,13 +40,13 @@ function formatEta(minutes: number): string {
     return m > 0 ? `${h} hr ${m} min` : `${h} hr`;
 }
 
-// Distance / ETA (and video-call time) card: the brand blue with white icons and text.
-const HERO_GRADIENT = ['#2F6BFF', '#1E56E3', '#0B2A8E'] as const;
-const HERO_CARD = { borderRadius: 18, marginBottom: 16, overflow: 'hidden' as const, shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.18, shadowRadius: 12, elevation: 3 };
-const HERO_ICON = { backgroundColor: 'rgba(255,255,255,0.2)' };
-const HERO_LABEL = { color: 'rgba(255,255,255,0.8)' };
-const HERO_VALUE = { color: '#FFFFFF' };
-const HERO_SUB = { color: 'rgba(255,255,255,0.85)' };
+// Distance / ETA (and video-call time) card: a quiet white card, with the brand blue only on the icons.
+const HERO_CARD = { backgroundColor: '#FFFFFF', borderRadius: 18, borderWidth: 1, borderColor: '#EEF2FA', marginBottom: 16, overflow: 'hidden' as const, shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.06, shadowRadius: 12, elevation: 2 };
+const HERO_ICON = { backgroundColor: '#EAF1FF' };
+const HERO_ICON_COLOR = '#1E56E3';
+const HERO_LABEL = { color: '#6B7490' };
+const HERO_VALUE = { color: '#0B1530' };
+const HERO_SUB = { color: '#6B7490' };
 
 export default function RequestDetailScreen() {
     const params = useLocalSearchParams();
@@ -460,10 +460,10 @@ export default function RequestDetailScreen() {
 
                     {/* Video call: when it is booked for, instead of distance / ETA */}
                     {isVideo && (
-                        <LinearGradient colors={HERO_GRADIENT} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 0.9, y: 1 }} style={HERO_CARD} testID="video-call-when">
+                        <View style={HERO_CARD} testID="video-call-when">
                             <View className="flex-row items-center p-4">
                                 <View className="w-11 h-11 rounded-xl justify-center items-center mr-3" style={HERO_ICON}>
-                                    <Clock size={20} color="#FFFFFF" />
+                                    <Clock size={20} color={HERO_ICON_COLOR} />
                                 </View>
                                 <View className="flex-1">
                                     <Text className="font-outfit-semibold text-xs tracking-widest mb-0.5" style={HERO_LABEL}>{t('requestDetail.videoCallWhen')}</Text>
@@ -475,26 +475,26 @@ export default function RequestDetailScreen() {
                                     </Text>
                                 </View>
                             </View>
-                        </LinearGradient>
+                        </View>
                     )}
 
                     {/* Distance / ETA Card */}
                     {!isVideo && (etaText || distKm !== null) && (
-                        <LinearGradient colors={HERO_GRADIENT} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 0.9, y: 1 }} style={HERO_CARD}>
+                        <View style={HERO_CARD}>
                             <View className="flex-row">
                                 <View className="flex-1 flex-row items-center p-4">
                                     <View className="w-11 h-11 rounded-xl justify-center items-center mr-3" style={HERO_ICON}>
-                                        <ArrowUpRight size={20} color="#FFFFFF" />
+                                        <ArrowUpRight size={20} color={HERO_ICON_COLOR} />
                                     </View>
                                     <View>
                                         <Text className="font-outfit-semibold text-xs tracking-widest mb-0.5" style={HERO_LABEL}>{t('requestDetail.distance')}</Text>
                                         <Text className="font-outfit-bold text-lg" style={HERO_VALUE}>{distKm !== null ? `${(distKm * 0.621371).toFixed(1)} mi` : '—'}</Text>
                                     </View>
                                 </View>
-                                <View style={{ width: 1, backgroundColor: 'rgba(255,255,255,0.28)' }} className="my-4" />
+                                <View style={{ width: 1, backgroundColor: '#E4EAF5' }} className="my-4" />
                                 <View className="flex-1 flex-row items-center p-4">
                                     <View className="w-11 h-11 rounded-xl justify-center items-center mr-3" style={HERO_ICON}>
-                                        <Clock size={20} color="#FFFFFF" />
+                                        <Clock size={20} color={HERO_ICON_COLOR} />
                                     </View>
                                     <View>
                                         <Text className="font-outfit-semibold text-xs tracking-widest mb-0.5" style={HERO_LABEL}>{t('requestDetail.eta')}</Text>
@@ -502,7 +502,7 @@ export default function RequestDetailScreen() {
                                     </View>
                                 </View>
                             </View>
-                        </LinearGradient>
+                        </View>
                     )}
 
                     {/* Date Selector */}

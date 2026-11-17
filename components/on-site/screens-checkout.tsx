@@ -5,7 +5,7 @@ import { Alert, Text, TouchableOpacity, View } from 'react-native';
 import type { OnSiteVisit } from '@/lib/dao/OnSiteDAO';
 import { ObdPanel } from './ObdPanel';
 import type { RedirectReason } from './screens-execution';
-import { ActionBar, Body, Card, Eyebrow, InfoRow, Intro, NoteInput, OS, PrimaryButton, cardShadow } from './ui';
+import { ActionBar, Body, Card, Eyebrow, InfoRow, Intro, NoteInput, OS, PrimaryButton, Tip, cardShadow } from './ui';
 
 // Phase 3 of the on-site flow: close-out summary and the final screen.
 // Charges and the owner rating are not sent anywhere yet.
@@ -48,7 +48,7 @@ export function ScreenCloseService({ variant, partsCost, redirectReason, service
     return (
         <>
             <Body>
-                <Intro eyebrow={t(`${k}.eyebrow`)} title={t(`${k}.title`)} subtitle={completed ? undefined : t(`${k}.redirected`)} />
+                <Intro eyebrow={t(`${k}.eyebrow`)} title={t(`${k}.title`)} subtitle={completed ? t(`${k}.subtitleCompleted`) : t(`${k}.redirected`)} />
                 <Card>
                     {completed ? (
                         <>
@@ -90,17 +90,18 @@ export function ScreenCloseService({ variant, partsCost, redirectReason, service
                     </>
                 ) : null}
 
+                {/* What the mechanic gets, not a charge to anyone: this is a payout. */}
                 <View className="px-5 pt-4"><Eyebrow>{t(`${k}.chargesEyebrow`)}</Eyebrow></View>
-                <View className="mx-4" style={cardShadow}>
-                    <View className="flex-row justify-between px-4 py-3" style={{ borderBottomWidth: 1, borderBottomColor: OS.borderSoft }}>
-                        <Text className="font-outfit-medium text-[13px]" style={{ color: OS.muted }}>{t(`${k}.serviceValue`)}</Text>
-                        <Text className="font-outfit-bold text-[13px]" style={{ color: OS.text }}>{amount}</Text>
-                    </View>
-                    <View className="flex-row justify-between px-4 py-3">
-                        <Text className="font-outfit-bold text-[13px]" style={{ color: OS.text }}>{t(`${k}.total`)}</Text>
-                        <Text className="font-outfit-bold text-[15px]" style={{ color: OS.blueDark }}>{amount}</Text>
-                    </View>
-                </View>
+                <Card>
+                    <InfoRow icon="cash-outline" label={t(`${k}.serviceValue`)} value={amount} />
+                    <InfoRow
+                        icon="wallet-outline"
+                        label={t(`${k}.total`)}
+                        last
+                        value={<Text className="font-outfit-bold mt-0.5" style={{ fontSize: 22, lineHeight: 28, color: OS.blueDark }}>{amount}</Text>}
+                    />
+                </Card>
+                <Tip>{t(`${k}.payoutHint`)}</Tip>
             </Body>
             <ActionBar>
                 <PrimaryButton label={closing ? t(`${k}.closing`) : t(`${k}.finish`)} onPress={() => void finish()} disabled={closing} tone="green" />

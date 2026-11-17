@@ -843,7 +843,8 @@
         "ratingValue": "{{rating}} ({{count}})",
         "noRatings": "No ratings yet",
         "distanceExact": "{{miles}} mi",
-        "pricePending": "Pending"
+        "pricePending": "Pending",
+        "offerHeldHint": "Time left for the client to confirm your offer."
       },
       "hint": {
         "upcoming": "Confirmed services with an assigned technician.",
@@ -1310,7 +1311,7 @@
         "proofPh": "Photo of the work done, or of the vehicle as you leave it",
         "removePhoto": "Remove photo",
         "workPh": "Describe the work performed…",
-        "question": "Is the issue resolved?",
+        "question": "Is the assistance resolved?",
         "no": "No",
         "yes": "Yes, resolved",
         "timerLabel": "Time on the job",
@@ -1320,7 +1321,9 @@
         "checklistWarnTitle": "Complete the maintenance checklist",
         "checklistWarnBody": "You haven't finished the maintenance checklist. Closing this assistance without it can affect your rating and the assistance's compliance.",
         "checklistWarnFix": "Complete checklist",
-        "checklistWarnSkip": "Continue anyway"
+        "checklistWarnSkip": "Continue anyway",
+        "proofSub": "Photograph the work done and the vehicle as you leave it. A short video works too.",
+        "addPhotos": "Add photos"
       },
       "videoOut": {
         "eyebrow": "BEFORE YOU GO · OPTIONAL",
@@ -1352,12 +1355,14 @@
         "paidEyebrow": "ALREADY PAID BY CUSTOMER",
         "partsPaid": "Auto parts (owner-approved)",
         "paidBadge": "${{amount}} · PAID",
-        "chargesEyebrow": "CHARGES",
+        "chargesEyebrow": "WHAT YOU'LL RECEIVE",
         "serviceValue": "Service value",
-        "total": "Total to charge",
+        "total": "You'll receive",
         "finish": "Finish Service",
         "minutes": "{{minutes}} min",
-        "closing": "Closing…"
+        "closing": "Closing…",
+        "payoutHint": "This is an estimate. It's released to your account once the client confirms the work — usually within 7 days.",
+        "subtitleCompleted": "Check the visit and what you'll get paid for it."
       },
       "done": {
         "completed": "Service completed",
@@ -1465,7 +1470,11 @@
       "unknownAmount": "—",
       "footerClosed": "The owner confirmed — this assistance is closed.",
       "arrivesByEst": "ARRIVES BY (EST.)",
-      "arrivedOn": "SENT ON"
+      "arrivedOn": "SENT ON",
+      "walletSent": "Sent to your wallet",
+      "walletSentOn": "Sent to your wallet on {{date}}",
+      "walletPending": "Goes to your wallet once the client confirms",
+      "walletNote": "You choose when to pay it out to your bank account."
     },
     "receipt": {
       "title": "Receipt",
@@ -1767,7 +1776,8 @@
       "photos": "Photos taken",
       "serviceValue": "Service value",
       "payout": "Your payout",
-      "ownerRating": "Your rating of the owner"
+      "ownerRating": "Your rating of the owner",
+      "close": "Close"
     }
   },
   "requestDetail": {
@@ -3426,7 +3436,10 @@
     "sentRows": {
       "arrival": "Arrival",
       "quote": "Your quote",
-      "warranty": "Warranty"
+      "warranty": "Warranty",
+      "duration": "Estimated duration",
+      "parts": "Parts",
+      "notIncluded": "Not included"
     },
     "decline": {
       "eyebrow": "DECLINE",

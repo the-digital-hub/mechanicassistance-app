@@ -844,7 +844,8 @@
         "ratingValue": "{{rating}} ({{count}})",
         "noRatings": "Sin calificaciones",
         "distanceExact": "{{miles}} mi",
-        "pricePending": "Pendiente"
+        "pricePending": "Pendiente",
+        "offerHeldHint": "Tiempo que le queda al cliente para confirmar tu oferta."
       },
       "hint": {
         "upcoming": "Servicios confirmados con un técnico asignado.",
@@ -1311,7 +1312,7 @@
         "proofPh": "Foto del trabajo realizado, o del vehículo como lo dejás",
         "removePhoto": "Quitar foto",
         "workPh": "Describí el trabajo realizado…",
-        "question": "¿Se resolvió el problema?",
+        "question": "¿Se resolvió la asistencia?",
         "no": "No",
         "yes": "Sí, resuelto",
         "timerLabel": "Tiempo en el trabajo",
@@ -1321,7 +1322,9 @@
         "checklistWarnTitle": "Completá el checklist de mantenimiento",
         "checklistWarnBody": "Todavía no terminaste el checklist de mantenimiento. Cerrar esta asistencia sin completarlo puede afectar tu calificación y el cumplimiento de la asistencia.",
         "checklistWarnFix": "Completar checklist",
-        "checklistWarnSkip": "Continuar igual"
+        "checklistWarnSkip": "Continuar igual",
+        "proofSub": "Fotografiá el trabajo hecho y el vehículo como lo dejás. Un video corto también sirve.",
+        "addPhotos": "Agregar fotos"
       },
       "videoOut": {
         "eyebrow": "ANTES DE IRTE · OPCIONAL",
@@ -1353,12 +1356,14 @@
         "paidEyebrow": "YA PAGADO POR EL CLIENTE",
         "partsPaid": "Repuestos (aprobados por el dueño)",
         "paidBadge": "${{amount}} · PAGADO",
-        "chargesEyebrow": "COBROS",
+        "chargesEyebrow": "LO QUE VAS A RECIBIR",
         "serviceValue": "Valor del servicio",
-        "total": "Total a cobrar",
+        "total": "Vas a recibir",
         "finish": "Terminar servicio",
         "minutes": "{{minutes}} min",
-        "closing": "Cerrando…"
+        "closing": "Cerrando…",
+        "payoutHint": "Es un estimado. Se libera en tu cuenta cuando el cliente confirma el trabajo — normalmente dentro de 7 días.",
+        "subtitleCompleted": "Revisá la visita y lo que vas a cobrar por ella."
       },
       "done": {
         "completed": "Servicio completado",
@@ -1466,7 +1471,11 @@
       "unknownAmount": "—",
       "footerClosed": "El dueño confirmó — esta asistencia está cerrada.",
       "arrivesByEst": "LLEGA APROX.",
-      "arrivedOn": "ENVIADO EL"
+      "arrivedOn": "ENVIADO EL",
+      "walletSent": "Enviado a tu wallet",
+      "walletSentOn": "Enviado a tu wallet el {{date}}",
+      "walletPending": "Va a tu wallet cuando el cliente confirme",
+      "walletNote": "Vos elegís cuándo pasarlo a tu cuenta bancaria."
     },
     "receipt": {
       "title": "Recibo",
@@ -1768,7 +1777,8 @@
       "photos": "Fotos tomadas",
       "serviceValue": "Valor del servicio",
       "payout": "Tu pago",
-      "ownerRating": "Tu calificación al dueño"
+      "ownerRating": "Tu calificación al dueño",
+      "close": "Cerrar"
     }
   },
   "requestDetail": {
@@ -3427,7 +3437,10 @@
     "sentRows": {
       "arrival": "Llegada",
       "quote": "Tu cotización",
-      "warranty": "Garantía"
+      "warranty": "Garantía",
+      "duration": "Duración estimada",
+      "parts": "Repuestos",
+      "notIncluded": "No incluido"
     },
     "decline": {
       "eyebrow": "RECHAZAR",

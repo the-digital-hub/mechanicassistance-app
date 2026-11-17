@@ -1,6 +1,6 @@
 import type { MarketplaceOffer } from '@/lib/dao/interfaces';
 
-import { bestOfferId, canSelect, holdsNow, money, offerErrorAction, openOffersByTotal, quoteErrorAction, quoteIsOpen, requestPhase, splitQuoteDescription, totalOf, windowLeft } from '../offers';
+import { bestOfferId, canSelect, holdsNow, money, offerErrorAction, openOffersByTotal, parseSentQuote, quoteErrorAction, quoteIsOpen, requestPhase, splitQuoteDescription, totalOf, windowLeft } from '../offers';
 
 const NOW = new Date('2026-11-15T12:00:00.000Z');
 
@@ -160,5 +160,27 @@ describe('splitQuoteDescription', () => {
     it('handles plain and empty descriptions', () => {
         expect(splitQuoteDescription('Just text')).toEqual({ text: 'Just text', items: [] });
         expect(splitQuoteDescription(null)).toEqual({ text: '', items: [] });
+    });
+});
+
+describe('parseSentQuote', () => {
+    const block = '[MA_ITEMIZED_QUOTE:v1]{"items":[{"serviceName":"Oil change","status":"quoted","itemTotal":80}]}[/MA_ITEMIZED_QUOTE]';
+    it('separates the app lines from the provider message', () => {
+        const q = parseSentQuote(`Quote for: Oil change.\nNot included: Brakes.\nParts included in the prices.\nTravel fee: $10.00.\nI can be there early.\n${block}`);
+        expect(q.partsIncluded).toBe(true);
+        expect(q.notIncluded).toBe('Brakes');
+        expect(q.message).toBe('I can be there early.');
+        expect(q.items).toHaveLength(1);
+    });
+    it('reads customer-supplied parts and an empty message', () => {
+        const q = parseSentQuote('Quote for: Oil change.\nParts supplied by the customer.');
+        expect(q.partsIncluded).toBe(false);
+        expect(q.message).toBe('');
+        expect(q.notIncluded).toBeNull();
+    });
+    it('knows nothing about a quote written elsewhere', () => {
+        const q = parseSentQuote('Will fix it tomorrow.');
+        expect(q.partsIncluded).toBeNull();
+        expect(q.message).toBe('Will fix it tomorrow.');
     });
 });

@@ -10,6 +10,8 @@ export interface OwnerRouteMapProps {
     mechanic: LatLng | null;
     polyline: string | null;
     height?: number;
+    /** Only the native map has an expanded view with this button; the web frame is itself the link. */
+    showOpenInMaps?: boolean;
 }
 
 /** Web has no react-native-maps: same frame, a link to the route in Google Maps. */

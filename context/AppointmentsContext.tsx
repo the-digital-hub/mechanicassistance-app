@@ -84,6 +84,8 @@ export interface Appointment {
     isReviewSubmitted?: boolean;
     /** Short reference for support, e.g. `AS-4H8TX2` (the request's; a booking made without one has none). */
     refCode?: string;
+    /** While `offered`: when the hold on the mechanic's offer ends (ISO); the owner has until then to confirm. */
+    offerExpiresAt?: string | null;
     /** Stars (1–5) the customer gave the mechanic for this job; null until reviewed. List rows only. */
     reviewRating?: number | null;
     /** Stars (1–5) the mechanic gave the customer for this job; null until rated. List rows only. */
@@ -201,6 +203,7 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                     mechanicId: req.mechanicId,
                     updatedAt: (req as any).updatedAt,
                     createdAt: req.createdAt,
+                    offerExpiresAt: req.status === 'offered' ? req.offerExpiresAt ?? null : null,
                     // `photos` holds `{url,type,note}` objects now, and plain URL
                     // strings on older rows. `parseAttachments` is the one reader
                     // that handles both; hand-rolling it here crashed with

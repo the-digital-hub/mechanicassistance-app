@@ -126,7 +126,7 @@ export function MechanicAssistanceInfoTab({ appointment, section }: MechanicAssi
                     </DetailCard>
 
                     {/* Route map — client pin, own GPS dot, road route; tap for full screen */}
-                    <OwnerRouteMap destination={requestCoords} mechanic={mechanicCoords} polyline={polyline} height={220} />
+                    <OwnerRouteMap destination={requestCoords} mechanic={mechanicCoords} polyline={polyline} height={220} showOpenInMaps={false} />
                 </>
             )}
 

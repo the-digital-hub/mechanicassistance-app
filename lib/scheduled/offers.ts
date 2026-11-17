@@ -185,3 +185,40 @@ export function splitQuoteDescription(description: string | null | undefined): {
         return { text, items: [] };
     }
 }
+
+export interface SentQuote {
+    items: QuoteItem[];
+    /** What the provider wrote to the customer, without the lines the app adds on its own. */
+    message: string;
+    /** From the app's own line; null for a quote that did not come from this app. */
+    partsIncluded: boolean | null;
+    /** Services the provider left out, as the app's line lists them. */
+    notIncluded: string | null;
+}
+
+/** A sent quote read back: its service lines, what it leaves out, who supplies the parts, and the personal message. */
+export function parseSentQuote(description: string | null | undefined): SentQuote {
+    const { text, items } = splitQuoteDescription(description);
+    let partsIncluded: boolean | null = null;
+    let notIncluded: string | null = null;
+    const message: string[] = [];
+    for (const raw of text.split('\n')) {
+        const line = raw.trim();
+        if (!line) continue;
+        if (/^Quote for:/i.test(line) || /^Travel fee:/i.test(line)) continue;
+        if (/^Not included:/i.test(line)) {
+            notIncluded = line.replace(/^Not included:\s*/i, '').replace(/\.$/, '');
+            continue;
+        }
+        if (/^Parts included in the prices\.?$/i.test(line)) {
+            partsIncluded = true;
+            continue;
+        }
+        if (/^Parts supplied by the customer\.?$/i.test(line)) {
+            partsIncluded = false;
+            continue;
+        }
+        message.push(line);
+    }
+    return { items, message: message.join('\n'), partsIncluded, notIncluded };
+}

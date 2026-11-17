@@ -6,7 +6,7 @@ import { refLabel } from '@/lib/refCode';
 import { approximateArea, coarseAddress } from '@/lib/maps/approximateLocation';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
-import { Calendar, Car, LucideIcon, MapPin, MessageSquare, Route, Star } from 'lucide-react-native';
+import { Calendar, Car, Clock, LucideIcon, MapPin, MessageSquare, Route, Star } from 'lucide-react-native';
 import { ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, Platform, Text, TouchableOpacity, View } from 'react-native';
@@ -17,6 +17,7 @@ import { FixedLocationMap } from './FixedLocationMap';
 import { ScrollPressGuardContext } from '@/hooks/useScrollPressGuard';
 import { AppointmentMechanic, useAppointmentMechanic } from '@/hooks/useAppointmentMechanic';
 import { Stars } from '@/components/offer/OfferSections';
+import { useCountdown } from '@/hooks/useCountdown';
 
 interface AppointmentCardProps {
     appointment: Appointment;
@@ -35,6 +36,27 @@ const C = {
     red: '#E53E3E',
     pastTile: '#EEF1F6',
 };
+
+/** A mechanic's offer waits for the owner only while it is held: how long is left, in the card of the offer. */
+function OfferHeldBanner({ expiresAt }: { expiresAt: string }) {
+    const { t } = useTranslation();
+    const deadline = useMemo(() => {
+        const ms = new Date(expiresAt).getTime();
+        return Number.isFinite(ms) ? ms : null;
+    }, [expiresAt]);
+    const left = useCountdown(deadline);
+    if (deadline === null || left <= 0) return null;
+    const time = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`;
+    return (
+        <View className="flex-row items-center mt-2" style={{ gap: 10, paddingVertical: 10, paddingHorizontal: 12, borderRadius: 12, backgroundColor: '#FEF4E2' }} testID="offer-held-banner">
+            <Clock size={18} color="#F08A1C" />
+            <View className="flex-1">
+                <Text className="font-outfit-bold text-[15px]" style={{ color: '#8A5A12' }}>{t('requestAssistance.mechanicFound.heldFor', { time })}</Text>
+                <Text className="font-outfit-regular text-[13px]" style={{ color: '#8A5A12', lineHeight: 18 }}>{t('appointments.list.card.offerHeldHint')}</Text>
+            </View>
+        </View>
+    );
+}
 
 const MONO = Platform.select({ ios: 'Menlo', default: 'monospace' });
 
@@ -329,6 +351,7 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
                     {t(`appointments.list.card.status.${state}`)}
                 </Text>
             </View>
+            {isMechanic && state === 'offered' && appointment.offerExpiresAt ? <OfferHeldBanner expiresAt={appointment.offerExpiresAt} /> : null}
 
             {/* Fixed map: the owner sees their own pin, a mechanic only the zone */}
             {!isPast && !isVideoCall && (

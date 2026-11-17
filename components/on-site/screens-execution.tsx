@@ -6,11 +6,10 @@ import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'reac
 import MapView, { Marker } from 'react-native-maps';
 import { MAP_PROVIDER } from '@/lib/maps/provider';
 import { TYPE } from '@/lib/ui/type';
-import type { OnSiteMedia } from '@/lib/dao/OnSiteDAO';
-import { MediaSlot, useExistingCaptures } from './MediaSlot';
+import { MediaSlot, PhotoList, useExistingCaptures } from './MediaSlot';
 import {
     ActionBar, Body, Card, CardTitle, Checkbox, Eyebrow, GhostButton, Intro, MaintenanceChecklist, NoteInput, OS,
-    OnSiteDialog, PrimaryButton, Tip, useMaintenanceItems,
+    OnSiteDialog, PrimaryButton, Segmented, Tip, useMaintenanceItems,
 } from './ui';
 
 // Parts purchase, "can't resolve" options and the repair itself. All data here is
@@ -307,14 +306,11 @@ export function ScreenResolveIncident({
 }) {
     const { t } = useTranslation();
     const k = 'appointments.onSite.resolve';
-    const existingProof = useExistingCaptures('proof');
     const startedAt = React.useMemo(() => (workStartedAt ? new Date(workStartedAt).getTime() : Date.now()), [workStartedAt]);
     const [seconds, setSeconds] = React.useState(() => Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
     const [notes, setNotes] = React.useState(workNotes);
-    const nextPhoto = React.useRef(existingProof.length);
-    const [photos, setPhotos] = React.useState<{ id: number; existing?: OnSiteMedia }[]>(() =>
-        existingProof.map((m, i) => ({ id: i, existing: m })),
-    );
+    const walkaroundOut = useExistingCaptures('walkaround_out');
+    const [proofTab, setProofTab] = React.useState<'video' | 'photos'>('video');
     const checklist = useMaintenanceItems(initialChecklist, onChecklistChange);
     // Set once the mechanic tries to resolve with the checklist unfinished: the checklist then stays flagged.
     const [warned, setWarned] = React.useState(false);
@@ -434,47 +430,30 @@ export function ScreenResolveIncident({
                     </>
                 ) : null}
 
-                <Card>
-                    <CardTitle
-                        title={t(`${k}.proof`)}
-                        optional
-                        right={
-                            <TouchableOpacity
-                                onPress={() => setPhotos((p) => [...p, { id: nextPhoto.current++ }])}
-                                className="flex-row items-center"
-                                style={{ gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 100, backgroundColor: OS.blueSoft }}
-                                accessibilityRole="button"
-                            >
-                                <Ionicons name="add" size={18} color={OS.blue} />
-                                <Text className="font-outfit-bold" style={{ ...TYPE.helper, color: OS.blue }}>{t(`${k}.addPhoto`)}</Text>
-                            </TouchableOpacity>
-                        }
+                {/* Final photos: the same capture as the check-in's extra photos (video or photos). */}
+                <View className="px-5 mt-6">
+                    <Text className="font-outfit-bold" style={{ fontSize: 17, lineHeight: 23, color: OS.text }}>
+                        {t(`${k}.proof`)}
+                        <Text className="font-outfit-medium" style={{ fontSize: 13, color: OS.mutedLight }}>  {t('appointments.onSite.common.optional')}</Text>
+                    </Text>
+                    <Text className="font-outfit-regular mt-1" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>{t(`${k}.proofSub`)}</Text>
+                </View>
+                <View className="mt-3">
+                    <Segmented
+                        value={proofTab}
+                        onChange={setProofTab}
+                        options={[
+                            { key: 'video', label: t('appointments.onSite.common.recordVideo'), icon: 'videocam-outline' },
+                            { key: 'photos', label: t(`${k}.addPhotos`), icon: 'images-outline' },
+                        ]}
                     />
-                    {photos.map((photo) => (
-                        <View key={photo.id}>
-                            <MediaSlot
-                                height={150}
-                                placeholder={t(`${k}.proofPh`)}
-                                captureKind="proof"
-                                existing={photo.existing}
-                                note
-                                onDeleteSlot={() => setPhotos((p) => p.filter((x) => x.id !== photo.id))}
-                            />
-                        </View>
-                    ))}
-                    {photos.length === 0 ? (
-                        <TouchableOpacity
-                            onPress={() => setPhotos([{ id: nextPhoto.current++ }])}
-                            activeOpacity={0.8}
-                            accessibilityRole="button"
-                            className="items-center justify-center mx-4 mt-2"
-                            style={{ height: 110, borderRadius: 16, borderWidth: 2, borderStyle: 'dashed', borderColor: OS.border, backgroundColor: OS.page, gap: 6 }}
-                        >
-                            <Ionicons name="camera-outline" size={28} color={OS.mutedLight} />
-                            <Text className="font-outfit-medium text-center px-4" style={{ ...TYPE.helper, color: OS.muted }}>{t(`${k}.proofPh`)}</Text>
-                        </TouchableOpacity>
-                    ) : null}
-                    <View style={{ height: 14 }} />
+                </View>
+                <Card>
+                    {proofTab === 'video' ? (
+                        <MediaSlot kind="video" height={170} placeholder={t('appointments.onSite.photos.videoPh')} captureKind="walkaround_out" existing={walkaroundOut[0]} />
+                    ) : (
+                        <PhotoList placeholder={t(`${k}.proofPh`)} captureKind="proof" />
+                    )}
                 </Card>
 
                 <Card>
