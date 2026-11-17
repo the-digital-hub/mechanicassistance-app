@@ -1731,7 +1731,9 @@
         "fileSent": "El dueño mandó: {{name}}",
         "openFile": "Abrir",
         "openFileError": "No se pudo abrir el archivo. Probá de nuevo en un minuto.",
-        "sheetTitle": "Reporte del scanner OBD"
+        "sheetTitle": "Reporte del scanner OBD",
+        "fileSentOwner": "Enviaste: {{name}}",
+        "replaceFile": "Reemplazar"
       }
     },
     "clientReview": {

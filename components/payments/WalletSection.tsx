@@ -7,6 +7,7 @@ import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 
 import type { PaymentCard } from '@/lib/dao/interfaces';
 import { type WalletMovement, walletDAO } from '@/lib/dao/WalletDAO';
+import { movementServiceTitles } from '@/lib/payments/movementServices';
 import { formatMoney } from '@/lib/payments/paymentSource';
 import { useWallet } from '@/lib/payments/useWallet';
 import { formatLocalDateTime } from '@/lib/video/videoCallTime';
@@ -29,13 +30,16 @@ export function WalletSection({ cards }: { cards: PaymentCard[] }) {
     const router = useRouter();
     const { wallet, setWallet } = useWallet();
     const [movements, setMovements] = React.useState<WalletMovement[] | null>(null);
+    const [titles, setTitles] = React.useState<Record<string, string>>({});
     const [topUpOpen, setTopUpOpen] = React.useState(false);
     const [notice, setNotice] = React.useState<string | null>(null);
 
     const loadMovements = React.useCallback(async () => {
         try {
             const history = await walletDAO.history(1, 10);
-            setMovements(history.walletMovements.slice(0, 5));
+            const recent = history.walletMovements.slice(0, 5);
+            setMovements(recent);
+            movementServiceTitles(history.payments.items, recent).then(setTitles).catch(() => setTitles({}));
         } catch {
             setMovements([]);
         }
@@ -116,9 +120,15 @@ export function WalletSection({ cards }: { cards: PaymentCard[] }) {
             <Text className="text-gray-500 font-outfit-regular text-sm mt-3">{t(`${K}.howItWorks`)}</Text>
 
             <View className="flex-row items-center justify-between mt-6 mb-2">
-                <Text className="text-gray-900 font-outfit-semibold text-base">{t(`${K}.movements`)}</Text>
-                <TouchableOpacity onPress={() => router.push('/payment-activity' as Href)} accessibilityRole="link" testID="wallet-see-all">
-                    <Text className="font-outfit-semibold text-sm" style={{ color: '#0047AB' }}>{t(`${K}.seeAll`)}</Text>
+                <Text className="text-gray-900 font-outfit-bold" style={{ fontSize: 20, lineHeight: 26 }}>{t(`${K}.movements`)}</Text>
+                <TouchableOpacity
+                    onPress={() => router.push('/payment-activity' as Href)}
+                    accessibilityRole="link"
+                    className="px-3 py-1.5 rounded-full"
+                    style={{ backgroundColor: '#E9F1FF' }}
+                    testID="wallet-see-all"
+                >
+                    <Text className="font-outfit-bold" style={{ fontSize: 13, lineHeight: 18, color: '#1E56E3' }}>{t(`${K}.seeAll`)}</Text>
                 </TouchableOpacity>
             </View>
             {movements === null ? (
@@ -134,6 +144,9 @@ export function WalletSection({ cards }: { cards: PaymentCard[] }) {
                                 <Text className="text-gray-900 font-outfit-semibold text-sm">
                                     {t(`${K}.movementType.${m.type}`, { defaultValue: t(`${K}.movementType.other`) })}
                                 </Text>
+                                {titles[m.id] ? (
+                                    <Text className="text-gray-600 font-outfit-regular text-[13px]" numberOfLines={1}>{titles[m.id]}</Text>
+                                ) : null}
                                 <Text className="text-gray-500 font-outfit-regular text-[13px]">{formatLocalDateTime(m.createdAt, i18n.language)}</Text>
                             </View>
                             <Text className="font-outfit-bold text-sm" style={{ color: credit ? '#15803D' : '#111827' }}>

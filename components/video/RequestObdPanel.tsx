@@ -67,6 +67,7 @@ export function RequestObdPanel({ requestId, role, editable, state }: RequestObd
     const [saving, setSaving] = React.useState(false);
     const [suggestionsOpen, setSuggestionsOpen] = React.useState(false);
     const [openingFile, setOpeningFile] = React.useState(false);
+    const [replacing, setReplacing] = React.useState(false);
 
     const status = report?.status ?? 'none';
     const codes = report?.codes ?? [];
@@ -77,6 +78,7 @@ export function RequestObdPanel({ requestId, role, editable, state }: RequestObd
 
     const upload = async (file: Picked) => {
         setReport(await requestObdDAO.attach(requestId, file));
+        setReplacing(false);
     };
 
     const saveCodes = async (list: string[]) => {
@@ -129,7 +131,7 @@ export function RequestObdPanel({ requestId, role, editable, state }: RequestObd
 
     return (
         <>
-            {canUpload ? (
+            {canUpload && (!fileName || replacing) ? (
                 <Card>
                     <CardTitle title={t(`${kv}.file`)} optional />
                     <MediaSlot
@@ -156,11 +158,21 @@ export function RequestObdPanel({ requestId, role, editable, state }: RequestObd
                 <Tip tone="orange">{role === 'owner' ? t(`${kv}.failedOwner`) : t(`${kv}.failedMechanic`)}</Tip>
             ) : null}
             {report.vinMismatch ? <Tip tone="orange">{t(`${kv}.vinMismatch`, { vin: report.vin ?? '' })}</Tip> : null}
-            {role === 'mechanic' && fileName ? (
+            {fileName && !(canUpload && replacing) ? (
                 <View className="mx-5 mt-3 flex-row items-center gap-3">
                     <Text className="flex-1 font-outfit-medium text-[13px]" style={{ color: OS.muted }} numberOfLines={1}>
-                        {t(`${kv}.fileSent`, { name: fileName })}
+                        {t(role === 'owner' ? `${kv}.fileSentOwner` : `${kv}.fileSent`, { name: fileName })}
                     </Text>
+                    {canUpload ? (
+                        <TouchableOpacity
+                            onPress={() => setReplacing(true)}
+                            className="px-3 py-1.5 rounded-full"
+                            accessibilityRole="button"
+                            testID="request-obd-replace-file"
+                        >
+                            <Text className="font-outfit-bold text-[13px]" style={{ color: OS.muted }}>{t(`${kv}.replaceFile`)}</Text>
+                        </TouchableOpacity>
+                    ) : null}
                     <TouchableOpacity
                         onPress={openFile}
                         disabled={openingFile}

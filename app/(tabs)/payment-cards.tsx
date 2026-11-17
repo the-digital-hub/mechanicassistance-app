@@ -239,7 +239,7 @@ function PaymentCardsContent() {
 
         {!resumesRequest && <WalletSection cards={cards} />}
 
-        <Text className="text-gray-900 font-outfit-semibold text-lg mb-3">
+        <Text className="text-gray-900 font-outfit-bold mb-3 mt-2" style={{ fontSize: 20, lineHeight: 26 }}>
           {t('paymentCards.cardsHeading')}
         </Text>
 

@@ -398,7 +398,7 @@ const DIALOG_TONES = {
  * `primary` is the safe way on (blue); `secondary` is the quiet way through. Tapping outside
  * or going back is the same as the primary button.
  */
-export function OnSiteDialog({ visible, tone = 'orange', icon = 'alert-circle-outline', title, body, details, primaryLabel, onPrimary, secondaryLabel, onSecondary, testID }: {
+export function OnSiteDialog({ visible, tone = 'orange', icon = 'alert-circle-outline', title, body, details, primaryLabel, onPrimary, secondaryLabel, onSecondary, onDismiss, testID }: {
     visible: boolean;
     tone?: keyof typeof DIALOG_TONES;
     icon?: React.ComponentProps<typeof Ionicons>['name'];
@@ -408,15 +408,18 @@ export function OnSiteDialog({ visible, tone = 'orange', icon = 'alert-circle-ou
     details?: React.ReactNode;
     primaryLabel: string;
     onPrimary: () => void;
-    secondaryLabel: string;
-    onSecondary: () => void;
+    /** Omit for a message with a single button. */
+    secondaryLabel?: string;
+    onSecondary?: () => void;
+    /** Tap outside / back. Defaults to the primary action; pass it when the primary is not the safe way out. */
+    onDismiss?: () => void;
     testID?: string;
 }) {
     const { color, bg } = DIALOG_TONES[tone];
     return (
-        <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onPrimary}>
+        <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onDismiss ?? onPrimary}>
             <View className="flex-1 items-center justify-center px-5" style={{ backgroundColor: 'rgba(11,21,48,0.55)' }} testID={testID}>
-                <Pressable style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }} onPress={onPrimary} accessible={false} />
+                <Pressable style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }} onPress={onDismiss ?? onPrimary} accessible={false} />
                 <View className="w-full bg-white" style={{ maxWidth: 400, borderRadius: 24, padding: 20, ...cardShadow }}>
                     <View className="items-center justify-center self-center" style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: bg }}>
                         <Ionicons name={icon} size={28} color={color} />
@@ -434,16 +437,18 @@ export function OnSiteDialog({ visible, tone = 'orange', icon = 'alert-circle-ou
                     >
                         <Text className="font-outfit-bold text-white" style={{ fontSize: 17, lineHeight: 23 }}>{primaryLabel}</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity
-                        onPress={onSecondary}
-                        activeOpacity={0.7}
-                        accessibilityRole="button"
-                        className="items-center justify-center mt-1.5"
-                        style={{ minHeight: 48 }}
-                        testID="dialog-secondary"
-                    >
-                        <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: OS.muted }}>{secondaryLabel}</Text>
-                    </TouchableOpacity>
+                    {secondaryLabel && onSecondary ? (
+                        <TouchableOpacity
+                            onPress={onSecondary}
+                            activeOpacity={0.7}
+                            accessibilityRole="button"
+                            className="items-center justify-center mt-1.5"
+                            style={{ minHeight: 48 }}
+                            testID="dialog-secondary"
+                        >
+                            <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: OS.muted }}>{secondaryLabel}</Text>
+                        </TouchableOpacity>
+                    ) : null}
                 </View>
             </View>
         </Modal>

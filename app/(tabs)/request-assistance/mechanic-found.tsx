@@ -433,6 +433,9 @@ export default function MechanicFoundScreen() {
                         <Text style={{ fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }}>{request?.refCode ?? `#${requestId.slice(0, 8).toUpperCase()}`}</Text>
                     </Text>
                 )}
+                <TouchableOpacity onPress={handleCancel} disabled={confirmState !== 'idle'} style={{ paddingVertical: 12, alignItems: 'center' }} testID="mechanic-found-cancel">
+                    <Text className="font-outfit-bold" style={{ fontSize: 16, color: AO.red }}>{t('requestAssistance.searching.cancelRequest')}</Text>
+                </TouchableOpacity>
             </ScrollView>
 
             {/* Sticky footer */}
@@ -452,9 +455,6 @@ export default function MechanicFoundScreen() {
                             {confirmState === 'done' ? t(`${k}.requestConfirmed`) : confirmState === 'loading' ? t(`${k}.confirming`) : t(`${k}.confirm`)}
                         </Text>
                     </LinearGradient>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={handleCancel} disabled={confirmState !== 'idle'} style={{ paddingTop: 10, paddingBottom: 2, alignItems: 'center' }}>
-                    <Text className="font-outfit-bold" style={{ fontSize: 15, color: AO.red }}>{t('requestAssistance.searching.cancelRequest')}</Text>
                 </TouchableOpacity>
             </View>
         </View>

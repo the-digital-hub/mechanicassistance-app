@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 import { type PaymentHistoryItem, type WalletMovement, walletDAO } from '@/lib/dao/WalletDAO';
+import { movementServiceTitles } from '@/lib/payments/movementServices';
 import { formatMoney } from '@/lib/payments/paymentSource';
 import { formatLocalDateTime } from '@/lib/video/videoCallTime';
 
@@ -28,6 +29,7 @@ export default function PaymentActivityScreen() {
     const { t, i18n } = useTranslation();
     const [payments, setPayments] = useState<PaymentHistoryItem[] | null>(null);
     const [movements, setMovements] = useState<WalletMovement[]>([]);
+    const [titles, setTitles] = useState<Record<string, string>>({});
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
     const [loadingMore, setLoadingMore] = useState(false);
@@ -41,6 +43,7 @@ export default function PaymentActivityScreen() {
             setPayments(res.payments.items);
             setTotal(res.payments.total);
             setMovements(res.walletMovements);
+            movementServiceTitles(res.payments.items, res.walletMovements).then(setTitles).catch(() => setTitles({}));
             setPage(1);
         } catch {
             setError(true);
@@ -143,6 +146,9 @@ export default function PaymentActivityScreen() {
                                 <Text className="text-gray-900 font-outfit-semibold text-sm">
                                     {t(`${K}.movementType.${m.type}`, { defaultValue: t(`${K}.movementType.other`) })}
                                 </Text>
+                                {titles[m.id] ? (
+                                    <Text className="text-gray-600 font-outfit-regular text-[13px]" numberOfLines={1}>{titles[m.id]}</Text>
+                                ) : null}
                                 <Text className="text-gray-500 font-outfit-regular text-[13px]">{formatLocalDateTime(m.createdAt, i18n.language)}</Text>
                             </View>
                             <Text className="font-outfit-bold text-sm" style={{ color: credit ? '#15803D' : '#111827' }}>

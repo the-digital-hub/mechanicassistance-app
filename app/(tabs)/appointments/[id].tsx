@@ -57,6 +57,7 @@ import { useGlobalSearchParams, useRouter } from 'expo-router';
 import { goBackOr } from '@/lib/navigation/goBackOr';
 import React from 'react';
 import { AttachmentStrip } from '@/components/appointments/AttachmentStrip';
+import { OnSiteDialog } from '@/components/on-site/ui';
 import { RequestObdPanel, useRequestObd } from '@/components/video/RequestObdPanel';
 import { RequestVinCheckModal } from '@/components/video/RequestVinCheckModal';
 import { useVisitObdVinCheck } from '@/hooks/useRequestObdVinCheck';
@@ -212,6 +213,8 @@ export default function AppointmentDetailScreen() {
     // Owner only: the paid "Add time" sheet.
     const [showExtendSheet, setShowExtendSheet] = React.useState(false);
     const [videoBusy, setVideoBusy] = React.useState(false);
+    const [finishAskOpen, setFinishAskOpen] = React.useState(false);
+    const [videoErrorMsg, setVideoErrorMsg] = React.useState<string | null>(null);
     const [showDisputeSheet, setShowDisputeSheet] = React.useState(false);
     const [showFinishSheet, setShowFinishSheet] = React.useState(false);
     const [offer, setOffer] = React.useState<AssistanceOfferSummary | null>(null);
@@ -286,7 +289,7 @@ export default function AppointmentDetailScreen() {
     const videoError = (error: unknown, fallbackKey: string) => {
         // The server's message says why (e.g. 409: the call was never started).
         const message = error instanceof ApiError && error.apiMessage ? error.apiMessage : t(fallbackKey);
-        Alert.alert(t('appointments.videoCall.errorTitle'), message);
+        setVideoErrorMsg(message);
     };
 
     const openVideoLobby = () => {
@@ -323,11 +326,7 @@ export default function AppointmentDetailScreen() {
             setVideoBusy(false);
         }
     };
-    const askOwnerFinishVideoCall = () =>
-        Alert.alert(t('appointments.videoCall.owner.finishTitle'), t('appointments.videoCall.owner.finishBody'), [
-            { text: t('appointments.videoCall.owner.finishCancel'), style: 'cancel' },
-            { text: t('appointments.videoCall.owner.finishConfirm'), style: 'destructive', onPress: () => void ownerFinishVideoCall() },
-        ]);
+    const askOwnerFinishVideoCall = () => setFinishAskOpen(true);
 
     // Owner: it was not resolved — nothing is charged until support decides.
     const disputeVideoCall = async (reason: string) => {
@@ -610,6 +609,28 @@ export default function AppointmentDetailScreen() {
             testID="appointment-detail-root"
             nativeID="appointment-detail-root"
         >
+            <OnSiteDialog
+                visible={finishAskOpen}
+                tone="blue"
+                icon="videocam-outline"
+                title={t('appointments.videoCall.owner.finishTitle')}
+                body={t('appointments.videoCall.owner.finishBody')}
+                primaryLabel={t('appointments.videoCall.owner.finishConfirm')}
+                onPrimary={() => { setFinishAskOpen(false); void ownerFinishVideoCall(); }}
+                secondaryLabel={t('appointments.videoCall.owner.finishCancel')}
+                onSecondary={() => setFinishAskOpen(false)}
+                onDismiss={() => setFinishAskOpen(false)}
+                testID="finish-call-dialog"
+            />
+            <OnSiteDialog
+                visible={videoErrorMsg !== null}
+                icon="alert-circle-outline"
+                title={t('appointments.videoCall.errorTitle')}
+                body={videoErrorMsg ?? ''}
+                primaryLabel={t('vehicles.ok')}
+                onPrimary={() => setVideoErrorMsg(null)}
+                testID="video-error-dialog"
+            />
             {/* Either side: "the owner added N minutes" while a video call runs. */}
             {isVideoCall && <CallTimeAddedToast appointmentId={appointment.id} />}
             {isCanceledFeedback ? (
@@ -663,7 +684,7 @@ export default function AppointmentDetailScreen() {
                                         {videoCallLive && (
                                             <GradientButton
                                                 label={t('appointments.videoCall.mechanic.finish')}
-                                                icon="checkmark-done"
+                                                icon="checkmark"
                                                 colors={['#10B981', '#047857']}
                                                 loading={videoBusy}
                                                 onPress={askOwnerFinishVideoCall}
@@ -872,7 +893,7 @@ export default function AppointmentDetailScreen() {
                                             )}
                                             <GradientButton
                                                 label={t('appointments.videoCall.mechanic.finish')}
-                                                icon="checkmark-done"
+                                                icon="checkmark"
                                                 colors={['#10B981', '#047857']}
                                                 loading={videoBusy}
                                                 onPress={() => setShowFinishSheet(true)}

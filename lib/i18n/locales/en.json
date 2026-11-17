@@ -1730,7 +1730,9 @@
         "fileSent": "The owner sent: {{name}}",
         "openFile": "Open",
         "openFileError": "The file couldn't be opened. Try again in a minute.",
-        "sheetTitle": "OBD scanner report"
+        "sheetTitle": "OBD scanner report",
+        "fileSentOwner": "You sent: {{name}}",
+        "replaceFile": "Replace"
       }
     },
     "clientReview": {
