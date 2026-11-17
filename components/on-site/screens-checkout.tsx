@@ -93,13 +93,17 @@ export function ScreenCloseService({ variant, partsCost, redirectReason, service
                 {/* What the mechanic gets, not a charge to anyone: this is a payout. */}
                 <View className="px-5 pt-4"><Eyebrow>{t(`${k}.chargesEyebrow`)}</Eyebrow></View>
                 <Card>
-                    <InfoRow icon="cash-outline" label={t(`${k}.serviceValue`)} value={amount} />
-                    <InfoRow
-                        icon="wallet-outline"
-                        label={t(`${k}.total`)}
-                        last
-                        value={<Text className="font-outfit-bold mt-0.5" style={{ fontSize: 22, lineHeight: 28, color: OS.blueDark }}>{amount}</Text>}
-                    />
+                    <InfoRow icon="cash-outline" label={t(`${k}.serviceValue`)} value={amount} last />
+                    {/* The total stands apart from the line above it: a dashed rule and its own tinted block. */}
+                    <View style={{ marginHorizontal: 16, borderTopWidth: 1.5, borderStyle: 'dashed', borderColor: OS.blueIce }} />
+                    <View style={{ backgroundColor: OS.blueSofter, borderBottomLeftRadius: 19, borderBottomRightRadius: 19, marginTop: 4, paddingVertical: 4 }}>
+                        <InfoRow
+                            icon="wallet-outline"
+                            label={t(`${k}.total`)}
+                            last
+                            value={<Text className="font-outfit-bold mt-0.5" style={{ fontSize: 24, lineHeight: 30, color: OS.blueDark }}>{amount}</Text>}
+                        />
+                    </View>
                 </Card>
                 <Tip>{t(`${k}.payoutHint`)}</Tip>
             </Body>

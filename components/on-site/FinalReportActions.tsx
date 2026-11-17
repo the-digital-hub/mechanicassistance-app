@@ -74,8 +74,8 @@ export async function shareFinalReportPdf(report: FinalReport): Promise<boolean>
     }
 }
 
-function ActionButton({ icon, label, onPress, busy, primary, disabled, testID }: {
-    icon: React.ComponentProps<typeof Ionicons>['name']; label: string; onPress: () => void; busy?: boolean; primary?: boolean; disabled?: boolean; testID?: string;
+function ActionButton({ icon, label, onPress, busy, primary, compact, disabled, testID }: {
+    icon: React.ComponentProps<typeof Ionicons>['name']; label: string; onPress: () => void; busy?: boolean; primary?: boolean; compact?: boolean; disabled?: boolean; testID?: string;
 }) {
     return (
         <TouchableOpacity
@@ -85,19 +85,19 @@ function ActionButton({ icon, label, onPress, busy, primary, disabled, testID }:
             accessibilityRole="button"
             className="flex-row items-center justify-center"
             style={{
-                gap: 8, minHeight: 52, borderRadius: 14, paddingHorizontal: 16,
+                gap: compact ? 6 : 8, minHeight: compact ? 44 : 52, borderRadius: compact ? 12 : 14, paddingHorizontal: compact ? 12 : 16,
                 backgroundColor: primary ? OS.blue : OS.blueSoft, opacity: disabled ? 0.45 : 1,
             }}
             testID={testID}
         >
-            {busy ? <ActivityIndicator color={primary ? '#FFFFFF' : OS.blue} /> : <Ionicons name={icon} size={20} color={primary ? '#FFFFFF' : OS.blue} />}
-            <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: primary ? '#FFFFFF' : OS.blue }}>{label}</Text>
+            {busy ? <ActivityIndicator color={primary ? '#FFFFFF' : OS.blue} /> : <Ionicons name={icon} size={compact ? 18 : 20} color={primary ? '#FFFFFF' : OS.blue} />}
+            <Text className="font-outfit-bold" style={{ fontSize: compact ? 15 : 16, lineHeight: 22, color: primary ? '#FFFFFF' : OS.blue }}>{label}</Text>
         </TouchableOpacity>
     );
 }
 
 /** Download button, with its own busy state and error. */
-export function DownloadPdfButton({ report, primary }: { report: FinalReport | null; primary?: boolean }) {
+export function DownloadPdfButton({ report, primary, compact }: { report: FinalReport | null; primary?: boolean; compact?: boolean }) {
     const { t } = useTranslation();
     const [busy, setBusy] = React.useState(false);
     return (
@@ -105,6 +105,7 @@ export function DownloadPdfButton({ report, primary }: { report: FinalReport | n
             icon="download-outline"
             label={t('appointments.report.download')}
             primary={primary}
+            compact={compact}
             busy={busy}
             disabled={!report}
             testID="report-download"
@@ -178,17 +179,20 @@ export function FinalReportCard({ appointmentId }: { appointmentId: string }) {
                     <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>{t('appointments.report.cardSub')}</Text>
                 </View>
             </View>
-            <View className="mt-4" style={{ gap: 10 }}>
-                <ActionButton
-                    icon="reader-outline"
-                    label={t('appointments.report.view')}
-                    primary
-                    busy={loading && !report}
-                    disabled={!report}
-                    testID="report-view"
-                    onPress={() => setOpen(true)}
-                />
-                <DownloadPdfButton report={report} />
+            {/* Two quiet actions side by side: the report is there when wanted, not the point of the screen. */}
+            <View className="flex-row mt-3.5" style={{ gap: 10 }}>
+                <View className="flex-1">
+                    <ActionButton
+                        icon="reader-outline"
+                        label={t('appointments.report.viewShort')}
+                        compact
+                        busy={loading && !report}
+                        disabled={!report}
+                        testID="report-view"
+                        onPress={() => setOpen(true)}
+                    />
+                </View>
+                <View className="flex-1"><DownloadPdfButton report={report} compact /></View>
             </View>
         </Card>
     );

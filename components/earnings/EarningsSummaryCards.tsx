@@ -1,44 +1,54 @@
 import { LinearGradient } from 'expo-linear-gradient';
+import { CheckCircle2, Clock, Wallet, type LucideIcon } from 'lucide-react-native';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, View } from 'react-native';
 
 import type { EarningsSummary } from '@/lib/dao/interfaces';
 import { formatMoney } from '@/lib/payments/paymentSource';
+import { TYPE } from '@/lib/ui/type';
 
 const K = 'payments.summary';
 
 const SHADOW = { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 8, elevation: 6 };
 
-function Tile({
-    label,
-    value,
+/** One state of the money (pending, ready, paid out): icon, name with its detail under it, and the amount. */
+function Row({
+    icon: Icon,
+    title,
     hint,
-    bg,
-    border,
-    labelColor,
+    value,
+    iconBg,
+    iconColor,
     valueColor,
+    last,
     testID,
 }: {
-    label: string;
-    value: string;
+    icon: LucideIcon;
+    title: string;
     hint: string;
-    bg: string;
-    border: string;
-    labelColor: string;
+    value: string;
+    iconBg: string;
+    iconColor: string;
     valueColor: string;
+    last?: boolean;
     testID: string;
 }) {
     return (
-        <View className="flex-1 rounded-2xl p-3" style={{ backgroundColor: bg, borderWidth: 1, borderColor: border, minWidth: 0 }} testID={testID}>
-            <Text className="font-outfit-bold text-[12px] tracking-widest" style={{ color: labelColor }} numberOfLines={1}>
-                {label}
-            </Text>
-            <Text className="font-outfit-bold mt-1" style={{ fontSize: 20, color: valueColor }} numberOfLines={1} adjustsFontSizeToFit>
+        <View
+            className="flex-row items-center"
+            style={{ gap: 14, paddingHorizontal: 18, paddingVertical: 16, borderBottomWidth: last ? 0 : 1, borderBottomColor: '#EEF2FA' }}
+            testID={testID}
+        >
+            <View className="items-center justify-center" style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: iconBg }}>
+                <Icon size={22} color={iconColor} />
+            </View>
+            <View className="flex-1" style={{ minWidth: 0 }}>
+                <Text className="font-outfit-bold" style={{ ...TYPE.body, color: '#0B1530' }} numberOfLines={1}>{title}</Text>
+                <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: '#6B7490', marginTop: 2 }} numberOfLines={2}>{hint}</Text>
+            </View>
+            <Text className="font-outfit-bold" style={{ fontSize: 22, lineHeight: 28, color: valueColor }} numberOfLines={1} adjustsFontSizeToFit>
                 {value}
-            </Text>
-            <Text className="font-outfit-regular text-[13px] mt-0.5 text-gray-500" numberOfLines={2}>
-                {hint}
             </Text>
         </View>
     );
@@ -53,8 +63,8 @@ export function EarningsSummaryCards({ summary }: { summary: EarningsSummary | n
 
     return (
         <View className="mb-4">
-            <View style={[SHADOW, { borderRadius: 20, backgroundColor: '#0047AB' }]}>
-                <LinearGradient colors={['#0047AB', '#1D6FE0']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 20, padding: 20 }}>
+            <View style={[SHADOW, { borderRadius: 22, backgroundColor: '#0047AB' }]}>
+                <LinearGradient colors={['#0047AB', '#1D6FE0']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 22, paddingHorizontal: 22, paddingVertical: 22 }}>
                     <Text className="font-outfit-bold text-xs tracking-widest" style={{ color: '#DCE8FF' }}>
                         {t(`${K}.totalEarned`)}
                     </Text>
@@ -65,42 +75,46 @@ export function EarningsSummaryCards({ summary }: { summary: EarningsSummary | n
                     ) : (
                         <ActivityIndicator color="#fff" style={{ alignSelf: 'flex-start', marginTop: 12 }} />
                     )}
-                    <Text className="font-outfit-regular text-sm" style={{ color: '#DCE8FF' }}>
+                    <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: '#DCE8FF', marginTop: 2 }}>
                         {t(`${K}.totalEarnedHint`)}
                     </Text>
                 </LinearGradient>
             </View>
 
             {summary && (
-                <View className="flex-row mt-3" style={{ gap: 8 }}>
-                    <Tile
-                        label={t(`${K}.pending`)}
-                        value={formatMoney(summary.pendingNet)}
+                <View
+                    className="bg-white mt-4"
+                    style={{ borderRadius: 20, borderWidth: 1, borderColor: '#E1EAFB', overflow: 'hidden', ...SHADOW, shadowOpacity: 0.06 }}
+                >
+                    <Row
+                        icon={Clock}
+                        title={t(`${K}.pendingTitle`)}
                         hint={t(`${K}.pendingHint`, { count: summary.pendingCount })}
-                        bg="#FFFBEB"
-                        border="#FCD34D"
-                        labelColor="#B45309"
+                        value={formatMoney(summary.pendingNet)}
+                        iconBg="#FEF3C7"
+                        iconColor="#B45309"
                         valueColor="#92400E"
                         testID="earnings-pending"
                     />
-                    <Tile
-                        label={t(`${K}.ready`)}
-                        value={formatMoney(summary.readyNet)}
+                    <Row
+                        icon={Wallet}
+                        title={t(`${K}.readyTitle`)}
                         hint={t(`${K}.readyHint`)}
-                        bg="#EFF6FF"
-                        border="#BFD3F5"
-                        labelColor="#0047AB"
+                        value={formatMoney(summary.readyNet)}
+                        iconBg="#EAF1FF"
+                        iconColor="#0047AB"
                         valueColor="#0B2A6B"
                         testID="earnings-ready"
                     />
-                    <Tile
-                        label={t(`${K}.paidOut`)}
-                        value={formatMoney(summary.paidOut)}
+                    <Row
+                        icon={CheckCircle2}
+                        title={t(`${K}.paidOutTitle`)}
                         hint={summary.payoutsCount > 0 ? t(`${K}.paidOutHint`, { count: summary.payoutsCount }) : t(`${K}.noPayouts`)}
-                        bg="#F0FDF4"
-                        border="#86EFAC"
-                        labelColor="#15803D"
+                        value={formatMoney(summary.paidOut)}
+                        iconBg="#DCFCE7"
+                        iconColor="#15803D"
                         valueColor="#14532D"
+                        last
                         testID="earnings-paid-out"
                     />
                 </View>

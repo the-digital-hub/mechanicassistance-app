@@ -6,7 +6,7 @@ import { CancellationDisputeBanner } from '@/components/appointments/Cancellatio
 import { CancelRequestLink, canCancelBeforeStart } from '@/components/appointments/CancelRequestLink';
 import { CancellationModal } from '@/components/appointments/CancellationModal';
 import { MechanicAssistanceInfoTab } from '@/components/appointments/MechanicAssistanceInfoTab';
-import { MechanicArrivalCard, PulseDot } from '@/components/appointments/MechanicArrivalCard';
+import { HeadOutNextSteps, MechanicArrivalCard, PulseDot } from '@/components/appointments/MechanicArrivalCard';
 import { CheckInCodeCard } from '@/components/appointments/CheckInCodeCard';
 import { refLabel } from '@/lib/refCode';
 import { ClientReviewCard } from '@/components/appointments/ClientReviewCard';
@@ -531,7 +531,8 @@ export default function AppointmentDetailScreen() {
     const renderMechanicVideoPanel = () => {
         switch (mechTab) {
             case 'status':
-                return (
+                // The rating only exists once the call is closed; until then this tab shows the call itself.
+                return videoStatus === 'completed' ? (
                     <ClientReviewCard
                         rating={rating}
                         setRating={setRating}
@@ -541,8 +542,9 @@ export default function AppointmentDetailScreen() {
                         setReviewText={setReviewText}
                         isSubmitted={isReviewSubmitted}
                         onSubmit={submitClientReview}
-                        hint={videoStatus === 'completed' ? undefined : t('appointments.videoCall.mechanic.reviewAfterCompleted')}
                     />
+                ) : (
+                    <MechanicAssistanceInfoTab appointment={appointment} />
                 );
             case 'info':
                 return <MechanicAssistanceInfoTab appointment={appointment} />;
@@ -581,17 +583,19 @@ export default function AppointmentDetailScreen() {
                 return (
                     <View style={{ gap: 12 }}>
                         <ClientInfoPanel client={panelClient} />
-                        <ClientReviewCard
-                            rating={rating}
-                            setRating={setRating}
-                            selectedOption={selectedOption}
-                            setSelectedOption={setSelectedOption}
-                            reviewText={reviewText}
-                            setReviewText={setReviewText}
-                            isSubmitted={isReviewSubmitted}
-                            onSubmit={submitClientReview}
-                            hint={appointment.status === 'completed' ? undefined : t('appointments.videoCall.mechanic.reviewAfterCompleted')}
-                        />
+                        {/* Rating the client belongs to the end of the job: it only exists once the request is closed. */}
+                        {appointment.status === 'completed' ? (
+                            <ClientReviewCard
+                                rating={rating}
+                                setRating={setRating}
+                                selectedOption={selectedOption}
+                                setSelectedOption={setSelectedOption}
+                                reviewText={reviewText}
+                                setReviewText={setReviewText}
+                                isSubmitted={isReviewSubmitted}
+                                onSubmit={submitClientReview}
+                            />
+                        ) : null}
                     </View>
                 );
             default:
@@ -634,7 +638,6 @@ export default function AppointmentDetailScreen() {
                                 <OwnerMechanicCard
                                     mechanic={offer?.mechanic ?? null}
                                     onMessage={() => router.push(`/chat/${appointment.id}`)}
-                                    onCall={isVideoCall ? undefined : () => router.push({ pathname: '/video-lobby/[id]' as any, params: { id: appointment.id } })}
                                 />
 
                                 {isVideoCall && (
@@ -758,7 +761,6 @@ export default function AppointmentDetailScreen() {
                                 <MechanicClientCard
                                     client={panelClient}
                                     onMessage={() => router.push(`/chat/${appointment.id}`)}
-                                    onCall={isVideoCall ? undefined : () => router.push({ pathname: '/video-lobby/[id]' as any, params: { id: appointment.id } })}
                                 />
                             </View>
 
@@ -771,25 +773,27 @@ export default function AppointmentDetailScreen() {
 
                             {/* Status card — a finished video call shows its close-out card instead */}
                             {!isVideoCall && !isCancelled && (
+                            // Waiting for "Head out": the card is calm, so the button below is the one thing that pulls.
+                            // Once on the way there is no button, and the card takes the strong blue.
                             <LinearGradient
-                                colors={['#2F6BFF', '#1E56E3', '#0B2A8E']}
-                                locations={[0, 0.5, 1]}
+                                colors={awaitingHeadOut ? ['#F1F6FF', '#E6EEFF'] : ['#2F6BFF', '#1E56E3', '#0B2A8E']}
+                                locations={awaitingHeadOut ? [0, 1] : [0, 0.5, 1]}
                                 start={{ x: 0, y: 0 }}
                                 end={{ x: 0.9, y: 1 }}
-                                style={{ marginHorizontal: 16, marginTop: 14, borderRadius: 22, padding: 18 }}
+                                style={{ marginHorizontal: 16, marginTop: 14, borderRadius: 22, padding: 18, ...(awaitingHeadOut ? { borderWidth: 1, borderColor: '#DCE7FA' } : null) }}
                                 testID="status-badge"
                                 nativeID="status-badge"
                             >
-                                <View className="flex-row items-center self-start" style={{ gap: 6, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.18)' }}>
-                                    <PulseDot color="#4ADE80" size={7} />
-                                    <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1.2, color: '#FFFFFF' }} testID="status-value">
+                                <View className="flex-row items-center self-start" style={{ gap: 6, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 100, backgroundColor: awaitingHeadOut ? 'rgba(30,86,227,0.10)' : 'rgba(255,255,255,0.18)' }}>
+                                    <PulseDot color={awaitingHeadOut ? '#10B981' : '#4ADE80'} size={7} />
+                                    <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1.2, color: awaitingHeadOut ? '#1E56E3' : '#FFFFFF' }} testID="status-value">
                                         {awaitingHeadOut ? t('appointments.detail.readyBadge') : t('appointments.detail.onTheWayBadge')}
                                     </Text>
                                 </View>
-                                <Text className="font-outfit-bold" style={{ fontSize: 26, lineHeight: 31, letterSpacing: -0.7, color: '#FFFFFF', marginTop: 12 }}>
+                                <Text className="font-outfit-bold" style={{ fontSize: 26, lineHeight: 31, letterSpacing: -0.7, color: awaitingHeadOut ? '#0B2A8E' : '#FFFFFF', marginTop: 12 }}>
                                     {awaitingHeadOut ? t('appointments.detail.acceptedTitle') : t('appointments.detail.onTheWayTitle')}
                                 </Text>
-                                <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: 'rgba(255,255,255,0.88)', marginTop: 6 }} testID="status-description">
+                                <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: awaitingHeadOut ? '#6B7490' : 'rgba(255,255,255,0.88)', marginTop: 6 }} testID="status-description">
                                     {awaitingHeadOut
                                         ? t('appointments.detail.headOutPrompt')
                                         : `${t('appointments.detail.leftAtShort', { time: departedAt ? formatEtaTime(departedAt) : '--' })} · ${t('appointments.detail.clientNotified')}`}
@@ -799,7 +803,7 @@ export default function AppointmentDetailScreen() {
 
                             {/* Head out — starts the owner's live map and ETA */}
                             {!isVideoCall && appointment.status === 'accepted' ? (
-                                <View className="mx-4 mt-3">
+                                <View className="mx-4 mt-5">
                                     {awaitingHeadOut ? (
                                         <>
                                             <TouchableOpacity onPress={headOut} disabled={headingOut} activeOpacity={0.85} testID="head-out" accessibilityRole="button">
@@ -831,9 +835,7 @@ export default function AppointmentDetailScreen() {
                                                     </Text>
                                                 </LinearGradient>
                                             </TouchableOpacity>
-                                            <Text className="text-center mt-2.5 font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: MECH.muted }}>
-                                                {t('appointments.detail.headOutHint')}
-                                            </Text>
+                                            <HeadOutNextSteps />
                                         </>
                                     ) : null}
                                 </View>
@@ -892,11 +894,10 @@ export default function AppointmentDetailScreen() {
                             ) : null}
 
                             {/* On-site check-in — the critical next step once the mechanic arrives */}
-                            {!isVideoCall && appointment.status !== 'completed' && !isCancelled ? (
+                            {!isVideoCall && appointment.status !== 'completed' && !isCancelled && !awaitingHeadOut ? (
                                 <View className="mt-3.5">
                                     <MechanicArrivalCard
                                         inProgress={appointment.status === 'in_progress'}
-                                        disabled={awaitingHeadOut}
                                         onStartCheckIn={() => router.push({
                                             pathname: '/appointments/check-in/[id]' as any,
                                             params: { id: appointment.id },

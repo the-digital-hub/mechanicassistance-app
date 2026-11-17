@@ -3,10 +3,11 @@ import { useSocket } from '@/context/SocketContext';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { goBackOr } from '@/lib/navigation/goBackOr';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight, Circle, Info } from 'lucide-react-native';
+import { Circle, Info } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { TYPE } from '@/lib/ui/type';
 
 const REASON_IDS = [
     'noLongerAvailable',
@@ -44,23 +45,23 @@ export default function CancelReasonScreen() {
                     {/* Section Badge */}
                     <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                         <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
-                        <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+                        <Text className="font-outfit-bold" style={{ ...TYPE.eyebrow, color: '#1E56E3' }}>
                             {t('appointments.cancelReason.badge')}
                         </Text>
                     </View>
 
                     {/* Title */}
-                    <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
+                    <Text className="font-outfit-bold mb-2" style={{ fontSize: 26, lineHeight: 31, letterSpacing: -0.7, color: '#0B1530' }}>
                         {t('appointments.cancelReason.title')}
                     </Text>
 
                     {/* Subtitle */}
-                    <Text className="text-gray-500 font-outfit-regular text-base mb-8">
+                    <Text className="font-outfit-regular mb-6" style={{ ...TYPE.helper, color: '#6B7490' }}>
                         {t('appointments.cancelReason.subtitle')}
                     </Text>
 
                     {/* Reasons List — one card, rows separated by thin dividers */}
-                    <View className="bg-white rounded-2xl border border-gray-200 mb-8 overflow-hidden">
+                    <View className="bg-white rounded-2xl border border-gray-200 mb-6 overflow-hidden">
                         {REASONS.map((reason, index) => {
                             const selected = selectedReason === reason;
                             return (
@@ -68,28 +69,20 @@ export default function CancelReasonScreen() {
                                     key={reason}
                                     onPress={() => setSelectedReason(reason)}
                                     activeOpacity={0.7}
-                                    className={`py-4 px-4 flex-row items-center gap-3 ${selected ? 'bg-blue-50' : ''}`}
-                                    style={index > 0 ? { borderTopWidth: 1, borderTopColor: '#EEF2FA' } : undefined}
+                                    className={`px-4 flex-row items-center gap-3 ${selected ? 'bg-blue-50' : ''}`}
+                                    style={[{ minHeight: 56 }, index > 0 ? { borderTopWidth: 1, borderTopColor: '#EEF2FA' } : null]}
                                 >
                                     <Circle
                                         size={20}
                                         color={selected ? '#0047AB' : '#D1D5DB'}
                                         fill={selected ? '#0047AB' : 'transparent'}
                                     />
-                                    <Text className={`font-outfit-medium text-base ${selected ? 'text-blue-900' : 'text-gray-700'}`}>
+                                    <Text className="flex-1 font-outfit-medium" style={{ ...TYPE.option, color: selected ? '#0B2A8E' : '#0B1530' }}>
                                         {reason}
                                     </Text>
                                 </TouchableOpacity>
                             );
                         })}
-                    </View>
-
-                    {/* Information Message */}
-                    <View className="flex-row gap-3 p-4 rounded-2xl mb-8" style={{ backgroundColor: '#EFF6FF' }}>
-                        <Info size={20} color="#0047AB" style={{ marginTop: 2 }} />
-                        <Text className="flex-1 font-outfit-regular text-base" style={{ color: '#0047AB', lineHeight: 20 }}>
-                            {t('appointments.cancelReason.infoMessage')}
-                        </Text>
                     </View>
 
                     {/* Buttons */}
@@ -105,8 +98,8 @@ export default function CancelReasonScreen() {
                                 start={{ x: 0, y: 1 }}
                                 end={{ x: 1, y: 0 }}
                                 style={{
-                                    borderRadius: 10,
-                                    paddingVertical: 16,
+                                    borderRadius: 14,
+                                    minHeight: 54,
                                     paddingHorizontal: 16,
                                     flexDirection: 'row',
                                     alignItems: 'center',
@@ -114,7 +107,7 @@ export default function CancelReasonScreen() {
                                     opacity: selectedReason ? 1 : 0.6,
                                 }}
                             >
-                                <Text className="text-white font-outfit-bold text-center">{t('appointments.list.cancelModalTitle')}</Text>
+                                <Text className="text-white font-outfit-bold text-center" style={TYPE.button}>{t('appointments.list.cancelModalTitle')}</Text>
                             </LinearGradient>
                         </TouchableOpacity>
 
@@ -125,8 +118,8 @@ export default function CancelReasonScreen() {
                         >
                             <View
                                 style={{
-                                    borderRadius: 10,
-                                    paddingVertical: 16,
+                                    borderRadius: 14,
+                                    minHeight: 54,
                                     paddingHorizontal: 16,
                                     flexDirection: 'row',
                                     alignItems: 'center',
@@ -134,9 +127,17 @@ export default function CancelReasonScreen() {
                                     backgroundColor: '#EFF6FF',
                                 }}
                             >
-                                <Text className="font-outfit-bold text-center" style={{ color: '#0047AB' }}>{t('appointments.cancelReason.keepRequest')}</Text>
+                                <Text className="font-outfit-bold text-center" style={{ ...TYPE.button, color: '#1E56E3' }}>{t('appointments.cancelReason.keepRequest')}</Text>
                             </View>
                         </TouchableOpacity>
+                    </View>
+
+                    {/* Consequence, as a footnote under the buttons: quiet, but read before confirming. */}
+                    <View className="flex-row items-start gap-2.5 mt-5 px-1">
+                        <Info size={16} color="#8C96AE" style={{ marginTop: 2 }} />
+                        <Text className="flex-1 font-outfit-regular" style={{ ...TYPE.helper, color: '#6B7490' }}>
+                            {t('appointments.cancelReason.infoMessage')}
+                        </Text>
                     </View>
                 </View>
             </ScrollView>

@@ -12,6 +12,8 @@ export function NotificationBell({ size = 24, color = '#0047AB' }: { size?: numb
     const { notifications } = useNotifications();
     const unread = notifications.reduce((n, item) => (item.unread ? n + 1 : n), 0);
     const label = unread > 99 ? '99+' : String(unread);
+    // The bubble is as wide as its text needs: a lone digit is a circle, "99+" a pill.
+    const width = label.length === 1 ? 22 : label.length === 2 ? 28 : 36;
 
     return (
         <View accessibilityLabel={unread > 0 ? `${unread} unread notifications` : 'Notifications'}>
@@ -21,12 +23,11 @@ export function NotificationBell({ size = 24, color = '#0047AB' }: { size?: numb
                     pointerEvents="none"
                     style={{
                         position: 'absolute',
-                        top: -6,
-                        right: -8,
-                        minWidth: 18,
-                        height: 18,
-                        paddingHorizontal: 4,
-                        borderRadius: 9,
+                        top: -9,
+                        right: -12,
+                        width,
+                        height: 22,
+                        borderRadius: 11,
                         backgroundColor: '#EF4444',
                         borderWidth: 1.5,
                         borderColor: '#FFFFFF',
@@ -34,9 +35,9 @@ export function NotificationBell({ size = 24, color = '#0047AB' }: { size?: numb
                         alignItems: 'center',
                     }}
                 >
+                    {/* Fixed width per digit count and no numberOfLines: the number is never cut ("3.."). */}
                     <Text
-                        style={{ color: '#FFFFFF', fontSize: 13, lineHeight: 18, fontFamily: 'Outfit_600SemiBold' }}
-                        numberOfLines={1}
+                        style={{ color: '#FFFFFF', fontSize: 13, lineHeight: 16, fontFamily: 'Outfit_700Bold', textAlign: 'center', includeFontPadding: false }}
                     >
                         {label}
                     </Text>

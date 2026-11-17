@@ -164,9 +164,9 @@ export function TopUpSheet({ visible, cards, initialAmount, onDone, onClose }: {
     onClose: () => void;
 }) {
     return (
-        <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
+        <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
             <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-            <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' }} onPress={onClose} />
+            <Pressable style={{ flex: 1, backgroundColor: 'rgba(11,21,48,0.45)' }} onPress={onClose} />
             <View style={{ backgroundColor: '#fff', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingHorizontal: 20, paddingTop: 18, paddingBottom: 34 }}>
                 {visible && <TopUpForm cards={cards} initialAmount={initialAmount} onDone={onDone} onCancel={onClose} />}
             </View>

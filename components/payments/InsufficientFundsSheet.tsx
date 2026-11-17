@@ -44,9 +44,9 @@ export function InsufficientFundsSheet({ visible, amount, wallet, cards, busy, o
     }, [visible]);
 
     return (
-        <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
+        <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
             <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-            <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' }} onPress={busy ? undefined : onClose} />
+            <Pressable style={{ flex: 1, backgroundColor: 'rgba(11,21,48,0.45)' }} onPress={busy ? undefined : onClose} />
             <View
                 style={{ backgroundColor: '#fff', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingHorizontal: 20, paddingTop: 18, paddingBottom: 34, maxHeight: '85%' }}
                 testID="insufficient-funds-sheet"

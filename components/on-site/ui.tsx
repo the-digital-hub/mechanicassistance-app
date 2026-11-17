@@ -327,19 +327,26 @@ export function MaintenanceChecklist({ state, withHeader = true, compact = true,
             {withHeader ? (
                 <View className="px-4 pt-3.5 pb-3" style={{ borderBottomWidth: 1, borderBottomColor: OS.borderSoft }}>
                     <View className="flex-row items-center justify-between" style={{ gap: 8 }}>
-                        <View className="flex-row items-center flex-1" style={{ gap: 8 }}>
-                            <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: OS.text }}>{t('appointments.onSite.maintenance.title')}</Text>
-                            <View className="px-2 py-0.5 rounded-full" style={{ backgroundColor: OS.greenSoft }}>
-                                <Text className="font-outfit-bold uppercase" style={{ fontSize: 12, letterSpacing: 1, color: OS.greenDark }}>{t('appointments.onSite.common.included')}</Text>
-                            </View>
-                        </View>
-                        <TouchableOpacity onPress={state.toggleAll} hitSlop={8} accessibilityRole="button">
+                        <Text className="flex-1 font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: OS.text }}>{t('appointments.onSite.maintenance.title')}</Text>
+                        {/* Select all is a badge, like the other quick actions. */}
+                        <TouchableOpacity
+                            onPress={state.toggleAll}
+                            hitSlop={6}
+                            accessibilityRole="button"
+                            className="flex-row items-center"
+                            style={{ gap: 6, minHeight: 36, paddingHorizontal: 12, borderRadius: 100, backgroundColor: OS.blueSoft }}
+                            testID="maintenance-select-all"
+                        >
+                            <Ionicons name={state.allChecked ? 'close-circle-outline' : 'checkmark-done-outline'} size={16} color={OS.blue} />
                             <Text className="font-outfit-bold" style={{ fontSize: 14, color: OS.blue }}>
                                 {state.allChecked ? t('appointments.onSite.common.unselectAll') : t('appointments.onSite.common.selectAll')}
                             </Text>
                         </TouchableOpacity>
                     </View>
-                    <Text className="font-outfit-regular mt-1" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>
+                    <View className="self-start px-2 py-0.5 rounded-full mt-1.5" style={{ backgroundColor: OS.greenSoft }}>
+                        <Text className="font-outfit-bold uppercase" style={{ fontSize: 12, letterSpacing: 1, color: OS.greenDark }}>{t('appointments.onSite.common.included')}</Text>
+                    </View>
+                    <Text className="font-outfit-regular mt-1.5" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>
                         {t('appointments.onSite.maintenance.sub')} · {Object.values(state.checked).filter(Boolean).length}/{MAINTENANCE_ITEMS.length}
                     </Text>
                 </View>

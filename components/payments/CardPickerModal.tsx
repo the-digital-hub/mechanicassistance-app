@@ -41,8 +41,8 @@ export function CardPickerModal({ visible, cards, selectedId, onSelect, onClose,
   };
 
   return (
-    <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
-      <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' }} onPress={onClose} />
+    <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
+      <Pressable style={{ flex: 1, backgroundColor: 'rgba(11,21,48,0.45)' }} onPress={onClose} />
       <View
         style={{
           backgroundColor: '#fff',

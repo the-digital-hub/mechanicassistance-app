@@ -9,8 +9,7 @@ export function FinalReportView({ report }: { report: FinalReport }) {
     return (
         <Body>
             <View className="px-5 pt-4">
-                <Text className="font-outfit-bold" style={{ fontSize: 26, lineHeight: 32, color: OS.text }}>{report.title}</Text>
-                <Text className="font-outfit-medium mt-1" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>{report.reference} · {report.generatedAt}</Text>
+                <Text className="font-outfit-medium" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>{report.reference} · {report.generatedAt}</Text>
             </View>
             {report.sections.map((s) => (
                 <View key={s.key}>

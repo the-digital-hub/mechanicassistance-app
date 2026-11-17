@@ -37,8 +37,8 @@ export function AcceptedHeader({ id, refCode, title, icon = 'checkmark', color =
     );
 }
 
-/** `onCall` omitted (video calls, which get their own "Join video call" button) hides the call button. */
-export function OwnerMechanicCard({ mechanic, onMessage, onCall }: { mechanic: Mechanic | null; onMessage: () => void; onCall?: () => void }) {
+/** The assigned technician, with a chat button: contact goes through the in-app chat, there is no call button. */
+export function OwnerMechanicCard({ mechanic, onMessage }: { mechanic: Mechanic | null; onMessage: () => void }) {
     const { t } = useTranslation();
     return (
         <View style={[card, { borderRadius: 16, padding: 10, paddingLeft: 12, flexDirection: 'row', alignItems: 'center', gap: 10 }]} testID="owner-mechanic-card">
@@ -65,11 +65,6 @@ export function OwnerMechanicCard({ mechanic, onMessage, onCall }: { mechanic: M
             <TouchableOpacity onPress={onMessage} accessibilityLabel={t(`${K}.message`)} style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: AO.blueSoft, alignItems: 'center', justifyContent: 'center' }} testID="owner-message-button">
                 <Ionicons name="chatbubble-ellipses-outline" size={18} color={AO.blue} />
             </TouchableOpacity>
-            {onCall && (
-                <TouchableOpacity onPress={onCall} accessibilityLabel={t(`${K}.call`)} style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: AO.blue, alignItems: 'center', justifyContent: 'center', shadowColor: AO.blue, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 8, elevation: 4 }} testID="owner-call-button">
-                    <Ionicons name="call-outline" size={18} color="#fff" />
-                </TouchableOpacity>
-            )}
         </View>
     );
 }
@@ -322,9 +317,9 @@ type ClientLike = (Partial<Client> & Pick<Client, 'displayName'>) | null;
 
 /**
  * The mechanic's header card for the vehicle owner — the counterpart of `OwnerMechanicCard`,
- * shown above the sub-navbar. `onCall` omitted hides the call button.
+ * shown above the sub-navbar. Chat only: no call button.
  */
-export function MechanicClientCard({ client, onMessage, onCall }: { client: ClientLike; onMessage: () => void; onCall?: () => void }) {
+export function MechanicClientCard({ client, onMessage }: { client: ClientLike; onMessage: () => void }) {
     const { t } = useTranslation();
     if (!client) return null;
     return (
@@ -352,11 +347,6 @@ export function MechanicClientCard({ client, onMessage, onCall }: { client: Clie
             <TouchableOpacity onPress={onMessage} accessibilityLabel={t(`${K}.message`)} style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: AO.blueSoft, alignItems: 'center', justifyContent: 'center' }} testID="mechanic-client-message">
                 <Ionicons name="chatbubble-ellipses-outline" size={18} color={AO.blue} />
             </TouchableOpacity>
-            {onCall && (
-                <TouchableOpacity onPress={onCall} accessibilityLabel={t(`${K}.call`)} style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: AO.blue, alignItems: 'center', justifyContent: 'center', shadowColor: AO.blue, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 8, elevation: 4 }} testID="mechanic-client-call">
-                    <Ionicons name="call-outline" size={18} color="#fff" />
-                </TouchableOpacity>
-            )}
         </View>
     );
 }
@@ -373,22 +363,40 @@ export function ClientInfoPanel({ client }: { client: ClientLike }) {
         ? new Date(client.memberSince).toLocaleDateString(i18n.language, { month: 'long', year: 'numeric' })
         : null;
     const hasStats = client.servicesCount !== undefined;
+    const ratingCount = client.ratingCount ?? 0;
+    // A client mechanics have rated well, more than once, is a safe job; none yet is simply new.
+    const highlyRated = client.avgRating != null && client.avgRating >= 4.5 && ratingCount >= 3;
 
     const rows: (SummaryRow | null)[] = [
         hasStats
             ? {
                   icon: 'star-outline',
                   label: t(`${K}.rows.rating`),
-                  value: (
-                      <View className="flex-row items-center flex-wrap justify-end" style={{ gap: 6 }}>
-                          {client.avgRating != null && <Stars rating={client.avgRating} size={13} />}
-                          <Text className="font-outfit-medium" style={{ fontSize: 13, color: AO.muted }}>
-                              {client.servicesCount! > 0
-                                  ? t('requestAssistance.mechanicFound.servicesCount', { count: client.servicesCount })
-                                  : t('requestAssistance.mechanicFound.newOnPlatform')}
-                          </Text>
-                      </View>
-                  ),
+                  value:
+                      client.avgRating != null ? (
+                          <View className="flex-row items-center justify-end" style={{ gap: 6 }}>
+                              <Text className="font-outfit-bold" style={{ fontSize: 15, color: AO.text }}>{client.avgRating.toFixed(1)}</Text>
+                              <Stars rating={client.avgRating} size={13} />
+                              <Text className="font-outfit-medium" style={{ fontSize: 13, color: AO.muted }}>({ratingCount})</Text>
+                          </View>
+                      ) : (
+                          t(`${K}.notRatedYet`)
+                      ),
+              }
+            : null,
+        hasStats
+            ? {
+                  icon: 'clipboard-outline',
+                  label: t(`${K}.rows.requests`),
+                  value: client.servicesCount! > 0 ? t(`${K}.requestsMade`, { count: client.servicesCount }) : t('requestAssistance.mechanicFound.newOnPlatform'),
+              }
+            : null,
+        hasStats && (highlyRated || client.servicesCount === 0)
+            ? {
+                  icon: highlyRated ? 'ribbon-outline' : 'sparkles-outline',
+                  label: t(`${K}.rows.reputation`),
+                  value: highlyRated ? t(`${K}.highlyRated`) : t(`${K}.firstRequest`),
+                  tone: highlyRated ? 'green' : undefined,
               }
             : null,
         client.idVerified ? { icon: 'shield-checkmark-outline', label: t(`${K}.rows.verified`), value: t(`${K}.idChecked`), tone: 'green' } : null,

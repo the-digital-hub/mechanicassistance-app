@@ -11,7 +11,7 @@ import {
   Wrench,
 } from "lucide-react-native";
 import React, { useState } from "react";
-import { Image, Modal, Platform, Text, TouchableOpacity, View } from "react-native";
+import { Image, Modal, Platform, Pressable, Text, TouchableOpacity, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
 import { HapticTab } from "@/components/haptic-tab";
@@ -124,8 +124,10 @@ function MechanicStatusBadge() {
         </Text>
       </TouchableOpacity>
 
-      <Modal transparent visible={showModal} animationType="fade">
+      <Modal transparent visible={showModal} animationType="fade" onRequestClose={() => setShowModal(false)}>
         <View className="flex-1 bg-black/50 justify-center items-center px-6">
+          {/* Tapping outside the card closes it. */}
+          <Pressable style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }} onPress={() => setShowModal(false)} accessible={false} testID="status-modal-backdrop" />
           <View className="bg-white w-full rounded-2xl p-6 items-center">
             <Text className="text-lg font-outfit-bold text-gray-900 mb-6 text-center">
               {t('profile.modals.changeStatus')}

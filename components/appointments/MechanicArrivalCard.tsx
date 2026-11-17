@@ -28,28 +28,45 @@ export function PulseDot({ color, size = 8 }: { color: string; size?: number }) 
     );
 }
 
+/**
+ * What happens after "Head out", under the button: the client is told, and check-in comes on arrival.
+ * One small block of two aligned rows, instead of loose lines of text around the button.
+ */
+export function HeadOutNextSteps() {
+    const { t } = useTranslation();
+    const rows = [
+        { icon: 'notifications-outline' as const, text: t('appointments.detail.headOutHint') },
+        { icon: 'qr-code-outline' as const, text: t('appointments.detail.arrival.laterHint') },
+    ];
+    return (
+        <View
+            style={{ marginTop: 14, borderRadius: 16, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#EEF2FA', overflow: 'hidden' }}
+            testID="head-out-next"
+        >
+            {rows.map((r, i) => (
+                <View
+                    key={r.icon}
+                    className="flex-row items-center"
+                    style={{ gap: 12, paddingHorizontal: 14, paddingVertical: 11, borderBottomWidth: i < rows.length - 1 ? 1 : 0, borderBottomColor: '#EEF2FA' }}
+                >
+                    <View className="items-center justify-center" style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: '#EAF1FF' }}>
+                        <Ionicons name={r.icon} size={17} color={BLUE} />
+                    </View>
+                    <Text className="flex-1 font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: '#6B7490' }}>{r.text}</Text>
+                </View>
+            ))}
+        </View>
+    );
+}
+
 interface MechanicArrivalCardProps {
     onStartCheckIn: () => void;
     /** Already checked in: the button resumes the visit instead of starting it. */
     inProgress?: boolean;
-    /** Not headed out yet: only a quiet hint is shown, and check-in cannot start. */
-    disabled?: boolean;
 }
 
-export function MechanicArrivalCard({ onStartCheckIn, inProgress, disabled }: MechanicArrivalCardProps) {
+export function MechanicArrivalCard({ onStartCheckIn, inProgress }: MechanicArrivalCardProps) {
     const { t } = useTranslation();
-
-    // Not headed out yet: only a quiet line about what comes later. The full card appears once they leave.
-    if (disabled) {
-        return (
-            <View className="mx-6 flex-row items-center justify-center" style={{ gap: 8 }} testID="mechanic-arrival-hint">
-                <Ionicons name="qr-code-outline" size={16} color="#8C96AE" />
-                <Text className="flex-1 font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: '#8C96AE' }}>
-                    {t('appointments.detail.arrival.laterHint')}
-                </Text>
-            </View>
-        );
-    }
 
     return (
         <View

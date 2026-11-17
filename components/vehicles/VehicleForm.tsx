@@ -8,6 +8,9 @@ import { VIN_LENGTH, VinCard } from '@/components/vehicles/VinCard';
 import type { Vehicle, VehicleDecodedFields, VehicleStatus } from '@/lib/dao/interfaces';
 import { decodeVin, fetchMakes, fetchModelsByMake } from '@/lib/vehicle';
 import { TireSize, formatTireSize, parseTireSize } from '@/lib/vehicleTires';
+import { FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
+import { Ionicons } from '@expo/vector-icons';
+import { TYPE } from '@/lib/ui/type';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -481,6 +484,19 @@ export function VehicleForm({ initialValue, submitLabel, submitting, onSubmit, h
                     error={errorText('vin')}
                     locked={vinLocked}
                 />
+                {/* What is missing to save: here, next to the VIN, not in the fixed bar (which stays one button tall).
+                    A note of its own (icon, tint, the cards' width), so it reads as part of the screen. */}
+                {!vinReady ? (
+                    <View
+                        style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingVertical: 12, borderRadius: 14, backgroundColor: AV.blueSoft }}
+                        testID="vehicle-save-hint"
+                    >
+                        <Ionicons name="information-circle-outline" size={20} color={AV.blue} />
+                        <Text className="flex-1 font-outfit-medium" style={{ ...TYPE.helper, color: AV.blueDark }}>
+                            {t('vehicles.form.design.saveHint')}
+                        </Text>
+                    </View>
+                ) : null}
 
                 <VehicleFormSection
                     icon="car"
@@ -714,17 +730,9 @@ export function VehicleForm({ initialValue, submitLabel, submitting, onSubmit, h
 
             <View
                 style={{
-                    paddingHorizontal: 20,
+                    ...FLOATING_FOOTER,
                     paddingTop: 12,
                     paddingBottom: safeBottom ? Math.max(12, insets.bottom) : 12,
-                    backgroundColor: '#fff',
-                    borderTopWidth: 1,
-                    borderTopColor: AV.borderSoft,
-                    shadowColor: '#0E2F8A',
-                    shadowOffset: { width: 0, height: -8 },
-                    shadowOpacity: 0.08,
-                    shadowRadius: 10,
-                    elevation: 8,
                 }}
             >
                 <TouchableOpacity onPress={handleSubmit} disabled={!canSave} activeOpacity={0.8}>
@@ -734,7 +742,7 @@ export function VehicleForm({ initialValue, submitLabel, submitting, onSubmit, h
                         end={{ x: 1, y: 0 }}
                         style={{
                             borderRadius: 14,
-                            paddingVertical: 15,
+                            paddingVertical: 13,
                             alignItems: 'center',
                             justifyContent: 'center',
                             opacity: submitting ? 0.7 : 1,
@@ -743,17 +751,12 @@ export function VehicleForm({ initialValue, submitLabel, submitting, onSubmit, h
                         {submitting ? (
                             <ActivityIndicator color="white" />
                         ) : (
-                            <Text className="font-outfit-bold" style={{ color: '#fff', fontSize: 16 }}>
+                            <Text className="font-outfit-bold" style={{ ...TYPE.button, color: '#fff' }}>
                                 {submitLabel}
                             </Text>
                         )}
                     </LinearGradient>
                 </TouchableOpacity>
-                {!vinReady ? (
-                    <Text className="font-outfit-regular" style={{ fontSize: 13, color: AV.muted, textAlign: 'center', marginTop: 8 }}>
-                        {t('vehicles.form.design.saveHint')}
-                    </Text>
-                ) : null}
             </View>
         </KeyboardAvoidingView>
     );

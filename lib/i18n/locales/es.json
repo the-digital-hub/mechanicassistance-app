@@ -258,7 +258,7 @@
       "earnedToday": "Ganado hoy",
       "rating": "Calificación",
       "noRating": "Nuevo",
-      "newRequestsTitle": "Nuevas solicitudes en tu zona",
+      "newRequestsTitle": "Solicitudes de asistencia cerca tuyo",
       "noPendingRequests": "No hay solicitudes pendientes en tu zona",
       "promoBadge": "POTENCIÁ TU PERFIL",
       "promoTitle": "Agregá una nueva certificación ASE",
@@ -325,7 +325,13 @@
           "cta": "Configurar"
         },
         "hide": "Ocultar"
-      }
+      },
+      "summaryJobs_one": "{{count}} trabajo activo",
+      "summaryJobs_other": "{{count}} trabajos activos",
+      "summaryRequests_one": "{{count}} solicitud nueva",
+      "summaryRequests_other": "{{count}} solicitudes nuevas",
+      "summaryEmpty": "Estás al día",
+      "typeCaption": "Solicitudes abiertas, por tipo"
     }
   },
   "requestAssistance": {
@@ -923,7 +929,7 @@
         "chipQr": "Escanear QR",
         "chipPin": "Ingresar PIN",
         "or": "o",
-        "laterHint": "Al llegar, vas a hacer el check-in con el QR o el PIN del cliente."
+        "laterHint": "Al llegar, hacé el check-in con el QR o PIN del cliente."
       },
       "info": {
         "arrivalTime": "Tiempo de llegada",
@@ -943,9 +949,9 @@
       },
       "readyBadge": "LISTO PARA SALIR",
       "acceptedTitle": "Solicitud aceptada.",
-      "headOutPrompt": "Sal hacia el cliente cuando estés listo",
+      "headOutPrompt": "Todo está confirmado. Andá cuando estés listo.",
       "headOut": "Salir hacia la asistencia",
-      "headOutHint": "Tócalo cuando salgas hacia el trabajo. Avisaremos al cliente y podrá seguir tu llegada.",
+      "headOutHint": "Avisamos al cliente y puede seguir tu llegada.",
       "leftAt": "En camino · saliste a las {{time}}",
       "clientNotified": "Le avisamos al cliente que vas en camino.",
       "headOutFailed": "No pudimos iniciar el viaje. Revisa tu conexión e inténtalo de nuevo.",
@@ -1358,11 +1364,11 @@
         "paidBadge": "${{amount}} · PAGADO",
         "chargesEyebrow": "LO QUE VAS A RECIBIR",
         "serviceValue": "Valor del servicio",
-        "total": "Vas a recibir",
+        "total": "Total",
         "finish": "Terminar servicio",
         "minutes": "{{minutes}} min",
         "closing": "Cerrando…",
-        "payoutHint": "Es un estimado. Se libera en tu cuenta cuando el cliente confirma el trabajo — normalmente dentro de 7 días.",
+        "payoutHint": "El pago se libera cuando el cliente confirma el trabajo.",
         "subtitleCompleted": "Revisá la visita y lo que vas a cobrar por ella."
       },
       "done": {
@@ -1591,7 +1597,9 @@
         "memberSince": "Miembro desde",
         "serviceValue": "Valor del servicio",
         "payment": "Pago",
-        "additionalParts": "Repuestos extra"
+        "additionalParts": "Repuestos extra",
+        "requests": "Pedidos",
+        "reputation": "Reputación"
       },
       "about": "SOBRE {{name}}",
       "aseCodes": "Certificado ASE · {{codes}}",
@@ -1605,7 +1613,12 @@
       "preparingHint": "Lo verás en el mapa cuando salga hacia ti.",
       "upcoming": "AGENDADO",
       "upcomingTitle": "Agendado para el {{date}}",
-      "upcomingHint": "{{name}} saldrá el día del servicio. Lo verás en el mapa cuando salga."
+      "upcomingHint": "{{name}} saldrá el día del servicio. Lo verás en el mapa cuando salga.",
+      "notRatedYet": "Sin calificaciones todavía",
+      "requestsMade_one": "{{count}} pedido",
+      "requestsMade_other": "{{count}} pedidos",
+      "highlyRated": "Muy bien calificado por técnicos",
+      "firstRequest": "Primer pedido"
     },
     "videoCall": {
       "badge": "VIDEOLLAMADA",
@@ -1778,7 +1791,8 @@
       "serviceValue": "Valor del servicio",
       "payout": "Tu pago",
       "ownerRating": "Tu calificación al dueño",
-      "close": "Cerrar"
+      "close": "Cerrar",
+      "viewShort": "Ver reporte"
     }
   },
   "requestDetail": {
@@ -1850,7 +1864,7 @@
     "title": "Información personal",
     "subtitle": "Mantené tu perfil actualizado para asegurar la mejor experiencia de servicio",
     "tapToChangePhoto": "Tocá para cambiar la foto",
-    "reference": "Tu ID de Mechanic Assistance",
+    "reference": "ID de usuario",
     "name": "Nombre",
     "surname": "Apellido",
     "email": "Email",
@@ -2000,10 +2014,10 @@
       "saveErrorMessage": "El vehículo no se guardó. Revisá tu conexión y probá de nuevo.",
       "design": {
         "vinTitle": "Empezá con tu VIN",
-        "vinDescription": "Ingresá el VIN de 17 caracteres para completar marca, modelo, año y datos de fábrica (NHTSA).",
-        "vinPlaceholder": "ej. 1HGCM82633A004352",
-        "vinManual": "También podés completar los campos a mano.",
-        "vinFound": "✓ Vehículo encontrado — completamos los campos de abajo",
+        "vinDescription": "Lo usamos para completar por vos la marca, el modelo, el año y los datos de fábrica.",
+        "vinPlaceholder": "1HGCM82633A004352",
+        "vinManual": "¿Preferís cargarlo vos? Editá cualquier campo.",
+        "vinFound": "✓ Vehículo encontrado · completamos los datos de abajo",
         "identityLocked": "El VIN, la marca y el modelo no se pueden cambiar. Si es otro auto, agregalo como vehículo nuevo.",
         "decode": "Decodificar",
         "decoding": "Decodificando…",
@@ -2039,7 +2053,7 @@
         "naic": "Código NAIC",
         "notes": "Notas",
         "notesPlaceholder": "ej. Llantas aftermarket, suspensión elevada…",
-        "saveHint": "Agregá al menos el VIN para guardar"
+        "saveHint": "Ingresá el VIN para guardar tu vehículo."
       }
     }
   },
@@ -2704,10 +2718,13 @@
       "paidOutHint": "{{count}} pago",
       "paidOutHint_one": "1 pago",
       "paidOutHint_other": "{{count}} pagos",
-      "noPayouts": "Sin pagos registrados"
+      "noPayouts": "Sin pagos registrados",
+      "pendingTitle": "Pendiente",
+      "readyTitle": "Listo",
+      "paidOutTitle": "Pagado"
     },
     "actions": {
-      "statement": "Descargar estado de cuenta (PDF)",
+      "statement": "Estado de cuenta (PDF)",
       "statementFailed": "No se pudo descargar el estado de cuenta. Intentá de nuevo.",
       "pending": "Pagos pendientes",
       "all": "Todos los pagos"
@@ -2729,7 +2746,10 @@
       "unavailable": "Detalles del pedido no disponibles",
       "fallbackTitle": "Asistencia",
       "empty": "No hay ganancias con estos filtros.",
-      "loadFailed": "No se pudieron cargar tus ganancias. Deslizá hacia abajo para reintentar."
+      "loadFailed": "No se pudieron cargar tus ganancias. Deslizá hacia abajo para reintentar.",
+      "pageRange": "{{from}}–{{to}} de {{total}}",
+      "prevPage": "Página anterior",
+      "nextPage": "Página siguiente"
     },
     "status": {
       "pending": "PENDIENTE",

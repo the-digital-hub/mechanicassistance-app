@@ -360,17 +360,18 @@ export function ScreenDiagnosticsVin({ initial, requestVin, onNext }: {
                     </View>
                 ) : null}
                 {match === 'differ' ? (
-                    <View className="mx-4 mt-3 px-4 py-3.5 rounded-2xl" style={{ backgroundColor: OS.redSoft }} testID="vin-differs">
-                        <View className="flex-row items-center gap-2.5">
-                            <Ionicons name="alert-circle" size={22} color={OS.red} />
-                            <Text className="flex-1 font-outfit-bold" style={{ fontSize: 15, lineHeight: 21, color: OS.red }}>{t(`${k}.differs`)}</Text>
+                    <View className="mx-4 mt-3 px-4 py-3.5 rounded-2xl flex-row items-start" style={{ backgroundColor: OS.redSoft, gap: 10 }} testID="vin-differs">
+                        <Ionicons name="alert-circle" size={22} color={OS.red} style={{ marginTop: -1 }} />
+                        {/* The VINs sit under the text, in its column, not under the icon. */}
+                        <View className="flex-1">
+                            <Text className="font-outfit-bold" style={{ fontSize: 15, lineHeight: 21, color: OS.red }}>{t(`${k}.differs`)}</Text>
+                            <Text className="font-outfit-medium mt-2" style={{ fontSize: 14, lineHeight: 20, color: OS.text }}>
+                                {t(`${k}.cross.request`)}: <Text className="font-outfit-bold" style={{ letterSpacing: 0.8 }}>{normalizeVin(requestVin ?? '')}</Text>
+                            </Text>
+                            <Text className="font-outfit-medium mt-0.5" style={{ fontSize: 14, lineHeight: 20, color: OS.text }}>
+                                {t(`${k}.cross.mine`)}: <Text className="font-outfit-bold" style={{ letterSpacing: 0.8 }}>{clean}</Text>
+                            </Text>
                         </View>
-                        <Text className="font-outfit-medium mt-2" style={{ fontSize: 14, lineHeight: 20, color: OS.text }}>
-                            {t(`${k}.cross.request`)}: <Text className="font-outfit-bold" style={{ letterSpacing: 0.8 }}>{normalizeVin(requestVin ?? '')}</Text>
-                        </Text>
-                        <Text className="font-outfit-medium mt-0.5" style={{ fontSize: 14, lineHeight: 20, color: OS.text }}>
-                            {t(`${k}.cross.mine`)}: <Text className="font-outfit-bold" style={{ letterSpacing: 0.8 }}>{clean}</Text>
-                        </Text>
                     </View>
                 ) : null}
 

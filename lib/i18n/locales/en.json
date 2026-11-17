@@ -258,7 +258,7 @@
       "earnedToday": "Earned today",
       "rating": "Rating",
       "noRating": "New",
-      "newRequestsTitle": "New requests in your area",
+      "newRequestsTitle": "Assistance requests near you",
       "noPendingRequests": "No pending requests in your area",
       "promoBadge": "BOOST YOUR PROFILE",
       "promoTitle": "Add a new ASE certification",
@@ -325,7 +325,13 @@
           "cta": "Set up"
         },
         "hide": "Hide"
-      }
+      },
+      "summaryJobs_one": "{{count}} active job",
+      "summaryJobs_other": "{{count}} active jobs",
+      "summaryRequests_one": "{{count}} new request",
+      "summaryRequests_other": "{{count}} new requests",
+      "summaryEmpty": "You're all caught up",
+      "typeCaption": "Open requests, by type"
     }
   },
   "requestAssistance": {
@@ -922,7 +928,7 @@
         "chipQr": "Scan QR",
         "chipPin": "Enter PIN",
         "or": "or",
-        "laterHint": "When you arrive, you'll check in with the client's QR or PIN."
+        "laterHint": "On arrival, check in with the client's QR or PIN."
       },
       "info": {
         "arrivalTime": "Arrival time",
@@ -942,9 +948,9 @@
       },
       "readyBadge": "READY TO GO",
       "acceptedTitle": "Request accepted.",
-      "headOutPrompt": "Head out to the client when you're ready",
+      "headOutPrompt": "Everything is confirmed. Go when you're ready.",
       "headOut": "Head out for the assistance",
-      "headOutHint": "Tap when you leave for the job. The client will be notified and can follow your ETA.",
+      "headOutHint": "The client is notified and can follow your ETA.",
       "leftAt": "On your way · left at {{time}}",
       "clientNotified": "The client was notified you're on the way.",
       "headOutFailed": "Couldn't start the trip. Check your connection and try again.",
@@ -1357,11 +1363,11 @@
         "paidBadge": "${{amount}} · PAID",
         "chargesEyebrow": "WHAT YOU'LL RECEIVE",
         "serviceValue": "Service value",
-        "total": "You'll receive",
+        "total": "Total",
         "finish": "Finish Service",
         "minutes": "{{minutes}} min",
         "closing": "Closing…",
-        "payoutHint": "This is an estimate. It's released to your account once the client confirms the work — usually within 7 days.",
+        "payoutHint": "Payment is released once the client confirms the work.",
         "subtitleCompleted": "Check the visit and what you'll get paid for it."
       },
       "done": {
@@ -1590,7 +1596,9 @@
         "memberSince": "Member since",
         "serviceValue": "Service value",
         "payment": "Payment",
-        "additionalParts": "Additional parts"
+        "additionalParts": "Additional parts",
+        "requests": "Requests",
+        "reputation": "Reputation"
       },
       "about": "ABOUT {{name}}",
       "aseCodes": "ASE Certified · {{codes}}",
@@ -1604,7 +1612,12 @@
       "preparingHint": "You'll see them on the map once they head out.",
       "upcoming": "SCHEDULED",
       "upcomingTitle": "Scheduled for {{date}}",
-      "upcomingHint": "{{name}} will head out on the day. You'll see them on the map once they do."
+      "upcomingHint": "{{name}} will head out on the day. You'll see them on the map once they do.",
+      "notRatedYet": "Not rated yet",
+      "requestsMade_one": "{{count}} request",
+      "requestsMade_other": "{{count}} requests",
+      "highlyRated": "Highly rated by technicians",
+      "firstRequest": "First request"
     },
     "videoCall": {
       "badge": "VIDEO CALL",
@@ -1777,7 +1790,8 @@
       "serviceValue": "Service value",
       "payout": "Your payout",
       "ownerRating": "Your rating of the owner",
-      "close": "Close"
+      "close": "Close",
+      "viewShort": "View report"
     }
   },
   "requestDetail": {
@@ -1849,7 +1863,7 @@
     "title": "Personal information",
     "subtitle": "Keep your profile up to date to ensure the best service experience",
     "tapToChangePhoto": "Tap to change photo",
-    "reference": "Your Mechanic Assistance ID",
+    "reference": "User ID",
     "name": "Name",
     "surname": "Surname",
     "email": "Email",
@@ -1999,10 +2013,10 @@
       "saveErrorMessage": "The vehicle was not saved. Check your connection and try again.",
       "design": {
         "vinTitle": "Start with your VIN",
-        "vinDescription": "Enter the 17-character VIN to autofill make, model, year and factory specs (NHTSA).",
-        "vinPlaceholder": "e.g. 1HGCM82633A004352",
-        "vinManual": "You can also fill the fields manually.",
-        "vinFound": "✓ Vehicle found — fields filled below",
+        "vinDescription": "We use it to fill in your vehicle's make, model, year and factory specs for you.",
+        "vinPlaceholder": "1HGCM82633A004352",
+        "vinManual": "Prefer to type? Edit any field below.",
+        "vinFound": "✓ Vehicle found · details filled in below",
         "identityLocked": "VIN, make and model can't be changed. For a different car, add a new vehicle.",
         "decode": "Decode",
         "decoding": "Decoding…",
@@ -2038,7 +2052,7 @@
         "naic": "NAIC code",
         "notes": "Notes",
         "notesPlaceholder": "e.g. Aftermarket wheels, lifted suspension…",
-        "saveHint": "Add at least the VIN number to save"
+        "saveHint": "Enter the VIN to save your vehicle."
       }
     }
   },
@@ -2703,10 +2717,13 @@
       "paidOutHint": "{{count}} payout",
       "paidOutHint_one": "1 payout",
       "paidOutHint_other": "{{count}} payouts",
-      "noPayouts": "No payouts recorded"
+      "noPayouts": "No payouts recorded",
+      "pendingTitle": "Pending",
+      "readyTitle": "Ready",
+      "paidOutTitle": "Paid out"
     },
     "actions": {
-      "statement": "Download account statement (PDF)",
+      "statement": "Account statement (PDF)",
       "statementFailed": "Could not download the statement. Try again.",
       "pending": "Pending payments",
       "all": "All payments"
@@ -2728,7 +2745,10 @@
       "unavailable": "Request details unavailable",
       "fallbackTitle": "Assistance",
       "empty": "No earnings for these filters.",
-      "loadFailed": "Could not load your earnings. Pull down to try again."
+      "loadFailed": "Could not load your earnings. Pull down to try again.",
+      "pageRange": "{{from}}–{{to}} of {{total}}",
+      "prevPage": "Previous page",
+      "nextPage": "Next page"
     },
     "status": {
       "pending": "PENDING",

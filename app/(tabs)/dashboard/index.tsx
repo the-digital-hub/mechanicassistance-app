@@ -25,12 +25,12 @@ import { countCompletedToday } from '@/lib/dashboard/mechanicKpis';
 import { useMechanicKpis } from '@/lib/dashboard/useMechanicKpis';
 import { formatMoney } from '@/lib/payments/paymentSource';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { FileText, RotateCcw, Calendar, Video, Zap, MapPin, Wrench, DollarSign, Circle, Clock, Car, Lock, Power, Bell, CreditCard, AlertTriangle } from 'lucide-react-native';
+import { FileText, RotateCcw, Calendar, Video, Zap, MapPin, Wrench, DollarSign, Circle, Clock, Car, Lock, Power, Bell, CreditCard, AlertTriangle, Briefcase, CheckCircle2, ClipboardList, Inbox } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useScrollPressGuard } from '@/hooks/useScrollPressGuard';
 import { ApiError } from '@/lib/api/types';
-import { ActivityIndicator, Alert, Platform, ScrollView, Text, TouchableOpacity, View, Modal, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, Alert, Modal, Platform, Pressable, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 /** Returns a translation key for the current time of day — resolve with t() at the call site. */
@@ -314,10 +314,25 @@ export default function DashboardScreen() {
                         {t('dashboard.mechanic.readyToWork')}{user?.name ? `, ${user.name.split(' ')[0]}` : ''}
                     </Text>
 
-                    {/* Subtitle */}
-                    <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-                        {t('dashboard.mechanic.reviewSubtitle')}
-                    </Text>
+                    {/* The day at a glance, as pills with an icon (what the sections below hold), not a loose sentence. */}
+                    <View className="flex-row flex-wrap mb-8" style={{ gap: 8 }} testID="dashboard-summary">
+                        {[
+                            activeJobs.length > 0 ? { key: 'jobs', Icon: Briefcase, text: t('dashboard.mechanic.summaryJobs', { count: activeJobs.length }) } : null,
+                            openRequests.length > 0 ? { key: 'requests', Icon: Inbox, text: t('dashboard.mechanic.summaryRequests', { count: openRequests.length }) } : null,
+                        ]
+                            .filter((x): x is { key: string; Icon: typeof Briefcase; text: string } => !!x)
+                            .concat(activeJobs.length === 0 && openRequests.length === 0 ? [{ key: 'clear', Icon: CheckCircle2, text: t('dashboard.mechanic.summaryEmpty') }] : [])
+                            .map(({ key, Icon, text }) => (
+                                <View
+                                    key={key}
+                                    className="flex-row items-center"
+                                    style={{ gap: 8, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 100, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E4EAF5' }}
+                                >
+                                    <Icon size={16} color={key === 'clear' ? '#10B981' : '#1E56E3'} />
+                                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: '#0B1530' }}>{text}</Text>
+                                </View>
+                            ))}
+                    </View>
 
                     <AddPhoneBanner className="mb-6" />
 
@@ -368,29 +383,38 @@ export default function DashboardScreen() {
                         </View>
                     )}
 
-                    {/* Availability */}
+                    {/* Availability: only when the technician is NOT online (with the go-online alert above). While available the
+                        header pill already shows it and changes it, so the card would only repeat it. */}
+                    {mechanicStatus !== 'available' && (
                     <View className="mb-6">
                         <AvailabilityCard
                             title={t('dashboard.mechanic.availableToProvide')}
                             liveLabel={t('dashboard.mechanic.live')}
                             status={mechanicStatus}
                             options={statusOptions.map(({ id, label }) => ({ id, label }))}
-                            description={
-                                mechanicStatus === 'available'
-                                    ? t('dashboard.mechanic.descAvailable')
-                                    : mechanicStatus === 'busy'
-                                    ? t('dashboard.mechanic.descBusy')
-                                    : t('dashboard.mechanic.descOffline')
-                            }
+                            description={mechanicStatus === 'busy' ? t('dashboard.mechanic.descBusy') : t('dashboard.mechanic.descOffline')}
                             disabled={isUpdatingStatus}
                             onChange={(next) => { setMechanicStatus(next).catch(() => undefined); }}
                         />
                     </View>
+                    )}
 
                     {showRequests && (
                         <View className="mb-2">
-                            {/* New Requests: one tab per service type */}
-                            <SectionTitle title={t('dashboard.mechanic.newRequestsTitle')} />
+                            {/* New Requests: one tab per service type. The header is one unit (icon, title, what the tabs do). */}
+                            <View className="flex-row items-center mb-3.5" style={{ gap: 12 }}>
+                                <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#EAF1FF' }}>
+                                    <ClipboardList size={20} color="#1E56E3" />
+                                </View>
+                                <View className="flex-1">
+                                    <Text className="font-outfit-bold" style={{ fontSize: 18, lineHeight: 24, letterSpacing: -0.3, color: '#0B1530' }}>
+                                        {t('dashboard.mechanic.newRequestsTitle')}
+                                    </Text>
+                                    <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: '#6B7490' }}>
+                                        {t('dashboard.mechanic.typeCaption')}
+                                    </Text>
+                                </View>
+                            </View>
                             <View className="mb-4">
                                 <RequestTypeTabs
                                     tabs={requestTabs}
@@ -677,8 +701,10 @@ export default function DashboardScreen() {
 
                 {/* Status Modal */}
                 {showStatusModal && (
-                    <Modal transparent visible={showStatusModal} animationType="fade">
+                    <Modal transparent visible={showStatusModal} animationType="fade" onRequestClose={() => setShowStatusModal(false)}>
                         <View className="flex-1 bg-black/50 justify-center items-center px-6">
+                          {/* Tapping outside the card closes it. */}
+                          <Pressable style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }} onPress={() => setShowStatusModal(false)} accessible={false} testID="status-modal-backdrop" />
                             <View className="bg-white w-full rounded-2xl p-6 items-center">
                                 <Text className="text-lg font-outfit-bold text-gray-900 mb-6 text-center">
                                     {t('dashboard.mechanic.changeStatus')}
