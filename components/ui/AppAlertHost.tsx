@@ -9,6 +9,7 @@ import { type AppAlertButton, type AppAlertRequest, dismissAppAlert, subscribeAp
 /** Draws `appAlert` calls with the app's dialog design. Mount once, at the root. */
 export function AppAlertHost() {
     const { t } = useTranslation();
+    const pendingRef = React.useRef<{ run: (() => void) | null }>({ run: null });
     const [queue, setQueue] = React.useState<AppAlertRequest[]>([]);
     React.useEffect(() => subscribeAppAlerts(setQueue), []);
 
@@ -28,10 +29,24 @@ export function AppAlertHost() {
     // A lone message gets a plain "OK".
     const okOnly = buttons.length === 1 && !buttons[0].text;
 
+    // The button's action runs once the dialog is gone: a native picker (photos, files, camera)
+    // started while this modal is still fading out is silently refused by iOS.
+    const pending = pendingRef.current;
     const press = (b: AppAlertButton | undefined) => {
+        const action = () => {
+            b?.onPress?.();
+            if (!b) shown.options?.onDismiss?.();
+        };
+        let ran = false;
+        const once = () => {
+            if (ran) return;
+            ran = true;
+            pending.run = null;
+            action();
+        };
+        pending.run = once;
         dismissAppAlert(shown.id);
-        b?.onPress?.();
-        if (!b) shown.options?.onDismiss?.();
+        setTimeout(once, 450); // iOS also calls the Modal's onDismiss: whichever comes first.
     };
     // Tap outside / back: the cancel button, or just closing when it is a plain message.
     const dismiss = () => {
@@ -40,7 +55,7 @@ export function AppAlertHost() {
     };
 
     return (
-        <Modal visible={!!current} transparent animationType="fade" statusBarTranslucent onRequestClose={dismiss}>
+        <Modal visible={!!current} transparent animationType="fade" statusBarTranslucent onRequestClose={dismiss} onDismiss={() => pending.run?.()}>
             <View className="flex-1 items-center justify-center px-5" style={{ backgroundColor: 'rgba(11,21,48,0.55)' }} testID="app-alert">
                 <Pressable style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }} onPress={dismiss} accessible={false} />
                 <View className="w-full" style={[cardShadow, { maxWidth: 400, borderRadius: 24, padding: 20, maxHeight: '80%' }]}>

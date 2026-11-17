@@ -34,6 +34,34 @@ export function VideoCallWhenCard({ date, startNow }: { date?: string | null; st
     );
 }
 
+/**
+ * A secondary action that should not compete with the main one: white, thin border, grey text.
+ * (Finishing a call early is something the technician rarely wants to do.)
+ */
+export function QuietButton({ label, onPress, disabled, loading, testID }: {
+    label: string;
+    onPress: () => void;
+    disabled?: boolean;
+    loading?: boolean;
+    testID?: string;
+}) {
+    return (
+        <TouchableOpacity
+            onPress={onPress}
+            disabled={disabled || loading}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            className="items-center justify-center"
+            style={{ minHeight: 44, borderRadius: 12, borderWidth: 1, borderColor: '#D9DFEC', backgroundColor: '#FFFFFF', opacity: disabled ? 0.6 : 1 }}
+            testID={testID}
+        >
+            {loading ? <ActivityIndicator color="#6B7490" /> : (
+                <Text className="font-outfit-semibold text-center" style={{ fontSize: 15, lineHeight: 20, color: '#6B7490' }}>{label}</Text>
+            )}
+        </TouchableOpacity>
+    );
+}
+
 /** Primary blue gradient button (house style). */
 export function GradientButton({ label, icon, onPress, disabled, loading, colors = ['#2B66F8', '#081E72'], testID }: {
     label: string;

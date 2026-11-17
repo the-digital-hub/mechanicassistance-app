@@ -301,12 +301,23 @@ export function OwnerTechnicianPanel({ mechanic }: { mechanic: Mechanic | null }
 }
 
 /** `payment` is the card row's value (`PaymentCardValue`), resolved by the screen; omitted (the mechanic) hides the row. */
-export function OwnerBudgetPanel({ total, payment, totalLabel }: { total: string | null; payment?: React.ReactNode; totalLabel?: string }) {
+export function OwnerBudgetPanel({ total, payment, totalLabel, video, extendedMinutes = 0 }: {
+    total: string | null;
+    payment?: React.ReactNode;
+    totalLabel?: string;
+    /** A video call has no parts to approve; instead it can carry extra time bought during the call. */
+    video?: boolean;
+    extendedMinutes?: number;
+}) {
     const { t } = useTranslation();
     const rows: (SummaryRow | null)[] = [
         { icon: 'cash-outline', label: totalLabel ?? t(`${K}.rows.serviceValue`), value: total ? `$${total}` : '—', strong: true },
         payment !== undefined ? { icon: 'card-outline', label: t(`${K}.rows.payment`), value: payment } : null,
-        { icon: 'document-text-outline', label: t(`${K}.rows.additionalParts`), value: t(`${K}.partsOnlyWithApproval`) },
+        video
+            ? extendedMinutes > 0
+                ? { icon: 'time-outline', label: t(`${K}.rows.extendedTime`), value: t(`${K}.extendedTimeValue`, { minutes: extendedMinutes }) }
+                : null
+            : { icon: 'document-text-outline', label: t(`${K}.rows.additionalParts`), value: t(`${K}.partsOnlyWithApproval`) },
     ];
     return <RequestSummaryRows rows={rows.filter((r): r is SummaryRow => r !== null)} />;
 }

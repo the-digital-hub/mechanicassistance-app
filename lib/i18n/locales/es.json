@@ -1626,7 +1626,8 @@
         "additionalParts": "Repuestos extra",
         "requests": "Pedidos",
         "reputation": "Reputación",
-        "duration": "Duración"
+        "duration": "Duración",
+        "extendedTime": "Tiempo extendido"
       },
       "about": "SOBRE {{name}}",
       "aseCodes": "Certificado ASE · {{codes}}",
@@ -1645,7 +1646,8 @@
       "requestsMade_one": "{{count}} pedido",
       "requestsMade_other": "{{count}} pedidos",
       "highlyRated": "Muy bien calificado por técnicos",
-      "firstRequest": "Primer pedido"
+      "firstRequest": "Primer pedido",
+      "extendedTimeValue": "+{{minutes}} min sumados"
     },
     "videoCall": {
       "badge": "VIDEOLLAMADA",

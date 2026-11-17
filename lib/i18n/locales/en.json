@@ -1625,7 +1625,8 @@
         "additionalParts": "Additional parts",
         "requests": "Requests",
         "reputation": "Reputation",
-        "duration": "Duration"
+        "duration": "Duration",
+        "extendedTime": "Extended time"
       },
       "about": "ABOUT {{name}}",
       "aseCodes": "ASE Certified · {{codes}}",
@@ -1644,7 +1645,8 @@
       "requestsMade_one": "{{count}} request",
       "requestsMade_other": "{{count}} requests",
       "highlyRated": "Highly rated by technicians",
-      "firstRequest": "First request"
+      "firstRequest": "First request",
+      "extendedTimeValue": "+{{minutes}} min added"
     },
     "videoCall": {
       "badge": "VIDEO CALL",

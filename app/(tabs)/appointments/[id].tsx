@@ -22,6 +22,7 @@ import {
     MechanicVideoCallStatusCard,
     NoteSheet,
     OwnerVideoCallStatusCard,
+    QuietButton,
     VideoCallWhenCard,
 } from '@/components/appointments/VideoCallSections';
 import {
@@ -503,6 +504,8 @@ export default function AppointmentDetailScreen() {
                     <OwnerBudgetPanel
                         total={(offer?.breakdown?.total ?? offer?.price ?? appointment.budget ?? '').replace(/^\$/, '') || null}
                         payment={<PaymentCardValue paymentMethodId={paymentMethodId} card={resolvePaymentCard(paymentMethodId)} />}
+                        video={isVideoCall}
+                        extendedMinutes={isVideoCall ? videoAddedMinutes : 0}
                     />
                 );
         }
@@ -566,7 +569,7 @@ export default function AppointmentDetailScreen() {
                 return <ClientInfoPanel client={panelClient} />;
             case 'budget':
                 // `budget` already comes back as what the mechanic earns, never the customer's price.
-                return <OwnerBudgetPanel total={(appointment.budget ?? '').replace(/^\$/, '') || null} totalLabel={t('appointments.receipt.youEarn')} />;
+                return <OwnerBudgetPanel total={(appointment.budget ?? '').replace(/^\$/, '') || null} totalLabel={t('appointments.receipt.youEarn')} video extendedMinutes={videoAddedMinutes} />;
             default:
                 return null;
         }
@@ -905,10 +908,8 @@ export default function AppointmentDetailScreen() {
                                                     </Text>
                                                 </TouchableOpacity>
                                             )}
-                                            <GradientButton
+                                            <QuietButton
                                                 label={t('appointments.videoCall.mechanic.finish')}
-                                                icon="checkmark"
-                                                colors={['#10B981', '#047857']}
                                                 loading={videoBusy}
                                                 onPress={() => setShowFinishSheet(true)}
                                                 testID="mechanic-video-finish"
