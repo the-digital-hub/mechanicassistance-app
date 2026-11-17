@@ -35,14 +35,18 @@ class MediaDAOImpl {
    * Uploads a local image file to the media-service.
    * Returns the storage key and public URL for the uploaded photo.
    */
-  async uploadPhoto(localUri: string): Promise<UploadedPhoto> {
+  async uploadPhoto(localUri: string, options?: { purpose?: 'chat' }): Promise<UploadedPhoto> {
     const filename = localUri.split('/').pop() || 'photo.jpg';
 
-    return this.upload('/api/photos/upload', 'photo', {
-      uri: localUri,
-      name: filename,
-      type: mimeFor(filename),
-    });
+    return this.upload(
+      '/api/photos/upload',
+      'photo',
+      { uri: localUri, name: filename, type: mimeFor(filename) },
+      undefined,
+      // `chat` files the photo under chat/, private: it only opens through the
+      // signed link chat-service hands out with each message.
+      options?.purpose,
+    );
   }
 
   /**
@@ -87,10 +91,12 @@ class MediaDAOImpl {
     field: string,
     file: { uri: string; name: string; type: string },
     documentType?: string,
+    purpose?: string,
   ): Promise<UploadedFile> {
     const formData = new FormData();
     formData.append(field, file as any);
     if (documentType) formData.append('type', documentType);
+    if (purpose) formData.append('purpose', purpose);
 
     const result = await apiClient.upload<UploadedFile>(endpoint, formData);
 

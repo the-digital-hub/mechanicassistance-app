@@ -2833,7 +2833,15 @@
     "online": "Online",
     "noMessages": "No messages yet. Say hello!",
     "ephemeralNotice": "Messages are ephemeral and not saved in the database.",
-    "writeHere": "Write Here..."
+    "writeHere": "Write Here...",
+    "savedNotice": "Messages stay saved with this appointment.",
+    "readOnly": "This appointment is over. You can read the chat, but not send new messages.",
+    "sendFailed": "Not sent. Tap to retry.",
+    "loadFailed": "Could not load the messages. Pull down to try again.",
+    "photo": "Photo",
+    "photoFailed": "The photo could not be sent. Try again.",
+    "rateLimited": "You are sending too fast. Wait a minute and try again.",
+    "loadingOlder": "Loading earlier messages..."
   },
   "dashboardDetail": {
     "assistanceNeeded": "Assistance needed:",

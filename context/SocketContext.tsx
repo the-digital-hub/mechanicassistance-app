@@ -1,7 +1,9 @@
 import { useUser } from '@/context/UserContext';
 import { getFreshAccessToken } from '@/lib/api/apiClient';
 import { ConfigService } from '@/lib/config/ConfigService';
-import React, { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
+import { chatDAO } from '@/lib/dao/ChatDAO';
+import type { ChatMessageDTO } from '@/lib/dao/interfaces';
+import React, { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import { io, Socket } from 'socket.io-client';
 
@@ -11,6 +13,39 @@ export interface ChatMessage {
     senderId: string;
     timestamp: string;
     conversationId: string;
+    /** Stored messages (chat-service) carry these; the legacy relay does not. */
+    kind?: 'text' | 'image';
+    mediaUrl?: string | null;
+    clientMessageId?: string;
+    /** Only on this device's own message while it is being sent, or after it failed. */
+    status?: 'sending' | 'failed';
+}
+
+/** A stored message (chat-service, REST or socket) in the shape the chat screen renders. */
+export function toChatMessage(m: ChatMessageDTO): ChatMessage {
+    return {
+        id: m.id,
+        text: m.text ?? '',
+        senderId: m.senderId,
+        timestamp: m.createdAt,
+        conversationId: m.conversationId,
+        kind: m.kind,
+        mediaUrl: m.mediaUrl,
+        clientMessageId: m.clientMessageId,
+    };
+}
+
+/** Merges by id or clientMessageId (a pending message is replaced by its stored copy), oldest first. */
+function mergeMessages(existing: ChatMessage[], incoming: ChatMessage[]): ChatMessage[] {
+    const out = [...existing];
+    for (const msg of incoming) {
+        const i = out.findIndex(
+            (m) => m.id === msg.id || (!!msg.clientMessageId && m.clientMessageId === msg.clientMessageId),
+        );
+        if (i >= 0) out[i] = msg;
+        else out.push(msg);
+    }
+    return out.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
 }
 
 interface SocketContextType {
@@ -20,6 +55,8 @@ interface SocketContextType {
     sendMessage: (type: string, payload: any) => void;
     chatHistory: Record<string, ChatMessage[]>;
     clearChatHistory: (conversationId: string) => void;
+    /** Adds or replaces messages of one conversation (history pages, sent messages). */
+    mergeChatMessages: (conversationId: string, messages: ChatMessage[]) => void;
 }
 
 const SocketContext = createContext<SocketContextType | undefined>(undefined);
@@ -52,6 +89,13 @@ export function SocketProvider({ children }: { children: ReactNode }) {
             return next;
         });
     };
+
+    const mergeChatMessages = useCallback((conversationId: string, messages: ChatMessage[]) => {
+        setChatHistory(prev => ({
+            ...prev,
+            [conversationId]: mergeMessages(prev[conversationId] || [], messages),
+        }));
+    }, []);
 
     const sendMessage = (type: string, payload: any) => {
         const s = currentSocket.current;
@@ -194,6 +238,15 @@ export function SocketProvider({ children }: { children: ReactNode }) {
             }
         });
 
+        // A stored chat message from the other side (chat-service → ma:events).
+        s.on('chat_message_created', (payload: any) => {
+            setLastMessage({ type: 'chat_message_created', payload });
+            const dto = payload?.message as ChatMessageDTO | undefined;
+            if (dto?.id && dto.conversationId) {
+                mergeChatMessages(dto.conversationId, [toChatMessage(chatDAO.normalize(dto))]);
+            }
+        });
+
         // Server-driven domain events.
         SERVER_EVENTS.forEach((evt) => {
             s.on(evt, (payload: any) => {
@@ -207,7 +260,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     };
 
     return (
-        <SocketContext.Provider value={{ socket, isConnected, lastMessage, sendMessage, chatHistory, clearChatHistory }}>
+        <SocketContext.Provider value={{ socket, isConnected, lastMessage, sendMessage, chatHistory, clearChatHistory, mergeChatMessages }}>
             {children}
         </SocketContext.Provider>
     );

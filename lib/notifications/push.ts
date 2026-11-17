@@ -141,6 +141,8 @@ export interface PushData {
     requestId?: string;
     appointmentId?: string;
     status?: string;
+    /** chat_message_created: the chat to open (its appointment id). */
+    conversationId?: string;
 }
 
 /** Who is signed in when a push is tapped. */
@@ -222,6 +224,10 @@ export function routeForPush(data: PushData | undefined, viewer: PushViewer): Hr
             return appointmentId
                 ? { pathname: '/video-lobby/[id]', params: { id: appointmentId } }
                 : null;
+        case 'chat_message_created': {
+            const chatId = data.conversationId ?? appointmentId;
+            return chatId ? { pathname: '/chat/[id]', params: { id: chatId } } : null;
+        }
         default:
             return null;
     }

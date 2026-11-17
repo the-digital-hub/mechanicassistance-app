@@ -963,6 +963,50 @@ export interface FinalQuoteView {
     additionalToHold?: string | null;
 }
 
+/** The chat of one appointment (chat-service). Its id is the appointment id. */
+export interface ChatConversation {
+    id: string;
+    userId: string;
+    mechanicId: string;
+    /** `closed` once the appointment is completed or cancelled: read-only. */
+    status: 'open' | 'closed';
+    canWrite: boolean;
+}
+
+export interface ChatMessageDTO {
+    id: string;
+    conversationId: string;
+    senderId: string;
+    kind: 'text' | 'image';
+    text: string | null;
+    /** Signed, short-lived photo link (absolutized by ChatDAO). */
+    mediaUrl: string | null;
+    clientMessageId: string;
+    /** ISO 8601, UTC. */
+    createdAt: string;
+}
+
+export interface ChatMessagePage {
+    /** Newest first. */
+    items: ChatMessageDTO[];
+    /** Pass as `before` for the next, older page; null at the first message. */
+    nextCursor: string | null;
+}
+
+export interface SendChatMessagePayload {
+    clientMessageId: string;
+    kind: 'text' | 'image';
+    text?: string;
+    /** `key` from `mediaDAO.uploadPhoto(uri, { purpose: 'chat' })`. */
+    mediaKey?: string;
+}
+
+export interface IChatDAO {
+    getConversation(appointmentId: string): Promise<ChatConversation>;
+    listMessages(appointmentId: string, before?: string | null): Promise<ChatMessagePage>;
+    sendMessage(appointmentId: string, payload: SendChatMessagePayload): Promise<ChatMessageDTO>;
+}
+
 export interface IPricingDAO {
     getServiceCategories(): Promise<ScheduledServiceCategory[]>;
     getVehicleIssues(): Promise<VehicleIssue[]>;

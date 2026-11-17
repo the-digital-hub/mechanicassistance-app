@@ -2834,7 +2834,15 @@
     "online": "En línea",
     "noMessages": "Todavía no hay mensajes. ¡Saludá!",
     "ephemeralNotice": "Los mensajes son efímeros y no se guardan en la base de datos.",
-    "writeHere": "Escribí acá..."
+    "writeHere": "Escribí acá...",
+    "savedNotice": "Los mensajes quedan guardados con esta cita.",
+    "readOnly": "Esta cita terminó. Podés leer el chat, pero no enviar mensajes nuevos.",
+    "sendFailed": "No se envió. Tocá para reintentar.",
+    "loadFailed": "No se pudieron cargar los mensajes. Deslizá hacia abajo para reintentar.",
+    "photo": "Foto",
+    "photoFailed": "No se pudo enviar la foto. Probá de nuevo.",
+    "rateLimited": "Estás enviando muy rápido. Esperá un minuto y probá de nuevo.",
+    "loadingOlder": "Cargando mensajes anteriores..."
   },
   "dashboardDetail": {
     "assistanceNeeded": "Asistencia necesaria:",
