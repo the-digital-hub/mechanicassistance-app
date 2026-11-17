@@ -28,8 +28,9 @@ import { useIsFocused } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { appAlert } from '@/lib/ui/appAlert';
 
 /** Minutes in an ETA the mechanic typed ("5 min", "1h", "2hs", "20"), or null when it can't be read. */
 function etaMinutes(eta?: string | null): number | null {
@@ -82,7 +83,7 @@ export default function MechanicFoundScreen() {
             return true;
         } catch (error) {
             console.error('Failed to change payment card:', error);
-            Alert.alert(t('paymentCards.changeFailedTitle'), t('paymentCards.changeFailedMessage'));
+            appAlert(t('paymentCards.changeFailedTitle'), t('paymentCards.changeFailedMessage'));
             return false;
         }
     };
@@ -133,7 +134,7 @@ export default function MechanicFoundScreen() {
     const handleExpired = useCallback(() => {
         if (expiredHandled.current || !requestId || !isFocused) return;
         expiredHandled.current = true;
-        Alert.alert(t(`${k}.expiredTitle`), t(`${k}.expiredMessage`));
+        appAlert(t(`${k}.expiredTitle`), t(`${k}.expiredMessage`));
         router.replace({ pathname: '/request-assistance/searching', params: { requestId } });
     }, [requestId, router, t, isFocused]);
 
@@ -196,7 +197,7 @@ export default function MechanicFoundScreen() {
             if (isPaymentMethodRequired(error)) {
                 openPaymentChoice();
             } else if (code === 'card_declined') {
-                Alert.alert(t(`${k}.cardDeclinedTitle`), t(`${k}.cardDeclinedMessage`), [
+                appAlert(t(`${k}.cardDeclinedTitle`), t(`${k}.cardDeclinedMessage`), [
                     { text: t(`${k}.paymentErrorDismiss`), style: 'cancel' },
                     { text: t(`${k}.changeCard`), onPress: openPaymentChoice },
                 ]);
@@ -204,9 +205,9 @@ export default function MechanicFoundScreen() {
                 // Add the missing money to the wallet, or pay this one with a card.
                 setInsufficientOpen(true);
             } else if (code === 'payment_pending' || code === 'payment_unavailable') {
-                Alert.alert(t(`${k}.holdFailedTitle`), t(`${k}.holdFailedMessage`));
+                appAlert(t(`${k}.holdFailedTitle`), t(`${k}.holdFailedMessage`));
             } else {
-                Alert.alert(t(`${k}.errorTitle`), t(`${k}.errorMessage`));
+                appAlert(t(`${k}.errorTitle`), t(`${k}.errorMessage`));
             }
         }
     };
@@ -232,7 +233,7 @@ export default function MechanicFoundScreen() {
     // the link sits right under the offer and is easy to hit by mistake.
     const handleCancel = () => {
         if (!requestId) return;
-        Alert.alert(t(`${k}.cancelTitle`), t(`${k}.cancelMessage`), [
+        appAlert(t(`${k}.cancelTitle`), t(`${k}.cancelMessage`), [
             { text: t(`${k}.cancelKeep`), style: 'cancel' },
             {
                 text: t(`${k}.cancelConfirm`),
@@ -246,7 +247,7 @@ export default function MechanicFoundScreen() {
                         router.replace('/(tabs)/dashboard');
                     } catch (error) {
                         console.error('Failed to cancel request:', error);
-                        Alert.alert(t('requestAssistance.searching.cancelErrorAlert'));
+                        appAlert(t('requestAssistance.searching.cancelErrorAlert'));
                     }
                 },
             },
@@ -404,6 +405,10 @@ export default function MechanicFoundScreen() {
                     <RequestSummaryRows
                         rows={[
                             { icon: isVideoCall ? ('videocam-outline' as const) : ('flash-outline' as const), label: t(`${k}.rowService`), value: typeLabel },
+                            // A video call: how long it lasts, the length the owner chose when asking.
+                            ...(isVideoCall && request?.durationMinutes
+                                ? [{ icon: 'timer-outline' as const, label: t(`${k}.rowDuration`), value: t('requestAssistance.when.durationValue', { count: request.durationMinutes }) }]
+                                : []),
                             { icon: 'car-outline', label: t(`${k}.rowVehicle`), value: vehicle },
                             { icon: 'construct-outline', label: t(`${k}.rowIssue`), value: issueText },
                             // A video call is remote: it has no location.

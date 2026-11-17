@@ -2,12 +2,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useGlobalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Image, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, Text, TouchableOpacity, View } from 'react-native';
 import { ActionBar, Body, FlowHeader, NoteInput, OS, PrimaryButton, cardShadow } from '@/components/on-site/ui';
 import { useAppointments } from '@/context/AppointmentsContext';
 import { ApiError } from '@/lib/api/types';
 import { reviewDAO } from '@/lib/dao/ReviewDAO';
 import { userDAO } from '@/lib/dao/UserDAO';
+import { appAlert } from '@/lib/ui/appAlert';
 
 // The vehicle owner rates the mechanic after the job. Reached from the
 // "Rate your mechanic" push the mechanic sends from their close-out screen, or
@@ -66,7 +67,7 @@ export default function OwnerReviewScreen() {
             setDone(true);
         } catch (e) {
             if (e instanceof ApiError && e.statusCode === 409) setAlreadyReviewed(true);
-            else Alert.alert(t(`${k}.error`));
+            else appAlert(t(`${k}.error`));
         } finally {
             setSending(false);
         }

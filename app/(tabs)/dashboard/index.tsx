@@ -30,8 +30,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useScrollPressGuard } from '@/hooks/useScrollPressGuard';
 import { ApiError } from '@/lib/api/types';
-import { ActivityIndicator, Alert, Modal, Platform, Pressable, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, Modal, Platform, Pressable, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { appAlert } from '@/lib/ui/appAlert';
 
 /** Returns a translation key for the current time of day — resolve with t() at the call site. */
 const getTimeGreetingKey = (): string => {
@@ -821,7 +822,7 @@ export default function DashboardScreen() {
             const reason = error instanceof ApiError ? error.message : '';
             const message = [t('dashboard.user.cancelFailedMessage'), reason].filter(Boolean).join('\n\n');
             if (Platform.OS === 'web') window.alert(`${t('dashboard.user.cancelFailedTitle')}\n\n${message}`);
-            else Alert.alert(t('dashboard.user.cancelFailedTitle'), message);
+            else appAlert(t('dashboard.user.cancelFailedTitle'), message);
         } finally {
             // Also on failure: a request already gone (404) or canceled before a
             // later step failed must not linger on the dashboard.
@@ -834,7 +835,7 @@ export default function DashboardScreen() {
             if (window.confirm(t('dashboard.user.cancelConfirmTitle'))) void doCancelRequest(id);
             return;
         }
-        Alert.alert(t('dashboard.user.cancelConfirmTitle'), t('dashboard.user.cancelConfirmMessage'), [
+        appAlert(t('dashboard.user.cancelConfirmTitle'), t('dashboard.user.cancelConfirmMessage'), [
             { text: t('dashboard.user.cancelConfirmNo'), style: 'cancel' },
             { text: t('dashboard.user.cancelConfirmYes'), style: 'destructive', onPress: () => void doCancelRequest(id) },
         ]);

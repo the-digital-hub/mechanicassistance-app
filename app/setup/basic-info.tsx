@@ -11,18 +11,9 @@ import { ChevronRight } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { z } from "zod";
+import { appAlert } from '@/lib/ui/appAlert';
 
 export default function BasicInfoScreen() {
   const router = useRouter();
@@ -105,7 +96,7 @@ export default function BasicInfoScreen() {
       const uploaded = await mediaDAO.uploadPhoto(localUri);
       setFormData((prev) => ({ ...prev, profileImage: uploaded.url }));
     } catch {
-      Alert.alert(t("setup.basicInfo.uploadFailedTitle"), t("setup.basicInfo.uploadFailedMessage"));
+      appAlert(t("setup.basicInfo.uploadFailedTitle"), t("setup.basicInfo.uploadFailedMessage"));
       setLocalProfileUri(null);
     } finally {
       setIsUploadingPhoto(false);

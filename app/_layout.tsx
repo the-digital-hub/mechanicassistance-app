@@ -16,6 +16,7 @@ import { AnimatedSplash } from "@/components/brand/AnimatedSplash";
 import "react-native-reanimated";
 
 import { GlobalNotificationListener } from "@/components/GlobalNotificationListener";
+import { AppAlertHost } from "@/components/ui/AppAlertHost";
 import { PushNotificationRouter } from "@/components/PushNotificationRouter";
 import { AppointmentsProvider } from "@/context/AppointmentsContext";
 import { MechanicStatusProvider } from "@/context/MechanicStatusContext";
@@ -83,6 +84,7 @@ function AppShell() {
   return (
     <UpdateRequiredGate>
       <GlobalNotificationListener />
+      <AppAlertHost />
       <PushNotificationRouter />
       <Stack screenOptions={{ headerShown: false }}>
         {/* Every (tabs) screen has its own back arrow. With the edge swipe on,

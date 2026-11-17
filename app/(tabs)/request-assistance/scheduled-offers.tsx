@@ -2,7 +2,7 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Calendar, Check, Clock, CreditCard, Minus, ShieldCheck, Star, Store } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 import { CARD_STYLE, Footer, Note, SC, StepHead, WizardHeader } from '@/components/scheduled/ui';
 import { formatSlot } from '@/lib/scheduled/slot';
@@ -29,6 +29,7 @@ import {
     totalOf,
     windowLeft,
 } from '@/lib/scheduled/offers';
+import { appAlert } from '@/lib/ui/appAlert';
 
 type View_ = 'list' | 'compare' | 'detail' | 'pay' | 'done';
 type SortId = 'coverage' | 'price' | 'date' | 'distance';
@@ -147,7 +148,7 @@ export default function ScheduledOffersScreen() {
             await load();
         } catch (error) {
             console.error('Failed to extend offers:', error);
-            Alert.alert(t('scheduledOffers.errors.generic'));
+            appAlert(t('scheduledOffers.errors.generic'));
         } finally {
             setBusy(false);
         }
@@ -155,7 +156,7 @@ export default function ScheduledOffersScreen() {
 
     const cancelRequest = () => {
         if (!requestId) return;
-        Alert.alert(t('scheduledOffers.cancel.title'), t('scheduledOffers.cancel.message'), [
+        appAlert(t('scheduledOffers.cancel.title'), t('scheduledOffers.cancel.message'), [
             { text: t('scheduledOffers.cancel.keep'), style: 'cancel' },
             {
                 text: t('scheduledOffers.cancel.confirm'),
@@ -166,7 +167,7 @@ export default function ScheduledOffersScreen() {
                         router.replace('/(tabs)/dashboard');
                     } catch (error) {
                         console.error('Failed to cancel scheduled request:', error);
-                        Alert.alert(t('scheduledOffers.errors.generic'));
+                        appAlert(t('scheduledOffers.errors.generic'));
                     }
                 },
             },

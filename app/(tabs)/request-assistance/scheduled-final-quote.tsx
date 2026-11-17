@@ -2,7 +2,7 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { CreditCard, ShieldCheck } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 import { QuoteDetails } from '@/components/scheduled/QuoteDetails';
 import { CARD_STYLE, Footer, Note, SC, StepHead, WizardHeader } from '@/components/scheduled/ui';
@@ -11,6 +11,7 @@ import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import type { FinalQuoteView } from '@/lib/dao/interfaces';
 import { apiErrorCode, RETURN_TO_BACK } from '@/lib/payments/cardRequired';
 import { money, quoteErrorAction, quoteIsOpen } from '@/lib/scheduled/offers';
+import { appAlert } from '@/lib/ui/appAlert';
 
 export default function ScheduledFinalQuoteScreen() {
     const { t } = useTranslation();
@@ -65,7 +66,7 @@ export default function ScheduledFinalQuoteScreen() {
 
     const reject = () => {
         if (!requestId || !view) return;
-        Alert.alert(t('finalQuote.reject.title'), t('finalQuote.reject.message'), [
+        appAlert(t('finalQuote.reject.title'), t('finalQuote.reject.message'), [
             { text: t('finalQuote.reject.keep'), style: 'cancel' },
             {
                 text: t('finalQuote.reject.confirm'),

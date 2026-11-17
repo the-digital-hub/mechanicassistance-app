@@ -7,7 +7,8 @@ import type { AppRole } from "@/lib/dao/interfaces";
 import { useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, Alert, View } from "react-native";
+import { ActivityIndicator, View } from 'react-native';
+import { appAlert } from '@/lib/ui/appAlert';
 
 /** Roles the app can actually run as. Towing / locksmith are registered but never activated. */
 const ACTIVATABLE: AppRole[] = ["user", "mechanic"];
@@ -66,11 +67,11 @@ export default function ChooseRoleScreen() {
       const status = err instanceof ApiError ? err.statusCode : null;
       const name = t(`profile.switchRole.roles.${role}.label`);
       if (status === 409) {
-        Alert.alert(t("profile.switchRole.activeJobsTitle"), t("profile.switchRole.activeJobsMessage"));
+        appAlert(t("profile.switchRole.activeJobsTitle"), t("profile.switchRole.activeJobsMessage"));
       } else if (status === 403) {
-        Alert.alert(t("profile.switchRole.notHeldTitle"), t("profile.switchRole.notHeldMessage", { role: name }));
+        appAlert(t("profile.switchRole.notHeldTitle"), t("profile.switchRole.notHeldMessage", { role: name }));
       } else {
-        Alert.alert(t("profile.switchRole.failedTitle"), t("profile.switchRole.failedMessage"));
+        appAlert(t("profile.switchRole.failedTitle"), t("profile.switchRole.failedMessage"));
       }
     } finally {
       setBusy(null);

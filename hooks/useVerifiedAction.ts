@@ -2,7 +2,8 @@ import { useVerification } from '@/context/VerificationContext';
 import { useRouter } from 'expo-router';
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert } from 'react-native';
+import { appAlert } from '@/lib/ui/appAlert';
+;
 
 /**
  * Which gated action is being attempted — picks the explanatory copy.
@@ -43,7 +44,7 @@ export function useVerifiedAction() {
         ) =>
             ((...args: Parameters<T>) => {
                 if (hasLoaded && !isApproved) {
-                    Alert.alert(
+                    appAlert(
                         t('verification.notStartedTitle'),
                         t(REASON_KEY[action]),
                         [

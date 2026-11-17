@@ -10,6 +10,8 @@ interface MechanicAssistanceInfoTabProps {
     appointment: any;
     /** Sub-navbar split: `trip` = address and map; `vehicle` = car, issue, notes. Omitted = everything. */
     section?: 'trip' | 'vehicle';
+    /** Native only: the video call's status / details split. */
+    videoSection?: 'details';
 }
 
 const ClientSideMap = ({ appointment }: { appointment: any }) => {

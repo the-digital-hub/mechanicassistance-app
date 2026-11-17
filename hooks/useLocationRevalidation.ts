@@ -3,7 +3,8 @@ import { userDAO } from '@/lib/dao/UserDAO';
 import * as Location from 'expo-location';
 import { useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, AppState, AppStateStatus, Linking, Platform } from 'react-native';
+import { AppState, AppStateStatus, Linking, Platform } from 'react-native';
+import { appAlert } from '@/lib/ui/appAlert';
 
 const POSITION_TIMEOUT_MS = 10_000;
 
@@ -29,7 +30,7 @@ export function useLocationRevalidation() {
             const close = () => {
                 alertOpenRef.current = false;
             };
-            Alert.alert(
+            appAlert(
                 title,
                 message,
                 [

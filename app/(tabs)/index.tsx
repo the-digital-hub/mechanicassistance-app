@@ -18,7 +18,8 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { ArrowLeftRight, Award, Briefcase, Camera, Car, Check, ChevronDown, ChevronLeft, ChevronRight, Circle, Clock, CreditCard, FileText, Heart, HelpCircle, Lock, LogOut, MapPin, Settings, User, Wallet } from 'lucide-react-native';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Image, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { appAlert } from '@/lib/ui/appAlert';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -83,7 +84,7 @@ export default function ProfileScreen() {
       const uploaded = await mediaDAO.uploadPhoto(localUri);
       await updateUser({ profileImage: uploaded.url });
     } catch {
-      Alert.alert(t('profile.modals.uploadFailedTitle'), t('profile.modals.uploadFailedMessage'));
+      appAlert(t('profile.modals.uploadFailedTitle'), t('profile.modals.uploadFailedMessage'));
       setLocalProfileUri(null);
     } finally {
       setIsUploadingPhoto(false);
@@ -102,7 +103,7 @@ export default function ProfileScreen() {
     try {
       await setMechanicStatus(status);
     } catch {
-      Alert.alert('Update Failed', 'Could not change your availability. Please try again.');
+      appAlert('Update Failed', 'Could not change your availability. Please try again.');
     }
   };
 
@@ -137,16 +138,16 @@ export default function ProfileScreen() {
     } catch (err) {
       const status = err instanceof ApiError ? err.statusCode : null;
       if (!isHeld) {
-        Alert.alert(t('profile.switchRole.failedTitle'), t('profile.switchRole.startFailed'));
+        appAlert(t('profile.switchRole.failedTitle'), t('profile.switchRole.startFailed'));
       } else if (status === 409) {
-        Alert.alert(t('profile.switchRole.activeJobsTitle'), t('profile.switchRole.activeJobsMessage'));
+        appAlert(t('profile.switchRole.activeJobsTitle'), t('profile.switchRole.activeJobsMessage'));
       } else if (status === 403) {
-        Alert.alert(
+        appAlert(
           t('profile.switchRole.notHeldTitle'),
           t('profile.switchRole.notHeldMessage', { role: roleName(role) }),
         );
       } else {
-        Alert.alert(t('profile.switchRole.failedTitle'), t('profile.switchRole.failedMessage'));
+        appAlert(t('profile.switchRole.failedTitle'), t('profile.switchRole.failedMessage'));
       }
     } finally {
       setIsSwitchingRole(false);

@@ -1,0 +1,96 @@
+import { Ionicons } from '@expo/vector-icons';
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { Text, View } from 'react-native';
+
+import { AO } from '@/components/offer/OfferSections';
+
+const K = 'appointments.videoCall.statusTab';
+
+type StepState = 'done' | 'current' | 'pending';
+
+/**
+ * The technician's Status tab on a video call: where the assistance is, step by step —
+ * accepted, call open, closed (waiting for the client's confirmation), rate the customer.
+ * It says what is happening now and what comes next; the facts of the request live in Details.
+ */
+export function MechanicVideoStatusTab({ status, callStarted, notResolved, reviewSent }: {
+    /** accepted | in_progress | awaiting_confirmation | disputed | completed */
+    status: string | undefined;
+    /** The client joined and the timer is running. */
+    callStarted: boolean;
+    /** Closed without charging: the client said it was not resolved. */
+    notResolved: boolean;
+    /** The technician already rated the customer. */
+    reviewSent: boolean;
+}) {
+    const { t } = useTranslation();
+    const closed = status === 'completed';
+    const waiting = status === 'awaiting_confirmation';
+    const disputed = status === 'disputed';
+
+    const callSub = closed || waiting || disputed
+        ? t(`${K}.callEnded`)
+        : callStarted
+            ? t(`${K}.callInProgress`)
+            : t(`${K}.callReady`);
+    const closedSub = closed
+        ? notResolved ? t(`${K}.closedNotCharged`) : t(`${K}.closedDone`)
+        : waiting
+            ? t(`${K}.closedWaiting`)
+            : disputed
+                ? t(`${K}.closedDisputed`)
+                : t(`${K}.closedPending`);
+    const reviewSub = reviewSent
+        ? t(`${K}.reviewSent`)
+        : closed
+            ? t(`${K}.reviewNow`)
+            : t(`${K}.reviewLater`);
+
+    const steps: { key: string; title: string; sub: string; state: StepState }[] = [
+        { key: 'accepted', title: t(`${K}.acceptedTitle`), sub: t(`${K}.acceptedSub`), state: 'done' },
+        { key: 'call', title: t(`${K}.callTitle`), sub: callSub, state: closed || waiting || disputed ? 'done' : 'current' },
+        { key: 'closed', title: t(`${K}.closedTitle`), sub: closedSub, state: closed ? 'done' : waiting || disputed ? 'current' : 'pending' },
+        { key: 'review', title: t(`${K}.reviewTitle`), sub: reviewSub, state: reviewSent ? 'done' : closed ? 'current' : 'pending' },
+    ];
+
+    return (
+        <View
+            style={{ backgroundColor: '#FFFFFF', borderRadius: 20, borderWidth: 1, borderColor: '#EEF2FA', padding: 18, shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.06, shadowRadius: 14, elevation: 2 }}
+            testID="mechanic-video-status-tab"
+        >
+            {steps.map((step, i) => {
+                const last = i === steps.length - 1;
+                const done = step.state === 'done';
+                const current = step.state === 'current';
+                return (
+                    <View key={step.key} style={{ flexDirection: 'row', gap: 14 }}>
+                        <View style={{ alignItems: 'center' }}>
+                            <View
+                                style={{
+                                    width: 32,
+                                    height: 32,
+                                    borderRadius: 16,
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    backgroundColor: done ? AO.green : current ? AO.blue : '#F1F3F8',
+                                }}
+                            >
+                                {done ? (
+                                    <Ionicons name="checkmark" size={18} color="#FFFFFF" />
+                                ) : (
+                                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: current ? '#FFFFFF' : AO.mutedLight }}>{i + 1}</Text>
+                                )}
+                            </View>
+                            {!last ? <View style={{ flex: 1, width: 2, marginVertical: 4, backgroundColor: done ? AO.green : '#E6EAF3', minHeight: 20 }} /> : null}
+                        </View>
+                        <View style={{ flex: 1, paddingBottom: last ? 0 : 18 }}>
+                            <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: step.state === 'pending' ? AO.mutedLight : AO.text }}>{step.title}</Text>
+                            <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: current ? AO.blue : AO.muted }}>{step.sub}</Text>
+                        </View>
+                    </View>
+                );
+            })}
+        </View>
+    );
+}

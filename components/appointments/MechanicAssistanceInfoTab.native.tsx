@@ -12,9 +12,11 @@ interface MechanicAssistanceInfoTabProps {
     appointment: any;
     /** Sub-navbar split: `trip` = arrival, ETA, address and map; `vehicle` = car, issue, notes. Omitted = everything. */
     section?: 'trip' | 'vehicle';
+    /** Video call, Details tab: what the client described (car, issue, notes). Omitted = the whole request in one card. */
+    videoSection?: 'details';
 }
 
-export function MechanicAssistanceInfoTab({ appointment, section }: MechanicAssistanceInfoTabProps) {
+export function MechanicAssistanceInfoTab({ appointment, section, videoSection }: MechanicAssistanceInfoTabProps) {
     const { t, i18n } = useTranslation();
     // A video call is remote: no GPS, map, route or ETA.
     const isVideoCall = (appointment?.assistanceType ?? appointment?.type) === 'videocall';
@@ -75,10 +77,32 @@ export function MechanicAssistanceInfoTab({ appointment, section }: MechanicAssi
     if (isVideoCall) {
         // A call asked for "now" (or with no date on the row) reads "Now".
         const scheduled = videoCallBookedLabel(appointment, i18n.language) ?? t('requestDetail.videoCallNow');
+        if (videoSection === 'details') {
+            return (
+                <View className="gap-3.5">
+                    <DetailCard>
+                        {!!appointment.durationMinutes && (
+                            <DetailRow icon="timer-outline" label={t('appointments.ownerAccepted.rows.duration')} value={t('requestAssistance.when.durationValue', { count: appointment.durationMinutes })} />
+                        )}
+                        <DetailRow icon="car-outline" label={t('appointments.detail.info.car')} value={appointment.car} />
+                        <DetailRow icon="construct-outline" label={t('appointments.detail.info.carIssue')} value={issueValue} />
+                        <DetailRow
+                            icon="document-text-outline"
+                            label={t('appointments.detail.info.notes')}
+                            value={appointment.notes || t('appointments.detail.info.noNotes')}
+                            last
+                        />
+                    </DetailCard>
+                </View>
+            );
+        }
         return (
             <View className="gap-3.5">
                 <DetailCard>
                     <DetailRow icon="videocam-outline" label={t('appointments.ownerAccepted.rows.service')} value={t('appointments.detail.types.videocall')} />
+                    {!!appointment.durationMinutes && (
+                        <DetailRow icon="timer-outline" label={t('appointments.ownerAccepted.rows.duration')} value={t('requestAssistance.when.durationValue', { count: appointment.durationMinutes })} />
+                    )}
                     <DetailRow icon="calendar-outline" label={t('appointments.videoCall.scheduledFor')} value={scheduled} />
                     <DetailRow icon="car-outline" label={t('appointments.detail.info.car')} value={appointment.car} />
                     <DetailRow icon="construct-outline" label={t('appointments.detail.info.carIssue')} value={issueValue} />

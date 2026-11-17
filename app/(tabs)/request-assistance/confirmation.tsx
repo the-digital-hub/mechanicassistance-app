@@ -14,7 +14,8 @@ import { AlertCircle, AlignLeft, Car, CheckCircle2, ChevronLeft, CreditCard, Map
 import React, { useEffect, useState } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { appAlert } from '@/lib/ui/appAlert';
 
 /**
  * The pricing service validates `vehicle_issue_ids` with `@IsUUID`, so an id that
@@ -140,7 +141,7 @@ export default function ConfirmationScreen() {
         const lat = Number(latitude);
         const lng = Number(longitude);
         if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-            Alert.alert(t('requestAssistance.confirmation.locationRequiredTitle'), t('requestAssistance.confirmation.locationRequiredMessage'));
+            appAlert(t('requestAssistance.confirmation.locationRequiredTitle'), t('requestAssistance.confirmation.locationRequiredMessage'));
             return;
         }
 
@@ -213,7 +214,7 @@ export default function ConfirmationScreen() {
                     `fallback ids (${selectedIssueIds.join(',')}) that the pricing ` +
                     `service rejects.`
                 );
-                Alert.alert(
+                appAlert(
                     t('requestAssistance.confirmation.pricingUnavailableTitle'),
                     t('requestAssistance.confirmation.pricingUnavailableMessage')
                 );
@@ -235,7 +236,7 @@ export default function ConfirmationScreen() {
                             `[assistance] partial pricing persistence for request ` +
                             `${response.id}:`, persisted
                         );
-                        Alert.alert(
+                        appAlert(
                             t('requestAssistance.confirmation.pricingUnavailableTitle'),
                             t('requestAssistance.confirmation.pricingUnavailableMessage')
                         );
@@ -245,7 +246,7 @@ export default function ConfirmationScreen() {
                         `[assistance] persisting request price failed for request ` +
                         `${response.id} (issues: ${issueIds.join(',')})`, err
                     );
-                    Alert.alert(
+                    appAlert(
                         t('requestAssistance.confirmation.pricingUnavailableTitle'),
                         t('requestAssistance.confirmation.pricingUnavailableMessage')
                     );
@@ -265,7 +266,7 @@ export default function ConfirmationScreen() {
                 return;
             }
             console.error(error);
-            Alert.alert(t('requestAssistance.confirmation.errorTitle'), t('requestAssistance.confirmation.errorMessage'));
+            appAlert(t('requestAssistance.confirmation.errorTitle'), t('requestAssistance.confirmation.errorMessage'));
         } finally {
             setIsSubmitting(false);
         }

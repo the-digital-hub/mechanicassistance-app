@@ -680,7 +680,8 @@
       "paymentErrorDismiss": "Ahora no",
       "holdNoticeCard": "Al confirmar retendremos {{amount}} en tu tarjeta. Se cobra cuando el trabajo esté terminado y aprobado; si se cancela, se libera.",
       "holdNoticeWallet": "Al confirmar reservaremos {{amount}} de tu saldo. Se cobra cuando el trabajo esté terminado y aprobado; si se cancela, se libera.",
-      "holdNoticeLater": "Retendremos {{amount}} 24 h antes del servicio. Se cobra cuando el trabajo esté terminado y aprobado; si se cancela, se libera."
+      "holdNoticeLater": "Retendremos {{amount}} 24 h antes del servicio. Se cobra cuando el trabajo esté terminado y aprobado; si se cancela, se libera.",
+      "rowDuration": "Duración"
     },
     "when": {
       "headerTitle": "Videollamada",
@@ -854,7 +855,8 @@
           "date": "Fecha",
           "rating": "Calificación",
           "ratingFromCustomer": "Calificación del cliente al técnico",
-          "ratingFromMechanic": "Calificación del técnico al cliente"
+          "ratingFromMechanic": "Calificación del técnico al cliente",
+          "duration": "Duración de la videollamada"
         },
         "notRated": "Sin calificar",
         "notAvailable": "—",
@@ -1570,7 +1572,9 @@
       "cardTitle": "Calificá a tu mecánico",
       "cardBody": "Tu reseña ayuda a otros conductores y a tu mecánico.",
       "cardButton": "Dejar reseña",
-      "mechanic": "Tu mecánico"
+      "mechanic": "Tu mecánico",
+      "promptTitle": "Calificá a tu técnico",
+      "promptBody": "Completá tu reseña en la pestaña Status."
     },
     "ownerAccepted": {
       "title": "Asistencia aceptada",
@@ -1621,7 +1625,8 @@
         "payment": "Pago",
         "additionalParts": "Repuestos extra",
         "requests": "Pedidos",
-        "reputation": "Reputación"
+        "reputation": "Reputación",
+        "duration": "Duración"
       },
       "about": "SOBRE {{name}}",
       "aseCodes": "Certificado ASE · {{codes}}",
@@ -1756,6 +1761,24 @@
         "sheetTitle": "Reporte del scanner OBD",
         "fileSentOwner": "Enviaste: {{name}}",
         "replaceFile": "Reemplazar"
+      },
+      "statusTab": {
+        "acceptedTitle": "Asistencia aceptada",
+        "acceptedSub": "El cliente confirmó. La videollamada está lista.",
+        "callTitle": "Videollamada",
+        "callReady": "Abierta. Unite cuando estés listo.",
+        "callInProgress": "En curso. El tiempo está corriendo.",
+        "callEnded": "La llamada terminó.",
+        "closedTitle": "Cerrada",
+        "closedPending": "Cuando termines, el cliente confirma que se resolvió.",
+        "closedWaiting": "Esperando que el cliente confirme que se resolvió.",
+        "closedDisputed": "El cliente reportó un problema. Está en revisión.",
+        "closedDone": "Confirmada por el cliente. Pago liberado.",
+        "closedNotCharged": "Cerrada sin cobro: el cliente indicó que no se resolvió.",
+        "reviewTitle": "Calificar al cliente",
+        "reviewLater": "Disponible cuando se confirme la asistencia.",
+        "reviewNow": "Enviá tu calificación en la tarjeta de arriba.",
+        "reviewSent": "Gracias, tu calificación fue enviada."
       }
     },
     "clientReview": {
@@ -1881,8 +1904,12 @@
     "videoPrice": "PRECIO",
     "videoPriceNote": "Precio fijo, definido cuando el cliente pidió la llamada. Solo aceptás si querés tomarla.",
     "confirmVideoTitle": "¿Tomar esta videollamada?",
-    "confirmVideoCall": "Vas a tomar la videollamada de {{title}} al precio indicado. El cliente todavía tiene que confirmarla.",
-    "confirmVideo": "Tomar la llamada"
+    "confirmVideoCall": "Videollamada de {{title}}, al precio indicado.\n\nEl cliente todavía tiene que confirmarla.",
+    "confirmVideo": "Tomar la llamada",
+    "videoDuration": "DURACIÓN",
+    "videoDurationValue_one": "{{count}} minuto",
+    "videoDurationValue_other": "{{count}} minutos",
+    "videoDurationNote": "El cliente puede sumar más tiempo durante la llamada."
   },
   "personalInfo": {
     "uploadFailedTitle": "Error al subir",
@@ -2869,7 +2896,8 @@
       "openSettings": "Abrir ajustes",
       "notNow": "Ahora no"
     },
-    "ok": "Entendido"
+    "ok": "Entendido",
+    "cancel": "Cancelar"
   },
   "vehicleColors": {
     "white": "Blanco",

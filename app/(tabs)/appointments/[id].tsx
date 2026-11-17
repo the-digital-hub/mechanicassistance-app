@@ -10,6 +10,8 @@ import { HeadOutNextSteps, MechanicArrivalCard, PulseDot } from '@/components/ap
 import { CheckInCodeCard } from '@/components/appointments/CheckInCodeCard';
 import { refLabel } from '@/lib/refCode';
 import { ClientReviewCard } from '@/components/appointments/ClientReviewCard';
+import { MechanicVideoStatusTab } from '@/components/appointments/MechanicVideoStatusTab';
+import { OwnerReviewInline, OwnerReviewPrompt, useOwnerReviewPending } from '@/components/appointments/OwnerReviewInline';
 import { OwnerReviewCard } from '@/components/appointments/OwnerReviewCard';
 import { VideoCallTimerCard } from '@/components/appointments/VideoCallTimerCard';
 import { ExtendCallSheet } from '@/components/video/ExtendCallSheet';
@@ -210,6 +212,12 @@ export default function AppointmentDetailScreen() {
     const videoStartedAtMs = videoState?.startedAtLocalMs ?? null;
     // The time the call has (base + what the owner bought), as the server counts it.
     const videoLimitSeconds = contractedSeconds(videoState);
+    // Owner, video call: the technician's rating is still to do once the call is closed and charged.
+    const ownerReview = useOwnerReviewPending(
+        appointment?.id,
+        isUserRole && isVideoCall && videoStatus === 'completed' && videoState?.currentStatus !== 'not_resolved',
+    );
+    const [reviewSent, setReviewSent] = React.useState(false);
     const videoAddedMinutes = Math.max(0, (videoState?.contractedMinutes ?? 0) - (videoState?.baseMinutes ?? 0));
     // Owner only: the paid "Add time" sheet.
     const [showExtendSheet, setShowExtendSheet] = React.useState(false);
@@ -305,7 +313,8 @@ export default function AppointmentDetailScreen() {
         try {
             setVideoState(await videoCallDAO.confirm(appointment.id));
             refreshAppointments();
-            router.push({ pathname: '/appointments/review/[id]' as never, params: { id: appointment.id } });
+            // The rating of the technician is asked right here (Status tab), not on another screen.
+            setOwnerTab('status');
         } catch (error) {
             videoError(error, 'appointments.videoCall.owner.confirmFailed');
         } finally {
@@ -321,7 +330,7 @@ export default function AppointmentDetailScreen() {
         try {
             setVideoState(await videoCallDAO.ownerFinish(appointment.id));
             refreshAppointments();
-            router.push({ pathname: '/appointments/review/[id]' as never, params: { id: appointment.id } });
+            setOwnerTab('status');
         } catch (error) {
             videoError(error, 'appointments.videoCall.owner.finishFailed');
         } finally {
@@ -422,10 +431,11 @@ export default function AppointmentDetailScreen() {
         switch (ownerTab) {
             case 'status':
                 if (isVideoCall) {
-                    // No ETA on a remote call; a "not resolved" one was not charged, so nothing to rate.
-                    return videoState?.currentStatus === 'not_resolved' ? null : (
-                        <OwnerReviewCard appointmentId={appointment.id} status={videoStatus} />
-                    );
+                    // No ETA on a remote call. Once it is closed the owner rates the technician here, open;
+                    // a "not resolved" one was not charged, so there is nothing to rate.
+                    return ownerReview.pending || reviewSent ? (
+                        <OwnerReviewInline appointmentId={appointment.id} onSent={() => { setReviewSent(true); ownerReview.markDone(); }} />
+                    ) : null;
                 }
                 return (
                     <View style={{ gap: 16 }}>
@@ -464,6 +474,9 @@ export default function AppointmentDetailScreen() {
                 const posted = postedAt ? [postedAt, isVideoCall ? null : eta].filter(Boolean).join(' · ') : '';
                 const rows = [
                     { icon: isVideoCall ? 'videocam-outline' as const : 'flash-outline' as const, label: t('appointments.ownerAccepted.rows.service'), value: t(assistanceTypeKey(appointment)) },
+                    isVideoCall && (appointment.durationMinutes ?? videoState?.baseMinutes)
+                        ? { icon: 'timer-outline' as const, label: t('appointments.ownerAccepted.rows.duration'), value: t('requestAssistance.when.durationValue', { count: (appointment.durationMinutes ?? videoState?.baseMinutes) as number }) }
+                        : null,
                     appointment.car ? { icon: 'car-outline' as const, label: t('appointments.ownerAccepted.rows.vehicle'), value: appointment.car } : null,
                     issues ? { icon: 'construct-outline' as const, label: t('appointments.ownerAccepted.rows.issue'), value: issues } : null,
                     appointment.notes ? { icon: 'document-text-outline' as const, label: t('appointments.ownerAccepted.rows.notes'), value: appointment.notes } : null,
@@ -532,23 +545,17 @@ export default function AppointmentDetailScreen() {
     const renderMechanicVideoPanel = () => {
         switch (mechTab) {
             case 'status':
-                // The rating only exists once the call is closed; until then this tab shows the call itself.
-                return videoStatus === 'completed' ? (
-                    <ClientReviewCard
-                        rating={rating}
-                        setRating={setRating}
-                        selectedOption={selectedOption}
-                        setSelectedOption={setSelectedOption}
-                        reviewText={reviewText}
-                        setReviewText={setReviewText}
-                        isSubmitted={isReviewSubmitted}
-                        onSubmit={submitClientReview}
+                // Where the assistance is, step by step; the rating of the customer sits in the card above.
+                return (
+                    <MechanicVideoStatusTab
+                        status={videoStatus}
+                        callStarted={videoStartedAtMs !== null}
+                        notResolved={videoState?.currentStatus === 'not_resolved'}
+                        reviewSent={isReviewSubmitted}
                     />
-                ) : (
-                    <MechanicAssistanceInfoTab appointment={appointment} />
                 );
             case 'info':
-                return <MechanicAssistanceInfoTab appointment={appointment} />;
+                return <MechanicAssistanceInfoTab appointment={appointment} videoSection="details" />;
             case 'obd':
                 return (
                     <View style={{ marginHorizontal: -16 }}>
@@ -705,6 +712,10 @@ export default function AppointmentDetailScreen() {
                                         )}
                                     </>
                                 )}
+
+                                {isVideoCall && ownerReview.pending && ownerTab !== 'status' ? (
+                                    <OwnerReviewPrompt onPress={() => setOwnerTab('status')} />
+                                ) : null}
 
                                 <OwnerTabs
                                     active={ownerTab}
@@ -909,10 +920,24 @@ export default function AppointmentDetailScreen() {
                                             )}
                                         </>
                                     ) : videoState ? (
-                                        <MechanicVideoCallStatusCard
-                                            state={videoState}
-                                            onRateClient={videoStatus === 'completed' && !isReviewSubmitted ? () => setMechTab('status') : undefined}
-                                        />
+                                        <>
+                                            <MechanicVideoCallStatusCard state={videoState} />
+                                            {/* Closed: the rating of the customer is right here, open, ready to send. */}
+                                            {videoStatus === 'completed' ? (
+                                                <View className="mt-3.5">
+                                                    <ClientReviewCard
+                                                        rating={rating}
+                                                        setRating={setRating}
+                                                        selectedOption={selectedOption}
+                                                        setSelectedOption={setSelectedOption}
+                                                        reviewText={reviewText}
+                                                        setReviewText={setReviewText}
+                                                        isSubmitted={isReviewSubmitted}
+                                                        onSubmit={submitClientReview}
+                                                    />
+                                                </View>
+                                            ) : null}
+                                        </>
                                     ) : null}
                                 </View>
                             ) : null}

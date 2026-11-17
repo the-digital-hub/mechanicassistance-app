@@ -9,7 +9,7 @@ import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { goBackOr } from '@/lib/navigation/goBackOr';
 import { HeaderBackButton } from '@/components/ui/HeaderBackButton';
-import { Calendar, Clock, Navigation, HelpCircle, Zap, Car, Wrench, Lock, ArrowUpRight, DollarSign, Video } from 'lucide-react-native';
+import { Calendar, Clock, Navigation, HelpCircle, Zap, Car, Wrench, Lock, ArrowUpRight, DollarSign, Video, Timer } from 'lucide-react-native';
 import React, { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -22,6 +22,7 @@ import { videoCallDAO } from '@/lib/dao/VideoCallDAO';
 import { DEFAULT_CALL_MINUTES } from '@/lib/video/callLength';
 import { LinearGradient } from 'expo-linear-gradient';
 import { RequestIssueText } from '@/components/ui/RequestIssueText';
+import { appAlert } from '@/lib/ui/appAlert';
 
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
     const R = 6371;
@@ -241,7 +242,7 @@ export default function RequestDetailScreen() {
     // the mechanic confirms, and no timer resolves the modal on its own.
     const handleAccept = gate('offer', async () => {
         if (!isImmediate && (!selectedDate || !selectedTime)) {
-            alert(t('requestDetail.selectDateTimeAlert'));
+            appAlert(t('requestDetail.selectDateTimeAlert'));
             return;
         }
         if (!(await ensureAvailable())) return;
@@ -291,7 +292,7 @@ export default function RequestDetailScreen() {
             );
         } catch (error: any) {
             setShowConfirm(false);
-            alert(t('requestDetail.acceptFailed', { error: error.message || 'Unknown error' }));
+            appAlert(t('requestDetail.acceptFailed', { error: error.message || 'Unknown error' }));
         } finally {
             setSubmitting(false);
         }
@@ -307,7 +308,7 @@ export default function RequestDetailScreen() {
             await assistanceDAO.reject(requestId);
             goBackOr(router, '/(tabs)/assist');
         } catch (error: any) {
-            alert(t('requestDetail.declineFailed', { error: error.message || 'Unknown error' }));
+            appAlert(t('requestDetail.declineFailed', { error: error.message || 'Unknown error' }));
         } finally {
             setDeclining(false);
         }
@@ -399,6 +400,22 @@ export default function RequestDetailScreen() {
                             </View>
                         </View>
 
+                        {/* Video call: how long it lasts, the length the owner chose */}
+                        {isVideo ? (
+                            <View className="flex-row items-center px-5 py-4 border-b border-gray-100">
+                                <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
+                                    <Timer size={20} color="#0047AB" />
+                                </View>
+                                <View className="flex-1">
+                                    <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">{t('requestDetail.videoDuration')}</Text>
+                                    <Text className="font-outfit-bold text-base text-gray-900" testID="video-call-duration">
+                                        {t('requestDetail.videoDurationValue', { count: callMinutes })}
+                                    </Text>
+                                    <Text className="font-outfit-regular text-sm text-gray-500 mt-1">{t('requestDetail.videoDurationNote')}</Text>
+                                </View>
+                            </View>
+                        ) : null}
+
                         {/* Vehicle */}
                         <View className="flex-row items-center px-5 py-4 border-b border-gray-100">
                             <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
@@ -482,9 +499,6 @@ export default function RequestDetailScreen() {
                                     <Text className="font-outfit-semibold text-xs tracking-widest mb-0.5" style={HERO_LABEL}>{t('requestDetail.videoCallWhen')}</Text>
                                     <Text className="font-outfit-bold text-lg" style={HERO_VALUE}>
                                         {videoCallStartLabel(typeof date === 'string' ? date : undefined, i18n.language) ?? t('requestDetail.videoCallNow')}
-                                    </Text>
-                                    <Text className="font-outfit-regular text-[13px] mt-0.5" style={HERO_SUB} testID="video-call-duration">
-                                        {t('requestDetail.videoCallDuration', { count: callMinutes })}
                                     </Text>
                                 </View>
                             </View>

@@ -4,7 +4,8 @@ import { onSiteDAO } from '@/lib/dao/OnSiteDAO';
 import * as Location from 'expo-location';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Linking, Platform } from 'react-native';
+import { Linking, Platform } from 'react-native';
+import { appAlert } from '@/lib/ui/appAlert';
 
 /**
  * "Head out": the mechanic left for the vehicle. Until then the job is accepted
@@ -30,7 +31,7 @@ export function useHeadOut() {
             const { status: bgPerm } =
                 perm === 'granted' ? await Location.requestBackgroundPermissionsAsync() : { status: perm };
             if (bgPerm !== 'granted') {
-                Alert.alert(
+                appAlert(
                     t('appointments.detail.locationNeededTitle'),
                     t(Platform.OS === 'android' ? 'appointments.detail.locationAlwaysNeededAndroid' : 'appointments.detail.locationAlwaysNeeded'),
                     [
@@ -45,7 +46,7 @@ export function useHeadOut() {
             refreshAppointments();
         } catch (error) {
             const message = error instanceof ApiError && error.apiMessage ? error.apiMessage : t('appointments.detail.headOutFailed');
-            Alert.alert(t('appointments.videoCall.errorTitle'), message);
+            appAlert(t('appointments.videoCall.errorTitle'), message);
         } finally {
             setHeadingOut(false);
         }

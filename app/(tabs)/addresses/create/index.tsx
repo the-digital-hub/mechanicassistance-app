@@ -11,8 +11,9 @@ import { useRouter } from 'expo-router';
 import { ChevronLeft, ChevronRight, Circle, Bell } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View, Modal, Platform } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View, Modal, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { appAlert } from '@/lib/ui/appAlert';
 
 export default function CreateAddressScreen() {
     const router = useRouter();
@@ -112,7 +113,7 @@ export default function CreateAddressScreen() {
 
     const handleCreate = async () => {
         if (!formData.street || !formData.city || !formData.zip) {
-            alert(t('addressForm.requiredFields'));
+            appAlert(t('addressForm.requiredFields'));
             return;
         }
 
@@ -138,7 +139,7 @@ export default function CreateAddressScreen() {
             await refreshAddresses();
             router.back();
         } catch {
-            Alert.alert(t('addressForm.saveFailedTitle'), t('addressForm.saveFailedMessage'));
+            appAlert(t('addressForm.saveFailedTitle'), t('addressForm.saveFailedMessage'));
         } finally {
             setIsLoading(false);
         }

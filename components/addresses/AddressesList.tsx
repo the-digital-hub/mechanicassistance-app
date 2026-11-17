@@ -4,9 +4,10 @@ import { addressDAO } from '@/lib/dao/AddressDAO';
 import { useRouter } from 'expo-router';
 import { CheckCircle2, ChevronRight, Circle, MapPin, Plus } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
+import { appAlert } from '@/lib/ui/appAlert';
 
 /**
  * The account's saved addresses. `picking` is the Working hours "Base location"
@@ -35,7 +36,7 @@ export function AddressesList({ picking = false }: { picking?: boolean }) {
             );
             router.back();
         } catch (error) {
-            Alert.alert(
+            appAlert(
                 t('addresses.setBaseFailedTitle'),
                 error instanceof Error && error.message ? error.message : t('addresses.setBaseFailedMessage'),
             );

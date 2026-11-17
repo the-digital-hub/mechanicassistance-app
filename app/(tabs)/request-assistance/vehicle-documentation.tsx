@@ -6,8 +6,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Camera, Check, ChevronLeft, Image as ImageIcon, Video as VideoIcon } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import type { PendingAttachment } from '@/lib/media/attachments';
+import { appAlert } from '@/lib/ui/appAlert';
 
 const MAX_PHOTOS = 3;
 /** Mirrors MAX_UPLOAD_BYTES.video in media-service — the upload 413s past this. */
@@ -47,7 +48,7 @@ export default function VehicleDocumentationScreen() {
     const ensureCamera = async (): Promise<boolean> => {
         const permission = await ImagePicker.requestCameraPermissionsAsync();
         if (!permission.granted) {
-            Alert.alert(
+            appAlert(
                 t('requestAssistance.vehicleDocumentation.cameraPermissionTitle'),
                 t('requestAssistance.vehicleDocumentation.cameraPermissionMessage')
             );
@@ -69,7 +70,7 @@ export default function VehicleDocumentationScreen() {
         // The picker reports the size for videos; reject here rather than let the
         // user wait through an upload the media service answers with a 413.
         if (asset.fileSize && asset.fileSize > MAX_VIDEO_MB * 1024 * 1024) {
-            Alert.alert(
+            appAlert(
                 t('requestAssistance.vehicleDocumentation.videoTooLargeTitle'),
                 t('requestAssistance.vehicleDocumentation.videoTooLargeMessage', { max: MAX_VIDEO_MB })
             );
@@ -81,7 +82,7 @@ export default function VehicleDocumentationScreen() {
 
     const pickPhoto = async (source: 'camera' | 'library') => {
         if (photos.length >= MAX_PHOTOS) {
-            Alert.alert(
+            appAlert(
                 t('requestAssistance.vehicleDocumentation.photoLimitTitle'),
                 t('requestAssistance.vehicleDocumentation.photoLimitMessage', { max: MAX_PHOTOS })
             );
@@ -98,7 +99,7 @@ export default function VehicleDocumentationScreen() {
     };
 
     const askSource = (onPick: (source: 'camera' | 'library') => void) => {
-        Alert.alert(
+        appAlert(
             t('requestAssistance.vehicleDocumentation.sourceTitle'),
             undefined,
             [

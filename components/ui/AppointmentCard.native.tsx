@@ -6,7 +6,7 @@ import { refLabel } from '@/lib/refCode';
 import { approximateArea, coarseAddress } from '@/lib/maps/approximateLocation';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
-import { Calendar, Car, Clock, LucideIcon, MapPin, MessageSquare, Route, Star } from 'lucide-react-native';
+import { Calendar, Car, Clock, LucideIcon, MapPin, MessageSquare, Route, Star, Timer } from 'lucide-react-native';
 import { ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, Platform, Text, TouchableOpacity, View } from 'react-native';
@@ -265,6 +265,10 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
     const dateRow = { icon: Calendar, label: t(isPast ? 'appointments.list.card.rows.date' : 'appointments.list.card.rows.when'), value: whenLabel };
     const rows = [
         ...(isPast ? [dateRow] : []),
+        // A video call: how long it lasts, before the vehicle.
+        ...(isVideoCall && appointment.durationMinutes
+            ? [{ icon: Timer, label: t('appointments.list.card.rows.duration'), value: t('requestAssistance.when.durationValue', { count: appointment.durationMinutes }) }]
+            : []),
         { icon: Car, label: t('appointments.list.card.rows.vehicle'), value: appointment.car },
         ...(isVideoCall
             ? []

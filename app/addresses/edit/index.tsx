@@ -8,8 +8,9 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft, ChevronRight, Circle } from 'lucide-react-native';
 import { NotificationBell } from '@/components/NotificationBell';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View, Modal, Platform } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View, Modal, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { appAlert } from '@/lib/ui/appAlert';
 
 export default function EditAddressScreen() {
     const router = useRouter();
@@ -132,7 +133,7 @@ export default function EditAddressScreen() {
             await updateUser({ addresses: updatedAddresses });
             router.back();
         } catch {
-            Alert.alert('Save Failed', 'Could not save the address. Please try again.');
+            appAlert('Save Failed', 'Could not save the address. Please try again.');
         } finally {
             setIsLoading(false);
         }

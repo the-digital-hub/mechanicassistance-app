@@ -4,7 +4,7 @@ import * as Location from 'expo-location';
 import { CreditCard } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { AvailabilityStep, itemName, windowText, LocationStep, ReviewStep, SentStep, ServicesStep, VehicleStep } from '@/components/scheduled/Steps';
@@ -38,6 +38,7 @@ import {
     type ScheduledDraft,
     type ScheduledLocation,
 } from '@/lib/scheduled/draft';
+import { appAlert } from '@/lib/ui/appAlert';
 
 const STEP_KEYS = ['vehicle', 'location', 'services', 'availability', 'review'] as const;
 
@@ -295,7 +296,7 @@ export default function ScheduledRequestScreen() {
             added.push({ uri: asset.uri, type: isVideo ? 'video' : 'photo' });
         }
         if (added.length > 0) setEvidence((prev) => [...prev, ...added]);
-        if (skipped) Alert.alert(t('scheduled.availability.tooBig'));
+        if (skipped) appAlert(t('scheduled.availability.tooBig'));
     };
 
     // ── Publish ──
@@ -349,16 +350,16 @@ export default function ScheduledRequestScreen() {
                 // Something in the catalog was switched off since the owner picked it: reload and review.
                 loadCatalog();
                 goTo(3);
-                Alert.alert(t('scheduled.errors.serviceUnavailableTitle'), t('scheduled.errors.serviceUnavailableMessage'));
+                appAlert(t('scheduled.errors.serviceUnavailableTitle'), t('scheduled.errors.serviceUnavailableMessage'));
             } else if (code === 'scheduled_date_in_past' || code === 'scheduled_date_too_soon') {
                 goTo(4);
-                Alert.alert(t('scheduled.errors.dateInvalidTitle'), t('scheduled.errors.dateInvalidMessage'));
+                appAlert(t('scheduled.errors.dateInvalidTitle'), t('scheduled.errors.dateInvalidMessage'));
             } else if (error instanceof ApiError && error.statusCode === 401) {
                 // The session died while sending: the app is already back at the login screen.
-                Alert.alert(t('scheduled.errors.sessionExpiredTitle'), t('scheduled.errors.sessionExpiredMessage'));
+                appAlert(t('scheduled.errors.sessionExpiredTitle'), t('scheduled.errors.sessionExpiredMessage'));
             } else {
                 console.error('Failed to publish the scheduled request', error);
-                Alert.alert(t('scheduled.errors.publishFailedTitle'), t('scheduled.errors.publishFailedMessage'));
+                appAlert(t('scheduled.errors.publishFailedTitle'), t('scheduled.errors.publishFailedMessage'));
             }
         } finally {
             setSubmitting(false);

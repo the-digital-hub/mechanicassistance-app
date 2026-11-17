@@ -14,7 +14,8 @@ import { useGlobalSearchParams, useRouter } from 'expo-router';
 import { goBackOr } from '@/lib/navigation/goBackOr';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, KeyboardAvoidingView, Platform, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Text, View } from 'react-native';
+import { appAlert } from '@/lib/ui/appAlert';
 
 // On-site assistance flow, from check-in to close-out (design: "Vehicle On-Site
 // Assistance V2"), backed by appointments-service's on-site endpoints: the
@@ -115,7 +116,7 @@ export default function OnSiteFlowScreen() {
                 setScreen(resumeScreen(v));
                 if (v.outcome === 'redirected') setDoneVariant('redirected');
             })
-            .catch(() => Alert.alert(t('appointments.onSite.common.error')))
+            .catch(() => appAlert(t('appointments.onSite.common.error')))
             .finally(() => !cancelled && setLoading(false));
         return () => {
             cancelled = true;
@@ -165,10 +166,10 @@ export default function OnSiteFlowScreen() {
             } else if (result.reason === 'mismatch') {
                 setScreen('retry');
             } else {
-                Alert.alert(t('appointments.checkIn.locked'));
+                appAlert(t('appointments.checkIn.locked'));
             }
         } catch {
-            Alert.alert(t('appointments.onSite.common.error'));
+            appAlert(t('appointments.onSite.common.error'));
         }
     };
 
@@ -194,7 +195,7 @@ export default function OnSiteFlowScreen() {
             setVisit(closed);
             setScreen('done');
         } catch {
-            Alert.alert(t('appointments.onSite.common.error'));
+            appAlert(t('appointments.onSite.common.error'));
         }
     };
 
@@ -233,7 +234,7 @@ export default function OnSiteFlowScreen() {
                     run={async () => { await onSiteDAO.submitDiagnostic(id); }}
                     onDone={() => go('feasibility')}
                     onFail={(message) => {
-                        Alert.alert(message);
+                        appAlert(message);
                         go('diagnostics-photos');
                     }}
                 />

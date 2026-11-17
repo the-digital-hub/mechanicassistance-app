@@ -679,7 +679,8 @@
       "paymentErrorDismiss": "Not now",
       "holdNoticeCard": "When you confirm, we'll hold {{amount}} on your card. It's charged once the work is done and approved; if it's canceled, the hold is released.",
       "holdNoticeWallet": "When you confirm, we'll reserve {{amount}} from your balance. It's charged once the work is done and approved; if it's canceled, it's released.",
-      "holdNoticeLater": "We'll hold {{amount}} 24 h before the service. It's charged once the work is done and approved; if it's canceled, the hold is released."
+      "holdNoticeLater": "We'll hold {{amount}} 24 h before the service. It's charged once the work is done and approved; if it's canceled, the hold is released.",
+      "rowDuration": "Duration"
     },
     "when": {
       "headerTitle": "Video call",
@@ -853,7 +854,8 @@
           "date": "Date",
           "rating": "Rating",
           "ratingFromCustomer": "Customer's rating of the technician",
-          "ratingFromMechanic": "Technician's rating of the customer"
+          "ratingFromMechanic": "Technician's rating of the customer",
+          "duration": "Video call duration"
         },
         "notRated": "Not rated yet",
         "notAvailable": "—",
@@ -1569,7 +1571,9 @@
       "cardTitle": "Rate your technician",
       "cardBody": "Your review helps other drivers and your technician.",
       "cardButton": "Leave a review",
-      "mechanic": "Your technician"
+      "mechanic": "Your technician",
+      "promptTitle": "Rate your technician",
+      "promptBody": "Complete your review in the Status tab."
     },
     "ownerAccepted": {
       "title": "Assistance accepted",
@@ -1620,7 +1624,8 @@
         "payment": "Payment",
         "additionalParts": "Additional parts",
         "requests": "Requests",
-        "reputation": "Reputation"
+        "reputation": "Reputation",
+        "duration": "Duration"
       },
       "about": "ABOUT {{name}}",
       "aseCodes": "ASE Certified · {{codes}}",
@@ -1755,6 +1760,24 @@
         "sheetTitle": "OBD scanner report",
         "fileSentOwner": "You sent: {{name}}",
         "replaceFile": "Replace"
+      },
+      "statusTab": {
+        "acceptedTitle": "Assistance accepted",
+        "acceptedSub": "The client confirmed. The video call is set.",
+        "callTitle": "Video call",
+        "callReady": "Open. Join when you're ready.",
+        "callInProgress": "In progress. The timer is running.",
+        "callEnded": "The call ended.",
+        "closedTitle": "Closed",
+        "closedPending": "When you finish, the client confirms it was resolved.",
+        "closedWaiting": "Waiting for the client to confirm it was resolved.",
+        "closedDisputed": "The client reported a problem. It's under review.",
+        "closedDone": "Confirmed by the client. Payment released.",
+        "closedNotCharged": "Closed without charge: the client said it wasn't resolved.",
+        "reviewTitle": "Rate the customer",
+        "reviewLater": "Available once the assistance is confirmed.",
+        "reviewNow": "Send your rating in the card above.",
+        "reviewSent": "Thanks, your rating was sent."
       }
     },
     "clientReview": {
@@ -1880,8 +1903,12 @@
     "videoPrice": "PRICE",
     "videoPriceNote": "Fixed price, set when the client requested the call. You only accept if you want to take it.",
     "confirmVideoTitle": "Take this video call?",
-    "confirmVideoCall": "You are about to take the video call for {{title}} at the price shown. The client still has to confirm it.",
-    "confirmVideo": "Take the call"
+    "confirmVideoCall": "Video call for {{title}}, at the price shown.\n\nThe client still has to confirm it.",
+    "confirmVideo": "Take the call",
+    "videoDuration": "DURATION",
+    "videoDurationValue_one": "{{count}} minute",
+    "videoDurationValue_other": "{{count}} minutes",
+    "videoDurationNote": "The client can add more time during the call."
   },
   "personalInfo": {
     "uploadFailedTitle": "Upload Failed",
@@ -2868,7 +2895,8 @@
       "openSettings": "Open settings",
       "notNow": "Not now"
     },
-    "ok": "OK"
+    "ok": "OK",
+    "cancel": "Cancel"
   },
   "vehicleColors": {
     "white": "White",

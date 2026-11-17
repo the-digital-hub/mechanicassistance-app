@@ -1,4 +1,5 @@
-import { Alert, Linking } from 'react-native';
+import { Linking } from 'react-native';
+import { appAlert } from '@/lib/ui/appAlert';
 
 export interface DirectionsTarget {
     /** Street address, used when there are no coordinates. */
@@ -30,12 +31,12 @@ export function directionsUrl(target: DirectionsTarget): string | null {
 export async function openDirections(target: DirectionsTarget, failedMessage: string): Promise<void> {
     const url = directionsUrl(target);
     if (!url) {
-        Alert.alert(failedMessage);
+        appAlert(failedMessage);
         return;
     }
     try {
         await Linking.openURL(url);
     } catch {
-        Alert.alert(failedMessage);
+        appAlert(failedMessage);
     }
 }

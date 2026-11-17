@@ -10,8 +10,9 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft, ChevronRight, Circle, Bell } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View, Modal, Platform } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View, Modal, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { appAlert } from '@/lib/ui/appAlert';
 
 export default function EditAddressScreen() {
     const router = useRouter();
@@ -128,7 +129,7 @@ export default function EditAddressScreen() {
      */
     const recoverStaleAddress = async () => {
         await refreshAddresses().catch(() => undefined);
-        Alert.alert(t('addressForm.saveFailedTitle'), t('addressForm.staleMessage'));
+        appAlert(t('addressForm.saveFailedTitle'), t('addressForm.staleMessage'));
         router.back();
     };
 
@@ -155,7 +156,7 @@ export default function EditAddressScreen() {
             await refreshAddresses();
             router.back();
         } catch {
-            Alert.alert(t('addressForm.saveFailedTitle'), t('addressForm.saveFailedMessage'));
+            appAlert(t('addressForm.saveFailedTitle'), t('addressForm.saveFailedMessage'));
         } finally {
             setIsLoading(false);
         }
@@ -172,14 +173,14 @@ export default function EditAddressScreen() {
             await refreshAddresses();
             router.back();
         } catch {
-            Alert.alert(t('addressForm.deleteFailedTitle'), t('addressForm.deleteFailedMessage'));
+            appAlert(t('addressForm.deleteFailedTitle'), t('addressForm.deleteFailedMessage'));
         } finally {
             setIsDeleting(false);
         }
     };
 
     const confirmDelete = () => {
-        Alert.alert(t('addressForm.deleteConfirmTitle'), t('addressForm.deleteConfirmMessage'), [
+        appAlert(t('addressForm.deleteConfirmTitle'), t('addressForm.deleteConfirmMessage'), [
             { text: t('addressForm.cancel'), style: 'cancel' },
             { text: t('addressForm.delete'), style: 'destructive', onPress: () => void deleteAddress() },
         ]);

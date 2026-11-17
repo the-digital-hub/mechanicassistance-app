@@ -126,6 +126,7 @@ export function ChoiceCard({
     title,
     sub,
     badge,
+    detail,
 }: {
     on: boolean;
     onPress: () => void;
@@ -133,6 +134,8 @@ export function ChoiceCard({
     title: string;
     sub?: string;
     badge?: string;
+    /** Extra content under the sub line (e.g. a VIN row). */
+    detail?: ReactNode;
 }) {
     return (
         <TouchableOpacity
@@ -158,6 +161,7 @@ export function ChoiceCard({
                     <Text className="font-outfit-bold flex-1" style={{ ...TYPE.group, color: SC.text }} numberOfLines={2}>{title}</Text>
                 </View>
                 {sub ? <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: SC.muted, marginTop: 2 }}>{sub}</Text> : null}
+                {detail}
             </View>
             <View className="items-center justify-center" style={{ width: 22, height: 22, borderRadius: 11, borderWidth: 1.5, borderColor: on ? SC.blue : SC.border, backgroundColor: on ? SC.blue : '#FFFFFF' }}>
                 {on ? <Check size={13} color="#FFFFFF" strokeWidth={3} /> : null}

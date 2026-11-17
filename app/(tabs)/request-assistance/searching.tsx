@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { Animated, Easing, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faWrench } from '@fortawesome/free-solid-svg-icons';
+import { appAlert } from '@/lib/ui/appAlert';
 
 /** Matches ASSISTANCE_SEARCH_TIMEOUT_MINUTES (default 45) in appointments-service. */
 const SEARCH_TIMEOUT_SECONDS = 45 * 60;
@@ -123,7 +124,7 @@ export default function SearchingScreen() {
             }
         }
         clearChatHistory(requestId as string);
-        alert(t('requestAssistance.searching.expiredAlert'));
+        appAlert(t('requestAssistance.searching.expiredAlert'));
         router.replace('/(tabs)/dashboard');
     }, [requestId, goToMechanicFound, clearChatHistory, router, t]);
 
@@ -221,11 +222,11 @@ export default function SearchingScreen() {
                 // Also update the backend status to 'cancelled'
                 await assistanceDAO.updateStatus(requestId as string, '', 'cancelled');
                 clearChatHistory(requestId as string);
-                alert(t('requestAssistance.searching.cancelledAlert'));
+                appAlert(t('requestAssistance.searching.cancelledAlert'));
                 router.replace('/(tabs)/dashboard');
             } catch (error) {
                 console.error('Failed to cancel request:', error);
-                alert(t('requestAssistance.searching.cancelErrorAlert'));
+                appAlert(t('requestAssistance.searching.cancelErrorAlert'));
             }
         }
     };

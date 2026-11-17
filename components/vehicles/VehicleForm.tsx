@@ -14,18 +14,9 @@ import { TYPE } from '@/lib/ui/type';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-    ActivityIndicator,
-    Alert,
-    KeyboardAvoidingView,
-    KeyboardTypeOptions,
-    Platform,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
-} from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, KeyboardTypeOptions, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { appAlert } from '@/lib/ui/appAlert';
 
 /**
  * What the form hands back: the fields of POST /api/vehicles (and of each
@@ -341,7 +332,7 @@ export function VehicleForm({ initialValue, submitLabel, submitting, onSubmit, h
     const handleVinLookup = async () => {
         const vin = values.vin.trim();
         if (vin.length !== VIN_LENGTH) {
-            Alert.alert(t('vehicles.invalidVinTitle'), t('vehicles.invalidVinMessage'));
+            appAlert(t('vehicles.invalidVinTitle'), t('vehicles.invalidVinMessage'));
             return;
         }
 
@@ -379,7 +370,7 @@ export function VehicleForm({ initialValue, submitLabel, submitting, onSubmit, h
                     setErrors(prev => ({ ...prev, vin: undefined, year: undefined }));
                 },
                 code => {
-                    Alert.alert(t('vehicles.vinNotFoundTitle'), t(`vehicles.form.vinError.${code}`));
+                    appAlert(t('vehicles.vinNotFoundTitle'), t(`vehicles.form.vinError.${code}`));
                 },
             );
         } finally {
@@ -401,7 +392,7 @@ export function VehicleForm({ initialValue, submitLabel, submitting, onSubmit, h
                 });
                 return next;
             });
-            Alert.alert(t('vehicles.form.fixErrorsTitle'), t('vehicles.form.fixErrorsMessage'));
+            appAlert(t('vehicles.form.fixErrorsTitle'), t('vehicles.form.fixErrorsMessage'));
             return;
         }
         onSubmit(toPayload(values, hidden));

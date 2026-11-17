@@ -11,6 +11,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { appAlert } from '@/lib/ui/appAlert';
 
 export default function LocationMapScreen() {
     const router = useRouter();
@@ -114,7 +115,7 @@ export default function LocationMapScreen() {
 
             let { status } = await Location.requestForegroundPermissionsAsync();
             if (status !== 'granted') {
-                alert(t('requestAssistance.locationMap.permissionDenied'));
+                appAlert(t('requestAssistance.locationMap.permissionDenied'));
                 setIsLoading(false);
                 return;
             }
@@ -206,7 +207,7 @@ export default function LocationMapScreen() {
             .filter(Boolean)
             .join(', ');
         if (!query) {
-            alert(t('requestAssistance.locationMap.noAddressDetails'));
+            appAlert(t('requestAssistance.locationMap.noAddressDetails'));
             return;
         }
         try {
@@ -219,11 +220,11 @@ export default function LocationMapScreen() {
                 setLocationName(label);
                 setLocationZip(address.zip || '');
             } else {
-                alert(t('requestAssistance.locationMap.coordsNotFound', { query }));
+                appAlert(t('requestAssistance.locationMap.coordsNotFound', { query }));
             }
         } catch (e) {
             console.error('Geocoding failed', e);
-            alert(t('requestAssistance.locationMap.resolveFailed'));
+            appAlert(t('requestAssistance.locationMap.resolveFailed'));
         }
     };
 
@@ -316,7 +317,7 @@ export default function LocationMapScreen() {
                                         `${homeAddress.street || ''}, ${homeAddress.city || ''}`.trim().replace(/^,\s*/, '')
                                     );
                                 } else {
-                                    alert(t('requestAssistance.locationMap.noHomeAddress'));
+                                    appAlert(t('requestAssistance.locationMap.noHomeAddress'));
                                 }
                             }}
                             className="flex-1 bg-gray-50 p-4 rounded-xl border border-gray-100 relative"
@@ -337,7 +338,7 @@ export default function LocationMapScreen() {
                                         `${workAddress.street || ''}, ${workAddress.city || ''}`.trim().replace(/^,\s*/, '')
                                     );
                                 } else {
-                                    alert(t('requestAssistance.locationMap.noWorkAddress'));
+                                    appAlert(t('requestAssistance.locationMap.noWorkAddress'));
                                 }
                             }}
                             className="flex-1 bg-gray-50 p-4 rounded-xl border border-gray-100 relative"

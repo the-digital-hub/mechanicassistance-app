@@ -3,9 +3,10 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Image, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, Text, TouchableOpacity, View } from 'react-native';
 import { absoluteMediaUrl, MediaKind, onSiteDAO, OnSiteMedia } from '@/lib/dao/OnSiteDAO';
 import { NoteInput, OS } from './ui';
+import { appAlert } from '@/lib/ui/appAlert';
 
 // Capture slot for the on-site flow. Inside an OnSiteCaptureProvider, a slot with
 // a `captureKind` uploads what is picked to media-service and attaches it to the
@@ -148,7 +149,7 @@ export function MediaSlot({
         ];
         if (kind === 'file') options.push({ text: t('appointments.onSite.common.files'), onPress: fromFiles });
         options.push({ text: t('appointments.onSite.common.cancel'), style: 'cancel' });
-        Alert.alert(placeholder, undefined, options);
+        appAlert(placeholder, undefined, options);
     };
 
     const remove = async () => {
@@ -156,7 +157,7 @@ export function MediaSlot({
             try {
                 await onSiteDAO.removeCapture(ctx.appointmentId, mediaId);
             } catch {
-                Alert.alert(t('appointments.onSite.common.error'));
+                appAlert(t('appointments.onSite.common.error'));
                 return;
             }
         }

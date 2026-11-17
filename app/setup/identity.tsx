@@ -8,14 +8,8 @@ import { useRouter } from "expo-router";
 import { ChevronRight } from "lucide-react-native";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-    ActivityIndicator,
-    Alert,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
-} from "react-native";
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { appAlert } from '@/lib/ui/appAlert';
 
 /**
  * Identity verification (KYC) step of the setup wizard.
@@ -76,7 +70,7 @@ export default function IdentityScreen() {
   const saveAndAdvance = async (verificationId: string, status: string) => {
     await saveSetupProgress("identity", { verificationId, status });
     setSubmitted(true);
-    Alert.alert(
+    appAlert(
       t("setup.identity.submittedTitle"),
       t("setup.identity.submittedMessage"),
       [{ text: t("setup.identity.continue"), onPress: goToNextStep }],
@@ -85,7 +79,7 @@ export default function IdentityScreen() {
 
   const handleStart = async () => {
     if (!consentGiven) {
-      Alert.alert(
+      appAlert(
         t("setup.identity.consentRequiredTitle"),
         t("setup.identity.consentRequiredMessage"),
       );
@@ -110,14 +104,14 @@ export default function IdentityScreen() {
           break;
 
         case "cancelled":
-          Alert.alert(
+          appAlert(
             t("setup.identity.cancelledTitle"),
             t("setup.identity.cancelledMessage"),
           );
           break;
 
         case "failed":
-          Alert.alert(
+          appAlert(
             t("setup.identity.failedTitle"),
             t("setup.identity.failedMessage", { reason: result.error.message }),
           );
@@ -127,7 +121,7 @@ export default function IdentityScreen() {
       // 409 ALREADY_VERIFIED is not a failure: a user re-entering the wizard
       // after being approved should just move on.
       if (error instanceof ApiError && error.statusCode === 409) {
-        Alert.alert(
+        appAlert(
           t("setup.identity.alreadyVerifiedTitle"),
           t("setup.identity.alreadyVerifiedMessage"),
           [{ text: t("setup.identity.continue"), onPress: goToNextStep }],
@@ -135,7 +129,7 @@ export default function IdentityScreen() {
         return;
       }
       console.error("Failed to start identity verification:", error);
-      Alert.alert(
+      appAlert(
         t("setup.identity.failedTitle"),
         t("setup.identity.failedMessage", {
           reason: (error as Error)?.message ?? "unknown",

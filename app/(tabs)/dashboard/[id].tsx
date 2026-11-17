@@ -18,6 +18,7 @@ import { approximateArea, coarseAddress } from '@/lib/maps/approximateLocation';
 import { apiClient } from '@/lib/api/apiClient';
 import { videoCallStartLabel } from '@/lib/video/videoCallTime';
 import { useRequestObd } from '@/components/video/RequestObdPanel';
+import { appAlert } from '@/lib/ui/appAlert';
 
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
     const R = 6371;
@@ -114,7 +115,7 @@ export default function AssistDetailScreen() {
     // the mechanic confirms, and no timer resolves the modal on its own.
     const handleAccept = gate('offer', async () => {
         if (!isImmediate && (!selectedDate || !selectedTime)) {
-            alert(t('requestDetail.selectDateTimeAlert'));
+            appAlert(t('requestDetail.selectDateTimeAlert'));
             return;
         }
         if (!(await ensureAvailable())) return;
@@ -146,7 +147,7 @@ export default function AssistDetailScreen() {
             );
         } catch (error: any) {
             setShowConfirm(false);
-            alert(t('requestDetail.acceptFailed', { error: error.message || 'Unknown error' }));
+            appAlert(t('requestDetail.acceptFailed', { error: error.message || 'Unknown error' }));
         } finally {
             setSubmitting(false);
         }

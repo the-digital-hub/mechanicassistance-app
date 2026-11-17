@@ -2,12 +2,13 @@ import { useRouter } from 'expo-router';
 import { RotateCcw } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Text, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, Text, TouchableOpacity } from 'react-native';
 
 import { useUser } from '@/context/UserContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { draftFromRequest, saveDraft } from '@/lib/scheduled/draft';
 import { SC } from './ui';
+import { appAlert } from '@/lib/ui/appAlert';
 
 /** On a past scheduled request: opens the scheduling wizard seeded with the same vehicle, place and services. */
 export function RequestAgainButton({ requestId }: { requestId: string }) {
@@ -26,7 +27,7 @@ export function RequestAgainButton({ requestId }: { requestId: string }) {
             router.push({ pathname: '/request-assistance/scheduled' as any, params: { type: 'scheduled', entry: String(Date.now()) } });
         } catch (error) {
             console.error('Failed to start a new request from a past one:', error);
-            Alert.alert(t('scheduled.requestAgain.error'));
+            appAlert(t('scheduled.requestAgain.error'));
         } finally {
             setBusy(false);
         }

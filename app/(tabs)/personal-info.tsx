@@ -8,8 +8,9 @@ import { useRouter } from 'expo-router';
 import { Camera, CheckCircle2 } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, FlatList, Image, KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, Image, KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { appAlert } from '@/lib/ui/appAlert';
 
 export default function PersonalInfoScreen() {
     const router = useRouter();
@@ -95,7 +96,7 @@ export default function PersonalInfoScreen() {
             await updateUser({ profileImage: uploaded.url });
             setFormData((prev) => ({ ...prev, profileImage: uploaded.url }));
         } catch {
-            Alert.alert(t('personalInfo.uploadFailedTitle'), t('personalInfo.uploadFailedMessage'));
+            appAlert(t('personalInfo.uploadFailedTitle'), t('personalInfo.uploadFailedMessage'));
             setLocalProfileUri(null);
         } finally {
             setIsUploadingPhoto(false);
@@ -133,7 +134,7 @@ export default function PersonalInfoScreen() {
             await updateUser(payloadToUpdate);
             setShowSuccessModal(true);
         } catch {
-            Alert.alert(t('personalInfo.updateFailedTitle'), t('personalInfo.updateFailedMessage'));
+            appAlert(t('personalInfo.updateFailedTitle'), t('personalInfo.updateFailedMessage'));
         }
     };
 

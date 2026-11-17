@@ -10,7 +10,8 @@ import type { UserData } from '@/lib/dao/interfaces';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
+import { appAlert } from '@/lib/ui/appAlert';
 
 /**
  * The signup availability step, reopened from the mechanic's profile: same
@@ -68,13 +69,13 @@ export default function ProfileAvailabilityScreen() {
                     false,
                 );
             }
-            Alert.alert(
+            appAlert(
                 t('profile.availabilityScreen.savedTitle'),
                 t('profile.availabilityScreen.savedMessage'),
                 [{ text: t('profile.availabilityScreen.ok'), onPress: () => router.navigate('/(tabs)') }],
             );
         } catch {
-            Alert.alert(
+            appAlert(
                 t('profile.availabilityScreen.saveErrorTitle'),
                 t('profile.availabilityScreen.saveErrorMessage'),
             );

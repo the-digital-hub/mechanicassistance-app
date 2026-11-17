@@ -66,6 +66,8 @@ export interface Appointment {
     address: string;
     notes?: string;
     budget: string;
+    /** Video calls: minutes the owner chose; absent on older requests. */
+    durationMinutes?: number | null;
     status: AppointmentStatus;
     /** Video calls only: asked for "now" rather than booked (then `date` is only its creation time). */
     startNow?: boolean;
@@ -205,6 +207,7 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                     // A video call is priced when it is requested (nobody quotes it): the owner sees
                     // that price, the technician what they would earn (else the same price).
                     budget: videoCallBudget(req, user?.role === 'mechanic') ?? req.budget,
+                    durationMinutes: req.durationMinutes ?? null,
                     status: (req.status as AppointmentStatus) || 'pending',
                     startNow: req.startNow,
                     userId: req.userId,

@@ -1,11 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Animated, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Animated, Text, TouchableOpacity, View } from 'react-native';
 import { onSiteDAO, OnSiteVisit } from '@/lib/dao/OnSiteDAO';
 import { FinalReportCard } from './FinalReportActions';
 import { ObdPanel } from './ObdPanel';
 import { Body, Card, NoteInput, OS, PrimaryButton, cardShadow } from './ui';
+import { appAlert } from '@/lib/ui/appAlert';
 
 // The last screen of the on-site flow, after "Finish Service" (design:
 // "Assistance Closeout"). Confirms the charge was requested, says where the payout
@@ -108,7 +109,7 @@ function RateOwner({ visit, onVisit }: { visit: OnSiteVisit; onVisit: (v: OnSite
             const fresh = await onSiteDAO.get(visit.appointmentId);
             if (fresh) onVisit(fresh);
         } catch {
-            Alert.alert(t('appointments.onSite.common.error'));
+            appAlert(t('appointments.onSite.common.error'));
         } finally {
             setSending(false);
         }

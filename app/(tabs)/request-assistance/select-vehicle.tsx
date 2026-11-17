@@ -159,6 +159,18 @@ export default function SelectVehicleScreen() {
                                         icon={Car}
                                         title={vehicleName(v)}
                                         sub={meta || t('requestAssistance.selectVehicle.noPlate')}
+                                        detail={
+                                            v.vin ? (
+                                                <View className="flex-row items-center" style={{ gap: 8, marginTop: 6 }}>
+                                                    <View style={{ paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, backgroundColor: SC.blueSoft }}>
+                                                        <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1, color: SC.blue }}>VIN</Text>
+                                                    </View>
+                                                    <Text numberOfLines={1} style={{ flexShrink: 1, fontFamily: Platform.select({ ios: 'Menlo', default: 'monospace' }), fontSize: 13, letterSpacing: 0.4, color: SC.muted }}>
+                                                        {v.vin}
+                                                    </Text>
+                                                </View>
+                                            ) : null
+                                        }
                                     />
                                 );
                             })}
@@ -167,9 +179,16 @@ export default function SelectVehicleScreen() {
 
                     {/* Outside the loading branch: the user can add a vehicle before the list resolves. */}
                     {!isLoading ? (
-                        <TouchableOpacity onPress={() => router.push('/(tabs)/vehicles')} accessibilityRole="button" className="flex-row items-center self-start" style={{ gap: 6 }}>
-                            <Plus size={16} color={SC.blue} />
-                            <Text className="font-outfit-bold" style={{ fontSize: 14, color: SC.blue }}>{t('requestAssistance.selectVehicle.addVehicle')}</Text>
+                        <TouchableOpacity
+                            onPress={() => router.push('/(tabs)/vehicles')}
+                            accessibilityRole="button"
+                            activeOpacity={0.85}
+                            className="flex-row items-center self-start rounded-full"
+                            style={{ gap: 8, paddingHorizontal: 16, paddingVertical: 11, backgroundColor: SC.blueSoft }}
+                            testID="select-vehicle-add"
+                        >
+                            <Plus size={18} color={SC.blue} />
+                            <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: SC.blue }}>{t('requestAssistance.selectVehicle.addVehicle')}</Text>
                         </TouchableOpacity>
                     ) : null}
 

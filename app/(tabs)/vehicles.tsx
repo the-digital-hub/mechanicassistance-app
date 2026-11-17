@@ -9,11 +9,12 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { VehicleForm, VehicleFormPayload } from '@/components/vehicles/VehicleForm';
 import { VehicleFormHeader } from '@/components/vehicles/vehicleFormDesign';
+import { appAlert } from '@/lib/ui/appAlert';
 
 export default function VehiclesScreen() {
     const router = useRouter();
@@ -91,7 +92,7 @@ export default function VehiclesScreen() {
             loadVehicles();
         } catch (error) {
             console.error('Failed to save vehicle', error);
-            Alert.alert(t('vehicles.form.saveErrorTitle'), t('vehicles.form.saveErrorMessage'));
+            appAlert(t('vehicles.form.saveErrorTitle'), t('vehicles.form.saveErrorMessage'));
         } finally {
             setIsSaving(false);
         }
@@ -105,7 +106,7 @@ export default function VehiclesScreen() {
     const handleDeleteVehicle = (vehicle: Vehicle) => {
         if (!vehicle.id) return;
         const id = vehicle.id;
-        Alert.alert(
+        appAlert(
             t('vehicles.deleteTitle'),
             t('vehicles.deleteMessage', { vehicle: `${vehicle.make} ${vehicle.model}`.trim() }),
             [

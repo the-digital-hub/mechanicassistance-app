@@ -8,14 +8,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-    ActivityIndicator,
-    Alert,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
-} from "react-native";
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { appAlert } from '@/lib/ui/appAlert';
 
 /**
  * Identity verification screen.
@@ -106,14 +100,14 @@ export default function VerificationPendingScreen() {
         // Backing out is a valid choice, not an error: say so and leave the
         // user on the screen, which now offers its own way out.
         case "cancelled":
-          Alert.alert(
+          appAlert(
             t("setup.identity.cancelledTitle"),
             t("setup.identity.cancelledMessage"),
           );
           break;
 
         case "failed":
-          Alert.alert(
+          appAlert(
             t("setup.identity.failedTitle"),
             t("setup.identity.failedMessage", { reason: result.error.message }),
           );
@@ -130,7 +124,7 @@ export default function VerificationPendingScreen() {
         return;
       }
       console.error("Failed to restart identity verification:", error);
-      Alert.alert(
+      appAlert(
         t("setup.identity.failedTitle"),
         t("setup.identity.failedMessage", {
           reason: (error as Error)?.message ?? "unknown",

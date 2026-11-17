@@ -1,11 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import type { OnSiteVisit } from '@/lib/dao/OnSiteDAO';
 import { ObdPanel } from './ObdPanel';
 import type { RedirectReason } from './screens-execution';
 import { ActionBar, Body, Card, Eyebrow, InfoRow, Intro, NoteInput, OS, PrimaryButton, Tip, cardShadow } from './ui';
+import { appAlert } from '@/lib/ui/appAlert';
 
 // Phase 3 of the on-site flow: close-out summary and the final screen.
 // Charges and the owner rating are not sent anywhere yet.
@@ -147,7 +148,7 @@ export function ScreenDone({ variant, appointmentId, visit, onVisit, clientName,
             await onSubmitReview(rating, comment);
             setSent(true);
         } catch {
-            Alert.alert(t('appointments.onSite.common.error'));
+            appAlert(t('appointments.onSite.common.error'));
         } finally {
             setSending(false);
         }

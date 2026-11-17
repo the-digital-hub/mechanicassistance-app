@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Modal, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Modal, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppointments } from '@/context/AppointmentsContext';
 import { onSiteDAO } from '@/lib/dao/OnSiteDAO';
@@ -10,6 +10,7 @@ import { buildFinalReport, finalReportHtml, type FinalReport } from '@/lib/onsit
 import { getVinCapture } from '@/lib/onsite/vin';
 import { ActionBar, Card, OS } from './ui';
 import { FinalReportView } from './FinalReportView';
+import { appAlert } from '@/lib/ui/appAlert';
 
 // The final report of a visit, for the closeout screen and the report screen: the same data, as a page in
 // the app or as a PDF to keep and share.
@@ -114,7 +115,7 @@ export function DownloadPdfButton({ report, primary, compact }: { report: FinalR
                 setBusy(true);
                 const ok = await shareFinalReportPdf(report);
                 setBusy(false);
-                if (!ok) Alert.alert(t('appointments.report.pdfFailed'));
+                if (!ok) appAlert(t('appointments.report.pdfFailed'));
             }}
         />
     );

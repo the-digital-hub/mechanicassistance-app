@@ -1,7 +1,8 @@
 import { useMechanicStatus } from '@/context/MechanicStatusContext';
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert } from 'react-native';
+import { appAlert } from '@/lib/ui/appAlert';
+;
 
 /**
  * Makes sure an offline mechanic goes available before offering.
@@ -20,7 +21,7 @@ export function useAvailableToOffer() {
     return useCallback((): Promise<boolean> => {
         if (mechanicStatus !== 'offline') return Promise.resolve(true);
         return new Promise((resolve) => {
-            Alert.alert(
+            appAlert(
                 t('requestDetail.offlineOfferTitle'),
                 t('requestDetail.offlineOfferMessage'),
                 [

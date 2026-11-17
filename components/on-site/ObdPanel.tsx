@@ -1,11 +1,12 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { ObdCode, onSiteDAO, OnSiteVisit } from '@/lib/dao/OnSiteDAO';
 import { MediaSlot, Picked } from './MediaSlot';
 import { TYPE } from '@/lib/ui/type';
 import { Card, CardTitle, OS, Tip } from './ui';
 import { VinMismatchModal } from './VinMismatchModal';
+import { appAlert } from '@/lib/ui/appAlert';
 
 // The OBD scanner report of a visit: upload the file (its trouble codes are
 // read in the background by the document service), see the codes with what
@@ -56,7 +57,7 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true }: 
         try {
             onVisit(await onSiteDAO.setObdCodes(appointmentId, list, withVin));
         } catch {
-            Alert.alert(t('appointments.onSite.common.error'));
+            appAlert(t('appointments.onSite.common.error'));
         } finally {
             setSaving(false);
         }

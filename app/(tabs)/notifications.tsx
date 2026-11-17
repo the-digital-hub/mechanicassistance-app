@@ -26,7 +26,8 @@ import {
 } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { appAlert } from '@/lib/ui/appAlert';
 
 // Tile palette from the Notification Center design: icon color + soft tint.
 const TONES = {
@@ -98,7 +99,7 @@ export default function NotificationsScreen() {
         if (Platform.OS === 'web') {
             window.alert(message);
         } else {
-            Alert.alert(t('notifications.deleteFailedTitle'), message);
+            appAlert(t('notifications.deleteFailedTitle'), message);
         }
     };
 
@@ -110,7 +111,7 @@ export default function NotificationsScreen() {
                 performDelete();
             }
         } else {
-            Alert.alert(
+            appAlert(
                 t('notifications.deleteConfirmTitle'),
                 t('notifications.deleteConfirmMessage'),
                 [

@@ -157,7 +157,7 @@ export function OwnerVideoCallStatusCard({ state, mechanicName, busy, onConfirm,
 }
 
 /** Mechanic: what happens after "Finish assistance". Renders nothing before it. */
-export function MechanicVideoCallStatusCard({ state, onRateClient }: { state: VideoCallState; onRateClient?: () => void }) {
+export function MechanicVideoCallStatusCard({ state }: { state: VideoCallState }) {
     const { t } = useTranslation();
     const k = `${K}.mechanic`;
     if (state.status === 'awaiting_confirmation') {
@@ -181,11 +181,6 @@ export function MechanicVideoCallStatusCard({ state, onRateClient }: { state: Vi
                 body={notResolved ? t(`${k}.notResolvedBody`) : t(`${k}.completedBody`)}
                 testID="mechanic-video-completed"
             >
-                {onRateClient && (
-                    <TouchableOpacity onPress={onRateClient} activeOpacity={0.85} className="items-center py-3 mt-3.5" style={{ borderRadius: 13, backgroundColor: AO.blue }} testID="mechanic-video-rate-client">
-                        <Text className="text-white font-outfit-bold text-sm">{t(`${k}.rateClient`)}</Text>
-                    </TouchableOpacity>
-                )}
             </InfoCard>
         );
     }
