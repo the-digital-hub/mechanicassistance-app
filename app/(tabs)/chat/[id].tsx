@@ -154,7 +154,8 @@ export default function ChatScreen() {
                         <Paperclip size={18} color="#3B82F6" />
                     </TouchableOpacity>
                     <TextInput
-                        className="flex-1 font-outfit-regular text-sm px-2"
+                        className="flex-1 h-10 font-outfit-regular px-2"
+                        style={{ fontSize: 14, letterSpacing: 0, textAlign: 'left', textAlignVertical: 'center', paddingVertical: 0 }}
                         placeholder={t('chat.writeHere')}
                         value={messageText}
                         onChangeText={setMessageText}
@@ -164,7 +165,7 @@ export default function ChatScreen() {
                         className="bg-blue-600 w-10 h-10 rounded-full items-center justify-center shadow-sm"
                         onPress={handleSend}
                     >
-                        <Send size={18} color="white" style={{ transform: [{ rotate: '-45deg' }, { translateX: 2 }] }} />
+                        <Send size={18} color="white" />
                     </TouchableOpacity>
                 </View>
             </View>
