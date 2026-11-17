@@ -1,12 +1,11 @@
 import { useAppointments } from '@/context/AppointmentsContext';
 import { useSocket } from '@/context/SocketContext';
-import { userDAO } from '@/lib/dao/UserDAO';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { onSiteDAO, OnSiteStep, OnSiteVisit, RedirectReasonId } from '@/lib/dao/OnSiteDAO';
 import { OnSiteCaptureProvider } from '@/components/on-site/MediaSlot';
 import { ScreenDiagnosticsVin } from '@/components/on-site/screens-vin';
 import { getVinCapture, saveVinCapture, type VinCapture } from '@/lib/onsite/vin';
-import { reportedIssue, ScreenCheckIn, ScreenDiagnosticsObd, ScreenDiagnosticsPhotos, ScreenFeasibility, ScreenIncidentDetails, ScreenRetry, ScreenValidating } from '@/components/on-site/screens-checkin';
+import { reportedIssue, ScreenCheckIn, ScreenDiagnosticsObd, ScreenDiagnosticsPhotos, ScreenFeasibility, ScreenRetry, ScreenValidating } from '@/components/on-site/screens-checkin';
 import { DoneVariant, ScreenCloseService, ScreenVideoOut } from '@/components/on-site/screens-checkout';
 import { ScreenCloseout } from '@/components/on-site/screens-closeout';
 import { PartsOrder, RedirectReason, ScreenBuyParts, ScreenEvaluateOptions, ScreenResolveIncident } from '@/components/on-site/screens-execution';
@@ -44,7 +43,7 @@ const PHASE_OF: Record<Screen, Phase> = {
 // Where the header's back button goes. Screens missing here have no in-flow back
 // (check-in leaves the flow; the rest are one-way, as in the design).
 const BACK_OF: Partial<Record<Screen, Screen>> = {
-    retry: 'checkin', 'diagnostics-vin': 'incident', 'diagnostics-photos': 'diagnostics-vin', 'diagnostics-obd': 'diagnostics-photos',
+    retry: 'checkin', 'diagnostics-photos': 'diagnostics-vin', 'diagnostics-obd': 'diagnostics-photos',
     feasibility: 'diagnostics-obd', 'options-checkin': 'feasibility', 'buy-parts': 'feasibility', resolve: 'feasibility',
     'options-execution': 'resolve', 'video-out': 'resolve', close: 'video-out',
 };
@@ -54,6 +53,8 @@ function resumeScreen(visit: OnSiteVisit): Screen {
     if (visit.closedAt) return 'done';
     // "Validating" is a transient check; rerun it from the last capture step (OBD).
     if (visit.step === 'validating') return 'diagnostics-obd';
+    // The "issue details" screen is gone: a visit still at that step starts at the VIN.
+    if (visit.step === 'incident') return 'diagnostics-vin';
     return visit.step;
 }
 
@@ -84,7 +85,6 @@ export default function OnSiteFlowScreen() {
     const [doneVariant, setDoneVariant] = React.useState<DoneVariant>('completed');
     const [partsOrder, setPartsOrder] = React.useState<PartsOrder | null>(null);
     const [redirectReason, setRedirectReason] = React.useState<RedirectReason | null>(null);
-    const [clientName, setClientName] = React.useState('—');
     const [vinCapture, setVinCapture] = React.useState<VinCapture | null>(null);
 
     // What the mechanic scanned or typed for the VIN lives on the device (the visit has no field for it yet).
@@ -119,18 +119,6 @@ export default function OnSiteFlowScreen() {
             cancelled = true;
         };
     }, [id, hasVisit, t]);
-
-    React.useEffect(() => {
-        if (!appointment?.userId) return;
-        let cancelled = false;
-        userDAO.getPublicProfile(appointment.userId)
-            .then((p) => {
-                const name = [p?.name, p?.surname].filter(Boolean).join(' ');
-                if (!cancelled && name) setClientName(name);
-            })
-            .catch(() => { /* keep the placeholder */ });
-        return () => { cancelled = true; };
-    }, [appointment?.userId]);
 
     // The scanner report is read in the background; refresh when it is in.
     const { lastMessage } = useSocket();
@@ -171,7 +159,7 @@ export default function OnSiteFlowScreen() {
             const result = await onSiteDAO.checkIn(id, method, code);
             if (result.ok) {
                 setVisit(result.visit);
-                setScreen('incident');
+                setScreen('diagnostics-vin');
             } else if (result.reason === 'mismatch') {
                 setScreen('retry');
             } else {
@@ -220,7 +208,6 @@ export default function OnSiteFlowScreen() {
     switch (screen) {
         case 'checkin': body = <ScreenCheckIn onSubmit={checkIn} onMismatch={() => setScreen('retry')} />; break;
         case 'retry': body = <ScreenRetry onRetry={() => setScreen('checkin')} />; break;
-        case 'incident': body = <ScreenIncidentDetails appointment={appointment} clientName={clientName} onNext={() => go('diagnostics-vin')} />; break;
         case 'diagnostics-vin':
             body = (
                 <ScreenDiagnosticsVin

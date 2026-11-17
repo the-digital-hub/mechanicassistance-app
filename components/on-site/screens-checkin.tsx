@@ -182,30 +182,6 @@ export function ScreenRetry({ onRetry }: { onRetry: () => void }) {
     );
 }
 
-// ─────────── Issue details ───────────
-export function ScreenIncidentDetails({ appointment, clientName, onNext }: { appointment: OnSiteAppointment; clientName: string; onNext: () => void }) {
-    const { t } = useTranslation();
-    const k = 'appointments.onSite.incident';
-    return (
-        <>
-            <Body>
-                <Intro eyebrow={t(`${k}.eyebrow`)} tone="green" title={t(`${k}.title`)} subtitle={t(`${k}.subtitle`)} />
-                <Card>
-                    <InfoRow icon="car-outline" label={t(`${k}.vehicle`)} value={appointment.car || '—'} />
-                    <InfoRow icon="alert-circle-outline" label={t(`${k}.issue`)} value={reportedIssue(appointment)} />
-                    <InfoRow icon="document-text-outline" label={t(`${k}.notes`)} value={appointment.notes || t('appointments.detail.info.noNotes')} />
-                    <InfoRow icon="location-outline" label={t(`${k}.location`)} value={appointment.address || '—'} />
-                    <InfoRow icon="person-outline" label={t(`${k}.client`)} value={clientName} last />
-                </Card>
-                <Tip>{t(`${k}.tip`)}</Tip>
-            </Body>
-            <ActionBar>
-                <PrimaryButton label={t(`${k}.start`)} onPress={onNext} />
-            </ActionBar>
-        </>
-    );
-}
-
 // ─────────── OBD scan ───────────
 export function ScreenDiagnosticsObd({ appointmentId, visit, onVisit, onNext, enteredVin }: {
     appointmentId: string;

@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { MAP_PROVIDER } from '@/lib/maps/provider';
 import { TYPE } from '@/lib/ui/type';
@@ -10,7 +10,7 @@ import type { OnSiteMedia } from '@/lib/dao/OnSiteDAO';
 import { MediaSlot, useExistingCaptures } from './MediaSlot';
 import {
     ActionBar, Body, Card, CardTitle, Checkbox, Eyebrow, GhostButton, Intro, MaintenanceChecklist, NoteInput, OS,
-    PrimaryButton, Tip, useMaintenanceItems,
+    OnSiteDialog, PrimaryButton, Tip, useMaintenanceItems,
 } from './ui';
 
 // Parts purchase, "can't resolve" options and the repair itself. All data here is
@@ -318,6 +318,7 @@ export function ScreenResolveIncident({
     const checklist = useMaintenanceItems(initialChecklist, onChecklistChange);
     // Set once the mechanic tries to resolve with the checklist unfinished: the checklist then stays flagged.
     const [warned, setWarned] = React.useState(false);
+    const [warnOpen, setWarnOpen] = React.useState(false);
 
     /** Resolving without the maintenance checklist hurts the rating and the assistance's compliance: say so first. */
     const resolve = () => {
@@ -326,10 +327,7 @@ export function ScreenResolveIncident({
             return;
         }
         setWarned(true);
-        Alert.alert(t(`${k}.checklistWarnTitle`), t(`${k}.checklistWarnBody`), [
-            { text: t(`${k}.checklistWarnFix`), style: 'cancel' },
-            { text: t(`${k}.checklistWarnSkip`), style: 'destructive', onPress: onResolved },
-        ]);
+        setWarnOpen(true);
     };
 
     React.useEffect(() => {
@@ -360,17 +358,19 @@ export function ScreenResolveIncident({
                     style={{ marginHorizontal: 16, marginTop: 14, borderRadius: 20, padding: 16 }}
                     testID="job-in-progress"
                 >
-                    <View className="flex-row items-center justify-between">
+                    <View className="flex-row items-start justify-between">
                         <View className="flex-row items-center" style={{ gap: 10 }}>
                             <IconTile name="time-outline" light />
-                            <Text className="font-outfit-semibold" style={{ ...TYPE.helper, color: 'rgba(255,255,255,0.85)' }}>{t(`${k}.timerLabel`)}</Text>
+                            <View>
+                                <Text className="font-outfit-semibold" style={{ ...TYPE.helper, color: 'rgba(255,255,255,0.85)' }}>{t(`${k}.timerLabel`)}</Text>
+                                <Text className="font-outfit-bold" style={{ fontSize: 44, lineHeight: 50, letterSpacing: -1, color: '#FFFFFF', marginTop: 2, fontVariant: ['tabular-nums'] }}>{mm}:{ss}</Text>
+                            </View>
                         </View>
                         <View className="flex-row items-center" style={{ gap: 6, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.18)' }}>
                             <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: '#4ADE80' }} />
                             <Text className="font-outfit-bold" style={{ ...TYPE.caption, color: '#FFFFFF' }}>{t(`${k}.inProgress`)}</Text>
                         </View>
                     </View>
-                    <Text className="font-outfit-bold" style={{ fontSize: 44, lineHeight: 50, letterSpacing: -1, color: '#FFFFFF', marginTop: 12, fontVariant: ['tabular-nums'] }}>{mm}:{ss}</Text>
                     <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.22)', marginVertical: 14 }} />
                     <View className="flex-row items-center" style={{ gap: 10 }}>
                         <IconTile name="alert-circle-outline" light />
@@ -493,6 +493,21 @@ export function ScreenResolveIncident({
                     <PrimaryButton label={t(`${k}.yes`)} onPress={resolve} tone="green" />
                 </View>
             </ActionBar>
+            <OnSiteDialog
+                visible={warnOpen}
+                tone="orange"
+                icon="clipboard-outline"
+                title={t(`${k}.checklistWarnTitle`)}
+                body={t(`${k}.checklistWarnBody`)}
+                primaryLabel={t(`${k}.checklistWarnFix`)}
+                onPrimary={() => setWarnOpen(false)}
+                secondaryLabel={t(`${k}.checklistWarnSkip`)}
+                onSecondary={() => {
+                    setWarnOpen(false);
+                    onResolved();
+                }}
+                testID="checklist-warning"
+            />
         </>
     );
 }

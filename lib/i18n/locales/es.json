@@ -913,7 +913,7 @@
       },
       "arrival": {
         "title": "Cuando llegues al lugar",
-        "subtitle": "Confirmá que estás en el vehículo correcto antes de empezar.",
+        "subtitle": "Confirmá que es el vehículo correcto con el QR o PIN del cliente.",
         "startCheckIn": "Iniciar check-in",
         "hint": "Escaneá el QR para hacer check-in o ingresá el PIN",
         "notice": "Se habilita cuando estés llegando al lugar del servicio.",
@@ -921,7 +921,8 @@
         "disabledNote": "Disponible cuando salgas hacia el cliente.",
         "chipQr": "Escanear QR",
         "chipPin": "Ingresar PIN",
-        "or": "o"
+        "or": "o",
+        "laterHint": "Al llegar, vas a hacer el check-in con el QR o el PIN del cliente."
       },
       "info": {
         "arrivalTime": "Tiempo de llegada",
@@ -1093,7 +1094,8 @@
         "uploading": "Subiendo…",
         "uploadFailed": "No se pudo subir. Tocá Reintentar.",
         "retry": "Reintentar",
-        "error": "Algo salió mal. Probá de nuevo."
+        "error": "Algo salió mal. Probá de nuevo.",
+        "done": "Listo"
       },
       "maintenance": {
         "title": "Checklist de mantenimiento",
@@ -1417,7 +1419,7 @@
         "matched": "Coincide: es el vehículo del pedido.",
         "differs": "Este VIN no coincide con el vehículo del pedido.",
         "differTitle": "El VIN no coincide",
-        "differBody": "El pedido indica {{request}} y cargaste {{entered}}.\n\nRevisá que sea el vehículo correcto y que el VIN esté bien escrito.",
+        "differBody": "Revisá que sea el vehículo correcto y que el VIN esté bien escrito.",
         "recheck": "Revisar de nuevo",
         "differContinue": "Continuar igual"
       }

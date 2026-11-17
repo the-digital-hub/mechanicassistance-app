@@ -32,29 +32,40 @@ interface MechanicArrivalCardProps {
     onStartCheckIn: () => void;
     /** Already checked in: the button resumes the visit instead of starting it. */
     inProgress?: boolean;
-    /** Not headed out yet: shown dimmed, and check-in cannot start. */
+    /** Not headed out yet: only a quiet hint is shown, and check-in cannot start. */
     disabled?: boolean;
 }
 
 export function MechanicArrivalCard({ onStartCheckIn, inProgress, disabled }: MechanicArrivalCardProps) {
     const { t } = useTranslation();
 
+    // Not headed out yet: only a quiet line about what comes later. The full card appears once they leave.
+    if (disabled) {
+        return (
+            <View className="mx-6 flex-row items-center justify-center" style={{ gap: 8 }} testID="mechanic-arrival-hint">
+                <Ionicons name="qr-code-outline" size={16} color="#8C96AE" />
+                <Text className="flex-1 font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: '#8C96AE' }}>
+                    {t('appointments.detail.arrival.laterHint')}
+                </Text>
+            </View>
+        );
+    }
+
     return (
         <View
             className="mx-4 bg-white"
-            pointerEvents={disabled ? 'none' : 'auto'}
-            accessibilityState={{ disabled: !!disabled }}
+            accessibilityState={{ disabled: false }}
             testID="mechanic-arrival-card"
             style={{
-                opacity: disabled ? 0.5 : 1,
+                opacity: 1,
                 borderRadius: 20,
                 borderWidth: 1,
                 borderColor: '#EEF2FA',
                 shadowColor: BLUE,
                 shadowOffset: { width: 0, height: 6 },
-                shadowOpacity: disabled ? 0.06 : 0.14,
+                shadowOpacity: 0.14,
                 shadowRadius: 14,
-                elevation: disabled ? 2 : 5,
+                elevation: 5,
             }}
         >
             <View className="flex-row px-4 pt-4" style={{ gap: 12 }}>
@@ -93,28 +104,6 @@ export function MechanicArrivalCard({ onStartCheckIn, inProgress, disabled }: Me
                         </Text>
                     </LinearGradient>
                 </TouchableOpacity>
-
-                {!inProgress ? (
-                    disabled ? (
-                        // Not headed out yet: say why the button is off, instead of a notice that contradicts it.
-                        <Text className="text-center mt-3 font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: '#6B7490' }}>
-                            {t('appointments.detail.arrival.disabledNote')}
-                        </Text>
-                    ) : (
-                        // The two ways to check in, so it is clear what happens next.
-                        <View className="flex-row items-center justify-center mt-3.5" style={{ gap: 10 }}>
-                            <View className="flex-row items-center" style={{ gap: 6, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 100, backgroundColor: '#F4F8FF' }}>
-                                <Ionicons name="qr-code-outline" size={16} color={BLUE} />
-                                <Text className="font-outfit-semibold" style={{ fontSize: 14, color: '#0B1530' }}>{t('appointments.detail.arrival.chipQr')}</Text>
-                            </View>
-                            <Text className="font-outfit-regular" style={{ fontSize: 14, color: '#8C96AE' }}>{t('appointments.detail.arrival.or')}</Text>
-                            <View className="flex-row items-center" style={{ gap: 6, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 100, backgroundColor: '#F4F8FF' }}>
-                                <Ionicons name="keypad-outline" size={16} color={BLUE} />
-                                <Text className="font-outfit-semibold" style={{ fontSize: 14, color: '#0B1530' }}>{t('appointments.detail.arrival.chipPin')}</Text>
-                            </View>
-                        </View>
-                    )
-                ) : null}
             </View>
         </View>
     );

@@ -2,7 +2,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Animated, Easing, Modal, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Animated, Easing, InputAccessoryView, Keyboard, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,7 +11,7 @@ import { BRAND_GRADIENT } from '@/components/brand/MeshBackground';
 import type { OnSiteVisit } from '@/lib/dao/OnSiteDAO';
 import { lockLandscape, lockPortrait } from '@/lib/orientation';
 import { compareVins, declaredVin, extractVin, isValidVin, normalizeVin, vinCheckDigitOk, type VinCapture } from '@/lib/onsite/vin';
-import { ActionBar, Body, Card, CardTitle, Checkbox, Intro, OS, PrimaryButton, Tip } from './ui';
+import { ActionBar, Body, Card, CardTitle, Checkbox, Intro, OnSiteDialog, OS, PrimaryButton, Tip } from './ui';
 
 // Step 1 of the diagnostic: the vehicle's VIN (scanned from its barcode or typed) and,
 // optionally, the odometer. The VIN is then compared with the one on the request and
@@ -249,6 +249,8 @@ function VinScanner({ visible, onClose, onVin }: { visible: boolean; onClose: ()
     );
 }
 
+const ODOMETER_ACCESSORY = 'odometer-done-bar';
+
 export function ScreenDiagnosticsVin({ initial, requestVin, onNext }: {
     initial: VinCapture | null;
     /** VIN of the vehicle on the request; null when the owner never gave one. */
@@ -281,12 +283,7 @@ export function ScreenDiagnosticsVin({ initial, requestVin, onNext }: {
     const match = valid && !noVin ? compareVins(requestVin, clean) : 'unknown';
 
     const next = () => onNext({ vin: noVin ? '' : clean, odometer });
-    const confirmDiffer = () => {
-        Alert.alert(t(`${k}.differTitle`), t(`${k}.differBody`, { request: requestVin ?? '', entered: clean }), [
-            { text: t(`${k}.recheck`), style: 'cancel' },
-            { text: t(`${k}.differContinue`), style: 'destructive', onPress: next },
-        ]);
-    };
+    const [differOpen, setDifferOpen] = React.useState(false);
 
     const openScanner = async () => {
         if (!permission?.granted) {
@@ -385,6 +382,10 @@ export function ScreenDiagnosticsVin({ initial, requestVin, onNext }: {
                             value={odometer}
                             onChangeText={(v) => setOdometer(v.replace(/\D/g, '').slice(0, 7))}
                             keyboardType="number-pad"
+                            returnKeyType="done"
+                            blurOnSubmit
+                            onSubmitEditing={Keyboard.dismiss}
+                            inputAccessoryViewID={ODOMETER_ACCESSORY}
                             placeholder={t(`${k}.odometerPlaceholder`)}
                             placeholderTextColor={OS.mutedLight}
                             className="flex-1 font-outfit-bold"
@@ -418,11 +419,55 @@ export function ScreenDiagnosticsVin({ initial, requestVin, onNext }: {
             <ActionBar>
                 <PrimaryButton
                     label={t('appointments.onSite.common.continue')}
-                    onPress={match === 'differ' ? confirmDiffer : next}
+                    onPress={match === 'differ' ? () => setDifferOpen(true) : next}
                     disabled={!(valid || noVin)}
                     testID="vin-continue"
                 />
             </ActionBar>
+
+            {/* The iOS number pad has no return key: this bar gives it a Done. */}
+            {Platform.OS === 'ios' ? (
+                <InputAccessoryView nativeID={ODOMETER_ACCESSORY}>
+                    <View className="flex-row justify-end px-4" style={{ backgroundColor: '#F6F8FC', borderTopWidth: 1, borderTopColor: OS.border }}>
+                        <TouchableOpacity
+                            onPress={Keyboard.dismiss}
+                            hitSlop={{ top: 4, bottom: 4, left: 8, right: 8 }}
+                            accessibilityRole="button"
+                            className="justify-center"
+                            style={{ minHeight: 48, paddingHorizontal: 8 }}
+                            testID="odometer-done"
+                        >
+                            <Text className="font-outfit-bold" style={{ fontSize: 17, color: OS.blue }}>{t('appointments.onSite.common.done')}</Text>
+                        </TouchableOpacity>
+                    </View>
+                </InputAccessoryView>
+            ) : null}
+
+            <OnSiteDialog
+                visible={differOpen}
+                tone="red"
+                icon="alert-circle-outline"
+                title={t(`${k}.differTitle`)}
+                body={t(`${k}.differBody`)}
+                details={
+                    <View className="px-3.5 py-3 rounded-2xl" style={{ backgroundColor: OS.page }}>
+                        <Text className="font-outfit-medium" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>
+                            {t(`${k}.cross.request`)}: <Text className="font-outfit-bold" style={{ color: OS.text, letterSpacing: 0.8 }}>{normalizeVin(requestVin ?? '')}</Text>
+                        </Text>
+                        <Text className="font-outfit-medium mt-0.5" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>
+                            {t(`${k}.cross.mine`)}: <Text className="font-outfit-bold" style={{ color: OS.text, letterSpacing: 0.8 }}>{clean}</Text>
+                        </Text>
+                    </View>
+                }
+                primaryLabel={t(`${k}.recheck`)}
+                onPrimary={() => setDifferOpen(false)}
+                secondaryLabel={t(`${k}.differContinue`)}
+                onSecondary={() => {
+                    setDifferOpen(false);
+                    next();
+                }}
+                testID="vin-differ-dialog"
+            />
 
             <VinScanner
                 visible={scanning}

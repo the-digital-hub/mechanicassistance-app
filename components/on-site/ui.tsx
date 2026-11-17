@@ -2,7 +2,7 @@ import { FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, ScrollView, Text, TextInput, TouchableOpacity, View, ViewStyle } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View, ViewStyle } from 'react-native';
 
 // Shared building blocks for the on-site assistance flow (check-in → execution →
 // check-out). Ported from the "Vehicle On-Site Assistance V2" design.
@@ -375,5 +375,70 @@ export function NoteInput({ value, onChangeText, placeholder, rows = 2, white }:
             className="font-outfit-regular mt-2 px-3 py-3"
             style={{ fontSize: 16, lineHeight: 22, minHeight: rows * 24 + 12, borderRadius: 12, borderWidth: 1.5, borderColor: OS.border, backgroundColor: white ? '#FFFFFF' : OS.page, color: OS.text }}
         />
+    );
+}
+
+
+// ─────────── Dialog (replaces the system alert inside the on-site flow) ───────────
+const DIALOG_TONES = {
+    orange: { color: OS.orange, bg: OS.orangeSoft },
+    red: { color: OS.red, bg: OS.redSoft },
+    blue: { color: OS.blue, bg: OS.blueSoft },
+};
+
+/**
+ * A confirmation in the flow's own look: icon tile, title, text and two stacked buttons.
+ * `primary` is the safe way on (blue); `secondary` is the quiet way through. Tapping outside
+ * or going back is the same as the primary button.
+ */
+export function OnSiteDialog({ visible, tone = 'orange', icon = 'alert-circle-outline', title, body, details, primaryLabel, onPrimary, secondaryLabel, onSecondary, testID }: {
+    visible: boolean;
+    tone?: keyof typeof DIALOG_TONES;
+    icon?: React.ComponentProps<typeof Ionicons>['name'];
+    title: string;
+    body: string;
+    /** Extra lines under the text (e.g. the two VINs). */
+    details?: React.ReactNode;
+    primaryLabel: string;
+    onPrimary: () => void;
+    secondaryLabel: string;
+    onSecondary: () => void;
+    testID?: string;
+}) {
+    const { color, bg } = DIALOG_TONES[tone];
+    return (
+        <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onPrimary}>
+            <View className="flex-1 items-center justify-center px-5" style={{ backgroundColor: 'rgba(11,21,48,0.55)' }} testID={testID}>
+                <Pressable style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }} onPress={onPrimary} accessible={false} />
+                <View className="w-full bg-white" style={{ maxWidth: 400, borderRadius: 24, padding: 20, ...cardShadow }}>
+                    <View className="items-center justify-center self-center" style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: bg }}>
+                        <Ionicons name={icon} size={28} color={color} />
+                    </View>
+                    <Text className="font-outfit-bold text-center mt-3.5" style={{ fontSize: 20, lineHeight: 26, color: OS.text }}>{title}</Text>
+                    <Text className="font-outfit-regular text-center mt-2" style={{ fontSize: 16, lineHeight: 23, color: OS.muted }}>{body}</Text>
+                    {details ? <View className="mt-3">{details}</View> : null}
+                    <TouchableOpacity
+                        onPress={onPrimary}
+                        activeOpacity={0.85}
+                        accessibilityRole="button"
+                        className="items-center justify-center mt-5"
+                        style={{ minHeight: 52, borderRadius: 14, backgroundColor: OS.blue }}
+                        testID="dialog-primary"
+                    >
+                        <Text className="font-outfit-bold text-white" style={{ fontSize: 17, lineHeight: 23 }}>{primaryLabel}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={onSecondary}
+                        activeOpacity={0.7}
+                        accessibilityRole="button"
+                        className="items-center justify-center mt-1.5"
+                        style={{ minHeight: 48 }}
+                        testID="dialog-secondary"
+                    >
+                        <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: OS.muted }}>{secondaryLabel}</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </Modal>
     );
 }
