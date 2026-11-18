@@ -16,7 +16,7 @@ jest.mock('@expo/vector-icons', () => ({ Ionicons: 'Ionicons' }));
 jest.mock('@daily-co/react-native-webrtc', () => ({ MediaStream: jest.fn() }));
 jest.mock('@/components/video/CallControls', () => ({ CallControls: () => null }));
 jest.mock('@/components/video/VideoTile', () => ({ VideoTile: () => null }));
-jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
+jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'en' } }) }));
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }) }));
 jest.mock('expo-linear-gradient', () => ({ LinearGradient: 'LinearGradient' }));
 const mockNavigate = jest.fn();

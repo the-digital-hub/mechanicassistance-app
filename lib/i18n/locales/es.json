@@ -1764,7 +1764,12 @@
           "send": "Enviar"
         },
         "resizePip": "Agrandar o achicar la imagen chica",
-        "rotate": "Girar la pantalla"
+        "rotate": "Girar la pantalla",
+        "captionsLanguage": "Idioma",
+        "captionsLanguageHint": "Los subtítulos escuchan en un solo idioma durante toda la llamada. Elegí el que van a hablar los dos.",
+        "captionsSheetOnTitle": "Los subtítulos en vivo están activados",
+        "captionsTurnOff": "Desactivar",
+        "captionsApply": "Cambiar idioma"
       },
       "timer": {
         "inProgress": "Llamada en curso",

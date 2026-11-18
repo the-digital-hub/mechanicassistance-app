@@ -9,6 +9,7 @@ import { MediaStream } from '@daily-co/react-native-webrtc';
 import { CallChatSheet } from '@/components/video/CallChatSheet';
 import { CallControls } from '@/components/video/CallControls';
 import { CaptionsBar } from '@/components/video/CaptionsBar';
+import { type CaptionLanguage, CaptionsSheet, defaultCaptionLanguage } from '@/components/video/CaptionsSheet';
 import { DraggablePip, PIP_SIZES, type PipCorner, pipSize } from '@/components/video/DraggablePip';
 import { DrawOverlay } from '@/components/video/DrawOverlay';
 import { lockLandscape, lockPortrait } from '@/lib/orientation';
@@ -36,7 +37,7 @@ const K = 'appointments.videoCall.live';
 const WARN_BANNER_MS = 8000;
 
 export default function VideoCallScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
   const { id, roomUrl, token, expiry } = useLocalSearchParams();
   const router = useRouter();
@@ -125,22 +126,22 @@ export default function VideoCallScreen() {
 
   // Captions: whoever turns them on starts the transcription for the whole room, after agreeing it is
   // heard by both; the other phone is told when they begin.
-  const toggleCaptions = () => {
+  const [captionsOpen, setCaptionsOpen] = useState(false);
+  const [captionLanguage, setCaptionLanguage] = useState<CaptionLanguage>(() => defaultCaptionLanguage(i18n.language));
+  const applyCaptions = () => {
+    setCaptionsOpen(false);
+    iStartedCaptions.current = true;
     if (transcribing) {
+      // The transcription listens in one language: to change it, stop it and start it again.
       stopCaptions?.();
+      setTimeout(() => {
+        if (!startCaptions?.(captionLanguage)) appAlert(t(`${K}.captionsUnavailableTitle`), t(`${K}.captionsUnavailableBody`));
+      }, 700);
       return;
     }
-    appAlert(t(`${K}.captionsConsentTitle`), t(`${K}.captionsConsentBody`), [
-      { text: t(`${K}.captionsCancel`), style: 'cancel' },
-      {
-        text: t(`${K}.captionsStart`),
-        onPress: () => {
-          iStartedCaptions.current = true;
-          if (!startCaptions?.()) appAlert(t(`${K}.captionsUnavailableTitle`), t(`${K}.captionsUnavailableBody`));
-        },
-      },
-    ]);
+    if (!startCaptions?.(captionLanguage)) appAlert(t(`${K}.captionsUnavailableTitle`), t(`${K}.captionsUnavailableBody`));
   };
+  const toggleCaptions = () => setCaptionsOpen(true);
   useEffect(() => {
     if (!transcribing) {
       iStartedCaptions.current = false;
@@ -282,6 +283,15 @@ export default function VideoCallScreen() {
           setExtendOpen(true);
         }}
         onDismiss={() => setWarnVisible(false)}
+      />
+      <CaptionsSheet
+        visible={captionsOpen}
+        active={transcribing}
+        language={captionLanguage}
+        onLanguage={setCaptionLanguage}
+        onStart={applyCaptions}
+        onStop={() => { setCaptionsOpen(false); stopCaptions?.(); }}
+        onClose={() => setCaptionsOpen(false)}
       />
       <CallChatSheet visible={chatOpen} lines={chatLines} onSend={sendChat} onClose={() => setChatOpen(false)} />
       <ObdCallSheet

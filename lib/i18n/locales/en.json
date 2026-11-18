@@ -1763,7 +1763,12 @@
           "send": "Send"
         },
         "resizePip": "Make the small picture bigger or smaller",
-        "rotate": "Turn the screen sideways"
+        "rotate": "Turn the screen sideways",
+        "captionsLanguage": "Language",
+        "captionsLanguageHint": "Captions listen in one language for the whole call. Pick the one you will both speak.",
+        "captionsSheetOnTitle": "Live captions are on",
+        "captionsTurnOff": "Turn off",
+        "captionsApply": "Change language"
       },
       "timer": {
         "inProgress": "Call in progress",

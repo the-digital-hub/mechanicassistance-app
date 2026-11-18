@@ -24,7 +24,7 @@ export interface UseDailyCall {
   /** Live captions: the last line said, and whether the transcription is running. */
   transcribing: boolean;
   caption: { id: string; text: string; mine: boolean } | null;
-  startCaptions: () => boolean;
+  startCaptions: (language?: string) => boolean;
   stopCaptions: () => void;
   captionsError: boolean;
   join: (roomUrl: string, token: string) => Promise<void>;
@@ -160,11 +160,11 @@ export function useDailyCall(): UseDailyCall {
 
   // Daily transcribes the whole room once started, so it is the first one to ask who starts it.
   // False when there is no call to start it on (the screen says captions are not available).
-  const startCaptions = useCallback(() => {
+  const startCaptions = useCallback((language?: string) => {
     const call = callRef.current;
     if (!call) return false;
     setCaptionsError(false);
-    try { call.startTranscription(); return true; } catch { setCaptionsError(true); return false; }
+    try { call.startTranscription(language ? { language } : undefined); return true; } catch { setCaptionsError(true); return false; }
   }, []);
 
   const stopCaptions = useCallback(() => {
