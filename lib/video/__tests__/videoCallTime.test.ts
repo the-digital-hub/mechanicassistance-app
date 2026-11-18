@@ -9,6 +9,13 @@ describe('video call times across time zones', () => {
 
     const slot = '2026-11-19T20:00:00.000Z'; // 3:00 PM in New York, 2:00 PM in Chicago, 12:00 PM in Los Angeles
 
+    it('a "now" call that already happened says when, not "now"', () => {
+        const done = '2026-11-18T20:15:00Z';
+        expect(videoCallBookedLabel({ date: '2026-11-18T20:00:00Z', startNow: true }, 'en-US')).toBeNull();
+        expect(videoCallBookedLabel({ date: '2026-11-18T20:00:00Z', startNow: true, startedAt: done }, 'en-US')).toMatch(/3:15 PM/);
+        expect(videoCallBookedLabel({ startNow: true, completedAt: done }, 'en-US')).toMatch(/Nov 18/);
+    });
+
     it('names the zone on a booked call', () => {
         expect(videoCallBookedLabel({ date: slot }, 'en-US')).toMatch(/3:00 PM/);
         expect(videoCallBookedLabel({ date: slot }, 'en-US')).toMatch(/E[SD]T|GMT-5/);

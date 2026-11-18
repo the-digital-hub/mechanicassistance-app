@@ -1,10 +1,11 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { AO } from '@/components/offer/OfferSections';
 import type { PaymentCard } from '@/lib/dao/interfaces';
 import { cardLabel, WALLET_METHOD } from '@/lib/payments/cardLabel';
+import { ChangeBadge } from '@/components/ui/ChangeBadge';
 
 type Props = {
   /** The request's `paymentMethodId`; `'wallet'` is the prepaid wallet. */
@@ -34,13 +35,7 @@ export function PaymentCardValue({ paymentMethodId, card, onChange }: Props) {
       >
         {label}
       </Text>
-      {onChange && (
-        <TouchableOpacity onPress={onChange} hitSlop={8}>
-          <Text className="font-outfit-bold" style={{ color: AO.blue, fontSize: 13 }}>
-            {t('requestAssistance.mechanicFound.change')}
-          </Text>
-        </TouchableOpacity>
-      )}
+      {onChange && <ChangeBadge onPress={onChange} />}
     </View>
   );
 }

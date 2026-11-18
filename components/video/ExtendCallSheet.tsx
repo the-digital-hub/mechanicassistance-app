@@ -13,6 +13,9 @@ import { apiErrorCode } from '@/lib/payments/cardRequired';
 import { formatMoney, pickDefaultSource } from '@/lib/payments/paymentSource';
 import { usePaymentCards } from '@/lib/payments/usePaymentCards';
 import { useWallet } from '@/lib/payments/useWallet';
+import { SHEET } from '@/lib/ui/sheet';
+import { SheetHandle } from '@/components/ui/SheetHandle';
+import { SheetDim } from '@/components/ui/SheetDim';
 
 const K = 'videoCall.extend';
 
@@ -109,11 +112,13 @@ export function ExtendCallSheet({ visible, appointmentId, onClose, onExtended }:
     return (
         <>
             <Modal transparent visible={visible && !pickerOpen && !shortOpen} animationType="slide" onRequestClose={onClose}>
-                <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' }} onPress={busy ? undefined : onClose} />
+              <SheetDim color="rgba(0,0,0,0.4)" />
+                <Pressable style={{ flex: 1 }} onPress={busy ? undefined : onClose} />
                 <View
-                    style={{ backgroundColor: '#fff', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingHorizontal: 20, paddingTop: 18, paddingBottom: 34 }}
+                    style={{ ...SHEET, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 34 }}
                     testID="extend-call-sheet"
                 >
+                    <SheetHandle />
                     <Text className="font-outfit-bold" style={{ fontSize: 17, color: AO.text }}>{t(`${K}.title`)}</Text>
                     <Text className="font-outfit-regular" style={{ fontSize: 13, color: AO.muted, marginTop: 4, lineHeight: 17 }}>
                         {t(`${K}.body`)}

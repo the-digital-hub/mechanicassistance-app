@@ -10,6 +10,9 @@ import { cardLabel, isExpired } from '@/lib/payments/cardLabel';
 import { formatMoney, shortfall, suggestedTopUp } from '@/lib/payments/paymentSource';
 
 import { TopUpForm } from './TopUpSheet';
+import { SHEET } from '@/lib/ui/sheet';
+import { SheetHandle } from '@/components/ui/SheetHandle';
+import { SheetDim } from '@/components/ui/SheetDim';
 
 const K = 'wallet.insufficient';
 
@@ -45,12 +48,14 @@ export function InsufficientFundsSheet({ visible, amount, wallet, cards, busy, o
 
     return (
         <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
+          <SheetDim color="rgba(11,21,48,0.45)" />
             <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-            <Pressable style={{ flex: 1, backgroundColor: 'rgba(11,21,48,0.45)' }} onPress={busy ? undefined : onClose} />
+            <Pressable style={{ flex: 1 }} onPress={busy ? undefined : onClose} />
             <View
-                style={{ backgroundColor: '#fff', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingHorizontal: 20, paddingTop: 18, paddingBottom: 34, maxHeight: '85%' }}
+                style={{ ...SHEET, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 34, maxHeight: '85%' }}
                 testID="insufficient-funds-sheet"
             >
+                <SheetHandle />
                 {busy ? (
                     <View className="items-center" style={{ paddingVertical: 30, gap: 12 }}>
                         <ActivityIndicator color={AO.blue} />

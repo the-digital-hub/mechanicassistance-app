@@ -9,6 +9,7 @@ import { Car, Plus } from 'lucide-react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { VehicleTitle } from '@/components/ui/VehicleTitle';
 
 /** Strips the grouping separators the placeholder suggests ("45,230") before parsing. */
 const parseMileage = (raw: string): number | undefined => {
@@ -123,19 +124,17 @@ export default function SelectVehicleScreen() {
         }
     };
 
-    const vehicleName = (v: Vehicle) => [v.year, v.make, v.model].filter(Boolean).join(' ');
 
     return (
         <View className="flex-1" style={{ backgroundColor: '#F4F6FC' }}>
             <WizardHeader title={getTitle()} onBack={handleBack} />
-            <RequestSteps type={params.type} step="vehicle" />
-
             <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
                 <ScrollView
                     className="flex-1"
                     keyboardShouldPersistTaps="handled"
                     contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 20, paddingBottom: 28, gap: 20 }}
                 >
+                        <RequestSteps type={params.type} step="vehicle" flush />
                     <StepHead
                         eyebrow={t('requestAssistance.selectVehicle.badge')}
                         title={t('requestAssistance.selectVehicle.title')}
@@ -157,7 +156,7 @@ export default function SelectVehicleScreen() {
                                         key={v.id}
                                         on={selected?.id === v.id}
                                         onPress={() => handleSelectVehicle(v)}
-                                        title={vehicleName(v)}
+                                        title={<VehicleTitle vehicle={v} />}
                                         detail={<VehicleIdsRow plate={v.plate} vin={v.vin} plateLabel={t('requestAssistance.selectVehicle.plate')} />}
                                     />
                                 );

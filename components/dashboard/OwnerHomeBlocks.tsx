@@ -231,7 +231,7 @@ export function VehicleCareCard({
     mileageCta,
     onMileage,
 }: {
-    name: string;
+    name: ReactNode;
     /** Plate + VIN badges under the name. */
     ids?: ReactNode;
     canSwitch: boolean;
@@ -318,8 +318,8 @@ export function OwnerSheet({ visible, title, subtitle, onClose, children }: { vi
                 <Animated.View
                     style={{
                         backgroundColor: '#FFFFFF',
-                        borderTopLeftRadius: 26,
-                        borderTopRightRadius: 26,
+                        borderTopLeftRadius: 28,
+                        borderTopRightRadius: 28,
                         paddingHorizontal: 20,
                         paddingTop: 10,
                         paddingBottom: 34,
@@ -343,7 +343,7 @@ export function OwnerSheet({ visible, title, subtitle, onClose, children }: { vi
 }
 
 /** One tappable option of a sheet (service type or vehicle). `gradient` is the blue service card. */
-export function SheetOption({ icon: Icon, title, subtitle, detail, selected, gradient, onPress }: { icon: LucideIcon; title: string; subtitle?: string | null; detail?: ReactNode; selected?: boolean; gradient?: boolean; onPress: () => void }) {
+export function SheetOption({ icon: Icon, title, subtitle, detail, selected, gradient, onPress }: { icon: LucideIcon; title: ReactNode; subtitle?: string | null; detail?: ReactNode; selected?: boolean; gradient?: boolean; onPress: () => void }) {
     if (gradient) {
         return (
             <TouchableOpacity

@@ -72,6 +72,9 @@ describe('VideoCallWhenScreen summary', () => {
         expect(getByText('requestAssistance.when.durationValue:30')).toBeTruthy();
         expect(getByTestId('when-duration-note').props.children).toBe('requestAssistance.when.durationNote:30');
         expect(getByText('requestAssistance.when.waitValue:2')).toBeTruthy();
+        // Neither "Now" nor "Schedule" is marked until the owner picks: the button asks for it.
+        expect(getByText('requestAssistance.when.ctaPickWhen')).toBeTruthy();
+        fireEvent.press(getByTestId('when-option-now'));
         expect(getByText('requestAssistance.when.ctaNow')).toBeTruthy();
     });
 

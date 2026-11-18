@@ -35,6 +35,7 @@ import { ActivityIndicator, Modal, Platform, Pressable, ScrollView, Text, Toucha
 import { LinearGradient } from 'expo-linear-gradient';
 import { appAlert } from '@/lib/ui/appAlert';
 import { TYPE } from '@/lib/ui/type';
+import { VehicleTitle } from '@/components/ui/VehicleTitle';
 
 /** Returns a translation key for the current time of day — resolve with t() at the call site. */
 const getTimeGreetingKey = (): string => {
@@ -918,7 +919,6 @@ export default function DashboardScreen() {
 
     // ── Vehicle care & activity ──
     const vehicle = vehicles.find((v) => v.id === vehicleId) ?? vehicles[0];
-    const vehicleName = (v: Vehicle) => [v.year, v.make, v.model].filter(Boolean).join(' ');
     const vehicleShort = (a: Appointment) => a.car || '';
     const recent = appointments
         .filter((a) => a.status === 'completed')
@@ -1053,7 +1053,7 @@ export default function DashboardScreen() {
                     <View style={{ marginTop: 24 }}>
                         <OwnerSectionTitle title={t('dashboard.user.vehicleCare.title')} />
                         <VehicleCareCard
-                            name={vehicleName(vehicle)}
+                            name={<VehicleTitle vehicle={vehicle} />}
                             ids={<VehicleIdsRow plate={vehicle.plate} vin={vehicle.vin} plateLabel={t('requestAssistance.selectVehicle.plate')} />}
                             canSwitch={vehicles.length > 1}
                             onSwitch={() => setSheet('vehicle')}
@@ -1104,7 +1104,7 @@ export default function DashboardScreen() {
                         <SheetOption
                             key={v.id}
                             icon={Car}
-                            title={vehicleName(v)}
+                            title={<VehicleTitle vehicle={v} />}
                             detail={<VehicleIdsRow plate={v.plate} vin={v.vin} plateLabel={t('requestAssistance.selectVehicle.plate')} />}
                             selected={v.id === vehicle?.id}
                             onPress={() => { setVehicleId(v.id ?? null); setSheet(null); }}

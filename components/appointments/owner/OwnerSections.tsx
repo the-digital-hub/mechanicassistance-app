@@ -1,5 +1,4 @@
 import { PulseDot } from '@/components/appointments/MechanicArrivalCard';
-import { refLabel } from '@/lib/refCode';
 import { AO, card, IconName, RequestSummaryRows, Stars, SummaryRow } from '@/components/offer/OfferSections';
 import { formatEtaTime } from '@/hooks/useAppointmentEta';
 import { formatLocalDateTime } from '@/lib/video/videoCallTime';
@@ -12,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { OwnerRouteMap } from './OwnerRouteMap';
+import { type ChatAvailability } from '@/lib/chat/chatAvailability';
 
 /* Owner's "Assistance accepted" screen (Vehicle Owner — Assistance Accepted design). */
 
@@ -22,7 +22,7 @@ type Mechanic = AssistanceOfferSummary['mechanic'];
 export type OwnerTab = 'status' | 'checkin' | 'info' | 'obd' | 'mechanic' | 'budget';
 
 /** `title`/`icon`/`color` override the default "Assistance accepted" (a video call reflects its close-out state). */
-export function AcceptedHeader({ id, refCode, title, icon = 'checkmark', color = AO.green }: { id: string; refCode?: string; title?: string; icon?: IconName; color?: string }) {
+export function AcceptedHeader({ title, icon = 'checkmark', color = AO.green }: { title?: string; icon?: IconName; color?: string }) {
     const { t } = useTranslation();
     return (
         <View className="flex-row items-center" style={{ gap: 12 }}>
@@ -31,14 +31,33 @@ export function AcceptedHeader({ id, refCode, title, icon = 'checkmark', color =
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>
                 <Text className="font-outfit-bold" style={{ fontSize: 22, color: AO.text, letterSpacing: -0.6 }} testID="owner-accepted-title">{title ?? t(`${K}.title`)}</Text>
-                <Text style={{ fontSize: 13, color: AO.mutedLight, marginTop: 2, fontFamily: 'Menlo' }}>ID: {refLabel(refCode, id)}</Text>
             </View>
         </View>
     );
 }
 
+/**
+ * The chat button of the technician / client cards. Greyed when the chat cannot take messages: `closed` (the job ended)
+ * still opens, read-only, so the history stays reachable; `unavailable` (nobody accepted yet) does nothing.
+ */
+function ChatButton({ onPress, availability, label, testID }: { onPress: () => void; availability: ChatAvailability; label: string; testID: string }) {
+    const off = availability !== 'open';
+    return (
+        <TouchableOpacity
+            onPress={onPress}
+            disabled={availability === 'unavailable'}
+            accessibilityLabel={label}
+            accessibilityState={{ disabled: off }}
+            style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: off ? '#F1F3F8' : AO.blueSoft, alignItems: 'center', justifyContent: 'center' }}
+            testID={testID}
+        >
+            <Ionicons name="chatbubble-ellipses-outline" size={18} color={off ? '#A8B0C2' : AO.blue} />
+        </TouchableOpacity>
+    );
+}
+
 /** The assigned technician, with a chat button: contact goes through the in-app chat, there is no call button. */
-export function OwnerMechanicCard({ mechanic, onMessage }: { mechanic: Mechanic | null; onMessage: () => void }) {
+export function OwnerMechanicCard({ mechanic, onMessage, chat = 'open' }: { mechanic: Mechanic | null; onMessage: () => void; chat?: ChatAvailability }) {
     const { t } = useTranslation();
     return (
         <View style={[card, { borderRadius: 16, padding: 10, paddingLeft: 12, flexDirection: 'row', alignItems: 'center', gap: 10 }]} testID="owner-mechanic-card">
@@ -62,9 +81,7 @@ export function OwnerMechanicCard({ mechanic, onMessage }: { mechanic: Mechanic 
                     {mechanic?.avgRating != null && <Stars rating={mechanic.avgRating} />}
                 </View>
             </View>
-            <TouchableOpacity onPress={onMessage} accessibilityLabel={t(`${K}.message`)} style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: AO.blueSoft, alignItems: 'center', justifyContent: 'center' }} testID="owner-message-button">
-                <Ionicons name="chatbubble-ellipses-outline" size={18} color={AO.blue} />
-            </TouchableOpacity>
+            <ChatButton onPress={onMessage} availability={chat} label={t(`${K}.message`)} testID="owner-message-button" />
         </View>
     );
 }
@@ -332,7 +349,7 @@ type ClientLike = (Partial<Client> & Pick<Client, 'displayName'>) | null;
  * The mechanic's header card for the vehicle owner — the counterpart of `OwnerMechanicCard`,
  * shown above the sub-navbar. Chat only: no call button.
  */
-export function MechanicClientCard({ client, onMessage }: { client: ClientLike; onMessage: () => void }) {
+export function MechanicClientCard({ client, onMessage, chat = 'open' }: { client: ClientLike; onMessage: () => void; chat?: ChatAvailability }) {
     const { t } = useTranslation();
     if (!client) return null;
     return (
@@ -357,9 +374,7 @@ export function MechanicClientCard({ client, onMessage }: { client: ClientLike; 
                     {client.avgRating != null && <Stars rating={client.avgRating} />}
                 </View>
             </View>
-            <TouchableOpacity onPress={onMessage} accessibilityLabel={t(`${K}.message`)} style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: AO.blueSoft, alignItems: 'center', justifyContent: 'center' }} testID="mechanic-client-message">
-                <Ionicons name="chatbubble-ellipses-outline" size={18} color={AO.blue} />
-            </TouchableOpacity>
+            <ChatButton onPress={onMessage} availability={chat} label={t(`${K}.message`)} testID="mechanic-client-message" />
         </View>
     );
 }

@@ -59,6 +59,7 @@ import {
 import { categoryIcon } from '@/lib/ui/categoryIcon';
 import { PickCard, PickChildren, PickGroup, PickItem, PickList, PickedChips, SearchField } from './picker';
 import { CARD_STYLE, Checkbox, ChoiceCard, Chip, FieldLabel, Note, SC, StepHead, TextField, VehicleIdsRow } from './ui';
+import { VehicleTitle } from '@/components/ui/VehicleTitle';
 
 const SLOT_MIN = 6 * 60;
 const SLOT_MAX = 21 * 60;
@@ -126,8 +127,7 @@ export function VehicleStep({
             ) : (
                 <View style={{ gap: 10 }}>
                     {vehicles.map((v) => {
-                        const name = [v.year, v.make, v.model].filter(Boolean).join(' ');
-                        return <ChoiceCard key={v.id} on={draft.vehicleId === v.id} onPress={() => onPick(v)} title={name} detail={<VehicleIdsRow plate={v.plate} vin={v.vin} plateLabel={t('scheduled.vehicle.plate')} />} />;
+                        return <ChoiceCard key={v.id} on={draft.vehicleId === v.id} onPress={() => onPick(v)} title={<VehicleTitle vehicle={v} />} detail={<VehicleIdsRow plate={v.plate} vin={v.vin} plateLabel={t('scheduled.vehicle.plate')} />} />;
                     })}
                     <TouchableOpacity onPress={onAddVehicle} accessibilityRole="button" className="flex-row items-center justify-center" style={{ gap: 8, paddingVertical: 13, borderRadius: 16, borderWidth: 1.5, borderColor: SC.border }}>
                         <Plus size={16} color={SC.blue} />

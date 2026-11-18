@@ -4,6 +4,9 @@ import { useTranslation } from 'react-i18next';
 import { Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
 
 import { AO } from '@/components/offer/OfferSections';
+import { SHEET } from '@/lib/ui/sheet';
+import { SheetHandle } from '@/components/ui/SheetHandle';
+import { SheetDim } from '@/components/ui/SheetDim';
 
 const K = 'appointments.videoCall.live';
 
@@ -36,8 +39,10 @@ export function CaptionsSheet({ visible, active, language, onLanguage, onStart, 
     const { t } = useTranslation();
     return (
         <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
-            <Pressable style={{ flex: 1, backgroundColor: 'rgba(11,21,48,0.45)' }} onPress={onClose} />
-            <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingHorizontal: 20, paddingTop: 18, paddingBottom: 32 }} testID="captions-sheet">
+          <SheetDim color="rgba(11,21,48,0.45)" />
+            <Pressable style={{ flex: 1 }} onPress={onClose} />
+            <View style={{ ...SHEET, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 32 }} testID="captions-sheet">
+                <SheetHandle />
                 <Text className="font-outfit-bold" style={{ fontSize: 18, color: AO.text }}>
                     {t(active ? `${K}.captionsSheetOnTitle` : `${K}.captionsConsentTitle`)}
                 </Text>

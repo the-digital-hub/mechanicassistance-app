@@ -219,7 +219,7 @@
       "sheet": {
         "title": "Pedir asistencia",
         "immediate": "Un mecánico cercano enviado de inmediato",
-        "scheduled": "Pedí cotizaciones y elegí la fecha que te convenga",
+        "scheduled": "Pedí cotizaciones para tu fecha",
         "videoCall": "Resolvelo con un mecánico guiándote desde tu teléfono",
         "subtitle": "¿Cómo querés que te ayuden?"
       },
@@ -765,7 +765,10 @@
       "durationMinutes": "minutos",
       "onlineBadge": "Disponibles ahora",
       "nowSubtitleSoft": "Suele conectar en pocos minutos",
-      "consentNote": "Los subtítulos en vivo y una transcripción escrita solo existen si vos y el técnico aceptan durante la llamada. Vas a confirmar estas condiciones otra vez antes de entrar a la llamada."
+      "consentNote": "Los subtítulos en vivo y una transcripción escrita solo existen si vos y el técnico aceptan durante la llamada. Vas a confirmar estas condiciones otra vez antes de entrar a la llamada.",
+      "durationShort": "{{count}} min",
+      "whenTitle": "¿Cuándo querés la llamada?",
+      "ctaPickWhen": "Elegí cuándo"
     },
     "cardRequired": {
       "title": "Agregá una tarjeta",
@@ -777,11 +780,11 @@
       "headerTitle": "Scanner OBD",
       "skip": "Saltar",
       "badge": "VIDEOLLAMADA",
-      "title": "¿Tenés un scanner OBD?",
-      "subtitle": "Si tenés uno, mandale al mecánico los códigos de falla que lee. Los va a ver antes de empezar la llamada.",
-      "yesTitle": "Sí, tengo",
+      "title": "¿Podés escanear tu auto con un scanner OBD?",
+      "subtitle": "Lee los códigos de falla del auto. Si podés, mandá el reporte: el mecánico lo ve antes de empezar la llamada.",
+      "yesTitle": "Sí, lo escaneo",
       "yesSubtitle": "Lo conecto y mando el reporte",
-      "noTitle": "No tengo",
+      "noTitle": "No puedo",
       "noSubtitle": "El mecánico lo diagnostica en la llamada",
       "howTitle": "Cómo hacerlo",
       "steps": {

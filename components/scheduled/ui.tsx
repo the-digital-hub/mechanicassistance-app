@@ -131,7 +131,7 @@ export function ChoiceCard({
     on: boolean;
     onPress: () => void;
     icon?: LucideIcon;
-    title: string;
+    title: ReactNode;
     sub?: string;
     badge?: string;
     /** Extra content under the sub line (e.g. a VIN row). */

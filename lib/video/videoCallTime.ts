@@ -95,15 +95,21 @@ export function formatLocalDateTime(value: string | Date | null | undefined, loc
 
 /**
  * The booked local date/time of a video call, or null when it was asked for
- * "now" (`startNow`, whose `date` is only its creation time) or carries no
- * usable date — the caller shows its own "Now" label then. Unlike
+ * "now" (`startNow`, whose `date` is only its creation time) and has not taken
+ * place yet — the caller shows its own "Now" label then. A "now" call that has
+ * started or finished gives the day and time it happened. Unlike
  * `videoCallStartLabel`, a booked slot that has already started keeps its date.
  */
 export function videoCallBookedLabel(
-    call: { date?: string | null; startNow?: boolean | null } | null | undefined,
+    call: { date?: string | null; startNow?: boolean | null; startedAt?: string | null; completedAt?: string | null } | null | undefined,
     locale?: string,
 ): string | null {
-    if (!call || call.startNow) return null;
+    if (!call) return null;
+    if (call.startNow) {
+        // Asked for "now": once it happened, "Now" says nothing, so give the day and time it took place.
+        const happened = call.startedAt || call.completedAt;
+        return happened ? formatZonedDateTime(happened, locale) || null : null;
+    }
     // With the zone's name: whoever reads it may be in another zone than the owner who booked it.
     return formatZonedDateTime(call.date, locale) || null;
 }

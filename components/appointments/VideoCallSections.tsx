@@ -17,10 +17,13 @@ const K = 'appointments.videoCall';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
-/** "Scheduled for <local date time>"; "When: Now" for a call asked for now or with no usable date. */
-export function VideoCallWhenCard({ date, startNow }: { date?: string | null; startNow?: boolean }) {
+/**
+ * "Scheduled for <local date time>"; "When: <date and time>" for a call asked for now that already took place;
+ * "When: Now" only while a "now" call has not started.
+ */
+export function VideoCallWhenCard({ date, startNow, startedAt, completedAt }: { date?: string | null; startNow?: boolean; startedAt?: string | null; completedAt?: string | null }) {
     const { t, i18n } = useTranslation();
-    const booked = videoCallBookedLabel({ date, startNow }, i18n.language);
+    const booked = videoCallBookedLabel({ date, startNow, startedAt, completedAt }, i18n.language);
     const label = booked ?? t('requestDetail.videoCallNow');
     return (
         <View style={[card, { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14 }]} testID="video-call-when">
@@ -28,7 +31,7 @@ export function VideoCallWhenCard({ date, startNow }: { date?: string | null; st
                 <Ionicons name="calendar-outline" size={19} color={AO.blue} />
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>
-                <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 0.8, color: AO.muted }}>{booked ? t(`${K}.scheduledFor`).toUpperCase() : t('requestDetail.videoCallWhen')}</Text>
+                <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 0.8, color: AO.muted }}>{booked && !startNow ? t(`${K}.scheduledFor`).toUpperCase() : t('requestDetail.videoCallWhen')}</Text>
                 <Text className="font-outfit-bold" style={{ fontSize: 15, color: AO.text, marginTop: 2 }}>{label}</Text>
             </View>
         </View>

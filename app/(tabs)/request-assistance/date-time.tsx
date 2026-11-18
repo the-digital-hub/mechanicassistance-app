@@ -1,7 +1,7 @@
+import { Footer } from '@/components/scheduled/ui';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
 import React, { useMemo, useState } from 'react';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
@@ -112,7 +112,7 @@ export default function DateTimeScreen() {
                 <View className="w-6" />
             </View>
 
-            <ScrollView className="flex-1 px-6 pt-6">
+            <ScrollView className="flex-1 px-6 pt-6" contentContainerStyle={{ paddingBottom: 24 }}>
                 <View
                     className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full"
                     style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}
@@ -204,33 +204,9 @@ export default function DateTimeScreen() {
                         })}
                     </View>
                 )}
-
-                <TouchableOpacity
-                    onPress={handleContinue}
-                    disabled={!canContinue}
-                    activeOpacity={0.8}
-                    style={{ opacity: canContinue ? 1 : 0.6 }}
-                >
-                    <LinearGradient
-                        colors={canContinue ? ['#2B66F8', '#081E72'] : ['#9CA3AF', '#6B7280']}
-                        start={{ x: 0, y: 1 }}
-                        end={{ x: 1, y: 0 }}
-                        style={{
-                            borderRadius: 10,
-                            paddingVertical: 16,
-                            paddingHorizontal: 16,
-                            marginBottom: 32,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        }}
-                    >
-                        <Text className="text-white font-outfit-bold text-[18px] text-center">
-                            {t('requestAssistance.dateTime.continue')}
-                        </Text>
-                    </LinearGradient>
-                </TouchableOpacity>
             </ScrollView>
+
+            <Footer label={t('requestAssistance.dateTime.continue')} disabled={!canContinue} onPress={handleContinue} />
         </View>
     );
 }

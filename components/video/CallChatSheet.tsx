@@ -5,6 +5,7 @@ import { FlatList, KeyboardAvoidingView, Modal, Platform, Pressable, Text, TextI
 
 import { AO } from '@/components/offer/OfferSections';
 import type { ChatLine } from '@/lib/video/callMessages';
+import { SheetDim } from '@/components/ui/SheetDim';
 
 const K = 'appointments.videoCall.live.chat';
 
@@ -26,8 +27,9 @@ export function CallChatSheet({ visible, lines, onSend, onClose }: {
 
     return (
         <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
+          <SheetDim color="rgba(11,21,48,0.35)" />
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-                <Pressable style={{ flex: 1, backgroundColor: 'rgba(11,21,48,0.35)' }} onPress={onClose} />
+                <Pressable style={{ flex: 1 }} onPress={onClose} />
                 <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: '70%', overflow: 'hidden' }} testID="call-chat-sheet">
                     <View
                         className="flex-row items-center"

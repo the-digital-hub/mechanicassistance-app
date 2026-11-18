@@ -40,6 +40,7 @@ import {
     type ScheduledLocation,
 } from '@/lib/scheduled/draft';
 import { appAlert } from '@/lib/ui/appAlert';
+import { vehicleLine } from '@/components/ui/VehicleTitle';
 
 const STEP_KEYS = ['vehicle', 'location', 'services', 'availability', 'review'] as const;
 
@@ -201,7 +202,7 @@ export default function ScheduledRequestScreen() {
     const pickVehicle = (v: Vehicle) =>
         patch({
             vehicleId: v.id ?? null,
-            vehicleName: [v.year, v.make, v.model].filter(Boolean).join(' '),
+            vehicleName: vehicleLine(v),
             // Pre-fill with the last known reading so the owner only edits it when it changed.
             mileage: v.mileage != null ? String(v.mileage) : '',
         });
@@ -402,8 +403,6 @@ export default function ScheduledRequestScreen() {
                 onClose={() => setCardRequired(false)}
             />
             <WizardHeader title={t('scheduled.title')} onBack={handleBack} />
-            <Timeline steps={STEP_KEYS.map((key) => ({ key, label: t(`scheduled.steps.${key}`) }))} current={step - 1} />
-
             <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
                 <ScrollView
                     ref={scrollRef}
@@ -411,6 +410,7 @@ export default function ScheduledRequestScreen() {
                     keyboardShouldPersistTaps="handled"
                     contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 20, paddingBottom: 28, gap: 20 }}
                 >
+                        <Timeline steps={STEP_KEYS.map((key) => ({ key, label: t(`scheduled.steps.${key}`) }))} current={step - 1} flush />
                     {restored ? (
                         <View className="flex-row items-center justify-between" style={{ gap: 12 }}>
                             <View style={{ flex: 1 }}>

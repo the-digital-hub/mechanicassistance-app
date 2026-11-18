@@ -18,13 +18,16 @@ import {
     Scale,
     ScanSearch,
     Star,
+    Trash2,
     TriangleAlert,
     Video,
     Wrench,
     X,
     type LucideIcon,
 } from 'lucide-react-native';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { useTranslation } from 'react-i18next';
 import { Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { appAlert } from '@/lib/ui/appAlert';
@@ -78,6 +81,17 @@ function NotificationIcon({ kind, unread }: { kind: string; unread: boolean }) {
                     }}
                 />
             )}
+        </View>
+    );
+}
+
+/** What a swipe to the left uncovers: a red tile that says what letting go will do. */
+function DeleteAction() {
+    const { t } = useTranslation();
+    return (
+        <View style={{ width: 96, backgroundColor: '#E5484D', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+            <Trash2 size={22} color="#FFFFFF" />
+            <Text className="font-outfit-semibold" style={{ fontSize: 13, color: '#FFFFFF' }}>{t('notifications.delete')}</Text>
         </View>
     );
 }
@@ -144,7 +158,7 @@ export default function NotificationsScreen() {
     };
 
     return (
-        <View className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
+        <GestureHandlerRootView className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
             <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
                 <View className="px-6 pt-4 pb-4">
                     {/* Section Badge */}
@@ -208,9 +222,19 @@ export default function NotificationsScreen() {
                         </View>
                     ) : (
                         filteredNotifications.map((notif) => (
-                            <TouchableOpacity
+                            // Swipe to the left to delete: letting go past the halfway mark removes it.
+                            <Swipeable
                                 key={notif.id}
+                                friction={1.6}
+                                overshootRight={false}
+                                rightThreshold={72}
+                                renderRightActions={() => <DeleteAction />}
+                                onSwipeableOpen={(direction) => { if (direction === 'right' || direction === 'left') void deleteAndReport([notif.id]); }}
+                                containerStyle={{ backgroundColor: '#E5484D' }}
+                            >
+                            <TouchableOpacity
                                 className={`px-6 py-5 border-b border-gray-50 flex-row gap-4 ${notif.unread ? 'bg-blue-50/30' : ''}`}
+                                style={{ backgroundColor: notif.unread ? '#F2F7FF' : '#F6F8FC' }}
                                 onPress={() => handleNotificationPress(notif)}
                                 activeOpacity={notif.requestId ? 0.7 : 1}
                             >
@@ -239,10 +263,11 @@ export default function NotificationsScreen() {
                                     </View>
                                 </View>
                             </TouchableOpacity>
+                            </Swipeable>
                         ))
                     )}
                 </View>
             </ScrollView>
-        </View>
+        </GestureHandlerRootView>
     );
 }

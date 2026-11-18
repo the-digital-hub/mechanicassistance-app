@@ -3,9 +3,9 @@ import { Car, ClipboardList, Clock, MapPin, ShieldCheck } from 'lucide-react-nat
 import { useTranslation } from 'react-i18next';
 import { Text, TouchableOpacity, View } from 'react-native';
 
-import { refLabel } from '@/lib/refCode';
 import type { AppointmentStatus } from '@/context/AppointmentsContext';
 import type { AssistanceType } from '@/lib/dao/interfaces';
+import { RequestIdRow } from '@/components/ui/RequestIdRow';
 
 interface UserRequestCardProps {
     id: string;
@@ -220,7 +220,7 @@ export function UserRequestCard({
                     onPress={onPress}
                     activeOpacity={0.85}
                     style={{
-                        flex: canCancel ? 0.7 : 1,
+                        flex: 1,
                         borderRadius: 14,
                         backgroundColor: '#1E56E3',
                         shadowColor: '#1E56E3',
@@ -246,24 +246,9 @@ export function UserRequestCard({
                         </Text>
                     </LinearGradient>
                 </TouchableOpacity>
-
-                {canCancel && (
-                    <TouchableOpacity
-                        onPress={onCancel}
-                        activeOpacity={0.85}
-                        className="items-center justify-center border-2"
-                        style={{ flex: 0.3, borderRadius: 14, borderColor: '#FCA5A5', backgroundColor: '#FEF0F0' }}
-                    >
-                        <Text className="text-red-500 font-outfit-bold text-sm">
-                            {t('dashboard.user.cancelRequest')}
-                        </Text>
-                    </TouchableOpacity>
-                )}
             </View>
 
-            <Text className="font-mono text-right" style={{ fontSize: 12, letterSpacing: 0.5, color: '#8C96AE', marginTop: 10 }}>
-                {refLabel(refCode, id)}
-            </Text>
+            <RequestIdRow id={id} refCode={refCode} onCancel={canCancel ? onCancel : undefined} style={{ marginTop: 12 }} />
         </View>
     );
 }

@@ -5,6 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
 
 import type { AddableRole } from '@/lib/dao/interfaces';
+import { SHEET } from '@/lib/ui/sheet';
+import { SheetDim } from '@/components/ui/SheetDim';
 
 const C = {
     blue: '#1E56E3',
@@ -61,9 +63,10 @@ export function SwitchRoleSheet({ visible, current, held, onClose, onPick }: {
 
     return (
         <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
-            <Pressable style={{ flex: 1, backgroundColor: 'rgba(11,21,48,0.45)' }} onPress={onClose} />
+          <SheetDim color="rgba(11,21,48,0.45)" />
+            <Pressable style={{ flex: 1 }} onPress={onClose} />
             <View
-                style={{ backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingHorizontal: 16, paddingTop: 10, paddingBottom: 34 }}
+                style={{ ...SHEET, paddingHorizontal: 16, paddingTop: 10, paddingBottom: 34 }}
                 testID="switch-role-sheet"
             >
                 <View style={{ width: 40, height: 5, borderRadius: 4, backgroundColor: C.border, alignSelf: 'center', marginBottom: 16 }} />

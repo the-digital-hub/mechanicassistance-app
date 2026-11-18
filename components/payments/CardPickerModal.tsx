@@ -10,6 +10,9 @@ import type { Wallet } from '@/lib/dao/WalletDAO';
 import { WALLET_METHOD, cardLabel, isExpired } from '@/lib/payments/cardLabel';
 import { RETURN_TO_BACK } from '@/lib/payments/cardRequired';
 import { formatMoney, walletCovers } from '@/lib/payments/paymentSource';
+import { SHEET } from '@/lib/ui/sheet';
+import { SheetHandle } from '@/components/ui/SheetHandle';
+import { SheetDim } from '@/components/ui/SheetDim';
 
 type Props = {
   visible: boolean;
@@ -42,18 +45,18 @@ export function CardPickerModal({ visible, cards, selectedId, onSelect, onClose,
 
   return (
     <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
-      <Pressable style={{ flex: 1, backgroundColor: 'rgba(11,21,48,0.45)' }} onPress={onClose} />
+      <SheetDim color="rgba(11,21,48,0.45)" />
+      <Pressable style={{ flex: 1 }} onPress={onClose} />
       <View
         style={{
-          backgroundColor: '#fff',
-          borderTopLeftRadius: 22,
-          borderTopRightRadius: 22,
+          ...SHEET,
           paddingHorizontal: 20,
-          paddingTop: 18,
+          paddingTop: 12,
           paddingBottom: 34,
           maxHeight: '70%',
         }}
       >
+        <SheetHandle />
         <Text className="font-outfit-bold" style={{ fontSize: 17, color: AO.text, marginBottom: 12 }}>
           {t('paymentCards.picker.title')}
         </Text>

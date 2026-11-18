@@ -18,6 +18,7 @@ import { ScrollPressGuardContext } from '@/hooks/useScrollPressGuard';
 import { AppointmentMechanic, useAppointmentMechanic } from '@/hooks/useAppointmentMechanic';
 import { Stars } from '@/components/offer/OfferSections';
 import { useCountdown } from '@/hooks/useCountdown';
+import { RequestIdRow } from '@/components/ui/RequestIdRow';
 
 interface AppointmentCardProps {
     appointment: Appointment;
@@ -96,11 +97,13 @@ function InfoRows({ rows }: { rows: { icon: LucideIcon; label: string; value?: s
     );
 }
 
-function TechnicianRow({ mechanic, label, onMessage, messageLabel }: {
+function TechnicianRow({ mechanic, label, onMessage, messageLabel, chatClosed = false }: {
     mechanic: AppointmentMechanic;
     label: string;
     onMessage?: () => void;
     messageLabel: string;
+    /** The job ended: the chat opens read-only, so its button is greyed. */
+    chatClosed?: boolean;
 }) {
     const { t } = useTranslation();
     return (
@@ -141,9 +144,9 @@ function TechnicianRow({ mechanic, label, onMessage, messageLabel }: {
                     onPress={onMessage}
                     activeOpacity={0.8}
                     className="items-center justify-center"
-                    style={{ width: 38, height: 38, borderRadius: 11, backgroundColor: C.blueSoft }}
+                    style={{ width: 38, height: 38, borderRadius: 11, backgroundColor: chatClosed ? '#F1F3F8' : C.blueSoft }}
                 >
-                    <MessageSquare size={17} color={C.blue} />
+                    <MessageSquare size={17} color={chatClosed ? '#A8B0C2' : C.blue} />
                 </TouchableOpacity>
             )}
         </View>
@@ -319,7 +322,8 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
             ? t('appointments.list.card.viewReceipt')
             : t('appointments.list.card.viewDetails');
 
-    const canMessage = !isPast && appointment.source === 'appointment';
+    // Past jobs keep a greyed button: the chat opens read-only so the history stays reachable.
+    const canMessage = appointment.source === 'appointment';
     const openChat = guardPress(() => router.push(`/chat/${appointment.id}`));
 
     // The offer summary is owner-only, and needs a mechanic on the request.
@@ -391,6 +395,7 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
                         mechanic={mechanic}
                         label={t(isPast ? 'appointments.list.card.technician' : 'appointments.list.card.assignedTechnician')}
                         onMessage={canMessage ? openChat : undefined}
+                        chatClosed={isPast}
                         messageLabel={t('appointments.list.card.message')}
                     />
                 </View>
@@ -449,15 +454,8 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
                 )}
             </View>
 
-            {/* Footer: id + cancel */}
-            <View className="flex-row items-center justify-between mt-2.5">
-                <Text style={{ fontFamily: MONO, fontSize: 13, color: C.mutedLight }}>{refLabel(appointment.refCode, appointment.id)}</Text>
-                {!isPast && (
-                    <TouchableOpacity onPress={guardPress(() => onCancel(appointment.id))} hitSlop={8}>
-                        <Text className="font-outfit-bold text-[13px]" style={{ color: C.red }}>{t('appointments.list.card.cancelRequest')}</Text>
-                    </TouchableOpacity>
-                )}
-            </View>
+            {/* Footer: id + cancel, the same row everywhere */}
+            <RequestIdRow id={appointment.id} refCode={appointment.refCode} onCancel={!isPast ? guardPress(() => onCancel(appointment.id)) : undefined} style={{ marginTop: 10 }} />
         </TouchableOpacity>
     );
 }

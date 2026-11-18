@@ -76,16 +76,16 @@ export function MechanicVideoStatusTab({ status, callStarted, notResolved, revie
                                     borderRadius: 16,
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    backgroundColor: done ? AO.green : current ? AO.blue : '#F1F3F8',
+                                    backgroundColor: done ? '#DDF1E7' : current ? '#DCE6FB' : '#F1F3F8',
                                 }}
                             >
                                 {done ? (
-                                    <Ionicons name="checkmark" size={18} color="#FFFFFF" />
+                                    <Ionicons name="checkmark" size={17} color="#2E9468" />
                                 ) : (
-                                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: current ? '#FFFFFF' : AO.mutedLight }}>{i + 1}</Text>
+                                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: current ? AO.blue : AO.mutedLight }}>{i + 1}</Text>
                                 )}
                             </View>
-                            {!last ? <View style={{ flex: 1, width: 2, marginVertical: 4, backgroundColor: done ? AO.green : '#E6EAF3', minHeight: 20 }} /> : null}
+                            {!last ? <View style={{ flex: 1, width: 2, marginVertical: 4, backgroundColor: done ? '#BFE3D0' : '#E6EAF3', minHeight: 20 }} /> : null}
                         </View>
                         <View style={{ flex: 1, paddingBottom: last ? 0 : 18 }}>
                             <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: step.state === 'pending' ? AO.mutedLight : AO.text }}>{step.title}</Text>

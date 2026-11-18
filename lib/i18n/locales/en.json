@@ -219,7 +219,7 @@
       "sheet": {
         "title": "Request assistance",
         "immediate": "A nearby technician dispatched right away",
-        "scheduled": "Request quotes and pick a date that works for you",
+        "scheduled": "Get quotes for the date you pick",
         "videoCall": "Talk a technician through it from your phone",
         "subtitle": "How do you want to be helped?"
       },
@@ -764,7 +764,10 @@
       "durationMinutes": "minutes",
       "onlineBadge": "Available now",
       "nowSubtitleSoft": "Usually connects within a few minutes",
-      "consentNote": "Live captions and a written transcript only exist if you and the technician both accept during the call. You will confirm these conditions again before entering the call."
+      "consentNote": "Live captions and a written transcript only exist if you and the technician both accept during the call. You will confirm these conditions again before entering the call.",
+      "durationShort": "{{count}} min",
+      "whenTitle": "When do you want the call?",
+      "ctaPickWhen": "Choose when"
     },
     "cardRequired": {
       "title": "Add a card",
@@ -776,11 +779,11 @@
       "headerTitle": "OBD scanner",
       "skip": "Skip",
       "badge": "VIDEO CALL",
-      "title": "Do you have an OBD scanner?",
-      "subtitle": "If you have one, send the technician the trouble codes it reads. They'll see them before the call starts.",
-      "yesTitle": "Yes, I have one",
+      "title": "Can you scan your car with an OBD scanner?",
+      "subtitle": "It reads your car's trouble codes. If you can, send the report: the technician will see it before the call starts.",
+      "yesTitle": "Yes, I'll scan it",
       "yesSubtitle": "I'll plug it in and send the report",
-      "noTitle": "No, I don't",
+      "noTitle": "No, I can't",
       "noSubtitle": "The technician will diagnose it on the call",
       "howTitle": "How to do it",
       "steps": {

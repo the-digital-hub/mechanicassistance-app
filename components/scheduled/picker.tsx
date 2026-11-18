@@ -27,16 +27,14 @@ export function PickReveal({ children }: { children: React.ReactNode }) {
 }
 
 /** Three levels, told apart by background: white (category) > soft tint (what is inside it) > a white inset card (the options). */
-const TINT = '#E1EAFB';
+const TINT = '#E9F0FC';
 /** `soft` is the lightest blue: the options inside a subcategory, a step apart from the band of the subcategories. */
 export type PickTone = 'white' | 'tint' | 'soft';
 /** The separators: hairlines, very light, a little darker than the background they are on. */
-const TINT_LINE = 'rgba(150,178,228,0.28)';
+const TINT_LINE = 'rgba(150,178,228,0.22)';
 const SOFT_LINE = 'rgba(150,178,228,0.2)';
 /** A picked row on the band: a deeper blue than the band itself, never white. */
-const TINT_ON = '#D3E2FB';
 const SOFT = '#F4F8FE';
-const SOFT_ON = '#E4EEFF';
 
 /** The tinted band that holds what is inside an open category. */
 export function PickChildren({ children }: { children: React.ReactNode }) {
@@ -70,14 +68,14 @@ export function PickOptions({ children }: { children: React.ReactNode }) {
     );
 }
 
-/** A round check: empty ring, or filled blue with a tick. */
+/** A round check: empty ring, or a soft light-blue disc with a muted blue tick. */
 export function PickCheck({ on }: { on: boolean }) {
     return (
         <View
             className="items-center justify-center"
-            style={{ width: 26, height: 26, borderRadius: 13, borderWidth: 2, borderColor: on ? SC.blue : '#C9D2E3', backgroundColor: on ? SC.blue : '#FFFFFF' }}
+            style={{ width: 26, height: 26, borderRadius: 13, borderWidth: 2, borderColor: on ? '#B7C9F2' : '#C9D2E3', backgroundColor: on ? '#DCE6FB' : '#FFFFFF' }}
         >
-            {on ? <Check size={15} color="#FFFFFF" strokeWidth={3.5} /> : null}
+            {on ? <Check size={15} color="#3F6FD8" strokeWidth={3.5} /> : null}
         </View>
     );
 }
@@ -211,7 +209,7 @@ export function PickGroup({ icon: Icon, title, count, open, onPress, first, dept
     );
 }
 
-/** One thing to pick: a round check and its name; a soft tint when picked. */
+/** One thing to pick: a round check and its name. Picked: the name turns blue and the check fills; the row's background stays. */
 export function PickItem({ label, details, on, onPress, depth = 0, first, tone = 'white', icon: Icon }: {
     label: string;
     /** An icon for the row: it goes in a tile before the name, and the check moves to the right. */
@@ -230,10 +228,10 @@ export function PickItem({ label, details, on, onPress, depth = 0, first, tone =
             accessibilityRole="checkbox"
             accessibilityState={{ checked: on }}
             className="flex-row items-center"
-            style={{ paddingVertical: 14, paddingRight: 14, paddingLeft: 14 + depth * 20, gap: 12, backgroundColor: on ? (tone === 'tint' ? TINT_ON : tone === 'soft' ? SOFT_ON : SC.blueSofter) : tone === 'soft' ? SOFT : 'transparent', borderTopWidth: first ? 0 : 1, borderTopColor: tone === 'tint' ? TINT_LINE : tone === 'soft' ? SOFT_LINE : SC.borderSoft }}
+            style={{ paddingVertical: 14, paddingRight: 14, paddingLeft: 14 + depth * 20, gap: 12, backgroundColor: tone === 'soft' ? SOFT : 'transparent', borderTopWidth: first ? 0 : 1, borderTopColor: tone === 'tint' ? TINT_LINE : tone === 'soft' ? SOFT_LINE : SC.borderSoft }}
         >
             {Icon ? (
-                <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: on ? '#FFFFFF' : SC.blueSoft }}>
+                <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: SC.blueSoft }}>
                     <Icon size={20} color={SC.blue} />
                 </View>
             ) : (

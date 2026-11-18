@@ -1,12 +1,12 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Car, CalendarClock, MapPin, MoreHorizontal, Navigation, X, Zap } from 'lucide-react-native';
-import { useState } from 'react';
+import { Car, CalendarClock, MapPin, Navigation, Zap } from 'lucide-react-native';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 
-import { CancelRequestLink, canCancelBeforeStart } from '@/components/appointments/CancelRequestLink';
+import { canCancelBeforeStart } from '@/components/appointments/CancelRequestLink';
+import { RequestIdRow } from '@/components/ui/RequestIdRow';
 import type { Appointment } from '@/context/AppointmentsContext';
 import { useHeadOut } from '@/hooks/useHeadOut';
 import { TYPE } from '@/lib/ui/type';
@@ -32,8 +32,6 @@ export function MechanicActiveJobCard({ appointment }: { appointment: Appointmen
     const { t, i18n } = useTranslation();
     const router = useRouter();
     const { headOut, headingOut, departedNow } = useHeadOut();
-    const [menuOpen, setMenuOpen] = useState(false);
-    const [cancelOpen, setCancelOpen] = useState(false);
 
     const isVideoCall = (appointment.assistanceType ?? appointment.type) === 'videocall';
     const departed = !!(appointment.departedAt ?? departedNow);
@@ -82,7 +80,7 @@ export function MechanicActiveJobCard({ appointment }: { appointment: Appointmen
             }}
             testID="mechanic-active-job"
         >
-            {/* Type icon + title + menu */}
+            {/* Type icon + title */}
             <View className="flex-row items-center">
                 <View className="justify-center items-center mr-3" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#EAF1FF' }}>
                     <TypeIcon size={20} color="#1E56E3" />
@@ -90,19 +88,6 @@ export function MechanicActiveJobCard({ appointment }: { appointment: Appointmen
                 <Text className="flex-1 font-outfit-bold" style={{ fontSize: 18, letterSpacing: -0.3, color: '#0B1530' }} numberOfLines={2}>
                     {appointment.title}
                 </Text>
-                {canCancel && (
-                    <TouchableOpacity
-                        onPress={() => setMenuOpen(true)}
-                        hitSlop={8}
-                        accessibilityRole="button"
-                        accessibilityLabel={t('appointments.list.card.cancelRequest')}
-                        testID="active-job-menu"
-                        className="items-center justify-center ml-2"
-                        style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: '#F1F3F8' }}
-                    >
-                        <MoreHorizontal size={18} color="#6B7490" />
-                    </TouchableOpacity>
-                )}
             </View>
 
             {/* Status: one small pill, the hint in plain grey */}
@@ -196,24 +181,7 @@ export function MechanicActiveJobCard({ appointment }: { appointment: Appointmen
                 )}
             </View>
 
-            {/* "..." menu: the one place for cancelling */}
-            <Modal transparent visible={menuOpen} animationType="fade" onRequestClose={() => setMenuOpen(false)}>
-                <Pressable className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.35)' }} onPress={() => setMenuOpen(false)}>
-                    <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 16, paddingBottom: 36 }}>
-                        <TouchableOpacity
-                            onPress={() => { setMenuOpen(false); setCancelOpen(true); }}
-                            className="flex-row items-center"
-                            style={{ gap: 12, minHeight: 56, paddingHorizontal: 12, borderRadius: 14, backgroundColor: '#FDECEC' }}
-                            accessibilityRole="button"
-                            testID="active-job-menu-cancel"
-                        >
-                            <X size={20} color="#C53030" />
-                            <Text className="font-outfit-semibold" style={{ ...TYPE.option, color: '#C53030' }}>{t('appointments.list.card.cancelRequest')}</Text>
-                        </TouchableOpacity>
-                    </View>
-                </Pressable>
-            </Modal>
-            {canCancel && <CancelRequestLink appointmentId={appointment.id} open={cancelOpen} onClose={() => setCancelOpen(false)} />}
+            <RequestIdRow id={appointment.id} refCode={appointment.refCode} cancelAppointmentId={canCancel ? appointment.id : undefined} style={{ marginTop: 12 }} />
         </View>
     );
 }

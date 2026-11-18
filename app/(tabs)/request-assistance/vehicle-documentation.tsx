@@ -1,9 +1,9 @@
+import { Footer } from '@/components/scheduled/ui';
 import { RequestSteps } from '@/components/ui/RequestSteps';
 import { TYPE } from '@/lib/ui/type';
 import * as ImagePicker from 'expo-image-picker';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Camera, Check, ChevronLeft, Image as ImageIcon, Video as VideoIcon } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -182,9 +182,8 @@ export default function VehicleDocumentationScreen() {
                 </Text>
                 <View className="w-6" />
             </View>
-            <RequestSteps type={params.type} step="photos" />
-
-            <ScrollView className="flex-1 px-6 pt-6" keyboardShouldPersistTaps="handled">
+            <ScrollView className="flex-1 px-6 pt-6" contentContainerStyle={{ paddingBottom: 24 }} keyboardShouldPersistTaps="handled">
+                    <RequestSteps type={params.type} step="photos" flush />
                 <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                     <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
                     <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
@@ -292,29 +291,12 @@ export default function VehicleDocumentationScreen() {
                         )}
                     </View>
                 )}
-
-                <TouchableOpacity onPress={handleContinue} activeOpacity={0.8}>
-                    <LinearGradient
-                        colors={['#2B66F8', '#081E72']}
-                        start={{ x: 0, y: 1 }}
-                        end={{ x: 1, y: 0 }}
-                        style={{
-                            borderRadius: 10,
-                            paddingVertical: 16,
-                            paddingHorizontal: 16,
-                            marginBottom: 32,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        }}
-                    >
-                        <Text className="text-white font-outfit-bold text-[18px] text-center">
-                            {hasMedia
-                                ? t('requestAssistance.vehicleDocumentation.submit')
-                                : t('requestAssistance.vehicleDocumentation.skip')}
-                        </Text>
-                    </LinearGradient>
-                </TouchableOpacity>
             </ScrollView>
+
+            <Footer
+                label={hasMedia ? t('requestAssistance.continue') : t('requestAssistance.vehicleDocumentation.skip')}
+                onPress={handleContinue}
+            />
         </View>
     );
 }

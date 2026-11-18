@@ -11,6 +11,9 @@ import { MAX_TOP_UP, MIN_TOP_UP, type Wallet, walletDAO } from '@/lib/dao/Wallet
 import { cardLabel, isExpired } from '@/lib/payments/cardLabel';
 import { RETURN_TO_BACK, apiErrorCode } from '@/lib/payments/cardRequired';
 import { parseTopUp } from '@/lib/payments/paymentSource';
+import { SHEET } from '@/lib/ui/sheet';
+import { SheetHandle } from '@/components/ui/SheetHandle';
+import { SheetDim } from '@/components/ui/SheetDim';
 
 const K = 'wallet.topUp';
 
@@ -165,9 +168,11 @@ export function TopUpSheet({ visible, cards, initialAmount, onDone, onClose }: {
 }) {
     return (
         <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
+          <SheetDim color="rgba(11,21,48,0.45)" />
             <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-            <Pressable style={{ flex: 1, backgroundColor: 'rgba(11,21,48,0.45)' }} onPress={onClose} />
-            <View style={{ backgroundColor: '#fff', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingHorizontal: 20, paddingTop: 18, paddingBottom: 34 }}>
+            <Pressable style={{ flex: 1 }} onPress={onClose} />
+            <View style={{ ...SHEET, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 34 }}>
+                <SheetHandle />
                 {visible && <TopUpForm cards={cards} initialAmount={initialAmount} onDone={onDone} onCancel={onClose} />}
             </View>
             </KeyboardAvoidingView>

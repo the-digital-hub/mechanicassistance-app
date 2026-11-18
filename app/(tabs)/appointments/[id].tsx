@@ -3,12 +3,11 @@ import { isFarScheduled } from '@/lib/scheduled/timing';
 import { RequestAgainButton } from '@/components/scheduled/RequestAgainButton';
 import { FinalQuoteBanner } from '@/components/scheduled/FinalQuoteBanner';
 import { CancellationDisputeBanner } from '@/components/appointments/CancellationDisputeBanner';
-import { CancelRequestLink, canCancelBeforeStart } from '@/components/appointments/CancelRequestLink';
+import { canCancelBeforeStart } from '@/components/appointments/CancelRequestLink';
 import { CancellationModal } from '@/components/appointments/CancellationModal';
 import { MechanicAssistanceInfoTab } from '@/components/appointments/MechanicAssistanceInfoTab';
 import { HeadOutNextSteps, MechanicArrivalCard, PulseDot } from '@/components/appointments/MechanicArrivalCard';
 import { CheckInCodeCard } from '@/components/appointments/CheckInCodeCard';
-import { refLabel } from '@/lib/refCode';
 import { ClientReviewCard } from '@/components/appointments/ClientReviewCard';
 import { MechanicVideoStatusTab } from '@/components/appointments/MechanicVideoStatusTab';
 import { OwnerReviewInline, OwnerReviewPrompt, useOwnerReviewPending } from '@/components/appointments/OwnerReviewInline';
@@ -72,7 +71,9 @@ import { useVisitObdVinCheck } from '@/hooks/useRequestObdVinCheck';
 import { parseAttachments } from '@/lib/media/attachments';
 import { usePaymentCards } from '@/lib/payments/usePaymentCards';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Dimensions, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Dimensions, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { chatAvailability } from '@/lib/chat/chatAvailability';
+import { RequestIdRow } from '@/components/ui/RequestIdRow';
 
 const { width } = Dimensions.get('window');
 
@@ -473,6 +474,10 @@ export default function AppointmentDetailScreen() {
                     const ownerRated = reviewSent || (ratable && ownerReview.loaded && !ownerReview.pending);
                     return (
                         <View style={{ gap: 16 }}>
+                            {/* The rating is the first thing here, where the reminder over the tabs points. */}
+                            {ownerReview.pending || reviewSent ? (
+                                <OwnerReviewInline appointmentId={appointment.id} onSent={() => { setReviewSent(true); ownerReview.markDone(); }} />
+                            ) : null}
                             <TranscriptCard appointmentId={appointment.id} role="owner" info={transcriptInfo} />
                             <MechanicVideoStatusTab
                                 role="owner"
@@ -481,9 +486,6 @@ export default function AppointmentDetailScreen() {
                                 notResolved={videoState?.currentStatus === 'not_resolved'}
                                 reviewSent={ownerRated}
                             />
-                            {ownerReview.pending || reviewSent ? (
-                                <OwnerReviewInline appointmentId={appointment.id} onSent={() => { setReviewSent(true); ownerReview.markDone(); }} />
-                            ) : null}
                         </View>
                     );
                 }
@@ -713,8 +715,6 @@ export default function AppointmentDetailScreen() {
                         {isUserRole ? (
                             <View style={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 32, gap: 16 }} testID="owner-accepted">
                                 <AcceptedHeader
-                                    id={appointment.id}
-                                    refCode={appointment.refCode}
                                     {...(isCancelled
                                         ? { title: t('appointments.cancellationDispute.cancelledTitle'), icon: 'close' as IconName, color: AO.mutedLight }
                                         : isVideoCall ? videoCallHeader : {})}
@@ -730,12 +730,13 @@ export default function AppointmentDetailScreen() {
 
                                 <OwnerMechanicCard
                                     mechanic={offer?.mechanic ?? null}
+                                    chat={chatAvailability(appointment.status)}
                                     onMessage={() => router.push(`/chat/${appointment.id}`)}
                                 />
 
                                 {isVideoCall && (
                                     <>
-                                        <VideoCallWhenCard date={appointment.date} startNow={appointment.startNow} />
+                                        <VideoCallWhenCard date={appointment.date} startNow={appointment.startNow} startedAt={appointment.startedAt} completedAt={appointment.completedAt} />
                                         {videoCallLive && <JoinVideoCallButton onPress={openVideoLobby} rejoin={videoStartedAtMs !== null} />}
                                         {videoCallLive && videoStartedAtMs !== null && (
                                             <>
@@ -792,11 +793,11 @@ export default function AppointmentDetailScreen() {
 
                                 <View testID="tab-content-container">{renderOwnerPanel()}</View>
 
-                                {(appointment.status === 'accepted' || appointment.status === 'pending') && (
-                                    <TouchableOpacity onPress={() => setShowCancelModal(true)} style={{ alignItems: 'center', paddingVertical: 6 }} testID="owner-cancel">
-                                        <Text className="font-outfit-bold" style={{ fontSize: 14, color: AO.red }}>{t('appointments.ownerAccepted.cancel')}</Text>
-                                    </TouchableOpacity>
-                                )}
+                                <RequestIdRow
+                                    id={appointment.id}
+                                    refCode={appointment.refCode}
+                                    onCancel={appointment.status === 'accepted' || appointment.status === 'pending' ? () => setShowCancelModal(true) : undefined}
+                                />
                             </View>
                         ) : (
                             <>
@@ -822,9 +823,6 @@ export default function AppointmentDetailScreen() {
                                             <Text className="font-outfit-bold text-[22px] leading-6" style={{ color: MECH.text, letterSpacing: -0.6 }}>
                                                 {t('appointments.videoCall.mechanic.title')}
                                             </Text>
-                                            <Text className="text-[13px] mt-0.5" style={{ color: MECH.mutedLight, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }}>
-                                                {t('appointments.detail.idLabel', { id: refLabel(appointment.refCode, appointment.id) })}
-                                            </Text>
                                         </View>
                                     </View>
                                 ) : (
@@ -842,9 +840,6 @@ export default function AppointmentDetailScreen() {
                                         <Text className="font-outfit-bold" style={{ fontSize: 22, lineHeight: 28, letterSpacing: -0.6, color: MECH.text }}>
                                             {t(assistanceTypeKey(appointment))}
                                         </Text>
-                                        <Text className="font-outfit-medium" style={{ fontSize: 14, lineHeight: 20, color: MECH.muted }}>
-                                            {t('appointments.detail.idLabel', { id: refLabel(appointment.refCode, appointment.id) })}
-                                        </Text>
                                     </View>
                                 </View>
                                 </>
@@ -855,6 +850,7 @@ export default function AppointmentDetailScreen() {
                             <View className="mx-4 mt-3">
                                 <MechanicClientCard
                                     client={panelClient}
+                                    chat={chatAvailability(appointment.status)}
                                     onMessage={() => router.push(`/chat/${appointment.id}`)}
                                 />
                             </View>
@@ -1042,9 +1038,14 @@ export default function AppointmentDetailScreen() {
                                     </View>
                                 </>
                             )}
-                            {appointment && canCancelBeforeStart(appointment.status) && (
-                                <View className="px-4 pb-10" style={{ marginTop: -20 }}>
-                                    <CancelRequestLink appointmentId={appointment.id} align="center" scheduled={appointment.type === 'scheduled'} />
+                            {appointment && (
+                                <View className="px-5 pb-10" style={{ marginTop: -8 }}>
+                                    <RequestIdRow
+                                        id={appointment.id}
+                                        refCode={appointment.refCode}
+                                        cancelAppointmentId={canCancelBeforeStart(appointment.status) ? appointment.id : undefined}
+                                        scheduled={appointment.type === 'scheduled'}
+                                    />
                                 </View>
                             )}
                             </>

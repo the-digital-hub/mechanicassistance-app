@@ -17,6 +17,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { appAlert } from '@/lib/ui/appAlert';
+import { ChangeBadge } from '@/components/ui/ChangeBadge';
 
 /**
  * The pricing service validates `vehicle_issue_ids` with `@IsUUID`, so an id that
@@ -342,12 +343,11 @@ export default function ConfirmationScreen() {
                 </Text>
                 <View className="w-6" />
             </View>
-            <RequestSteps type={params.type} step="confirm" />
-
             <ScrollView
                 className="flex-1"
                 contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24, gap: 20 }}
             >
+                    <RequestSteps type={params.type} step="confirm" flush />
                 <View>
                     <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                         <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
@@ -438,13 +438,7 @@ export default function ConfirmationScreen() {
                         icon={<CreditCard size={20} color="#1E56E3" />}
                         label={t('requestAssistance.confirmation.payment')}
                         value={paymentLabel}
-                        action={
-                            <TouchableOpacity onPress={() => setCardPickerOpen(true)} hitSlop={8}>
-                                <Text className="font-outfit-bold text-[14px]" style={{ color: '#1E56E3' }}>
-                                    {t('requestAssistance.mechanicFound.change')}
-                                </Text>
-                            </TouchableOpacity>
-                        }
+                        action={<ChangeBadge onPress={() => setCardPickerOpen(true)} />}
                     />
                     <SummaryRow
                         last
@@ -473,6 +467,11 @@ export default function ConfirmationScreen() {
                     ))}
                 </View>
 
+                {/* What the submit is doing: a message goes in the body, never in the fixed footer */}
+                {isSubmitting && uploadProgress ? (
+                    <Text className="text-gray-500 font-outfit-regular text-center" style={{ fontSize: 14, marginTop: 12 }}>{uploadProgress}</Text>
+                ) : null}
+
                 {/* Fees Info */}
                 <View style={{ backgroundColor: 'rgba(30,86,227,0.08)', borderRadius: 8, borderWidth: 1, borderColor: 'rgba(30,86,227,0.13)', paddingHorizontal: 16, paddingVertical: 12 }}>
                     <Text className="font-outfit-medium text-[14px]" style={{ color: '#1E56E3', lineHeight: 19 }}>
@@ -488,9 +487,6 @@ export default function ConfirmationScreen() {
                 {isSubmitting ? (
                     <View className="items-center">
                         <ActivityIndicator size="large" color="#0047AB" />
-                        {uploadProgress ? (
-                            <Text className="text-gray-500 font-outfit-regular text-[16px] mt-2">{uploadProgress}</Text>
-                        ) : null}
                     </View>
                 ) : (
                     <TouchableOpacity onPress={handleConfirm} activeOpacity={0.8} style={FLOATING_CTA}>

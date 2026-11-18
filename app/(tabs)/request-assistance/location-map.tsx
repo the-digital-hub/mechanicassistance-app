@@ -1,3 +1,4 @@
+import { Footer } from '@/components/scheduled/ui';
 import { RequestSteps } from '@/components/ui/RequestSteps';
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { Button } from '@/components/ui/Button';
@@ -7,8 +8,7 @@ import { addressDisplayName, addressesForRole } from '@/lib/address';
 import type { ParsedAddress } from '@/lib/places';
 import * as Location from 'expo-location';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { ChevronLeft } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -243,10 +243,9 @@ export default function LocationMapScreen() {
                 </Text>
                 <View className="w-6" />
             </View>
-            <RequestSteps type={params.type} step="location" />
-
             <ScrollView className="flex-1" keyboardShouldPersistTaps="handled">
                 <View className="px-6 pt-6">
+                        <RequestSteps type={params.type} step="location" flush />
                     <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                         <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
                         <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
@@ -355,38 +354,11 @@ export default function LocationMapScreen() {
                     </View>
 
                     <Text className="text-gray-600 font-outfit-medium text-[16px] mb-2">{t('requestAssistance.locationMap.selectedLocationLabel')}</Text>
-                    <Text className="text-gray-900 font-outfit-bold text-base mb-6">{locationName}</Text>
-
-                    <TouchableOpacity
-                        onPress={handleConfirm}
-                        disabled={!marker}
-                        activeOpacity={0.8}
-                    >
-                        {!marker ? (
-                            <View className="bg-slate-200 rounded-lg p-4 items-center justify-center">
-                                <Text className="text-gray-500 font-outfit-bold text-center">{t('requestAssistance.locationMap.confirmLocation')}</Text>
-                            </View>
-                        ) : (
-                            <LinearGradient
-                                colors={['#2B66F8', '#081E72']}
-                                start={{ x: 0, y: 1 }}
-                                end={{ x: 1, y: 0 }}
-                                style={{
-                                    borderRadius: 10,
-                                    paddingVertical: 16,
-                                    paddingHorizontal: 16,
-                                    flexDirection: 'row',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                }}
-                            >
-                                <Text className="text-white font-outfit-bold text-[18px] text-center mr-2">{t('requestAssistance.locationMap.confirmLocation')}</Text>
-                                <ChevronRight size={20} color="white" />
-                            </LinearGradient>
-                        )}
-                    </TouchableOpacity>
+                    <Text className="text-gray-900 font-outfit-bold text-base">{locationName}</Text>
                 </View>
             </ScrollView>
+
+            <Footer label={t('requestAssistance.locationMap.confirmLocation')} disabled={!marker} onPress={handleConfirm} />
         </View>
     );
 }

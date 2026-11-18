@@ -30,6 +30,7 @@ import {
     windowLeft,
 } from '@/lib/scheduled/offers';
 import { appAlert } from '@/lib/ui/appAlert';
+import { ChangeBadge } from '@/components/ui/ChangeBadge';
 
 type View_ = 'list' | 'compare' | 'detail' | 'pay' | 'done';
 type SortId = 'coverage' | 'price' | 'date' | 'distance';
@@ -286,7 +287,7 @@ export default function ScheduledOffersScreen() {
                     >
                         <CreditCard size={20} color={SC.blue} />
                         <Text className="font-outfit-semibold flex-1" style={{ marginLeft: 10, color: SC.text }}>{payment.selectedLabel}</Text>
-                        <Text className="font-outfit-bold" style={{ color: SC.blue }}>{t('scheduledOffers.pay.change')}</Text>
+                        <ChangeBadge label={t('scheduledOffers.pay.change')} />
                     </TouchableOpacity>
                     <Note tone="blue">{holdsNow(serviceDate, now) ? t('scheduledOffers.pay.holdNow') : t('scheduledOffers.pay.holdLater')}</Note>
                     {ct.basis === 'diagnostic_fee' ? <Note tone="amber">{t('scheduledOffers.pay.diagnosticNote')}</Note> : null}

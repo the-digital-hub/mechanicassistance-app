@@ -40,6 +40,7 @@ import {
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ChangeBadge } from '@/components/ui/ChangeBadge';
 
 /**
  * Last step of the video-call wizard (vehicle → issue → OBD scanner → here): the owner picks
@@ -123,6 +124,10 @@ export default function VideoCallWhenScreen() {
     const [price, setPrice] = useState<number | null>(null);
     const [priceLoading, setPriceLoading] = useState(true);
     const [mode, setMode] = useState<Mode>('now');
+    // "Now" or "Schedule" is the user's explicit choice: until then neither is marked and the button asks for it.
+    const [modeChosen, setModeChosen] = useState(false);
+    // Only with the call-length menu: the old flat-fee flow has no such step and keeps "Now" as it was.
+    const modeReady = modeChosen || !durationSupported;
     // The call length is chosen first and has no default: nothing can be requested without it.
     const [duration, setDuration] = useState<number | null>(null);
     const [period, setPeriod] = useState<DayPart | null>(null);
@@ -243,7 +248,7 @@ export default function VideoCallWhenScreen() {
 
     // ─── Submit ───
 
-    const canSubmit = !submitting && !loading && (!durationSupported || duration !== null) && (mode === 'now' ? (now?.mechanicsOnline ?? 0) > 0 : !!slot);
+    const canSubmit = !submitting && !loading && modeReady && (!durationSupported || duration !== null) && (mode === 'now' ? (now?.mechanicsOnline ?? 0) > 0 : !!slot);
 
     const handleSubmit = async () => {
         if (!canSubmit) return;
@@ -351,12 +356,12 @@ export default function VideoCallWhenScreen() {
         badge?: React.ReactNode;
         disabled?: boolean;
     }) => {
-        const selected = mode === value;
+        const selected = modeReady && mode === value;
         return (
             <TouchableOpacity
                 activeOpacity={0.85}
                 disabled={disabled}
-                onPress={() => setMode(value)}
+                onPress={() => { setMode(value); setModeChosen(true); }}
                 testID={`when-option-${value}`}
                 style={{
                     flexDirection: 'row',
@@ -382,10 +387,10 @@ export default function VideoCallWhenScreen() {
                         borderRadius: 12,
                         alignItems: 'center',
                         justifyContent: 'center',
-                        backgroundColor: selected ? C.blue : C.blueSoft,
+                        backgroundColor: selected ? '#C5D6F6' : C.blueSoft,
                     }}
                 >
-                    <Icon size={20} color={selected ? '#FFFFFF' : C.blue} />
+                    <Icon size={20} color={selected ? '#1743B0' : C.blue} />
                 </View>
                 <View style={{ flex: 1 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -480,6 +485,8 @@ export default function VideoCallWhenScreen() {
     const ctaLabel =
         durationSupported && duration === null
             ? t('requestAssistance.when.ctaPickDuration')
+            : !modeReady
+            ? t('requestAssistance.when.ctaPickWhen')
             : mode === 'now'
             ? t('requestAssistance.when.ctaNow')
             : slot
@@ -525,9 +532,8 @@ export default function VideoCallWhenScreen() {
                 </Text>
                 <View className="w-10" />
             </View>
-            <RequestSteps type={params.type} step="when" />
-
             <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 24, gap: 14 }}>
+                    <RequestSteps type={params.type} step="when" flush />
                 <View>
                     <View className="flex-row items-center gap-1.5 mb-3 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                         <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
@@ -565,77 +571,55 @@ export default function VideoCallWhenScreen() {
                 ) : (
                     <>
                         {durationSupported && (
-                        <View style={{ gap: 12 }} testID="when-duration-section">
-                            <SectionLabel>{t('requestAssistance.when.durationLabel')}</SectionLabel>
-                            <Text className="font-outfit-bold" style={{ ...TYPE.group, color: C.ink }}>
+                        <View style={{ gap: 10 }} testID="when-duration-section">
+                            <Text className="font-outfit-bold" style={{ ...TYPE.question, color: C.ink }}>
                                 {t('requestAssistance.when.durationTitle')}
                             </Text>
-                            <View style={{ flexDirection: 'row', gap: 10 }}>
+                            {/* Same segmented control as the photo / video switch: a soft track, the picked length lifted on white. */}
+                            <View style={{ flexDirection: 'row', padding: 4, borderRadius: 16, backgroundColor: '#E1EAFB' }}>
                                 {(now?.durations ?? []).map((d) => {
                                     const selected = duration === d.minutes;
-                                    const inner = (
-                                        <>
-                                            <View
-                                                style={{
-                                                    width: 28,
-                                                    height: 28,
-                                                    borderRadius: 9,
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    backgroundColor: selected ? 'rgba(255,255,255,0.18)' : C.blueSoft,
-                                                }}
-                                            >
-                                                {selected ? <Check size={15} color="#FFFFFF" strokeWidth={3} /> : <Timer size={15} color={C.blue} />}
-                                            </View>
-                                            <Text className="font-outfit-bold" style={{ fontSize: 28, lineHeight: 32, marginTop: 6, color: selected ? '#FFFFFF' : C.ink }}>
-                                                {d.minutes}
-                                            </Text>
-                                            <Text className="font-outfit-semibold" style={{ ...TYPE.caption, color: selected ? 'rgba(255,255,255,0.85)' : C.muted }}>
-                                                {t('requestAssistance.when.durationMinutes')}
-                                            </Text>
-                                        </>
-                                    );
-                                    const box = { borderRadius: 16, paddingVertical: 12, alignItems: 'center' as const, justifyContent: 'center' as const };
                                     return (
                                         <TouchableOpacity
                                             key={d.minutes}
-                                            style={{ flex: 1 }}
+                                            style={{
+                                                flex: 1,
+                                                height: 46,
+                                                borderRadius: 12,
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                backgroundColor: selected ? C.blue : 'transparent',
+                                                ...(selected ? { shadowColor: '#1E56E3', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 } : null),
+                                            }}
                                             activeOpacity={0.85}
                                             onPress={() => setDuration(d.minutes)}
                                             accessibilityRole="button"
                                             accessibilityState={{ selected }}
                                             testID={`when-duration-${d.minutes}`}
                                         >
-                                            {selected ? (
-                                                <LinearGradient
-                                                    colors={['#2B66F8', '#081E72']}
-                                                    start={{ x: 0, y: 0 }}
-                                                    end={{ x: 1, y: 1 }}
-                                                    style={{ ...box, shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.28, shadowRadius: 10, elevation: 5 }}
-                                                >
-                                                    {inner}
-                                                </LinearGradient>
-                                            ) : (
-                                                <View style={{ ...box, backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: C.border, shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
-                                                    {inner}
-                                                </View>
-                                            )}
+                                            <Text className="font-outfit-bold" style={{ ...TYPE.body, color: selected ? '#FFFFFF' : '#4A5F9A' }}>
+                                                {t('requestAssistance.when.durationShort', { count: d.minutes })}
+                                            </Text>
                                         </TouchableOpacity>
                                     );
                                 })}
                             </View>
-                            <InfoNote>
-                                <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: C.note }}>
+                            {/* The same note as the other steps: an icon tile and the text, on a white card. */}
+                            <View className="flex-row items-center" style={{ gap: 12, padding: 12, borderRadius: 16, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: C.line }}>
+                                <View style={{ width: 36, height: 36, borderRadius: 11, alignItems: 'center', justifyContent: 'center', backgroundColor: C.blueSoft }}>
+                                    <Timer size={18} color={C.blue} />
+                                </View>
+                                <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: C.note, flex: 1 }}>
                                     {t('requestAssistance.when.durationHint')}
                                 </Text>
-                            </InfoNote>
+                            </View>
                         </View>
                         )}
 
                         {durationSupported && (
-                            <View style={{ marginTop: 6 }}>
-                                <SectionLabel>{t('requestAssistance.when.whenLabelSection')}</SectionLabel>
-                            </View>
+                            <Text className="font-outfit-bold" style={{ ...TYPE.question, color: C.ink, marginTop: 10 }}>
+                                {t('requestAssistance.when.whenTitle')}
+                            </Text>
                         )}
                         <OptionCard
                             value="now"
@@ -667,7 +651,7 @@ export default function VideoCallWhenScreen() {
                             subtitle={t('requestAssistance.when.scheduleSubtitle')}
                         />
 
-                        {mode === 'schedule' && day && (
+                        {modeReady && mode === 'schedule' && day && (
                             <View
                                 style={{ backgroundColor: '#FFFFFF', borderRadius: 16, padding: 14, gap: 14, shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}
                                 testID="when-schedule-panel"
@@ -800,7 +784,9 @@ export default function VideoCallWhenScreen() {
                             <SectionLabel>{t('requestAssistance.when.summary')}</SectionLabel>
                         </View>
                         <View style={{ backgroundColor: '#FFFFFF', borderRadius: 16, paddingHorizontal: 14, shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
+                            <SummaryRow Icon={DollarSign} label={t('requestAssistance.when.price')} value={priceLabel} />
                             <SummaryRow Icon={Video} label={t('requestAssistance.when.service')} value={t('requestAssistance.header.videoCall')} />
+                            <SummaryRow Icon={Timer} label={t('requestAssistance.when.duration')} value={durationSupported && duration === null ? t('requestAssistance.when.durationUnset') : t('requestAssistance.when.durationValue', { count: callMinutes })} />
                             {mode === 'now' ? (
                                 <>
                                     <SummaryRow Icon={Zap} label={t('requestAssistance.when.whenLabel')} value={t('requestAssistance.when.nowSummary')} />
@@ -814,20 +800,12 @@ export default function VideoCallWhenScreen() {
                                     <SummaryRow Icon={Clock} label={t('requestAssistance.when.time')} value={slot ? slotLabel(slot) : t('requestAssistance.when.pickTime')} />
                                 </>
                             )}
-                            <SummaryRow Icon={Timer} label={t('requestAssistance.when.duration')} value={durationSupported && duration === null ? t('requestAssistance.when.durationUnset') : t('requestAssistance.when.durationValue', { count: callMinutes })} />
-                            <SummaryRow Icon={DollarSign} label={t('requestAssistance.when.price')} value={priceLabel} />
                             <SummaryRow
                                 last
                                 Icon={CreditCard}
                                 label={t('requestAssistance.mechanicFound.rowPayment')}
                                 value={paymentLabel}
-                                action={
-                                    <TouchableOpacity onPress={() => setCardPickerOpen(true)} hitSlop={8}>
-                                        <Text className="font-outfit-bold" style={{ ...TYPE.caption, color: C.blue }}>
-                                            {t('requestAssistance.mechanicFound.change')}
-                                        </Text>
-                                    </TouchableOpacity>
-                                }
+                                action={<ChangeBadge onPress={() => setCardPickerOpen(true)} />}
                             />
                         </View>
                         <InfoNote>
