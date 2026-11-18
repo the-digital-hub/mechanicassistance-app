@@ -10,7 +10,9 @@ import { ApiError } from '@/lib/api/types';
 import { appointmentDAO } from '@/lib/dao/AppointmentDAO';
 import type { MechanicStats } from '@/lib/dao/interfaces';
 import type { AddableRole, AppRole } from '@/lib/dao/interfaces';
+import { addressDAO } from '@/lib/dao/AddressDAO';
 import { mediaDAO } from '@/lib/dao/MediaDAO';
+import { vehicleDAO } from '@/lib/dao/VehicleDAO';
 import { setAppLanguage } from '@/lib/i18n';
 import { startAddRoleFromProfile } from '@/lib/setup-add-role';
 import * as ImagePicker from 'expo-image-picker';
@@ -47,6 +49,16 @@ export default function ProfileScreen() {
       if (!isTechnician) return;
       appointmentDAO.getMyStats().then(setRatingStats).catch(() => undefined);
     }, [isTechnician]),
+  );
+  // How many addresses/vehicles the user has, so the menu speaks in singular when there is one.
+  const [counts, setCounts] = useState<{ addresses: number | null; vehicles: number | null }>({ addresses: null, vehicles: null });
+  const userId = user?.id;
+  useFocusEffect(
+    useCallback(() => {
+      if (!userId) return;
+      addressDAO.getByUser(userId).then((l) => setCounts((c) => ({ ...c, addresses: l.length }))).catch(() => undefined);
+      if (!isTechnician) vehicleDAO.getByUser(userId).then((l) => setCounts((c) => ({ ...c, vehicles: l.length }))).catch(() => undefined);
+    }, [userId, isTechnician]),
   );
   // A vehicle owner has no stats endpoint: their rating is what technicians gave them
   // on each job (`clientRating`), averaged over the appointments already loaded.
@@ -351,7 +363,7 @@ export default function ProfileScreen() {
               label: t('profile.groups.account'),
               children: [
                 { key: 'personalInfo', icon: User, label: t('profile.menu.personalInfo'), route: '/personal-info' },
-                { key: 'savedAddresses', icon: MapPin, label: t('profile.menu.savedAddresses'), route: '/(tabs)/addresses' },
+                { key: 'savedAddresses', icon: MapPin, label: t(counts.addresses === 1 ? 'profile.menu.savedAddressesOne' : 'profile.menu.savedAddresses'), route: '/(tabs)/addresses' },
                 { key: 'privacy', icon: Lock, label: t('profile.menu.privacy'), route: '/privacy' },
               ],
             },
@@ -380,8 +392,8 @@ export default function ProfileScreen() {
               label: t('profile.groups.account'),
               children: [
                 { key: 'personalInfo', icon: User, label: t('profile.menu.personalInfo'), route: '/personal-info' },
-                { key: 'addresses', icon: MapPin, label: t('profile.menu.addresses'), route: '/(tabs)/addresses' },
-                { key: 'vehicles', icon: Car, label: t('profile.menu.vehicles'), route: '/vehicles' },
+                { key: 'addresses', icon: MapPin, label: t(counts.addresses === 1 ? 'profile.menu.addressesOne' : 'profile.menu.addresses'), route: '/(tabs)/addresses' },
+                { key: 'vehicles', icon: Car, label: t(counts.vehicles === 1 ? 'profile.menu.vehiclesOne' : 'profile.menu.vehicles'), route: '/vehicles' },
                 { key: 'privacy', icon: Lock, label: t('profile.menu.privacy'), route: '/privacy' },
               ],
             },

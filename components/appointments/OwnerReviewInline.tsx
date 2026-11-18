@@ -17,21 +17,24 @@ const TAGS = ['on_time', 'professional', 'fair_price', 'clear_explanation', 'fri
  */
 export function useOwnerReviewPending(appointmentId: string | undefined, enabled: boolean) {
     const [pending, setPending] = React.useState(false);
+    // True once the lookup answered: before that, "not pending" does not mean "already rated".
+    const [loaded, setLoaded] = React.useState(false);
     React.useEffect(() => {
         if (!enabled || !appointmentId) {
             setPending(false);
+            setLoaded(false);
             return;
         }
         let cancelled = false;
         reviewDAO
             .get(appointmentId)
-            .then((r) => !cancelled && setPending(!r))
+            .then((r) => { if (!cancelled) { setPending(!r); setLoaded(true); } })
             .catch(() => !cancelled && setPending(false));
         return () => {
             cancelled = true;
         };
     }, [appointmentId, enabled]);
-    return { pending, markDone: () => setPending(false) };
+    return { pending, loaded, markDone: () => setPending(false) };
 }
 
 /** The reminder over the sub-navbar: the review is completed in the Status tab. */

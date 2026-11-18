@@ -1,3 +1,4 @@
+import { HeaderBackButton } from '@/components/ui/HeaderBackButton';
 import { SmsConsent } from "@/components/SmsConsent";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -460,12 +461,9 @@ export default function LoginScreen() {
         >
           <View className="flex-1 bg-white justify-between">
             <View className="px-8 pt-16 flex-1">
-              <TouchableOpacity
-                onPress={() => setStep("phone")}
-                className="mb-8"
-              >
-                <Ionicons name="arrow-back" size={24} color="#0F172A" />
-              </TouchableOpacity>
+              <View className="mb-8 self-start">
+                <HeaderBackButton marginLeft={0} onPress={() => setStep("phone")} />
+              </View>
 
               <Text className="text-xl font-outfit-bold text-[#0F172A] mb-2">
                 {t("login.enterVerificationCode")}

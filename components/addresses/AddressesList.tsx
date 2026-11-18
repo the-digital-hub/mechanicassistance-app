@@ -64,12 +64,12 @@ export function AddressesList({ picking = false }: { picking?: boolean }) {
 
                 {/* Title */}
                 <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
-                    {t(picking ? 'addresses.pickTitle' : 'addresses.title')}
+                    {picking ? t('addresses.pickTitle') : t('addresses.title', { count: visibleAddresses.length })}
                 </Text>
 
                 {/* Subtitle */}
                 <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-                    {t(picking ? 'addresses.pickSubtitle' : 'addresses.subtitle')}
+                    {picking ? t('addresses.pickSubtitle') : t('addresses.subtitle', { count: visibleAddresses.length })}
                 </Text>
 
                 {/* Addresses List */}

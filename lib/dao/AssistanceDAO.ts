@@ -38,7 +38,17 @@ export class AssistanceDAO implements IAssistanceDAO {
     }
 
     async create(request: Partial<AssistanceRequest>): Promise<AssistanceRequest> {
-        return apiClient.post('/api/assistance', request);
+        try {
+            return await apiClient.post('/api/assistance', request);
+        } catch (err) {
+            // A backend that does not know the owner's time zone yet rejects the field (whitelisted DTO):
+            // the request is the same without it, so send it again that way.
+            if (request.timezone && err instanceof ApiError && err.statusCode === 400 && /timezone.*should not exist|should not exist.*timezone/i.test(err.apiMessage ?? err.message)) {
+                const { timezone: _timezone, ...withoutZone } = request;
+                return apiClient.post('/api/assistance', withoutZone);
+            }
+            throw err;
+        }
     }
 
     /**

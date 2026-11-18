@@ -13,19 +13,34 @@ Todo lo que sigue se contrastó contra esos documentos; donde algo **no se pudo 
 | # | Tema | Estado | Qué se pide | Prioridad |
 |---|---|---|---|---|
 | **A** | El técnico aprueba las extensiones | **Hecho en backend (docs 18-nov) y en la app.** Falta verificar el despliegue y prender el flag | Confirmar que está desplegado (§3.10) | Alta |
-| B | Cotización con `duration_minutes` | **Confirmado: price-service en prod responde 400** | Desplegar price-service con el campo (§4.1) | **Bloqueante** |
-| C | `durationMinutes` en el detalle del pedido que ve el técnico | *Verificar* | Confirmar que `GET /api/assistance/:id` lo devuelve (§4.2) | Alta |
-| D | `baseMinutes` del estado de la llamada = duración elegida | *Verificar* | Confirmar en `GET /appointments/:id/video` y `/video/extensions` (§4.3) | Alta |
-| E | `offerExpiresAt` en el listado de pedidos | *Verificar* | Confirmar que `GET /api/assistance` lo devuelve (§5.1) | Media |
+| B | Cotización con `duration_minutes` | **Documentado como hecho (price README §5), pero SIGUE FALLANDO en producción: re-verificado el 18-nov 16:14 UTC, `POST /api/pricing/calculate` con `duration_minutes` → 400 "property duration_minutes should not exist"** | Desplegar/confirmar price-service con el campo (§4.1) | **Bloqueante** |
+| C | `durationMinutes` en el detalle del pedido que ve el técnico | **Documentado como hecho** (appointments README: "el detalle de la solicitud lo devuelve"). Falta verificar en prod | Solo verificar el despliegue (§4.2) | Media |
+| D | `baseMinutes` del estado de la llamada = duración elegida | **Documentado como hecho** (`baseMinutes` = duración elegida de esa llamada; sala de Daily con `exp` de esa duración). Falta verificar en prod | Solo verificar el despliegue (§4.3) | Media |
+| E | `offerExpiresAt` en el listado de pedidos | **Sigue abierto:** la documentación solo lo muestra en `GET /assistance/:id/offer-summary` y como columna, no en el listado | Confirmar o agregarlo al listado (§5.1) | Media |
 | F | Movimientos de wallet con el servicio al que pertenecen | **Hecho en backend (docs 18-nov) y en la app** | Verificar el despliegue (§5.2) | Baja |
-| G | Radio de servicio | Presencial alineado (tope 100 mi, docs 16-nov). Falta confirmar que la videollamada no filtra por distancia | Confirmar §5.3 | Media |
-| I | Horarios para agendar: solo 08:00–19:30; la videollamada se pide 24/7 | Cambio de regla | Ampliar la grilla de turnos a las 24 h (§5.5) | Alta |
-| H | Corte anticipado por el técnico → disputa del dueño | Confirmar | Que el flujo actual lo permita (§5.4) | Media |
+| G | Radio de servicio | **Casi cerrado:** presencial con tope 100 mi (docs 16-nov); la videollamada "no tiene ubicación" y `latitude`/`longitude` son opcionales, así que no usa radio. No hay una frase explícita sobre el emparejamiento | Solo confirmar que no filtra por distancia (§5.3) | Baja |
+| I | Horarios para agendar: solo 08:00–19:30; la videollamada se pide 24/7 | **Hecho en producción (verificado el 18-nov en `GET /api/video-call/slots`):** 48 turnos por día, 00:00–23:30, con `period` `night`/`morning`/`afternoon`/`evening`. La documentación aún dice 08:00–19:30. Queda una decisión: `available` hoy solo es true de 07:00 a 18:00 (EST) porque sigue la disponibilidad de los técnicos | Actualizar la documentación; decidir si de noche se puede agendar sin técnicos cargados (§5.5) | Media |
+| H | Corte anticipado por el técnico → disputa del dueño | **Documentado como hecho:** el técnico finaliza → `awaiting_confirmation` → el dueño puede reclamar (`POST …/video/dispute`); la lista de disputas del Hub trae `callStartedAt`, `finishedAt` y `contractedMinutes` | Nada que hacer; solo verificar (§5.4) | Baja |
+| O | Zona horaria del dueño en la videollamada agendada | **Nuevo, falta backend** | Aceptar y devolver `timezone` (IANA) en la solicitud (§5.11) | **Alta** |
+| N | Agendar videollamada en turnos sin técnicos de guardia | **Nuevo, falta backend (producto lo pide)** | Que `create()` acepte turnos `no_mechanics`; `available` o equivalente en `/slots` (§5.10) | **Alta** |
+| J | Saber si el cliente ya está en la sala de video | **Abierto:** no está en la documentación (solo `video_room_ready` a la otra parte) | Informar quién está conectado en la sala (§5.6) | Media |
+| K | Cuánto gana el técnico por cada extensión | **Abierto:** la documentación dice que el técnico ve las extensiones "sin monto" | Exponer el pago al técnico por extensión (§5.7) | Media |
+| M | Push al técnico cuando el dueño pide más tiempo | **Abierto:** la documentación dice "sin push" para `video_call_update` | Enviar push con el pedido de extensión (§5.9) | Media |
+| L | Subtítulos / transcripción en vivo | **Abierto:** la documentación no menciona transcripción; app lista | Habilitar transcripción y permisos en el token; decidir guardado (§5.8) | Media |
 
 Lo que **ya está hecho y la app ya usa** (no hay que tocar): `durationMinutes` en `POST /api/assistance`,
 `durations` en `GET /api/video-call/now`, `duration_minutes` en `POST /api/pricing/calculate` y
 `POST /api/pricing/requests/:id/price`, error `400 invalid_duration`, precios base 60/70/80 con recargo por franja,
 extensiones por bloques de USD 15 base con banda e impuesto.
+
+### Revisión 18-nov-2026 contra el repo de análisis (commit `743b677`)
+Desde `8b3ec32` el repo solo sumó documentación del servicio de chat: **no hay cambios nuevos de videollamada**. Resultado de
+contrastar cada punto con `servicios/appointments/README.md`, `servicios/price/README.md` y `servicios/billing/`:
+- **Ya documentados como hechos por backend (solo falta verificar el despliegue):** A, C, D, F, H.
+- **Casi cerrado:** G (la videollamada no usa ubicación ni radio).
+- **Verificado en producción (18-nov):** I (grilla de 24 h, hecho), B (sigue fallando con 400) y N (los turnos nocturnos siguen `available: false`, `no_mechanics`).
+- **Siguen abiertos:** B (en prod), E, J, K, L, M.
+- Ojo: "documentado" no es "desplegado"; el 17-nov B figuraba en el README y producción igual lo rechazaba.
 
 ### Actualización 18-nov-2026 (tras revisar el repo de análisis, commit `8b3ec32`)
 Backend publicó en la documentación: aprobación del técnico para extensiones (§3 completo, con `requireApproval`,
@@ -324,6 +339,104 @@ que empiecen ≥ 60 min después de ahora (`servicios/appointments/README.md`, "
   (`service_at`), que es lo que la app muestra en el resumen.
 Si se agrega un valor de `period`, avisar para que la app muestre la franja.
 
+### 5.6 J — Saber si el cliente ya está en la sala de video (nuevo, 18-nov)
+**Qué hace la app:** en el detalle de la asistencia del técnico, arriba del botón "Join video call", muestra una tarjeta
+"El cliente ya está en la sala de video — te está esperando" cuando el dueño entró primero.
+
+**Cómo lo resuelve hoy (y por qué no alcanza):** la app usa el evento `video_room_ready` (se manda a la *otra* parte
+cuando alguien abre la sala) y, al abrir la pantalla, consulta `GET /api/video-room/:appointmentId` (si hay `roomUrl`
+vigente, asume que el cliente está esperando). Pero el servidor **no dice quién abrió la sala ni quién está conectado**:
+si el técnico abre la sala, sale y vuelve, la app le diría que el cliente lo espera sin ser cierto. Tampoco se entera
+si el cliente se va de la sala antes de que el técnico entre.
+
+**Pedido:** en `GET /api/video-room/:id` (o en `GET /appointments/:id/video`) devolver quién está conectado, por ejemplo
+`participants: { owner: boolean, mechanic: boolean }` o `ownerInRoom` / `mechanicInRoom` (alimentado por los webhooks de
+Daily `participant.joined` / `participant.left`), y publicar `video_call_update` con `stage: 'participant_joined'` /
+`'participant_left'` (`{ appointmentId, role }`) para que la tarjeta aparezca y desaparezca en vivo. Sin montos ni datos
+personales. Cuando exista, la app deja de inferirlo de la existencia de la sala.
+
+### 5.7 K — Cuánto gana el técnico por cada extensión (nuevo, 18-nov)
+**Qué se acordó (producto):** al extender, el técnico recibe el valor de la extensión **menos el platform fee**, con la
+misma regla que el servicio de videollamada (`providerPayout = precio − platform fee`). No es un 85 % fijo: depende del
+fee activo (`fee_type = 'platform'`) en el Hub.
+
+**Qué ya hace el backend (según docs):** al retener la extensión sube `assistance_requests.price` y `provider_payout`
+"en la misma proporción que el servicio". Por eso el total que ve el técnico en la pestaña **Budget** (`budget`, que ya es
+lo que gana) incluye el tiempo extra. Hay que **confirmar** que, con la aprobación del técnico, `provider_payout` se
+actualiza recién al **aceptar** (extensión `held`) y no al pedirla, y que el platform fee se descuenta también del bloque.
+
+**Qué falta:** `GET /appointments/:id/video/extensions` le devuelve al técnico las extensiones **sin monto**. La app
+muestra "Extended time: +X min added" pero no cuánto gana por ese tiempo. Pedido: para el técnico, agregar a cada
+extensión `providerAmount` (decimal string, ya neto del fee, sin impuestos ni datos del medio de pago del cliente) y
+`providerAmountTotal` en la respuesta (suma de las que cuentan). La app no calcula comisiones por su cuenta: mostrará
+exactamente ese valor en el Budget ("Extended time · +15 min · $X").
+
+### 5.8 L — Subtítulos y transcripción en la videollamada (nuevo, 18-nov)
+**Qué hace la app:** un botón de subtítulos en la llamada. Quien lo toca confirma un aviso ("lo que digan ambos se transcribirá,
+la otra persona será avisada") y la app llama `startTranscription()` de Daily; los dos teléfonos reciben `transcription-message`
+y muestran la última frase como subtítulo. A la otra persona se le avisa con un diálogo cuando se activan. Si Daily rechaza,
+la app muestra "Subtítulos no disponibles" y no pasa nada más.
+
+**Qué hace falta del lado de Daily / backend:**
+- Habilitar la transcripción en el dominio de Daily (plan de pago; precios al 18-nov: **USD 0.0059 por minuto de participante
+  con micrófono activo** en tiempo real; posterior a la llamada **USD 0.0043 por minuto grabado**, ver página de precios de Daily).
+- Que el **meeting token** de ambos permita iniciar la transcripción (`permissions.canAdmin` incluye `transcription`, o
+  `is_owner`; hoy el mecánico recibe `is_owner: true`, el dueño no). Si el dueño debe poder activarla, hay que darle ese permiso.
+- *Decisión de producto/legal:* consentimiento (la app ya avisa, pero no guarda aceptación) y **si se guarda el texto**. Hoy
+  la app **no guarda nada**: los subtítulos son efímeros. Si se quiere un resumen o evidencia para disputas, se necesita un
+  endpoint (`POST /appointments/:id/video/transcript`) o webhook de Daily (`transcript.ready-to-download`) que lo asocie a la cita.
+
+**Otras funciones nuevas que no requieren backend** (peer to peer, no se guardan): dibujar sobre la imagen (solo el técnico
+marca la cámara del dueño), chat de texto durante la llamada, intercambiar imagen grande/chica y aviso de conexión débil.
+
+### 5.9 M — Push al técnico cuando el dueño pide más tiempo (nuevo, 18-nov)
+La aprobación del técnico (§3) hoy solo llega por WebSocket (`video_call_update` con `stage: extension_requested`, "sin push").
+La app ya muestra la tarjeta Aceptar / Rechazar dentro de la llamada y en el detalle de la asistencia, pero si el técnico tiene la
+app en segundo plano o cerrada **no se entera** y el pedido vence (`extension_response_seconds`, 60 s por defecto).
+
+**Pedido:** al crear una extensión `requested`, mandar además un **push** al técnico (notifications-service) con el título
+"Tiempo extra pedido" y los minutos, sin monto ni medio de pago, que al tocarlo abra el detalle de la asistencia
+(`/appointments/:id`). Si el técnico responde desde otro lado, no hace falta cancelar el push. Considerar subir
+`extension_response_seconds` si se confirma que muchos pedidos vencen porque la app estaba cerrada.
+
+### 5.10 N — Se puede agendar a cualquier hora, aunque no haya técnicos cargados (nuevo, 18-nov)
+**Regla de producto:** la videollamada se puede pedir **24/7**. Si el dueño agenda un turno en el que ningún técnico tiene
+horario cargado, el pedido igual se crea; en el peor caso nadie lo acepta y se cancela sin cargo.
+
+**Hoy (verificado en producción el 18-nov):** `GET /api/video-call/slots` ya devuelve la grilla de 24 h, pero marca `available: false`
+con `reason: 'no_mechanics'` fuera de las 07:00–18:00 (EST) porque sigue `mechanic_availability`; y `create()` (`assertBookable`)
+**rechaza** esos turnos con `409 slot_unavailable` (`reason: no_mechanics`).
+
+**Pedido:**
+- `POST /api/assistance` (videocall agendada): **no rechazar** por `no_mechanics`. Seguir rechazando `past`, "demasiado próximo" y
+  `full` (turno tomado), y fuera de la grilla de medias horas.
+- `GET /video-call/slots`: para esos turnos devolver `available: true` y un campo informativo aparte (por ejemplo
+  `staffed: false`) en lugar de `available: false`, o dejar `available: false` con `reason: 'no_mechanics'` y que la app los trate
+  como reservables (la app ya lo hace, ver abajo). Avisar cuál de las dos opciones se elige.
+- Definir qué pasa con un pedido agendado que nadie aceptó al llegar la hora (cancelación automática sin cargo, y aviso al dueño).
+
+**Qué hace la app:** muestra como reservables los turnos `available` **y** los `no_mechanics`; oculta solo `past` y `full`. Hasta que
+backend cambie `create()`, agendar un turno sin técnicos devolverá `slot_unavailable` y la app lo informa.
+
+### 5.11 O — Zona horaria del dueño en la videollamada agendada (nuevo, 18-nov)
+**Problema:** el turno se guarda en UTC (`date`), y cada teléfono lo muestra en su hora local. Si el técnico está en otra zona
+que el dueño, los dos leen horas distintas del mismo turno y es fácil equivocarse por una o más horas. Producto pide que, cuando
+llega la oferta al técnico, **se vea la hora en la zona del técnico, con su nombre (por ejemplo "3:00 PM EST"), y si el dueño está
+en otra zona, que se muestren las dos horas** ("Para vos: 3:00 PM EST · Para el cliente: 12:00 PM PST").
+
+**Qué hace la app (ya hecho):** muestra siempre la hora con la zona del propio teléfono en la oferta, el detalle y las tarjetas del
+técnico; si recibe `timezone` de la solicitud y difiere, agrega un aviso con las dos horas. Al agendar, la app manda `timezone` (la
+zona IANA del dueño, la misma que ya manda a `/video-call/slots` y a la cotización) en `POST /api/assistance`. Si el backend todavía
+no conoce el campo (`forbidNonWhitelisted`: 400 "should not exist"), la app reintenta sin él: no se rompe nada, pero el aviso de
+doble hora no aparece.
+
+**Pedido:**
+- `POST /api/assistance` (videocall agendada): aceptar `timezone` (nombre IANA válido; si no, 400) y guardarlo en
+  `assistance_requests.timezone` (columna nullable). Para "Ahora" no hace falta.
+- Devolverlo como `timezone` en `GET /api/assistance` (listado/feed del técnico), `GET /api/assistance/:id` y en las citas
+  (`GET /appointments`, `/appointments/:id`), para que la oferta del técnico lo traiga sin otra llamada.
+- Opcional: que el recordatorio previo al turno (push) nombre la zona del destinatario.
+
 ---
 
 ## 6. Orden de entrega sugerido
@@ -331,7 +444,7 @@ Si se agrega un valor de `period`, avisar para que la app muestre la franja.
 2. **A** — endpoints, estados, eventos, flag (§3.4–3.8) y despliegue **antes** que la app nueva.
 3. Publicar la app con `requireApproval: true` y la pantalla de aceptar/rechazar.
 4. Activar `extension_approval_enabled` cuando los técnicos estén actualizados.
-5. **F, G, H** — cuando haya capacidad.
+5. **N** (alta, desbloquea agendar 24/7), **O** (alta, evita citas a la hora equivocada) y luego **F, G, H, J, K, L, M** — cuando haya capacidad.
 
 **Regla de despliegue:** backend primero. El backend rechaza campos desconocidos (`forbidNonWhitelisted`), así que
 cualquier campo nuevo que la app mande (`requireApproval`) tiene que existir en el DTO antes de publicar el build.

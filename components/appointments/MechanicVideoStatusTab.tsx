@@ -10,21 +10,24 @@ const K = 'appointments.videoCall.statusTab';
 type StepState = 'done' | 'current' | 'pending';
 
 /**
- * The technician's Status tab on a video call: where the assistance is, step by step —
+ * The Status tab on a video call, for the technician (default) or the vehicle owner: where the assistance is, step by step —
  * accepted, call open, closed (waiting for the client's confirmation), rate the customer.
  * It says what is happening now and what comes next; the facts of the request live in Details.
  */
-export function MechanicVideoStatusTab({ status, callStarted, notResolved, reviewSent }: {
+export function MechanicVideoStatusTab({ status, callStarted, notResolved, reviewSent, role = 'mechanic' }: {
     /** accepted | in_progress | awaiting_confirmation | disputed | completed */
     status: string | undefined;
     /** The client joined and the timer is running. */
     callStarted: boolean;
     /** Closed without charging: the client said it was not resolved. */
     notResolved: boolean;
-    /** The technician already rated the customer. */
+    /** The other person was already rated. */
     reviewSent: boolean;
+    /** Whose phone this is: the owner reads the same steps with their own wording (`statusTab.owner.*`). */
+    role?: 'mechanic' | 'owner';
 }) {
-    const { t } = useTranslation();
+    const { t: translate } = useTranslation();
+    const t = (key: string) => translate(role === 'owner' ? [key.replace(`${K}.`, `${K}.owner.`), key] : key);
     const closed = status === 'completed';
     const waiting = status === 'awaiting_confirmation';
     const disputed = status === 'disputed';
@@ -57,7 +60,7 @@ export function MechanicVideoStatusTab({ status, callStarted, notResolved, revie
     return (
         <View
             style={{ backgroundColor: '#FFFFFF', borderRadius: 20, borderWidth: 1, borderColor: '#EEF2FA', padding: 18, shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.06, shadowRadius: 14, elevation: 2 }}
-            testID="mechanic-video-status-tab"
+            testID={role === 'owner' ? 'owner-video-status-tab' : 'mechanic-video-status-tab'}
         >
             {steps.map((step, i) => {
                 const last = i === steps.length - 1;

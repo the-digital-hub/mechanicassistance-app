@@ -17,6 +17,7 @@ import type { AssistanceRequest } from '@/lib/dao/interfaces';
 import { FixedLocationMap } from '@/components/ui/FixedLocationMap';
 import { approximateArea } from '@/lib/maps/approximateLocation';
 import { apiClient } from '@/lib/api/apiClient';
+import { VideoCallZoneNote } from '@/components/video/VideoCallZoneNote';
 import { videoCallStartLabel } from '@/lib/video/videoCallTime';
 import { videoCallDAO } from '@/lib/dao/VideoCallDAO';
 import { DEFAULT_CALL_MINUTES } from '@/lib/video/callLength';
@@ -501,6 +502,15 @@ export default function RequestDetailScreen() {
                                         {videoCallStartLabel(typeof date === 'string' ? date : undefined, i18n.language) ?? t('requestDetail.videoCallNow')}
                                     </Text>
                                 </View>
+                            </View>
+                            <View className="px-4 pb-4">
+                                <VideoCallZoneNote
+                                    compact
+                                    call={{
+                                        date: typeof date === 'string' && videoCallStartLabel(date, i18n.language) ? date : null,
+                                        timezone: (fetched as { timezone?: string } | null)?.timezone ?? (typeof params.timezone === 'string' ? params.timezone : null),
+                                    }}
+                                />
                             </View>
                         </View>
                     )}

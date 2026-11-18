@@ -1,4 +1,4 @@
-import { CARD_STYLE, Chip, ChoiceCard, FieldLabel, Footer, StepHead, TextField, WizardHeader, SC } from '@/components/scheduled/ui';
+import { CARD_STYLE, Chip, ChoiceCard, FieldLabel, Footer, StepHead, TextField, VehicleIdsRow, WizardHeader, SC } from '@/components/scheduled/ui';
 import { useRequestDraft } from '@/context/RequestDraftContext';
 import { useUser } from '@/context/UserContext';
 import { vehicleDAO } from '@/lib/dao/VehicleDAO';
@@ -150,27 +150,13 @@ export default function SelectVehicleScreen() {
                     ) : (
                         <View style={{ gap: 10 }}>
                             {vehicles.map((v) => {
-                                const meta = [v.plate, v.plateState].filter(Boolean).join(' · ');
                                 return (
                                     <ChoiceCard
                                         key={v.id}
                                         on={selected?.id === v.id}
                                         onPress={() => handleSelectVehicle(v)}
-                                        icon={Car}
                                         title={vehicleName(v)}
-                                        sub={meta || t('requestAssistance.selectVehicle.noPlate')}
-                                        detail={
-                                            v.vin ? (
-                                                <View className="flex-row items-center" style={{ gap: 8, marginTop: 6 }}>
-                                                    <View style={{ paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, backgroundColor: SC.blueSoft }}>
-                                                        <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1, color: SC.blue }}>VIN</Text>
-                                                    </View>
-                                                    <Text numberOfLines={1} style={{ flexShrink: 1, fontFamily: Platform.select({ ios: 'Menlo', default: 'monospace' }), fontSize: 13, letterSpacing: 0.4, color: SC.muted }}>
-                                                        {v.vin}
-                                                    </Text>
-                                                </View>
-                                            ) : null
-                                        }
+                                        detail={<VehicleIdsRow plate={v.plate} vin={v.vin} plateLabel={t('requestAssistance.selectVehicle.plate')} />}
                                     />
                                 );
                             })}

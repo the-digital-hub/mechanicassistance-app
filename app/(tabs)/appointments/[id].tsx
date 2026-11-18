@@ -14,10 +14,11 @@ import { MechanicVideoStatusTab } from '@/components/appointments/MechanicVideoS
 import { OwnerReviewInline, OwnerReviewPrompt, useOwnerReviewPending } from '@/components/appointments/OwnerReviewInline';
 import { OwnerReviewCard } from '@/components/appointments/OwnerReviewCard';
 import { VideoCallTimerCard } from '@/components/appointments/VideoCallTimerCard';
+import { ExtensionRequestPanel } from '@/components/video/ExtensionRequestPanel';
 import { ExtendCallSheet } from '@/components/video/ExtendCallSheet';
 import { CallTimeAddedToast } from '@/components/video/CallTimeAddedToast';
 import {
-    GradientButton,
+    CustomerInRoomCard,
     JoinVideoCallButton,
     MechanicVideoCallStatusCard,
     NoteSheet,
@@ -43,6 +44,7 @@ import { isCancelledStatus, useAppointments } from '@/context/AppointmentsContex
 import { useUser } from '@/context/UserContext';
 import { formatEtaTime, useAppointmentEta } from '@/hooks/useAppointmentEta';
 import { useHeadOut } from '@/hooks/useHeadOut';
+import { useCustomerInRoom } from '@/hooks/useCustomerInRoom';
 import { useVideoCallState } from '@/hooks/useVideoCallState';
 import { ApiError } from '@/lib/api/types';
 import { appointmentDAO } from '@/lib/dao/AppointmentDAO';
@@ -219,7 +221,30 @@ export default function AppointmentDetailScreen() {
         isUserRole && isVideoCall && videoStatus === 'completed' && videoState?.currentStatus !== 'not_resolved',
     );
     const [reviewSent, setReviewSent] = React.useState(false);
+    // Technician: the customer already opened the room and is waiting in it.
+    const customerInRoom = useCustomerInRoom(appointment?.id, !isUserRole && isVideoCall && videoCallLive && videoStartedAtMs === null);
     const videoAddedMinutes = Math.max(0, (videoState?.contractedMinutes ?? 0) - (videoState?.baseMinutes ?? 0));
+    // Technician: what the extra time is worth to them. The server sends the technician's total (`budget`,
+    // which already includes it) and what the call alone paid (`providerBreakdown.total`, the snapshot);
+    // the difference is the extension, already net of the platform fee. Nothing is computed from a rate.
+    const [callPayout, setCallPayout] = React.useState<number | null>(null);
+    React.useEffect(() => {
+        if (isUserRole || !isVideoCall || videoAddedMinutes <= 0 || !appointment?.id) return;
+        let cancelled = false;
+        assistanceDAO
+            .getById(appointment.id)
+            .then((r) => {
+                const total = Number(r?.providerBreakdown?.total);
+                if (!cancelled && Number.isFinite(total) && total > 0) setCallPayout(total);
+            })
+            .catch(() => undefined);
+        return () => { cancelled = true; };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isUserRole, isVideoCall, videoAddedMinutes, appointment?.id, appointment?.budget]);
+    const budgetNumber = Number(String(appointment?.budget ?? '').replace(/[^0-9.]/g, ''));
+    const extendedEarnings = callPayout !== null && Number.isFinite(budgetNumber) && budgetNumber > callPayout
+        ? (budgetNumber - callPayout).toFixed(2)
+        : null;
     // Owner only: the paid "Add time" sheet.
     const [showExtendSheet, setShowExtendSheet] = React.useState(false);
     const [videoBusy, setVideoBusy] = React.useState(false);
@@ -432,11 +457,24 @@ export default function AppointmentDetailScreen() {
         switch (ownerTab) {
             case 'status':
                 if (isVideoCall) {
-                    // No ETA on a remote call. Once it is closed the owner rates the technician here, open;
-                    // a "not resolved" one was not charged, so there is nothing to rate.
-                    return ownerReview.pending || reviewSent ? (
-                        <OwnerReviewInline appointmentId={appointment.id} onSent={() => { setReviewSent(true); ownerReview.markDone(); }} />
-                    ) : null;
+                    // No ETA on a remote call: the steps, and once it is closed the owner rates the technician
+                    // right below, open. A "not resolved" one was not charged, so there is nothing to rate.
+                    const ratable = videoStatus === 'completed' && videoState?.currentStatus !== 'not_resolved';
+                    const ownerRated = reviewSent || (ratable && ownerReview.loaded && !ownerReview.pending);
+                    return (
+                        <View style={{ gap: 16 }}>
+                            <MechanicVideoStatusTab
+                                role="owner"
+                                status={videoStatus}
+                                callStarted={videoStartedAtMs !== null}
+                                notResolved={videoState?.currentStatus === 'not_resolved'}
+                                reviewSent={ownerRated}
+                            />
+                            {ownerReview.pending || reviewSent ? (
+                                <OwnerReviewInline appointmentId={appointment.id} onSent={() => { setReviewSent(true); ownerReview.markDone(); }} />
+                            ) : null}
+                        </View>
+                    );
                 }
                 return (
                     <View style={{ gap: 16 }}>
@@ -558,7 +596,14 @@ export default function AppointmentDetailScreen() {
                     />
                 );
             case 'info':
-                return <MechanicAssistanceInfoTab appointment={appointment} videoSection="details" />;
+                // The call's length as it stands: the chosen one plus any time the owner added. The list row may
+                // not carry it, so the call state (`GET …/video`) fills it in.
+                return (
+                    <MechanicAssistanceInfoTab
+                        appointment={{ ...appointment, durationMinutes: videoState?.contractedMinutes ?? videoState?.baseMinutes ?? appointment.durationMinutes }}
+                        videoSection="details"
+                    />
+                );
             case 'obd':
                 return (
                     <View style={{ marginHorizontal: -16 }}>
@@ -569,7 +614,7 @@ export default function AppointmentDetailScreen() {
                 return <ClientInfoPanel client={panelClient} />;
             case 'budget':
                 // `budget` already comes back as what the mechanic earns, never the customer's price.
-                return <OwnerBudgetPanel total={(appointment.budget ?? '').replace(/^\$/, '') || null} totalLabel={t('appointments.receipt.youEarn')} video extendedMinutes={videoAddedMinutes} />;
+                return <OwnerBudgetPanel total={(appointment.budget ?? '').replace(/^\$/, '') || null} totalLabel={t('appointments.receipt.youEarn')} video extendedMinutes={videoAddedMinutes} extendedAmount={extendedEarnings} />;
             default:
                 return null;
         }
@@ -677,7 +722,7 @@ export default function AppointmentDetailScreen() {
                                 {isVideoCall && (
                                     <>
                                         <VideoCallWhenCard date={appointment.date} startNow={appointment.startNow} />
-                                        {videoCallLive && <JoinVideoCallButton onPress={openVideoLobby} />}
+                                        {videoCallLive && <JoinVideoCallButton onPress={openVideoLobby} rejoin={videoStartedAtMs !== null} />}
                                         {videoCallLive && videoStartedAtMs !== null && (
                                             <>
                                                 <VideoCallTimerCard
@@ -695,10 +740,8 @@ export default function AppointmentDetailScreen() {
                                             </>
                                         )}
                                         {videoCallLive && (
-                                            <GradientButton
+                                            <QuietButton
                                                 label={t('appointments.videoCall.mechanic.finish')}
-                                                icon="checkmark"
-                                                colors={['#10B981', '#047857']}
                                                 loading={videoBusy}
                                                 onPress={askOwnerFinishVideoCall}
                                                 testID="owner-video-finish"
@@ -884,6 +927,8 @@ export default function AppointmentDetailScreen() {
                                 <View className="mx-4 mt-3.5" style={{ gap: 10 }}>
                                     {videoCallLive ? (
                                         <>
+                                            {/* Extra time the owner asked for: answered here too, not only inside the call. */}
+                                            <ExtensionRequestPanel appointmentId={appointment.id} isOwner={false} inline />
                                             {videoStartedAtMs !== null && (
                                                 <VideoCallTimerCard
                                                     startedAtMs={videoStartedAtMs}
@@ -892,21 +937,12 @@ export default function AppointmentDetailScreen() {
                                                 />
                                             )}
                                             {videoStartedAtMs === null ? (
-                                                <JoinVideoCallButton onPress={openVideoLobby} />
+                                                <>
+                                                    {customerInRoom && <CustomerInRoomCard />}
+                                                    <JoinVideoCallButton onPress={openVideoLobby} />
+                                                </>
                                             ) : (
-                                                <TouchableOpacity
-                                                    onPress={openVideoLobby}
-                                                    activeOpacity={0.85}
-                                                    className="flex-row items-center justify-center"
-                                                    style={{ gap: 10, paddingVertical: 15, borderRadius: 14, backgroundColor: MECH.blueSoft }}
-                                                    testID="return-to-video-call"
-                                                    accessibilityRole="button"
-                                                >
-                                                    <Ionicons name="videocam" size={20} color={MECH.blue} />
-                                                    <Text className="font-outfit-bold text-[16px]" style={{ color: MECH.blue }}>
-                                                        {t('appointments.videoCall.timer.returnToCall')}
-                                                    </Text>
-                                                </TouchableOpacity>
+                                                <JoinVideoCallButton onPress={openVideoLobby} rejoin />
                                             )}
                                             <QuietButton
                                                 label={t('appointments.videoCall.mechanic.finish')}

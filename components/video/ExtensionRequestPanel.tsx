@@ -25,12 +25,14 @@ const OUTCOME_KEY: Record<ExtensionOutcome, string> = {
  * request ends without adding time. Technician: the minutes asked for, the countdown and
  * Accept / Decline — never an amount. The call underneath stays usable.
  */
-export function ExtensionRequestPanel({ appointmentId, isOwner, top = 12, refreshKey = 0 }: {
+export function ExtensionRequestPanel({ appointmentId, isOwner, top = 12, refreshKey = 0, inline = false }: {
     appointmentId: string;
     isOwner: boolean;
     top?: number;
     /** Bump it after the owner sends a request: no event comes back to the one who asked. */
     refreshKey?: number;
+    /** In the page's flow (the appointment detail) instead of floating over the call. */
+    inline?: boolean;
 }) {
     const { t } = useTranslation();
     const { pending, outcome, clearOutcome, reload } = usePendingExtension(appointmentId);
@@ -71,7 +73,7 @@ export function ExtensionRequestPanel({ appointmentId, isOwner, top = 12, refres
         <>
             {dialog}
             {open && pending ? (
-                <View pointerEvents="box-none" style={{ position: 'absolute', top, left: 16, right: 16, zIndex: 40 }} testID="extension-request-panel">
+                <View pointerEvents="box-none" style={inline ? undefined : { position: 'absolute', top, left: 16, right: 16, zIndex: 40 }} testID="extension-request-panel">
                     {isOwner ? (
                         <View
                             style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 18, backgroundColor: 'rgba(11,21,48,0.88)' }}
@@ -85,7 +87,7 @@ export function ExtensionRequestPanel({ appointmentId, isOwner, top = 12, refres
                         </View>
                     ) : (
                         <View
-                            style={{ padding: 16, borderRadius: 20, backgroundColor: '#FFFFFF', shadowColor: '#0B1530', shadowOpacity: 0.3, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 8 }}
+                            style={{ padding: 16, borderRadius: 20, backgroundColor: '#FFFFFF', shadowColor: '#0B1530', shadowOpacity: inline ? 0.08 : 0.3, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: inline ? 2 : 8 }}
                         >
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                                 <View style={{ width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: '#E9F1FF' }}>

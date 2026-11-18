@@ -112,6 +112,8 @@ export interface AssistanceRequest {
     date?: string;
     /** Video calls only: asked for "now" rather than booked; the server dates it. */
     startNow?: boolean;
+    /** Video calls only: the owner's IANA time zone when they booked (e.g. "America/Chicago"), so a technician elsewhere can see both clocks. */
+    timezone?: string;
     /** Video calls only: minutes the owner chose (15/30/45). Null/absent on older requests: the default applies. */
     durationMinutes?: number | null;
     userId?: string;

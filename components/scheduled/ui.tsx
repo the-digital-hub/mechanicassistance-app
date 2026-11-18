@@ -3,7 +3,7 @@ import { TYPE } from '@/lib/ui/type';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Check, ChevronRight, type LucideIcon } from 'lucide-react-native';
 import type { ReactNode } from 'react';
-import { ActivityIndicator, Text, TextInput, TouchableOpacity, View, type TextInputProps } from 'react-native';
+import { ActivityIndicator, Platform, Text, TextInput, TouchableOpacity, View, type TextInputProps } from 'react-native';
 
 import { HeaderBackButton } from '@/components/ui/HeaderBackButton';
 
@@ -167,6 +167,32 @@ export function ChoiceCard({
                 {on ? <Check size={13} color="#FFFFFF" strokeWidth={3} /> : null}
             </View>
         </TouchableOpacity>
+    );
+}
+
+/** Small badge + monospace value ("VIN 1HGCM…", "PLATE ABC123"), for vehicle cards. Renders nothing without a value. */
+function BadgeValueRow({ label, value }: { label: string; value?: string | null }) {
+    if (!value) return null;
+    return (
+        <View className="flex-row items-center" style={{ gap: 6 }}>
+            <View style={{ paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, backgroundColor: '#EEF1F6' }}>
+                <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1, color: SC.muted }}>{label}</Text>
+            </View>
+            <Text numberOfLines={1} style={{ flexShrink: 1, fontFamily: Platform.select({ ios: 'Menlo', default: 'monospace' }), fontSize: 12, letterSpacing: 0.3, color: SC.muted }}>
+                {value}
+            </Text>
+        </View>
+    );
+}
+
+/** Plate and VIN side by side (wrapping on narrow screens) to keep vehicle cards short. */
+export function VehicleIdsRow({ plate, vin, plateLabel }: { plate?: string | null; vin?: string | null; plateLabel: string }) {
+    if (!plate && !vin) return null;
+    return (
+        <View className="flex-row flex-wrap items-center" style={{ columnGap: 12, rowGap: 4, marginTop: 6 }}>
+            <BadgeValueRow label={plateLabel} value={plate} />
+            <BadgeValueRow label="VIN" value={vin} />
+        </View>
     );
 }
 

@@ -45,7 +45,6 @@ export function VinCard({ value, onChange, onDecode, decoding, decoded, error, l
             }}
         >
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                <AVIcon name="sparkle" color="#fff" />
                 <Text className="font-outfit-bold" style={{ ...TYPE.question, color: '#fff' }}>
                     {t('vehicles.form.design.vinTitle')}
                     <Text style={{ opacity: 0.8 }}>*</Text>

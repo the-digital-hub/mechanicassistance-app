@@ -6,14 +6,22 @@ import { ApiError } from '@/lib/api/types';
 import { userDAO } from '@/lib/dao/UserDAO';
 import { useMessageDialog } from '@/components/ui/useMessageDialog';
 import { useVideoCallState } from '@/hooks/useVideoCallState';
-import { DEFAULT_CALL_MINUTES } from '@/lib/video/callLength';
+import { VideoCallTimerCard } from '@/components/appointments/VideoCallTimerCard';
+import { DEFAULT_CALL_MINUTES, contractedSeconds } from '@/lib/video/callLength';
+import { HeaderBackButton } from '@/components/ui/HeaderBackButton';
+import { GradientButton } from '@/components/appointments/VideoCallSections';
+import { AO } from '@/components/offer/OfferSections';
+import { FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
+import { TYPE } from '@/lib/ui/type';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { goBackOr } from '@/lib/navigation/goBackOr';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
     ActivityIndicator,
+    ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -188,13 +196,20 @@ export default function VideoLobbyScreen() {
         }
     }, [roomUrl, appointmentId, router, participantName, participantRole, notify, t]);
 
+    const minutes = callState?.contractedMinutes ?? callState?.baseMinutes ?? appointment?.durationMinutes ?? DEFAULT_CALL_MINUTES;
+    // The call already started: whoever left and came back is rejoining, not starting.
+    const rejoin = callState?.startedAtLocalMs != null && (callState.status === 'accepted' || callState.status === 'in_progress');
+    const canAct = isUserRole || !!roomUrl;
+    const onAct = isUserRole ? handleStartCall : handleJoinCall;
+    const tips = [1, 2, 3].map((n) => t(`videoCall.lobby.tips.${isUserRole ? 'owner' : 'mechanic'}${n}`));
+
     if (!appointment) {
         return (
             <View style={styles.container}>
                 <View style={styles.centerContent}>
-                    <Text style={styles.errorTitle}>Appointment not found</Text>
+                    <Text style={styles.errorTitle}>{t('videoCall.lobby.notFound')}</Text>
                     <TouchableOpacity onPress={() => goBackOr(router, '/(tabs)/appointments')} style={styles.backLink}>
-                        <Text style={styles.backLinkText}>Go back</Text>
+                        <Text style={styles.backLinkText}>{t('videoCall.lobby.goBack')}</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -206,257 +221,149 @@ export default function VideoLobbyScreen() {
             <View style={styles.container}>
                 {dialog}
                 <View style={styles.centerContent}>
-                    <ActivityIndicator size="large" color="#0047AB" />
-                    <Text style={styles.loadingText}>Checking video room...</Text>
+                    <ActivityIndicator size="large" color={AO.blue} />
+                    <Text style={styles.loadingText}>{t('videoCall.lobby.checking')}</Text>
                 </View>
             </View>
         );
     }
 
+    type InfoRow = { icon: React.ComponentProps<typeof Ionicons>['name']; label: string; text: string };
+    const infoRows = [
+        appointment.car ? ({ icon: 'car-sport-outline', label: t('videoCall.lobby.labels.vehicle'), text: appointment.car } as InfoRow) : null,
+        otherPartyName ? ({ icon: 'person-outline', label: t(isUserRole ? 'videoCall.lobby.labels.technician' : 'videoCall.lobby.labels.customer'), text: otherPartyName } as InfoRow) : null,
+        { icon: 'timer-outline', label: t('videoCall.lobby.labels.duration'), text: t('requestAssistance.when.durationValue', { count: minutes }) } as InfoRow,
+    ].filter((r): r is InfoRow => r !== null);
+
     return (
         <View style={styles.container}>
             {dialog}
-            {/* Header */}
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => goBackOr(router, { pathname: '/appointments/[id]', params: { id: appointmentId } })} hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}>
-                    <Ionicons name="chevron-back" size={24} color="#0047AB" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Video Assistance</Text>
-                <View style={{ width: 24 }} />
+                <HeaderBackButton marginLeft={0} onPress={() => goBackOr(router, { pathname: '/appointments/[id]', params: { id: appointmentId } })} />
+                <Text style={styles.headerTitle}>{t('videoCall.lobby.header')}</Text>
+                <View style={{ width: 40 }} />
             </View>
 
-            {/* Content */}
-            <View style={styles.centerContent}>
-                {/* Appointment info */}
-                <View style={styles.appointmentInfo}>
-                    <Text style={styles.appointmentTitle}>{appointment.title || 'Video Call Assistance'}</Text>
-                    {appointment.car && (
-                        <Text style={styles.appointmentSubtitle}>
-                            <Ionicons name="car-sport" size={14} color="#6B7280" /> {appointment.car}
-                        </Text>
-                    )}
-                    {otherPartyName ? (
-                        <Text style={styles.appointmentSubtitle}>
-                            <Ionicons name="person" size={14} color="#6B7280" /> {otherPartyName}
-                        </Text>
-                    ) : null}
-                </View>
-
-                {/* Pulsing Green Circle */}
+            <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
                 <View style={styles.circleContainer}>
-                    {/* Pulse rings */}
                     <Animated.View style={[styles.pulseRing, styles.pulseRingOuter, pulseStyle]} />
                     <Animated.View style={[styles.pulseRing, styles.pulseRingMiddle, pulseStyle]} />
-
-                    {/* Main circle button */}
                     <TouchableOpacity
-                        style={[
-                            styles.mainCircle,
-                            isCreatingRoom && styles.mainCircleDisabled
-                        ]}
-                        onPress={isUserRole ? handleStartCall : handleJoinCall}
-                        disabled={isCreatingRoom || (!isUserRole && !roomUrl)}
-                        activeOpacity={0.8}
+                        onPress={onAct}
+                        disabled={isCreatingRoom || !canAct}
+                        activeOpacity={0.85}
+                        accessibilityRole="button"
+                        accessibilityLabel={t(rejoin ? 'videoCall.lobby.rejoin' : isUserRole ? 'videoCall.lobby.start' : 'videoCall.lobby.join')}
+                        style={[styles.mainCircle, (isCreatingRoom || !canAct) && { opacity: 0.55 }]}
                     >
-                        {isCreatingRoom ? (
-                            <ActivityIndicator size="large" color="white" />
-                        ) : (
-                            <Ionicons name="videocam" size={48} color="white" />
-                        )}
+                        <LinearGradient colors={['#2F6BFF', '#1E56E3', '#0B2A8E']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.mainCircleFill}>
+                            {isCreatingRoom ? <ActivityIndicator size="large" color="white" /> : <Ionicons name="videocam" size={46} color="white" />}
+                        </LinearGradient>
                     </TouchableOpacity>
                 </View>
 
-                {/* Action Label */}
-                <Text style={styles.actionLabel}>
-                    {isUserRole ? 'Start Video Chat' : 'Join Video Call'}
-                </Text>
+                <Text style={styles.actionLabel}>{t(rejoin ? 'videoCall.lobby.rejoinTitle' : isUserRole ? 'videoCall.lobby.startTitle' : 'videoCall.lobby.joinTitle')}</Text>
                 <Text style={styles.actionSubLabel}>
-                    {isUserRole
-                        ? 'Tap the green circle to start your video call'
-                        : roomUrl
-                            ? 'Tap the green circle to join the video call'
-                            : 'Waiting for the client to start the call...'}
+                    {rejoin ? t('videoCall.lobby.rejoinHint') : isUserRole ? t('videoCall.lobby.startHint') : roomUrl ? t('videoCall.lobby.joinHint') : t('videoCall.lobby.waitingHint')}
                 </Text>
 
-                {/* Room status */}
-                {roomUrl && roomExpiry && (
+                {roomUrl && roomExpiry ? (
                     <View style={styles.roomStatus}>
                         <View style={styles.roomStatusDot} />
-                        <Text style={styles.roomStatusText}>Video room is active</Text>
+                        <Text style={styles.roomStatusText}>{t('videoCall.lobby.roomActive')}</Text>
                     </View>
-                )}
-
-                {/* If mechanic and no room yet, show waiting state */}
-                {!isUserRole && !roomUrl && (
+                ) : !isUserRole ? (
                     <View style={styles.waitingContainer}>
-                        <ActivityIndicator size="small" color="#6B7280" />
-                        <Text style={styles.waitingText}>Waiting for the client to initiate...</Text>
+                        <ActivityIndicator size="small" color={AO.muted} />
+                        <Text style={styles.waitingText}>{t('videoCall.lobby.waiting')}</Text>
                     </View>
-                )}
-            </View>
+                ) : null}
 
-            {/* Room will expire notice */}
-            <View style={styles.footer}>
-                <Text style={styles.footerText}>
-                    {t('videoCall.lobby.footer', { minutes: callState?.baseMinutes ?? DEFAULT_CALL_MINUTES })}
-                </Text>
+                {rejoin && callState?.startedAtLocalMs != null ? (
+                    <View style={{ alignSelf: 'stretch', marginTop: 20 }}>
+                        <VideoCallTimerCard
+                            startedAtMs={callState.startedAtLocalMs}
+                            limitSeconds={contractedSeconds(callState)}
+                            addedMinutes={Math.max(0, (callState.contractedMinutes ?? 0) - (callState.baseMinutes ?? 0))}
+                        />
+                    </View>
+                ) : null}
+
+                <View style={styles.card}>
+                    {infoRows.map((r, i) => (
+                        <View key={r.icon} style={[styles.infoRow, i < infoRows.length - 1 && styles.infoRowBorder]}>
+                            <View style={styles.iconTile}><Ionicons name={r.icon} size={18} color={AO.blue} /></View>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.infoLabel}>{r.label}</Text>
+                                <Text style={styles.infoText} numberOfLines={1}>{r.text}</Text>
+                            </View>
+                        </View>
+                    ))}
+                </View>
+
+                <View style={styles.card}>
+                    <Text style={styles.tipsTitle}>{t('videoCall.lobby.tipsTitle')}</Text>
+                    {tips.map((tip) => (
+                        <View key={tip} style={styles.tipRow}>
+                            <Ionicons name="checkmark-circle" size={18} color={AO.blue} />
+                            <Text style={styles.tipText}>{tip}</Text>
+                        </View>
+                    ))}
+                </View>
+
+                <View style={styles.note}>
+                    <View style={styles.noteIcon}><Ionicons name="time-outline" size={18} color={AO.blue} /></View>
+                    <Text style={styles.noteText}>{t('videoCall.lobby.footer', { minutes })}</Text>
+                </View>
+            </ScrollView>
+
+            <View style={[FLOATING_FOOTER, { paddingBottom: 28 }]}>
+                <GradientButton
+                    label={t(rejoin ? 'videoCall.lobby.rejoin' : isUserRole ? 'videoCall.lobby.start' : 'videoCall.lobby.join')}
+                    icon="videocam"
+                    onPress={onAct}
+                    disabled={!canAct}
+                    loading={isCreatingRoom}
+                    testID="lobby-primary"
+                />
             </View>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#FFFFFF',
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingTop: 56,
-        paddingBottom: 12,
-        backgroundColor: '#FFFFFF',
-    },
-    headerTitle: {
-        fontFamily: 'Outfit_700Bold',
-        fontSize: 18,
-        color: '#1E3A5F',
-    },
-    centerContent: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-    },
-    appointmentInfo: {
-        alignItems: 'center',
-        marginBottom: 40,
-    },
-    appointmentTitle: {
-        fontFamily: 'Outfit_700Bold',
-        fontSize: 20,
-        color: '#1E3A5F',
-        textAlign: 'center',
-        marginBottom: 8,
-    },
-    appointmentSubtitle: {
-        fontFamily: 'Outfit_400Regular',
-        fontSize: 14,
-        color: '#6B7280',
-        marginTop: 4,
-    },
-    circleContainer: {
-        width: 200,
-        height: 200,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 32,
-    },
-    pulseRing: {
-        position: 'absolute',
-        borderRadius: 999,
-        backgroundColor: '#22C55E',
-    },
-    pulseRingOuter: {
-        width: 200,
-        height: 200,
-    },
-    pulseRingMiddle: {
-        width: 160,
-        height: 160,
-    },
-    mainCircle: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        backgroundColor: '#22C55E',
-        alignItems: 'center',
-        justifyContent: 'center',
-        shadowColor: '#22C55E',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.4,
-        shadowRadius: 16,
-        elevation: 8,
-        zIndex: 10,
-    },
-    mainCircleDisabled: {
-        backgroundColor: '#86EFAC',
-    },
-    actionLabel: {
-        fontFamily: 'Outfit_700Bold',
-        fontSize: 24,
-        color: '#1E3A5F',
-        marginBottom: 8,
-    },
-    actionSubLabel: {
-        fontFamily: 'Outfit_400Regular',
-        fontSize: 14,
-        color: '#9CA3AF',
-        textAlign: 'center',
-        paddingHorizontal: 16,
-    },
-    roomStatus: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop: 24,
-        backgroundColor: '#F0FDF4',
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 20,
-    },
-    roomStatusDot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: '#22C55E',
-        marginRight: 8,
-    },
-    roomStatusText: {
-        fontFamily: 'Outfit_500Medium',
-        fontSize: 13,
-        color: '#16A34A',
-    },
-    waitingContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop: 24,
-        gap: 8,
-    },
-    waitingText: {
-        fontFamily: 'Outfit_400Regular',
-        fontSize: 13,
-        color: '#6B7280',
-    },
-    footer: {
-        paddingHorizontal: 32,
-        paddingBottom: 40,
-        alignItems: 'center',
-    },
-    footerText: {
-        fontFamily: 'Outfit_400Regular',
-        fontSize: 13,
-        color: '#9CA3AF',
-        textAlign: 'center',
-    },
-    errorTitle: {
-        fontFamily: 'Outfit_700Bold',
-        fontSize: 18,
-        color: '#1E3A5F',
-    },
-    backLink: {
-        marginTop: 16,
-    },
-    backLinkText: {
-        fontFamily: 'Outfit_500Medium',
-        fontSize: 14,
-        color: '#2563EB',
-    },
-    loadingText: {
-        fontFamily: 'Outfit_500Medium',
-        fontSize: 14,
-        color: '#6B7280',
-        marginTop: 12,
-    },
+    container: { flex: 1, backgroundColor: AO.page },
+    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 56, paddingBottom: 12, backgroundColor: AO.page },
+    headerTitle: { fontFamily: 'Outfit_700Bold', fontSize: TYPE.group.fontSize, color: AO.text },
+    centerContent: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
+    scroll: { alignItems: 'center', paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24 },
+    circleContainer: { width: 200, height: 200, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
+    pulseRing: { position: 'absolute', borderRadius: 999, backgroundColor: '#2B66F8' },
+    pulseRingOuter: { width: 200, height: 200 },
+    pulseRingMiddle: { width: 160, height: 160 },
+    mainCircle: { width: 120, height: 120, borderRadius: 60, shadowColor: '#2B66F8', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.35, shadowRadius: 16, elevation: 8, zIndex: 10 },
+    mainCircleFill: { flex: 1, borderRadius: 60, alignItems: 'center', justifyContent: 'center' },
+    actionLabel: { fontFamily: 'Outfit_700Bold', fontSize: 24, color: AO.text, marginBottom: 6, textAlign: 'center' },
+    actionSubLabel: { fontFamily: 'Outfit_400Regular', fontSize: TYPE.helper.fontSize, lineHeight: 20, color: AO.muted, textAlign: 'center', paddingHorizontal: 12 },
+    roomStatus: { flexDirection: 'row', alignItems: 'center', marginTop: 16, backgroundColor: AO.blueSoft, paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20 },
+    roomStatusDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: AO.blue, marginRight: 8 },
+    roomStatusText: { fontFamily: 'Outfit_600SemiBold', fontSize: TYPE.caption.fontSize, color: AO.blue },
+    waitingContainer: { flexDirection: 'row', alignItems: 'center', marginTop: 16, gap: 8 },
+    waitingText: { fontFamily: 'Outfit_400Regular', fontSize: TYPE.caption.fontSize, color: AO.muted },
+    card: { alignSelf: 'stretch', backgroundColor: '#FFFFFF', borderRadius: 18, borderWidth: 1, borderColor: AO.borderSoft, paddingHorizontal: 14, paddingVertical: 6, marginTop: 20 },
+    infoRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 11 },
+    infoRowBorder: { borderBottomWidth: 1, borderBottomColor: AO.borderSoft },
+    iconTile: { width: 34, height: 34, borderRadius: 10, backgroundColor: AO.blueSoft, alignItems: 'center', justifyContent: 'center' },
+    infoLabel: { fontFamily: 'Outfit_600SemiBold', fontSize: 12, letterSpacing: 0.8, textTransform: 'uppercase', color: AO.mutedLight },
+    infoText: { fontFamily: 'Outfit_600SemiBold', fontSize: TYPE.body.fontSize, color: AO.text },
+    tipsTitle: { fontFamily: 'Outfit_700Bold', fontSize: TYPE.body.fontSize, color: AO.text, paddingTop: 8, paddingBottom: 4 },
+    tipRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingVertical: 7 },
+    tipText: { flex: 1, fontFamily: 'Outfit_400Regular', fontSize: TYPE.helper.fontSize, lineHeight: 20, color: AO.muted },
+    note: { alignSelf: 'stretch', flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 20, padding: 14, borderRadius: 16, backgroundColor: AO.blueSofter, borderWidth: 1, borderColor: AO.blueSoft },
+    noteIcon: { width: 34, height: 34, borderRadius: 10, backgroundColor: AO.blueSoft, alignItems: 'center', justifyContent: 'center' },
+    noteText: { flex: 1, fontFamily: 'Outfit_400Regular', fontSize: TYPE.helper.fontSize, lineHeight: 20, color: AO.muted },
+    errorTitle: { fontFamily: 'Outfit_700Bold', fontSize: TYPE.group.fontSize, color: AO.text },
+    backLink: { marginTop: 16 },
+    backLinkText: { fontFamily: 'Outfit_500Medium', fontSize: TYPE.helper.fontSize, color: AO.blue },
+    loadingText: { fontFamily: 'Outfit_500Medium', fontSize: TYPE.helper.fontSize, color: AO.muted, marginTop: 12 },
 });

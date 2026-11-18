@@ -38,8 +38,9 @@ export function VideoCallWhenCard({ date, startNow }: { date?: string | null; st
  * A secondary action that should not compete with the main one: white, thin border, grey text.
  * (Finishing a call early is something the technician rarely wants to do.)
  */
-export function QuietButton({ label, onPress, disabled, loading, testID }: {
+export function QuietButton({ label, icon, onPress, disabled, loading, testID }: {
     label: string;
+    icon?: IconName;
     onPress: () => void;
     disabled?: boolean;
     loading?: boolean;
@@ -51,45 +52,74 @@ export function QuietButton({ label, onPress, disabled, loading, testID }: {
             disabled={disabled || loading}
             activeOpacity={0.7}
             accessibilityRole="button"
-            className="items-center justify-center"
-            style={{ minHeight: 44, borderRadius: 12, borderWidth: 1, borderColor: '#D9DFEC', backgroundColor: '#FFFFFF', opacity: disabled ? 0.6 : 1 }}
+            className="flex-row items-center justify-center"
+            style={{ minHeight: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, borderWidth: 1, borderColor: '#D9DFEC', backgroundColor: '#FFFFFF', gap: 10, opacity: disabled ? 0.6 : 1 }}
             testID={testID}
         >
             {loading ? <ActivityIndicator color="#6B7490" /> : (
-                <Text className="font-outfit-semibold text-center" style={{ fontSize: 15, lineHeight: 20, color: '#6B7490' }}>{label}</Text>
+                <>
+                    {icon ? <Ionicons name={icon} size={20} color="#6B7490" /> : null}
+                    <Text className="font-outfit-bold text-center" style={{ fontSize: 16, lineHeight: 22, color: '#6B7490' }}>{label}</Text>
+                </>
             )}
         </TouchableOpacity>
     );
 }
 
-/** Primary blue gradient button (house style). */
-export function GradientButton({ label, icon, onPress, disabled, loading, colors = ['#2B66F8', '#081E72'], testID }: {
+/**
+ * The call's button system, one rule per intent:
+ *  - GradientButton `primary` (blue): the main action that moves things forward (Join video call).
+ *  - GradientButton `success` (green): only "it was resolved, charge it" (the owner's confirmation).
+ *  - QuietButton (white, grey border): secondary actions we do not want to encourage (Finish, Return to call).
+ *  - a soft red text button: "it was not resolved" and other problem actions.
+ * All share the same height, radius and type.
+ */
+const BUTTON_HEIGHT = 52;
+const BUTTON_RADIUS = 14;
+const TONES = { primary: ['#2B66F8', '#081E72'], success: ['#10B981', '#047857'] } as const;
+
+export function GradientButton({ label, icon, onPress, disabled, loading, tone = 'primary', testID }: {
     label: string;
     icon?: IconName;
     onPress: () => void;
     disabled?: boolean;
     loading?: boolean;
-    colors?: [string, string];
+    tone?: keyof typeof TONES;
     testID?: string;
 }) {
     return (
-        <TouchableOpacity onPress={onPress} disabled={disabled || loading} activeOpacity={0.85} style={{ opacity: disabled ? 0.6 : 1 }} testID={testID}>
+        <TouchableOpacity onPress={onPress} disabled={disabled || loading} activeOpacity={0.85} style={{ opacity: disabled ? 0.6 : 1 }} testID={testID} accessibilityRole="button">
             <LinearGradient
-                colors={colors}
+                colors={[...TONES[tone]]}
                 start={{ x: 0, y: 1 }}
                 end={{ x: 1, y: 0 }}
-                style={{ borderRadius: 10, paddingVertical: 16, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 }}
+                style={{ minHeight: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 }}
             >
                 {loading ? <ActivityIndicator color="#fff" /> : icon ? <Ionicons name={icon} size={20} color="#fff" /> : null}
-                <Text className="text-white font-outfit-bold text-center">{label}</Text>
+                <Text className="text-white font-outfit-bold text-center" style={{ fontSize: 16, lineHeight: 22 }}>{label}</Text>
             </LinearGradient>
         </TouchableOpacity>
     );
 }
 
-export function JoinVideoCallButton({ onPress }: { onPress: () => void }) {
+/** Technician: the customer is already in the video room, waiting. Shown above "Join video call". */
+export function CustomerInRoomCard() {
     const { t } = useTranslation();
-    return <GradientButton label={t(`${K}.join`)} icon="videocam" onPress={onPress} testID="join-video-call" />;
+    return (
+        <InfoCard
+            icon="videocam"
+            tone="green"
+            title={t(`${K}.mechanic.customerInRoomTitle`)}
+            body={t(`${K}.mechanic.customerInRoomBody`)}
+            testID="customer-in-room"
+        />
+    );
+}
+
+/** `rejoin`: the call already started (the person left and came back), so it says so. */
+export function JoinVideoCallButton({ onPress, rejoin = false }: { onPress: () => void; rejoin?: boolean }) {
+    const { t } = useTranslation();
+    return <GradientButton label={t(rejoin ? `${K}.rejoin` : `${K}.join`)} icon="videocam" onPress={onPress} testID="join-video-call" />;
 }
 
 function InfoCard({ icon, tone, title, body, children, testID }: {
@@ -163,13 +193,13 @@ export function OwnerVideoCallStatusCard({ state, mechanicName, busy, onConfirm,
                         onPress={onNotResolved}
                         disabled={busy}
                         activeOpacity={0.85}
-                        style={{ flex: 0.45, borderRadius: 10, paddingVertical: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F3F4F6' }}
+                        style={{ flex: 0.45, minHeight: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FDECEC' }}
                         testID="owner-video-not-resolved"
                     >
-                        <Text className="font-outfit-bold" style={{ fontSize: 14, color: AO.red }}>{t(`${k}.notResolved`)}</Text>
+                        <Text className="font-outfit-bold" style={{ fontSize: 16, color: AO.red }}>{t(`${k}.notResolved`)}</Text>
                     </TouchableOpacity>
                     <View style={{ flex: 0.55 }}>
-                        <GradientButton label={t(`${k}.confirm`)} onPress={onConfirm} loading={busy} colors={['#10B981', '#047857']} testID="owner-video-confirm" />
+                        <GradientButton label={t(`${k}.confirm`)} onPress={onConfirm} loading={busy} tone="success" testID="owner-video-confirm" />
                     </View>
                 </View>
             </InfoCard>

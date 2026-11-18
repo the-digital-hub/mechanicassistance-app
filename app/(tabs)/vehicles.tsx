@@ -9,9 +9,10 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
+import { VehicleIdsRow } from '@/components/scheduled/ui';
 import { VehicleForm, VehicleFormPayload } from '@/components/vehicles/VehicleForm';
 import { VehicleFormHeader } from '@/components/vehicles/vehicleFormDesign';
 import { appAlert } from '@/lib/ui/appAlert';
@@ -165,11 +166,11 @@ export default function VehiclesScreen() {
             </View>
 
             {/* Title */}
-            <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">{t('vehicles.listTitle')}</Text>
+            <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">{t('vehicles.listTitle', { count: vehicles.length })}</Text>
 
             {/* Subtitle */}
             <Text className="text-gray-500 font-outfit-regular text-base mb-6">
-              {t('vehicles.listSubtitle')}
+              {t('vehicles.listSubtitle', { count: vehicles.length })}
             </Text>
 
             <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
@@ -187,17 +188,7 @@ export default function VehiclesScreen() {
                         >
                             <View className="flex-1">
                                 <Text className="text-lg font-outfit-bold text-[#0F172A] uppercase">{v.make} {v.model}</Text>
-                                <Text className="text-blue-600 font-outfit-medium text-xs tracking-widest uppercase mt-1">{v.plate || t('vehicles.noPlate')}</Text>
-                                {v.vin ? (
-                                    <View className="flex-row items-center mt-2" style={{ gap: 8 }}>
-                                        <View className="px-1.5 py-0.5 rounded-md" style={{ backgroundColor: '#EAF1FF' }}>
-                                            <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1, color: '#1E56E3' }}>VIN</Text>
-                                        </View>
-                                        <Text selectable numberOfLines={1} style={{ flexShrink: 1, fontFamily: Platform.select({ ios: 'Menlo', default: 'monospace' }), fontSize: 13, letterSpacing: 0.4, color: '#6B7490' }}>
-                                            {v.vin}
-                                        </Text>
-                                    </View>
-                                ) : null}
+                                <VehicleIdsRow plate={v.plate} vin={v.vin} plateLabel={t('requestAssistance.selectVehicle.plate')} />
                             </View>
                             <TouchableOpacity onPress={() => handleDeleteVehicle(v)} className="p-2">
                                 <Ionicons name="trash-outline" size={20} color="#EF4444" style={{ opacity: 0.6 }} />

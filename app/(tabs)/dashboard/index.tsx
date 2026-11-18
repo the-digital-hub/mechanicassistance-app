@@ -1,3 +1,4 @@
+import { VehicleIdsRow } from '@/components/scheduled/ui';
 import { EmergencyRow, MileageField, OwnerAttentionList, OwnerSectionTitle, OwnerSheet, RecentActivityList, RequestAssistanceCta, SheetOption, UpcomingCard, VehicleCareCard, type OwnerAttentionItem } from '@/components/dashboard/OwnerHomeBlocks';
 import { AseCta, AttentionList, AvailabilityCard, RequestTypeTabs, SectionTitle, TodayBlock, WeeklyEarnings, type AttentionItem } from '@/components/dashboard/MechanicHomeBlocks';
 import { useNotifications } from '@/context/NotificationsContext';
@@ -1052,7 +1053,7 @@ export default function DashboardScreen() {
                         <OwnerSectionTitle title={t('dashboard.user.vehicleCare.title')} />
                         <VehicleCareCard
                             name={vehicleName(vehicle)}
-                            detail={vehicle.plate ? `${vehicle.plate}${vehicle.plateState ? ` · ${vehicle.plateState}` : ''}` : undefined}
+                            ids={<VehicleIdsRow plate={vehicle.plate} vin={vehicle.vin} plateLabel={t('requestAssistance.selectVehicle.plate')} />}
                             canSwitch={vehicles.length > 1}
                             onSwitch={() => setSheet('vehicle')}
                             mileageText={vehicle.mileage != null
@@ -1103,7 +1104,7 @@ export default function DashboardScreen() {
                             key={v.id}
                             icon={Car}
                             title={vehicleName(v)}
-                            subtitle={v.plate}
+                            detail={<VehicleIdsRow plate={v.plate} vin={v.vin} plateLabel={t('requestAssistance.selectVehicle.plate')} />}
                             selected={v.id === vehicle?.id}
                             onPress={() => { setVehicleId(v.id ?? null); setSheet(null); }}
                         />

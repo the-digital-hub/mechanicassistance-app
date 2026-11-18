@@ -33,7 +33,10 @@
       "paymentCards": "Wallet y pagos",
       "savedAddresses": "Direcciones guardadas",
       "wallet": "Billetera",
-      "schedule": "Horario y zona de servicio"
+      "schedule": "Horario y zona de servicio",
+      "addressesOne": "Mi Dirección",
+      "vehiclesOne": "Mi Vehículo",
+      "savedAddressesOne": "Dirección guardada"
     },
     "language": {
       "heading": "Seleccionar idioma",
@@ -389,7 +392,8 @@
       "subtitle": "¿Qué vehículo necesita asistencia?",
       "noVehicles": "No se encontraron vehículos. Agregá uno.",
       "noPlate": "SIN PATENTE",
-      "addVehicle": "Agregar un vehículo"
+      "addVehicle": "Agregar un vehículo",
+      "plate": "PLACA"
     },
     "vehicleDetails": {
       "badge": "DATOS DEL VEHÍCULO",
@@ -1647,6 +1651,7 @@
       "requestsMade_other": "{{count}} pedidos",
       "highlyRated": "Muy bien calificado por técnicos",
       "firstRequest": "Primer pedido",
+      "extendedTimeValueAmount": "+{{minutes}} min · ${{amount}}",
       "extendedTimeValue": "+{{minutes}} min sumados"
     },
     "videoCall": {
@@ -1710,7 +1715,9 @@
           "client": "Cliente"
         },
         "clientLabel": "CLIENTE",
-        "clientFallback": "Cliente"
+        "clientFallback": "Cliente",
+        "customerInRoomTitle": "El cliente ya está en la sala de video",
+        "customerInRoomBody": "Te está esperando. Tocá Unirse a la videollamada para empezar."
       },
       "header": {
         "booked": "Videollamada agendada",
@@ -1734,7 +1741,30 @@
         "obdCodes_one": "OBD · {{count}} código",
         "obdCodes_other": "OBD · {{count}} códigos",
         "warnOwner": "Quedan menos de 5 minutos. Tocá acá para agregar tiempo.",
-        "warnMechanic": "Quedan menos de 5 minutos de llamada."
+        "warnMechanic": "Quedan menos de 5 minutos de llamada.",
+        "networkWeak": "Conexión débil",
+        "networkBad": "Conexión muy débil",
+        "swapView": "Intercambiar la imagen grande y la chica",
+        "captions": "Subtítulos en vivo",
+        "draw": "Marcar sobre la imagen",
+        "clearDrawing": "Borrar marcas",
+        "captionsConsentTitle": "¿Activar subtítulos en vivo?",
+        "captionsConsentBody": "Lo que digan ambos se transcribirá para mostrar los subtítulos. La otra persona será avisada.",
+        "captionsStart": "Activar",
+        "captionsCancel": "Ahora no",
+        "captionsOnTitle": "Los subtítulos en vivo están activados",
+        "captionsOnBody": "Esta llamada se está transcribiendo para mostrar subtítulos. Podés desactivarlos con el botón de subtítulos.",
+        "captionsUnavailableTitle": "Subtítulos no disponibles",
+        "captionsUnavailableBody": "No pudimos activar los subtítulos en vivo para esta llamada.",
+        "chat": {
+          "title": "Chat",
+          "close": "Cerrar",
+          "empty": "Mandá un código, un número de pieza o una nota. Los mensajes desaparecen al terminar la llamada.",
+          "placeholder": "Escribí un mensaje",
+          "send": "Enviar"
+        },
+        "resizePip": "Agrandar o achicar la imagen chica",
+        "rotate": "Girar la pantalla"
       },
       "timer": {
         "inProgress": "Llamada en curso",
@@ -1780,7 +1810,27 @@
         "reviewTitle": "Calificar al cliente",
         "reviewLater": "Disponible cuando se confirme la asistencia.",
         "reviewNow": "Enviá tu calificación en la tarjeta de arriba.",
-        "reviewSent": "Gracias, tu calificación fue enviada."
+        "reviewSent": "Gracias, tu calificación fue enviada.",
+        "owner": {
+          "acceptedSub": "Tu técnico aceptó. La videollamada está programada.",
+          "closedTitle": "Confirmar que se resolvió",
+          "closedPending": "Cuando el técnico termine, confirmás si se resolvió.",
+          "closedWaiting": "El técnico terminó. Confirmá si se resolvió.",
+          "closedDisputed": "Informaste un problema. Está en revisión.",
+          "closedDone": "Confirmado. El pago se completó.",
+          "closedNotCharged": "Cerrada sin cargo: indicaste que no se resolvió.",
+          "reviewTitle": "Calificar al técnico",
+          "reviewLater": "Disponible cuando confirmes que se resolvió.",
+          "reviewNow": "Enviá tu calificación abajo.",
+          "reviewSent": "Gracias, tu calificación fue enviada."
+        }
+      },
+      "rejoin": "Volver a la videollamada",
+      "zone": {
+        "same": "Se muestra en tu hora local ({{zone}}).",
+        "differsTitle": "El cliente está en otra zona horaria",
+        "differsYou": "Para vos: {{time}}",
+        "differsThem": "Para el cliente: {{time}}"
       }
     },
     "clientReview": {
@@ -1982,8 +2032,10 @@
     "selectModel": "Seleccionar modelo",
     "done": "Listo",
     "listBadge": "GESTIÓN DE VEHÍCULOS",
-    "listTitle": "Mis vehículos",
-    "listSubtitle": "Registrá y gestioná tus vehículos para solicitudes de asistencia más rápidas",
+    "listTitle_one": "Mi vehículo",
+    "listTitle_other": "Mis vehículos",
+    "listSubtitle_one": "Registrá y gestioná tu vehículo para solicitudes de asistencia más rápidas",
+    "listSubtitle_other": "Registrá y gestioná tus vehículos para solicitudes de asistencia más rápidas",
     "noVehicles": "No hay vehículos registrados",
     "addFirstVehicle": "Agregar primer vehículo",
     "noPlate": "Sin patente",
@@ -2200,8 +2252,10 @@
   },
   "addresses": {
     "badge": "GUARDÁ TUS LUGARES FAVORITOS",
-    "title": "Mis Direcciones",
-    "subtitle": "Gestioná tus direcciones guardadas y elegí tus ubicaciones preferidas",
+    "title_one": "Mi Dirección",
+    "title_other": "Mis Direcciones",
+    "subtitle_one": "Gestioná tu dirección guardada y tu ubicación preferida",
+    "subtitle_other": "Gestioná tus direcciones guardadas y elegí tus ubicaciones preferidas",
     "addNew": "Agregar nueva dirección",
     "empty": "Todavía no hay direcciones",
     "emptyHint": "Empezá agregando tu primera dirección",
@@ -2985,7 +3039,38 @@
       "notOnAppointment": "No formás parte de esta cita, así que no podés unirte a su videollamada.",
       "startFailed": "No pudimos iniciar la videollamada. Probá de nuevo.",
       "roomExpired": "La sala de video venció. Pedile al dueño del vehículo que inicie una nueva llamada.",
-      "joinFailed": "No pudimos unirte a la videollamada. Probá de nuevo."
+      "joinFailed": "No pudimos unirte a la videollamada. Probá de nuevo.",
+      "header": "Asistencia por video",
+      "notFound": "No se encontró la cita",
+      "goBack": "Volver",
+      "checking": "Revisando la sala de video...",
+      "start": "Iniciar videollamada",
+      "join": "Unirse a la videollamada",
+      "startTitle": "¿Listo para empezar?",
+      "joinTitle": "Unite a la videollamada",
+      "startHint": "Tocá para abrir la sala. Se le avisará a tu técnico.",
+      "joinHint": "El cliente está en la sala, esperándote.",
+      "waitingHint": "Vas a poder unirte apenas el cliente abra la sala.",
+      "roomActive": "La sala de video está activa",
+      "waiting": "Esperando que el cliente abra la sala…",
+      "tipsTitle": "Antes de empezar",
+      "tips": {
+        "owner1": "Permití la cámara y el micrófono cuando el teléfono te lo pida.",
+        "owner2": "Buscá buena luz y poné el vehículo donde la cámara lo vea.",
+        "owner3": "Usá Wi‑Fi o buena señal para que la llamada no se corte.",
+        "mechanic1": "Permití la cámara y el micrófono cuando el teléfono te lo pida.",
+        "mechanic2": "Pedile al cliente que muestre el problema y qué probó.",
+        "mechanic3": "Usá Wi‑Fi o buena señal para que la llamada no se corte."
+      },
+      "labels": {
+        "vehicle": "Vehículo",
+        "technician": "Técnico",
+        "customer": "Cliente",
+        "duration": "Duración"
+      },
+      "rejoin": "Volver a la videollamada",
+      "rejoinTitle": "Volvé a la llamada",
+      "rejoinHint": "La llamada sigue en curso. Tocá para volver a entrar."
     }
   },
   "wallet": {
@@ -3114,7 +3199,8 @@
       "noVehicles": "Todavía no tenés vehículos",
       "noVehiclesSub": "Agregá el vehículo que necesita el servicio.",
       "addVehicle": "Agregar un vehículo",
-      "addAnother": "Agregar otro vehículo"
+      "addAnother": "Agregar otro vehículo",
+      "plate": "PLACA"
     },
     "location": {
       "eyebrow": "PASO 2 · UBICACIÓN",

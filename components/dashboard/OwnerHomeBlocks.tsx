@@ -1,5 +1,6 @@
+import { VehicleIdsRow } from '@/components/scheduled/ui';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Calendar, Car, Check, ChevronDown, ChevronRight, FileText, Wrench, X, type LucideIcon } from 'lucide-react-native';
+import { Calendar, Check, ChevronDown, ChevronRight, FileText, Wrench, X, type LucideIcon } from 'lucide-react-native';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Animated, Easing, KeyboardAvoidingView, Modal, Platform, Pressable, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 
@@ -222,7 +223,7 @@ export function UpcomingCard({ title, sub, statusLabel, onPress }: { title: stri
 /** The selected vehicle with its mileage strip. */
 export function VehicleCareCard({
     name,
-    detail,
+    ids,
     canSwitch,
     onSwitch,
     mileageText,
@@ -230,7 +231,8 @@ export function VehicleCareCard({
     onMileage,
 }: {
     name: string;
-    detail?: string;
+    /** Plate + VIN badges under the name. */
+    ids?: ReactNode;
     canSwitch: boolean;
     onSwitch: () => void;
     mileageText: string;
@@ -240,12 +242,9 @@ export function VehicleCareCard({
     return (
         <View style={{ ...CARD, borderWidth: 1.5, borderColor: '#CFDDFB', overflow: 'hidden' }}>
             <TouchableOpacity onPress={onSwitch} disabled={!canSwitch} activeOpacity={0.8} accessibilityRole="button" className="flex-row items-center" style={{ padding: 14, gap: 12 }}>
-                <View className="items-center justify-center" style={{ width: 38, height: 38, borderRadius: 11, backgroundColor: C.blueSoft }}>
-                    <Car size={20} color={C.blue} />
-                </View>
                 <View className="flex-1">
                     <Text className="font-outfit-bold" style={{ fontSize: 16, letterSpacing: -0.3, color: C.text }} numberOfLines={1}>{name}</Text>
-                    {detail ? <Text className="font-outfit-regular" style={{ fontSize: 13, color: C.muted, marginTop: 3 }} numberOfLines={1}>{detail}</Text> : null}
+                    {ids}
                 </View>
                 {canSwitch && (
                     <View className="items-center justify-center" style={{ width: 28, height: 28, borderRadius: 9, backgroundColor: C.blueSoft }}>
@@ -343,7 +342,7 @@ export function OwnerSheet({ visible, title, subtitle, onClose, children }: { vi
 }
 
 /** One tappable option of a sheet (service type or vehicle). `gradient` is the blue service card. */
-export function SheetOption({ icon: Icon, title, subtitle, selected, gradient, onPress }: { icon: LucideIcon; title: string; subtitle?: string | null; selected?: boolean; gradient?: boolean; onPress: () => void }) {
+export function SheetOption({ icon: Icon, title, subtitle, detail, selected, gradient, onPress }: { icon: LucideIcon; title: string; subtitle?: string | null; detail?: ReactNode; selected?: boolean; gradient?: boolean; onPress: () => void }) {
     if (gradient) {
         return (
             <TouchableOpacity
@@ -381,6 +380,7 @@ export function SheetOption({ icon: Icon, title, subtitle, selected, gradient, o
             <View className="flex-1">
                 <Text className="font-outfit-bold" style={{ fontSize: 17, color: C.text }} numberOfLines={1}>{title}</Text>
                 {subtitle ? <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 19, color: C.muted, marginTop: 2 }}>{subtitle}</Text> : null}
+                {detail}
             </View>
             {selected ? <Check size={18} color={C.blue} /> : <ChevronRight size={18} color={C.mutedLight} />}
         </TouchableOpacity>

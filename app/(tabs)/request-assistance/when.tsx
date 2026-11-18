@@ -81,6 +81,15 @@ const PERIODS: { key: DayPart; Icon: typeof Sun }[] = [
 ];
 
 /** Which part of the day a slot falls in, from its local "HH:mm". */
+/**
+ * A video call can be asked for at any hour, 24/7: a time with no technician on duty is still
+ * bookable (worst case nobody takes it and the request is cancelled without charge). Only times
+ * already gone or taken are left out.
+ */
+function bookable(slot: VideoCallSlot): boolean {
+    return slot.available || slot.reason === 'no_mechanics';
+}
+
 function partOf(slot: VideoCallSlot): DayPart {
     const hour = Number(slot.time?.slice(0, 2));
     if (!Number.isFinite(hour)) return slot.period === 'morning' || slot.period === 'afternoon' ? slot.period : 'evening';
@@ -249,7 +258,7 @@ export default function VideoCallWhenScreen() {
                 vehicleId: vehicleId as string,
                 car: (vehicleName as string) || '',
                 status: 'pending',
-                ...(mode === 'now' ? { startNow: true } : { date: slot!.start }),
+                ...(mode === 'now' ? { startNow: true } : { date: slot!.start, timezone }),
                 ...(typeof condition === 'string' && condition ? { vehicleCondition: condition } : {}),
                 ...(vehicleDetails.mileage !== undefined ? { mileage: vehicleDetails.mileage } : {}),
                 driverIsOwner: vehicleDetails.driverIsOwner,
@@ -448,15 +457,15 @@ export default function VideoCallWhenScreen() {
     const callMinutes = durationSupported ? duration ?? 0 : now?.baseMinutes ?? DEFAULT_CALL_MINUTES;
     // Only the parts of the day with something to book; the first one is open by default.
     const periodsWithSlots = day
-        ? PERIODS.filter(({ key }) => day.slots.some((s) => partOf(s) === key && s.available))
+        ? PERIODS.filter(({ key }) => day.slots.some((s) => partOf(s) === key && bookable(s)))
         : [];
     const activePeriod =
         period && periodsWithSlots.some((p) => p.key === period)
             ? period
             : DEFAULT_PART_ORDER.find((k) => periodsWithSlots.some((p) => p.key === k)) ?? null;
-    const periodSlots = day && activePeriod ? day.slots.filter((s) => partOf(s) === activePeriod && s.available) : [];
+    const periodSlots = day && activePeriod ? day.slots.filter((s) => partOf(s) === activePeriod && bookable(s)) : [];
     const periodRange = (key: DayPart) => {
-        const list = day?.slots.filter((s) => partOf(s) === key && s.available) ?? [];
+        const list = day?.slots.filter((s) => partOf(s) === key && bookable(s)) ?? [];
         return list.length ? `${slotLabel(list[0])} – ${slotLabel(list[list.length - 1])}` : '';
     };
     const priceLabel = durationSupported && duration === null

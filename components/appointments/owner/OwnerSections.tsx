@@ -301,13 +301,15 @@ export function OwnerTechnicianPanel({ mechanic }: { mechanic: Mechanic | null }
 }
 
 /** `payment` is the card row's value (`PaymentCardValue`), resolved by the screen; omitted (the mechanic) hides the row. */
-export function OwnerBudgetPanel({ total, payment, totalLabel, video, extendedMinutes = 0 }: {
+export function OwnerBudgetPanel({ total, payment, totalLabel, video, extendedMinutes = 0, extendedAmount }: {
     total: string | null;
     payment?: React.ReactNode;
     totalLabel?: string;
     /** A video call has no parts to approve; instead it can carry extra time bought during the call. */
     video?: boolean;
     extendedMinutes?: number;
+    /** What the added time is worth (the technician's view), as a 2-decimal string. */
+    extendedAmount?: string | null;
 }) {
     const { t } = useTranslation();
     const rows: (SummaryRow | null)[] = [
@@ -315,7 +317,7 @@ export function OwnerBudgetPanel({ total, payment, totalLabel, video, extendedMi
         payment !== undefined ? { icon: 'card-outline', label: t(`${K}.rows.payment`), value: payment } : null,
         video
             ? extendedMinutes > 0
-                ? { icon: 'time-outline', label: t(`${K}.rows.extendedTime`), value: t(`${K}.extendedTimeValue`, { minutes: extendedMinutes }) }
+                ? { icon: 'time-outline', label: t(`${K}.rows.extendedTime`), value: extendedAmount ? t(`${K}.extendedTimeValueAmount`, { minutes: extendedMinutes, amount: extendedAmount }) : t(`${K}.extendedTimeValue`, { minutes: extendedMinutes }) }
                 : null
             : { icon: 'document-text-outline', label: t(`${K}.rows.additionalParts`), value: t(`${K}.partsOnlyWithApproval`) },
     ];

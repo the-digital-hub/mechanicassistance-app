@@ -33,7 +33,10 @@
       "paymentCards": "Wallet & payments",
       "savedAddresses": "Saved addresses",
       "wallet": "Wallet",
-      "schedule": "Schedule & service area"
+      "schedule": "Schedule & service area",
+      "addressesOne": "My Address",
+      "vehiclesOne": "My Vehicle",
+      "savedAddressesOne": "Saved address"
     },
     "language": {
       "heading": "Select Language",
@@ -389,7 +392,8 @@
       "subtitle": "Which vehicle needs assistance?",
       "noVehicles": "No vehicles found. Please add one.",
       "noPlate": "NO PLATE",
-      "addVehicle": "Add a vehicle"
+      "addVehicle": "Add a vehicle",
+      "plate": "PLATE"
     },
     "vehicleDetails": {
       "badge": "VEHICLE DETAILS",
@@ -1646,6 +1650,7 @@
       "requestsMade_other": "{{count}} requests",
       "highlyRated": "Highly rated by technicians",
       "firstRequest": "First request",
+      "extendedTimeValueAmount": "+{{minutes}} min · ${{amount}}",
       "extendedTimeValue": "+{{minutes}} min added"
     },
     "videoCall": {
@@ -1709,7 +1714,9 @@
           "client": "Client"
         },
         "clientLabel": "CLIENT",
-        "clientFallback": "Client"
+        "clientFallback": "Client",
+        "customerInRoomTitle": "The customer is already in the video room",
+        "customerInRoomBody": "They're waiting for you. Tap Join video call to start."
       },
       "header": {
         "booked": "Video call booked",
@@ -1733,7 +1740,30 @@
         "obdCodes_one": "OBD · {{count}} code",
         "obdCodes_other": "OBD · {{count}} codes",
         "warnOwner": "Less than 5 minutes left. Tap here to add time.",
-        "warnMechanic": "Less than 5 minutes left in the call."
+        "warnMechanic": "Less than 5 minutes left in the call.",
+        "networkWeak": "Weak connection",
+        "networkBad": "Very weak connection",
+        "swapView": "Swap the big and small picture",
+        "captions": "Live captions",
+        "draw": "Mark on the picture",
+        "clearDrawing": "Clear markings",
+        "captionsConsentTitle": "Turn on live captions?",
+        "captionsConsentBody": "What both of you say will be transcribed to show captions. The other person will be told.",
+        "captionsStart": "Turn on",
+        "captionsCancel": "Not now",
+        "captionsOnTitle": "Live captions are on",
+        "captionsOnBody": "This call is being transcribed to show captions. You can turn them off with the captions button.",
+        "captionsUnavailableTitle": "Captions aren't available",
+        "captionsUnavailableBody": "We couldn't turn on live captions for this call.",
+        "chat": {
+          "title": "Chat",
+          "close": "Close",
+          "empty": "Send a code, a part number or a note. Messages disappear when the call ends.",
+          "placeholder": "Type a message",
+          "send": "Send"
+        },
+        "resizePip": "Make the small picture bigger or smaller",
+        "rotate": "Turn the screen sideways"
       },
       "timer": {
         "inProgress": "Call in progress",
@@ -1779,7 +1809,27 @@
         "reviewTitle": "Rate the customer",
         "reviewLater": "Available once the assistance is confirmed.",
         "reviewNow": "Send your rating in the card above.",
-        "reviewSent": "Thanks, your rating was sent."
+        "reviewSent": "Thanks, your rating was sent.",
+        "owner": {
+          "acceptedSub": "Your technician accepted. The video call is set.",
+          "closedTitle": "Confirm it was resolved",
+          "closedPending": "When the technician finishes, you confirm it was resolved.",
+          "closedWaiting": "The technician finished. Confirm if it was resolved.",
+          "closedDisputed": "You reported a problem. It's under review.",
+          "closedDone": "Confirmed. The payment was completed.",
+          "closedNotCharged": "Closed without charge: you said it wasn't resolved.",
+          "reviewTitle": "Rate the technician",
+          "reviewLater": "Available once you confirm it was resolved.",
+          "reviewNow": "Send your rating below.",
+          "reviewSent": "Thanks, your rating was sent."
+        }
+      },
+      "rejoin": "Rejoin video call",
+      "zone": {
+        "same": "Shown in your local time ({{zone}}).",
+        "differsTitle": "The customer is in another time zone",
+        "differsYou": "For you: {{time}}",
+        "differsThem": "For the customer: {{time}}"
       }
     },
     "clientReview": {
@@ -1981,8 +2031,10 @@
     "selectModel": "Select Model",
     "done": "Done",
     "listBadge": "VEHICLE MANAGEMENT",
-    "listTitle": "My vehicles",
-    "listSubtitle": "Register and manage your vehicles for faster assistance requests",
+    "listTitle_one": "My vehicle",
+    "listTitle_other": "My vehicles",
+    "listSubtitle_one": "Register and manage your vehicle for faster assistance requests",
+    "listSubtitle_other": "Register and manage your vehicles for faster assistance requests",
     "noVehicles": "No vehicles registered",
     "addFirstVehicle": "Add First Vehicle",
     "noPlate": "No Plate",
@@ -2199,8 +2251,10 @@
   },
   "addresses": {
     "badge": "SAVE YOUR FAVORITE LOCATIONS",
-    "title": "My Addresses",
-    "subtitle": "Manage your saved addresses and choose your preferred locations",
+    "title_one": "My Address",
+    "title_other": "My Addresses",
+    "subtitle_one": "Manage your saved address and your preferred location",
+    "subtitle_other": "Manage your saved addresses and choose your preferred locations",
     "addNew": "Add New Address",
     "empty": "No addresses yet",
     "emptyHint": "Start by adding your first address",
@@ -2984,7 +3038,38 @@
       "notOnAppointment": "You are not on this appointment, so you cannot join its video call.",
       "startFailed": "We couldn't start the video call. Please try again.",
       "roomExpired": "The video room has expired. Ask the vehicle owner to start a new call.",
-      "joinFailed": "We couldn't join the video call. Please try again."
+      "joinFailed": "We couldn't join the video call. Please try again.",
+      "header": "Video assistance",
+      "notFound": "Appointment not found",
+      "goBack": "Go back",
+      "checking": "Checking video room...",
+      "start": "Start video call",
+      "join": "Join video call",
+      "startTitle": "Ready to start?",
+      "joinTitle": "Join the video call",
+      "startHint": "Tap to open the room. Your technician will be notified.",
+      "joinHint": "The customer is in the room, waiting for you.",
+      "waitingHint": "You can join as soon as the customer opens the room.",
+      "roomActive": "Video room is active",
+      "waiting": "Waiting for the customer to open the room…",
+      "tipsTitle": "Before you start",
+      "tips": {
+        "owner1": "Allow camera and microphone when your phone asks.",
+        "owner2": "Find good light and have the vehicle where the camera can see it.",
+        "owner3": "Use Wi‑Fi or a strong signal so the call doesn't drop.",
+        "mechanic1": "Allow camera and microphone when your phone asks.",
+        "mechanic2": "Ask the customer to show the problem and what they've tried.",
+        "mechanic3": "Use Wi‑Fi or a strong signal so the call doesn't drop."
+      },
+      "labels": {
+        "vehicle": "Vehicle",
+        "technician": "Technician",
+        "customer": "Customer",
+        "duration": "Duration"
+      },
+      "rejoin": "Rejoin video call",
+      "rejoinTitle": "Rejoin the call",
+      "rejoinHint": "The call is still going. Tap to get back in."
     }
   },
   "wallet": {
@@ -3113,7 +3198,8 @@
       "noVehicles": "You have no vehicles yet",
       "noVehiclesSub": "Add the vehicle that needs the service.",
       "addVehicle": "Add a vehicle",
-      "addAnother": "Add another vehicle"
+      "addAnother": "Add another vehicle",
+      "plate": "PLATE"
     },
     "location": {
       "eyebrow": "STEP 2 · LOCATION",

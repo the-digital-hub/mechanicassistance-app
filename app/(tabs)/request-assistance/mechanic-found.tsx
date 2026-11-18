@@ -1,3 +1,4 @@
+import { HeaderBackButton } from '@/components/ui/HeaderBackButton';
 import { FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
 import {
     AO,
@@ -368,13 +369,8 @@ export default function MechanicFoundScreen() {
                 className="flex-row items-center"
                 style={{ paddingTop: insets.top + 8, paddingHorizontal: 16, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: 'rgba(14,47,138,0.07)' }}
             >
-                <TouchableOpacity
-                    onPress={() => router.back()}
-                    style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 3, elevation: 2 }}
-                >
-                    <Ionicons name="chevron-back" size={18} color={AO.text} />
-                </TouchableOpacity>
-                <Text className="font-outfit-bold flex-1 text-center" style={{ fontSize: 17, color: AO.text, marginRight: 38 }}>
+                <HeaderBackButton marginLeft={0} onPress={() => router.back()} />
+                <Text className="font-outfit-bold flex-1 text-center" style={{ fontSize: 17, color: AO.text, marginRight: 40 }}>
                     {t(`${k}.headerTitle`)}
                 </Text>
             </View>

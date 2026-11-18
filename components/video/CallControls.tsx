@@ -23,7 +23,7 @@ export function CallControls({
   isAudioMuted, isCameraOff, onToggleAudio, onToggleCamera, onSwitchCamera, onHangUp, bottomInset = 0,
 }: CallControlsProps) {
   return (
-    <View style={[styles.bar, { paddingBottom: 34 + bottomInset }]}>
+    <View style={[styles.bar, { paddingBottom: bottomInset + 6 }]}>
       <TouchableOpacity testID="ctrl-audio" style={btnStyle(!isAudioMuted)} onPress={onToggleAudio}>
         <Ionicons name={isAudioMuted ? 'mic-off' : 'mic'} size={24} color={iconColor(!isAudioMuted)} />
       </TouchableOpacity>
@@ -43,7 +43,7 @@ export function CallControls({
 const styles = StyleSheet.create({
   bar: {
     flexDirection: 'row', justifyContent: 'center', gap: 16,
-    backgroundColor: VC.navy, paddingTop: 20,
+    backgroundColor: VC.navy, paddingTop: 14,
   },
   btn: {
     width: 56, height: 56, borderRadius: 28, backgroundColor: 'rgba(255,255,255,0.12)',

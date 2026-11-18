@@ -71,6 +71,7 @@ export interface Appointment {
     status: AppointmentStatus;
     /** Video calls only: asked for "now" rather than booked (then `date` is only its creation time). */
     startNow?: boolean;
+    timezone?: string;
     cancelReason?: string;
     acceptedAt?: string;
     startedAt?: string;
@@ -210,6 +211,7 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                     durationMinutes: req.durationMinutes ?? null,
                     status: (req.status as AppointmentStatus) || 'pending',
                     startNow: req.startNow,
+                    timezone: req.timezone,
                     userId: req.userId,
                     zip: req.zip,
                     mechanicId: req.mechanicId,
@@ -245,7 +247,7 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                     // A video call's slot (or its "now") lives on the request; the
                     // appointment row may not carry it.
                     ...((appt.assistanceType ?? appt.type) === 'videocall'
-                        ? { date: appt.date || ar?.date, startNow: appt.startNow ?? ar?.startNow }
+                        ? { date: appt.date || ar?.date, startNow: appt.startNow ?? ar?.startNow, timezone: (appt as { timezone?: string }).timezone ?? ar?.timezone }
                         : {}),
                     // A scheduled service is booked for a day: the appointment row may not carry it.
                     ...((appt.assistanceType ?? appt.type) === 'scheduled' && !appt.date && ar?.date

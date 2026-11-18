@@ -6,6 +6,7 @@ import { DetailCard, DetailRow } from './DetailCard';
 import { OwnerRouteMap } from './owner/OwnerRouteMap';
 import { formatEtaTime, useAppointmentEta } from '@/hooks/useAppointmentEta';
 import { openDirections } from '@/lib/maps/directions';
+import { VideoCallZoneNote } from '@/components/video/VideoCallZoneNote';
 import { videoCallBookedLabel } from '@/lib/video/videoCallTime';
 
 interface MechanicAssistanceInfoTabProps {
@@ -84,6 +85,7 @@ export function MechanicAssistanceInfoTab({ appointment, section, videoSection }
                         {!!appointment.durationMinutes && (
                             <DetailRow icon="timer-outline" label={t('appointments.ownerAccepted.rows.duration')} value={t('requestAssistance.when.durationValue', { count: appointment.durationMinutes })} />
                         )}
+                        <DetailRow icon="calendar-outline" label={t('appointments.videoCall.scheduledFor')} value={scheduled} />
                         <DetailRow icon="car-outline" label={t('appointments.detail.info.car')} value={appointment.car} />
                         <DetailRow icon="construct-outline" label={t('appointments.detail.info.carIssue')} value={issueValue} />
                         <DetailRow
@@ -93,6 +95,7 @@ export function MechanicAssistanceInfoTab({ appointment, section, videoSection }
                             last
                         />
                     </DetailCard>
+                    <VideoCallZoneNote call={appointment} />
                 </View>
             );
         }
@@ -118,6 +121,7 @@ export function MechanicAssistanceInfoTab({ appointment, section, videoSection }
                         last
                     />
                 </DetailCard>
+                <VideoCallZoneNote call={appointment} />
             </View>
         );
     }
