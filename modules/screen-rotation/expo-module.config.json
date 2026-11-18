@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": {
+    "modules": ["ScreenRotationModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.screenrotation.ScreenRotationModule"]
+  }
+}

@@ -13,10 +13,14 @@ export function canCancelBeforeStart(status?: string | null): boolean {
  * "Cancel request" link with the same confirmation the Appointments list uses;
  * confirming continues to the cancel-reason screen, which performs the cancel.
  */
-export function CancelRequestLink({ appointmentId, align = 'flex-end', scheduled = false }: { appointmentId: string; align?: 'flex-end' | 'center'; scheduled?: boolean }) {
+export function CancelRequestLink({ appointmentId, align = 'flex-end', scheduled = false, open, onClose }: { appointmentId: string; align?: 'flex-end' | 'center'; scheduled?: boolean; open?: boolean; onClose?: () => void }) {
     const { t } = useTranslation();
     const router = useRouter();
-    const [visible, setVisible] = useState(false);
+    const [shown, setShown] = useState(false);
+    // Controlled (`open`): the caller owns the trigger, so no link is drawn.
+    const controlled = open !== undefined;
+    const visible = controlled ? open : shown;
+    const setVisible = (next: boolean) => { if (controlled) { if (!next) onClose?.(); } else setShown(next); };
 
     const confirm = () => {
         setVisible(false);
@@ -25,7 +29,7 @@ export function CancelRequestLink({ appointmentId, align = 'flex-end', scheduled
 
     return (
         <>
-            <TouchableOpacity
+            {controlled ? null : <TouchableOpacity
                 onPress={() => setVisible(true)}
                 hitSlop={8}
                 style={{ alignSelf: align, paddingVertical: 6 }}
@@ -33,7 +37,7 @@ export function CancelRequestLink({ appointmentId, align = 'flex-end', scheduled
                 testID="cancel-request-link"
             >
                 <Text className="font-outfit-bold text-[13px]" style={{ color: '#E53E3E' }}>{t('appointments.list.card.cancelRequest')}</Text>
-            </TouchableOpacity>
+            </TouchableOpacity>}
 
             <Modal transparent visible={visible} animationType="fade" onRequestClose={() => setVisible(false)}>
                 <View className="flex-1 justify-center items-center bg-black/40 px-6">

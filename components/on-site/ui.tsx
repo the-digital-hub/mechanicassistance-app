@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Modal, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View, ViewStyle } from 'react-native';
+import { TYPE } from '@/lib/ui/type';
 
 // Shared building blocks for the on-site assistance flow (check-in → execution →
 // check-out). Ported from the "Vehicle On-Site Assistance V2" design.
@@ -327,7 +328,7 @@ export function MaintenanceChecklist({ state, withHeader = true, compact = true,
             {withHeader ? (
                 <View className="px-4 pt-3.5 pb-3" style={{ borderBottomWidth: 1, borderBottomColor: OS.borderSoft }}>
                     <View className="flex-row items-center justify-between" style={{ gap: 8 }}>
-                        <Text className="flex-1 font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: OS.text }}>{t('appointments.onSite.maintenance.title')}</Text>
+                        <Text className="flex-1 font-outfit-bold" style={{ ...TYPE.cardTitle, lineHeight: 22, color: OS.text }}>{t('appointments.onSite.maintenance.title')}</Text>
                         {/* Select all is a badge, like the other quick actions. */}
                         <TouchableOpacity
                             onPress={state.toggleAll}

@@ -26,17 +26,19 @@ interface CallTopBarProps {
   limit: number;
   status: CallStatus;
   topInset: number;
+  /** Sideways screen: a thinner bar, to leave the height to the picture. */
+  compact?: boolean;
 }
 
 /** "Live" · isologo + wordmark · session countdown. */
-export function CallTopBar({ remaining, limit, status, topInset }: CallTopBarProps) {
+export function CallTopBar({ remaining, limit, status, topInset, compact = false }: CallTopBarProps) {
   const { t } = useTranslation();
   const tone = timerTone(limit - remaining, limit);
   const timerColor = tone === 'over' ? VC.red : tone === 'warn' ? VC.orange : '#FFFFFF';
   const label = status === 'live' ? t(`${K}.live`) : status === 'timeUp' ? t(`${K}.timeUp`) : t(`${K}.roomExpired`);
 
   return (
-    <View style={[styles.bar, { paddingTop: topInset + 8 }]}>
+    <View style={[styles.bar, { paddingTop: topInset + (compact ? 4 : 8) }, compact && { paddingBottom: 6 }]}>
       <View style={styles.left}>
         <PulseDot color={status === 'live' ? VC.green : VC.red} size={9} />
         <Text testID="call-status" style={styles.label} numberOfLines={1}>{label}</Text>

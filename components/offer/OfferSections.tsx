@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
+import { TYPE } from '@/lib/ui/type';
 
 /** Palette of the owner's offer screen (Vehicle Owner — Accept Offer design). */
 export const AO = {
@@ -172,7 +173,7 @@ export function OfferBreakdown({ included, lines, total }: {
         <View style={[card, { overflow: 'hidden' }]}>
             <TouchableOpacity onPress={() => setOpen((o) => !o)} className="flex-row items-center" style={{ gap: 12, paddingHorizontal: 14, paddingVertical: 12 }}>
                 <IconTile name="document-text-outline" />
-                <Text className="font-outfit-bold" style={{ flex: 1, fontSize: 14, color: AO.text }}>{t(`${k}.whatsIncluded`)}</Text>
+                <Text className="font-outfit-bold" style={{ flex: 1, ...TYPE.cardTitle, color: AO.text }}>{t(`${k}.whatsIncluded`)}</Text>
                 <Text className="font-outfit-bold" style={{ fontSize: 13, color: AO.blue }}>{open ? t(`${k}.hide`) : t(`${k}.seeBreakdown`)}</Text>
                 <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={12} color={AO.blue} />
             </TouchableOpacity>

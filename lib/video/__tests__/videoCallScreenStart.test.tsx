@@ -14,6 +14,8 @@ const mockCall = {
 
 jest.mock('@expo/vector-icons', () => ({ Ionicons: 'Ionicons' }));
 jest.mock('@daily-co/react-native-webrtc', () => ({ MediaStream: jest.fn() }));
+jest.mock('@/lib/video/transcriptStore', () => ({ addTranscriptLine: jest.fn() }));
+jest.mock('@/lib/video/consent', () => ({ recordConsent: jest.fn() }));
 jest.mock('@/components/video/CallControls', () => ({ CallControls: () => null }));
 jest.mock('@/components/video/VideoTile', () => ({ VideoTile: () => null }));
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'en' } }) }));
@@ -24,6 +26,7 @@ const mockLeave = jest.fn();
 jest.mock('expo-router', () => ({
     useLocalSearchParams: () => ({ id: 'appt-1', roomUrl: 'https://x.daily.co/r', token: 't', expiry: '0' }),
     useRouter: () => ({ navigate: mockNavigate, back: jest.fn() }),
+    useFocusEffect: () => undefined,
 }));
 jest.mock('@/lib/video/useDailyCall', () => ({
     useDailyCall: () => ({

@@ -28,8 +28,11 @@ export function CallChatSheet({ visible, lines, onSend, onClose }: {
         <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
                 <Pressable style={{ flex: 1, backgroundColor: 'rgba(11,21,48,0.35)' }} onPress={onClose} />
-                <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '70%', paddingTop: 16 }} testID="call-chat-sheet">
-                    <View className="flex-row items-center" style={{ paddingHorizontal: 20, paddingBottom: 10 }}>
+                <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: '70%', overflow: 'hidden' }} testID="call-chat-sheet">
+                    <View
+                        className="flex-row items-center"
+                        style={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 14, backgroundColor: '#FFFFFF', borderTopLeftRadius: 28, borderTopRightRadius: 28, zIndex: 2, shadowColor: '#0B1F5C', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.08, shadowRadius: 10, elevation: 4 }}
+                    >
                         <Text className="font-outfit-bold" style={{ flex: 1, fontSize: 18, color: AO.text }}>{t(`${K}.title`)}</Text>
                         <TouchableOpacity onPress={onClose} hitSlop={10} accessibilityRole="button" accessibilityLabel={t(`${K}.close`)}>
                             <Ionicons name="close" size={24} color={AO.muted} />
@@ -39,7 +42,7 @@ export function CallChatSheet({ visible, lines, onSend, onClose }: {
                         data={lines}
                         keyExtractor={(l) => l.id}
                         style={{ minHeight: 120 }}
-                        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 8, gap: 8 }}
+                        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: 8, gap: 8 }}
                         ListEmptyComponent={
                             <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: AO.muted, textAlign: 'center', paddingVertical: 24 }}>{t(`${K}.empty`)}</Text>
                         }

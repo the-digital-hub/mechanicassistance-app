@@ -7,6 +7,7 @@ import { NoteInput, OS, PrimaryButton, cardShadow } from '@/components/on-site/u
 import { useMessageDialog } from '@/components/ui/useMessageDialog';
 import { ApiError } from '@/lib/api/types';
 import { reviewDAO } from '@/lib/dao/ReviewDAO';
+import { TYPE } from '@/lib/ui/type';
 
 const K = 'appointments.ownerReview';
 const TAGS = ['on_time', 'professional', 'fair_price', 'clear_explanation', 'friendly'] as const;
@@ -53,7 +54,7 @@ export function OwnerReviewPrompt({ onPress }: { onPress: () => void }) {
                 <Ionicons name="star" size={20} color="#F08A1C" />
             </View>
             <View style={{ flex: 1 }}>
-                <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: OS.text }}>{t(`${K}.promptTitle`)}</Text>
+                <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, lineHeight: 22, color: OS.text }}>{t(`${K}.promptTitle`)}</Text>
                 <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>{t(`${K}.promptBody`)}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={OS.muted} />
@@ -104,7 +105,7 @@ export function OwnerReviewInline({ appointmentId, onSent }: { appointmentId: st
         <View style={{ gap: 14 }} testID="owner-review-inline">
             {dialog}
             <View style={[cardShadow, { padding: 18, alignItems: 'center' }]}>
-                <Text className="font-outfit-bold" style={{ fontSize: 17, lineHeight: 23, color: OS.text }}>{t(`${K}.title`)}</Text>
+                <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, color: OS.text }}>{t(`${K}.title`)}</Text>
                 <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: OS.muted, marginTop: 2 }}>{t(`${K}.subtitle`)}</Text>
                 <View className="flex-row justify-center" style={{ gap: 8, marginTop: 14 }}>
                     {[1, 2, 3, 4, 5].map((n) => (
@@ -116,7 +117,7 @@ export function OwnerReviewInline({ appointmentId, onSent }: { appointmentId: st
             </View>
 
             <View style={[cardShadow, { padding: 16 }]}>
-                <Text className="font-outfit-bold" style={{ fontSize: 14, color: OS.text }}>{t(`${K}.tagsTitle`)}</Text>
+                <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, color: OS.text }}>{t(`${K}.tagsTitle`)}</Text>
                 <View className="flex-row flex-wrap" style={{ gap: 8, marginTop: 12 }}>
                     {TAGS.map((tag) => {
                         const active = tags.includes(tag);

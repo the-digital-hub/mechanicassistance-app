@@ -14,11 +14,13 @@ import { MechanicVideoStatusTab } from '@/components/appointments/MechanicVideoS
 import { OwnerReviewInline, OwnerReviewPrompt, useOwnerReviewPending } from '@/components/appointments/OwnerReviewInline';
 import { OwnerReviewCard } from '@/components/appointments/OwnerReviewCard';
 import { VideoCallTimerCard } from '@/components/appointments/VideoCallTimerCard';
+import { TranscriptCard } from '@/components/video/TranscriptCard';
 import { ExtensionRequestPanel } from '@/components/video/ExtensionRequestPanel';
 import { ExtendCallSheet } from '@/components/video/ExtendCallSheet';
 import { CallTimeAddedToast } from '@/components/video/CallTimeAddedToast';
 import {
     CustomerInRoomCard,
+    SessionTimerNote,
     JoinVideoCallButton,
     MechanicVideoCallStatusCard,
     NoteSheet,
@@ -223,6 +225,14 @@ export default function AppointmentDetailScreen() {
     const [reviewSent, setReviewSent] = React.useState(false);
     // Technician: the customer already opened the room and is waiting in it.
     const customerInRoom = useCustomerInRoom(appointment?.id, !isUserRole && isVideoCall && videoCallLive && videoStartedAtMs === null);
+    // What the transcript's PDF says about the call.
+    const transcriptInfo = {
+        ref: appointment?.refCode ?? null,
+        vehicle: appointment?.car ?? null,
+        callDate: formatLocalDateTime(videoState?.callStartedAt ?? appointment?.date, i18n.language) || null,
+        durationMinutes: videoState?.contractedMinutes ?? videoState?.baseMinutes ?? appointment?.durationMinutes ?? null,
+        selfName: [user?.name, user?.surname].filter(Boolean).join(' ') || null,
+    };
     const videoAddedMinutes = Math.max(0, (videoState?.contractedMinutes ?? 0) - (videoState?.baseMinutes ?? 0));
     // Technician: what the extra time is worth to them. The server sends the technician's total (`budget`,
     // which already includes it) and what the call alone paid (`providerBreakdown.total`, the snapshot);
@@ -463,6 +473,7 @@ export default function AppointmentDetailScreen() {
                     const ownerRated = reviewSent || (ratable && ownerReview.loaded && !ownerReview.pending);
                     return (
                         <View style={{ gap: 16 }}>
+                            <TranscriptCard appointmentId={appointment.id} role="owner" info={transcriptInfo} />
                             <MechanicVideoStatusTab
                                 role="owner"
                                 status={videoStatus}
@@ -588,12 +599,15 @@ export default function AppointmentDetailScreen() {
             case 'status':
                 // Where the assistance is, step by step; the rating of the customer sits in the card above.
                 return (
-                    <MechanicVideoStatusTab
-                        status={videoStatus}
-                        callStarted={videoStartedAtMs !== null}
-                        notResolved={videoState?.currentStatus === 'not_resolved'}
-                        reviewSent={isReviewSubmitted}
-                    />
+                    <View style={{ gap: 16 }}>
+                        <TranscriptCard appointmentId={appointment.id} role="mechanic" info={transcriptInfo} />
+                        <MechanicVideoStatusTab
+                            status={videoStatus}
+                            callStarted={videoStartedAtMs !== null}
+                            notResolved={videoState?.currentStatus === 'not_resolved'}
+                            reviewSent={isReviewSubmitted}
+                        />
+                    </View>
                 );
             case 'info':
                 // The call's length as it stands: the chosen one plus any time the owner added. The list row may
@@ -951,9 +965,7 @@ export default function AppointmentDetailScreen() {
                                                 testID="mechanic-video-finish"
                                             />
                                             {videoStartedAtMs === null && (
-                                                <Text className="text-center font-outfit-regular text-[13px] leading-4" style={{ color: MECH.muted }}>
-                                                    {t('appointments.videoCall.timer.startsOnJoin', { minutes: (videoState?.baseMinutes ?? DEFAULT_CALL_MINUTES) })}
-                                                </Text>
+                                                <SessionTimerNote minutes={videoState?.baseMinutes ?? DEFAULT_CALL_MINUTES} />
                                             )}
                                         </>
                                     ) : videoState ? (

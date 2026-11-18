@@ -11,6 +11,7 @@ import { getVinCapture } from '@/lib/onsite/vin';
 import { ActionBar, Card, OS } from './ui';
 import { FinalReportView } from './FinalReportView';
 import { appAlert } from '@/lib/ui/appAlert';
+import { TYPE } from '@/lib/ui/type';
 
 // The final report of a visit, for the closeout screen and the report screen: the same data, as a page in
 // the app or as a PDF to keep and share.
@@ -176,7 +177,7 @@ export function FinalReportCard({ appointmentId }: { appointmentId: string }) {
                     <Ionicons name="document-text-outline" size={20} color={OS.blue} />
                 </View>
                 <View className="flex-1">
-                    <Text className="font-outfit-bold" style={{ fontSize: 17, lineHeight: 23, color: OS.text }}>{t('appointments.report.cardTitle')}</Text>
+                    <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, color: OS.text }}>{t('appointments.report.cardTitle')}</Text>
                     <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>{t('appointments.report.cardSub')}</Text>
                 </View>
             </View>

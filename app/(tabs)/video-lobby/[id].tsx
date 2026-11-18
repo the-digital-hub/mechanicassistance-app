@@ -7,6 +7,7 @@ import { userDAO } from '@/lib/dao/UserDAO';
 import { useMessageDialog } from '@/components/ui/useMessageDialog';
 import { useVideoCallState } from '@/hooks/useVideoCallState';
 import { VideoCallTimerCard } from '@/components/appointments/VideoCallTimerCard';
+import { hasPreCallConsent, recordConsent } from '@/lib/video/consent';
 import { DEFAULT_CALL_MINUTES, contractedSeconds } from '@/lib/video/callLength';
 import { HeaderBackButton } from '@/components/ui/HeaderBackButton';
 import { GradientButton } from '@/components/appointments/VideoCallSections';
@@ -199,8 +200,30 @@ export default function VideoLobbyScreen() {
     const minutes = callState?.contractedMinutes ?? callState?.baseMinutes ?? appointment?.durationMinutes ?? DEFAULT_CALL_MINUTES;
     // The call already started: whoever left and came back is rejoining, not starting.
     const rejoin = callState?.startedAtLocalMs != null && (callState.status === 'accepted' || callState.status === 'in_progress');
-    const canAct = isUserRole || !!roomUrl;
-    const onAct = isUserRole ? handleStartCall : handleJoinCall;
+    // Both people accept the conditions of the call (captions and transcript only if both agree during
+    // the call) before entering it; the answer is kept with its time and the version of the text.
+    const consentRole: 'owner' | 'mechanic' = isUserRole ? 'owner' : 'mechanic';
+    const [accepted, setAccepted] = useState(false);
+    const [acceptedAt, setAcceptedAt] = useState<string | null>(null);
+    useEffect(() => {
+        if (!appointmentId) return;
+        hasPreCallConsent(appointmentId, consentRole).then((c) => {
+            if (c) {
+                setAccepted(true);
+                setAcceptedAt(c.at);
+            }
+        });
+    }, [appointmentId, consentRole]);
+    const canAct = (isUserRole || !!roomUrl) && accepted;
+    const proceed = isUserRole ? handleStartCall : handleJoinCall;
+    const onAct = async () => {
+        if (!accepted) return;
+        if (!acceptedAt) {
+            const record = await recordConsent(appointmentId, { kind: 'precall', role: consentRole, accepted: true });
+            setAcceptedAt(record.at);
+        }
+        proceed();
+    };
     const tips = [1, 2, 3].map((n) => t(`videoCall.lobby.tips.${isUserRole ? 'owner' : 'mechanic'}${n}`));
 
     if (!appointment) {
@@ -301,6 +324,33 @@ export default function VideoLobbyScreen() {
                     ))}
                 </View>
 
+                <View style={[styles.card, styles.consent]} testID="lobby-consent">
+                    <View style={styles.consentHead}>
+                        <View style={styles.iconTile}><Ionicons name="shield-checkmark-outline" size={18} color={AO.blue} /></View>
+                        <Text style={styles.consentTitle}>{t('videoCall.lobby.consent.title')}</Text>
+                    </View>
+                    {[1, 2, 3].map((n) => (
+                        <View key={n} style={styles.tipRow}>
+                            <Ionicons name="ellipse" size={6} color={AO.muted} style={{ marginTop: 8 }} />
+                            <Text style={styles.tipText}>{t(`videoCall.lobby.consent.point${n}`)}</Text>
+                        </View>
+                    ))}
+                    <TouchableOpacity
+                        onPress={() => !acceptedAt && setAccepted((v) => !v)}
+                        activeOpacity={0.8}
+                        accessibilityRole="checkbox"
+                        accessibilityState={{ checked: accepted }}
+                        style={styles.consentCheck}
+                        testID="lobby-consent-check"
+                    >
+                        <Ionicons name={accepted ? 'checkbox' : 'square-outline'} size={24} color={accepted ? AO.blue : AO.mutedLight} />
+                        <Text style={styles.consentCheckText}>{t('videoCall.lobby.consent.accept')}</Text>
+                    </TouchableOpacity>
+                    {acceptedAt ? (
+                        <Text style={styles.consentSaved}>{t('videoCall.lobby.consent.acceptedOn', { date: new Date(acceptedAt).toLocaleString() })}</Text>
+                    ) : null}
+                </View>
+
                 <View style={styles.card}>
                     <Text style={styles.tipsTitle}>{t('videoCall.lobby.tipsTitle')}</Text>
                     {tips.map((tip) => (
@@ -350,6 +400,12 @@ const styles = StyleSheet.create({
     roomStatusText: { fontFamily: 'Outfit_600SemiBold', fontSize: TYPE.caption.fontSize, color: AO.blue },
     waitingContainer: { flexDirection: 'row', alignItems: 'center', marginTop: 16, gap: 8 },
     waitingText: { fontFamily: 'Outfit_400Regular', fontSize: TYPE.caption.fontSize, color: AO.muted },
+    consent: { borderColor: AO.blueSoft, backgroundColor: AO.blueSofter, paddingBottom: 12 },
+    consentHead: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingTop: 8, paddingBottom: 6 },
+    consentTitle: { flex: 1, fontFamily: 'Outfit_700Bold', fontSize: TYPE.body.fontSize, color: AO.text },
+    consentCheck: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingTop: 12, paddingBottom: 4 },
+    consentCheckText: { flex: 1, fontFamily: 'Outfit_600SemiBold', fontSize: TYPE.helper.fontSize, lineHeight: 20, color: AO.text },
+    consentSaved: { fontFamily: 'Outfit_400Regular', fontSize: TYPE.caption.fontSize, color: AO.muted, paddingTop: 2, paddingLeft: 36 },
     card: { alignSelf: 'stretch', backgroundColor: '#FFFFFF', borderRadius: 18, borderWidth: 1, borderColor: AO.borderSoft, paddingHorizontal: 14, paddingVertical: 6, marginTop: 20 },
     infoRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 11 },
     infoRowBorder: { borderBottomWidth: 1, borderBottomColor: AO.borderSoft },

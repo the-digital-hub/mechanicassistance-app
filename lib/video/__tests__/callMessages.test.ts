@@ -22,6 +22,18 @@ describe('parseCallMessage', () => {
     });
 });
 
+describe('who drew', () => {
+    it('keeps the author of a stroke and ignores an unknown one', () => {
+        expect(parseCallMessage({ t: 'draw', id: 's', pts: [[0.1, 0.1]], by: 'owner' })).toEqual({ t: 'draw', id: 's', pts: [[0.1, 0.1]], end: false, by: 'owner' });
+        expect(parseCallMessage({ t: 'draw', id: 's', pts: [[0.1, 0.1]], by: 'robot' })).toEqual({ t: 'draw', id: 's', pts: [[0.1, 0.1]], end: false });
+    });
+
+    it('keeps the author while a stroke grows', () => {
+        const first = applyDraw([], { t: 'draw', id: 's', pts: [[0, 0]], by: 'owner' });
+        expect(applyDraw(first, { t: 'draw', id: 's', pts: [[1, 1]] })[0].by).toBe('owner');
+    });
+});
+
 describe('applyDraw', () => {
     it('starts a stroke and then extends it', () => {
         const first = applyDraw([], { t: 'draw', id: 's', pts: [[0, 0]] });

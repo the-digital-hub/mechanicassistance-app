@@ -1,3 +1,4 @@
+import { RequestSteps } from '@/components/ui/RequestSteps';
 import { FLOATING_CTA, FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
 import { TYPE } from '@/lib/ui/type';
 import { DEFAULT_CALL_MINUTES } from '@/lib/video/callLength';
@@ -524,6 +525,7 @@ export default function VideoCallWhenScreen() {
                 </Text>
                 <View className="w-10" />
             </View>
+            <RequestSteps type={params.type} step="when" />
 
             <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 24, gap: 14 }}>
                 <View>
@@ -836,6 +838,11 @@ export default function VideoCallWhenScreen() {
                             )}
                             <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: C.note }}>
                                 {t('requestAssistance.when.priceNote')}
+                            </Text>
+                        </InfoNote>
+                        <InfoNote>
+                            <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: C.note }} testID="when-consent-note">
+                                {t('requestAssistance.when.consentNote')}
                             </Text>
                         </InfoNote>
                     </>

@@ -8,6 +8,7 @@ import { useSocket } from '@/context/SocketContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { money, quoteIsOpen } from '@/lib/scheduled/offers';
 import { SC } from './ui';
+import { TYPE } from '@/lib/ui/type';
 
 /**
  * On an accepted scheduled service: shows a card when the provider proposed a final price that
@@ -46,7 +47,7 @@ export function FinalQuoteBanner({ requestId, enabled }: { requestId: string; en
         >
             <FileText size={22} color={SC.amberText} />
             <View className="flex-1">
-                <Text className="font-outfit-bold" style={{ fontSize: 14, color: SC.amberText }}>{t('finalQuote.banner.title')}</Text>
+                <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, color: SC.amberText }}>{t('finalQuote.banner.title')}</Text>
                 <Text className="font-outfit-regular" style={{ fontSize: 13, color: SC.amberText }}>
                     {total ? t('finalQuote.banner.withTotal', { total: money(total) }) : t('finalQuote.banner.sub')}
                 </Text>

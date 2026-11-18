@@ -4,7 +4,8 @@ import Svg, { Path } from 'react-native-svg';
 
 import type { Point, Stroke } from '@/lib/video/callMessages';
 
-const INK = '#FFD60A';
+/** Each side has its own ink, so both can see who marked what. */
+const INK = { mechanic: '#FFD60A', owner: '#5CD6F2' } as const;
 /** Points go out in small batches so a long stroke is not a flood of messages. */
 const SEND_EVERY_MS = 60;
 
@@ -85,7 +86,7 @@ export function DrawOverlay({ strokes, editable, onStroke, onLocalStroke }: {
                     <Path
                         key={s.id}
                         d={toPath(s.pts.length === 1 ? [s.pts[0], s.pts[0]] : s.pts, size.w, size.h)}
-                        stroke={INK}
+                        stroke={INK[s.by ?? 'mechanic']}
                         strokeWidth={4}
                         strokeLinecap="round"
                         strokeLinejoin="round"

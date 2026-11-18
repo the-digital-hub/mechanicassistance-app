@@ -1,3 +1,4 @@
+import { RequestSteps } from '@/components/ui/RequestSteps';
 import { FLOATING_CTA, FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
 import { CardPickerModal } from '@/components/payments/CardPickerModal';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
@@ -341,6 +342,7 @@ export default function ConfirmationScreen() {
                 </Text>
                 <View className="w-6" />
             </View>
+            <RequestSteps type={params.type} step="confirm" />
 
             <ScrollView
                 className="flex-1"

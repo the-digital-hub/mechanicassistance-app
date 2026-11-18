@@ -25,7 +25,14 @@ export function AppAlertHost() {
     const cancel = buttons.find((b) => b.style === 'cancel');
     const actions = buttons.filter((b) => b !== cancel);
     const destructive = actions.some((b) => b.style === 'destructive');
-    const tone = destructive ? { color: OS.red, bg: OS.redSoft, icon: 'alert-circle-outline' as const } : { color: OS.blue, bg: OS.blueSoft, icon: 'information-circle-outline' as const };
+    const TONES = {
+        info: { color: OS.blue, bg: OS.blueSoft, icon: 'information-circle-outline' },
+        success: { color: OS.greenDark, bg: OS.greenSoft, icon: 'checkmark-circle-outline' },
+        warning: { color: OS.orangeText, bg: OS.orangeSoft, icon: 'alert-circle-outline' },
+        danger: { color: OS.red, bg: OS.redSoft, icon: 'alert-circle-outline' },
+    } as const;
+    const base = TONES[destructive ? 'danger' : shown.options?.tone ?? 'info'];
+    const tone = { ...base, icon: (shown.options?.icon ?? base.icon) as React.ComponentProps<typeof Ionicons>['name'] };
     // A lone message gets a plain "OK".
     const okOnly = buttons.length === 1 && !buttons[0].text;
 

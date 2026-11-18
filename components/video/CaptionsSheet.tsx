@@ -74,10 +74,10 @@ export function CaptionsSheet({ visible, active, language, onLanguage, onStart, 
                         activeOpacity={0.8}
                         accessibilityRole="button"
                         className="flex-1 items-center justify-center"
-                        style={{ minHeight: 52, borderRadius: 14, borderWidth: 1, borderColor: '#D9DFEC', backgroundColor: '#FFFFFF' }}
+                        style={{ minHeight: 52, borderRadius: 14, backgroundColor: '#E6EAF2' }}
                         testID="captions-secondary"
                     >
-                        <Text className="font-outfit-bold" style={{ fontSize: 16, color: active ? AO.red : '#6B7490' }}>{t(active ? `${K}.captionsTurnOff` : `${K}.captionsCancel`)}</Text>
+                        <Text className="font-outfit-bold" style={{ fontSize: 16, color: active ? AO.red : '#4A5470' }}>{t(active ? `${K}.captionsTurnOff` : `${K}.captionsCancel`)}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         onPress={onStart}

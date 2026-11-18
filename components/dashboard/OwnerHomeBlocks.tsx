@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Calendar, Check, ChevronDown, ChevronRight, FileText, Wrench, X, type LucideIcon } from 'lucide-react-native';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Animated, Easing, KeyboardAvoidingView, Modal, Platform, Pressable, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { TYPE } from '@/lib/ui/type';
 
 /** Building blocks of the vehicle owner home, following the Vehicle Owner Dashboard V2 design. */
 const C = {
@@ -52,7 +53,7 @@ export function OwnerSectionTitle({
 }) {
     const heading = (
         <View className="flex-row items-center" style={{ gap: 8 }}>
-            <Text className="font-outfit-bold" style={{ fontSize: 18, letterSpacing: -0.3, color: C.text }}>{title}</Text>
+            <Text className="font-outfit-bold" style={{ ...TYPE.section, color: C.text }}>{title}</Text>
             {badge != null && badge > 0 && (
                 <View className="items-center justify-center rounded-full" style={{ minWidth: 22, height: 22, paddingHorizontal: 7, backgroundColor: C.red }}>
                     <Text className="font-outfit-bold" style={{ fontSize: 13, color: '#FFFFFF' }}>{badge}</Text>

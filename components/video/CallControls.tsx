@@ -12,6 +12,10 @@ interface CallControlsProps {
   onHangUp: () => void;
   /** Safe-area bottom inset, added under the buttons. */
   bottomInset?: number;
+  /** Sideways screen: the buttons stand in a column at the side, with no bar along the bottom. */
+  vertical?: boolean;
+  /** Safe-area insets used when vertical (the notch / home indicator at the side). */
+  sideInsets?: { top: number; bottom: number; right: number };
 }
 
 // A control that is switched off (mic muted, camera off) inverts to white with
@@ -20,10 +24,14 @@ const btnStyle = (on: boolean) => [styles.btn, !on && styles.btnOff];
 const iconColor = (on: boolean) => (on ? '#FFFFFF' : VC.navy);
 
 export function CallControls({
-  isAudioMuted, isCameraOff, onToggleAudio, onToggleCamera, onSwitchCamera, onHangUp, bottomInset = 0,
+  isAudioMuted, isCameraOff, onToggleAudio, onToggleCamera, onSwitchCamera, onHangUp, bottomInset = 0, vertical = false, sideInsets,
 }: CallControlsProps) {
   return (
-    <View style={[styles.bar, { paddingBottom: bottomInset + 6 }]}>
+    <View
+      style={vertical
+        ? [styles.side, { paddingTop: (sideInsets?.top ?? 0) + 8, paddingBottom: (sideInsets?.bottom ?? 0) + 8, paddingRight: (sideInsets?.right ?? 0) + 12 }]
+        : [styles.bar, { paddingBottom: bottomInset + 6 }]}
+    >
       <TouchableOpacity testID="ctrl-audio" style={btnStyle(!isAudioMuted)} onPress={onToggleAudio}>
         <Ionicons name={isAudioMuted ? 'mic-off' : 'mic'} size={24} color={iconColor(!isAudioMuted)} />
       </TouchableOpacity>
@@ -44,6 +52,10 @@ const styles = StyleSheet.create({
   bar: {
     flexDirection: 'row', justifyContent: 'center', gap: 16,
     backgroundColor: VC.navy, paddingTop: 14,
+  },
+  side: {
+    flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14,
+    backgroundColor: VC.navy, paddingLeft: 12, minWidth: 84,
   },
   btn: {
     width: 56, height: 56, borderRadius: 28, backgroundColor: 'rgba(255,255,255,0.12)',

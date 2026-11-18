@@ -8,7 +8,8 @@ import { KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, Vie
 
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { AvailabilityStep, itemName, windowText, LocationStep, ReviewStep, SentStep, ServicesStep, VehicleStep } from '@/components/scheduled/Steps';
-import { Footer, Note, ProgressBar, SC, WizardHeader } from '@/components/scheduled/ui';
+import { Footer, Note, SC, WizardHeader } from '@/components/scheduled/ui';
+import { Timeline } from '@/components/ui/RequestSteps';
 import { useAppointments } from '@/context/AppointmentsContext';
 import { useUser } from '@/context/UserContext';
 import { addressesForRole } from '@/lib/address';
@@ -400,7 +401,8 @@ export default function ScheduledRequestScreen() {
                 }}
                 onClose={() => setCardRequired(false)}
             />
-            <WizardHeader title={t('scheduled.title')} onBack={handleBack} right={`${step}/${SCHEDULED_STEPS}`} />
+            <WizardHeader title={t('scheduled.title')} onBack={handleBack} />
+            <Timeline steps={STEP_KEYS.map((key) => ({ key, label: t(`scheduled.steps.${key}`) }))} current={step - 1} />
 
             <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
                 <ScrollView
@@ -409,12 +411,6 @@ export default function ScheduledRequestScreen() {
                     keyboardShouldPersistTaps="handled"
                     contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 20, paddingBottom: 28, gap: 20 }}
                 >
-                    <ProgressBar
-                        step={step}
-                        total={SCHEDULED_STEPS}
-                        label={t('scheduled.stepLabel', { n: step, total: SCHEDULED_STEPS, name: t(`scheduled.steps.${STEP_KEYS[step - 1]}`) })}
-                    />
-
                     {restored ? (
                         <View className="flex-row items-center justify-between" style={{ gap: 12 }}>
                             <View style={{ flex: 1 }}>

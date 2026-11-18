@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { CheckInCode, onSiteDAO } from '@/lib/dao/OnSiteDAO';
+import { TYPE } from '@/lib/ui/type';
 
 /**
  * The customer's check-in code: a QR the mechanic scans on arrival, and the
@@ -62,7 +63,7 @@ export function CheckInCodeCard({ appointmentId, status }: { appointmentId: stri
                 <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: '#EAF1FF', alignItems: 'center', justifyContent: 'center' }}>
                     <Ionicons name="qr-code-outline" size={18} color="#1E56E3" />
                 </View>
-                <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#0B1530', letterSpacing: -0.3 }}>{t('appointments.customerCheckIn.title')}</Text>
+                <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, color: '#0B1530', letterSpacing: -0.3 }}>{t('appointments.customerCheckIn.title')}</Text>
             </View>
             <Text className="font-outfit-regular" style={{ fontSize: 13, color: '#6B7490', lineHeight: 18, marginTop: 8 }}>
                 {t('appointments.customerCheckIn.subtitle')}

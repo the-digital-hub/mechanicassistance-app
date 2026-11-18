@@ -1,5 +1,7 @@
 import type * as ScreenOrientation from 'expo-screen-orientation';
 
+import { forceOrientation } from '@/modules/screen-rotation';
+
 // The app is portrait-only; the VIN scanner can be turned sideways on request (a button), since a wide
 // barcode is easier to frame with the phone on its side. It always goes back upright afterwards.
 //
@@ -15,10 +17,17 @@ try {
 
 /** Keep the app upright. Called once at start-up, and again when a screen that rotated is left. */
 export function lockPortrait(): void {
-    module?.lockAsync(module.OrientationLock.PORTRAIT_UP).catch(() => undefined);
+    // The lock only says what is allowed; with the phone held sideways iOS also has to be asked to turn.
+    module
+        ?.lockAsync(module.OrientationLock.PORTRAIT_UP)
+        .then(() => forceOrientation(false))
+        .catch(() => undefined);
 }
 
 /** Turn the screen sideways (either landscape, whichever way the phone is held). */
 export function lockLandscape(): void {
-    module?.lockAsync(module.OrientationLock.LANDSCAPE).catch(() => undefined);
+    module
+        ?.lockAsync(module.OrientationLock.LANDSCAPE)
+        .then(() => forceOrientation(true))
+        .catch(() => undefined);
 }

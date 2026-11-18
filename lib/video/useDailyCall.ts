@@ -3,6 +3,7 @@ import Daily, {
   DailyCall, DailyEventObjectParticipant, DailyParticipant,
 } from '@daily-co/react-native-daily-js';
 import { type CallMessage, parseCallMessage } from '@/lib/video/callMessages';
+import type { TranscriptLine } from '@/lib/video/transcriptStore';
 
 export type CallState = 'idle' | 'joining' | 'joined' | 'error';
 
@@ -32,9 +33,13 @@ export interface UseDailyCall {
   toggleAudio: () => void;
   toggleCamera: () => void;
   switchCamera: () => void;
+  /** The rear camera is the one in use (the call starts on the front one). */
+  usingBackCamera: boolean;
 }
 
-export function useDailyCall(): UseDailyCall {
+export function useDailyCall(options?: { onTranscriptLine?: (line: TranscriptLine) => void }): UseDailyCall {
+  const onLineRef = useRef(options?.onTranscriptLine);
+  onLineRef.current = options?.onTranscriptLine;
   const callRef = useRef<DailyCall | null>(null);
   const [callState, setCallState] = useState<CallState>('idle');
   const [localParticipant, setLocalParticipant] = useState<DailyParticipant | null>(null);
@@ -42,6 +47,7 @@ export function useDailyCall(): UseDailyCall {
   const [isAudioMuted, setIsAudioMuted] = useState(false);
   const [isCameraOff, setIsCameraOff] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [usingBackCamera, setUsingBackCamera] = useState(false);
   const [networkState, setNetworkState] = useState<NetworkState>('unknown');
   const listeners = useRef(new Set<(message: CallMessage) => void>());
   const [transcribing, setTranscribing] = useState(false);
@@ -97,8 +103,13 @@ export function useDailyCall(): UseDailyCall {
     call.on('transcription-message', (e: { participantId?: string; text?: string; timestamp?: Date | string }) => {
       const text = (e?.text ?? '').trim();
       if (!text) return;
-      const local = call.participants().local?.session_id;
-      setCaption({ id: `${e?.participantId ?? ''}:${String(e?.timestamp ?? Date.now())}`, text, mine: e?.participantId === local });
+      const everyone = call.participants();
+      const local = everyone.local?.session_id;
+      const mine = e?.participantId === local;
+      const id = `${e?.participantId ?? ''}:${String(e?.timestamp ?? Date.now())}`;
+      setCaption({ id, text, mine });
+      const speaker = Object.values(everyone).find((p) => p.session_id === e?.participantId);
+      onLineRef.current?.({ id, speaker: mine ? 'me' : 'other', name: speaker?.user_name ?? '', text, at: Date.now() });
     });
     call.on('network-quality-change', (e: { networkState?: NetworkState }) => setNetworkState(e?.networkState ?? 'unknown'));
     call.on('error', (e: any) => {
@@ -147,6 +158,7 @@ export function useDailyCall(): UseDailyCall {
 
   const switchCamera = useCallback(() => {
     callRef.current?.cycleCamera();
+    setUsingBackCamera((v) => !v);
   }, []);
 
   const sendMessage = useCallback((message: CallMessage) => {
@@ -184,7 +196,7 @@ export function useDailyCall(): UseDailyCall {
   }, [teardown]);
 
   return {
-    callState, localParticipant, remoteParticipant, isAudioMuted, isCameraOff, errorMessage, networkState,
+    callState, localParticipant, remoteParticipant, isAudioMuted, isCameraOff, errorMessage, networkState, usingBackCamera,
     sendMessage, onMessage, transcribing, caption, startCaptions, stopCaptions, captionsError,
     join, leave, toggleAudio, toggleCamera, switchCamera,
   };

@@ -13,6 +13,7 @@ import { useWallet } from '@/lib/payments/useWallet';
 import { formatLocalDateTime } from '@/lib/video/videoCallTime';
 
 import { TopUpSheet } from './TopUpSheet';
+import { TYPE } from '@/lib/ui/type';
 
 const K = 'wallet';
 
@@ -120,7 +121,7 @@ export function WalletSection({ cards }: { cards: PaymentCard[] }) {
             <Text className="text-gray-500 font-outfit-regular text-sm mt-3">{t(`${K}.howItWorks`)}</Text>
 
             <View className="flex-row items-center justify-between mt-6 mb-2">
-                <Text className="text-gray-900 font-outfit-bold" style={{ fontSize: 20, lineHeight: 26 }}>{t(`${K}.movements`)}</Text>
+                <Text className="text-gray-900 font-outfit-bold" style={{ ...TYPE.section }}>{t(`${K}.movements`)}</Text>
                 <TouchableOpacity
                     onPress={() => router.push('/payment-activity' as Href)}
                     accessibilityRole="link"

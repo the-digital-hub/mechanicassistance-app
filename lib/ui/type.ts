@@ -7,13 +7,17 @@
 /**
  * App-wide scale (px). Do not introduce sizes outside it:
  *   12 eyebrow/uppercase labels only (with letter spacing) · 13 caption · 14 helper
- *   15 compact title · 16 body · 16.5 option · 17 question · 18 group / button
- *   20–22 section titles · 24–26 screen titles · 28–34 hero numbers.
+ *   15 compact title · 16 body · 16.5 option · 17 question / card title · 18 group / button
+ *   20 section title (above a block of cards) · 22 · 24–26 screen titles · 28–34 hero numbers.
  * Nothing below 13 except eyebrows. Half sizes (13.5, 14.5, 15.5) are not used.
  */
 export const TYPE = {
     /** Uppercase label with letter spacing (badges, "ADDITIONAL SERVICES"). */
     eyebrow: { fontSize: 12, letterSpacing: 1.2 },
+    /** Heading above a block of cards or rows ("Your request", "Active job"). */
+    section: { fontSize: 20, lineHeight: 26, letterSpacing: -0.4 },
+    /** Title inside a card ("What's included", "Checklist"). */
+    cardTitle: { fontSize: 17, lineHeight: 23 },
     /** Group / category heading ("Starting & electrical"). */
     group: { fontSize: 18, lineHeight: 24 },
     /** The question a screen asks ("What condition is the vehicle in?"). */

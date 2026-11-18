@@ -21,6 +21,9 @@ Todo lo que sigue se contrastó contra esos documentos; donde algo **no se pudo 
 | G | Radio de servicio | **Casi cerrado:** presencial con tope 100 mi (docs 16-nov); la videollamada "no tiene ubicación" y `latitude`/`longitude` son opcionales, así que no usa radio. No hay una frase explícita sobre el emparejamiento | Solo confirmar que no filtra por distancia (§5.3) | Baja |
 | I | Horarios para agendar: solo 08:00–19:30; la videollamada se pide 24/7 | **Hecho en producción (verificado el 18-nov en `GET /api/video-call/slots`):** 48 turnos por día, 00:00–23:30, con `period` `night`/`morning`/`afternoon`/`evening`. La documentación aún dice 08:00–19:30. Queda una decisión: `available` hoy solo es true de 07:00 a 18:00 (EST) porque sigue la disponibilidad de los técnicos | Actualizar la documentación; decidir si de noche se puede agendar sin técnicos cargados (§5.5) | Media |
 | H | Corte anticipado por el técnico → disputa del dueño | **Documentado como hecho:** el técnico finaliza → `awaiting_confirmation` → el dueño puede reclamar (`POST …/video/dispute`); la lista de disputas del Hub trae `callStartedAt`, `finishedAt` y `contractedMinutes` | Nada que hacer; solo verificar (§5.4) | Baja |
+| R | Un problema "Otro" que se pueda cotizar (asistencia inmediata y videollamada) | **Nuevo, falta backend** | Un issue "Other" real en el catálogo, con precio, y un campo para el texto libre (§5.14) | **Alta** |
+| Q | Registro de consentimientos de la videollamada (cumplimiento) | **Nuevo, falta backend; revisar con legal** | `POST …/video/consent`, guardarlo y exigirlo antes de transcribir (§5.13) | **Alta** |
+| P | Guardar la transcripción de la llamada y mostrarla en la cita | **Nuevo, falta backend** | Guardar la transcripción de Daily y exponer `GET …/video/transcript` (§5.12) | Media |
 | O | Zona horaria del dueño en la videollamada agendada | **Nuevo, falta backend** | Aceptar y devolver `timezone` (IANA) en la solicitud (§5.11) | **Alta** |
 | N | Agendar videollamada en turnos sin técnicos de guardia | **Nuevo, falta backend (producto lo pide)** | Que `create()` acepte turnos `no_mechanics`; `available` o equivalente en `/slots` (§5.10) | **Alta** |
 | J | Saber si el cliente ya está en la sala de video | **Abierto:** no está en la documentación (solo `video_room_ready` a la otra parte) | Informar quién está conectado en la sala (§5.6) | Media |
@@ -437,6 +440,72 @@ doble hora no aparece.
   (`GET /appointments`, `/appointments/:id`), para que la oferta del técnico lo traiga sin otra llamada.
 - Opcional: que el recordatorio previo al turno (push) nombre la zona del destinatario.
 
+### 5.12 P — Guardar la transcripción de la llamada como dato de la cita (nuevo, 18-nov)
+**Qué se quiere:** que lo dicho en la videollamada quede como dato de la cita, y que el dueño y el técnico lo vean en un botón
+"Transcripción de la llamada" de la pestaña Status. Es también evidencia para soporte en las disputas (§5.4).
+
+**Qué hace la app hoy (ya hecho, sin backend):** cada teléfono guarda en su almacenamiento local las frases que recibe de Daily
+(`transcription-message`) mientras los subtítulos están activos, y el botón las muestra con el aviso "Guardada solo en este teléfono".
+Limitaciones: es una copia por teléfono, solo existe si los subtítulos estuvieron encendidos y se pierde si se desinstala la app.
+
+**Pedido (fuente de verdad en el servidor):**
+- Al terminar la transcripción de una sala, tomar el archivo de Daily (webhook `transcript.ready-to-download` o
+  `GET https://api.daily.co/v1/transcript?roomName=…` y `/transcript/:id/access-link`, formato WebVTT/texto) y guardarlo asociado a
+  la cita (`video_call_transcripts`: `appointmentId`, `language`, `lines[]` con `role` owner/mechanic, `name`, `text`, `at`).
+  *Verificar con Daily que la transcripción en tiempo real deja archivo en la cuenta actual (almacenamiento propio o de Daily).*
+- `GET /api/appointments/:id/video/transcript` (dueño, técnico de la cita y admin; otro → 403; sin transcripción → 404):
+  `{ appointmentId, language, lines: [{ id, role: 'owner'|'mechanic', name?, text, at (ISO) }] }`. La app ya llama a este endpoint
+  primero y usa su copia local solo si da 404.
+- Definir **retención y consentimiento**: la app avisa antes de activar los subtítulos, pero no guarda la aceptación. Si se guarda
+  el texto, conviene registrar quién activó la transcripción y cuándo (`transcript_started_by`, `started_at`) y cuántos días se
+  conserva. Los datos de salud o personales que se digan en la llamada pasan a ser datos guardados.
+- Opcional: mostrar la transcripción a staff en la lista de disputas del Hub.
+
+### 5.13 Q — Registro de consentimientos y cumplimiento (nuevo, 18-nov)
+**Objetivo:** estar en cumplimiento. Los **dos** lados aceptan las condiciones **antes** de la videollamada, y de nuevo, uno al otro, en el momento
+de activar subtítulos y transcripción; todo queda registrado y la transcripción solo existe si ambos aceptaron.
+
+**Qué hace la app (ya hecho):**
+1. **Antes de entrar** (pantalla previa a la llamada, dueño y técnico): casilla obligatoria "Leí y acepto estas condiciones" con tres puntos
+   (subtítulos y transcripción solo si ambos aceptan durante la llamada; si se crean se guardan con la cita y ambos pueden leerlos y
+   descargarlos, y soporte puede usarlos en un reclamo; se puede decir que no en cualquier momento). Sin marcarla no se puede entrar.
+2. **Durante la llamada**: quien activa los subtítulos manda una solicitud; la otra persona recibe un diálogo (Aceptar / Rechazar). **Solo si
+   acepta** se llama a `startTranscription()` de Daily. Si rechaza o no responde en 30 s, no se transcribe nada.
+3. Antes de pedir la llamada (dueño) y en la oferta (técnico) hay un aviso de estas condiciones.
+4. Cada respuesta se guarda en el teléfono con hora y versión del texto (`CONSENT_VERSION = 2026-11-18`) y se **intenta** enviar a
+   `POST /api/appointments/:id/video/consent` (hoy no existe: se ignora el error).
+5. El PDF de la transcripción incluye el **registro de consentimientos** y un aviso de uso confidencial.
+
+**Pedido:**
+- `POST /api/appointments/:id/video/consent` `{ version, kind: 'precall'|'captions-request'|'captions-answer', role, accepted, at }`
+  (el rol sale de la sesión, no del cuerpo; solo el dueño y el técnico de la cita; otro → 403). Guardar con la hora del servidor, IP/dispositivo
+  si corresponde, y la versión del texto. Idempotente por `(appointmentId, role, kind, at)`.
+- **Exigirlo del lado servidor:** no emitir ni guardar la transcripción (§5.12) si no hay `precall` aceptado de ambos y `captions-answer`
+  aceptado de quien no pidió. Si Daily transcribe igual (token con permisos), descartar el archivo.
+- Devolver el registro en `GET …/video/transcript` (`consents[]`) para que el PDF use el del servidor y no el del teléfono.
+- Publicar los textos de condiciones con versión (para que soporte sepa exactamente qué se aceptó) y definir **retención** del texto y del registro.
+- **Revisión legal (importante):** el texto actual es un borrador de producto, no asesoría legal. Hay estados y países donde grabar o transcribir
+  una llamada exige el consentimiento de **todas** las partes y avisos específicos (por ejemplo, términos de uso y política de privacidad que lo mencionen,
+  y datos sensibles dichos en la llamada). Legal debe aprobar el texto, la versión y el tiempo de retención antes de activarlo en producción.
+
+### 5.14 R — Un problema "Otro" que se pueda cotizar (nuevo, 18-nov)
+**Qué se quiere:** en la pantalla "Indicate the issue" de asistencia inmediata y videollamada, una tarjeta **Other** al final donde el dueño describe con sus
+palabras un problema que no está en el catálogo. (Scheduled ya tiene "Other service (optional)" y lo manda como `customRequest`.)
+
+**Qué hace la app (ya hecho):** la tarjeta "Other" abre un campo de texto (200 caracteres); lo escrito aparece como badge y habilita Continue aunque no se haya elegido
+nada del catálogo. El texto viaja en el **título** de la solicitud como `Other: <texto>` (junto a los nombres de los problemas elegidos), que es lo que leen los técnicos en el
+push y en su feed. No se manda ningún id de catálogo para "Other".
+
+**Problema:** una solicitud que solo tiene "Other" no lleva `vehicle_issue_ids`, así que `service-price` no puede cotizarla (queda `TBD`; la app registra el aviso y sigue).
+Tampoco hay un campo propio para el texto: hoy se mezcla con el título.
+
+**Pedido:**
+- Agregar al catálogo (`GET /api/pricing/vehicle-issue-catalog`) un issue **"Other"** (con UUID, traducciones y regla de precio/diagnóstico por defecto) para que la app lo mande en
+  `vehicle_issue_ids` y la solicitud tenga precio. Producto define el precio base del "Otro".
+- Un campo opcional `customIssue` (string, ≤ 200) en `POST /api/assistance` y en el detalle/listado, para guardar el texto libre sin depender del título. La app lo mandará cuando
+  exista (con el reintento sin el campo si el backend todavía lo rechaza, como con `timezone`).
+- Que el técnico vea `customIssue` en la oferta y en el detalle de la asistencia.
+
 ---
 
 ## 6. Orden de entrega sugerido
@@ -444,7 +513,7 @@ doble hora no aparece.
 2. **A** — endpoints, estados, eventos, flag (§3.4–3.8) y despliegue **antes** que la app nueva.
 3. Publicar la app con `requireApproval: true` y la pantalla de aceptar/rechazar.
 4. Activar `extension_approval_enabled` cuando los técnicos estén actualizados.
-5. **N** (alta, desbloquea agendar 24/7), **O** (alta, evita citas a la hora equivocada) y luego **F, G, H, J, K, L, M** — cuando haya capacidad.
+5. **N** (alta, desbloquea agendar 24/7), **O** (alta, evita citas a la hora equivocada) **Q** (alta, cumplimiento) y luego **P, F, G, H, J, K, L, M** — cuando haya capacidad.
 
 **Regla de despliegue:** backend primero. El backend rechaza campos desconocidos (`forbidNonWhitelisted`), así que
 cualquier campo nuevo que la app mande (`requireApproval`) tiene que existir en el DTO antes de publicar el build.

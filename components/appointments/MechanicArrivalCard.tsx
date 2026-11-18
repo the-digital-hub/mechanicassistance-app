@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Animated, Text, TouchableOpacity, View } from 'react-native';
+import { TYPE } from '@/lib/ui/type';
 
 const BLUE = '#1E56E3';
 
@@ -90,7 +91,7 @@ export function MechanicArrivalCard({ onStartCheckIn, inProgress }: MechanicArri
                     <Ionicons name="location-outline" size={20} color={BLUE} />
                 </View>
                 <View className="flex-1">
-                    <Text className="font-outfit-bold" style={{ fontSize: 17, lineHeight: 23, color: '#0B1530' }}>
+                    <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, color: '#0B1530' }}>
                         {t('appointments.detail.arrival.title')}
                     </Text>
                     <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: '#6B7490' }}>

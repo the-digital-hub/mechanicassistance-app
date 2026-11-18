@@ -93,6 +93,13 @@ export interface VideoCallState {
 type VideoCallStateResponse = Omit<VideoCallState, 'startedAtLocalMs'>;
 
 
+/** The server's transcript of a call. */
+export interface VideoTranscript {
+    appointmentId: string;
+    language?: string;
+    lines: { id: string; role: 'owner' | 'mechanic'; name?: string; text: string; at: string }[];
+}
+
 /** A block of extra time the owner can buy, priced for this call. */
 export interface VideoExtensionOption {
     id: string;
@@ -196,6 +203,19 @@ export class VideoCallDAO {
     /** Owner, during the call: ends it and confirms it at once; the payment is charged. */
     async ownerFinish(appointmentId: string): Promise<VideoCallState> {
         return withLocalStart(await apiClient.post<VideoCallStateResponse>(`/api/appointments/${appointmentId}/video/owner-finish`, {}));
+    }
+
+    /**
+     * The saved transcript of the call, as the server keeps it; null while it has none (404: no transcript yet,
+     * or the backend does not offer it). `role` tells who spoke.
+     */
+    async getTranscript(appointmentId: string): Promise<VideoTranscript | null> {
+        try {
+            return await apiClient.get<VideoTranscript>(`/api/appointments/${appointmentId}/video/transcript`);
+        } catch (err) {
+            if (err instanceof ApiError && (err.statusCode === 404 || err.statusCode === 403)) return null;
+            throw err;
+        }
     }
 
     /** Extra time of the call; the owner also gets the blocks on sale with their prices. */

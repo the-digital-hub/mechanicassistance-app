@@ -235,7 +235,13 @@
       "activeJob": {
         "title": "Active job",
         "headOut": "Head out",
-        "title_other": "Active jobs"
+        "title_other": "Active jobs",
+        "inMinutes_one": "in {{count}} minute",
+        "inMinutes_other": "in {{count}} minutes",
+        "inHours_one": "in {{count}} hour",
+        "inHours_other": "in {{count}} hours",
+        "inDays_one": "in {{count}} day",
+        "inDays_other": "in {{count}} days"
       },
       "readyToWork": "Ready to work",
       "reviewSubtitle": "Review new requests in your area",
@@ -425,8 +431,11 @@
       "otherIssues": "Other",
       "selectedCount": "{{count}} selected",
       "selected": "Selected",
-      "searchPlaceholder": "Search issues",
-      "noResults": "No matching issues found"
+      "searchPlaceholder": "Search for your issue",
+      "noResults": "No matching issues found",
+      "other": "Other",
+      "otherHint": "Not in the list? Tell us what is happening.",
+      "otherPlaceholder": "Describe the issue in your own words"
     },
     "vehicleInformation": {
       "title": "Vehicle condition",
@@ -450,7 +459,12 @@
         "unsafe_to_drive": "moves, but is not safe to drive",
         "pushable_only": "cannot be driven, but can be pushed"
       },
-      "continue": "Continue"
+      "continue": "Continue",
+      "conditionSub": {
+        "drivable": "It starts and moves normally.",
+        "unsafe_to_drive": "Something is wrong: better not to drive it.",
+        "pushable_only": "It will not start or move by itself."
+      }
     },
     "vehicleDocumentation": {
       "title": "Add photos or video",
@@ -749,7 +763,8 @@
       "priceNote": "The price may include a time-of-day rate and taxes.",
       "durationMinutes": "minutes",
       "onlineBadge": "Available now",
-      "nowSubtitleSoft": "Usually connects within a few minutes"
+      "nowSubtitleSoft": "Usually connects within a few minutes",
+      "consentNote": "Live captions and a written transcript only exist if you and the technician both accept during the call. You will confirm these conditions again before entering the call."
     },
     "cardRequired": {
       "title": "Add a card",
@@ -1715,8 +1730,7 @@
         },
         "clientLabel": "CLIENT",
         "clientFallback": "Client",
-        "customerInRoomTitle": "The customer is already in the video room",
-        "customerInRoomBody": "They're waiting for you. Tap Join video call to start."
+        "customerInRoomTitle": "The customer is already in the video room"
       },
       "header": {
         "booked": "Video call booked",
@@ -1745,10 +1759,10 @@
         "networkBad": "Very weak connection",
         "swapView": "Swap the big and small picture",
         "captions": "Live captions",
-        "draw": "Mark on the picture",
+        "draw": "Draw on the picture",
         "clearDrawing": "Clear markings",
         "captionsConsentTitle": "Turn on live captions?",
-        "captionsConsentBody": "What both of you say will be transcribed to show captions. The other person will be told.",
+        "captionsConsentBody": "The other person will be asked to accept. Nothing is transcribed unless they say yes. If they do, what both of you say is transcribed and saved with the appointment, and you can both read and download it.",
         "captionsStart": "Turn on",
         "captionsCancel": "Not now",
         "captionsOnTitle": "Live captions are on",
@@ -1768,7 +1782,19 @@
         "captionsLanguageHint": "Captions listen in one language for the whole call. Pick the one you will both speak.",
         "captionsSheetOnTitle": "Live captions are on",
         "captionsTurnOff": "Turn off",
-        "captionsApply": "Change language"
+        "captionsApply": "Change language",
+        "captionsAskTitle": "Turn on live captions?",
+        "captionsAskBody": "The other person wants live captions and a written transcript of this call, in {{language}}. If you accept, what both of you say is transcribed and saved with the appointment, and you can both read and download it. If you decline, the call continues as it is.",
+        "captionsAccept": "Accept",
+        "captionsDecline": "Decline",
+        "captionsWaiting": "Waiting for the other person to accept…",
+        "captionsDeclinedTitle": "They declined",
+        "captionsDeclinedBody": "The other person did not accept captions and transcript. The call continues without them.",
+        "captionsNoAnswerTitle": "No answer",
+        "captionsNoAnswerBody": "The other person did not answer. You can ask again.",
+        "captionsNeedOtherTitle": "Wait for the other person",
+        "captionsNeedOtherBody": "Captions need both people in the call, because both have to accept.",
+        "flashlight": "Flashlight"
       },
       "timer": {
         "inProgress": "Call in progress",
@@ -1781,7 +1807,9 @@
         "cancel": "Cancel",
         "added": "+{{minutes}} min added",
         "startsOnJoin": "A {{minutes}}-minute session timer starts when the client joins the call. Only the client can add more time.",
-        "returnToCall": "Return to call"
+        "returnToCall": "Return to call",
+        "startsOnJoinTitle": "{{minutes}}-minute session",
+        "startsOnJoinBody": "The timer starts when the customer joins the call. Only the customer can add more time."
       },
       "obd": {
         "file": "Scanner report",
@@ -1835,6 +1863,38 @@
         "differsTitle": "The customer is in another time zone",
         "differsYou": "For you: {{time}}",
         "differsThem": "For the customer: {{time}}"
+      },
+      "transcript": {
+        "title": "Call transcript",
+        "subtitle": "What was said in the video call.",
+        "close": "Close",
+        "empty": "There is no transcript for this call. It is saved when live captions are turned on during the call.",
+        "localOnly": "Saved on this phone only.",
+        "you": "You",
+        "other": "Other person",
+        "download": "Download PDF",
+        "consentNote": "Created with the consent of both people on the call.",
+        "pdf": {
+          "title": "Video call transcript",
+          "reference": "Reference",
+          "vehicle": "Vehicle",
+          "callDate": "Call date",
+          "duration": "Duration",
+          "generated": "Generated on {{date}}",
+          "consentTitle": "Consent record",
+          "consentNone": "No consent was recorded on this phone.",
+          "consentPrecall": "{{who}} accepted the conditions of the call",
+          "consentRequest": "{{who}} asked to turn on live captions and the transcript",
+          "consentAnswerYes": "{{who}} accepted live captions and the transcript",
+          "consentAnswerNo": "{{who}} declined live captions and the transcript",
+          "owner": "Vehicle owner",
+          "mechanic": "Technician",
+          "conversation": "Conversation",
+          "empty": "Nothing was said.",
+          "notice": "This transcript was generated automatically from the call and may contain errors. It was created only because both people accepted, and it is meant for the people on the call and for support review of a dispute. Keep it confidential.",
+          "failedTitle": "Couldn't create the PDF",
+          "failedBody": "Please try again."
+        }
       }
     },
     "clientReview": {
@@ -1958,14 +2018,17 @@
     "videoCallDuration_other": "{{count}}-minute call · the owner can extend it",
     "confirmOfferVideoCall": "You are about to offer a video call for {{title}}. The client still has to accept it.",
     "videoPrice": "PRICE",
-    "videoPriceNote": "Fixed price, set when the client requested the call. You only accept if you want to take it.",
-    "confirmVideoTitle": "Take this video call?",
-    "confirmVideoCall": "Video call for {{title}}, at the price shown.\n\nThe client still has to confirm it.",
-    "confirmVideo": "Take the call",
+    "videoPriceNote": "Fixed price, set when the client requested the call. Send your offer only if you want to take it; it is confirmed once the customer accepts.",
+    "confirmVideoTitle": "Offer to take this video call?",
+    "confirmVideoCall": "You are offering to take the video call for {{title}}, at the price shown.\n\nIt is not confirmed yet: the customer still has to accept your offer.",
+    "confirmVideo": "Send offer",
     "videoDuration": "DURATION",
     "videoDurationValue_one": "{{count}} minute",
     "videoDurationValue_other": "{{count}} minutes",
-    "videoDurationNote": "The client can add more time during the call."
+    "videoDurationNote": "The client can add more time during the call.",
+    "videoConditions": "CALL CONDITIONS",
+    "videoConditionsNote": "Before the call, you and the customer both accept its conditions. Live captions and a written transcript are created only if both agree during the call; they are saved with the appointment.",
+    "offerVideoCall": "Offer to take this call"
   },
   "personalInfo": {
     "uploadFailedTitle": "Upload Failed",
@@ -3074,7 +3137,15 @@
       },
       "rejoin": "Rejoin video call",
       "rejoinTitle": "Rejoin the call",
-      "rejoinHint": "The call is still going. Tap to get back in."
+      "rejoinHint": "The call is still going. Tap to get back in.",
+      "consent": {
+        "title": "Conditions of this call",
+        "point1": "Live captions and a written transcript are created only if both of you accept, at the moment they are turned on during the call.",
+        "point2": "If a transcript is created, it is saved with this appointment. You and the other person can read and download it, and our support team can use it to review a dispute.",
+        "point3": "You can say no at any time: the call continues without captions or transcript.",
+        "accept": "I have read and accept these conditions",
+        "acceptedOn": "Accepted on {{date}}"
+      }
     }
   },
   "wallet": {
@@ -3250,7 +3321,10 @@
       "customLabel": "OTHER SERVICE (OPTIONAL)",
       "customPlaceholder": "Something that isn't listed…",
       "detailsPlaceholder": "Additional details (optional)",
-      "detailsLabel": "Additional details for {{name}} (optional)"
+      "detailsLabel": "Additional details for {{name}} (optional)",
+      "searchPlaceholder": "Search for a service",
+      "noResults": "No services match your search.",
+      "detailsTitle": "Details (optional)"
     },
     "availability": {
       "eyebrow": "STEP 4 · AVAILABILITY",
@@ -3734,5 +3808,22 @@
     "notYou": "Not you? Log out",
     "notYouLabel": "Not you?",
     "logOut": "Log out"
+  },
+  "notificationsPopup": {
+    "offerAcceptedTitle": "Offer accepted!",
+    "offerAcceptedBody": "The customer accepted your offer to help.",
+    "jobCanceledTitle": "Job canceled",
+    "jobCanceledBody": "The customer canceled this request."
+  },
+  "requestSteps": {
+    "label": "Step {{n}} of {{total}} · {{name}}",
+    "vehicle": "Vehicle",
+    "issue": "Issue",
+    "condition": "Condition",
+    "photos": "Photos",
+    "location": "Location",
+    "confirm": "Confirm",
+    "scanner": "Scanner",
+    "when": "When"
   }
 }

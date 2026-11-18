@@ -1,3 +1,4 @@
+import { RequestSteps } from '@/components/ui/RequestSteps';
 import { FLOATING_CTA, FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
 import { MediaSlot, type Picked } from '@/components/on-site/MediaSlot';
 import { useRequestDraft } from '@/context/RequestDraftContext';
@@ -7,6 +8,7 @@ import { Check, ChevronLeft, ScanLine, X } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { TYPE } from '@/lib/ui/type';
 
 /**
  * Optional step of the video-call wizard (vehicle information → here → when):
@@ -125,6 +127,7 @@ export default function ObdScannerScreen() {
                     <Text className="font-outfit-semibold" style={{ fontSize: 15, color: C.blue }}>{t(`${k}.skip`)}</Text>
                 </TouchableOpacity>
             </View>
+            <RequestSteps type={params.type} step="scanner" />
 
             <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 24, gap: 14 }}>
                 <View>
@@ -144,7 +147,7 @@ export default function ObdScannerScreen() {
                 {answer === 'yes' ? (
                     <>
                         <View style={{ backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: C.line, padding: 16, gap: 12 }}>
-                            <Text className="font-outfit-bold" style={{ fontSize: 14, color: C.ink }}>{t(`${k}.howTitle`)}</Text>
+                            <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, color: C.ink }}>{t(`${k}.howTitle`)}</Text>
                             {STEPS.map((step, i) => (
                                 <View key={step} style={{ flexDirection: 'row', gap: 10, alignItems: 'flex-start' }}>
                                     <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: C.blueSoft, alignItems: 'center', justifyContent: 'center' }}>

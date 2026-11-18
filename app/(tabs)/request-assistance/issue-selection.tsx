@@ -1,12 +1,17 @@
+import { RequestSteps } from '@/components/ui/RequestSteps';
+import { categoryIcon } from '@/lib/ui/categoryIcon';
+import { PickCard, PickChildren, PickGroup, PickItem, PickList, PickReveal, PickedChips, SearchField } from '@/components/scheduled/picker';
+import { CARD_STYLE, Footer, SC, TextField } from '@/components/scheduled/ui';
+import { TYPE } from '@/lib/ui/type';
 import { pricingDAO } from '@/lib/dao/PricingDAO';
 import type { VehicleIssueCategory } from '@/lib/dao/interfaces';
 import { getLanguageId, translatedName } from '@/lib/i18n/catalogTranslations';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { AlertTriangle, Battery, Check, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CircleDot, HelpCircle, Search, Wrench, X, Zap } from 'lucide-react-native';
+import { HeaderBackButton } from '@/components/ui/HeaderBackButton';
+import { HelpCircle } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 
 // Fallback used only if the pricing catalog can't be fetched. These ids are NOT
 // real VehicleIssue UUIDs, so pricing will fall back to "TBD" when this is used.
@@ -26,45 +31,15 @@ const FALLBACK_CATALOG: VehicleIssueCategory[] = [
     },
 ];
 
-// `icon` is a free-form key set in the admin — there is no fixed catalog, so
-// unknown keys must degrade to the default instead of breaking the row.
-const ICONS_BY_KEY: Record<string, typeof Wrench> = {
-    bolt: Zap,
-    battery: Battery,
-    electrical: Zap,
-    tire: CircleDot,
-    wheel: CircleDot,
-    warning: AlertTriangle,
-    wrench: Wrench,
-    tool: Wrench,
-    other: HelpCircle,
-    help: HelpCircle,
-};
+/** What is inside a category: on the tinted band, except for the issues that belong to no category. */
+const Level2 = ({ tinted, children }: { tinted: boolean; children: React.ReactNode }) =>
+    tinted ? <PickChildren>{children}</PickChildren> : <>{children}</>;
 
-// Legacy fallback for rows with no `icon`: guess from the English name. Only
-// reachable for uncategorised issues and the offline fallback list — localized
-// names would not match these substrings.
-const iconFromName = (label: string) => {
-    const n = label.toLowerCase();
-    if (n.includes('batter')) return Battery;
-    if (n.includes('electric')) return Zap;
-    if (n.includes('start')) return Wrench;
-    if (n.includes('warning') || n.includes('light')) return AlertTriangle;
-    if (n.includes('other')) return HelpCircle;
-    return Wrench;
-};
+/** The key the "Other" card opens under, next to the catalog categories (one card at a time). */
+const OTHER_KEY = '__other__';
 
-const iconFor = (iconKey: string | null | undefined, label: string) =>
-    (iconKey ? ICONS_BY_KEY[iconKey.toLowerCase()] : undefined) ?? iconFromName(label);
-
-const Checkbox = ({ selected }: { selected: boolean }) => (
-    <View
-        className="w-5 h-5 rounded items-center justify-center"
-        style={{ borderWidth: 1.5, borderColor: selected ? '#0047AB' : '#CBD5E1', backgroundColor: selected ? '#0047AB' : 'white' }}
-    >
-        {selected && <Check size={13} color="white" strokeWidth={3} />}
-    </View>
-);
+/** How long the open card takes to close (a little over its exit animation) before the next one opens. */
+const CLOSE_BEFORE_OPEN_MS = 180;
 
 export default function IssueSelectionScreen() {
     const router = useRouter();
@@ -82,8 +57,10 @@ export default function IssueSelectionScreen() {
     const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
     const [expandedIssues, setExpandedIssues] = useState<Set<string>>(new Set());
     const [loadingIssues, setLoadingIssues] = useState(true);
-    const [searchOpen, setSearchOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    // "Other": an issue that is not in the catalog, described in the owner's own words.
+    const [otherText, setOtherText] = useState('');
+    const otherClean = otherText.trim();
     // Which row of each entity's `translations[]` to render. Null until resolved
     // (or if it can't be), which makes everything fall back to the base name.
     const [languageId, setLanguageId] = useState<number | null>(null);
@@ -140,12 +117,38 @@ export default function IssueSelectionScreen() {
         }
     };
 
+    // `expandedCategories` is what shows (the subcategories); `outlineKey` is the card itself (its outline and
+    // its arrow). A card stays open while things are picked in it: it closes only when it is tapped again or
+    // when another card is opened.
+    const [outlineKey, setOutlineKey] = useState<string | null>(null);
+    const timers = React.useRef<ReturnType<typeof setTimeout>[]>([]);
+    const cancelTimers = () => {
+        timers.current.forEach(clearTimeout);
+        timers.current = [];
+    };
+    const later = (fn: () => void, ms: number) => {
+        timers.current.push(setTimeout(fn, ms));
+    };
+    useEffect(() => cancelTimers, []);
+
+    // Opening a category closes the one that was open, and only once it has finished closing the new one
+    // opens: one card at a time, each in its turn.
     const toggleCategory = (categoryKey: string) => {
-        setExpandedCategories(prev => {
-            const next = new Set(prev);
-            if (next.has(categoryKey)) next.delete(categoryKey); else next.add(categoryKey);
-            return next;
-        });
+        cancelTimers();
+        if (expandedCategories.has(categoryKey)) {
+            setExpandedCategories(new Set<string>());
+            setOutlineKey(null);
+        } else if (expandedCategories.size > 0) {
+            setExpandedCategories(new Set<string>());
+            setOutlineKey(null);
+            later(() => {
+                setExpandedCategories(new Set<string>([categoryKey]));
+                setOutlineKey(categoryKey);
+            }, CLOSE_BEFORE_OPEN_MS);
+        } else {
+            setExpandedCategories(new Set<string>([categoryKey]));
+            setOutlineKey(categoryKey);
+        }
     };
 
     const toggleIssueExpanded = (issueId: string) => {
@@ -166,14 +169,6 @@ export default function IssueSelectionScreen() {
         setSelectedSymptomIds(prev =>
             prev.includes(symptomId) ? prev.filter(item => item !== symptomId) : [...prev, symptomId]
         );
-    };
-
-    const toggleSearch = () => {
-        setSearchOpen(prev => {
-            const next = !prev;
-            if (!next) setSearchQuery('');
-            return next;
-        });
     };
 
     // Filters the whole tree (category/issue/symptom names) as the user types.
@@ -212,13 +207,30 @@ export default function IssueSelectionScreen() {
         ...symptomOwnerIssueIds,
     ]));
 
+    // The picks as badges: a direct issue by its name, a symptom as "issue · symptom".
+    const pickedChips: { key: string; label: string; onRemove: () => void }[] = catalog.flatMap(category => category.issues).flatMap((issue) => {
+        const issueName = translatedName(issue, languageId);
+        const direct = directSelectedIssues.includes(issue.id)
+            ? [{ key: `i-${issue.id}`, label: issueName, onRemove: () => toggleDirectIssue(issue.id) }]
+            : [];
+        const symptoms = (issue.symptoms ?? [])
+            .filter(sy => selectedSymptomIds.includes(sy.id))
+            .map(sy => ({ key: `s-${sy.id}`, label: `${issueName} · ${translatedName(sy, languageId)}`, onRemove: () => toggleSymptom(sy.id) }));
+        return [...direct, ...symptoms];
+    });
+    if (otherClean) pickedChips.push({ key: 'other', label: `${t('requestAssistance.issueSelection.other')} · ${otherClean}`, onRemove: () => setOtherText('') });
+
     // Catalog names, untranslated, as the pricing service stores them. Carried
     // as `description` down to confirmation, which makes it the request title —
     // the line mechanics read in the new-request push and in their feed.
-    const selectedIssueNames = catalog
-        .flatMap(category => category.issues)
-        .filter(issue => selectedIssues.includes(issue.id))
-        .map(issue => issue.name)
+    const selectedIssueNames = [
+        ...catalog
+            .flatMap(category => category.issues)
+            .filter(issue => selectedIssues.includes(issue.id))
+            .map(issue => issue.name),
+        // The owner's own words travel with the names: they become part of the request title.
+        ...(otherClean ? [`Other: ${otherClean}`] : []),
+    ]
         .filter(Boolean)
         .join(', ');
 
@@ -239,21 +251,19 @@ export default function IssueSelectionScreen() {
     };
 
     return (
-        <View className="flex-1 bg-white">
+        // The same tinted page as the scheduled request: white cards stand out over it.
+        <View className="flex-1" style={{ backgroundColor: SC.page }}>
             {/* Custom Header */}
             <View className="px-6 pt-20 pb-2 flex-row items-center justify-between" style={{ backgroundColor: '#F4F5FA', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 3, elevation: 3, borderBottomWidth: 0.5, borderBottomColor: '#D1D5DB' }}>
-                <TouchableOpacity onPress={() => router.back()}>
-                    <View className="w-10 h-10 rounded-full justify-center items-center" style={{ backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }}>
-                        <ChevronLeft size={20} color="#0047AB" />
-                    </View>
-                </TouchableOpacity>
+                <HeaderBackButton marginLeft={0} onPress={() => router.back()} />
                 <Text style={{ fontFamily: 'Outfit_500Medium', fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>
                     {getTitle()}
                 </Text>
                 <View className="w-6" />
             </View>
+            <RequestSteps type={params.type} step="issue" />
 
-            <ScrollView className="flex-1 px-6 pt-6">
+            <ScrollView className="flex-1 px-6 pt-6" contentContainerStyle={{ paddingBottom: 24 }}>
                 <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                     <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
                     <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
@@ -261,200 +271,159 @@ export default function IssueSelectionScreen() {
                     </Text>
                 </View>
 
-                <View className="flex-row items-center justify-between mb-4">
-                    <Text className="text-gray-900 font-outfit-medium text-3xl flex-1">{t('requestAssistance.issueSelection.title')}</Text>
-                    <TouchableOpacity onPress={toggleSearch}>
-                        <View className="w-10 h-10 rounded-full items-center justify-center ml-3" style={{ backgroundColor: searchOpen ? '#0047AB' : '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }}>
-                            {searchOpen ? <X size={18} color="white" /> : <Search size={18} color="#0047AB" />}
-                        </View>
-                    </TouchableOpacity>
-                </View>
+                <Text className="text-gray-900 font-outfit-medium text-3xl mb-1">{t('requestAssistance.issueSelection.title')}</Text>
+                <Text className="text-gray-500 font-outfit-regular text-base mb-4">{t('requestAssistance.issueSelection.subtitle')}</Text>
 
-                <Text className="text-gray-500 font-outfit-regular text-base mb-2">
-                    {t('requestAssistance.issueSelection.possibleIssues')}
-                </Text>
+                {/* Always on show: find an issue by any word. */}
+                <SearchField
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    placeholder={t('requestAssistance.issueSelection.searchPlaceholder')}
+                    testID="issue-search"
+                />
 
-                {searchOpen && (
-                    <View className="flex-row items-center bg-white border border-gray-200 rounded-2xl px-4 mb-4" style={{ height: 52 }}>
-                        <Search size={18} color="#9CA3AF" />
-                        <TextInput
-                            autoFocus
-                            value={searchQuery}
-                            onChangeText={setSearchQuery}
-                            placeholder={t('requestAssistance.issueSelection.searchPlaceholder')}
-                            placeholderTextColor="#D1D5DB"
-                            className="ml-2 flex-1 font-outfit-regular text-[#0F172A]"
-                            style={{ fontSize: 16, letterSpacing: 0, textAlign: 'left' }}
-                        />
-                        {searchQuery.length > 0 && (
-                            <TouchableOpacity onPress={() => setSearchQuery('')}>
-                                <X size={18} color="#9CA3AF" />
-                            </TouchableOpacity>
-                        )}
+                {/* What is picked, as badges; tapping one takes it off. */}
+                {pickedChips.length > 0 ? (
+                    <View style={{ marginTop: 14 }}>
+                        <PickedChips chips={pickedChips} />
                     </View>
-                )}
+                ) : null}
 
-                <View className="mb-8">
+                <View style={{ marginTop: 14, marginBottom: 24 }}>
                     {loadingIssues ? (
-                        <View className="rounded-xl border border-gray-100 p-6 items-center">
+                        <View style={{ ...CARD_STYLE, padding: 24, alignItems: 'center' }}>
                             <ActivityIndicator size="small" color="#0047AB" />
                         </View>
                     ) : normalizedQuery && filteredCatalog.length === 0 ? (
-                        <View className="rounded-xl border border-gray-100 p-6 items-center">
+                        <View style={{ ...CARD_STYLE, padding: 24, alignItems: 'center' }}>
                             <Text className="text-gray-500 font-outfit-regular text-base">{t('requestAssistance.issueSelection.noResults')}</Text>
                         </View>
                     ) : (
-                        filteredCatalog.map((category, categoryIndex) => {
-                            const categoryKey = category.id ?? `uncategorised-${categoryIndex}`;
-                            // The trailing group (id: null) holds issues with no
-                            // category — it is rendered without an icon/heading row.
-                            const heading = category.id
-                                ? translatedName(category, languageId)
-                                : catalog.length > 1
-                                    ? t('requestAssistance.issueSelection.otherIssues')
-                                    : '';
-                            const isCategoryExpanded = normalizedQuery ? true : expandedCategories.has(categoryKey);
-                            // Every tick in the category: directly selected issues plus selected symptoms.
-                            const categorySelectedCount = category.issues.reduce(
-                                (count, issue) =>
-                                    count +
-                                    (directSelectedIssues.includes(issue.id) ? 1 : 0) +
-                                    (issue.symptoms ?? []).filter(s => selectedSymptomIds.includes(s.id)).length,
-                                0
-                            );
-                            const CategoryIcon = iconFor(category.icon, heading || category.issues[0]?.name || '');
-                            const CategoryChevron = isCategoryExpanded ? ChevronUp : ChevronDown;
+                        <PickList>
+                            {filteredCatalog.map((category, categoryIndex) => {
+                                const categoryKey = category.id ?? `uncategorised-${categoryIndex}`;
+                                // The trailing group (id: null) holds issues with no category: no heading row.
+                                const heading = category.id
+                                    ? translatedName(category, languageId)
+                                    : catalog.length > 1
+                                        ? t('requestAssistance.issueSelection.otherIssues')
+                                        : '';
+                                const isCategoryExpanded = normalizedQuery ? true : expandedCategories.has(categoryKey);
+                                // Every tick in the category: directly selected issues plus selected symptoms.
+                                const categorySelectedCount = category.issues.reduce(
+                                    (count, issue) =>
+                                        count +
+                                        (directSelectedIssues.includes(issue.id) ? 1 : 0) +
+                                        (issue.symptoms ?? []).filter(sy => selectedSymptomIds.includes(sy.id)).length,
+                                    0
+                                );
+                                const CategoryIcon = categoryIcon({ icon: category.icon, name: heading || category.issues[0]?.name || '' });
 
-                            return (
-                                <View key={categoryKey} className="rounded-xl border border-gray-100 overflow-hidden mb-4">
-                                    <TouchableOpacity
-                                        onPress={() => toggleCategory(categoryKey)}
-                                        className="flex-row items-center p-4 bg-white"
-                                        disabled={!heading}
-                                    >
+                                return (
+                                    <PickCard key={categoryKey} picked={categorySelectedCount > 0} open={normalizedQuery ? true : outlineKey === categoryKey}>
                                         {heading ? (
-                                            <View className="w-10 h-10 rounded-lg items-center justify-center mr-3" style={{ backgroundColor: '#E9F1FF' }}>
-                                                <CategoryIcon size={20} color="#0047AB" />
-                                            </View>
+                                            <PickGroup
+                                                icon={CategoryIcon}
+                                                title={heading}
+                                                count={categorySelectedCount}
+                                                open={normalizedQuery ? true : outlineKey === categoryKey}
+                                                onPress={() => toggleCategory(categoryKey)}
+                                                first
+                                            />
                                         ) : null}
-                                        <Text className="flex-1 font-outfit-bold text-gray-900 text-[18px]">
-                                            {heading || t('requestAssistance.issueSelection.otherIssues')}
-                                        </Text>
-                                        {categorySelectedCount > 0 && (
-                                            <View className="px-2 py-1 rounded-full mr-2" style={{ backgroundColor: '#E9F1FF' }}>
-                                                <Text className="text-blue-600 font-outfit-semibold text-[13px]">
-                                                    {t('requestAssistance.issueSelection.selectedCount', { count: categorySelectedCount })}
-                                                </Text>
-                                            </View>
-                                        )}
-                                        {heading ? <CategoryChevron size={18} color="#6B7490" /> : null}
-                                    </TouchableOpacity>
 
-                                    {(isCategoryExpanded || !heading) && (
-                                        <View className="border-t border-gray-100">
-                                            {category.issues.map((issue) => {
-                                                const symptoms = issue.symptoms ?? [];
-                                                const hasSymptoms = symptoms.length > 0;
-                                                const isDirectSelected = directSelectedIssues.includes(issue.id);
-                                                const isIssueExpanded = normalizedQuery ? true : expandedIssues.has(issue.id);
-                                                const IssueChevron = isIssueExpanded ? ChevronUp : ChevronDown;
+                                        {(isCategoryExpanded || !heading) && (
+                                            <Level2 tinted={!!heading}>
+                                                {category.issues.map((issue, issueIndex) => {
+                                                    const symptoms = issue.symptoms ?? [];
+                                                    const name = translatedName(issue, languageId);
+                                                    const tone = heading ? 'tint' : 'white';
 
-                                                if (!hasSymptoms) {
+                                                    if (symptoms.length === 0) {
+                                                        return (
+                                                            <PickItem
+                                                                key={issue.id}
+                                                                label={name}
+                                                                on={directSelectedIssues.includes(issue.id)}
+                                                                onPress={() => toggleDirectIssue(issue.id)}
+                                                                tone={tone}
+                                                                first={issueIndex === 0 && !heading}
+                                                            />
+                                                        );
+                                                    }
+
+                                                    const picked = symptoms.filter(sy => selectedSymptomIds.includes(sy.id)).length;
+                                                    const isIssueExpanded = normalizedQuery ? true : expandedIssues.has(issue.id);
                                                     return (
-                                                        <TouchableOpacity
-                                                            key={issue.id}
-                                                            onPress={() => toggleDirectIssue(issue.id)}
-                                                            className="flex-row items-center px-4 py-3 border-b border-gray-100"
-                                                            style={{ backgroundColor: isDirectSelected ? '#F4F8FF' : 'white' }}
-                                                        >
-                                                            <Checkbox selected={isDirectSelected} />
-                                                            <Text className={`ml-3 flex-1 font-outfit-medium text-[16.5px] ${isDirectSelected ? 'text-blue-700' : 'text-gray-700'}`}>
-                                                                {translatedName(issue, languageId)}
-                                                            </Text>
-                                                        </TouchableOpacity>
+                                                        <View key={issue.id}>
+                                                            <PickGroup
+                                                                title={name}
+                                                                count={picked}
+                                                                open={isIssueExpanded}
+                                                                onPress={() => toggleIssueExpanded(issue.id)}
+                                                                tone={tone}
+                                                                first={issueIndex === 0}
+                                                            />
+                                                            {isIssueExpanded
+                                                                ? <PickReveal>{symptoms.map((symptom) => (
+                                                                      <PickItem
+                                                                          key={symptom.id}
+                                                                          label={translatedName(symptom, languageId)}
+                                                                          on={selectedSymptomIds.includes(symptom.id)}
+                                                                          tone={heading ? 'soft' : 'white'}
+                                                                          depth={0}
+                                                                          onPress={() => toggleSymptom(symptom.id)}
+                                                                      />
+                                                                  ))}</PickReveal>
+                                                                : null}
+                                                        </View>
                                                     );
-                                                }
+                                                })}
+                                            </Level2>
+                                        )}
+                                    </PickCard>
+                                );
+                            })}
 
-                                                return (
-                                                    <View key={issue.id} className="border-b border-gray-100" style={{ backgroundColor: '#FAFBFF' }}>
-                                                        <TouchableOpacity
-                                                            onPress={() => toggleIssueExpanded(issue.id)}
-                                                            className="flex-row items-center px-4 py-3"
-                                                        >
-                                                            <IssueChevron size={16} color="#0047AB" />
-                                                            <Text className="ml-2 flex-1 font-outfit-medium text-gray-800 text-[16.5px]">
-                                                                {translatedName(issue, languageId)}
-                                                            </Text>
-                                                        </TouchableOpacity>
-
-                                                        {isIssueExpanded && (
-                                                            <View>
-                                                                {symptoms.map((symptom) => {
-                                                                    const isSymptomSelected = selectedSymptomIds.includes(symptom.id);
-                                                                    return (
-                                                                        <TouchableOpacity
-                                                                            key={symptom.id}
-                                                                            onPress={() => toggleSymptom(symptom.id)}
-                                                                            className="flex-row items-center pl-10 pr-4 py-2.5"
-                                                                        >
-                                                                            <Checkbox selected={isSymptomSelected} />
-                                                                            <Text className={`ml-3 flex-1 font-outfit-regular text-[16px] ${isSymptomSelected ? 'text-blue-700' : 'text-gray-600'}`}>
-                                                                                {translatedName(symptom, languageId)}
-                                                                            </Text>
-                                                                            {isSymptomSelected && (
-                                                                                <View className="px-2 py-0.5 rounded-full ml-2" style={{ backgroundColor: '#E9F1FF' }}>
-                                                                                    <Text className="text-blue-600 font-outfit-semibold text-[13px]">
-                                                                                        {t('requestAssistance.issueSelection.selected')}
-                                                                                    </Text>
-                                                                                </View>
-                                                                            )}
-                                                                        </TouchableOpacity>
-                                                                    );
-                                                                })}
-                                                            </View>
-                                                        )}
-                                                    </View>
-                                                );
-                                            })}
-                                        </View>
-                                    )}
-                                </View>
-                            );
-                        })
+                            {/* Not in the list: describe it. */}
+                            {!normalizedQuery ? (
+                                <PickCard picked={otherClean.length > 0} open={outlineKey === OTHER_KEY}>
+                                    <PickGroup
+                                        icon={HelpCircle}
+                                        title={t('requestAssistance.issueSelection.other')}
+                                        count={otherClean ? 1 : 0}
+                                        open={outlineKey === OTHER_KEY}
+                                        onPress={() => toggleCategory(OTHER_KEY)}
+                                        first
+                                    />
+                                    {expandedCategories.has(OTHER_KEY) ? (
+                                        <PickChildren>
+                                            <View style={{ padding: 14, gap: 8 }}>
+                                                <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: SC.muted }}>
+                                                    {t('requestAssistance.issueSelection.otherHint')}
+                                                </Text>
+                                                <TextField
+                                                    multiline
+                                                    value={otherText}
+                                                    onChangeText={setOtherText}
+                                                    placeholder={t('requestAssistance.issueSelection.otherPlaceholder')}
+                                                    maxLength={200}
+                                                    accessibilityLabel={t('requestAssistance.issueSelection.other')}
+                                                    testID="issue-other-input"
+                                                />
+                                            </View>
+                                        </PickChildren>
+                                    ) : null}
+                                </PickCard>
+                            ) : null}
+                        </PickList>
                     )}
                 </View>
 
-                <TouchableOpacity
-                    onPress={handleContinue}
-                    disabled={selectedIssues.length === 0}
-                    activeOpacity={0.8}
-                >
-                    {selectedIssues.length === 0 ? (
-                        <View className="bg-slate-200 rounded-lg p-4 mb-8 items-center justify-center flex-row">
-                            <Text className="text-gray-500 font-outfit-bold text-center mr-2">{t('requestAssistance.continue')}</Text>
-                            <ChevronRight size={20} color="#9CA3AF" />
-                        </View>
-                    ) : (
-                        <LinearGradient
-                            colors={['#2B66F8', '#081E72']}
-                            start={{ x: 0, y: 1 }}
-                            end={{ x: 1, y: 0 }}
-                            style={{
-                                borderRadius: 10,
-                                paddingVertical: 16,
-                                paddingHorizontal: 16,
-                                marginBottom: 32,
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                            }}
-                        >
-                            <Text className="text-white font-outfit-bold text-[18px] text-center mr-2">{t('requestAssistance.continue')}</Text>
-                            <ChevronRight size={20} color="white" />
-                        </LinearGradient>
-                    )}
-                </TouchableOpacity>
             </ScrollView>
+
+            {/* The same fixed bottom action as the other request steps. */}
+            <Footer label={t('requestAssistance.continue')} disabled={selectedIssues.length === 0 && !otherClean} onPress={handleContinue} />
         </View>
     );
 }

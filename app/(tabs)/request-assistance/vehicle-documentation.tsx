@@ -1,3 +1,4 @@
+import { RequestSteps } from '@/components/ui/RequestSteps';
 import { TYPE } from '@/lib/ui/type';
 import * as ImagePicker from 'expo-image-picker';
 import { useVideoPlayer, VideoView } from 'expo-video';
@@ -181,6 +182,7 @@ export default function VehicleDocumentationScreen() {
                 </Text>
                 <View className="w-6" />
             </View>
+            <RequestSteps type={params.type} step="photos" />
 
             <ScrollView className="flex-1 px-6 pt-6" keyboardShouldPersistTaps="handled">
                 <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>

@@ -1,3 +1,4 @@
+import { RequestSteps } from '@/components/ui/RequestSteps';
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { Button } from '@/components/ui/Button';
 import MapView, { Marker, Region } from '@/components/ui/Map';
@@ -242,6 +243,7 @@ export default function LocationMapScreen() {
                 </Text>
                 <View className="w-6" />
             </View>
+            <RequestSteps type={params.type} step="location" />
 
             <ScrollView className="flex-1" keyboardShouldPersistTaps="handled">
                 <View className="px-6 pt-6">

@@ -235,7 +235,13 @@
       "activeJob": {
         "title": "Trabajo en curso",
         "headOut": "Salir ahora",
-        "title_other": "Trabajos en curso"
+        "title_other": "Trabajos en curso",
+        "inMinutes_one": "en {{count}} minuto",
+        "inMinutes_other": "en {{count}} minutos",
+        "inHours_one": "en {{count}} hora",
+        "inHours_other": "en {{count}} horas",
+        "inDays_one": "en {{count}} día",
+        "inDays_other": "en {{count}} días"
       },
       "readyToWork": "Listo para trabajar",
       "reviewSubtitle": "Revisá las nuevas solicitudes en tu zona",
@@ -425,9 +431,12 @@
       "otherIssues": "Otros",
       "selectedCount": "{{count}} seleccionado",
       "selected": "Seleccionado",
-      "searchPlaceholder": "Buscar problemas",
+      "searchPlaceholder": "Buscá tu problema",
       "noResults": "No se encontraron problemas",
-      "selectedCount_other": "{{count}} seleccionados"
+      "selectedCount_other": "{{count}} seleccionados",
+      "other": "Otro",
+      "otherHint": "¿No está en la lista? Contanos qué pasa.",
+      "otherPlaceholder": "Describí el problema con tus palabras"
     },
     "vehicleInformation": {
       "title": "Estado del vehículo",
@@ -451,7 +460,12 @@
         "unsafe_to_drive": "se mueve, pero no es seguro conducirlo",
         "pushable_only": "no se puede conducir, pero se puede empujar"
       },
-      "continue": "Continuar"
+      "continue": "Continuar",
+      "conditionSub": {
+        "drivable": "Arranca y se mueve normalmente.",
+        "unsafe_to_drive": "Algo anda mal: mejor no manejarlo.",
+        "pushable_only": "No arranca ni se mueve solo."
+      }
     },
     "vehicleDocumentation": {
       "title": "Agregá fotos o video",
@@ -750,7 +764,8 @@
       "priceNote": "El precio puede incluir un recargo por horario e impuestos.",
       "durationMinutes": "minutos",
       "onlineBadge": "Disponibles ahora",
-      "nowSubtitleSoft": "Suele conectar en pocos minutos"
+      "nowSubtitleSoft": "Suele conectar en pocos minutos",
+      "consentNote": "Los subtítulos en vivo y una transcripción escrita solo existen si vos y el técnico aceptan durante la llamada. Vas a confirmar estas condiciones otra vez antes de entrar a la llamada."
     },
     "cardRequired": {
       "title": "Agregá una tarjeta",
@@ -1716,8 +1731,7 @@
         },
         "clientLabel": "CLIENTE",
         "clientFallback": "Cliente",
-        "customerInRoomTitle": "El cliente ya está en la sala de video",
-        "customerInRoomBody": "Te está esperando. Tocá Unirse a la videollamada para empezar."
+        "customerInRoomTitle": "El cliente ya está en la sala de video"
       },
       "header": {
         "booked": "Videollamada agendada",
@@ -1746,10 +1760,10 @@
         "networkBad": "Conexión muy débil",
         "swapView": "Intercambiar la imagen grande y la chica",
         "captions": "Subtítulos en vivo",
-        "draw": "Marcar sobre la imagen",
+        "draw": "Dibujar sobre la imagen",
         "clearDrawing": "Borrar marcas",
         "captionsConsentTitle": "¿Activar subtítulos en vivo?",
-        "captionsConsentBody": "Lo que digan ambos se transcribirá para mostrar los subtítulos. La otra persona será avisada.",
+        "captionsConsentBody": "A la otra persona se le va a pedir que acepte. No se transcribe nada si dice que no. Si acepta, lo que digan los dos se transcribe y se guarda con la cita, y ambos pueden leerla y descargarla.",
         "captionsStart": "Activar",
         "captionsCancel": "Ahora no",
         "captionsOnTitle": "Los subtítulos en vivo están activados",
@@ -1769,7 +1783,19 @@
         "captionsLanguageHint": "Los subtítulos escuchan en un solo idioma durante toda la llamada. Elegí el que van a hablar los dos.",
         "captionsSheetOnTitle": "Los subtítulos en vivo están activados",
         "captionsTurnOff": "Desactivar",
-        "captionsApply": "Cambiar idioma"
+        "captionsApply": "Cambiar idioma",
+        "captionsAskTitle": "¿Activar subtítulos en vivo?",
+        "captionsAskBody": "La otra persona quiere subtítulos en vivo y una transcripción escrita de esta llamada, en {{language}}. Si aceptás, lo que digan los dos se transcribe y se guarda con la cita, y ambos pueden leerla y descargarla. Si rechazás, la llamada sigue como está.",
+        "captionsAccept": "Aceptar",
+        "captionsDecline": "Rechazar",
+        "captionsWaiting": "Esperando que la otra persona acepte…",
+        "captionsDeclinedTitle": "Rechazó",
+        "captionsDeclinedBody": "La otra persona no aceptó los subtítulos ni la transcripción. La llamada sigue sin ellos.",
+        "captionsNoAnswerTitle": "Sin respuesta",
+        "captionsNoAnswerBody": "La otra persona no respondió. Podés volver a pedirlo.",
+        "captionsNeedOtherTitle": "Esperá a la otra persona",
+        "captionsNeedOtherBody": "Los subtítulos necesitan a las dos personas en la llamada, porque las dos tienen que aceptar.",
+        "flashlight": "Linterna"
       },
       "timer": {
         "inProgress": "Llamada en curso",
@@ -1782,7 +1808,9 @@
         "cancel": "Cancelar",
         "added": "+{{minutes}} min agregados",
         "startsOnJoin": "Cuando el cliente se une a la llamada empieza una sesión de {{minutes}} minutos. Solo el cliente puede agregar más tiempo.",
-        "returnToCall": "Volver a la llamada"
+        "returnToCall": "Volver a la llamada",
+        "startsOnJoinTitle": "Sesión de {{minutes}} minutos",
+        "startsOnJoinBody": "El temporizador empieza cuando el cliente entra a la llamada. Solo el cliente puede agregar más tiempo."
       },
       "obd": {
         "file": "Reporte del scanner",
@@ -1836,6 +1864,38 @@
         "differsTitle": "El cliente está en otra zona horaria",
         "differsYou": "Para vos: {{time}}",
         "differsThem": "Para el cliente: {{time}}"
+      },
+      "transcript": {
+        "title": "Transcripción de la llamada",
+        "subtitle": "Lo que se dijo en la videollamada.",
+        "close": "Cerrar",
+        "empty": "Esta llamada no tiene transcripción. Se guarda cuando se activan los subtítulos en vivo durante la llamada.",
+        "localOnly": "Guardada solo en este teléfono.",
+        "you": "Vos",
+        "other": "La otra persona",
+        "download": "Descargar PDF",
+        "consentNote": "Creada con el consentimiento de las dos personas de la llamada.",
+        "pdf": {
+          "title": "Transcripción de la videollamada",
+          "reference": "Referencia",
+          "vehicle": "Vehículo",
+          "callDate": "Fecha de la llamada",
+          "duration": "Duración",
+          "generated": "Generado el {{date}}",
+          "consentTitle": "Registro de consentimiento",
+          "consentNone": "No se registró consentimiento en este teléfono.",
+          "consentPrecall": "{{who}} aceptó las condiciones de la llamada",
+          "consentRequest": "{{who}} pidió activar los subtítulos en vivo y la transcripción",
+          "consentAnswerYes": "{{who}} aceptó los subtítulos en vivo y la transcripción",
+          "consentAnswerNo": "{{who}} rechazó los subtítulos en vivo y la transcripción",
+          "owner": "Dueño del vehículo",
+          "mechanic": "Técnico",
+          "conversation": "Conversación",
+          "empty": "No se dijo nada.",
+          "notice": "Esta transcripción se generó automáticamente a partir de la llamada y puede contener errores. Se creó solo porque las dos personas aceptaron, y es para quienes participaron en la llamada y para que soporte revise un reclamo. Mantenela confidencial.",
+          "failedTitle": "No se pudo crear el PDF",
+          "failedBody": "Probá de nuevo."
+        }
       }
     },
     "clientReview": {
@@ -1959,14 +2019,17 @@
     "videoCallDuration_other": "Llamada de {{count}} min · el cliente puede extenderla",
     "confirmOfferVideoCall": "Vas a ofrecer una videollamada para {{title}}. El cliente todavía tiene que aceptarla.",
     "videoPrice": "PRECIO",
-    "videoPriceNote": "Precio fijo, definido cuando el cliente pidió la llamada. Solo aceptás si querés tomarla.",
-    "confirmVideoTitle": "¿Tomar esta videollamada?",
-    "confirmVideoCall": "Videollamada de {{title}}, al precio indicado.\n\nEl cliente todavía tiene que confirmarla.",
-    "confirmVideo": "Tomar la llamada",
+    "videoPriceNote": "Precio fijo, definido cuando el cliente pidió la llamada. Enviá tu oferta solo si querés tomarla; se confirma cuando el cliente la acepta.",
+    "confirmVideoTitle": "¿Ofrecerte para esta videollamada?",
+    "confirmVideoCall": "Te estás ofreciendo para la videollamada de {{title}}, al precio indicado.\n\nTodavía no está confirmada: el cliente tiene que aceptar tu oferta.",
+    "confirmVideo": "Enviar oferta",
     "videoDuration": "DURACIÓN",
     "videoDurationValue_one": "{{count}} minuto",
     "videoDurationValue_other": "{{count}} minutos",
-    "videoDurationNote": "El cliente puede sumar más tiempo durante la llamada."
+    "videoDurationNote": "El cliente puede sumar más tiempo durante la llamada.",
+    "videoConditions": "CONDICIONES DE LA LLAMADA",
+    "videoConditionsNote": "Antes de la llamada, vos y el cliente aceptan sus condiciones. Los subtítulos en vivo y una transcripción escrita se crean solo si los dos están de acuerdo durante la llamada; se guardan con la cita.",
+    "offerVideoCall": "Ofrecerme para esta llamada"
   },
   "personalInfo": {
     "uploadFailedTitle": "Error al subir",
@@ -3075,7 +3138,15 @@
       },
       "rejoin": "Volver a la videollamada",
       "rejoinTitle": "Volvé a la llamada",
-      "rejoinHint": "La llamada sigue en curso. Tocá para volver a entrar."
+      "rejoinHint": "La llamada sigue en curso. Tocá para volver a entrar.",
+      "consent": {
+        "title": "Condiciones de esta llamada",
+        "point1": "Los subtítulos en vivo y una transcripción escrita se crean solo si los dos aceptan, en el momento en que se activan durante la llamada.",
+        "point2": "Si se crea una transcripción, se guarda con esta cita. Vos y la otra persona pueden leerla y descargarla, y nuestro equipo de soporte puede usarla para revisar un reclamo.",
+        "point3": "Podés decir que no en cualquier momento: la llamada sigue sin subtítulos ni transcripción.",
+        "accept": "Leí y acepto estas condiciones",
+        "acceptedOn": "Aceptado el {{date}}"
+      }
     }
   },
   "wallet": {
@@ -3251,7 +3322,10 @@
       "customLabel": "OTRO SERVICIO (OPCIONAL)",
       "customPlaceholder": "Algo que no esté en la lista…",
       "detailsPlaceholder": "Detalles adicionales (opcional)",
-      "detailsLabel": "Detalles adicionales de {{name}} (opcional)"
+      "detailsLabel": "Detalles adicionales de {{name}} (opcional)",
+      "searchPlaceholder": "Buscá un servicio",
+      "noResults": "Ningún servicio coincide con tu búsqueda.",
+      "detailsTitle": "Detalles (opcional)"
     },
     "availability": {
       "eyebrow": "PASO 4 · DISPONIBILIDAD",
@@ -3735,5 +3809,22 @@
     "notYou": "¿No sos vos? Cerrar sesión",
     "notYouLabel": "¿No sos vos?",
     "logOut": "Cerrar sesión"
+  },
+  "notificationsPopup": {
+    "offerAcceptedTitle": "¡Oferta aceptada!",
+    "offerAcceptedBody": "El cliente aceptó tu oferta para ayudar.",
+    "jobCanceledTitle": "Trabajo cancelado",
+    "jobCanceledBody": "El cliente canceló esta solicitud."
+  },
+  "requestSteps": {
+    "label": "Paso {{n}} de {{total}} · {{name}}",
+    "vehicle": "Vehículo",
+    "issue": "Problema",
+    "condition": "Estado",
+    "photos": "Fotos",
+    "location": "Ubicación",
+    "confirm": "Confirmar",
+    "scanner": "Escáner",
+    "when": "Cuándo"
   }
 }

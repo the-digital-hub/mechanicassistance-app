@@ -13,6 +13,7 @@ import type { PaymentCard } from '@/lib/dao/interfaces';
 import { paymentMethodDAO } from '@/lib/dao/PaymentMethodDAO';
 import { brandName, isExpired } from '@/lib/payments/cardLabel';
 import { RETURN_TO_BACK } from '@/lib/payments/cardRequired';
+import { TYPE } from '@/lib/ui/type';
 
 /** Matches `scheme` in app.json: Stripe returns here after a 3-D Secure check. */
 const STRIPE_URL_SCHEME = 'mechanic';
@@ -239,7 +240,7 @@ function PaymentCardsContent() {
 
         {!resumesRequest && <WalletSection cards={cards} />}
 
-        <Text className="text-gray-900 font-outfit-bold mb-3 mt-2" style={{ fontSize: 20, lineHeight: 26 }}>
+        <Text className="text-gray-900 font-outfit-bold mb-3 mt-2" style={{ ...TYPE.section }}>
           {t('paymentCards.cardsHeading')}
         </Text>
 

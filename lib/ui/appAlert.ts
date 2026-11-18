@@ -9,7 +9,14 @@ export interface AppAlertButton {
     style?: 'default' | 'cancel' | 'destructive';
 }
 
+/** The look of the icon on top: blue for information, green for good news, orange for a warning, red for a problem. */
+export type AppAlertTone = 'info' | 'success' | 'warning' | 'danger';
+
 export interface AppAlertOptions {
+    /** Colour of the icon tile (a destructive button already makes it red). */
+    tone?: AppAlertTone;
+    /** An Ionicons name to show instead of the default for the tone. */
+    icon?: string;
     /** Android's tap-outside; here: the dialog also closes on tap outside when it has a cancel button or none. */
     cancelable?: boolean;
     onDismiss?: () => void;

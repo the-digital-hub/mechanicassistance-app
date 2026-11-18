@@ -34,6 +34,7 @@ import { ApiError } from '@/lib/api/types';
 import { ActivityIndicator, Modal, Platform, Pressable, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { appAlert } from '@/lib/ui/appAlert';
+import { TYPE } from '@/lib/ui/type';
 
 /** Returns a translation key for the current time of day — resolve with t() at the call site. */
 const getTimeGreetingKey = (): string => {
@@ -376,7 +377,7 @@ export default function DashboardScreen() {
                     {/* Active jobs — otherwise only reachable from the Appointments tab */}
                     {activeJobs.length > 0 && (
                         <View className="mb-4">
-                            <Text className="font-outfit-bold" style={{ fontSize: 18, letterSpacing: -0.3, color: '#0B1530', marginBottom: 12 }}>
+                            <Text className="font-outfit-bold" style={{ ...TYPE.section, color: '#0B1530', marginBottom: 12 }}>
                                 {t('dashboard.mechanic.activeJob.title', { count: activeJobs.length })}
                             </Text>
                             {activeJobs.map((job) => (
@@ -409,7 +410,7 @@ export default function DashboardScreen() {
                                     <ClipboardList size={20} color="#1E56E3" />
                                 </View>
                                 <View className="flex-1">
-                                    <Text className="font-outfit-bold" style={{ fontSize: 18, lineHeight: 24, letterSpacing: -0.3, color: '#0B1530' }}>
+                                    <Text className="font-outfit-bold" style={{ ...TYPE.section, color: '#0B1530' }}>
                                         {t('dashboard.mechanic.newRequestsTitle')}
                                     </Text>
                                     <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: '#6B7490' }}>

@@ -9,7 +9,7 @@ import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { goBackOr } from '@/lib/navigation/goBackOr';
 import { HeaderBackButton } from '@/components/ui/HeaderBackButton';
-import { Calendar, Clock, Navigation, HelpCircle, Zap, Car, Wrench, Lock, ArrowUpRight, DollarSign, Video, Timer } from 'lucide-react-native';
+import { Calendar, Clock, Navigation, HelpCircle, Zap, Car, Wrench, Lock, ArrowUpRight, DollarSign, Video, Timer, ShieldCheck } from 'lucide-react-native';
 import React, { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -417,6 +417,19 @@ export default function RequestDetailScreen() {
                             </View>
                         ) : null}
 
+                        {/* Video call: the conditions both people accept before the call */}
+                        {isVideo ? (
+                            <View className="flex-row items-center px-5 py-4 border-b border-gray-100">
+                                <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
+                                    <ShieldCheck size={20} color="#0047AB" />
+                                </View>
+                                <View className="flex-1">
+                                    <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">{t('requestDetail.videoConditions')}</Text>
+                                    <Text className="font-outfit-regular text-sm text-gray-500" testID="video-call-conditions">{t('requestDetail.videoConditionsNote')}</Text>
+                                </View>
+                            </View>
+                        ) : null}
+
                         {/* Vehicle */}
                         <View className="flex-row items-center px-5 py-4 border-b border-gray-100">
                             <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
@@ -631,11 +644,11 @@ export default function RequestDetailScreen() {
                                     justifyContent: 'center',
                                 }}
                             >
-                                <Text className="text-white font-outfit-bold text-lg">{t('requestDetail.acceptRequest')}</Text>
+                                <Text className="text-white font-outfit-bold text-lg">{t(isVideo ? 'requestDetail.offerVideoCall' : 'requestDetail.acceptRequest')}</Text>
                             </LinearGradient>
                         ) : (
                             <View className="w-full py-4 rounded-xl items-center bg-gray-300">
-                                <Text className="text-white font-outfit-bold text-lg">{t('requestDetail.acceptRequest')}</Text>
+                                <Text className="text-white font-outfit-bold text-lg">{t(isVideo ? 'requestDetail.offerVideoCall' : 'requestDetail.acceptRequest')}</Text>
                             </View>
                         )}
                     </TouchableOpacity>

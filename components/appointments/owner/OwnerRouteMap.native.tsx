@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { Linking, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TYPE } from '@/lib/ui/type';
 
 export interface OwnerRouteMapProps {
     destination: LatLng | null;
@@ -84,7 +85,7 @@ function RouteMapSheet({ destination, mechanic, route, onClose, showOpenInMaps }
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingLeft: 18, paddingRight: 10, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: AO.border }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                         <Ionicons name="navigate" size={16} color={AO.blue} />
-                        <Text className="font-outfit-bold" style={{ fontSize: 16, color: AO.text }}>{t('appointments.ownerAccepted.mapTitle')}</Text>
+                        <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, color: AO.text }}>{t('appointments.ownerAccepted.mapTitle')}</Text>
                     </View>
                     <Pressable
                         onPress={onClose}

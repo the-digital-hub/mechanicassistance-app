@@ -7,6 +7,7 @@ import { FinalReportCard } from './FinalReportActions';
 import { ObdPanel } from './ObdPanel';
 import { Body, Card, NoteInput, OS, PrimaryButton, cardShadow } from './ui';
 import { appAlert } from '@/lib/ui/appAlert';
+import { TYPE } from '@/lib/ui/type';
 
 // The last screen of the on-site flow, after "Finish Service" (design:
 // "Assistance Closeout"). Confirms the charge was requested, says where the payout
@@ -121,7 +122,7 @@ function RateOwner({ visit, onVisit }: { visit: OnSiteVisit; onVisit: (v: OnSite
                 <View className="items-center justify-center" style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: OS.blueSoft }}>
                     <Ionicons name="person-outline" size={20} color={OS.blue} />
                 </View>
-                <Text className="flex-1 font-outfit-bold" style={{ fontSize: 17, lineHeight: 23, color: OS.text }}>{t(`${k}.rateTitle`)}</Text>
+                <Text className="flex-1 font-outfit-bold" style={{ ...TYPE.cardTitle, color: OS.text }}>{t(`${k}.rateTitle`)}</Text>
             </View>
             <Text className="font-outfit-regular px-4 pt-1.5 pb-4" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>{t(`${k}.rateBody`)}</Text>
             <View className="px-4 pb-4">
@@ -172,7 +173,7 @@ function Checklist({ visit }: { visit: OnSiteVisit }) {
     return (
         <Card>
             <View className="flex-row items-center justify-between px-4 py-3.5" style={{ borderBottomWidth: 1, borderBottomColor: OS.borderSoft }}>
-                <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: OS.text }}>{t(`${k}.checklistTitle`)}</Text>
+                <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, lineHeight: 22, color: OS.text }}>{t(`${k}.checklistTitle`)}</Text>
                 <Text className="font-outfit-bold" style={{ fontSize: 14, color: OS.muted }}>{doneCount}/{items.length}</Text>
             </View>
             {items.map((it, i) => (
@@ -214,7 +215,7 @@ export function ScreenCloseout({ visit, onVisit, onBackToDashboard }: {
                 <FinalReportCard appointmentId={visit.appointmentId} />
                 {obdPending ? (
                     <View className="mt-5">
-                        <Text className="font-outfit-bold mx-5" style={{ fontSize: 17, lineHeight: 23, color: OS.text }}>{t(`${k}.obdTitle`)}</Text>
+                        <Text className="font-outfit-bold mx-5" style={{ ...TYPE.cardTitle, color: OS.text }}>{t(`${k}.obdTitle`)}</Text>
                         <ObdPanel appointmentId={visit.appointmentId} visit={visit} onVisit={onVisit} />
                     </View>
                 ) : null}

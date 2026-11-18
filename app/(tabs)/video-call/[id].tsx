@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,6 +13,7 @@ import { type CaptionLanguage, CaptionsSheet, defaultCaptionLanguage } from '@/c
 import { DraggablePip, PIP_SIZES, type PipCorner, pipSize } from '@/components/video/DraggablePip';
 import { DrawOverlay } from '@/components/video/DrawOverlay';
 import { lockLandscape, lockPortrait } from '@/lib/orientation';
+import { isTorchAvailable, setTorch } from '@/modules/camera-torch';
 import { appAlert } from '@/lib/ui/appAlert';
 import { type ChatLine, type Stroke, applyDraw } from '@/lib/video/callMessages';
 import { CallTopBar, VC, type CallStatus } from '@/components/video/CallTopBar';
@@ -26,6 +27,8 @@ import { ObdCallSheet } from '@/components/video/ObdCallSheet';
 import { useRequestObd } from '@/components/video/RequestObdPanel';
 import { useUser } from '@/context/UserContext';
 import { useDailyCall } from '@/lib/video/useDailyCall';
+import { addTranscriptLine } from '@/lib/video/transcriptStore';
+import { recordConsent } from '@/lib/video/consent';
 import { goBackOr } from '@/lib/navigation/goBackOr';
 import { videoCallDAO } from '@/lib/dao/VideoCallDAO';
 import { contractedSeconds } from '@/lib/video/callLength';
@@ -67,6 +70,10 @@ export default function VideoCallScreen() {
   const chatOpenRef = useRef(false);
   chatOpenRef.current = chatOpen;
   const iStartedCaptions = useRef(false);
+  // Captions need the other person's yes: the request waiting for the answer.
+  const myRole: 'owner' | 'mechanic' = isOwner ? 'owner' : 'mechanic';
+  const pendingAsk = useRef<{ language: string; timer: ReturnType<typeof setTimeout> } | null>(null);
+  const [askPending, setAskPending] = useState(false);
   // Bumped after the owner asks for extra time, so the "waiting for the technician" panel loads it.
   const [extensionSent, setExtensionSent] = useState(0);
   // The owner's OBD scanner report (the appointment id is the request id).
@@ -83,10 +90,25 @@ export default function VideoCallScreen() {
   const expiryTs = callTime?.roomExpiryUnixSec ?? Number(Array.isArray(expiry) ? expiry[0] : expiry || 0);
 
   const {
-    callState, localParticipant, remoteParticipant, isAudioMuted, isCameraOff, errorMessage, networkState,
+    callState, localParticipant, remoteParticipant, isAudioMuted, isCameraOff, errorMessage, networkState, usingBackCamera,
     sendMessage, onMessage, transcribing, caption, startCaptions, stopCaptions, captionsError,
     join, leave, toggleAudio, toggleCamera, switchCamera,
-  } = useDailyCall();
+  } = useDailyCall({ onTranscriptLine: (line) => { if (appointmentId) void addTranscriptLine(appointmentId, line); } });
+
+  // The flashlight of the rear camera: only while the rear camera is the one in use, and off when it is not.
+  const [torchOn, setTorchOn] = useState(false);
+  const torchAvailable = isTorchAvailable();
+  useEffect(() => {
+    if (!usingBackCamera && torchOn) {
+      setTorchOn(false);
+      void setTorch(false);
+    }
+  }, [usingBackCamera, torchOn]);
+  useEffect(() => () => { void setTorch(false); }, []);
+  const toggleTorch = async () => {
+    const next = !torchOn;
+    if (await setTorch(next)) setTorchOn(next);
+  };
 
   const calcTimeLeft = (ts: number) =>
     ts > 0 ? Math.max(0, ts - Math.floor(Date.now() / 1000)) : 5 * 60;
@@ -103,16 +125,57 @@ export default function VideoCallScreen() {
     return onMessage((message) => {
       if (message.t === 'draw') {
         setStrokes((prev) => applyDraw(prev, message));
-        // The owner's own camera has to be the big picture to see the technician's markings.
-        if (isOwner) setSwapped(true);
+        // The markings are on the owner's camera: it has to be the big picture to see them (the owner's own
+        // camera for the owner, the other person's for the technician).
+        setSwapped(isOwner);
       } else if (message.t === 'clear') {
         setStrokes([]);
       } else if (message.t === 'chat') {
         setChatLines((prev) => (prev.some((l) => l.id === message.id) ? prev : [...prev, { id: message.id, text: message.text, mine: false, at: Date.now() }]));
         if (!chatOpenRef.current) setUnread((n) => n + 1);
+      } else if (message.t === 'cc-ask') {
+        // The other person wants captions and a transcript: it only happens if this person says yes.
+        const lang = message.language === 'es' ? 'Español' : 'English';
+        appAlert(t(`${K}.captionsAskTitle`), t(`${K}.captionsAskBody`, { language: lang }), [
+          {
+            text: t(`${K}.captionsDecline`),
+            style: 'cancel',
+            onPress: () => {
+              sendMessage?.({ t: 'cc-answer', accepted: false });
+              void recordConsent(appointmentId, { kind: 'captions-answer', role: myRole, accepted: false });
+            },
+          },
+          {
+            text: t(`${K}.captionsAccept`),
+            onPress: () => {
+              sendMessage?.({ t: 'cc-answer', accepted: true });
+              void recordConsent(appointmentId, { kind: 'captions-answer', role: myRole, accepted: true });
+            },
+          },
+        ], { cancelable: false });
+      } else if (message.t === 'cc-answer') {
+        const asked = pendingAsk.current;
+        if (!asked) return;
+        clearTimeout(asked.timer);
+        pendingAsk.current = null;
+        setAskPending(false);
+        if (message.accepted) {
+          if (!startCaptions?.(asked.language)) appAlert(t(`${K}.captionsUnavailableTitle`), t(`${K}.captionsUnavailableBody`));
+        } else {
+          appAlert(t(`${K}.captionsDeclinedTitle`), t(`${K}.captionsDeclinedBody`));
+        }
       }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onMessage, isOwner]);
+
+  // Both sides can mark, on the owner's camera: drawing brings that picture to the front.
+  const toggleDraw = () => {
+    setDrawMode((on) => {
+      if (!on) setSwapped(isOwner);
+      return !on;
+    });
+  };
 
   const sendChat = (text: string) => {
     const id = `c-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
@@ -132,23 +195,32 @@ export default function VideoCallScreen() {
     setCaptionsOpen(false);
     iStartedCaptions.current = true;
     if (transcribing) {
-      // The transcription listens in one language: to change it, stop it and start it again.
+      // Both already agreed. The transcription listens in one language: to change it, stop and start again.
       stopCaptions?.();
       setTimeout(() => {
         if (!startCaptions?.(captionLanguage)) appAlert(t(`${K}.captionsUnavailableTitle`), t(`${K}.captionsUnavailableBody`));
       }, 700);
       return;
     }
-    if (!startCaptions?.(captionLanguage)) appAlert(t(`${K}.captionsUnavailableTitle`), t(`${K}.captionsUnavailableBody`));
+    // Both have to accept: this phone's person by asking, the other by answering. Nothing is transcribed before.
+    if (!remoteParticipant) {
+      appAlert(t(`${K}.captionsNeedOtherTitle`), t(`${K}.captionsNeedOtherBody`));
+      return;
+    }
+    if (pendingAsk.current) clearTimeout(pendingAsk.current.timer);
+    sendMessage?.({ t: 'cc-ask', language: captionLanguage });
+    void recordConsent(appointmentId, { kind: 'captions-request', role: myRole, accepted: true });
+    const timer = setTimeout(() => {
+      pendingAsk.current = null;
+      setAskPending(false);
+      appAlert(t(`${K}.captionsNoAnswerTitle`), t(`${K}.captionsNoAnswerBody`));
+    }, 30_000);
+    pendingAsk.current = { language: captionLanguage, timer };
+    setAskPending(true);
   };
   const toggleCaptions = () => setCaptionsOpen(true);
   useEffect(() => {
-    if (!transcribing) {
-      iStartedCaptions.current = false;
-      return;
-    }
-    if (!iStartedCaptions.current) appAlert(t(`${K}.captionsOnTitle`), t(`${K}.captionsOnBody`));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (!transcribing) iStartedCaptions.current = false;
   }, [transcribing]);
   useEffect(() => {
     if (captionsError) appAlert(t(`${K}.captionsUnavailableTitle`), t(`${K}.captionsUnavailableBody`));
@@ -207,15 +279,25 @@ export default function VideoCallScreen() {
   }, [warnVisible]);
 
   // The camera can be held sideways: the call turns the screen, and always goes back upright.
+  // It follows the screen as it really is, not a flag: if the screen is already sideways, the button turns it back.
   const toggleTurn = () => {
-    if (turned) lockPortrait();
+    if (landscape) lockPortrait();
     else lockLandscape();
-    setTurned((v) => !v);
+    setTurned(!landscape);
   };
   useEffect(() => () => lockPortrait(), []);
+  // The call is the only screen that may be sideways: leaving it (it stays mounted as a hidden tab, so
+  // unmounting is not enough) puts the whole app back upright.
+  useFocusEffect(
+    useCallback(() => () => {
+      lockPortrait();
+      setTurned(false);
+      setSwapped(false);
+    }, []),
+  );
 
   // The tool buttons sit under the small picture (a column), or beside it when the screen is sideways.
-  const pip = pipSize(pipSizeIndex);
+  const pip = pipSize(pipSizeIndex, landscape);
   const toolsPlacement = landscape
     ? { top: 14, right: pipCorner === 'tr' ? 14 + pip.w + 10 : 14, flexDirection: 'row' as const }
     : { top: pipCorner === 'tr' ? 14 + pip.h + 12 : 14, right: 14 };
@@ -268,16 +350,15 @@ export default function VideoCallScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <CallTopBar remaining={remaining} limit={limitSeconds} status={status} topInset={insets.top} />
+    <View style={[styles.container, landscape && styles.containerRow]}>
       {/* Just below the top bar: "the owner added N minutes". */}
-      <CallTimeAddedToast appointmentId={appointmentId || undefined} variant="dark" top={insets.top + 64} />
+      <CallTimeAddedToast appointmentId={appointmentId || undefined} variant="dark" top={(landscape ? 0 : insets.top) + 64} />
       {/* Extra time asked by the owner, waiting for the technician's answer. */}
-      {!!appointmentId && <ExtensionRequestPanel appointmentId={appointmentId} isOwner={isOwner} top={insets.top + 112} refreshKey={extensionSent} />}
+      {!!appointmentId && <ExtensionRequestPanel appointmentId={appointmentId} isOwner={isOwner} top={(landscape ? 0 : insets.top) + 112} refreshKey={extensionSent} />}
       <CallTimeWarningBanner
         visible={warnVisible}
         isOwner={isOwner}
-        top={insets.top + 64}
+        top={(landscape ? 0 : insets.top) + 64}
         onPress={() => {
           setWarnVisible(false);
           setExtendOpen(true);
@@ -313,6 +394,8 @@ export default function VideoCallScreen() {
         />
       )}
 
+      <View style={[styles.main, landscape && { paddingLeft: insets.left }]}>
+      <CallTopBar remaining={remaining} limit={limitSeconds} status={status} topInset={landscape ? 0 : insets.top} compact={landscape} />
       <LinearGradient
         colors={[VC.navy2, '#2A3550']}
         style={styles.stage}
@@ -369,20 +452,31 @@ export default function VideoCallScreen() {
         {/* The owner's camera is the picture the markings belong to. */}
         {(() => {
           const ownerFeedBig = !!remoteParticipant && (isOwner ? swapped : !swapped);
-          return ownerFeedBig && (strokes.length > 0 || (!isOwner && drawMode)) ? (
+          return ownerFeedBig && (strokes.length > 0 || drawMode) ? (
             <DrawOverlay
               strokes={strokes}
-              editable={!isOwner && drawMode}
-              onStroke={(id, pts, end) => sendMessage?.({ t: 'draw', id, pts, end })}
-              onLocalStroke={(id, pts) => setStrokes((prev) => applyDraw(prev, { t: 'draw', id, pts }))}
+              editable={drawMode}
+              onStroke={(id, pts, end) => sendMessage?.({ t: 'draw', id, pts, end, by: myRole })}
+              onLocalStroke={(id, pts) => setStrokes((prev) => applyDraw(prev, { t: 'draw', id, pts, by: myRole }))}
             />
           ) : null;
         })()}
         {transcribing && <CaptionsBar caption={caption ?? null} />}
+        {askPending && (
+          <View style={[styles.waiting, landscape && styles.pillBottom]} testID="captions-waiting">
+            <ActivityIndicator size="small" color="#FFFFFF" />
+            <Text style={styles.addTimeText}>{t(`${K}.captionsWaiting`)}</Text>
+          </View>
+        )}
         {callState === 'joined' && (
           <View style={[styles.tools, toolsPlacement]} pointerEvents="box-none">
-            <TouchableOpacity style={[styles.tool, turned && styles.toolOn]} onPress={toggleTurn} accessibilityRole="button" accessibilityLabel={t(`${K}.rotate`)} testID="call-rotate">
-              <Ionicons name={turned ? 'phone-portrait-outline' : 'phone-landscape-outline'} size={20} color="#FFFFFF" />
+            {torchAvailable && usingBackCamera && (
+              <TouchableOpacity style={[styles.tool, torchOn && styles.toolOn]} onPress={toggleTorch} accessibilityRole="button" accessibilityLabel={t(`${K}.flashlight`)} testID="call-torch">
+                <Ionicons name={torchOn ? 'flashlight' : 'flashlight-outline'} size={20} color="#FFFFFF" />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity style={[styles.tool, landscape && styles.toolOn]} onPress={toggleTurn} accessibilityRole="button" accessibilityLabel={t(`${K}.rotate`)} testID="call-rotate">
+              <Ionicons name={landscape ? 'phone-portrait-outline' : 'phone-landscape-outline'} size={20} color="#FFFFFF" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.tool} onPress={() => { setChatOpen(true); setUnread(0); }} accessibilityRole="button" accessibilityLabel={t(`${K}.chat.title`)} testID="call-chat">
               <Ionicons name="chatbubble-ellipses-outline" size={20} color="#FFFFFF" />
@@ -393,12 +487,10 @@ export default function VideoCallScreen() {
             <TouchableOpacity style={[styles.tool, transcribing && styles.toolOn]} onPress={toggleCaptions} accessibilityRole="button" accessibilityLabel={t(`${K}.captions`)} testID="call-captions">
               <Ionicons name="text-outline" size={20} color="#FFFFFF" />
             </TouchableOpacity>
-            {!isOwner && (
-              <TouchableOpacity style={[styles.tool, drawMode && styles.toolOn]} onPress={() => setDrawMode((v) => !v)} accessibilityRole="button" accessibilityLabel={t(`${K}.draw`)} testID="call-draw">
-                <Ionicons name="brush-outline" size={20} color="#FFFFFF" />
-              </TouchableOpacity>
-            )}
-            {!isOwner && strokes.length > 0 && (
+            <TouchableOpacity style={[styles.tool, drawMode && styles.toolOn]} onPress={toggleDraw} accessibilityRole="button" accessibilityLabel={t(`${K}.draw`)} testID="call-draw">
+              <Ionicons name={drawMode ? 'pencil' : 'pencil-outline'} size={20} color="#FFFFFF" />
+            </TouchableOpacity>
+            {strokes.length > 0 && (
               <TouchableOpacity style={styles.tool} onPress={clearDrawing} accessibilityRole="button" accessibilityLabel={t(`${K}.clearDrawing`)} testID="call-clear-draw">
                 <Ionicons name="trash-outline" size={20} color="#FFFFFF" />
               </TouchableOpacity>
@@ -406,7 +498,7 @@ export default function VideoCallScreen() {
           </View>
         )}
         {(networkState === 'warning' || networkState === 'bad') && callState === 'joined' && (
-          <View style={[styles.network, networkState === 'bad' && styles.networkBad]} testID="call-network">
+          <View style={[styles.network, networkState === 'bad' && styles.networkBad, landscape && styles.pillBottom]} testID="call-network">
             <Ionicons name="cellular-outline" size={14} color="#FFFFFF" />
             <Text style={styles.addTimeText}>{t(networkState === 'bad' ? `${K}.networkBad` : `${K}.networkWeak`)}</Text>
           </View>
@@ -415,6 +507,7 @@ export default function VideoCallScreen() {
           stage={stageSize}
           corner={pipCorner}
           sizeIndex={pipSizeIndex}
+          landscape={landscape}
           onCornerChange={setPipCorner}
           onResize={() => setPipSizeIndex((i) => (i + 1) % PIP_SIZES.length)}
           onTap={() => remoteParticipant && setSwapped((v) => !v)}
@@ -433,6 +526,7 @@ export default function VideoCallScreen() {
           )}
         </DraggablePip>
       </LinearGradient>
+      </View>
 
       <CallControls
         isAudioMuted={isAudioMuted}
@@ -442,6 +536,8 @@ export default function VideoCallScreen() {
         onSwitchCamera={switchCamera}
         onHangUp={handleHangUp}
         bottomInset={insets.bottom}
+        vertical={landscape}
+        sideInsets={{ top: insets.top, bottom: insets.bottom, right: insets.right }}
       />
     </View>
   );
@@ -449,6 +545,8 @@ export default function VideoCallScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: VC.navy },
+  containerRow: { flexDirection: 'row' },
+  main: { flex: 1 },
   stage: { flex: 1, position: 'relative' },
   addTime: {
     position: 'absolute', top: 14, left: 14, zIndex: 3, flexDirection: 'row', alignItems: 'center', gap: 6,
@@ -464,6 +562,9 @@ const styles = StyleSheet.create({
   toolOn: { backgroundColor: 'rgba(30,86,227,0.95)', borderColor: 'rgba(255,255,255,0.4)' },
   toolBadge: { position: 'absolute', top: -4, right: -4, minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 4, backgroundColor: '#EF4444', alignItems: 'center', justifyContent: 'center' },
   toolBadgeText: { fontFamily: 'Outfit_700Bold', fontSize: 12, color: '#FFFFFF' },
+  // Sideways, the top has the tool buttons: the notices go to the bottom instead.
+  pillBottom: { top: undefined, bottom: 14 },
+  waiting: { position: 'absolute', alignSelf: 'center', top: 14, zIndex: 3, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 9, borderRadius: 100, backgroundColor: 'rgba(30,86,227,0.95)' },
   network: {
     position: 'absolute', alignSelf: 'center', top: 14, zIndex: 3, flexDirection: 'row', alignItems: 'center', gap: 6,
     paddingHorizontal: 12, paddingVertical: 8, borderRadius: 100, backgroundColor: 'rgba(194,106,10,0.92)',

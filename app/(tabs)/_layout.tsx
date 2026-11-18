@@ -513,9 +513,10 @@ export default function TabLayout() {
         name="video-lobby"
         options={{ href: null, headerShown: false }}
       />
+      {/* The call is full screen: no tab bar under it (sideways it would take a third of the height). */}
       <Tabs.Screen
         name="video-call"
-        options={{ href: null, headerShown: false }}
+        options={{ href: null, headerShown: false, tabBarStyle: { display: "none" } }}
       />
     </Tabs>
     </>

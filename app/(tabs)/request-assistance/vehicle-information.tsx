@@ -1,10 +1,12 @@
+import { RequestSteps } from '@/components/ui/RequestSteps';
+import { HeaderBackButton } from '@/components/ui/HeaderBackButton';
+import { CARD_STYLE, ChoiceCard, Footer, SC, TextField } from '@/components/scheduled/ui';
 import { TYPE } from '@/lib/ui/type';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Check, ChevronLeft, Lightbulb } from 'lucide-react-native';
+import { CarFront, Hand, Lightbulb, TriangleAlert, type LucideIcon } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 /**
  * Kept in sync with VEHICLE_CONDITIONS in
@@ -13,6 +15,13 @@ import { ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-nativ
  */
 const CONDITIONS = ['drivable', 'unsafe_to_drive', 'pushable_only'] as const;
 type Condition = (typeof CONDITIONS)[number];
+
+/** An icon for each answer: it drives, it is not safe, it can only be pushed. */
+const CONDITION_ICONS: Record<Condition, LucideIcon> = {
+    drivable: CarFront,
+    unsafe_to_drive: TriangleAlert,
+    pushable_only: Hand,
+};
 
 export default function VehicleInformationScreen() {
     const router = useRouter();
@@ -87,21 +96,19 @@ export default function VehicleInformationScreen() {
     };
 
     return (
-        <View className="flex-1" style={{ backgroundColor: '#F4F6FC' }}>
+        // The same look as the issue step: a tinted page, white cards, a fixed bottom action.
+        <View className="flex-1" style={{ backgroundColor: SC.page }}>
             {/* Custom Header */}
             <View className="px-6 pt-20 pb-2 flex-row items-center justify-between" style={{ backgroundColor: '#F4F5FA', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 3, elevation: 3, borderBottomWidth: 0.5, borderBottomColor: '#D1D5DB' }}>
-                <TouchableOpacity onPress={() => router.back()}>
-                    <View className="w-10 h-10 rounded-full justify-center items-center" style={{ backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }}>
-                        <ChevronLeft size={20} color="#0047AB" />
-                    </View>
-                </TouchableOpacity>
+                <HeaderBackButton marginLeft={0} onPress={() => router.back()} />
                 <Text style={{ fontFamily: 'Outfit_500Medium', fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>
                     {getTitle()}
                 </Text>
                 <View className="w-6" />
             </View>
+            <RequestSteps type={params.type} step="condition" />
 
-            <ScrollView className="flex-1 px-6 pt-6" keyboardShouldPersistTaps="handled">
+            <ScrollView className="flex-1 px-6 pt-6" contentContainerStyle={{ paddingBottom: 24 }} keyboardShouldPersistTaps="handled">
                 <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                     <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
                     <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
@@ -109,115 +116,79 @@ export default function VehicleInformationScreen() {
                     </Text>
                 </View>
 
-                <Text className="text-gray-900 font-outfit-medium text-3xl mb-6">
+                <Text className="text-gray-900 font-outfit-medium text-3xl mb-5">
                     {t('requestAssistance.vehicleInformation.title')}
                 </Text>
 
-                {/* Condition */}
-                <View className="rounded-2xl p-4 mb-6" style={{ backgroundColor: '#E9F1FF' }}>
-                    <Text className="text-gray-900 font-outfit-bold mb-3" style={TYPE.question}>
-                        {t('requestAssistance.vehicleInformation.question')}
-                    </Text>
-
-                    {CONDITIONS.map((option) => {
-                        const selected = condition === option;
-                        return (
-                            <TouchableOpacity
-                                key={option}
-                                onPress={() => setCondition(option)}
-                                activeOpacity={0.85}
-                                className="flex-row items-center justify-between rounded-xl px-4 py-4 mb-2.5"
-                                style={{
-                                    backgroundColor: selected ? '#0047AB' : '#FFFFFF',
-                                    borderWidth: selected ? 0 : 1,
-                                    borderColor: '#E4EAF5',
-                                }}
-                            >
-                                <Text
-                                    className="font-outfit-semibold flex-1 pr-2"
-                                    style={{ ...TYPE.option, color: selected ? '#FFFFFF' : '#0F172A' }}
-                                >
-                                    {t(`requestAssistance.vehicleInformation.condition.${option}`)}
-                                </Text>
-                                {selected && <Check size={20} color="#FFFFFF" />}
-                            </TouchableOpacity>
-                        );
-                    })}
+                {/* Condition: one white card, one row per answer. */}
+                <Text className="font-outfit-bold mb-3" style={{ ...TYPE.question, color: SC.text }}>
+                    {t('requestAssistance.vehicleInformation.question')}
+                </Text>
+                <View style={{ gap: 10 }}>
+                    {CONDITIONS.map((option) => (
+                        <ChoiceCard
+                            key={option}
+                            icon={CONDITION_ICONS[option]}
+                            title={t(`requestAssistance.vehicleInformation.condition.${option}`)}
+                            sub={t(`requestAssistance.vehicleInformation.conditionSub.${option}`)}
+                            on={condition === option}
+                            onPress={() => setCondition(option)}
+                        />
+                    ))}
                 </View>
 
                 {/* Detailed explanation */}
-                <View className="rounded-2xl p-4 mb-8" style={{ backgroundColor: '#F4F8FF' }}>
-                    <Text className="text-gray-900 font-outfit-bold mb-3" style={TYPE.question}>
-                        {t('requestAssistance.vehicleInformation.explanationLabel')}{' '}
-                        <Text className="text-gray-500 font-outfit-regular" style={TYPE.helper}>
-                            {t('requestAssistance.vehicleInformation.optional')}
-                        </Text>
+                <Text className="font-outfit-bold" style={{ ...TYPE.question, color: SC.text, marginTop: 24, marginBottom: 12 }}>
+                    {t('requestAssistance.vehicleInformation.explanationLabel')}{' '}
+                    <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: SC.muted }}>
+                        {t('requestAssistance.vehicleInformation.optional')}
                     </Text>
+                </Text>
+                <TextField
+                    multiline
+                    placeholder={t('requestAssistance.vehicleInformation.placeholder')}
+                    value={details}
+                    onChangeText={setDetails}
+                    style={{ minHeight: 128, ...TYPE.body, fontFamily: 'Outfit_400Regular' }}
+                />
 
-                    <TextInput
-                        multiline
-                        numberOfLines={4}
-                        placeholder={t('requestAssistance.vehicleInformation.placeholder')}
-                        placeholderTextColor="#D1D5DB"
-                        value={details}
-                        onChangeText={setDetails}
-                        className="bg-white border border-gray-200 rounded-2xl p-4 font-outfit-regular text-[#0F172A] h-32"
-                        style={{ ...TYPE.body, textAlignVertical: 'top' }}
-                    />
-
-                    <TouchableOpacity
-                        onPress={() => setSuggestionOpen(!suggestionOpen)}
-                        className="flex-row items-center self-end mt-3 px-3 py-1.5 rounded-lg bg-white"
-                        style={{ borderWidth: 1, borderColor: '#E4EAF5' }}
-                    >
-                        <Lightbulb size={16} color="#0047AB" />
-                        <Text className="text-[#0047AB] font-outfit-bold ml-1.5" style={TYPE.helper}>
-                            {t('requestAssistance.vehicleInformation.suggestionToggle')}
-                        </Text>
-                    </TouchableOpacity>
-
-                    {suggestionOpen && (
-                        <View className="bg-white rounded-xl p-3 mt-3" style={{ borderWidth: 1, borderColor: '#E4EAF5' }}>
-                            <Text className="text-gray-900 font-outfit-bold mb-1.5" style={TYPE.body}>
-                                {t('requestAssistance.vehicleInformation.suggestionTitle')}
-                            </Text>
-                            <Text className="text-gray-600 font-outfit-regular mb-3" style={TYPE.helper}>
-                                {t('requestAssistance.vehicleInformation.suggestionHint')}
-                            </Text>
-                            <TouchableOpacity
-                                onPress={generateSuggestion}
-                                disabled={!condition}
-                                className="self-start px-3.5 py-2 rounded-lg"
-                                style={{ backgroundColor: '#0047AB', opacity: condition ? 1 : 0.5 }}
-                            >
-                                <Text className="text-white font-outfit-bold" style={TYPE.helper}>
-                                    {t('requestAssistance.vehicleInformation.suggestionGenerate')}
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-                    )}
-                </View>
-
-                <TouchableOpacity onPress={handleContinue} disabled={!condition} activeOpacity={0.8}>
-                    <LinearGradient
-                        colors={condition ? ['#2B66F8', '#081E72'] : ['#C7D2E4', '#A9B6CC']}
-                        start={{ x: 0, y: 1 }}
-                        end={{ x: 1, y: 0 }}
-                        style={{
-                            borderRadius: 10,
-                            paddingVertical: 16,
-                            paddingHorizontal: 16,
-                            marginBottom: 32,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        }}
-                    >
-                        <Text className="text-white font-outfit-bold text-[18px] text-center">
-                            {t('requestAssistance.vehicleInformation.continue')}
-                        </Text>
-                    </LinearGradient>
+                <TouchableOpacity
+                    onPress={() => setSuggestionOpen(!suggestionOpen)}
+                    activeOpacity={0.8}
+                    accessibilityRole="button"
+                    className="flex-row items-center self-end mt-3 px-3.5 py-2 rounded-full"
+                    style={{ backgroundColor: SC.blueSoft, gap: 6 }}
+                >
+                    <Lightbulb size={16} color={SC.blue} />
+                    <Text className="font-outfit-bold" style={{ ...TYPE.helper, color: SC.blue }}>
+                        {t('requestAssistance.vehicleInformation.suggestionToggle')}
+                    </Text>
                 </TouchableOpacity>
+
+                {suggestionOpen && (
+                    <View style={{ ...CARD_STYLE, padding: 14, marginTop: 12 }}>
+                        <Text className="font-outfit-bold mb-1.5" style={{ ...TYPE.body, color: SC.text }}>
+                            {t('requestAssistance.vehicleInformation.suggestionTitle')}
+                        </Text>
+                        <Text className="font-outfit-regular mb-3" style={{ ...TYPE.helper, color: SC.muted }}>
+                            {t('requestAssistance.vehicleInformation.suggestionHint')}
+                        </Text>
+                        <TouchableOpacity
+                            onPress={generateSuggestion}
+                            disabled={!condition}
+                            activeOpacity={0.85}
+                            className="self-start px-4 py-2.5 rounded-xl"
+                            style={{ backgroundColor: SC.blue, opacity: condition ? 1 : 0.5 }}
+                        >
+                            <Text className="text-white font-outfit-bold" style={TYPE.helper}>
+                                {t('requestAssistance.vehicleInformation.suggestionGenerate')}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
             </ScrollView>
+
+            <Footer label={t('requestAssistance.vehicleInformation.continue')} disabled={!condition} onPress={handleContinue} />
         </View>
     );
 }

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 
 import { videoCallZones } from '@/lib/video/videoCallTime';
+import { TYPE } from '@/lib/ui/type';
 
 const K = 'appointments.videoCall.zone';
 
@@ -34,7 +35,7 @@ export function VideoCallZoneNote({ call, compact = false }: {
         >
             <Ionicons name="globe-outline" size={20} color="#C26A0A" style={{ marginTop: 1 }} />
             <View style={{ flex: 1 }}>
-                <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: '#0B1530' }}>{t(`${K}.differsTitle`)}</Text>
+                <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, lineHeight: 22, color: '#0B1530' }}>{t(`${K}.differsTitle`)}</Text>
                 <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: '#6B7490', marginTop: 2 }}>
                     {t(`${K}.differsYou`, { time: zones.mine })}
                 </Text>

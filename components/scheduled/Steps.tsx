@@ -33,7 +33,7 @@ import {
     type LucideIcon,
 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
@@ -56,6 +56,8 @@ import {
     type ServiceMode,
 } from '@/lib/scheduled/draft';
 
+import { categoryIcon } from '@/lib/ui/categoryIcon';
+import { PickCard, PickChildren, PickGroup, PickItem, PickList, PickedChips, SearchField } from './picker';
 import { CARD_STYLE, Checkbox, ChoiceCard, Chip, FieldLabel, Note, SC, StepHead, TextField, VehicleIdsRow } from './ui';
 
 const SLOT_MIN = 6 * 60;
@@ -299,13 +301,38 @@ export function ServicesStep({
     const { t } = useTranslation();
     const [open, setOpen] = useState<Set<string>>(new Set());
 
-    const toggleOpen = (id: string) =>
-        setOpen((prev) => {
-            const next = new Set(prev);
-            if (next.has(id)) next.delete(id);
-            else next.add(id);
-            return next;
-        });
+    // `open` is what shows (the services); `outlineId` is the card itself (outline and arrow). A card stays open
+    // while services are picked in it: it closes only when it is tapped again or another card is opened.
+    const [outlineId, setOutlineId] = useState<string | null>(null);
+    const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+    const cancelTimers = () => {
+        timers.current.forEach(clearTimeout);
+        timers.current = [];
+    };
+    const later = (fn: () => void, ms: number) => {
+        timers.current.push(setTimeout(fn, ms));
+    };
+    useEffect(() => cancelTimers, []);
+
+    // Opening a category closes the one that was open, and only once it has finished closing the new one
+    // opens: one card at a time, each in its turn.
+    const toggleOpen = (id: string) => {
+        cancelTimers();
+        if (open.has(id)) {
+            setOpen(new Set<string>());
+            setOutlineId(null);
+        } else if (open.size > 0) {
+            setOpen(new Set<string>());
+            setOutlineId(null);
+            later(() => {
+                setOpen(new Set<string>([id]));
+                setOutlineId(id);
+            }, 180);
+        } else {
+            setOpen(new Set<string>([id]));
+            setOutlineId(id);
+        }
+    };
 
     const toggleService = (code: string) => {
         const has = draft.services.includes(code);
@@ -313,9 +340,28 @@ export function ServicesStep({
         patch({ services: has ? draft.services.filter((c) => c !== code) : [...draft.services, code] });
     };
 
+    const [query, setQuery] = useState('');
+    const q = query.trim().toLowerCase();
+    // A match in the group's name keeps all of its services; otherwise only the services that match.
+    const visible = categories
+        .map((cat) => {
+            if (!q) return { cat, services: cat.services };
+            if (itemName(cat, languageId).toLowerCase().includes(q)) return { cat, services: cat.services };
+            const services = cat.services.filter((sv) => `${itemName(sv, languageId)} ${itemDetails(sv, languageId) ?? ''}`.toLowerCase().includes(q));
+            return { cat, services };
+        })
+        .filter((g) => g.services.length > 0);
+
+    // What is picked, as badges (tap one to take it off).
+    const picked = categories.flatMap((cat) => cat.services).filter((sv) => draft.services.includes(sv.code));
+
     return (
-        <View style={{ gap: 20 }}>
+        <View style={{ gap: 16 }}>
             <StepHead eyebrow={t('scheduled.services.eyebrow')} title={t('scheduled.services.title')} sub={t('scheduled.services.sub')} />
+
+            <SearchField value={query} onChangeText={setQuery} placeholder={t('scheduled.services.searchPlaceholder')} testID="services-search" />
+
+            <PickedChips chips={picked.map((sv) => ({ key: sv.code, label: itemName(sv, languageId), onRemove: () => toggleService(sv.code) }))} />
 
             {loading ? (
                 <ActivityIndicator color={SC.blue} style={{ marginTop: 24 }} />
@@ -328,69 +374,58 @@ export function ServicesStep({
                 </View>
             ) : categories.length === 0 ? (
                 <Text className="font-outfit-regular" style={{ fontSize: 14, color: SC.muted }}>{t('scheduled.services.empty')}</Text>
+            ) : visible.length === 0 ? (
+                <View style={{ ...CARD_STYLE, padding: 20, alignItems: 'center' }}>
+                    <Text className="font-outfit-regular" style={{ ...TYPE.body, color: SC.muted }}>{t('scheduled.services.noResults')}</Text>
+                </View>
             ) : (
-                <View style={{ gap: 10 }}>
-                    {categories.map((cat) => {
-                        const Icon = CATEGORY_ICONS[cat.code] ?? Wrench;
-                        const count = cat.services.filter((s) => draft.services.includes(s.code)).length;
-                        const expanded = open.has(cat.id) || count > 0;
+                <PickList>
+                    {visible.map(({ cat, services }) => {
+                        const Icon = CATEGORY_ICONS[cat.code] ?? categoryIcon({ code: cat.code, name: cat.name });
+                        const count = cat.services.filter((sv) => draft.services.includes(sv.code)).length;
+                        const expanded = q ? true : open.has(cat.id);
                         return (
-                            <View key={cat.id} style={{ ...CARD_STYLE, overflow: 'hidden', borderColor: count > 0 ? SC.blue : SC.borderSoft }}>
-                                <TouchableOpacity onPress={() => toggleOpen(cat.id)} activeOpacity={0.8} accessibilityRole="button" accessibilityState={{ expanded }} className="flex-row items-center" style={{ padding: 14, gap: 12 }}>
-                                    <View className="items-center justify-center" style={{ width: 44, height: 44, borderRadius: 13, backgroundColor: SC.blueSoft }}>
-                                        <Icon size={22} color={SC.blue} />
-                                    </View>
-                                    <Text className="font-outfit-bold flex-1" style={{ ...TYPE.group, color: SC.text }}>{itemName(cat, languageId)}</Text>
-                                    {count > 0 ? (
-                                        <View className="rounded-full items-center justify-center" style={{ minWidth: 26, height: 26, paddingHorizontal: 6, backgroundColor: SC.blue }}>
-                                            <Text className="font-outfit-bold" style={{ ...TYPE.caption, color: '#FFFFFF' }}>{count}</Text>
-                                        </View>
-                                    ) : null}
-                                    {expanded ? <ChevronDown size={20} color={SC.mutedLight} /> : <ChevronRight size={20} color={SC.mutedLight} />}
-                                </TouchableOpacity>
+                            <PickCard key={cat.id} picked={count > 0} open={q ? true : outlineId === cat.id}>
+                                <PickGroup icon={Icon} title={itemName(cat, languageId)} count={count} open={q ? true : outlineId === cat.id} onPress={() => toggleOpen(cat.id)} first />
                                 {expanded ? (
-                                    <View style={{ borderTopWidth: 1, borderTopColor: SC.borderSoft }}>
-                                        {cat.services.map((s, i) => {
-                                            const on = draft.services.includes(s.code);
-                                            const details = itemDetails(s, languageId);
-                                            return (
-                                                <View key={s.code} style={{ backgroundColor: on ? SC.blueSofter : '#FFFFFF', borderTopWidth: i === 0 ? 0 : 1, borderTopColor: SC.borderSoft }}>
-                                                    <TouchableOpacity
-                                                        onPress={() => toggleService(s.code)}
-                                                        activeOpacity={0.7}
-                                                        accessibilityRole="checkbox"
-                                                        accessibilityState={{ checked: on }}
-                                                        className="flex-row items-start"
-                                                        style={{ paddingHorizontal: 14, paddingVertical: 12, gap: 12 }}
-                                                    >
-                                                        <View style={{ marginTop: 1 }}><Checkbox on={on} /></View>
-                                                        <View className="flex-1">
-                                                            <Text className="font-outfit-semibold" style={{ ...TYPE.option, color: SC.text }}>{itemName(s, languageId)}</Text>
-                                                            {details ? <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: SC.muted, marginTop: 2 }} numberOfLines={3}>{details}</Text> : null}
-                                                        </View>
-                                                    </TouchableOpacity>
-                                                    {on ? (
-                                                        <View style={{ paddingHorizontal: 14, paddingLeft: 48, paddingBottom: 12 }}>
-                                                            <TextField
-                                                                multiline
-                                                                value={draft.serviceDetails[s.code] ?? ''}
-                                                                onChangeText={(v) => patch({ serviceDetails: { ...draft.serviceDetails, [s.code]: v } })}
-                                                                placeholder={t('scheduled.services.detailsPlaceholder')}
-                                                                accessibilityLabel={t('scheduled.services.detailsLabel', { name: itemName(s, languageId) })}
-                                                                maxLength={300}
-                                                            />
-                                                        </View>
-                                                    ) : null}
-                                                </View>
-                                            );
-                                        })}
-                                    </View>
+                                    <PickChildren>
+                                        {services.map((sv, si) => (
+                                            <PickItem
+                                                key={sv.code}
+                                                label={itemName(sv, languageId)}
+                                                details={itemDetails(sv, languageId)}
+                                                on={draft.services.includes(sv.code)}
+                                                tone="tint"
+                                                first={si === 0}
+                                                onPress={() => toggleService(sv.code)}
+                                            />
+                                        ))}
+                                    </PickChildren>
                                 ) : null}
-                            </View>
+                            </PickCard>
                         );
                     })}
-                </View>
+                </PickList>
             )}
+
+            {picked.length > 0 ? (
+                <View style={{ gap: 12 }}>
+                    <FieldLabel>{t('scheduled.services.detailsTitle')}</FieldLabel>
+                    {picked.map((sv) => (
+                        <View key={sv.code} style={{ gap: 6 }}>
+                            <Text className="font-outfit-semibold" style={{ ...TYPE.helper, color: SC.text }}>{itemName(sv, languageId)}</Text>
+                            <TextField
+                                multiline
+                                value={draft.serviceDetails[sv.code] ?? ''}
+                                onChangeText={(v) => patch({ serviceDetails: { ...draft.serviceDetails, [sv.code]: v } })}
+                                placeholder={t('scheduled.services.detailsPlaceholder')}
+                                accessibilityLabel={t('scheduled.services.detailsLabel', { name: itemName(sv, languageId) })}
+                                maxLength={300}
+                            />
+                        </View>
+                    ))}
+                </View>
+            ) : null}
 
             <View>
                 <FieldLabel>{t('scheduled.services.customLabel')}</FieldLabel>
@@ -580,7 +615,7 @@ export function AvailabilityStep({
                 >
                     <Upload size={20} color={SC.blue} />
                     <View>
-                        <Text className="font-outfit-semibold text-center" style={{ fontSize: 15, lineHeight: 20, color: SC.text }}>{t('scheduled.availability.uploadTitle')}</Text>
+                        <Text className="font-outfit-semibold text-center" style={{ ...TYPE.cardTitle, lineHeight: 20, color: SC.text }}>{t('scheduled.availability.uploadTitle')}</Text>
                         <Text className="font-outfit-regular text-center" style={{ ...TYPE.caption, color: SC.muted }}>{t('scheduled.availability.uploadHint')}</Text>
                     </View>
                 </TouchableOpacity>

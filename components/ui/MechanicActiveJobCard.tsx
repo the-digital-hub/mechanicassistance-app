@@ -1,29 +1,44 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Car, MapPin, Navigation, Zap } from 'lucide-react-native';
+import { Car, CalendarClock, MapPin, MoreHorizontal, Navigation, X, Zap } from 'lucide-react-native';
+import { useState } from 'react';
+import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
 
 import { CancelRequestLink, canCancelBeforeStart } from '@/components/appointments/CancelRequestLink';
 import type { Appointment } from '@/context/AppointmentsContext';
 import { useHeadOut } from '@/hooks/useHeadOut';
 import { TYPE } from '@/lib/ui/type';
+import { formatZonedDateTime } from '@/lib/video/videoCallTime';
 import { BANNER_COLORS, getCardState, getTypeBar } from './appointmentCardTheme';
 
+const JOIN_WINDOW_MS = 15 * 60_000;
+
+/** "in 2 hours", "in 25 minutes", "in 3 days": how far away `at` is. */
+function relativeFromNow(at: Date, t: TFunction): string {
+    const mins = Math.max(1, Math.round((at.getTime() - Date.now()) / 60_000));
+    if (mins < 60) return t('dashboard.mechanic.activeJob.inMinutes', { count: mins });
+    if (mins < 60 * 24) return t('dashboard.mechanic.activeJob.inHours', { count: Math.round(mins / 60) });
+    return t('dashboard.mechanic.activeJob.inDays', { count: Math.round(mins / 60 / 24) });
+}
+
 /**
- * The mechanic's job in flight, on their dashboard — otherwise only reachable
- * from the Appointments tab. While the job is accepted but the mechanic has not
- * left yet, "Head out" is offered right here: that is what starts sharing their
- * position with the owner.
+ * The mechanic's job in flight, on their dashboard. One status pill, when it happens, the vehicle as a
+ * plain row and a single main button; "Cancel request" lives in the "..." menu. While the job is accepted
+ * but the mechanic has not left yet, "Head out" is offered right here (it starts sharing their position).
  */
 export function MechanicActiveJobCard({ appointment }: { appointment: Appointment }) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const router = useRouter();
     const { headOut, headingOut, departedNow } = useHeadOut();
+    const [menuOpen, setMenuOpen] = useState(false);
+    const [cancelOpen, setCancelOpen] = useState(false);
 
     const isVideoCall = (appointment.assistanceType ?? appointment.type) === 'videocall';
     const departed = !!(appointment.departedAt ?? departedNow);
     const canHeadOut = appointment.status === 'accepted' && !isVideoCall && !departed;
+    const canCancel = canCancelBeforeStart(appointment.status);
 
     const state = getCardState({ ...appointment, departedAt: appointment.departedAt ?? departedNow });
     const colors = BANNER_COLORS[state];
@@ -31,14 +46,24 @@ export function MechanicActiveJobCard({ appointment }: { appointment: Appointmen
     // On the dashboard an immediate job wears the same bolt as the request cards above it.
     const TypeIcon = appointment.type === 'immediate' && appointment.assistanceType !== 'witness' ? Zap : typeBar.icon;
 
-    const infoRows = [
-        appointment.car ? { key: 'vehicle', Icon: Car, label: t('dashboard.user.requestVehicleLabel'), value: appointment.car } : null,
-        appointment.address && !isVideoCall
-            ? { key: 'location', Icon: MapPin, label: t('dashboard.user.requestLocationLabel'), value: appointment.address }
-            : null,
+    // When: a booked time (video call or scheduled service) with how far away it is.
+    const at = !appointment.startNow && appointment.date ? new Date(appointment.date) : null;
+    const hasTime = !!at && !isNaN(at.getTime());
+    const inRoomNow = appointment.status === 'started' || appointment.status === 'in_progress';
+    const future = hasTime && at!.getTime() > Date.now() && !inRoomNow;
+    const whenLabel = hasTime ? formatZonedDateTime(at!, i18n.language) : '';
+    const inRoom = appointment.status === 'started' || appointment.status === 'in_progress';
+    const joinable = isVideoCall && (inRoom || appointment.startNow || (hasTime && at!.getTime() - Date.now() <= JOIN_WINDOW_MS));
+
+    const rows = [
+        appointment.car ? { key: 'vehicle', Icon: Car, value: appointment.car } : null,
+        appointment.address && !isVideoCall ? { key: 'location', Icon: MapPin, value: appointment.address } : null,
     ].filter((row): row is NonNullable<typeof row> => row !== null);
 
     const openDetail = () => router.navigate(`/appointments/${appointment.id}`);
+    const mainLabel = joinable
+        ? t(inRoom ? 'appointments.videoCall.rejoin' : 'appointments.videoCall.join')
+        : t('appointments.list.card.viewDetails');
 
     return (
         <View
@@ -57,64 +82,66 @@ export function MechanicActiveJobCard({ appointment }: { appointment: Appointmen
             }}
             testID="mechanic-active-job"
         >
-            {/* Type + title */}
+            {/* Type icon + title + menu */}
             <View className="flex-row items-center">
-                <View
-                    className="justify-center items-center mr-3"
-                    style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#EAF1FF' }}
-                >
+                <View className="justify-center items-center mr-3" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#EAF1FF' }}>
                     <TypeIcon size={20} color="#1E56E3" />
                 </View>
-                <View className="flex-1">
-                    <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1, color: '#6B7490' }}>
-                        {t(typeBar.labelKey).toUpperCase()}
-                    </Text>
-                    <Text
-                        className="font-outfit-bold"
-                        style={{ fontSize: 18, letterSpacing: -0.3, color: '#0B1530', marginTop: 1 }}
-                        numberOfLines={1}
+                <Text className="flex-1 font-outfit-bold" style={{ fontSize: 18, letterSpacing: -0.3, color: '#0B1530' }} numberOfLines={2}>
+                    {appointment.title}
+                </Text>
+                {canCancel && (
+                    <TouchableOpacity
+                        onPress={() => setMenuOpen(true)}
+                        hitSlop={8}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('appointments.list.card.cancelRequest')}
+                        testID="active-job-menu"
+                        className="items-center justify-center ml-2"
+                        style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: '#F1F3F8' }}
                     >
-                        {appointment.title}
-                    </Text>
-                </View>
+                        <MoreHorizontal size={18} color="#6B7490" />
+                    </TouchableOpacity>
+                )}
             </View>
 
-            {/* Status */}
-            <View className="mt-3 px-3 py-2.5" style={{ borderRadius: 12, backgroundColor: colors.bg }}>
-                <Text className="font-outfit-bold" style={{ ...TYPE.body, color: colors.title }}>
+            {/* Status: one small pill, the hint in plain grey */}
+            <View className="flex-row items-center self-start mt-3 rounded-full" style={{ gap: 6, paddingHorizontal: 10, paddingVertical: 4, backgroundColor: colors.bg }}>
+                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.title }} />
+                <Text className="font-outfit-semibold" style={{ fontSize: 13, color: colors.title }}>
                     {t(`appointments.list.card.title.${state}`)}
                 </Text>
-                <Text className="font-outfit-medium" style={{ ...TYPE.helper, color: colors.hint, marginTop: 2 }}>
-                    {t(`appointments.list.card.status.${state}Hint`)}
-                </Text>
             </View>
+            <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: '#6B7490', marginTop: 6 }}>
+                {t(`appointments.list.card.status.${state}Hint`)}
+            </Text>
 
-            {/* Vehicle / location */}
-            {infoRows.length > 0 && (
-                <View className="mt-3" style={{ borderRadius: 12, backgroundColor: '#F4F8FF' }}>
-                    {infoRows.map(({ key, Icon, label, value }, index) => (
-                        <View
-                            key={key}
-                            className="flex-row items-center px-3 py-3"
-                            style={index > 0 ? { borderTopWidth: 1, borderTopColor: '#E1EAFB' } : undefined}
-                        >
-                            <View className="items-center justify-center mr-3" style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: '#FFFFFF' }}>
-                                <Icon size={18} color="#1E56E3" />
-                            </View>
-                            <View className="flex-1">
-                                <Text className="font-outfit-semibold" style={{ ...TYPE.caption, color: '#6B7490' }}>
-                                    {label}
-                                </Text>
-                                <Text className="font-outfit-bold" style={{ ...TYPE.body, color: '#0B1530' }} numberOfLines={2}>
-                                    {value}
-                                </Text>
-                            </View>
+            {/* When */}
+            {hasTime && (
+                <View className="flex-row items-center" style={{ gap: 8, marginTop: 12 }}>
+                    <CalendarClock size={18} color="#6B7490" />
+                    <Text className="flex-1 font-outfit-semibold" style={{ ...TYPE.body, color: '#0B1530' }} numberOfLines={2}>
+                        {whenLabel}
+                        {future ? <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: '#6B7490' }}>{`  ·  ${relativeFromNow(at!, t)}`}</Text> : null}
+                    </Text>
+                </View>
+            )}
+
+            {/* Vehicle / location: plain rows under a hairline */}
+            {rows.length > 0 && (
+                <View style={{ marginTop: 12, paddingTop: 4, borderTopWidth: 1, borderTopColor: '#EEF0F6' }}>
+                    {rows.map(({ key, Icon, value }) => (
+                        <View key={key} className="flex-row items-center" style={{ gap: 10, paddingTop: 10 }}>
+                            <Icon size={18} color="#6B7490" />
+                            <Text className="flex-1 font-outfit-semibold" style={{ ...TYPE.body, color: '#0B1530' }} numberOfLines={2}>
+                                {value}
+                            </Text>
                         </View>
                     ))}
                 </View>
             )}
 
-            {/* Actions */}
+            {/* One main action */}
             <View className="flex-row mt-4" style={{ gap: 10 }}>
                 {canHeadOut && (
                     <TouchableOpacity
@@ -144,22 +171,49 @@ export function MechanicActiveJobCard({ appointment }: { appointment: Appointmen
                         </LinearGradient>
                     </TouchableOpacity>
                 )}
-                <TouchableOpacity
-                    style={{ flex: canHeadOut ? 0.4 : 1, borderRadius: 16, minHeight: 54, paddingHorizontal: 8, backgroundColor: '#EAF1FF', alignItems: 'center', justifyContent: 'center' }}
-                    onPress={openDetail}
-                    activeOpacity={0.85}
-                    accessibilityRole="button"
-                >
-                    <Text className="font-outfit-semibold text-center" style={{ ...TYPE.button, color: '#1E56E3' }} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
-                        {t('appointments.list.card.viewDetails')}
-                    </Text>
-                </TouchableOpacity>
+                {joinable && !canHeadOut ? (
+                    <TouchableOpacity style={{ flex: 1 }} onPress={openDetail} activeOpacity={0.85} accessibilityRole="button" testID="active-job-join">
+                        <LinearGradient
+                            colors={['#2B66F8', '#081E72']}
+                            start={{ x: 0, y: 1 }}
+                            end={{ x: 1, y: 0 }}
+                            style={{ borderRadius: 16, minHeight: 54, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center' }}
+                        >
+                            <Text className="text-white font-outfit-semibold text-center" style={TYPE.button} numberOfLines={1}>{mainLabel}</Text>
+                        </LinearGradient>
+                    </TouchableOpacity>
+                ) : (
+                    <TouchableOpacity
+                        style={{ flex: canHeadOut ? 0.4 : 1, borderRadius: 16, minHeight: 54, paddingHorizontal: 8, backgroundColor: '#EAF1FF', alignItems: 'center', justifyContent: 'center' }}
+                        onPress={openDetail}
+                        activeOpacity={0.85}
+                        accessibilityRole="button"
+                    >
+                        <Text className="font-outfit-semibold text-center" style={{ ...TYPE.button, color: '#1E56E3' }} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
+                            {mainLabel}
+                        </Text>
+                    </TouchableOpacity>
+                )}
             </View>
-            {canCancelBeforeStart(appointment.status) && (
-                <View style={{ marginTop: 6 }}>
-                    <CancelRequestLink appointmentId={appointment.id} align="center" />
-                </View>
-            )}
+
+            {/* "..." menu: the one place for cancelling */}
+            <Modal transparent visible={menuOpen} animationType="fade" onRequestClose={() => setMenuOpen(false)}>
+                <Pressable className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.35)' }} onPress={() => setMenuOpen(false)}>
+                    <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 16, paddingBottom: 36 }}>
+                        <TouchableOpacity
+                            onPress={() => { setMenuOpen(false); setCancelOpen(true); }}
+                            className="flex-row items-center"
+                            style={{ gap: 12, minHeight: 56, paddingHorizontal: 12, borderRadius: 14, backgroundColor: '#FDECEC' }}
+                            accessibilityRole="button"
+                            testID="active-job-menu-cancel"
+                        >
+                            <X size={20} color="#C53030" />
+                            <Text className="font-outfit-semibold" style={{ ...TYPE.option, color: '#C53030' }}>{t('appointments.list.card.cancelRequest')}</Text>
+                        </TouchableOpacity>
+                    </View>
+                </Pressable>
+            </Modal>
+            {canCancel && <CancelRequestLink appointmentId={appointment.id} open={cancelOpen} onClose={() => setCancelOpen(false)} />}
         </View>
     );
 }

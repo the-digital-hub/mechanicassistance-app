@@ -32,6 +32,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { appAlert } from '@/lib/ui/appAlert';
+import { TYPE } from '@/lib/ui/type';
 
 /** Minutes in an ETA the mechanic typed ("5 min", "1h", "2hs", "20"), or null when it can't be read. */
 function etaMinutes(eta?: string | null): number | null {
@@ -395,7 +396,7 @@ export default function MechanicFoundScreen() {
                 <OfferBreakdown included={included} lines={lines} total={breakdown ? formatMoney(breakdown.total) : null} />
 
                 <View style={{ gap: 8 }}>
-                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: AO.text, letterSpacing: -0.2, marginTop: 2 }}>
+                    <Text className="font-outfit-bold" style={{ ...TYPE.section, color: AO.text, marginTop: 2 }}>
                         {t(`${k}.yourRequest`)}
                     </Text>
                     <RequestSummaryRows

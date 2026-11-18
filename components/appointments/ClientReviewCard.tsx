@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { TYPE } from '@/lib/ui/type';
 
 const K = 'appointments.clientReview';
 
@@ -42,7 +43,7 @@ export function ClientReviewCard({ rating, setRating, selectedOption, setSelecte
             )}
 
             <View style={{ gap: 10 }}>
-                <Text className="font-outfit-bold" style={{ fontSize: 15, color: AO.text }}>{t(`${K}.title`)}</Text>
+                <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, color: AO.text }}>{t(`${K}.title`)}</Text>
                 <View className="flex-row justify-center" style={{ gap: 8 }}>
                     {[1, 2, 3, 4, 5].map((star) => (
                         <TouchableOpacity key={star} onPress={() => !isSubmitted && setRating(star)} disabled={isSubmitted} accessibilityLabel={t(`${K}.star`, { count: star })}>

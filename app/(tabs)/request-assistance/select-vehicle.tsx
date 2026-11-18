@@ -1,3 +1,4 @@
+import { RequestSteps } from '@/components/ui/RequestSteps';
 import { CARD_STYLE, Chip, ChoiceCard, FieldLabel, Footer, StepHead, TextField, VehicleIdsRow, WizardHeader, SC } from '@/components/scheduled/ui';
 import { useRequestDraft } from '@/context/RequestDraftContext';
 import { useUser } from '@/context/UserContext';
@@ -127,6 +128,7 @@ export default function SelectVehicleScreen() {
     return (
         <View className="flex-1" style={{ backgroundColor: '#F4F6FC' }}>
             <WizardHeader title={getTitle()} onBack={handleBack} />
+            <RequestSteps type={params.type} step="vehicle" />
 
             <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
                 <ScrollView

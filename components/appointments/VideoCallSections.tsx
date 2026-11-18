@@ -6,6 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { TYPE } from '@/lib/ui/type';
 
 /*
  * Video-call assistance (remote): no check-in, no ETA. The mechanic finishes it,
@@ -53,13 +54,13 @@ export function QuietButton({ label, icon, onPress, disabled, loading, testID }:
             activeOpacity={0.7}
             accessibilityRole="button"
             className="flex-row items-center justify-center"
-            style={{ minHeight: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, borderWidth: 1, borderColor: '#D9DFEC', backgroundColor: '#FFFFFF', gap: 10, opacity: disabled ? 0.6 : 1 }}
+            style={{ minHeight: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: QUIET.bg, gap: 10, opacity: disabled ? 0.6 : 1 }}
             testID={testID}
         >
-            {loading ? <ActivityIndicator color="#6B7490" /> : (
+            {loading ? <ActivityIndicator color={QUIET.fg} /> : (
                 <>
-                    {icon ? <Ionicons name={icon} size={20} color="#6B7490" /> : null}
-                    <Text className="font-outfit-bold text-center" style={{ fontSize: 16, lineHeight: 22, color: '#6B7490' }}>{label}</Text>
+                    {icon ? <Ionicons name={icon} size={20} color={QUIET.fg} /> : null}
+                    <Text className="font-outfit-bold text-center" style={{ fontSize: 16, lineHeight: 22, color: QUIET.fg }}>{label}</Text>
                 </>
             )}
         </TouchableOpacity>
@@ -70,10 +71,12 @@ export function QuietButton({ label, icon, onPress, disabled, loading, testID }:
  * The call's button system, one rule per intent:
  *  - GradientButton `primary` (blue): the main action that moves things forward (Join video call).
  *  - GradientButton `success` (green): only "it was resolved, charge it" (the owner's confirmation).
- *  - QuietButton (white, grey border): secondary actions we do not want to encourage (Finish, Return to call).
+ *  - QuietButton (soft slate fill): secondary actions we do not want to encourage (Finish, Return to call).
  *  - a soft red text button: "it was not resolved" and other problem actions.
  * All share the same height, radius and type.
  */
+/** The quiet button: a soft slate fill, no white and no border, so it never competes with the main action. */
+const QUIET = { bg: '#E6EAF2', fg: '#4A5470' } as const;
 const BUTTON_HEIGHT = 52;
 const BUTTON_RADIUS = 14;
 const TONES = { primary: ['#2B66F8', '#081E72'], success: ['#10B981', '#047857'] } as const;
@@ -102,6 +105,25 @@ export function GradientButton({ label, icon, onPress, disabled, loading, tone =
     );
 }
 
+/** Technician, before the call starts: how long it lasts and that the timer starts when the customer joins. */
+export function SessionTimerNote({ minutes }: { minutes: number }) {
+    const { t } = useTranslation();
+    return (
+        <View
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 16, backgroundColor: AO.blueSofter, borderWidth: 1, borderColor: AO.blueSoft }}
+            testID="session-timer-note"
+        >
+            <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: AO.blueSoft, alignItems: 'center', justifyContent: 'center' }}>
+                <Ionicons name="timer-outline" size={20} color={AO.blue} />
+            </View>
+            <View style={{ flex: 1 }}>
+                <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, lineHeight: 22, color: AO.text }}>{t(`${K}.timer.startsOnJoinTitle`, { minutes })}</Text>
+                <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: AO.muted }}>{t(`${K}.timer.startsOnJoinBody`)}</Text>
+            </View>
+        </View>
+    );
+}
+
 /** Technician: the customer is already in the video room, waiting. Shown above "Join video call". */
 export function CustomerInRoomCard() {
     const { t } = useTranslation();
@@ -110,7 +132,6 @@ export function CustomerInRoomCard() {
             icon="videocam"
             tone="green"
             title={t(`${K}.mechanic.customerInRoomTitle`)}
-            body={t(`${K}.mechanic.customerInRoomBody`)}
             testID="customer-in-room"
         />
     );

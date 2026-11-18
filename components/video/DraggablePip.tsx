@@ -11,9 +11,12 @@ const BASE_H = 144;
 const MARGIN = 14;
 const TAP_SLOP = 6;
 
-export function pipSize(sizeIndex: number): { w: number; h: number } {
+export function pipSize(sizeIndex: number, landscape = false): { w: number; h: number } {
     const scale = PIP_SIZES[sizeIndex] ?? 1;
-    return { w: Math.round(BASE_W * scale), h: Math.round(BASE_H * scale) };
+    // Sideways, the small picture lies down too.
+    return landscape
+        ? { w: Math.round(BASE_H * scale), h: Math.round(BASE_W * scale) }
+        : { w: Math.round(BASE_W * scale), h: Math.round(BASE_H * scale) };
 }
 
 function anchor(corner: PipCorner, stage: { w: number; h: number }, size: { w: number; h: number }) {
@@ -27,10 +30,11 @@ function anchor(corner: PipCorner, stage: { w: number; h: number }, size: { w: n
  * The small picture of the call: drag it to another corner (it snaps), tap it to swap it with the
  * big picture, and use the little arrows to make it bigger or smaller.
  */
-export function DraggablePip({ stage, corner, sizeIndex, onCornerChange, onResize, onTap, resizeLabel, swapLabel, children }: {
+export function DraggablePip({ stage, corner, sizeIndex, landscape = false, onCornerChange, onResize, onTap, resizeLabel, swapLabel, children }: {
     stage: { w: number; h: number };
     corner: PipCorner;
     sizeIndex: number;
+    landscape?: boolean;
     onCornerChange: (corner: PipCorner) => void;
     onResize: () => void;
     onTap: () => void;
@@ -38,7 +42,7 @@ export function DraggablePip({ stage, corner, sizeIndex, onCornerChange, onResiz
     swapLabel: string;
     children: React.ReactNode;
 }) {
-    const size = pipSize(sizeIndex);
+    const size = pipSize(sizeIndex, landscape);
     const translate = React.useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
     // The responder is created once: it reads the latest values from here.
     const live = React.useRef({ stage, size, corner, onCornerChange, onTap });

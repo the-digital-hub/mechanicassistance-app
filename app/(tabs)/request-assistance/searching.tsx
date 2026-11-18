@@ -299,10 +299,6 @@ export default function SearchingScreen() {
                             </Text>
                         )}
 
-                        {/* Mechanics notified */}
-                        <View className="flex-row items-center justify-center px-3 py-1.5 rounded-full self-center" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.3)' }}>
-                            <Text className="text-white font-outfit-semibold text-xs tracking-widest">{t('requestAssistance.searching.mechanicsNotified', { count: 6 })}</Text>
-                        </View>
                         </LinearGradient>
                     </View>
 
