@@ -204,8 +204,13 @@ function MechanicReceipt({ id }: { id: string }) {
     }, [id]);
 
     const back = () => (router.canGoBack() ? router.back() : router.replace('/(tabs)/appointments'));
-    const fallbackAmount = appointment?.budget?.replace('$', '');
-    const net = earning?.netAmount ?? breakdown?.total ?? fallbackAmount;
+    // The same number the list card shows (`budget`: the technician's whole total, extra time included). The earning
+    // row and the service breakdown can hold only the call itself, so they are the fallback and the call's own line.
+    const budgetNumber = Number(String(appointment?.budget ?? '').replace(/[^0-9.]/g, ''));
+    const hasBudget = Number.isFinite(budgetNumber) && budgetNumber > 0;
+    const callNumber = Number(breakdown?.total);
+    const extensionNumber = hasBudget && Number.isFinite(callNumber) && budgetNumber > callNumber ? budgetNumber - callNumber : 0;
+    const net = hasBudget ? budgetNumber.toFixed(2) : earning?.netAmount ?? breakdown?.total;
 
     return (
         <View className="flex-1" style={{ backgroundColor: OS.page }}>
@@ -237,6 +242,9 @@ function MechanicReceipt({ id }: { id: string }) {
                                 <Line label={t(`${k}.weather`)} value={money(breakdown.weather.amount)} />
                             )}
                             <Line label={t(`${k}.serviceTotal`)} value={money(breakdown.total)} strong />
+                            {extensionNumber > 0 ? (
+                                <Line label={t(`${k}.extendedTime`)} value={`+${money(extensionNumber.toFixed(2))}`} />
+                            ) : null}
                         </Card>
                     )}
 
@@ -244,7 +252,15 @@ function MechanicReceipt({ id }: { id: string }) {
                         <Card>
                             <Text className="font-outfit-bold text-[13px] px-4 pt-3" style={{ color: OS.text }}>{t(`${k}.payment`)}</Text>
                             {/* Providers see what they get, never the fee or what the customer paid. */}
-                            <Line label={t(`${k}.youEarn`)} value={money(earning.netAmount)} strong />
+                            {/* The total: set apart by a line and a tinted band, like the owner's receipt. */}
+                            <View
+                                className="flex-row items-center"
+                                style={{ gap: 12, paddingHorizontal: 16, paddingVertical: 14, backgroundColor: OS.blueSoft, borderTopWidth: 2, borderTopColor: OS.blue }}
+                                testID="receipt-total-earned"
+                            >
+                                <Text className="font-outfit-bold flex-1" style={{ fontSize: 17, color: OS.text }}>{t(`${k}.totalEarned`)}</Text>
+                                <Text className="font-outfit-bold" style={{ fontSize: 22, letterSpacing: -0.4, color: OS.blue }}>{money(net)}</Text>
+                            </View>
                             <View className="px-4 pb-3">
                                 <Text className="font-outfit-bold text-[13px] uppercase" style={{ color: OS.mutedLight }}>{t(`${k}.status`)}</Text>
                                 <Text className="font-outfit-bold text-sm mt-0.5" style={{ color: OS.text }}>

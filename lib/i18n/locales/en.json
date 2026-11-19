@@ -1,4 +1,95 @@
 {
+  "certifications": {
+    "badge": "PROFESSIONAL PROFILE",
+    "title": "Other certifications",
+    "subtitle": "Training and brand credentials you hold besides ASE.",
+    "add": "Add certification",
+    "addTitle": "Add certification",
+    "editTitle": "Edit certification",
+    "type": "Type",
+    "types": {
+      "manufacturer": "Manufacturer",
+      "industry": "Industry",
+      "other": "Other"
+    },
+    "name": "Name",
+    "namePlaceholder": {
+      "manufacturer": "e.g., Direct certified",
+      "industry": "e.g., Master technician",
+      "other": "e.g., Training course"
+    },
+    "credentialId": "Credential ID (optional)",
+    "expires": "Valid until (optional)",
+    "optionalHint": "Pick the month and year it expires, or leave it empty if it doesn't.",
+    "attach": "Attach the certificate",
+    "attachHint": "Photo or PDF · helps us verify it",
+    "attached": "Certificate attached",
+    "attachChange": "Tap to change it",
+    "fileTooLarge": "That file is too large. Use one under 10 MB.",
+    "fileFailed": "We couldn't upload the file. Try again.",
+    "save": "Save certification",
+    "saving": "Saving…",
+    "saveFailed": "We couldn't save it. Try again in a moment.",
+    "status": {
+      "pending": "In review",
+      "verified": "Verified",
+      "declined": "Declined"
+    },
+    "validUntil": "Valid until {{date}}",
+    "expired": "Expired {{date}}",
+    "emptyTitle": "No certifications yet",
+    "emptyBody": "Add the ones you hold, like a brand certification, so customers can trust you more.",
+    "loadFailed": "We couldn't load your certifications. Try again later.",
+    "removeTitle": "Remove this certification?",
+    "removeBody": "It will disappear from your profile.",
+    "remove": "Remove",
+    "cancel": "Cancel",
+    "kind": "Type of certification",
+    "issuerLabel": {
+      "manufacturer": "Manufacturer",
+      "industry": "Organization",
+      "other": "Issued by (optional)"
+    },
+    "issuerPlaceholder": {
+      "manufacturer": "e.g., Audi",
+      "industry": "e.g., AATI",
+      "other": "e.g., a school or training center"
+    },
+    "issuerPicks": {
+      "industry": [
+        "AATI",
+        "I-CAR",
+        "EPA 609"
+      ],
+      "other": [
+        "Technical school",
+        "Training center",
+        "Employer"
+      ]
+    },
+    "kindPicks": {
+      "manufacturer": [
+        "Direct certified",
+        "Master technician",
+        "Factory trained",
+        "EV / hybrid specialist"
+      ],
+      "industry": [
+        "Technician",
+        "Master technician",
+        "Specialist",
+        "Advanced diagnostics"
+      ],
+      "other": [
+        "Training course",
+        "Diploma",
+        "Specialty license",
+        "Safety / compliance"
+      ]
+    },
+    "expiresPlaceholder": "No expiry date",
+    "noExpiry": "No expiry date"
+  },
   "profile": {
     "badge": "MY PROFILE",
     "title": "Your account, your preferences",
@@ -21,7 +112,7 @@
       "personalInfo": "Personal information",
       "addresses": "My Addresses",
       "vehicles": "My Vehicles",
-      "ase": "ASE Certifications",
+      "ase": "ASE Certifications",      "otherCertifications": "Other certifications",
       "payments": "Earnings & payouts",
       "promotions": "Promotions",
       "help": "Help Center",
@@ -37,6 +128,13 @@
       "addressesOne": "My Address",
       "vehiclesOne": "My Vehicle",
       "savedAddressesOne": "Saved address"
+    },
+    "reviews": {
+      "titleMechanic": "What customers say",
+      "titleOwner": "What technicians say",
+      "empty": "No ratings yet.",
+      "noComment": "No comment.",
+      "loading": "Loading comment…"
     },
     "language": {
       "heading": "Select Language",
@@ -1548,6 +1646,8 @@
       "customerPaid": "Customer paid",
       "platformFee": "Platform fees & taxes",
       "youEarn": "You earn",
+      "extendedTime": "Extended time",
+      "totalEarned": "Total earned",
       "feeNote": "Fees and taxes are shown as one amount.",
       "status": "Payout status",
       "statusValue": {
@@ -2212,6 +2312,7 @@
         "vinTitle": "Start with your VIN",
         "vinDescription": "We use it to fill in your vehicle's make, model, year and factory specs for you.",
         "vinPlaceholder": "1HGCM82633A004352",
+        "scanVin": "Scan the VIN barcode",
         "vinManual": "Prefer to type? Edit any field below.",
         "vinFound": "✓ Vehicle found · details filled in below",
         "identityLocked": "VIN, make and model can't be changed. For a different car, add a new vehicle.",

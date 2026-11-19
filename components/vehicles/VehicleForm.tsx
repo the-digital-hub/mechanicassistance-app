@@ -4,6 +4,7 @@ import { TireSizeSelect } from '@/components/vehicles/TireSizeSelect';
 import { VehicleColorSelect } from '@/components/vehicles/VehicleColorSelect';
 import { VehicleFormSection } from '@/components/vehicles/VehicleFormSection';
 import { AV, AVCheckbox, AVField, AVRow, AVTextInput } from '@/components/vehicles/vehicleFormDesign';
+import { VinScanner } from '@/components/on-site/screens-vin';
 import { VIN_LENGTH, VinCard } from '@/components/vehicles/VinCard';
 import type { Vehicle, VehicleDecodedFields, VehicleStatus } from '@/lib/dao/interfaces';
 import { decodeVin, fetchMakes, fetchModelsByMake } from '@/lib/vehicle';
@@ -11,6 +12,7 @@ import { TireSize, formatTireSize, parseTireSize } from '@/lib/vehicleTires';
 import { FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
 import { Ionicons } from '@expo/vector-icons';
 import { TYPE } from '@/lib/ui/type';
+import { useCameraPermissions } from 'expo-camera';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -259,6 +261,9 @@ export function VehicleForm({ initialValue, submitLabel, submitting, onSubmit, h
         () => formatTireSize(values.frontTires) === formatTireSize(values.rearTires),
     );
     const [isVinSearching, setIsVinSearching] = useState(false);
+    // Reading the VIN from its barcode is an extra next to typing it.
+    const [scanning, setScanning] = useState(false);
+    const [cameraPermission, requestCameraPermission] = useCameraPermissions();
     const [makes, setMakes] = useState<string[]>([]);
     const [models, setModels] = useState<string[]>([]);
     const [isLoadingMakes, setIsLoadingMakes] = useState(true);
@@ -327,6 +332,17 @@ export function VehicleForm({ initialValue, submitLabel, submitting, onSubmit, h
             setErrors(prev => ({ ...prev, rearTires: undefined }));
         }
         setRearSame(!rearSame);
+    };
+
+    const openVinScanner = async () => {
+        if (!cameraPermission?.granted) {
+            const res = await requestCameraPermission();
+            if (!res.granted) {
+                appAlert(t('vehicles.form.design.scanVin'), t('appointments.onSite.vin.cameraBlocked'));
+                return;
+            }
+        }
+        setScanning(true);
     };
 
     const handleVinLookup = async () => {
@@ -474,6 +490,17 @@ export function VehicleForm({ initialValue, submitLabel, submitting, onSubmit, h
                     decoded={decoded}
                     error={errorText('vin')}
                     locked={vinLocked}
+                    onScan={() => void openVinScanner()}
+                />
+                <VinScanner
+                    visible={scanning}
+                    onClose={() => setScanning(false)}
+                    onVin={(vin) => {
+                        setScanning(false);
+                        setHidden(null);
+                        setDecoded(false);
+                        set('vin', vin);
+                    }}
                 />
                 {/* What is missing to save: here, next to the VIN, not in the fixed bar (which stays one button tall).
                     A note of its own (icon, tint, the cards' width), so it reads as part of the screen. */}

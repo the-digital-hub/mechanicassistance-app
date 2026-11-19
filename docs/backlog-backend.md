@@ -74,6 +74,34 @@ Leyenda de prioridad: 🔴 bloquea o es de cumplimiento · 🟠 importante · �
 - **Definir con legal/producto:** consentimiento adicional, retención, y si el original y la traducción se guardan en la transcripción.
 - **Cómo lo verificamos:** una llamada con un teléfono en español y otro en inglés; cada uno ve los subtítulos en su idioma con un retraso de segundos.
 
+### [ ] X — Precio diferenciado para videollamadas agendadas, con asignador de descuento (§5.17)
+- **Qué se quiere (19-nov):** las videollamadas **agendadas** van a costar **un poco menos** que las de "ahora" (el técnico se organiza con anticipación y no hay urgencia). Hoy el precio sale de la misma tarifa para las dos.
+- **Hacer:**
+  - Que `POST /api/pricing/calculate` y `POST /api/pricing/requests/:id/price` distingan una videollamada agendada (`service_at` en el futuro) de una inmediata y le apliquen el **ajuste de precio de agendada**, además de la duración (B) y la franja horaria.
+  - Un **asignador de descuento/precio configurable desde el Hub**, sin desplegar: por tipo de servicio (hoy `videocall`) y modo (`scheduled`), con valor **porcentual o monto fijo**, vigencia opcional (desde/hasta) y, si se quiere, distinto por duración (15/30/45/60). Debe quedar claro **quién lo financia**: si baja lo que cobra el dueño, ¿baja lo que gana el técnico o lo absorbe la plataforma?
+  - El desglose (`pricing_breakdown`) debe mostrar el descuento como línea propia (precio de lista, descuento, precio final) para que la app y el recibo lo expliquen.
+  - Los precios de **horarios agendados** se calculan en el momento de agendar y quedan **congelados** en la solicitud (el cambio de tarifa no toca lo ya agendado).
+  - Devolver el mismo cálculo en `GET /api/video-call/now` / `durations` y en el listado de turnos (`/video-call/slots`) para que la app pueda mostrar, antes de elegir, "ahora" vs "agendada" con sus precios.
+- **Definir con producto:** el porcentaje o monto, a quién se le descuenta (plataforma o técnico), si se muestra como "ahorrás $X" en la app, y si aplica a las extensiones de tiempo de una llamada agendada.
+- **La app:** hoy muestra el precio que devuelve el backend; con esto agrega la línea de descuento en "Plan your video call", en la oferta y en el recibo. Hasta que exista, no se muestra ningún descuento.
+- **Cómo lo verificamos:** la misma llamada de 30 min cotizada "ahora" y agendada para mañana da dos precios distintos; el desglose muestra la línea de descuento; cambiar el valor en el Hub se refleja en la siguiente cotización sin desplegar.
+
+### [ ] Y — Listado de reseñas de una persona, con comentario y fecha (§5.18)
+- **Qué se quiere (19-nov):** en el perfil, tocar las estrellas y ver las calificaciones con fecha y lo que escribieron. La app ya lo muestra, pero hoy lo arma con lo que tiene a mano y **no alcanza**.
+- **Qué falla hoy:** `GET /api/appointments` trae solo la nota (`reviewRating` / `clientRating`), no el comentario. Para el técnico la app pide el comentario de cada trabajo por separado (`GET /appointments/:id/review`, hasta 30 llamadas al abrir); para el dueño no hay forma de leer el comentario del técnico (`clientReview`) desde la lista.
+- **Hacer:** `GET /api/reviews/me?page=&limit=` (la persona autenticada, según su rol): lo que **le calificaron** → `{ items: [{ id, appointmentId, rating, review, experienceTags[], createdAt, serviceTitle, vehicle }], total, page, limit, average, count }`, más nuevas primero. Para el técnico, son las reseñas de sus clientes; para el dueño, las que le dejaron los técnicos (`client-review`). Sin datos personales del autor (a lo sumo el primer nombre).
+- **La app:** reemplaza el armado actual por este endpoint y pagina al bajar.
+- **Cómo lo verificamos:** un técnico con reseñas escritas las ve con fecha y texto, en una sola llamada.
+
+### [ ] Z — Otras certificaciones del técnico (§5.19)
+- **Qué se quiere (19-nov):** en "Professional profile" del técnico, una sección **Other certifications** donde cargue las que tiene además de ASE: directas de fabricante (ej. Audi direct), de la industria (ej. AATI) u otras. Hoy solo existe ASE (que se verifica contra el registro de ASE) y los documentos legales (seguro y licencia).
+- **Hacer:** CRUD del técnico autenticado, `GET|POST /api/mechanic-certifications`, `PATCH|DELETE /api/mechanic-certifications/:id`. Campos: `type` (`manufacturer | industry | other`), `name` (obligatorio, en los tres tipos: el tipo de certificación, ej. "Direct certified", "Master technician", "Training course"), `issuer` (quién la emitió: la marca si `type` es `manufacturer`, ej. "Audi"; la organización si es `industry`, ej. "AATI"; ambos **obligatorios**. En `other` es opcional), `credentialId` (opcional), `expiresAt` (opcional, fecha), `fileKey/fileUrl/originalName/mimeType/sizeBytes` (opcional, el archivo sube por el mismo `/api/documents/upload` de los documentos legales), y de solo lectura `status` (`pending | verified | declined`), `declineReason`, `reviewedAt`.
+- **Verificación:** entra como `pending`; una revisión del Hub la pasa a `verified` o `declined` (con motivo). Editar el nombre, el número o el archivo la devuelve a `pending`. Definir con producto si una certificación sin archivo puede quedar `verified` o solo figura "declarada por el técnico".
+- **Vencimiento:** devolver `expired: true` (o dejar que la app lo calcule con `expiresAt`) y avisar por push 30 días antes de vencer, igual que el seguro.
+- **Dónde se ve:** el técnico en su perfil; el dueño, en la oferta ("Certificada por Audi direct") **solo las verificadas**, para que sirvan de confianza. Definir si cuentan para el matching (ej. priorizar al técnico con certificación de la marca del vehículo).
+- **La app:** pantalla "Other certifications" dentro de Professional profile, con la lista (tipo, estado, vencimiento) y una hoja para agregar o editar. La entrada del menú aparece cuando el endpoint responde, así que se puede publicar antes que el backend.
+- **Cómo lo verificamos:** un técnico agrega "Audi direct certified" con foto del certificado; queda `pending`; el Hub la aprueba y en la app pasa a "Verified"; con vencimiento pasado se marca "Expired".
+
 ### [ ] W — Agente de recomendaciones de cuidado del vehículo (§5.16)
 - **Qué se quiere (19-nov):** en la home del dueño, sección "Vehicle care & activity", mostrar **recomendaciones de mantenimiento por vehículo** (cambio de aceite, frenos, neumáticos, batería, etc.) calculadas por un **agente** en el backend, en lugar de reglas fijas escritas a mano en la app.
 - **Datos que ya existen para alimentarlo:** marca, modelo, año, VIN, kilometraje (que el dueño actualiza), historial de servicios completados (`appointments`), reportes OBD que sube el dueño (códigos leídos) y los pagos asociados.
@@ -133,4 +161,4 @@ Leyenda de prioridad: 🔴 bloquea o es de cumplimiento · 🟠 importante · �
 ---
 
 ## Orden sugerido
-1. **B** (desbloquea el precio; con **T** se comprueba la duración de 60 min) → 2. **N** y **O** (agendar 24/7 sin errores de hora) y **S** (aviso cuando otro técnico toma la solicitud) → 3. **Q** (con legal) → 4. **P**, **U**, **L** (y, si producto lo quiere, **V**) → **W** (agente de recomendaciones; necesita decisiones de producto antes de empezar) → 5. **M**, **K**, **J** → 6. **E** y documentación.
+1. **B** (desbloquea el precio; con **T** se comprueba la duración de 60 min) → 2. **N** y **O** (agendar 24/7 sin errores de hora) y **S** (aviso cuando otro técnico toma la solicitud) → 3. **Q** (con legal) → 4. **P**, **U**, **L** (y, si producto lo quiere, **V**) → **X** (precio de agendadas; va junto con B) → **W** (agente de recomendaciones; necesita decisiones de producto antes de empezar) → 5. **M**, **K**, **J** → 6. **E** y documentación.

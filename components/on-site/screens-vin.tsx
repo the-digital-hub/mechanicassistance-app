@@ -239,7 +239,7 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
  * The modal is its own window: it needs its own SafeAreaProvider, or the insets inside it stay those of the
  * upright screen and, held on its side, the text runs under the Dynamic Island.
  */
-function VinScanner({ visible, onClose, onVin }: { visible: boolean; onClose: () => void; onVin: (vin: string) => void }) {
+export function VinScanner({ visible, onClose, onVin }: { visible: boolean; onClose: () => void; onVin: (vin: string) => void }) {
     return (
         <Modal visible={visible} animationType="slide" onRequestClose={onClose} statusBarTranslucent supportedOrientations={['portrait', 'landscape', 'landscape-left', 'landscape-right']}>
             <SafeAreaProvider>

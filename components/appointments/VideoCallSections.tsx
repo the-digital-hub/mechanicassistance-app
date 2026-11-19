@@ -95,7 +95,7 @@ const BUTTON_HEIGHT = 52;
 const BUTTON_RADIUS = 14;
 const TONES = { primary: ['#2B66F8', '#081E72'], success: ['#10B981', '#047857'] } as const;
 
-export function GradientButton({ label, icon, onPress, disabled, loading, tone = 'primary', testID }: {
+export function GradientButton({ label, icon, onPress, disabled, loading, tone = 'primary', testID, large }: {
     label: string;
     icon?: IconName;
     onPress: () => void;
@@ -103,6 +103,8 @@ export function GradientButton({ label, icon, onPress, disabled, loading, tone =
     loading?: boolean;
     tone?: keyof typeof TONES;
     testID?: string;
+    /** The 18 px label of the app's main buttons (Continue, Save), instead of the 16 px of the call screens. */
+    large?: boolean;
 }) {
     return (
         <TouchableOpacity onPress={onPress} disabled={disabled || loading} activeOpacity={0.85} style={{ opacity: disabled ? 0.6 : 1 }} testID={testID} accessibilityRole="button">
@@ -113,7 +115,7 @@ export function GradientButton({ label, icon, onPress, disabled, loading, tone =
                 style={{ minHeight: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 }}
             >
                 {loading ? <ActivityIndicator color="#fff" /> : icon ? <Ionicons name={icon} size={20} color="#fff" /> : null}
-                <Text className="text-white font-outfit-bold text-center" style={{ fontSize: 16, lineHeight: 22 }}>{label}</Text>
+                <Text className="text-white font-outfit-bold text-center" style={large ? TYPE.button : { fontSize: 16, lineHeight: 22 }}>{label}</Text>
             </LinearGradient>
         </TouchableOpacity>
     );

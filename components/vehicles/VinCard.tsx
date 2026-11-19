@@ -2,6 +2,7 @@ import { AV, AVIcon, MONO_FONT } from '@/components/vehicles/vehicleFormDesign';
 import { TYPE } from '@/lib/ui/type';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
+import { Ionicons } from '@expo/vector-icons';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export const VIN_LENGTH = 17;
@@ -16,13 +17,15 @@ interface VinCardProps {
     error?: string | null;
     /** Editing a saved car: the VIN is shown but cannot be changed or decoded again. */
     locked?: boolean;
+    /** Opens the camera to read the VIN barcode (door jamb, windshield). A quiet extra: typing stays the main way. */
+    onScan?: () => void;
 }
 
 /**
  * The blue "Start with your VIN" card that opens the vehicle form: the VIN is
  * the one required field, and decoding it (NHTSA) fills most of the rest.
  */
-export function VinCard({ value, onChange, onDecode, decoding, decoded, error, locked }: VinCardProps) {
+export function VinCard({ value, onChange, onDecode, decoding, decoded, error, locked, onScan }: VinCardProps) {
     const { t } = useTranslation();
     const ready = value.replace(/\s/g, '').length === VIN_LENGTH;
     const canDecode = ready && !decoding;
@@ -58,6 +61,7 @@ export function VinCard({ value, onChange, onDecode, decoding, decoded, error, l
             </Text>
 
             <View style={{ flexDirection: 'row', gap: 10, marginTop: 18 }}>
+                <View style={{ flex: 1, justifyContent: 'center' }}>
                 <TextInput
                     value={value}
                     onChangeText={v => onChange(v.toUpperCase())}
@@ -68,10 +72,10 @@ export function VinCard({ value, onChange, onDecode, decoding, decoded, error, l
                     placeholder={t('vehicles.form.design.vinPlaceholder')}
                     placeholderTextColor={AV.mutedLight}
                     style={{
-                        flex: 1,
                         height: 52,
                         borderRadius: 14,
-                        paddingHorizontal: 16,
+                        paddingLeft: 16,
+                        paddingRight: !locked && onScan ? 50 : 16,
                         backgroundColor: locked ? 'rgba(255,255,255,0.85)' : '#fff',
                         borderWidth: 1,
                         borderColor: error ? '#FCA5A5' : 'transparent',
@@ -81,6 +85,20 @@ export function VinCard({ value, onChange, onDecode, decoding, decoded, error, l
                         color: AV.text,
                     }}
                 />
+                    {!locked && onScan ? (
+                        <TouchableOpacity
+                            onPress={onScan}
+                            hitSlop={6}
+                            activeOpacity={0.7}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('vehicles.form.design.scanVin')}
+                            testID="vin-scan-icon"
+                            style={{ position: 'absolute', right: 6, top: 6, width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: AV.blueSoft }}
+                        >
+                            <Ionicons name="barcode-outline" size={22} color={AV.blue} />
+                        </TouchableOpacity>
+                    ) : null}
+                </View>
                 {locked ? null : (
                 <TouchableOpacity
                     onPress={onDecode}

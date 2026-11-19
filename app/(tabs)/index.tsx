@@ -6,6 +6,8 @@ import { useUser } from '@/context/UserContext';
 import { useAppointments } from '@/context/AppointmentsContext';
 import { useMechanicStatus } from '@/context/MechanicStatusContext';
 import { Stars } from '@/components/offer/OfferSections';
+import { ReviewsSheet } from '@/components/profile/ReviewsSheet';
+import { useProfileReviews } from '@/hooks/useProfileReviews';
 import { ApiError } from '@/lib/api/types';
 import { appointmentDAO } from '@/lib/dao/AppointmentDAO';
 import type { MechanicStats } from '@/lib/dao/interfaces';
@@ -18,7 +20,7 @@ import { startAddRoleFromProfile } from '@/lib/setup-add-role';
 import { installedVersionLabel } from '@/lib/appVersion';
 import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { ArrowLeftRight, Award, Briefcase, Camera, Car, Check, ChevronDown, ChevronLeft, ChevronRight, Circle, Clock, CreditCard, FileText, Heart, HelpCircle, Lock, LogOut, MapPin, Settings, User, Wallet } from 'lucide-react-native';
+import { ArrowLeftRight, Award, BadgeCheck, Briefcase, Camera, Car, Check, ChevronDown, ChevronLeft, ChevronRight, Circle, Clock, CreditCard, FileText, Heart, HelpCircle, Lock, LogOut, MapPin, Settings, User, Wallet } from 'lucide-react-native';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -74,6 +76,9 @@ export default function ProfileScreen() {
     return { avgRating: avg, ratingCount: given.length, completedCount: 0 };
   }, [appointments, isTechnician]);
   const profileRating = isTechnician ? ratingStats : ownerRating;
+  // Tapping the stars opens the ratings behind them, with dates and comments.
+  const [reviewsOpen, setReviewsOpen] = useState(false);
+  const profileReviews = useProfileReviews(isTechnician, appointments, reviewsOpen);
 
   const currentRole: AppRole = user?.role === 'mechanic' ? 'mechanic' : 'user';
   const roleName = (role: AddableRole) => t(`profile.switchRole.roles.${role}.label`);
@@ -270,7 +275,13 @@ export default function ProfileScreen() {
 
           {/* Rating: the technician's own stats, or what technicians gave the owner */}
           {profileRating && (
-            <View className="flex-row items-center justify-center mb-3" style={{ gap: 6 }}>
+            <TouchableOpacity
+              onPress={() => setReviewsOpen(true)}
+              disabled={!(profileRating.ratingCount > 0)}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              testID="profile-rating"
+              className="flex-row items-center justify-center mb-3" style={{ gap: 6 }}>
               {profileRating.avgRating != null && Number.isFinite(Number(profileRating.avgRating)) ? (
                 <>
                   <Stars rating={Number(profileRating.avgRating)} size={16} />
@@ -281,7 +292,8 @@ export default function ProfileScreen() {
               ) : (
                 <Text className="font-outfit-medium text-sm" style={{ color: '#6B7490' }}>{t('appointments.list.card.noRatings')}</Text>
               )}
-            </View>
+              {profileRating.ratingCount > 0 ? <ChevronRight size={16} color="#6B7490" /> : null}
+            </TouchableOpacity>
           )}
 
           {/* Role + identity verification badges */}
@@ -400,6 +412,7 @@ export default function ProfileScreen() {
               children: [
                 { key: 'schedule', icon: Clock, label: t('profile.menu.schedule'), route: '/availability' },
                 { key: 'ase', icon: Award, label: t('profile.menu.ase'), route: '/ase' },
+                { key: 'otherCerts', icon: BadgeCheck, label: t('profile.menu.otherCertifications'), route: '/other-certifications' },
                 { key: 'legal', icon: FileText, label: t('profile.menu.legalDocuments'), route: '/legal-documents' },
               ],
             },
@@ -496,6 +509,16 @@ export default function ProfileScreen() {
         <Text className="font-outfit-regular" style={{ fontSize: 12, color: '#B4BBC9', marginTop: -12, marginBottom: 12, textAlign: 'center', letterSpacing: 0.3 }} testID="profile-app-version">
           {installedVersionLabel()}
         </Text>
+
+      <ReviewsSheet
+        visible={reviewsOpen}
+        onClose={() => setReviewsOpen(false)}
+        isTechnician={isTechnician}
+        average={profileRating?.avgRating != null && Number.isFinite(Number(profileRating.avgRating)) ? Number(profileRating.avgRating) : null}
+        count={profileRating?.ratingCount ?? 0}
+        items={profileReviews.items}
+        loading={profileReviews.loading}
+      />
 
       {/* Logout Confirmation Modal */}
       <ConfirmationModal

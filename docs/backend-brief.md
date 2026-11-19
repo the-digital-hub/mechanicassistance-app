@@ -568,6 +568,52 @@ las ve (para ofrecer el servicio), y si algo se cobra aparte.
 
 **Cómo lo verificamos:** vehículo con 60.000 km sin cambio de aceite en el historial → recomendación de aceite; al registrar el servicio o descartarla, desaparece; sin kilometraje → pide cargarlo.
 
+### 5.17 X — Precio diferenciado para videollamadas agendadas, con asignador de descuento (nuevo, 19-nov)
+**Qué se quiere:** una videollamada **agendada** cuesta un poco menos que una de "ahora": hay anticipación y no hay urgencia.
+Hoy las dos salen de la misma tarifa (duración base 60/70/80 + franja horaria, §4.1).
+
+**Pedido:**
+1. En `POST /api/pricing/calculate` y `POST /api/pricing/requests/:id/price`: si es videollamada con `service_at` futuro,
+   aplicar el **ajuste de agendada** sobre el precio ya calculado por duración y franja.
+2. **Asignador configurable desde el Hub** (sin desplegar): por tipo de servicio y modo (`videocall` + `scheduled`), valor
+   **porcentual o monto fijo**, vigencia opcional (desde/hasta) y, opcionalmente, por duración (15/30/45/60). Con auditoría de quién
+   lo cambió y cuándo.
+3. `pricing_breakdown` con el descuento como línea propia: `list_price`, `discount: { type, value, amount, label }`, `final_price`.
+4. El precio de lo agendado se **congela** al agendar; un cambio posterior de tarifa no toca solicitudes ya creadas.
+5. Exponer el mismo cálculo en `GET /api/video-call/now` (`durations`) y en `/video-call/slots`, para que la app muestre
+   "ahora" vs "agendada" con sus precios antes de elegir.
+
+**Decisiones de producto pendientes:** el valor del descuento; **quién lo financia** (si baja lo que cobra el dueño, ¿baja lo que gana el
+técnico o lo absorbe la plataforma?); si se muestra como "ahorrás $X"; y si alcanza a las extensiones de una llamada agendada.
+
+**Cómo lo verificamos:** misma duración cotizada "ahora" y agendada para mañana → dos precios; el desglose trae la línea de
+descuento; cambiar el valor en el Hub se refleja en la siguiente cotización sin desplegar.
+
+### 5.18 Y — Listado de reseñas de una persona (nuevo, 19-nov)
+En el perfil (dueño y técnico) las estrellas ahora se pueden tocar y abren las calificaciones con fecha y comentario.
+
+**Hoy:** el listado de citas trae solo la nota (`reviewRating`, `clientRating`). La app arma el resto: para el técnico pide
+`GET /appointments/:id/review` por cada trabajo calificado (hasta 30 llamadas); para el dueño no hay forma de leer el texto que escribió
+el técnico (`clientReview`), así que ve la nota y la fecha, "sin comentario".
+
+**Pedido:** `GET /api/reviews/me?page=&limit=` → `{ items[], total, page, limit, average, count }`, con cada item
+`{ id, appointmentId, rating, review, experienceTags[], createdAt, serviceTitle, vehicle }`, más nuevas primero, según el rol de quien
+pregunta (reseñas de sus clientes para el técnico; las de los técnicos para el dueño). Sin datos personales del autor (a lo sumo el primer nombre).
+
+### 5.19 Z — Otras certificaciones del técnico (nuevo, 19-nov)
+En "Professional profile" el técnico podrá cargar certificaciones además de ASE: de fabricante (Audi direct), de la industria (AATI) u otras.
+
+**Pedido:** `GET|POST /api/mechanic-certifications` y `PATCH|DELETE /api/mechanic-certifications/:id` (solo el técnico dueño; otro → 403).
+Campos: `type` (`manufacturer|industry|other`), `name` (el tipo de certificación, en los tres tipos: ej. "Direct certified", "Master technician", "Training course"), `issuer` (quién la emitió: la marca si `type` es `manufacturer`, la organización si es `industry` — **obligatoria** en esos dos; opcional en `other`), `credentialId?`, `expiresAt?`, archivo opcional (`fileKey`, `fileUrl`,
+`originalName`, `mimeType`, `sizeBytes`, subido con `/api/documents/upload`), y de solo lectura `status` (`pending|verified|declined`),
+`declineReason`, `reviewedAt`.
+
+**Verificación:** nace `pending`; el Hub la revisa y la pasa a `verified` o `declined` con motivo; editar nombre, número o archivo la devuelve a
+`pending`. **Vencimiento:** aviso push 30 días antes. **Visibilidad:** el dueño ve en la oferta solo las verificadas.
+
+**Decisiones de producto pendientes:** si una certificación sin archivo puede quedar verificada; si cuenta para el matching (priorizar la
+certificación de la marca del vehículo); y qué lista de fabricantes sugerir al elegir el tipo.
+
 ## 6. Orden de entrega sugerido
 1. **B, C, D, E** — verificaciones (rápidas, desbloquean pruebas de la app).
 2. **A** — endpoints, estados, eventos, flag (§3.4–3.8) y despliegue **antes** que la app nueva.

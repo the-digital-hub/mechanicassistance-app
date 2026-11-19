@@ -1,4 +1,95 @@
 {
+  "certifications": {
+    "badge": "PERFIL PROFESIONAL",
+    "title": "Otras certificaciones",
+    "subtitle": "Capacitaciones y certificaciones de marca que tenés además de ASE.",
+    "add": "Agregar certificación",
+    "addTitle": "Agregar certificación",
+    "editTitle": "Editar certificación",
+    "type": "Tipo",
+    "types": {
+      "manufacturer": "Fabricante",
+      "industry": "Industria",
+      "other": "Otra"
+    },
+    "name": "Nombre",
+    "namePlaceholder": {
+      "manufacturer": "Ej.: Certificado directo",
+      "industry": "Ej.: Técnico master",
+      "other": "Ej.: Curso de capacitación"
+    },
+    "credentialId": "Número (opcional)",
+    "expires": "Vence (opcional)",
+    "optionalHint": "Elegí el mes y año en que vence, o dejalo vacío si no vence.",
+    "attach": "Adjuntar el certificado",
+    "attachHint": "Foto o PDF · nos ayuda a verificarlo",
+    "attached": "Certificado adjunto",
+    "attachChange": "Tocá para cambiarlo",
+    "fileTooLarge": "El archivo es muy grande. Usá uno de menos de 10 MB.",
+    "fileFailed": "No pudimos subir el archivo. Probá de nuevo.",
+    "save": "Guardar certificación",
+    "saving": "Guardando…",
+    "saveFailed": "No pudimos guardarla. Probá de nuevo en un momento.",
+    "status": {
+      "pending": "En revisión",
+      "verified": "Verificada",
+      "declined": "Rechazada"
+    },
+    "validUntil": "Vence {{date}}",
+    "expired": "Venció {{date}}",
+    "emptyTitle": "Todavía no tenés certificaciones",
+    "emptyBody": "Sumá las que tengas, como una certificación de marca, para que los clientes confíen más.",
+    "loadFailed": "No pudimos cargar tus certificaciones. Probá más tarde.",
+    "removeTitle": "¿Quitar esta certificación?",
+    "removeBody": "Va a desaparecer de tu perfil.",
+    "remove": "Quitar",
+    "cancel": "Cancelar",
+    "kind": "Tipo de certificación",
+    "issuerLabel": {
+      "manufacturer": "Fabricante",
+      "industry": "Organización",
+      "other": "Emitida por (opcional)"
+    },
+    "issuerPlaceholder": {
+      "manufacturer": "Ej.: Audi",
+      "industry": "Ej.: AATI",
+      "other": "Ej.: una escuela o centro de capacitación"
+    },
+    "issuerPicks": {
+      "industry": [
+        "AATI",
+        "I-CAR",
+        "EPA 609"
+      ],
+      "other": [
+        "Escuela técnica",
+        "Centro de capacitación",
+        "Empleador"
+      ]
+    },
+    "kindPicks": {
+      "manufacturer": [
+        "Certificado directo",
+        "Técnico master",
+        "Capacitado por la marca",
+        "Especialista en eléctricos / híbridos"
+      ],
+      "industry": [
+        "Técnico",
+        "Técnico master",
+        "Especialista",
+        "Diagnóstico avanzado"
+      ],
+      "other": [
+        "Curso de capacitación",
+        "Diploma",
+        "Licencia de especialidad",
+        "Seguridad / cumplimiento"
+      ]
+    },
+    "expiresPlaceholder": "Sin vencimiento",
+    "noExpiry": "Sin vencimiento"
+  },
   "profile": {
     "badge": "MI PERFIL",
     "title": "Tu cuenta, tus preferencias",
@@ -21,7 +112,7 @@
       "personalInfo": "Información personal",
       "addresses": "Mis Direcciones",
       "vehicles": "Mis Vehículos",
-      "ase": "Certificaciones ASE",
+      "ase": "Certificaciones ASE",      "otherCertifications": "Otras certificaciones",
       "payments": "Ganancias y pagos",
       "promotions": "Promociones",
       "help": "Centro de ayuda",
@@ -37,6 +128,13 @@
       "addressesOne": "Mi Dirección",
       "vehiclesOne": "Mi Vehículo",
       "savedAddressesOne": "Dirección guardada"
+    },
+    "reviews": {
+      "titleMechanic": "Lo que dicen los clientes",
+      "titleOwner": "Lo que dicen los técnicos",
+      "empty": "Todavía no hay calificaciones.",
+      "noComment": "Sin comentario.",
+      "loading": "Cargando comentario…"
     },
     "language": {
       "heading": "Seleccionar idioma",
@@ -1549,6 +1647,8 @@
       "customerPaid": "El cliente pagó",
       "platformFee": "Comisiones e impuestos",
       "youEarn": "Tú recibes",
+      "extendedTime": "Tiempo extendido",
+      "totalEarned": "Total ganado",
       "feeNote": "Las comisiones y los impuestos se muestran como un solo monto.",
       "status": "Estado del pago",
       "statusValue": {
@@ -2213,6 +2313,7 @@
         "vinTitle": "Empezá con tu VIN",
         "vinDescription": "Lo usamos para completar por vos la marca, el modelo, el año y los datos de fábrica.",
         "vinPlaceholder": "1HGCM82633A004352",
+        "scanVin": "Escanear el código de barras del VIN",
         "vinManual": "¿Preferís cargarlo vos? Editá cualquier campo.",
         "vinFound": "✓ Vehículo encontrado · completamos los datos de abajo",
         "identityLocked": "El VIN, la marca y el modelo no se pueden cambiar. Si es otro auto, agregalo como vehículo nuevo.",

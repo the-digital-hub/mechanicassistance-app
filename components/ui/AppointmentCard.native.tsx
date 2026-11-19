@@ -414,7 +414,8 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
             </View>
 
             {/* Amount + action */}
-            <View className="flex-row mt-3" style={{ gap: 10 }}>
+            {/* A finished job puts the button (View receipt) on the left and the amount on the right. */}
+            <View className="mt-3" style={{ flexDirection: isPast && !isCanceled ? 'row-reverse' : 'row', gap: 10 }}>
                 {/* Outer view carries the width (50/50 on every card); the padded box fills it, so padding can't skew the split. */}
                 <View style={{ flex: 1 }}>
                     <View
