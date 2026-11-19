@@ -271,8 +271,8 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
     // A finished or cancelled job leads with its date; an active one leads with the vehicle.
     const dateRow = { icon: Calendar, label: t(isPast ? 'appointments.list.card.rows.date' : 'appointments.list.card.rows.when'), value: whenLabel };
     // A finished call that had time added: say how much, right after its duration.
-    const extraMinutes = useCallExtraMinutes(appointment.id, isVideoCall && state === 'completed' && appointment.source === 'appointment');
-    const hasTranscript = useHasTranscript(appointment.id, isMechanic ? 'mechanic' : 'owner', isVideoCall && state === 'completed' && appointment.source === 'appointment');
+    const extraMinutes = useCallExtraMinutes(appointment.id, isVideoCall && state === 'completed' && appointment.source === 'appointment', appointment.extendedMinutes);
+    const hasTranscript = useHasTranscript(appointment.id, isMechanic ? 'mechanic' : 'owner', isVideoCall && state === 'completed' && appointment.source === 'appointment', appointment.hasTranscript);
     const rows = [
         ...(isPast ? [dateRow] : []),
         // A video call: how long it lasts, before the vehicle.

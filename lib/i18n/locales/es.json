@@ -133,7 +133,10 @@
       "titleOwner": "Lo que dicen los técnicos",
       "empty": "Todavía no hay calificaciones.",
       "noComment": "Sin comentario.",
-      "loading": "Cargando comentario…"
+      "loading": "Cargando comentario…",
+      "failed": "No pudimos cargar las calificaciones. Probá más tarde.",
+      "failedCode": "Error {{status}}",
+      "more": "Ver más"
     },
     "language": {
       "heading": "Seleccionar idioma",

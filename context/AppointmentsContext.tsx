@@ -100,6 +100,11 @@ export interface Appointment {
     reviewRating?: number | null;
     /** Stars (1–5) the mechanic gave the customer for this job; null until rated. List rows only. */
     clientRating?: number | null;
+    /** Video calls: the call has a transcript on the server. Absent on an older backend. */
+    hasTranscript?: boolean;
+    transcriptLines?: number;
+    /** Video calls: minutes bought on top of the chosen length (`contractedMinutes - baseMinutes`). Absent on an older backend. */
+    extendedMinutes?: number;
     isStatusUpdated?: boolean;
     currentStatus?: string;
     userId?: string;

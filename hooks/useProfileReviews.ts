@@ -1,6 +1,6 @@
-import type { Appointment } from '@/context/AppointmentsContext';
-import { reviewDAO } from '@/lib/dao/ReviewDAO';
-import { useEffect, useMemo, useState } from 'react';
+import { ApiError } from '@/lib/api/types';
+import { reviewDAO, type MyReview } from '@/lib/dao/ReviewDAO';
+import { useCallback, useEffect, useState } from 'react';
 
 export interface ProfileReview {
     id: string;
@@ -13,86 +13,62 @@ export interface ProfileReview {
     car?: string;
 }
 
-const MAX_REVIEWS = 30;
+const PAGE_SIZE = 20;
 
-/** Comments already read, by appointment id; the list re-renders on every focus. */
-const textCache = new Map<string, { text?: string; tags: string[] }>();
-
-const stars = (v: unknown) => {
-    const n = Number(v);
-    return Number.isFinite(n) && n > 0 ? n : 0;
-};
+const toReview = (r: MyReview): ProfileReview => ({
+    id: r.id,
+    rating: Number(r.rating),
+    text: r.review?.trim() || undefined,
+    tags: r.experienceTags ?? [],
+    date: r.createdAt,
+    title: r.serviceTitle ?? undefined,
+    car: r.vehicle ?? undefined,
+});
 
 /**
- * The ratings behind the stars of a profile, newest first, each with the date and (when it was written) the comment.
- * - technician: what customers wrote about them. The list only carries the stars (`reviewRating`), so each comment is
- *   read from the job's review (`GET /appointments/:id/review`);
- * - vehicle owner: what technicians wrote about them, from the job's `clientReview`.
- * There is no endpoint listing a person's reviews, so this is built from their finished jobs (see backlog Y).
+ * The ratings behind the stars of a profile, newest first, each with its date and comment: read from the server
+ * (`GET /reviews/me`, a page at a time) the first time `enabled` turns true. A technician sees what their customers
+ * wrote, anyone else what technicians wrote about them.
  */
-export function useProfileReviews(isTechnician: boolean, appointments: Appointment[], enabled: boolean) {
-    const base = useMemo<ProfileReview[]>(() => {
-        if (!enabled) return [];
-        return appointments
-            .map((a): ProfileReview | null => {
-                const rating = isTechnician ? stars(a.reviewRating) : stars(a.clientReview?.rating ?? a.clientRating);
-                if (!rating) return null;
-                return {
-                    id: a.id,
-                    rating,
-                    text: isTechnician ? undefined : a.clientReview?.review?.trim() || undefined,
-                    tags: isTechnician ? [] : a.clientReview?.experienceTags ?? [],
-                    date: a.completedAt ?? a.updatedAt ?? a.date,
-                    title: a.title,
-                    car: a.car,
-                };
-            })
-            .filter((r): r is ProfileReview => r !== null)
-            .sort((x, y) => (y.date ?? '').localeCompare(x.date ?? ''))
-            .slice(0, MAX_REVIEWS);
-    }, [appointments, isTechnician, enabled]);
-
-    const [read, setRead] = useState<Record<string, { text?: string; tags: string[] }>>({});
+export function useProfileReviews(enabled: boolean) {
+    const [items, setItems] = useState<ProfileReview[]>([]);
+    const [total, setTotal] = useState(0);
+    const [average, setAverage] = useState<number | null>(null);
+    const [count, setCount] = useState<number | null>(null);
     const [loading, setLoading] = useState(false);
+    const [failed, setFailed] = useState(false);
+    /** The HTTP status when the server answered with an error (for support), else null. */
+    const [failedStatus, setFailedStatus] = useState<number | null>(null);
+    const [page, setPage] = useState(0);
 
-    useEffect(() => {
-        if (!enabled || !isTechnician || base.length === 0) return;
-        let alive = true;
-        const missing = base.filter((r) => !textCache.has(r.id));
-        const seed: Record<string, { text?: string; tags: string[] }> = {};
-        base.forEach((r) => { const c = textCache.get(r.id); if (c) seed[r.id] = c; });
-        setRead(seed);
-        if (missing.length === 0) return;
+    const load = useCallback((next: number) => {
         setLoading(true);
-        Promise.all(
-            missing.map((r) =>
-                reviewDAO
-                    .get(r.id)
-                    .then((rev) => {
-                        const entry = {
-                            text: rev?.review?.trim() || undefined,
-                            tags: rev?.experienceTags ? rev.experienceTags.split(',').map((x) => x.trim()).filter(Boolean) : [],
-                        };
-                        textCache.set(r.id, entry);
-                        return [r.id, entry] as const;
-                    })
-                    .catch(() => null),
-            ),
-        ).then((rows) => {
-            if (!alive) return;
-            setRead((prev) => {
-                const next = { ...prev };
-                rows.forEach((row) => { if (row) next[row[0]] = row[1]; });
-                return next;
-            });
-            setLoading(false);
-        });
-        return () => { alive = false; };
-    }, [base, enabled, isTechnician]);
+        setFailed(false);
+        setFailedStatus(null);
+        reviewDAO
+            .mine(next, PAGE_SIZE)
+            .then((r) => {
+                setItems((prev) => (next === 1 ? r.items.map(toReview) : [...prev, ...r.items.map(toReview)]));
+                setTotal(r.total);
+                setAverage(r.average ?? null);
+                setCount(r.count ?? r.total);
+                setPage(next);
+            })
+            .catch((err) => {
+                setFailed(true);
+                setFailedStatus(err instanceof ApiError ? err.statusCode : null);
+            })
+            .finally(() => setLoading(false));
+    }, []);
 
-    const items = useMemo(
-        () => base.map((r) => (read[r.id] ? { ...r, text: read[r.id].text ?? r.text, tags: read[r.id].tags.length ? read[r.id].tags : r.tags } : r)),
-        [base, read],
-    );
-    return { items, loading };
+    // Every time the sheet opens the first page is read again: a rating may have arrived since.
+    useEffect(() => {
+        if (enabled) load(1);
+    }, [enabled, load]);
+
+    const loadMore = useCallback(() => {
+        if (!loading) load(page + 1);
+    }, [loading, load, page]);
+
+    return { items, total, average, count, loading, failed, failedStatus, hasMore: items.length < total, loadMore };
 }

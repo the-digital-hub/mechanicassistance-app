@@ -13,7 +13,7 @@ import { SHEET } from '@/lib/ui/sheet';
 const K = 'profile.reviews';
 
 /** Ratings behind the profile's stars: when, how many stars and what was written. */
-export function ReviewsSheet({ visible, onClose, isTechnician, average, count, items, loading }: {
+export function ReviewsSheet({ visible, onClose, isTechnician, average, count, items, loading, failed, failedStatus, hasMore, onLoadMore }: {
     visible: boolean;
     onClose: () => void;
     isTechnician: boolean;
@@ -21,6 +21,10 @@ export function ReviewsSheet({ visible, onClose, isTechnician, average, count, i
     count: number;
     items: ProfileReview[];
     loading: boolean;
+    failed?: boolean;
+    failedStatus?: number | null;
+    hasMore?: boolean;
+    onLoadMore?: () => void;
 }) {
     const { t, i18n } = useTranslation();
     const dateLabel = (iso?: string) => {
@@ -52,7 +56,14 @@ export function ReviewsSheet({ visible, onClose, isTechnician, average, count, i
 
                 <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 36, gap: 12 }}>
                     {items.length === 0 ? (
-                        <Text className="font-outfit-medium" style={{ fontSize: 16, color: AO.muted, textAlign: 'center', paddingVertical: 24 }}>{t(`${K}.empty`)}</Text>
+                        loading ? (
+                            <ActivityIndicator color={AO.blue} style={{ paddingVertical: 24 }} />
+                        ) : (
+                            <View style={{ paddingVertical: 24, gap: 4 }}>
+                                <Text className="font-outfit-medium" style={{ fontSize: 16, color: AO.muted, textAlign: 'center' }}>{t(failed ? `${K}.failed` : `${K}.empty`)}</Text>
+                                {failed && failedStatus ? <Text className="font-outfit-regular" style={{ fontSize: 13, color: AO.mutedLight, textAlign: 'center' }}>{t(`${K}.failedCode`, { status: failedStatus })}</Text> : null}
+                            </View>
+                        )
                     ) : (
                         items.map((r) => (
                             <View key={r.id} style={{ borderRadius: 16, borderWidth: 1, borderColor: AO.borderSoft, backgroundColor: '#FFFFFF', padding: 14, gap: 8 }} testID="review-item">
@@ -63,7 +74,7 @@ export function ReviewsSheet({ visible, onClose, isTechnician, average, count, i
                                 {r.text ? (
                                     <Text className="font-outfit-regular" style={{ fontSize: 16, lineHeight: 22, color: AO.text }}>{r.text}</Text>
                                 ) : (
-                                    <Text className="font-outfit-regular" style={{ fontSize: 15, color: AO.mutedLight, fontStyle: 'italic' }}>{loading && isTechnician ? t(`${K}.loading`) : t(`${K}.noComment`)}</Text>
+                                    <Text className="font-outfit-regular" style={{ fontSize: 15, color: AO.mutedLight, fontStyle: 'italic' }}>{t(`${K}.noComment`)}</Text>
                                 )}
                                 {r.tags.length > 0 ? (
                                     <View className="flex-row flex-wrap" style={{ gap: 6 }}>
@@ -80,7 +91,11 @@ export function ReviewsSheet({ visible, onClose, isTechnician, average, count, i
                             </View>
                         ))
                     )}
-                    {loading && items.length > 0 ? <ActivityIndicator color={AO.blue} /> : null}
+                    {items.length > 0 && hasMore ? (
+                        <TouchableOpacity onPress={onLoadMore} disabled={loading} activeOpacity={0.85} accessibilityRole="button" className="items-center justify-center" style={{ height: 48, borderRadius: 14, backgroundColor: AO.blueSoft }} testID="reviews-more">
+                            {loading ? <ActivityIndicator color={AO.blue} /> : <Text className="font-outfit-bold" style={{ fontSize: 16, color: AO.blue }}>{t(`${K}.more`)}</Text>}
+                        </TouchableOpacity>
+                    ) : null}
                 </ScrollView>
             </View>
         </Modal>

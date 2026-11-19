@@ -29,6 +29,7 @@ import { useUser } from '@/context/UserContext';
 import { useDailyCall } from '@/lib/video/useDailyCall';
 import { addTranscriptLine } from '@/lib/video/transcriptStore';
 import { recordConsent } from '@/lib/video/consent';
+import { syncTranscript } from '@/lib/video/transcriptSync';
 import { goBackOr } from '@/lib/navigation/goBackOr';
 import { videoCallDAO } from '@/lib/dao/VideoCallDAO';
 import { contractedSeconds } from '@/lib/video/callLength';
@@ -214,6 +215,16 @@ export default function VideoCallScreen() {
   // heard by both; the other phone is told when they begin.
   const [captionsOpen, setCaptionsOpen] = useState(false);
   const [captionLanguage, setCaptionLanguage] = useState<CaptionLanguage>(() => defaultCaptionLanguage(i18n.language));
+  // However the call ends (hang up, timer, screen closed) this phone's transcript goes to the server.
+  const captionLanguageRef = useRef(captionLanguage);
+  captionLanguageRef.current = captionLanguage;
+  useEffect(
+    () => () => {
+      if (appointmentId) void syncTranscript(appointmentId, myRole, captionLanguageRef.current);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [appointmentId, myRole],
+  );
   const applyCaptions = () => {
     setCaptionsOpen(false);
     iStartedCaptions.current = true;

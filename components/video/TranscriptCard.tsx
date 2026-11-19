@@ -44,26 +44,37 @@ const availability = new Map<string, boolean>();
 
 /**
  * True when the call has a saved transcript (the server's, else the copy this phone kept). Used by the list card to
- * decide whether to show the "Call transcript" row at all. `false` while unknown, and for any failure.
+ * decide whether to show the "Call transcript" row at all. `known` is the list row's own `hasTranscript`, so a backend
+ * that sends it needs no request per card. `false` while unknown, and for any failure.
  */
-export function useHasTranscript(appointmentId: string, role: 'owner' | 'mechanic', enabled: boolean): boolean {
-    const [has, setHas] = React.useState(() => availability.get(appointmentId) ?? false);
+export function useHasTranscript(appointmentId: string, role: 'owner' | 'mechanic', enabled: boolean, known?: boolean): boolean {
+    const [has, setHas] = React.useState(() => availability.get(appointmentId) ?? known === true);
     React.useEffect(() => {
         if (!enabled) return;
-        const known = availability.get(appointmentId);
-        if (known !== undefined) {
-            setHas(known);
+        // The list row says the server has one: nothing to ask.
+        if (known === true) {
+            setHas(true);
+            return;
+        }
+        const cached = availability.get(appointmentId);
+        if (cached !== undefined) {
+            setHas(cached);
             return;
         }
         let alive = true;
-        loadTranscript(appointmentId, role)
-            .then((r) => {
-                availability.set(appointmentId, r.lines.length > 0);
-                if (alive) setHas(r.lines.length > 0);
+        // The server says there is none (or an older backend says nothing): this phone may still hold its own copy,
+        // and only an older backend is asked for the server's.
+        const lookup = known === false
+            ? getLocalTranscript(appointmentId).then((lines) => lines.length > 0)
+            : loadTranscript(appointmentId, role).then((r) => r.lines.length > 0);
+        lookup
+            .then((found) => {
+                availability.set(appointmentId, found);
+                if (alive) setHas(found);
             })
             .catch(() => undefined);
         return () => { alive = false; };
-    }, [appointmentId, role, enabled]);
+    }, [appointmentId, role, enabled, known]);
     return has;
 }
 

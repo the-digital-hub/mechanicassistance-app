@@ -109,7 +109,7 @@ export function useDailyCall(options?: { onTranscriptLine?: (line: TranscriptLin
       const id = `${e?.participantId ?? ''}:${String(e?.timestamp ?? Date.now())}`;
       setCaption({ id, text, mine });
       const speaker = Object.values(everyone).find((p) => p.session_id === e?.participantId);
-      onLineRef.current?.({ id, speaker: mine ? 'me' : 'other', name: speaker?.user_name ?? '', text, at: Date.now() });
+      onLineRef.current?.({ id, speaker: mine ? 'me' : 'other', name: speaker?.user_name ?? '', text, at: Date.now(), speakerId: speaker?.user_id });
     });
     call.on('network-quality-change', (e: { networkState?: NetworkState }) => setNetworkState(e?.networkState ?? 'unknown'));
     call.on('error', (e: any) => {

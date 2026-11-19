@@ -79,7 +79,7 @@ export default function ProfileScreen() {
   const profileRating = isTechnician ? ratingStats : ownerRating;
   // Tapping the stars opens the ratings behind them, with dates and comments.
   const [reviewsOpen, setReviewsOpen] = useState(false);
-  const profileReviews = useProfileReviews(isTechnician, appointments, reviewsOpen);
+  const profileReviews = useProfileReviews(reviewsOpen);
 
   const currentRole: AppRole = user?.role === 'mechanic' ? 'mechanic' : 'user';
   const roleName = (role: AddableRole) => t(`profile.switchRole.roles.${role}.label`);
@@ -516,10 +516,15 @@ export default function ProfileScreen() {
         visible={reviewsOpen}
         onClose={() => setReviewsOpen(false)}
         isTechnician={isTechnician}
-        average={profileRating?.avgRating != null && Number.isFinite(Number(profileRating.avgRating)) ? Number(profileRating.avgRating) : null}
-        count={profileRating?.ratingCount ?? 0}
+        // The server's own average and count once they are known; the profile's until then.
+        average={profileReviews.average ?? (profileRating?.avgRating != null && Number.isFinite(Number(profileRating.avgRating)) ? Number(profileRating.avgRating) : null)}
+        count={profileReviews.count ?? profileRating?.ratingCount ?? 0}
         items={profileReviews.items}
         loading={profileReviews.loading}
+        failed={profileReviews.failed}
+        failedStatus={profileReviews.failedStatus}
+        hasMore={profileReviews.hasMore}
+        onLoadMore={profileReviews.loadMore}
       />
 
       {/* Logout Confirmation Modal */}

@@ -9,6 +9,8 @@ export interface TranscriptLine {
     text: string;
     /** When it was said, epoch ms on this phone. */
     at: number;
+    /** Daily's `user_id` of whoever spoke: the server decides owner or technician by it. */
+    speakerId?: string;
 }
 
 const key = (appointmentId: string) => `video-transcript:${appointmentId}`;

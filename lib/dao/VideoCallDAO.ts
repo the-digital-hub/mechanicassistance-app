@@ -218,6 +218,28 @@ export class VideoCallDAO {
         }
     }
 
+    /**
+     * Sends what this phone heard (`PUT …/video/transcript`). The server keeps one line per `id` (the other phone may
+     * send the same ones) and decides who spoke from `speakerId`; `role` is only its fallback. Answers `stored`, or
+     * `consent_required` (409) with what is still missing, in which case nothing was saved.
+     */
+    async putTranscript(
+        appointmentId: string,
+        body: { language: string; lines: { id: string; speakerId?: string; role: 'owner' | 'mechanic'; name: string; text: string; at: string }[] },
+    ): Promise<{ status: 'stored' } | { status: 'consent_required'; missing: string[] }> {
+        try {
+            await apiClient.put(`/api/appointments/${appointmentId}/video/transcript`, body);
+            return { status: 'stored' };
+        } catch (err) {
+            if (err instanceof ApiError && err.statusCode === 409) {
+                const payload = err.apiError as { missing?: unknown; details?: { missing?: unknown } } | null;
+                const missing = payload?.missing ?? payload?.details?.missing;
+                return { status: 'consent_required', missing: Array.isArray(missing) ? missing.map(String) : [] };
+            }
+            throw err;
+        }
+    }
+
     /** Extra time of the call; the owner also gets the blocks on sale with their prices. */
     getExtensions(appointmentId: string): Promise<VideoExtensions> {
         return apiClient.get(`/api/appointments/${appointmentId}/video/extensions`);

@@ -8,12 +8,15 @@ const cache = new Map<string, number>();
  * How many minutes were added to a video call on top of the one chosen (`contractedMinutes - baseMinutes`),
  * for the list card of a finished call. 0 while unknown or when nothing was added; never throws, so a card
  * simply shows no extra-time row if the lookup fails.
+ *
+ * `known` is what the list row already says (`extendedMinutes`): when the backend sends it there is nothing to ask;
+ * the per-call lookup is only for an older backend.
  */
-export function useCallExtraMinutes(appointmentId: string, enabled: boolean): number {
+export function useCallExtraMinutes(appointmentId: string, enabled: boolean, known?: number): number {
     const [minutes, setMinutes] = useState(() => cache.get(appointmentId) ?? 0);
 
     useEffect(() => {
-        if (!enabled) return;
+        if (!enabled || typeof known === 'number') return;
         const cached = cache.get(appointmentId);
         if (cached !== undefined) {
             setMinutes(cached);
@@ -31,7 +34,7 @@ export function useCallExtraMinutes(appointmentId: string, enabled: boolean): nu
         return () => {
             alive = false;
         };
-    }, [appointmentId, enabled]);
+    }, [appointmentId, enabled, known]);
 
-    return minutes;
+    return typeof known === 'number' ? Math.max(0, known) : minutes;
 }

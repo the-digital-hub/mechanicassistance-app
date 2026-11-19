@@ -133,7 +133,10 @@
       "titleOwner": "What technicians say",
       "empty": "No ratings yet.",
       "noComment": "No comment.",
-      "loading": "Loading comment…"
+      "loading": "Loading comment…",
+      "failed": "We couldn't load the ratings. Try again later.",
+      "failedCode": "Error {{status}}",
+      "more": "Show more"
     },
     "language": {
       "heading": "Select Language",
