@@ -705,7 +705,18 @@ export default function AppointmentDetailScreen() {
                 return <ClientInfoPanel client={panelClient} />;
             case 'budget':
                 // `budget` already comes back as what the mechanic earns, never the customer's price.
-                return <OwnerBudgetPanel total={(appointment.budget ?? '').replace(/^\$/, '') || null} totalLabel={t('appointments.receipt.youEarn')} video extendedMinutes={videoAddedMinutes} extendedAmount={extendedEarnings} />;
+                // With extra time the call's own pay, the extension and the total are told apart; without it, one row.
+                return extendedEarnings !== null && callPayout !== null ? (
+                    <OwnerBudgetPanel
+                        total={callPayout.toFixed(2)}
+                        video
+                        extendedMinutes={videoAddedMinutes}
+                        extendedAmount={extendedEarnings}
+                        grandTotal={budgetNumber.toFixed(2)}
+                    />
+                ) : (
+                    <OwnerBudgetPanel total={(appointment.budget ?? '').replace(/^\$/, '') || null} totalLabel={t('appointments.receipt.youEarn')} video extendedMinutes={videoAddedMinutes} extendedAmount={extendedEarnings} />
+                );
             default:
                 return null;
         }

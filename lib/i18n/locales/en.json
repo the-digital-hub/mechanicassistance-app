@@ -218,9 +218,9 @@
       },
       "sheet": {
         "title": "Request assistance",
-        "immediate": "A nearby technician dispatched right away",
-        "scheduled": "Get quotes for the date you pick",
-        "videoCall": "Talk a technician through it from your phone",
+        "immediate": "A nearby technician dispatched right away.",
+        "scheduled": "Get quotes for the date and time you pick.",
+        "videoCall": "Solve it with a technician via video call.",
         "subtitle": "How do you want to be helped?"
       },
       "activeRequestTitle_other": "Your active requests!"
@@ -394,11 +394,12 @@
     },
     "selectVehicle": {
       "badge": "SELECT YOUR VEHICLE",
-      "title": "Your available vehicles",
-      "subtitle": "Which vehicle needs assistance?",
+      "title": "Select the vehicle for the repair",
+      "subtitle": "Your available vehicles. Which one needs assistance?",
       "noVehicles": "No vehicles found. Please add one.",
       "noPlate": "NO PLATE",
       "addVehicle": "Add a vehicle",
+      "seeAll": "See all vehicles",
       "plate": "PLATE"
     },
     "vehicleDetails": {
@@ -881,8 +882,10 @@
           "rating": "Rating",
           "ratingFromCustomer": "Customer's rating of the technician",
           "ratingFromMechanic": "Technician's rating of the customer",
-          "duration": "Video call duration"
+          "duration": "Video call duration",
+          "extendedTime": "Extended time"
         },
+        "extendedTimeValue": "+{{count}} min added",
         "notRated": "Not rated yet",
         "notAvailable": "—",
         "distanceApprox": "{{miles}} mi",
@@ -1563,6 +1566,7 @@
         "payment": "Payment",
         "paidWith": "Paid with",
         "charged": "Charged",
+        "totalCharged": "Total charged",
         "refunded": "Refunded",
         "status": "Payment status",
         "methodWallet": "Wallet",
@@ -1654,6 +1658,7 @@
         "reputation": "Reputation",
         "duration": "Duration",
         "extendedTime": "Extended time",
+        "extendedTimeMinutes": "Extended time ({{minutes}} min)",
         "total": "Total"
       },
       "about": "ABOUT {{name}}",
@@ -2120,7 +2125,7 @@
     "noVehicles": "No vehicles registered",
     "addFirstVehicle": "Add First Vehicle",
     "noPlate": "No Plate",
-    "addVehicles": "Add Vehicles",
+    "addVehicles": "Add Vehicle",
     "invalidVinTitle": "Invalid VIN",
     "invalidVinMessage": "A VIN must be exactly 17 characters.",
     "vinDecodedTitle": "VIN Decoded",
@@ -3288,14 +3293,15 @@
     "startOver": "Start over",
     "vehicle": {
       "eyebrow": "STEP 1 · VEHICLE",
-      "title": "Which vehicle?",
-      "sub": "Choose the vehicle that needs the service.",
+      "title": "Select the vehicle for the repair",
+      "sub": "Your available vehicles. Which one needs assistance?",
       "mileageLabel": "CURRENT MILEAGE (MI)",
       "mileagePlaceholder": "e.g. 42,180",
       "mileageHint": "Helps the technician recommend the right services.",
       "noVehicles": "You have no vehicles yet",
       "noVehiclesSub": "Add the vehicle that needs the service.",
       "addVehicle": "Add a vehicle",
+      "seeAll": "See all vehicles",
       "addAnother": "Add another vehicle",
       "plate": "PLATE"
     },

@@ -37,15 +37,15 @@ export function AcceptedHeader({ title, icon = 'checkmark', color = AO.green }: 
 }
 
 /**
- * The chat button of the technician / client cards. Greyed when the chat cannot take messages: `closed` (the job ended)
- * still opens, read-only, so the history stays reachable; `unavailable` (nobody accepted yet) does nothing.
+ * The chat button of the technician / client cards. Greyed means blocked: when the situation does not call for a
+ * chat (the job ended, or nobody accepted yet) the button does nothing and the chat cannot be entered.
  */
 function ChatButton({ onPress, availability, label, testID }: { onPress: () => void; availability: ChatAvailability; label: string; testID: string }) {
     const off = availability !== 'open';
     return (
         <TouchableOpacity
             onPress={onPress}
-            disabled={availability === 'unavailable'}
+            disabled={off}
             accessibilityLabel={label}
             accessibilityState={{ disabled: off }}
             style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: off ? '#F1F3F8' : AO.blueSoft, alignItems: 'center', justifyContent: 'center' }}
@@ -331,18 +331,51 @@ export function OwnerBudgetPanel({ total, payment, totalLabel, video, extendedMi
     grandTotal?: string | null;
 }) {
     const { t } = useTranslation();
-    const rows: (SummaryRow | null)[] = [
+    // What adds up (service, extra time) comes first; the total closes it under a line; how it is paid is last.
+    const lines: (SummaryRow | null)[] = [
         { icon: 'cash-outline', label: totalLabel ?? t(`${K}.rows.serviceValue`), value: total ? `$${total}` : '—', strong: true },
-        // The extra time, with what it cost, comes before how it is paid.
         video
             ? extendedMinutes > 0
-                ? { icon: 'time-outline', label: t(`${K}.rows.extendedTime`), value: extendedAmount ? t(`${K}.extendedTimeValueAmount`, { minutes: extendedMinutes, amount: extendedAmount }) : t(`${K}.extendedTimeValue`, { minutes: extendedMinutes }) }
+                ? {
+                      icon: 'time-outline',
+                      // The minutes sit next to the name; the value is what they cost.
+                      label: t(`${K}.rows.extendedTimeMinutes`, { minutes: extendedMinutes }),
+                      value: extendedAmount ? `+$${extendedAmount}` : t(`${K}.extendedTimeValue`, { minutes: extendedMinutes }),
+                  }
                 : null
             : { icon: 'document-text-outline', label: t(`${K}.rows.additionalParts`), value: t(`${K}.partsOnlyWithApproval`) },
-        payment !== undefined ? { icon: 'card-outline', label: t(`${K}.rows.payment`), value: payment } : null,
-        grandTotal ? { icon: 'receipt-outline', label: t(`${K}.rows.total`), value: `$${grandTotal}`, strong: true } : null,
     ];
-    return <RequestSummaryRows rows={rows.filter((r): r is SummaryRow => r !== null)} />;
+    const paymentRow: SummaryRow | null = payment !== undefined ? { icon: 'card-outline', label: t(`${K}.rows.payment`), value: payment } : null;
+    const shown = lines.filter((r): r is SummaryRow => r !== null);
+    if (!grandTotal) {
+        return <RequestSummaryRows rows={paymentRow ? [...shown, paymentRow] : shown} />;
+    }
+    return (
+        <View style={[card, { overflow: 'hidden' }]} testID="owner-budget-total-card">
+            {shown.map((r) => (
+                <View key={r.label} className="flex-row items-center" style={{ gap: 12, paddingHorizontal: 14, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: AO.borderSoft }}>
+                    <Ionicons name={r.icon} size={18} color={AO.muted} />
+                    <Text className="font-outfit-medium flex-1" style={{ fontSize: 15, color: AO.muted }}>{r.label}</Text>
+                    <Text className="font-outfit-bold" style={{ fontSize: 15, color: AO.text }}>{r.value}</Text>
+                </View>
+            ))}
+            {/* The total: set apart by a line and a tinted band, bigger than the rows above it. */}
+            <View
+                className="flex-row items-center"
+                style={{ gap: 12, paddingHorizontal: 14, paddingVertical: 14, backgroundColor: AO.blueSoft, borderTopWidth: 2, borderTopColor: AO.blue }}
+            >
+                <Text className="font-outfit-bold flex-1" style={{ fontSize: 17, color: AO.text }}>{t(`${K}.rows.total`)}</Text>
+                <Text className="font-outfit-bold" style={{ fontSize: 22, color: AO.blue, letterSpacing: -0.4 }}>{`$${grandTotal}`}</Text>
+            </View>
+            {paymentRow ? (
+                <View className="flex-row items-center" style={{ gap: 12, paddingHorizontal: 14, paddingVertical: 12 }}>
+                    <Ionicons name={paymentRow.icon} size={18} color={AO.muted} />
+                    <Text className="font-outfit-medium" style={{ fontSize: 15, color: AO.muted }}>{paymentRow.label}</Text>
+                    <View style={{ flex: 1, alignItems: 'flex-end' }}>{paymentRow.value}</View>
+                </View>
+            ) : null}
+        </View>
+    );
 }
 
 type Client = AssistanceClientSummary['client'];

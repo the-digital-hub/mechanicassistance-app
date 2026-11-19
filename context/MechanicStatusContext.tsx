@@ -29,24 +29,27 @@ export function MechanicStatusProvider({ children }: { children: React.ReactNode
   const { lastMessage } = useSocket();
   const [mechanicStatus, setStatus] = useState<MechanicStatus>('offline');
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const inFlightRef = useRef(false);
 
   // Seed from the account. This used to be a bare useState('available'), which
   // meant every app launch claimed the mechanic was available regardless of
   // what they had picked.
-  const seededFor = useRef<string | null>(null);
   // Keyed on the fields actually read, not the whole `user` object, so this
   // stops re-running on every unrelated profile update.
   const userId = user?.id ?? null;
   const seedStatus: MechanicStatus =
     user?.mechanicStatus ?? (user?.isOnline ? 'available' : 'offline');
+  // Follows the account, not only its first value: on launch the cached profile
+  // can be stale or slimmer (login answers without `mechanicStatus`) and the
+  // full profile arrives a moment later, and the same happens after switching
+  // role. Seeding once left the pill on Offline although the server said
+  // Available. A change the mechanic is making right now is not overwritten.
   useEffect(() => {
     if (!userId) {
-      seededFor.current = null;
       setStatus('offline');
       return;
     }
-    if (seededFor.current === userId) return;
-    seededFor.current = userId;
+    if (inFlightRef.current) return;
     setStatus(seedStatus);
   }, [userId, seedStatus]);
 
@@ -54,7 +57,6 @@ export function MechanicStatusProvider({ children }: { children: React.ReactNode
   // depend on the status itself.
   const statusRef = useRef(mechanicStatus);
   statusRef.current = mechanicStatus;
-  const inFlightRef = useRef(false);
   const handledMessageRef = useRef<unknown>(null);
 
   // Another of the mechanic's devices changing the status is announced on this

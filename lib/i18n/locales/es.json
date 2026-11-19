@@ -218,9 +218,9 @@
       },
       "sheet": {
         "title": "Pedir asistencia",
-        "immediate": "Un mecánico cercano enviado de inmediato",
-        "scheduled": "Pedí cotizaciones para tu fecha",
-        "videoCall": "Resolvelo con un mecánico guiándote desde tu teléfono",
+        "immediate": "Un mecánico cercano, enviado de inmediato.",
+        "scheduled": "Pedí cotizaciones para el día que quieras.",
+        "videoCall": "Resolvelo con un mecánico en videollamada.",
         "subtitle": "¿Cómo querés que te ayuden?"
       },
       "activeRequestTitle_other": "¡Tus solicitudes activas!"
@@ -394,11 +394,12 @@
     },
     "selectVehicle": {
       "badge": "SELECCIONÁ TU VEHÍCULO",
-      "title": "Tus vehículos disponibles",
-      "subtitle": "¿Qué vehículo necesita asistencia?",
+      "title": "Elegí el vehículo para la reparación",
+      "subtitle": "Tus vehículos disponibles. ¿Cuál necesita asistencia?",
       "noVehicles": "No se encontraron vehículos. Agregá uno.",
       "noPlate": "SIN PATENTE",
       "addVehicle": "Agregar un vehículo",
+      "seeAll": "Ver todos los vehículos",
       "plate": "PLACA"
     },
     "vehicleDetails": {
@@ -882,8 +883,10 @@
           "rating": "Calificación",
           "ratingFromCustomer": "Calificación del cliente al técnico",
           "ratingFromMechanic": "Calificación del técnico al cliente",
-          "duration": "Duración de la videollamada"
+          "duration": "Duración de la videollamada",
+          "extendedTime": "Tiempo extendido"
         },
+        "extendedTimeValue": "+{{count}} min agregados",
         "notRated": "Sin calificar",
         "notAvailable": "—",
         "distanceApprox": "{{miles}} mi",
@@ -1564,6 +1567,7 @@
         "payment": "Pago",
         "paidWith": "Pagado con",
         "charged": "Cobrado",
+        "totalCharged": "Total cobrado",
         "refunded": "Reembolsado",
         "status": "Estado del pago",
         "methodWallet": "Billetera",
@@ -1655,6 +1659,7 @@
         "reputation": "Reputación",
         "duration": "Duración",
         "extendedTime": "Tiempo extendido",
+        "extendedTimeMinutes": "Tiempo extendido ({{minutes}} min)",
         "total": "Total"
       },
       "about": "SOBRE {{name}}",
@@ -2121,7 +2126,7 @@
     "noVehicles": "No hay vehículos registrados",
     "addFirstVehicle": "Agregar primer vehículo",
     "noPlate": "Sin patente",
-    "addVehicles": "Agregar vehículos",
+    "addVehicles": "Agregar vehículo",
     "invalidVinTitle": "VIN inválido",
     "invalidVinMessage": "El VIN debe tener exactamente 17 caracteres.",
     "vinDecodedTitle": "VIN decodificado",
@@ -3289,14 +3294,15 @@
     "startOver": "Empezar de nuevo",
     "vehicle": {
       "eyebrow": "PASO 1 · VEHÍCULO",
-      "title": "¿Qué vehículo?",
-      "sub": "Elegí el vehículo que necesita el servicio.",
+      "title": "Elegí el vehículo para la reparación",
+      "sub": "Tus vehículos disponibles. ¿Cuál necesita asistencia?",
       "mileageLabel": "KILOMETRAJE ACTUAL (MI)",
       "mileagePlaceholder": "ej. 42,180",
       "mileageHint": "Ayuda al mecánico a recomendar los servicios correctos.",
       "noVehicles": "Todavía no tenés vehículos",
       "noVehiclesSub": "Agregá el vehículo que necesita el servicio.",
       "addVehicle": "Agregar un vehículo",
+      "seeAll": "Ver todos los vehículos",
       "addAnother": "Agregar otro vehículo",
       "plate": "PLACA"
     },

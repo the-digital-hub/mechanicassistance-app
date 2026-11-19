@@ -16,6 +16,7 @@ import { BANNER_COLORS, getCardState, getTypeBar, isPastState } from './appointm
 import { FixedLocationMap } from './FixedLocationMap';
 import { ScrollPressGuardContext } from '@/hooks/useScrollPressGuard';
 import { AppointmentMechanic, useAppointmentMechanic } from '@/hooks/useAppointmentMechanic';
+import { useCallExtraMinutes } from '@/hooks/useCallExtraMinutes';
 import { Stars } from '@/components/offer/OfferSections';
 import { useCountdown } from '@/hooks/useCountdown';
 import { RequestIdRow } from '@/components/ui/RequestIdRow';
@@ -102,7 +103,7 @@ function TechnicianRow({ mechanic, label, onMessage, messageLabel, chatClosed = 
     label: string;
     onMessage?: () => void;
     messageLabel: string;
-    /** The job ended: the chat opens read-only, so its button is greyed. */
+    /** The job ended: the chat button is greyed and blocked. */
     chatClosed?: boolean;
 }) {
     const { t } = useTranslation();
@@ -142,6 +143,8 @@ function TechnicianRow({ mechanic, label, onMessage, messageLabel, chatClosed = 
                 <TouchableOpacity
                     accessibilityLabel={messageLabel}
                     onPress={onMessage}
+                    disabled={chatClosed}
+                    accessibilityState={{ disabled: chatClosed }}
                     activeOpacity={0.8}
                     className="items-center justify-center"
                     style={{ width: 38, height: 38, borderRadius: 11, backgroundColor: chatClosed ? '#F1F3F8' : C.blueSoft }}
@@ -266,11 +269,16 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
 
     // A finished or cancelled job leads with its date; an active one leads with the vehicle.
     const dateRow = { icon: Calendar, label: t(isPast ? 'appointments.list.card.rows.date' : 'appointments.list.card.rows.when'), value: whenLabel };
+    // A finished call that had time added: say how much, right after its duration.
+    const extraMinutes = useCallExtraMinutes(appointment.id, isVideoCall && state === 'completed' && appointment.source === 'appointment');
     const rows = [
         ...(isPast ? [dateRow] : []),
         // A video call: how long it lasts, before the vehicle.
         ...(isVideoCall && appointment.durationMinutes
             ? [{ icon: Timer, label: t('appointments.list.card.rows.duration'), value: t('requestAssistance.when.durationValue', { count: appointment.durationMinutes }) }]
+            : []),
+        ...(isVideoCall && extraMinutes > 0
+            ? [{ icon: Timer, label: t('appointments.list.card.rows.extendedTime'), value: t('appointments.list.card.extendedTimeValue', { count: extraMinutes }) }]
             : []),
         { icon: Car, label: t('appointments.list.card.rows.vehicle'), value: appointment.car },
         ...(isVideoCall
@@ -322,7 +330,7 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
             ? t('appointments.list.card.viewReceipt')
             : t('appointments.list.card.viewDetails');
 
-    // Past jobs keep a greyed button: the chat opens read-only so the history stays reachable.
+    // Past jobs: the chat button is greyed and blocked.
     const canMessage = appointment.source === 'appointment';
     const openChat = guardPress(() => router.push(`/chat/${appointment.id}`));
 

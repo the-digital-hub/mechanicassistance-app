@@ -4,7 +4,7 @@ import { MechanicStatusProvider, useMechanicStatus } from '../MechanicStatusCont
 
 let mockLastMessage: any = null;
 const mockUpdateUser = jest.fn().mockResolvedValue(undefined);
-const mockUser = { id: 'mech-1', mechanicStatus: 'available', isOnline: true };
+const mockUser: { id: string; mechanicStatus?: string; isOnline?: boolean } = { id: 'mech-1', mechanicStatus: 'available', isOnline: true };
 const mockSetPresence = jest.fn();
 
 jest.mock('@/context/SocketContext', () => ({
@@ -27,6 +27,8 @@ describe('MechanicStatusProvider', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockLastMessage = null;
+    mockUser.mechanicStatus = 'available';
+    mockUser.isOnline = true;
     mockSetPresence.mockImplementation((_id: string, status: string) =>
       Promise.resolve({ status, isOnline: status !== 'offline' }),
     );
@@ -76,5 +78,20 @@ describe('MechanicStatusProvider', () => {
 
     await act(async () => { resolve({ status: 'offline', isOnline: false }); await pending; });
     expect(result.current.mechanicStatus).toBe('offline');
+  });
+
+  it('shows Available once the full profile arrives after a launch with a slimmer cached one', () => {
+    // Cached/login profile without the status: starts Offline.
+    mockUser.mechanicStatus = undefined;
+    mockUser.isOnline = false;
+    const { result, rerender } = renderHook(() => useMechanicStatus(), { wrapper });
+    expect(result.current.mechanicStatus).toBe('offline');
+
+    // The refreshed profile (or the one after switching role) says Available.
+    mockUser.mechanicStatus = 'available';
+    mockUser.isOnline = true;
+    rerender({});
+
+    expect(result.current.mechanicStatus).toBe('available');
   });
 });

@@ -1,7 +1,7 @@
 import { FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
 import { TYPE } from '@/lib/ui/type';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Check, ChevronRight, Plus, type LucideIcon } from 'lucide-react-native';
+import { Check, ChevronRight, List, Plus, type LucideIcon } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { ActivityIndicator, Platform, Text, TextInput, TouchableOpacity, View, type TextInputProps } from 'react-native';
 
@@ -70,18 +70,35 @@ export function ProgressBar({ step, total, label }: { step: number; total: numbe
 }
 
 /** "Add a vehicle": the same soft-blue pill in every request flow (immediate, video call and scheduled), under the list of vehicles. */
-export function AddVehicleButton({ label, onPress, testID }: { label: string; onPress: () => void; testID?: string }) {
+export function AddVehicleButton({ label, onPress, testID, align = 'start' }: { label: string; onPress: () => void; testID?: string; align?: 'start' | 'end' }) {
     return (
         <TouchableOpacity
             onPress={onPress}
             accessibilityRole="button"
             activeOpacity={0.85}
-            className="flex-row items-center self-start rounded-full"
+            className={`flex-row items-center rounded-full ${align === 'end' ? 'self-end' : 'self-start'}`}
             style={{ gap: 8, paddingHorizontal: 16, paddingVertical: 11, backgroundColor: SC.blueSoft }}
             testID={testID}
         >
             <Plus size={18} color={SC.blue} />
             <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: SC.blue }}>{label}</Text>
+        </TouchableOpacity>
+    );
+}
+
+/** Above the one vehicle left on screen: brings the whole list back. */
+export function SeeAllVehiclesBadge({ label, onPress }: { label: string; onPress: () => void }) {
+    return (
+        <TouchableOpacity
+            onPress={onPress}
+            accessibilityRole="button"
+            activeOpacity={0.85}
+            className="flex-row items-center self-end rounded-full"
+            style={{ gap: 6, paddingHorizontal: 12, paddingVertical: 6, backgroundColor: SC.blueSoft }}
+            testID="see-all-vehicles"
+        >
+            <List size={15} color={SC.blue} />
+            <Text className="font-outfit-bold" style={{ fontSize: 14, color: SC.blue }}>{label}</Text>
         </TouchableOpacity>
     );
 }

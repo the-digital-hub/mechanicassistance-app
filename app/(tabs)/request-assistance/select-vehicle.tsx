@@ -1,5 +1,5 @@
 import { RequestSteps, stepEyebrow } from '@/components/ui/RequestSteps';
-import { AddVehicleButton, CARD_STYLE, Chip, ChoiceCard, FieldLabel, Footer, StepHead, TextField, VehicleIdsRow, WizardHeader, SC } from '@/components/scheduled/ui';
+import { AddVehicleButton, SeeAllVehiclesBadge, CARD_STYLE, Chip, ChoiceCard, FieldLabel, Footer, StepHead, TextField, VehicleIdsRow, WizardHeader, SC } from '@/components/scheduled/ui';
 import { useRequestDraft } from '@/context/RequestDraftContext';
 import { useUser } from '@/context/UserContext';
 import { vehicleDAO } from '@/lib/dao/VehicleDAO';
@@ -72,6 +72,12 @@ export default function SelectVehicleScreen() {
     );
 
     const handleSelectVehicle = (vehicle: Vehicle) => {
+        // Tapping the chosen vehicle again un-chooses it.
+        if (selected?.id === vehicle.id) {
+            setSelected(null);
+            setMileage('');
+            return;
+        }
         setSelected(vehicle);
         // Pre-fill with the last known reading so the driver only edits it when it changed.
         setMileage(vehicle.mileage != null ? String(vehicle.mileage) : '');
@@ -150,7 +156,11 @@ export default function SelectVehicleScreen() {
                         </View>
                     ) : (
                         <View style={{ gap: 10 }}>
-                            {vehicles.map((v) => {
+                            {/* Once one is chosen only it stays; the badge brings the others back. */}
+                            {selected ? (
+                                <SeeAllVehiclesBadge label={t('requestAssistance.selectVehicle.seeAll')} onPress={() => { setSelected(null); setMileage(''); }} />
+                            ) : null}
+                            {vehicles.filter((v) => !selected || v.id === selected.id).map((v) => {
                                 return (
                                     <ChoiceCard
                                         key={v.id}
@@ -165,8 +175,8 @@ export default function SelectVehicleScreen() {
                     )}
 
                     {/* Outside the loading branch: the user can add a vehicle before the list resolves. */}
-                    {!isLoading ? (
-                        <AddVehicleButton label={t('requestAssistance.selectVehicle.addVehicle')} onPress={() => router.push('/(tabs)/vehicles')} testID="select-vehicle-add" />
+                    {!isLoading && !selected ? (
+                        <AddVehicleButton label={t('requestAssistance.selectVehicle.addVehicle')} onPress={() => router.push('/(tabs)/vehicles')} testID="select-vehicle-add" align="end" />
                     ) : null}
 
                     {selected ? (

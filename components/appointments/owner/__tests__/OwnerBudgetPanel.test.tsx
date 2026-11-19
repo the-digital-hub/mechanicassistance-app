@@ -20,7 +20,7 @@ const labels = (tree: ReturnType<typeof render>) =>
     tree.UNSAFE_getAllByType(Text).map((n) => (Array.isArray(n.props.children) ? n.props.children.join('') : String(n.props.children)));
 
 describe('owner budget of a video call with extra time', () => {
-    it('shows the extra time with its amount before the payment, and the total last', () => {
+    it('puts the minutes next to the extra time, then the total under a line, and the payment last', () => {
         const tree = render(
             <OwnerBudgetPanel
                 total="60.00"
@@ -34,9 +34,12 @@ describe('owner budget of a video call with extra time', () => {
         const text = labels(tree);
         const at = (needle: string) => text.findIndex((l) => l.includes(needle));
         expect(at('rows.serviceValue')).toBeGreaterThanOrEqual(0);
-        expect(text.some((l) => l.includes('extendedTimeValueAmount:30,30.00'))).toBe(true);
-        expect(at('rows.extendedTime')).toBeLessThan(at('rows.payment'));
-        expect(at('rows.payment')).toBeLessThan(at('rows.total'));
+        // The minutes live in the label, the value is the amount.
+        expect(text.some((l) => l.includes('rows.extendedTimeMinutes:30'))).toBe(true);
+        expect(text.some((l) => l.includes('+$30.00'))).toBe(true);
+        expect(at('rows.extendedTimeMinutes')).toBeLessThan(at('rows.total'));
+        expect(at('rows.total')).toBeLessThan(at('rows.payment'));
+        expect(at('rows.payment')).toBeLessThan(text.indexOf('VISA'));
         expect(text.some((l) => l.includes('$90.00'))).toBe(true);
     });
 

@@ -1,6 +1,6 @@
 import { AO, card } from '@/components/offer/OfferSections';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { TYPE } from '@/lib/ui/type';
@@ -32,6 +32,18 @@ export function ClientReviewCard({ rating, setRating, selectedOption, setSelecte
     const { t } = useTranslation();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const selectedLabel = OPTIONS.find((o) => o.value === selectedOption);
+
+    // Once the rating is sent there is nothing left to do here: opened already sent, the card is not shown at
+    // all; sent just now, it says so for a moment and then closes (same as the owner's review).
+    const openedSent = useRef(isSubmitted);
+    const [closed, setClosed] = useState(isSubmitted);
+    useEffect(() => {
+        if (!isSubmitted) { openedSent.current = false; setClosed(false); return; }
+        if (openedSent.current) { setClosed(true); return; }
+        const timer = setTimeout(() => setClosed(true), 2200);
+        return () => clearTimeout(timer);
+    }, [isSubmitted]);
+    if (closed) return null;
 
     return (
         <View style={[card, { padding: 16, gap: 16 }]} testID="client-review-card">

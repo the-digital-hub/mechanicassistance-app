@@ -55,7 +55,10 @@ function OwnerReceipt({ id }: { id: string }) {
     const { getAppointmentById } = useAppointments();
     const appointment = getAppointmentById(id);
     const [loading, setLoading] = React.useState(true);
-    const [payment, setPayment] = React.useState<PaymentHistoryItem | null>(null);
+    // Every charge of the request: a video call that was extended is billed more than once (the call, then each
+    // extension), and the receipt has to add them all up to match the amount the list shows.
+    const [charges, setCharges] = React.useState<PaymentHistoryItem[]>([]);
+    const payment = charges[0] ?? null;
 
     React.useEffect(() => {
         let cancelled = false;
@@ -63,8 +66,10 @@ function OwnerReceipt({ id }: { id: string }) {
             .then((h) => {
                 if (cancelled) return;
                 const rows = h.payments.items.filter((p) => p.assistanceRequestId === id);
-                // The charge for the service itself, not an extra hold or a top-up.
-                setPayment(rows.find((p) => Number(p.amountCharged) > 0) ?? rows[0] ?? null);
+                const charged = rows
+                    .filter((p) => Number(p.amountCharged) > 0)
+                    .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+                setCharges(charged.length > 0 ? charged : rows.slice(0, 1));
             })
             .catch(() => undefined)
             .finally(() => !cancelled && setLoading(false));
@@ -72,12 +77,16 @@ function OwnerReceipt({ id }: { id: string }) {
     }, [id]);
 
     const back = () => (router.canGoBack() ? router.back() : router.replace('/(tabs)/appointments'));
-    const paid = payment ? Number(payment.amountCharged) - Number(payment.amountRefunded || 0) : Number(appointment?.budget?.replace('$', '') ?? 0);
+    const chargedTotal = charges.reduce((sum, p) => sum + Number(p.amountCharged || 0), 0);
+    const refundedTotal = charges.reduce((sum, p) => sum + Number(p.amountRefunded || 0), 0);
+    const paid = payment ? chargedTotal - refundedTotal : Number(appointment?.budget?.replace('$', '') ?? 0);
     const when = formatLocalDateTime(appointment?.completedAt ?? appointment?.updatedAt, i18n.language);
     const method = payment?.method === 'wallet' ? t(`${k}.owner.methodWallet`) : payment ? t(`${k}.owner.methodCard`) : null;
 
     const isWallet = payment?.method === 'wallet';
-    const refunded = payment ? Number(payment.amountRefunded) > 0 : false;
+    const refunded = refundedTotal > 0;
+    const purposeLabel = (purpose: string) =>
+        t(`${k}.owner.purposes.${purpose}`, { defaultValue: purpose.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase()) });
     const statusKey = payment?.status ?? '';
     const statusOk = ['succeeded', 'charged', 'captured'].includes(statusKey);
 
@@ -126,9 +135,22 @@ function OwnerReceipt({ id }: { id: string }) {
                         <Card>
                             <Text className="font-outfit-bold uppercase px-4 pt-3" style={{ fontSize: 12, letterSpacing: 1.2, color: OS.mutedLight }}>{t(`${k}.owner.payment`)}</Text>
                             {method ? <IconRow icon={isWallet ? Wallet : CreditCard} label={t(`${k}.owner.paidWith`)} value={method} /> : null}
-                            <IconRow icon={Banknote} label={t(`${k}.owner.charged`)} value={money(payment.amountCharged)} last={!refunded} />
+                            {charges.length > 1
+                                ? charges.map((c) => (
+                                      <IconRow key={c.id} icon={Banknote} label={purposeLabel(c.purpose)} value={money(c.amountCharged)} />
+                                  ))
+                                : null}
+                            {/* The total: set apart by a line and a tinted band, like the budget's total. */}
+                            <View
+                                className="flex-row items-center"
+                                style={{ gap: 12, paddingHorizontal: 16, paddingVertical: 14, backgroundColor: OS.blueSoft, borderTopWidth: 2, borderTopColor: OS.blue }}
+                                testID="receipt-total-charged"
+                            >
+                                <Text className="font-outfit-bold flex-1" style={{ fontSize: 17, color: OS.text }}>{t(`${k}.owner.totalCharged`)}</Text>
+                                <Text className="font-outfit-bold" style={{ fontSize: 22, letterSpacing: -0.4, color: OS.blue }}>{money(String(chargedTotal))}</Text>
+                            </View>
                             {refunded ? (
-                                <IconRow icon={RotateCcw} label={t(`${k}.owner.refunded`)} value={`-${money(payment.amountRefunded)}`} danger last />
+                                <IconRow icon={RotateCcw} label={t(`${k}.owner.refunded`)} value={`-${money(String(refundedTotal))}`} danger last />
                             ) : null}
                         </Card>
                     ) : (

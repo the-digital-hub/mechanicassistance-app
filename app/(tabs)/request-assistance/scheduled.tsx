@@ -200,7 +200,10 @@ export default function ScheduledRequestScreen() {
 
     // ── Step 1 ──
     const pickVehicle = (v: Vehicle) =>
-        patch({
+        // Tapping the chosen vehicle again un-chooses it.
+        draft.vehicleId && draft.vehicleId === v.id
+            ? patch({ vehicleId: null, vehicleName: '', mileage: '' })
+            : patch({
             vehicleId: v.id ?? null,
             vehicleName: vehicleLine(v),
             // Pre-fill with the last known reading so the owner only edits it when it changed.

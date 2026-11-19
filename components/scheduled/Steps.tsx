@@ -58,7 +58,7 @@ import {
 
 import { categoryIcon } from '@/lib/ui/categoryIcon';
 import { PickCard, PickChildren, PickGroup, PickItem, PickList, PickedChips, SearchField } from './picker';
-import { AddVehicleButton, CARD_STYLE, Checkbox, ChoiceCard, Chip, FieldLabel, Note, SC, StepHead, TextField, VehicleIdsRow } from './ui';
+import { AddVehicleButton, SeeAllVehiclesBadge, CARD_STYLE, Checkbox, ChoiceCard, Chip, FieldLabel, Note, SC, StepHead, TextField, VehicleIdsRow } from './ui';
 import { VehicleTitle } from '@/components/ui/VehicleTitle';
 
 const SLOT_MIN = 6 * 60;
@@ -123,10 +123,15 @@ export function VehicleStep({
                 </View>
             ) : (
                 <View style={{ gap: 10 }}>
-                    {vehicles.map((v) => {
+                    {/* Once one is chosen only it stays; the badge brings the others back. */}
+                    {draft.vehicleId ? (
+                        <SeeAllVehiclesBadge label={t('scheduled.vehicle.seeAll')} onPress={() => patch({ vehicleId: null, vehicleName: '', mileage: '' })} />
+                    ) : null}
+                    {vehicles.filter((v) => !draft.vehicleId || v.id === draft.vehicleId).map((v) => {
                         return <ChoiceCard key={v.id} on={draft.vehicleId === v.id} onPress={() => onPick(v)} title={<VehicleTitle vehicle={v} />} detail={<VehicleIdsRow plate={v.plate} vin={v.vin} plateLabel={t('scheduled.vehicle.plate')} />} />;
                     })}
-                    <AddVehicleButton label={t('scheduled.vehicle.addVehicle')} onPress={onAddVehicle} />
+                    {/* Gone while a vehicle is chosen; tapping the chosen one again brings it back. */}
+                    {!draft.vehicleId ? <AddVehicleButton label={t('scheduled.vehicle.addVehicle')} onPress={onAddVehicle} align="end" /> : null}
                 </View>
             )}
             {draft.vehicleId ? (

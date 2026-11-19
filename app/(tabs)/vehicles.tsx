@@ -52,6 +52,9 @@ export default function VehiclesScreen() {
                     onPress={() => {
                         if (isEditing) {
                             closeForm();
+                        } else if (router.canGoBack()) {
+                            // Back to wherever it was opened from (a request, the profile…).
+                            router.back();
                         } else {
                             router.navigate('/(tabs)');
                         }
@@ -198,7 +201,7 @@ export default function VehiclesScreen() {
                 )}
             </ScrollView>
 
-            {/* Add Vehicles Button */}
+            {/* Add Vehicle Button */}
             <TouchableOpacity
               onPress={() => setIsEditing(true)}
               activeOpacity={0.8}
@@ -217,7 +220,7 @@ export default function VehiclesScreen() {
                   flexDirection: 'row',
                 }}
               >
-                <Text className="text-white font-outfit-bold text-center mr-2">{t('vehicles.addVehicles')}</Text>
+                <Text className="text-white font-outfit-bold text-center mr-2" style={{ fontSize: 18 }}>{t('vehicles.addVehicles')}</Text>
                 <ChevronRight size={20} color="white" />
               </LinearGradient>
             </TouchableOpacity>
