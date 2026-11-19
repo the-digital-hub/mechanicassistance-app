@@ -138,6 +138,11 @@ export interface PushData {
     kind?: string;
     /** Who the push was sent to. Missing on pushes sent before it existed. */
     recipientId?: string;
+    /**
+     * The side it is for: vehicle owner (`user`) or `mechanic`. Missing when the
+     * backend could not tell, and on pushes sent before it existed.
+     */
+    recipientRole?: string;
     requestId?: string;
     appointmentId?: string;
     status?: string;
@@ -152,17 +157,39 @@ export interface PushViewer {
 }
 
 /**
- * Kinds that only make sense for one role: their screens assume it. A push
- * that reached the other role (an older push, from before `recipientId`,
- * left on a phone that changed accounts) leads nowhere.
+ * Kinds that only make sense for one role: their screens assume it. Same list
+ * as notifications-service (dispatch-rules ROLE_OF_KIND). Used when the push
+ * does not say its `recipientRole` (older pushes).
  */
 const ROLE_OF_KIND: Partial<Record<string, PushViewer['role']>> = {
     new_request: 'mechanic',
     offer_accepted: 'mechanic',
+    offer_not_selected: 'mechanic',
+    final_quote_approved: 'mechanic',
+    final_quote_rejected: 'mechanic',
     obd_reminder: 'mechanic',
+    video_call_confirmed: 'mechanic',
+    video_call_disputed: 'mechanic',
     mechanic_found: 'user',
+    request_reopened: 'user',
+    final_quote_proposed: 'user',
+    request_status: 'user',
+    service_redirected: 'user',
     review_requested: 'user',
+    video_call_finished: 'user',
 };
+
+/**
+ * Whether a push is for the role the person is using now. A person can be
+ * vehicle owner and mechanic; after switching, the backend stops pushing the
+ * other role, but pushes already on their way (or left in the tray) still
+ * arrive. Those are ignored: they wait in the other role's notifications.
+ */
+export function isForActiveRole(data: PushData | undefined, role: PushViewer['role']): boolean {
+    if (!data?.kind) return true;
+    const side = data.recipientRole ?? ROLE_OF_KIND[data.kind];
+    return side !== 'user' && side !== 'mechanic' ? true : side === role;
+}
 
 /**
  * Where a tapped push leads. The backend sends the kind and the ids, never a
@@ -173,8 +200,7 @@ const ROLE_OF_KIND: Partial<Record<string, PushViewer['role']>> = {
 export function routeForPush(data: PushData | undefined, viewer: PushViewer): Href | null {
     if (!data?.kind) return null;
     if (data.recipientId && data.recipientId !== viewer.id) return null;
-    const role = ROLE_OF_KIND[data.kind];
-    if (role && role !== viewer.role) return null;
+    if (!isForActiveRole(data, viewer.role)) return null;
     const appointmentId = data.appointmentId ?? data.requestId;
     switch (data.kind) {
         case 'new_request':

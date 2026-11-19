@@ -97,6 +97,9 @@ function toAppNotification(item: InboxItem): AppNotification {
 export function NotificationsProvider({ children }: { children: ReactNode }) {
     const { user } = useUser();
     const userId = user?.id;
+    // Each role (vehicle owner, mechanic) has its own inbox on the backend:
+    // switching role reloads the list and the icon number for the new one.
+    const role = user?.role;
     const [notifications, setNotifications] = useState<AppNotification[]>([]);
     const hidden = useRef<Set<string>>(new Set());
 
@@ -137,7 +140,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
             void refresh();
         });
         return () => sub.remove();
-    }, [userId, markSeen, refresh]);
+    }, [userId, role, markSeen, refresh]);
 
     const markAllRead = useCallback(() => {
         setNotifications(prev => prev.map(n => ({ ...n, unread: false })));

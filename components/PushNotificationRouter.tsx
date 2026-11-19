@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import { useUser } from '@/context/UserContext';
 import {
+    isForActiveRole,
     notifyCancellationDisputePush,
     routeForPush,
     syncPushRegistration,
@@ -43,9 +44,11 @@ export function PushNotificationRouter() {
     const navState = useRootNavigationState();
     const navReady = !!navState?.key;
 
-    // Registration follows the session.
+    // Registration follows the session and the active role: the phone is saved
+    // with the role in use, and only gets that role's pushes. Switching role
+    // re-registers it, so the other role's pushes stop.
     useEffect(() => {
-        if (!userId) return;
+        if (!userId || !role) return;
         void syncPushRegistration({ ask: true });
         const stopWatching = watchPushToken();
         const sub = AppState.addEventListener('change', (state) => {
@@ -55,7 +58,7 @@ export function PushNotificationRouter() {
             stopWatching();
             sub.remove();
         };
-    }, [userId]);
+    }, [userId, role]);
 
     // Tapped pushes. Only for a signed-in person: signed out, the target
     // screens would bounce to login anyway. A push meant for another account
@@ -99,13 +102,14 @@ export function PushNotificationRouter() {
     // Pushes that arrive while the app is open: a cancellation-dispute push
     // refreshes the open detail screen's banner. Nothing navigates here.
     useEffect(() => {
-        if (!userId) return;
+        if (!userId || !role) return;
         return onMessage(getMessaging(), async (message) => {
             const data = message.data as PushData | undefined;
             if (data?.recipientId && data.recipientId !== userId) return;
+            if (!isForActiveRole(data, role)) return;
             notifyCancellationDisputePush(data);
         });
-    }, [userId]);
+    }, [userId, role]);
 
     // Navigates to the recorded target once the root navigator is mounted.
     // Deferred one tick so it lands after the start-up <Redirect> in app/index.
