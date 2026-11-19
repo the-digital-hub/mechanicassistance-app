@@ -403,7 +403,7 @@ export default function RequestDetailScreen() {
 
                     {/* Subtitle */}
                     <Text className="text-gray-500 font-outfit-regular text-base mb-2">
-                        {t('requestDetail.subtitle')}
+                        {t(isVideo ? 'requestDetail.subtitleVideo' : 'requestDetail.subtitle')}
                     </Text>
                 </View>
 
@@ -456,9 +456,6 @@ export default function RequestDetailScreen() {
                                         ? `$${fetched.providerBreakdown.total}`
                                         : price ? `$${price}` : budget}
                                 </Text>
-                                {isVideo ? (
-                                    <Text className="font-outfit-regular text-sm text-gray-500 mt-1">{t('requestDetail.videoPriceNote')}</Text>
-                                ) : null}
                             </View>
                         </View>
 
@@ -473,20 +470,6 @@ export default function RequestDetailScreen() {
                                     <Text className="font-outfit-bold text-base text-gray-900" testID="video-call-duration">
                                         {t('requestDetail.videoDurationValue', { count: callMinutes })}
                                     </Text>
-                                    <Text className="font-outfit-regular text-sm text-gray-500 mt-1">{t('requestDetail.videoDurationNote')}</Text>
-                                </View>
-                            </View>
-                        ) : null}
-
-                        {/* Video call: the conditions both people accept before the call */}
-                        {isVideo ? (
-                            <View className="flex-row items-center px-5 py-4 border-b border-gray-100">
-                                <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
-                                    <ShieldCheck size={20} color="#0047AB" />
-                                </View>
-                                <View className="flex-1">
-                                    <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">{t('requestDetail.videoConditions')}</Text>
-                                    <Text className="font-outfit-regular text-sm text-gray-500" testID="video-call-conditions">{t('requestDetail.videoConditionsNote')}</Text>
                                 </View>
                             </View>
                         ) : null}
@@ -724,6 +707,29 @@ export default function RequestDetailScreen() {
                     </TouchableOpacity>
                     </View>
                     )}
+
+                    {/* Video call: what to know before offering, one short line each. */}
+                    {isVideo && !noLongerAvailable && !alreadyOffered ? (
+                        <View
+                            className="bg-white rounded-2xl mt-5"
+                            style={{ padding: 16, gap: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 6, elevation: 2 }}
+                            testID="video-call-good-to-know"
+                        >
+                            <Text className="font-outfit-bold" style={{ fontSize: 17, color: '#0B1530' }}>{t('requestDetail.goodToKnow.title')}</Text>
+                            {([
+                                { Icon: DollarSign, key: 'price' },
+                                { Icon: Timer, key: 'time' },
+                                { Icon: ShieldCheck, key: 'privacy' },
+                            ] as const).map(({ Icon, key }) => (
+                                <View key={key} className="flex-row items-center" style={{ gap: 12 }}>
+                                    <View className="items-center justify-center" style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: '#E9F1FF' }}>
+                                        <Icon size={18} color="#0047AB" />
+                                    </View>
+                                    <Text className="font-outfit-regular flex-1" style={{ fontSize: 15, lineHeight: 20, color: '#4B5563' }}>{t(`requestDetail.goodToKnow.${key}`)}</Text>
+                                </View>
+                            ))}
+                        </View>
+                    ) : null}
                 </View>
             </ScrollView>
 

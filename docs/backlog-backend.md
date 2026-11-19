@@ -22,7 +22,8 @@ Lo que ya está hecho en la app y espera algo del backend (endpoints, despliegue
 | **Q** Consentimientos | Pide el consentimiento antes de entrar a la llamada | Registro y consulta de consentimientos | No queda registro del lado del servidor |
 | **S** Solicitud tomada por otro | Avisa en la oferta y consulta cada 15 s si sigue abierta | Evento al técnico + `409 request_unavailable` | Se entera por consulta, hasta 15 s tarde |
 | **T** Duración de 60 min | Muestra la opción que llega del menú | Confirmar la cadena completa de 60 min | Ya aparece; falta probar de punta a punta |
-| **P / U** Transcripción | Muestra y descarga la transcripción de la llamada | Guardarla en la cita (P) y recibir la que sube la app (U, `PUT …/video/transcript`) | Solo existe en el teléfono |
+| **P / U** Transcripción | Muestra y descarga la transcripción de la llamada, y la lista de citas muestra una fila "Call transcript" con botón "View" (hoy una consulta por tarjeta) | Guardarla en la cita (P) y recibir la que sube la app (U, `PUT …/video/transcript`) | Solo existe en el teléfono |
+| **AA** Videollamada sin impuestos | Muestra el precio sin impuestos en el plan y oculta la línea de impuestos de la oferta si vale cero | Que la oferta, lo retenido y el recibo no sumen impuestos a una videollamada | El dueño ve $67.50 y luego $72.57 |
 | **X** Precio de agendadas | Muestra el precio que devuelve el backend | Precio diferenciado + asignador de descuento en el Hub, con el descuento en el desglose | Sin descuento |
 | **Y** Reseñas del perfil | Las estrellas del perfil abren las calificaciones con fecha; los comentarios del técnico se piden una por una y los del dueño no se pueden leer | `GET /api/reviews/me` paginado, con comentario, etiquetas y fecha | Se ve la nota y la fecha; casi todo "sin comentario" |
 | **Z** Otras certificaciones | Pantalla y hoja para agregar, editar y quitar (marca u organización, tipo, número, vencimiento y certificado adjunto) | `GET\|POST /api/mechanic-certifications` y `PATCH\|DELETE …/:id`, con estados y revisión en el Hub | La lista dice que no pudo cargar y no se puede guardar |
@@ -34,6 +35,13 @@ Los puntos **L, M, K, J, E** y la documentación siguen como están más abajo.
 ---
 
 ## 🔴 1. Hacer primero
+
+### [ ] AA — Las videollamadas no llevan impuestos, pero la oferta se los suma al dueño (§5.20)
+- **Regla de producto (19-nov):** una videollamada **no lleva impuestos**. El dueño paga el precio de lista y nada más; el técnico gana su parte (≈ 85 % de ese precio) y la diferencia es de la plataforma, sin que el dueño la vea como cargo.
+- **Qué pasó (videollamada de 30 min):** "Plan your video call" mostró **$67.50** (correcto: `POST /api/pricing/calculate`, `final_price`); el técnico aceptó cobrando **$57.37** (correcto: 67.50 × 0.85); y al dueño después le apareció **$72.57** (incorrecto: `offer-summary.breakdown.total`, que suma ≈ 7.5 % de impuesto). El dueño ve un precio y se le retiene otro.
+- **Hacer:** que para una videollamada `offer-summary.breakdown` salga con `taxes: "0.00"` (y `fees` en 0 si es un cargo al dueño) y `total` = el precio cotizado ($67.50); que el **monto retenido y el cobrado** (hold, captura, recibo del dueño y wallet) sea ese mismo total; y que no cambie entre la cotización y el cobro. Revisar por qué el cálculo del offer aplica impuesto a `assistance_type: videocall` si el contrato de `calculate` dice "sin impuesto".
+- **La app:** ya muestra el precio sin impuestos en el plan, el resumen y cada opción de tiempo; en la oferta de una videollamada oculta la línea de impuestos cuando vale cero. **Mientras el backend siga sumando impuestos, la app muestra el total real que se retiene ($72.57), no uno menor: mostrar menos de lo que se cobra sería peor.** Al corregirlo, el dueño ve $67.50 de punta a punta sin tocar la app.
+- **Cómo lo verificamos:** una videollamada de 30 min en hora pico muestra el mismo total en el plan, en la oferta, en lo retenido y en el recibo, sin línea de impuestos.
 
 ### [ ] B — Cotización con `duration_minutes` (§4.1)
 - **Problema:** `POST /api/pricing/calculate` y `POST /api/pricing/requests/:id/price` responden **400 "property duration_minutes should not exist"** en producción (re-verificado el 18-nov 16:14 UTC). El README dice que ya se acepta: falta desplegar price-service.
@@ -88,6 +96,8 @@ Los puntos **L, M, K, J, E** y la documentación siguen como están más abajo.
 - **Hacer:** `PUT /api/appointments/:id/video/transcript` (dueño o técnico de esa cita; otro → 403) con `{ language, lines: [{ id, role, name?, text, at }] }`, idempotente por `id` de línea y combinando las líneas de los dos teléfonos sin repetirlas; solo con los consentimientos registrados (Q, si no 409 `consent_required`); `GET …/video/transcript` devuelve el texto combinado. Detalle en el brief §5.12 ("Pedido adicional").
 - **Relación con P:** P toma la transcripción de Daily en el servidor; U es el envío desde la app. Pueden convivir (el servidor deduplica por `id`) o U puede ir primero si P tarda.
 - **Cómo lo verificamos:** hacer una llamada con subtítulos, terminarla y ver que la transcripción aparece en la cita desde el otro teléfono, aunque ese no haya tenido los subtítulos encendidos.
+- **Para la lista de citas (19-nov):** en la tarjeta de cada videollamada completada la app ahora muestra una fila **"Call transcript"** con un botón **"View"** (igual que "Extended time", vehículo, etc.), solo si la llamada tiene transcripción. Hoy lo averigua pidiendo `GET …/video/transcript` **una vez por tarjeta**, y la transcripción solo existe en el teléfono que la oyó. Pedido: que `GET /api/appointments` (y `GET /appointments/:id`) devuelvan por fila **`hasTranscript: boolean`** (y, ya que estamos, `transcriptLines`), así la lista no hace una consulta por llamada y la fila aparece en los dos teléfonos.
+- **Mismo problema con el tiempo extendido:** la tarjeta pide `GET …/video/extensions` por cada llamada completada para mostrar "Extended time +N min". Pedido: que cada fila de `GET /appointments` traiga **`extendedMinutes`** (`contractedMinutes − baseMinutes`) para evitar esas consultas.
 
 ### [ ] V — Traducción de los subtítulos de la llamada (§5.15)
 - **Qué se quiere (19-nov):** que quien habla español y quien habla inglés se entiendan en la videollamada: cada uno lee los subtítulos **en su propio idioma**. Daily no traduce (su transcripción, de Deepgram, solo pasa voz a texto); hay que armarlo encima.

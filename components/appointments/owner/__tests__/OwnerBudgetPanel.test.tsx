@@ -33,7 +33,9 @@ describe('owner budget of a video call with extra time', () => {
         );
         const text = labels(tree);
         const at = (needle: string) => text.findIndex((l) => l.includes(needle));
-        expect(at('rows.serviceValue')).toBeGreaterThanOrEqual(0);
+        // With extra time the first row is named as the service as it started, apart from the extra time below it.
+        expect(at('rows.initialService')).toBeGreaterThanOrEqual(0);
+        expect(at('rows.serviceValue')).toBe(-1);
         // The minutes live in the label, the value is the amount.
         expect(text.some((l) => l.includes('rows.extendedTimeMinutes:30'))).toBe(true);
         expect(text.some((l) => l.includes('+$30.00'))).toBe(true);
@@ -46,5 +48,7 @@ describe('owner budget of a video call with extra time', () => {
     it('has no total row without extra time to add up', () => {
         const tree = render(<OwnerBudgetPanel total="60.00" payment={<Text>VISA</Text>} video />);
         expect(labels(tree).some((l) => l.includes('rows.total'))).toBe(false);
+        // Nothing was added: it is simply the service value.
+        expect(labels(tree).some((l) => l.includes('rows.serviceValue'))).toBe(true);
     });
 });

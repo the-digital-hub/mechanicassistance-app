@@ -39,17 +39,47 @@ async function loadTranscript(appointmentId: string, role: 'owner' | 'mechanic')
     return { lines: await getLocalTranscript(appointmentId), onThisPhoneOnly: true };
 }
 
+/** Whether a call has a transcript, by call id, shared by every list card (the list re-renders on each focus). */
+const availability = new Map<string, boolean>();
+
+/**
+ * True when the call has a saved transcript (the server's, else the copy this phone kept). Used by the list card to
+ * decide whether to show the "Call transcript" row at all. `false` while unknown, and for any failure.
+ */
+export function useHasTranscript(appointmentId: string, role: 'owner' | 'mechanic', enabled: boolean): boolean {
+    const [has, setHas] = React.useState(() => availability.get(appointmentId) ?? false);
+    React.useEffect(() => {
+        if (!enabled) return;
+        const known = availability.get(appointmentId);
+        if (known !== undefined) {
+            setHas(known);
+            return;
+        }
+        let alive = true;
+        loadTranscript(appointmentId, role)
+            .then((r) => {
+                availability.set(appointmentId, r.lines.length > 0);
+                if (alive) setHas(r.lines.length > 0);
+            })
+            .catch(() => undefined);
+        return () => { alive = false; };
+    }, [appointmentId, role, enabled]);
+    return has;
+}
+
 const clock = (at: number) => (at ? new Date(at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) : '');
 
 /**
  * A button that opens what was said in the video call, line by line. Shown in the Status tab of
  * both sides; the sheet says when the text is only the copy this phone kept.
  */
-export function TranscriptCard({ appointmentId, role, info }: {
+export function TranscriptCard({ appointmentId, role, info, variant = 'card' }: {
     appointmentId: string;
     role: 'owner' | 'mechanic';
     /** What the downloaded PDF says about the call. */
     info?: { ref?: string | null; vehicle?: string | null; callDate?: string | null; durationMinutes?: number | null; selfName?: string | null };
+    /** `row`: only a small "View" button, for a data row of the list card (the sheet is the same). */
+    variant?: 'card' | 'row';
 }) {
     const { t, i18n } = useTranslation();
     const [exporting, setExporting] = React.useState(false);
@@ -121,6 +151,19 @@ export function TranscriptCard({ appointmentId, role, info }: {
 
     return (
         <>
+            {variant === 'row' ? (
+                <TouchableOpacity
+                    onPress={show}
+                    activeOpacity={0.85}
+                    accessibilityRole="button"
+                    className="flex-row items-center"
+                    style={{ gap: 4, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 999, backgroundColor: AO.blueSoft }}
+                    testID="transcript-row-view"
+                >
+                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: AO.blue }}>{t(`${K}.view`)}</Text>
+                    <Ionicons name="chevron-forward" size={14} color={AO.blue} />
+                </TouchableOpacity>
+            ) : (
             <TouchableOpacity
                 onPress={show}
                 activeOpacity={0.85}
@@ -138,6 +181,8 @@ export function TranscriptCard({ appointmentId, role, info }: {
                 </View>
                 <Ionicons name="chevron-forward" size={18} color={AO.mutedLight} />
             </TouchableOpacity>
+
+            )}
 
             <Modal supportedOrientations={MODAL_ORIENTATIONS} transparent visible={open} animationType="fade" onRequestClose={() => setOpen(false)}>
                 <SheetDim color="rgba(11,21,48,0.35)" />

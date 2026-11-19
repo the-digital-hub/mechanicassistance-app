@@ -6,7 +6,7 @@ import { refLabel } from '@/lib/refCode';
 import { approximateArea, coarseAddress } from '@/lib/maps/approximateLocation';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
-import { Calendar, Car, Clock, LucideIcon, MapPin, MessageSquare, Route, Star, Timer } from 'lucide-react-native';
+import { Calendar, Car, Clock, FileText, LucideIcon, MapPin, MessageSquare, Route, Star, Timer } from 'lucide-react-native';
 import { ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, Platform, Text, TouchableOpacity, View } from 'react-native';
@@ -17,6 +17,7 @@ import { FixedLocationMap } from './FixedLocationMap';
 import { ScrollPressGuardContext } from '@/hooks/useScrollPressGuard';
 import { AppointmentMechanic, useAppointmentMechanic } from '@/hooks/useAppointmentMechanic';
 import { useCallExtraMinutes } from '@/hooks/useCallExtraMinutes';
+import { TranscriptCard, useHasTranscript } from '@/components/video/TranscriptCard';
 import { Stars } from '@/components/offer/OfferSections';
 import { useCountdown } from '@/hooks/useCountdown';
 import { RequestIdRow } from '@/components/ui/RequestIdRow';
@@ -271,6 +272,7 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
     const dateRow = { icon: Calendar, label: t(isPast ? 'appointments.list.card.rows.date' : 'appointments.list.card.rows.when'), value: whenLabel };
     // A finished call that had time added: say how much, right after its duration.
     const extraMinutes = useCallExtraMinutes(appointment.id, isVideoCall && state === 'completed' && appointment.source === 'appointment');
+    const hasTranscript = useHasTranscript(appointment.id, isMechanic ? 'mechanic' : 'owner', isVideoCall && state === 'completed' && appointment.source === 'appointment');
     const rows = [
         ...(isPast ? [dateRow] : []),
         // A video call: how long it lasts, before the vehicle.
@@ -279,6 +281,27 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
             : []),
         ...(isVideoCall && extraMinutes > 0
             ? [{ icon: Timer, label: t('appointments.list.card.rows.extendedTime'), value: t('appointments.list.card.extendedTimeValue', { count: extraMinutes }) }]
+            : []),
+        // A call that was transcribed: one more data row, with the button to read it.
+        ...(hasTranscript
+            ? [{
+                icon: FileText,
+                label: t('appointments.list.card.rows.transcript'),
+                node: (
+                    <TranscriptCard
+                        variant="row"
+                        appointmentId={appointment.id}
+                        role={isMechanic ? 'mechanic' : 'owner'}
+                        info={{
+                            ref: appointment.refCode ?? null,
+                            vehicle: appointment.car ?? null,
+                            callDate: whenLabel || null,
+                            durationMinutes: (appointment.durationMinutes ?? 0) + extraMinutes || null,
+                            selfName: [user?.name, user?.surname].filter(Boolean).join(' ') || null,
+                        }}
+                    />
+                ),
+            }]
             : []),
         { icon: Car, label: t('appointments.list.card.rows.vehicle'), value: appointment.car },
         ...(isVideoCall
@@ -427,10 +450,12 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
                             backgroundColor: isPast ? C.page : C.blueSofter,
                             borderWidth: 1,
                             borderColor: isPast ? C.borderSoft : C.blueSoft,
+                            // A finished job has the receipt button on the left: the amount sits against the right edge.
+                            alignItems: isPast && !isCanceled ? 'flex-end' : 'flex-start',
                         }}
                     >
-                        <Text className="font-outfit-bold text-[12px] uppercase" style={{ color: C.muted, letterSpacing: 0.4 }}>{amountLabel}</Text>
-                        <Text className="font-outfit-bold text-xl" style={{ color: isPast ? C.text : C.blue, letterSpacing: -0.5, lineHeight: 23 }} numberOfLines={1}>{amount}</Text>
+                        <Text className="font-outfit-bold text-[12px] uppercase" style={{ color: C.muted, letterSpacing: 0.4, textAlign: isPast && !isCanceled ? 'right' : 'left' }}>{amountLabel}</Text>
+                        <Text className="font-outfit-bold text-xl" style={{ color: isPast ? C.text : C.blue, letterSpacing: -0.5, lineHeight: 23, textAlign: isPast && !isCanceled ? 'right' : 'left' }} numberOfLines={1}>{amount}</Text>
                     </View>
                 </View>
 

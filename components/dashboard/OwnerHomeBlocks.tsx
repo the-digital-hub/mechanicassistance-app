@@ -56,7 +56,7 @@ export function OwnerSectionTitle({
         <View className="flex-row items-center" style={{ gap: 8 }}>
             <Text className="font-outfit-bold" style={{ ...TYPE.section, color: C.text }}>{title}</Text>
             {badge != null && badge > 0 && (
-                <View className="items-center justify-center rounded-full" style={{ minWidth: 22, height: 22, paddingHorizontal: 7, backgroundColor: C.red }}>
+                <View className="items-center justify-center rounded-full" style={{ minWidth: 22, height: 22, paddingHorizontal: 7, backgroundColor: '#D96B6B' }}>
                     <Text className="font-outfit-bold" style={{ fontSize: 13, color: '#FFFFFF' }}>{badge}</Text>
                 </View>
             )}

@@ -16,7 +16,9 @@ export function NotificationBell({ size = 24, color = '#0047AB' }: { size?: numb
     const width = label.length === 1 ? 22 : label.length === 2 ? 28 : 36;
 
     return (
-        <View accessibilityLabel={unread > 0 ? `${unread} unread notifications` : 'Notifications'}>
+        // The bubble hangs 17 beyond the bell: with one, the bell steps left by that much (+3) so the bubble's right edge
+        // lands on the screen's 24 px side margin instead of outside the grid.
+        <View accessibilityLabel={unread > 0 ? `${unread} unread notifications` : 'Notifications'} style={{ marginRight: unread > 0 ? 20 : 0 }}>
             <Bell size={size} color={color} />
             {unread > 0 && (
                 <View
@@ -24,7 +26,7 @@ export function NotificationBell({ size = 24, color = '#0047AB' }: { size?: numb
                     style={{
                         position: 'absolute',
                         top: -9,
-                        right: -12,
+                        right: -17,
                         width,
                         height: 22,
                         borderRadius: 11,

@@ -477,6 +477,11 @@ solicitud y no solo en el teléfono:
   la copia local.
 - Definir con legal la retención, igual que en el pedido principal.
 
+**Para la lista de citas (nuevo, 19-nov):** la tarjeta de cada videollamada completada muestra una fila "Call transcript" con un botón "View" (junto a
+"Extended time", vehículo, etc.) si hay transcripción. Hoy la app consulta `GET …/video/transcript` por cada tarjeta y solo encuentra lo que quedó en
+ese teléfono. Pedido: que `GET /api/appointments` y `GET /api/appointments/:id` devuelvan por fila `hasTranscript` (y `transcriptLines`) y
+`extendedMinutes` (`contractedMinutes − baseMinutes`), para no hacer dos consultas por tarjeta y para que la fila aparezca en los dos teléfonos.
+
 ### 5.13 Q — Registro de consentimientos y cumplimiento (nuevo, 18-nov)
 **Objetivo:** estar en cumplimiento. Los **dos** lados aceptan las condiciones **antes** de la videollamada, y de nuevo, uno al otro, en el momento
 de activar subtítulos y transcripción; todo queda registrado y la transcripción solo existe si ambos aceptaron.
@@ -613,6 +618,19 @@ Campos: `type` (`manufacturer|industry|other`), `name` (el tipo de certificació
 
 **Decisiones de producto pendientes:** si una certificación sin archivo puede quedar verificada; si cuenta para el matching (priorizar la
 certificación de la marca del vehículo); y qué lista de fabricantes sugerir al elegir el tipo.
+
+### 5.20 AA — Las videollamadas no llevan impuestos (nuevo, 19-nov)
+**Regla de producto:** una videollamada no lleva impuestos. El dueño paga el precio de lista; el técnico gana ≈ 85 % de ese precio.
+
+**Bug observado** (videollamada de 30 min): el plan mostró **$67.50** (`/pricing/calculate` → `final_price`, bien), el técnico aceptó cobrando
+**$57.37** (67.50 × 0.85, bien) y al dueño después le apareció **$72.57** (`offer-summary.breakdown.total`, mal: ≈ 7.5 % de impuesto agregado).
+
+**Pedido:** para `assistance_type: videocall`, que `breakdown` salga con `taxes: "0.00"` y `total` igual al precio cotizado; que lo **retenido y
+cobrado** (hold, captura, recibo del dueño, wallet) sea ese total; y que no cambie entre la cotización y el cobro. Averiguar por qué el cálculo de
+la oferta aplica impuesto a una videollamada.
+
+**La app** ya muestra el precio sin impuestos en el plan, el resumen y cada opción de tiempo, y oculta la línea de impuestos de la oferta cuando
+vale cero. Mientras el backend siga sumándolos, muestra el total real retenido, no uno menor.
 
 ## 6. Orden de entrega sugerido
 1. **B, C, D, E** — verificaciones (rápidas, desbloquean pruebas de la app).

@@ -154,7 +154,10 @@ export default function ObdScannerScreen() {
                                 key={obdFile?.uri ?? 'none'}
                                 kind="file"
                                 compact
-                                placeholder={t(`${k}.placeholder`)}
+                                title={t(`${k}.reportTitle`)}
+                                placeholder={t(`${k}.reportHint`)}
+                                actionLabel={t(`${k}.upload`)}
+                                actionIcon="cloud-upload-outline"
                                 customUpload={keep}
                                 existingFileName={obdFile ? obdFile.name ?? obdFile.uri.split('/').pop() : undefined}
                             />

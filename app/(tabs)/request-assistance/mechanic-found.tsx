@@ -304,7 +304,9 @@ export default function MechanicFoundScreen() {
     const lines = breakdown
         ? [
             { label: t(`${k}.lineService`, { type: typeLabel }), amount: formatMoney(serviceWithFees)! },
-            { label: t(`${k}.lineTaxes`), amount: formatMoney(breakdown.taxes)! },
+            // A video call carries no taxes: with none, the line is not shown (and the total is the service price).
+            // If the backend still adds some, they stay visible: the owner is charged the total shown.
+            ...(isVideoCall && !(Number(breakdown.taxes) > 0) ? [] : [{ label: t(`${k}.lineTaxes`), amount: formatMoney(breakdown.taxes)! }]),
         ]
         : [];
 

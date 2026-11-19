@@ -51,6 +51,10 @@ interface MediaSlotProps {
     existingFileName?: string;
     /** Empty state as a compact card with a real button instead of a tall dashed box. */
     compact?: boolean;
+    /** Compact empty state: a heading above the hint, the button's own label and its icon. */
+    title?: string;
+    actionLabel?: string;
+    actionIcon?: React.ComponentProps<typeof Ionicons>['name'];
 }
 
 export interface Picked {
@@ -75,6 +79,9 @@ export function MediaSlot({
     customUpload,
     existingFileName,
     compact,
+    title,
+    actionLabel,
+    actionIcon,
 }: MediaSlotProps) {
     const { t } = useTranslation();
     const ctx = React.useContext(OnSiteCaptureContext);
@@ -188,8 +195,13 @@ export function MediaSlot({
             <View className={padded ? 'p-4' : ''}>
                 <View style={{ backgroundColor: OS.page, borderRadius: 16, borderWidth: 1, borderColor: OS.border, padding: 14, gap: 12 }}>
                     <View className="flex-row items-center gap-3">
-                        <Ionicons name={kind === 'video' ? 'videocam-outline' : kind === 'file' ? 'document-attach-outline' : 'camera-outline'} size={26} color={OS.mutedLight} />
-                        <Text className="font-outfit-medium flex-1" style={{ fontSize: 15, lineHeight: 20, color: OS.muted }}>{placeholder}</Text>
+                        <View className="items-center justify-center" style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: OS.blueSoft }}>
+                            <Ionicons name={kind === 'video' ? 'videocam-outline' : kind === 'file' ? 'document-text-outline' : 'camera-outline'} size={24} color={OS.blue} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            {title ? <Text className="font-outfit-bold" style={{ fontSize: 17, lineHeight: 22, color: OS.text }}>{title}</Text> : null}
+                            <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 19, color: OS.muted }}>{placeholder}</Text>
+                        </View>
                     </View>
                     <TouchableOpacity
                         onPress={pick}
@@ -197,8 +209,8 @@ export function MediaSlot({
                         className="flex-row items-center justify-center gap-2"
                         style={{ height: 52, borderRadius: 14, backgroundColor: OS.blue }}
                     >
-                        <Ionicons name="add-circle-outline" size={20} color="#FFFFFF" />
-                        <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#FFFFFF' }}>{t('appointments.onSite.common.tapToAdd')}</Text>
+                        <Ionicons name={actionIcon ?? 'add-circle-outline'} size={22} color="#FFFFFF" />
+                        <Text className="font-outfit-bold" style={{ fontSize: 17, color: '#FFFFFF' }}>{actionLabel ?? t('appointments.onSite.common.tapToAdd')}</Text>
                     </TouchableOpacity>
                 </View>
             </View>

@@ -333,7 +333,8 @@ export function OwnerBudgetPanel({ total, payment, totalLabel, video, extendedMi
     const { t } = useTranslation();
     // What adds up (service, extra time) comes first; the total closes it under a line; how it is paid is last.
     const lines: (SummaryRow | null)[] = [
-        { icon: 'cash-outline', label: totalLabel ?? t(`${K}.rows.serviceValue`), value: total ? `$${total}` : '—', strong: true },
+        // With extra time the first row is, by name, the service as it started: the extra time is told apart below it.
+        { icon: 'cash-outline', label: totalLabel ?? t(video && extendedMinutes > 0 ? `${K}.rows.initialService` : `${K}.rows.serviceValue`), value: total ? `$${total}` : '—', strong: true },
         video
             ? extendedMinutes > 0
                 ? {

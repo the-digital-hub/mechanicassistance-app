@@ -204,6 +204,36 @@ export default function VideoCallWhenScreen() {
         };
     }, [timezone, serviceAt, duration, durationSupported]);
 
+    // The price of every length in the menu, quoted for the same moment, so each option shows what it costs
+    // before it is picked. While a quote is pending (or fails) the option shows the menu's base price.
+    const [optionPrices, setOptionPrices] = useState<Record<number, number>>({});
+    useEffect(() => {
+        const menu = now?.durations ?? [];
+        if (!durationSupported || menu.length === 0) return;
+        let mounted = true;
+        Promise.all(
+            menu.map((d) =>
+                pricingDAO
+                    .calculatePrice({
+                        assistance_type: 'videocall',
+                        timezone,
+                        duration_minutes: d.minutes,
+                        ...(serviceAt ? { service_at: serviceAt } : {}),
+                    })
+                    .then((r) => [d.minutes, r?.pricing_breakdown?.final_price ?? null] as const)
+                    .catch(() => [d.minutes, null] as const),
+            ),
+        ).then((rows) => {
+            if (!mounted) return;
+            const next: Record<number, number> = {};
+            rows.forEach(([minutes, value]) => { if (typeof value === 'number') next[minutes] = value; });
+            setOptionPrices(next);
+        });
+        return () => {
+            mounted = false;
+        };
+    }, [now?.durations, timezone, serviceAt, durationSupported]);
+
     // ─── Formatting (in the phone's own zone and language) ───
 
     const fmt = useCallback(
@@ -584,12 +614,22 @@ export default function VideoCallWhenScreen() {
                             style={{ borderRadius: 20, padding: 16, gap: 12, shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.22, shadowRadius: 14, elevation: 5 }}
                             testID="when-duration-section"
                         >
-                            <Text className="font-outfit-bold" style={{ ...TYPE.question, color: '#FFFFFF' }}>
-                                {t('requestAssistance.when.durationTitle')}
-                            </Text>
+                            {/* The header: a clock tile, what to do, and one short line. */}
+                            <View className="flex-row items-center" style={{ gap: 12 }}>
+                                <View className="items-center justify-center" style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.18)' }}>
+                                    <Timer size={24} color="#FFFFFF" />
+                                </View>
+                                <View style={{ flex: 1, gap: 2 }}>
+                                    <Text className="font-outfit-bold" style={{ fontSize: 20, lineHeight: 26, letterSpacing: -0.3, color: '#FFFFFF' }}>
+                                        {t('requestAssistance.when.durationTitle')}
+                                    </Text>
+                                    <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: 'rgba(255,255,255,0.85)' }}>
+                                        {t('requestAssistance.when.durationHint')}
+                                    </Text>
+                                </View>
+                            </View>
                             {/* The length the call lasts is the first decision: a blue card, the picked length lifted on white. */}
                             <View
-                                style={{ padding: 4, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.16)' }}
                                 onLayout={(e) => setDurationTrackWidth(e.nativeEvent.layout.width)}
                             >
                                 {(() => {
@@ -598,7 +638,7 @@ export default function VideoCallWhenScreen() {
                                     // and the rest slide in: nothing is cut off, and the arrows say there is more.
                                     const slides = durations.length > 3;
                                     const ARROW = 26;
-                                    const inner = durationTrackWidth > 0 ? durationTrackWidth - 8 - (slides ? ARROW * 2 : 0) : 0;
+                                    const inner = durationTrackWidth > 0 ? durationTrackWidth - (slides ? ARROW * 2 : 0) : 0;
                                     const segmentWidth = inner > 0 ? inner / (slides ? 3 : durations.length) : 0;
                                     const maxScroll = Math.max(0, durations.length * segmentWidth - inner);
                                     const canBack = durationScrollX > 1;
@@ -610,15 +650,16 @@ export default function VideoCallWhenScreen() {
                                     const items = durations.map((d) => {
                                         const selected = duration === d.minutes;
                                         return (
+                                          <View key={d.minutes} style={{ ...(slides ? { width: segmentWidth } : { flex: 1 }), padding: 3 }}>
                                             <TouchableOpacity
-                                                key={d.minutes}
                                                 style={{
-                                                    ...(slides ? { width: segmentWidth } : { flex: 1 }),
-                                                    height: 46,
-                                                    borderRadius: 12,
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    backgroundColor: selected ? '#FFFFFF' : 'transparent',
+                                                    height: 104,
+                                                    borderRadius: 14,
+                                                    alignItems: 'stretch',
+                                                    justifyContent: 'flex-start',
+                                                    backgroundColor: selected ? '#FFFFFF' : 'rgba(255,255,255,0.08)',
+                                                    borderWidth: 1.5,
+                                                    borderColor: selected ? '#FFFFFF' : 'rgba(255,255,255,0.28)',
                                                     ...(selected ? { shadowColor: '#041048', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 8, elevation: 4 } : null),
                                                 }}
                                                 activeOpacity={0.85}
@@ -627,10 +668,36 @@ export default function VideoCallWhenScreen() {
                                                 accessibilityState={{ selected }}
                                                 testID={`when-duration-${d.minutes}`}
                                             >
-                                                <Text className="font-outfit-bold" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={{ ...TYPE.body, color: selected ? C.blue : 'rgba(255,255,255,0.88)' }}>
-                                                    {t('requestAssistance.when.durationShort', { count: d.minutes })}
-                                                </Text>
+                                                {selected ? (
+                                                    <View style={{ position: 'absolute', top: 5, right: 5, width: 18, height: 18, borderRadius: 9, backgroundColor: C.blue, alignItems: 'center', justifyContent: 'center' }}>
+                                                        <Check size={12} color="#FFFFFF" strokeWidth={3.4} />
+                                                    </View>
+                                                ) : null}
+                                                {/* Two separate pieces: the length on top, its price in a band of its own below. */}
+                                                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                                                    <Text className="font-outfit-bold" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={{ fontSize: 26, lineHeight: 30, letterSpacing: -0.5, color: selected ? C.blue : '#FFFFFF' }}>
+                                                        {d.minutes}
+                                                        <Text className="font-outfit-semibold" style={{ fontSize: 15, letterSpacing: 0, color: selected ? C.blue : 'rgba(255,255,255,0.85)' }}>{' min'}</Text>
+                                                    </Text>
+                                                </View>
+                                                <View
+                                                    style={{
+                                                        alignSelf: 'stretch',
+                                                        height: 34,
+                                                        marginHorizontal: 6,
+                                                        marginBottom: 6,
+                                                        borderRadius: 10,
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        backgroundColor: selected ? '#E8F0FD' : 'rgba(255,255,255,0.18)',
+                                                    }}
+                                                >
+                                                    <Text className="font-outfit-bold" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={{ fontSize: 16, lineHeight: 22, color: selected ? C.ink : '#FFFFFF' }} testID={`when-duration-price-${d.minutes}`}>
+                                                        {`$${(optionPrices[d.minutes] ?? d.price).toFixed(2)}`}
+                                                    </Text>
+                                                </View>
                                             </TouchableOpacity>
+                                          </View>
                                         );
                                     });
                                     if (!slides) return <View style={{ flexDirection: 'row' }}>{items}</View>;
@@ -641,7 +708,7 @@ export default function VideoCallWhenScreen() {
                                             hitSlop={8}
                                             accessibilityRole="button"
                                             accessibilityLabel={dir === 1 ? 'More lengths' : 'Shorter lengths'}
-                                            style={{ width: ARROW, height: 46, alignItems: 'center', justifyContent: 'center', opacity: enabled ? 1 : 0.3 }}
+                                            style={{ width: ARROW, height: 104, alignItems: 'center', justifyContent: 'center', opacity: enabled ? 1 : 0.3 }}
                                             testID={dir === 1 ? 'when-duration-next' : 'when-duration-prev'}
                                         >
                                             {dir === 1 ? <ChevronRight size={20} color="#FFFFFF" strokeWidth={2.6} /> : <ChevronLeft size={20} color="#FFFFFF" strokeWidth={2.6} />}
@@ -667,12 +734,6 @@ export default function VideoCallWhenScreen() {
                                         </View>
                                     );
                                 })()}
-                            </View>
-                            <View className="flex-row items-center" style={{ gap: 8 }}>
-                                <Timer size={16} color="rgba(255,255,255,0.85)" />
-                                <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: 'rgba(255,255,255,0.88)', flex: 1 }}>
-                                    {t('requestAssistance.when.durationHint')}
-                                </Text>
                             </View>
                         </LinearGradient>
                         )}
