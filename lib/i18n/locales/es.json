@@ -954,7 +954,7 @@
           "canceled": "Cancelada",
           "canceledHint": "La solicitud fue cancelada",
           "awaitingConfirmation": "Esperando confirmación",
-          "awaitingConfirmationHint": "El mecánico finalizó la videollamada",
+          "awaitingConfirmationHint": "El mecánico finalizó el servicio",
           "disputed": "En revisión",
           "disputedHint": "Soporte lo está revisando",
           "notCharged": "Sin cargo",
@@ -1648,7 +1648,45 @@
       "walletSent": "Enviado a tu wallet",
       "walletSentOn": "Enviado a tu wallet el {{date}}",
       "walletPending": "Va a tu wallet cuando el cliente confirme",
-      "walletNote": "Vos elegís cuándo pasarlo a tu cuenta bancaria."
+      "walletNote": "Vos elegís cuándo pasarlo a tu cuenta bancaria.",
+      "heroBadgeAwaiting": "ESPERANDO CONFIRMACIÓN",
+      "heroTitleAwaiting": "Esperando confirmación del cliente. Se cobra cuando confirme el trabajo.",
+      "heroBadgeDisputed": "EN REVISIÓN",
+      "heroTitleDisputed": "El cliente indicó que el trabajo no se realizó. Soporte lo está revisando.",
+      "heroBadgeReleased": "SIN CARGO",
+      "heroTitleReleased": "Soporte determinó que el trabajo no se realizó. No se cobró al cliente.",
+      "walletDisputed": "En revisión: se libera si soporte confirma el trabajo",
+      "walletReleased": "Sin cobro: soporte determinó que el trabajo no se realizó",
+      "itemOwnerConfirmation": "Confirmación del cliente"
+    },
+    "onSiteConfirm": {
+      "autoConfirmIn": "Se confirmará automáticamente en {{hours}} h",
+      "autoConfirmSoon": "Se confirmará automáticamente en menos de 1 h",
+      "owner": {
+        "awaitingTitle": "El mecánico marcó el servicio como finalizado",
+        "awaitingBody": "¿Se hizo el trabajo? Confirmalo para completar el servicio. Si no se hizo, avisanos: no se te cobrará hasta que soporte lo revise.",
+        "confirm": "Confirmar",
+        "notDone": "No se hizo el trabajo",
+        "confirmFailed": "No pudimos confirmar el servicio. Intentá de nuevo.",
+        "alreadyAnswered": "Este servicio ya no está esperando tu confirmación. Actualizamos su estado.",
+        "disputedTitle": "En revisión",
+        "disputedBody": "No se te cobrará hasta que soporte lo resuelva.",
+        "releasedTitle": "Sin cargo",
+        "releasedBody": "Soporte confirmó que el trabajo no se realizó."
+      },
+      "mechanic": {
+        "awaitingTitle": "Esperando confirmación del cliente",
+        "awaitingBody": "El servicio se cobra cuando el cliente confirme que se hizo el trabajo, o automáticamente al vencer el plazo.",
+        "disputedTitle": "El cliente indicó que el trabajo no se realizó",
+        "disputedBody": "Soporte lo está revisando.",
+        "releasedTitle": "Sin cargo",
+        "releasedBody": "Soporte determinó que el trabajo no se realizó, así que no se cobró."
+      },
+      "dispute": {
+        "title": "¿Qué no se hizo?",
+        "body": "Contanos qué pasó. Soporte lo va a revisar y no se te cobrará hasta que decida.",
+        "failed": "No pudimos enviar tu reporte. Intentá de nuevo."
+      }
     },
     "receipt": {
       "title": "Recibo",

@@ -82,7 +82,38 @@ export interface OnSiteVisit {
     fundsTransferredAt?: string | null;
     /** When the owner's review closed out the visit (ISO). */
     closeoutCompletedAt?: string | null;
+    /**
+     * Owner confirmation of a visit closed as resolved: it is only charged once
+     * the owner confirms, or automatically at `confirmDeadline` (ISO). Optional
+     * for older backends.
+     */
+    confirmDeadline?: string | null;
+    confirmedAt?: string | null;
+    confirmedBy?: 'owner' | 'auto' | null;
+    /** The owner said the work was not done; support settles it. */
+    disputedAt?: string | null;
+    disputeReason?: string | null;
+    resolvedAt?: string | null;
+    /** Support's decision: capture = charged, release = not charged (appointment cancelled). */
+    resolution?: 'capture' | 'release' | null;
     media: OnSiteMedia[];
+}
+
+/**
+ * Where a visit closed as resolved stands with the owner's confirmation.
+ * null: not closed as resolved (or a backend without confirmation).
+ */
+export type OnSiteConfirmationStage = 'awaiting' | 'disputed' | 'confirmed' | 'captured' | 'released';
+
+export function onSiteConfirmationStage(visit: OnSiteVisit | null | undefined): OnSiteConfirmationStage | null {
+    if (!visit || visit.outcome !== 'resolved' || !visit.closedAt) return null;
+    if (visit.resolution === 'release') return 'released';
+    if (visit.resolution === 'capture') return 'captured';
+    if (visit.disputedAt) return 'disputed';
+    if (visit.confirmedAt) return 'confirmed';
+    // No deadline: closed before owner confirmation existed (charged on close), or an older backend.
+    if (!visit.confirmDeadline) return null;
+    return 'awaiting';
 }
 
 export interface CheckInCode {
@@ -192,6 +223,19 @@ class OnSiteDAOImpl {
             ...(reason ? { reason } : {}),
             ...(note ? { note } : {}),
         });
+    }
+
+    /** Owner: the work was done — the visit is charged now. 409 when it is no longer awaiting confirmation. */
+    confirm(appointmentId: string): Promise<unknown> {
+        return apiClient.post(`${base(appointmentId)}/on-site/confirm`, {});
+    }
+
+    /**
+     * Owner: the work was not done (reason 10..1000 chars). Nothing is charged
+     * until support settles it. 409 when it is no longer awaiting confirmation.
+     */
+    dispute(appointmentId: string, reason: string): Promise<unknown> {
+        return apiClient.post(`${base(appointmentId)}/on-site/dispute`, { reason });
     }
 
     /**

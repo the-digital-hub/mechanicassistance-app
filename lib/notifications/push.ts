@@ -170,6 +170,8 @@ const ROLE_OF_KIND: Partial<Record<string, PushViewer['role']>> = {
     obd_reminder: 'mechanic',
     video_call_confirmed: 'mechanic',
     video_call_disputed: 'mechanic',
+    service_confirmed: 'mechanic',
+    service_disputed: 'mechanic',
     mechanic_found: 'user',
     request_reopened: 'user',
     final_quote_proposed: 'user',
@@ -177,6 +179,7 @@ const ROLE_OF_KIND: Partial<Record<string, PushViewer['role']>> = {
     service_redirected: 'user',
     review_requested: 'user',
     video_call_finished: 'user',
+    service_awaiting_confirmation: 'user',
 };
 
 /**
@@ -236,6 +239,15 @@ export function routeForPush(data: PushData | undefined, viewer: PushViewer): Hr
         case 'video_call_resolved':
         case 'video_call_reminder':
             // Video call close-out: the detail screen shows the confirm / dispute / outcome card.
+            return appointmentId
+                ? { pathname: '/appointments/[id]', params: { id: appointmentId } }
+                : '/appointments';
+        case 'service_awaiting_confirmation':
+        case 'service_confirmed':
+        case 'service_disputed':
+        case 'service_dispute_resolved':
+            // On-site close-out: the owner confirms or disputes the visit there;
+            // the mechanic sees whether it was confirmed, disputed or settled.
             return appointmentId
                 ? { pathname: '/appointments/[id]', params: { id: appointmentId } }
                 : '/appointments';

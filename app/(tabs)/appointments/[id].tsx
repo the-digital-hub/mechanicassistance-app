@@ -50,7 +50,8 @@ import { useCustomerInRoom } from '@/hooks/useCustomerInRoom';
 import { useVideoCallState } from '@/hooks/useVideoCallState';
 import { ApiError } from '@/lib/api/types';
 import { appointmentDAO } from '@/lib/dao/AppointmentDAO';
-import { onSiteDAO } from '@/lib/dao/OnSiteDAO';
+import { onSiteDAO, type OnSiteVisit } from '@/lib/dao/OnSiteDAO';
+import { MechanicOnSiteConfirmCard, OwnerOnSiteConfirmCard } from '@/components/appointments/OnSiteConfirmationCards';
 import { videoCallDAO } from '@/lib/dao/VideoCallDAO';
 import { onCancellationDisputePush } from '@/lib/notifications/push';
 import { contractedSeconds, DEFAULT_CALL_MINUTES } from '@/lib/video/callLength';
@@ -437,6 +438,77 @@ export default function AppointmentDetailScreen() {
         }
     };
 
+    // On-site close-out: a visit closed as resolved waits for the owner's
+    // confirmation before it is charged; the owner may dispute it instead.
+    const onSiteStatus = appointment?.status;
+    const onSiteVisitRelevant = !!appointment && !isVideoCall
+        && ['awaiting_confirmation', 'disputed', 'cancelled', 'canceled'].includes(onSiteStatus ?? '');
+    const [onSiteVisit, setOnSiteVisit] = React.useState<OnSiteVisit | null>(null);
+    const [onSiteBusy, setOnSiteBusy] = React.useState(false);
+    React.useEffect(() => {
+        if (!onSiteVisitRelevant || !appointment?.id) {
+            setOnSiteVisit(null);
+            return;
+        }
+        let cancelled = false;
+        // A job cancelled before check-in has no visit: get() answers null for the 404.
+        onSiteDAO
+            .get(appointment.id)
+            .then((v) => !cancelled && setOnSiteVisit(v))
+            .catch((error) => console.error('Error fetching on-site visit:', error));
+        return () => {
+            cancelled = true;
+        };
+    }, [onSiteVisitRelevant, appointment?.id, appointment?.updatedAt, onSiteStatus]);
+
+    // 409: it is no longer awaiting confirmation (auto-confirmed, or already answered) — show the fresh state.
+    const onSiteError = (error: unknown, fallbackKey: string) => {
+        if (error instanceof ApiError && error.statusCode === 409) {
+            refreshAppointments();
+            setVideoErrorMsg(t('appointments.onSiteConfirm.owner.alreadyAnswered'));
+            return;
+        }
+        videoError(error, fallbackKey);
+    };
+
+    // Owner: the work was done — charged now.
+    const confirmOnSite = async () => {
+        if (!appointment || onSiteBusy) return;
+        setOnSiteBusy(true);
+        try {
+            await onSiteDAO.confirm(appointment.id);
+            refreshAppointments();
+        } catch (error) {
+            onSiteError(error, 'appointments.onSiteConfirm.owner.confirmFailed');
+        } finally {
+            setOnSiteBusy(false);
+        }
+    };
+
+    // Owner: the work was not done — nothing is charged until support settles it.
+    const disputeOnSite = async (reason: string) => {
+        if (!appointment || onSiteBusy) return;
+        setOnSiteBusy(true);
+        try {
+            await onSiteDAO.dispute(appointment.id, reason);
+            setShowDisputeSheet(false);
+            refreshAppointments();
+        } catch (error) {
+            setShowDisputeSheet(false);
+            onSiteError(error, 'appointments.onSiteConfirm.dispute.failed');
+        } finally {
+            setOnSiteBusy(false);
+        }
+    };
+    // The header follows the close-out while it is pending.
+    const onSiteHeader: { title?: string; icon?: IconName; color?: string } =
+        onSiteStatus === 'awaiting_confirmation'
+            ? { title: t('appointments.videoCall.status.awaitingConfirmation'), icon: 'help', color: AO.orange }
+            : onSiteStatus === 'disputed'
+                ? { title: t('appointments.videoCall.status.disputed'), icon: 'hourglass-outline', color: AO.orange }
+                : {};
+    const onSiteClosePending = !isVideoCall && (onSiteStatus === 'awaiting_confirmation' || onSiteStatus === 'disputed');
+
     // Mechanic: the help is done; the owner is asked to confirm.
     const finishVideoCall = async (note: string) => {
         if (!appointment || videoBusy) return;
@@ -808,7 +880,7 @@ export default function AppointmentDetailScreen() {
                                 <AcceptedHeader
                                     {...(isCancelled
                                         ? { title: t('appointments.cancellationDispute.cancelledTitle'), icon: 'close' as IconName, color: AO.mutedLight }
-                                        : isVideoCall ? videoCallHeader : {})}
+                                        : isVideoCall ? videoCallHeader : onSiteHeader)}
                                 />
 
                                 {isCancelled && cancellationDispute && (
@@ -824,6 +896,16 @@ export default function AppointmentDetailScreen() {
                                     chat={chatAvailability(appointment.status)}
                                     onMessage={() => router.push(`/chat/${appointment.id}`)}
                                 />
+
+                                {!isVideoCall && (
+                                    <OwnerOnSiteConfirmCard
+                                        status={appointment.status}
+                                        visit={onSiteVisit}
+                                        busy={onSiteBusy}
+                                        onConfirm={confirmOnSite}
+                                        onDispute={() => setShowDisputeSheet(true)}
+                                    />
+                                )}
 
                                 {isVideoCall && (
                                     <>
@@ -953,8 +1035,15 @@ export default function AppointmentDetailScreen() {
                                 </View>
                             )}
 
+                            {/* On-site closed as resolved: waiting for the owner, disputed, or released by support */}
+                            {!isVideoCall && (onSiteClosePending || isCancelled) && onSiteVisit ? (
+                                <View className="mx-4 mt-3.5">
+                                    <MechanicOnSiteConfirmCard status={appointment.status} visit={onSiteVisit} />
+                                </View>
+                            ) : null}
+
                             {/* Status card — a finished video call shows its close-out card instead */}
-                            {!isVideoCall && !isCancelled && (
+                            {!isVideoCall && !isCancelled && !onSiteClosePending && (
                             // Waiting for "Head out": the card is calm, so the button below is the one thing that pulls.
                             // Once on the way there is no button, and the card takes the strong blue.
                             <LinearGradient
@@ -1080,7 +1169,7 @@ export default function AppointmentDetailScreen() {
                             ) : null}
 
                             {/* On-site check-in — the critical next step once the mechanic arrives */}
-                            {!isVideoCall && appointment.status !== 'completed' && !isCancelled && !awaitingHeadOut ? (
+                            {!isVideoCall && appointment.status !== 'completed' && !isCancelled && !awaitingHeadOut && !onSiteClosePending ? (
                                 <View className="mt-3.5">
                                     <MechanicArrivalCard
                                         inProgress={appointment.status === 'in_progress'}
@@ -1157,19 +1246,19 @@ export default function AppointmentDetailScreen() {
             />
             */}
 
-            {/* Video call: owner reports it as not resolved */}
+            {/* Owner reports it as not resolved: the video call, or an on-site visit whose work was not done */}
             <NoteSheet
                 visible={showDisputeSheet}
-                title={t('appointments.videoCall.dispute.title')}
-                body={t('appointments.videoCall.dispute.body')}
+                title={t(isVideoCall ? 'appointments.videoCall.dispute.title' : 'appointments.onSiteConfirm.dispute.title')}
+                body={t(isVideoCall ? 'appointments.videoCall.dispute.body' : 'appointments.onSiteConfirm.dispute.body')}
                 placeholder={t('appointments.videoCall.dispute.placeholder')}
                 confirmLabel={t('appointments.videoCall.dispute.submit')}
                 minLength={10}
                 maxLength={1000}
                 danger
-                submitting={videoBusy}
+                submitting={isVideoCall ? videoBusy : onSiteBusy}
                 onClose={() => setShowDisputeSheet(false)}
-                onSubmit={disputeVideoCall}
+                onSubmit={isVideoCall ? disputeVideoCall : disputeOnSite}
             />
 
             {/* Video call: mechanic finishes it, with an optional note */}

@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Animated, Text, TouchableOpacity, View } from 'react-native';
-import { onSiteDAO, OnSiteVisit } from '@/lib/dao/OnSiteDAO';
+import { onSiteConfirmationStage, onSiteDAO, OnSiteConfirmationStage, OnSiteVisit } from '@/lib/dao/OnSiteDAO';
 import { FinalReportCard } from './FinalReportActions';
 import { ObdPanel } from './ObdPanel';
 import { Body, Card, NoteInput, OS, PrimaryButton, cardShadow } from './ui';
@@ -15,6 +15,9 @@ import { TYPE } from '@/lib/ui/type';
 // lets the mechanic rate the owner, and offers the final report. The payout comes
 // from Billing once the job is charged (`payoutStatus`); otherwise it is an estimate.
 // The owner's review closes the assistance out (`closeoutCompletedAt`).
+// A visit closed as resolved is only charged once the owner confirms it (or the
+// confirmation deadline passes); until then, and while a dispute is open, the
+// screen says so instead of "charge requested".
 
 function formatAmount(amount: string | null, fallback: string): string {
     if (!amount) return fallback;
@@ -32,32 +35,37 @@ function useFormatters() {
 }
 
 // ─────────── Hero ───────────
-function Hero({ redirected }: { redirected: boolean }) {
+const PENDING_STAGES: ReadonlySet<OnSiteConfirmationStage> = new Set(['awaiting', 'disputed', 'released']);
+
+function Hero({ redirected, stage }: { redirected: boolean; stage: OnSiteConfirmationStage | null }) {
     const { t } = useTranslation();
     const k = 'appointments.closeout';
+    // Waiting for the owner / in review / released: not a "charge requested" hero.
+    const pending = !redirected && stage !== null && PENDING_STAGES.has(stage);
     const scale = React.useRef(new Animated.Value(0.6)).current;
     React.useEffect(() => {
         Animated.spring(scale, { toValue: 1, friction: 5, tension: 120, useNativeDriver: true }).start();
     }, [scale]);
-    const color = redirected ? OS.orange : OS.green;
-    const soft = redirected ? OS.orangeSoft : OS.greenSoft;
-    const dark = redirected ? OS.orangeText : OS.greenDark;
+    const color = redirected || pending ? OS.orange : OS.green;
+    const soft = redirected || pending ? OS.orangeSoft : OS.greenSoft;
+    const dark = redirected || pending ? OS.orangeText : OS.greenDark;
+    const stageKey = stage === 'awaiting' ? 'Awaiting' : stage === 'disputed' ? 'Disputed' : 'Released';
     return (
         <View className="mx-4 mt-4 items-center px-5 pt-6 pb-5" style={cardShadow}>
             <Animated.View
                 className="items-center justify-center mb-3.5"
                 style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: soft, transform: [{ scale }] }}
             >
-                <Ionicons name="checkmark" size={28} color={color} />
+                <Ionicons name={pending ? (stage === 'awaiting' ? 'hourglass-outline' : 'alert') : 'checkmark'} size={28} color={color} />
             </Animated.View>
             <View className="flex-row items-center gap-1.5 mb-2.5 px-2.5 py-1 rounded-full" style={{ backgroundColor: soft }}>
                 <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: color }} />
                 <Text className="font-outfit-bold text-[12px] tracking-widest" style={{ color: dark }}>
-                    {redirected ? t(`${k}.heroBadgeRedirected`) : t(`${k}.heroBadge`)}
+                    {redirected ? t(`${k}.heroBadgeRedirected`) : pending ? t(`${k}.heroBadge${stageKey}`) : t(`${k}.heroBadge`)}
                 </Text>
             </View>
             <Text className="font-outfit-bold text-xl text-center leading-7" style={{ color: OS.text }}>
-                {redirected ? t(`${k}.heroTitleRedirected`) : t(`${k}.heroTitle`)}
+                {redirected ? t(`${k}.heroTitleRedirected`) : pending ? t(`${k}.heroTitle${stageKey}`) : t(`${k}.heroTitle`)}
             </Text>
         </View>
     );
@@ -69,13 +77,18 @@ function Payout({ visit }: { visit: OnSiteVisit }) {
     const k = 'appointments.closeout';
     const fmt = useFormatters();
     const settled = visit.payoutStatus === 'settled';
+    const stage = onSiteConfirmationStage(visit);
     // Paid money lands in the mechanic's wallet; paying it out to a bank account is their own choice, later.
     const status = settled
         ? {
             icon: 'wallet' as const, bg: OS.greenSoft, fg: OS.greenDark,
             title: visit.fundsTransferredAt ? t(`${k}.walletSentOn`, { date: fmt.date(visit.fundsTransferredAt) }) : t(`${k}.walletSent`),
         }
-        : { icon: 'time-outline' as const, bg: OS.blueSofter, fg: OS.blueDark, title: t(`${k}.walletPending`) };
+        : stage === 'disputed'
+            ? { icon: 'alert-circle-outline' as const, bg: OS.orangeSoft, fg: OS.orangeText, title: t(`${k}.walletDisputed`) }
+            : stage === 'released'
+                ? { icon: 'close-circle-outline' as const, bg: OS.orangeSoft, fg: OS.orangeText, title: t(`${k}.walletReleased`) }
+                : { icon: 'time-outline' as const, bg: OS.blueSofter, fg: OS.blueDark, title: t(`${k}.walletPending`) };
     return (
         <Card style={{ padding: 16 }}>
             <Text className="font-outfit-bold text-[12px] tracking-widest" style={{ color: OS.muted }}>{t(`${k}.payoutLabel`)}</Text>
@@ -166,7 +179,12 @@ function Checklist({ visit }: { visit: OnSiteVisit }) {
     const k = 'appointments.closeout';
     const items = [
         { label: t(`${k}.itemDiagnosis`), done: visit.obdStatus === 'ready' || visit.obdStatus === 'manual' },
-        { label: t(`${k}.itemPayment`), done: !!visit.closedAt },
+        // Resolved visits are charged on the owner's confirmation, not on close.
+        ...(() => {
+            const stage = onSiteConfirmationStage(visit);
+            if (stage === null) return [{ label: t(`${k}.itemPayment`), done: !!visit.closedAt }];
+            return [{ label: t(`${k}.itemOwnerConfirmation`), done: stage === 'confirmed' || stage === 'captured' }];
+        })(),
         ...(visit.ownerReviewSubmitted ? [{ label: t(`${k}.itemReviewReceived`), done: true }] : []),
     ];
     const doneCount = items.filter((i) => i.done).length;
@@ -208,7 +226,7 @@ export function ScreenCloseout({ visit, onVisit, onBackToDashboard }: {
     return (
         <>
             <Body>
-                <Hero redirected={visit.outcome === 'redirected'} />
+                <Hero redirected={visit.outcome === 'redirected'} stage={onSiteConfirmationStage(visit)} />
                 <Payout visit={visit} />
                 <Checklist visit={visit} />
                 <RateOwner visit={visit} onVisit={onVisit} />

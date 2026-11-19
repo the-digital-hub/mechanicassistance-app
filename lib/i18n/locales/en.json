@@ -953,7 +953,7 @@
           "canceled": "Cancelled",
           "canceledHint": "Request was cancelled",
           "awaitingConfirmation": "Awaiting confirmation",
-          "awaitingConfirmationHint": "Technician finished the video call",
+          "awaitingConfirmationHint": "Technician finished the service",
           "disputed": "Under review",
           "disputedHint": "Support is reviewing it",
           "notCharged": "Not charged",
@@ -1647,7 +1647,45 @@
       "walletSent": "Sent to your wallet",
       "walletSentOn": "Sent to your wallet on {{date}}",
       "walletPending": "Goes to your wallet once the client confirms",
-      "walletNote": "You choose when to pay it out to your bank account."
+      "walletNote": "You choose when to pay it out to your bank account.",
+      "heroBadgeAwaiting": "AWAITING CONFIRMATION",
+      "heroTitleAwaiting": "Waiting for the customer to confirm. It is charged once they confirm the work.",
+      "heroBadgeDisputed": "UNDER REVIEW",
+      "heroTitleDisputed": "The customer said the work was not done. Support is reviewing it.",
+      "heroBadgeReleased": "NO CHARGE",
+      "heroTitleReleased": "Support found the work was not done. The customer was not charged.",
+      "walletDisputed": "Under review: released if support confirms the work",
+      "walletReleased": "Not charged: support found the work was not done",
+      "itemOwnerConfirmation": "Customer confirmation"
+    },
+    "onSiteConfirm": {
+      "autoConfirmIn": "Confirms automatically in {{hours}} h",
+      "autoConfirmSoon": "Confirms automatically in less than 1 h",
+      "owner": {
+        "awaitingTitle": "The mechanic marked the service as finished",
+        "awaitingBody": "Was the work done? Confirm it to complete the service. If it wasn't, let us know: you won't be charged until support reviews it.",
+        "confirm": "Confirm",
+        "notDone": "The work wasn't done",
+        "confirmFailed": "We couldn't confirm the service. Please try again.",
+        "alreadyAnswered": "This service is no longer waiting for your confirmation. We refreshed its status.",
+        "disputedTitle": "Under review",
+        "disputedBody": "You won't be charged until support resolves it.",
+        "releasedTitle": "No charge",
+        "releasedBody": "Support confirmed the work was not done."
+      },
+      "mechanic": {
+        "awaitingTitle": "Waiting for customer confirmation",
+        "awaitingBody": "The service is charged once the customer confirms the work was done, or automatically when the deadline passes.",
+        "disputedTitle": "The customer said the work was not done",
+        "disputedBody": "Support is reviewing it.",
+        "releasedTitle": "No charge",
+        "releasedBody": "Support found the work was not done, so it was not charged."
+      },
+      "dispute": {
+        "title": "What wasn't done?",
+        "body": "Tell us what happened. Support will review it and you won't be charged until they decide.",
+        "failed": "We couldn't send your report. Please try again."
+      }
     },
     "receipt": {
       "title": "Receipt",

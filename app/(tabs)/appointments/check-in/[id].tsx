@@ -124,10 +124,13 @@ export default function OnSiteFlowScreen() {
     }, [id, hasVisit, t]);
 
     // The scanner report is read in the background; refresh when it is in.
+    // Also when the owner confirms or disputes the close-out (`onSiteStage`).
     const { lastMessage } = useSocket();
     React.useEffect(() => {
-        const refreshes = lastMessage?.type === 'obd_update' || lastMessage?.type === 'owner_review_submitted';
-        if (!refreshes || !hasVisit || lastMessage?.payload?.id !== id) return;
+        const refreshes = lastMessage?.type === 'obd_update' || lastMessage?.type === 'owner_review_submitted'
+            || (lastMessage?.type === 'appointment_update' && !!lastMessage?.payload?.onSiteStage);
+        const eventId = lastMessage?.payload?.id ?? lastMessage?.payload?.appointmentId;
+        if (!refreshes || !hasVisit || eventId !== id) return;
         onSiteDAO.get(id).then((v) => v && setVisit(v)).catch(() => { /* next event retries */ });
     }, [lastMessage, id, hasVisit]);
 

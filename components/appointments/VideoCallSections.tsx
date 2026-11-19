@@ -159,7 +159,7 @@ export function JoinVideoCallButton({ onPress, rejoin = false }: { onPress: () =
     return <GradientButton label={t(rejoin ? `${K}.rejoin` : `${K}.join`)} icon="videocam" tone="success" onPress={onPress} testID="join-video-call" />;
 }
 
-function InfoCard({ icon, tone, title, body, children, testID }: {
+export function InfoCard({ icon, tone, title, body, children, testID }: {
     icon: IconName;
     tone: 'blue' | 'orange' | 'green' | 'gray';
     title: string;
@@ -210,6 +210,36 @@ function DeadlineLine({ deadline }: { deadline: string | null }) {
     );
 }
 
+/**
+ * Owner's "it was done" / "it was not" pair, shared by the video call and the
+ * on-site close-out. testIDs: `<prefix>-not-resolved`, `<prefix>-confirm`.
+ */
+export function ConfirmOrDisputeRow({ busy, confirmLabel, disputeLabel, onConfirm, onDispute, testIDPrefix }: {
+    busy: boolean;
+    confirmLabel: string;
+    disputeLabel: string;
+    onConfirm: () => void;
+    onDispute: () => void;
+    testIDPrefix: string;
+}) {
+    return (
+        <View className="flex-row" style={{ gap: 10, marginTop: 14 }}>
+            <TouchableOpacity
+                onPress={onDispute}
+                disabled={busy}
+                activeOpacity={0.85}
+                style={{ flex: 0.45, minHeight: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FDECEC', paddingHorizontal: 8 }}
+                testID={`${testIDPrefix}-not-resolved`}
+            >
+                <Text className="font-outfit-bold" style={{ fontSize: 16, color: AO.red, textAlign: 'center' }}>{disputeLabel}</Text>
+            </TouchableOpacity>
+            <View style={{ flex: 0.55 }}>
+                <GradientButton label={confirmLabel} onPress={onConfirm} loading={busy} tone="success" testID={`${testIDPrefix}-confirm`} />
+            </View>
+        </View>
+    );
+}
+
 /** Owner: confirm / dispute card, or the outcome once it is past that. */
 export function OwnerVideoCallStatusCard({ state, mechanicName, busy, onConfirm, onNotResolved }: {
     state: VideoCallState;
@@ -225,20 +255,14 @@ export function OwnerVideoCallStatusCard({ state, mechanicName, busy, onConfirm,
             <InfoCard icon="help-circle-outline" tone="blue" title={t(`${k}.awaitingTitle`)} body={t(`${k}.awaitingBody`, { name: mechanicName })} testID="owner-video-confirm-card">
                 {!!state.finishNote && <NoteBlock label={t(`${k}.mechanicNote`)} text={state.finishNote} />}
                 <DeadlineLine deadline={state.confirmDeadline} />
-                <View className="flex-row" style={{ gap: 10, marginTop: 14 }}>
-                    <TouchableOpacity
-                        onPress={onNotResolved}
-                        disabled={busy}
-                        activeOpacity={0.85}
-                        style={{ flex: 0.45, minHeight: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FDECEC' }}
-                        testID="owner-video-not-resolved"
-                    >
-                        <Text className="font-outfit-bold" style={{ fontSize: 16, color: AO.red }}>{t(`${k}.notResolved`)}</Text>
-                    </TouchableOpacity>
-                    <View style={{ flex: 0.55 }}>
-                        <GradientButton label={t(`${k}.confirm`)} onPress={onConfirm} loading={busy} tone="success" testID="owner-video-confirm" />
-                    </View>
-                </View>
+                <ConfirmOrDisputeRow
+                    busy={busy}
+                    confirmLabel={t(`${k}.confirm`)}
+                    disputeLabel={t(`${k}.notResolved`)}
+                    onConfirm={onConfirm}
+                    onDispute={onNotResolved}
+                    testIDPrefix="owner-video"
+                />
             </InfoCard>
         );
     }
