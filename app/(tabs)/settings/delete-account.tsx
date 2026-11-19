@@ -37,13 +37,13 @@ export default function DeleteAccountScreen() {
               {t('deleteAccount.subtitle')}
             </Text>
 
-            <Text className="font-outfit-medium text-gray-900 text-lg mb-4">{t('deleteAccount.sorry')}</Text>
+            <Text className="font-outfit-medium text-gray-900 text-xl mb-4">{t('deleteAccount.sorry')}</Text>
 
-            <Text className="font-outfit-regular text-gray-600 leading-6 mb-4">
+            <Text className="font-outfit-regular text-gray-600 text-base leading-6 mb-4">
                 {t('deleteAccount.warning')}
             </Text>
 
-            <Text className="font-outfit-regular text-gray-600 leading-6 mb-12">
+            <Text className="font-outfit-regular text-gray-600 text-base leading-6 mb-12">
                 {t('deleteAccount.confirmQuestion')}
             </Text>
 
@@ -56,7 +56,7 @@ export default function DeleteAccountScreen() {
                     style={{ flex: 0.3 }}
                     className="py-4 rounded-lg border border-gray-300 items-center"
                 >
-                    <Text className="text-gray-900 font-outfit-semibold text-base">{t('deleteAccount.back')}</Text>
+                    <Text className="text-gray-900 font-outfit-semibold text-lg">{t('deleteAccount.back')}</Text>
                 </TouchableOpacity>
 
                 {/* Delete Account Button - 70% width */}
@@ -78,7 +78,7 @@ export default function DeleteAccountScreen() {
                             justifyContent: 'center',
                         }}
                     >
-                        <Text className="text-white font-outfit-bold text-base text-center">{t('deleteAccount.title')}</Text>
+                        <Text className="text-white font-outfit-bold text-lg text-center">{t('deleteAccount.title')}</Text>
                     </LinearGradient>
                 </TouchableOpacity>
             </View>

@@ -1,4 +1,4 @@
-# Brief para backend — videollamada: duración elegida, extensiones con aprobación del técnico y puntos abiertos
+# Brief para backend: videollamada, vehículo y otros puntos abiertos
 
 **Para:** desarrollador/a de backend (`appointments-service`, `mechanicassistance-service-price`, billing, `api-gateway`).
 **De:** app mobile (Expo / React Native). **Fecha:** 17-nov-2026.
@@ -542,6 +542,31 @@ traducción. La app ya recibe cada frase (`transcription-message`) y tiene el se
 - **Costo:** se suma a la transcripción de Daily. Estimar el costo por minuto de llamada y decidir si es de pago.
 
 **Cómo lo verificamos:** una llamada con un teléfono en español y otro en inglés, cada uno ve los subtítulos en su idioma con segundos de retraso.
+
+### 5.16 W — Agente de recomendaciones de cuidado del vehículo (nuevo, 19-nov)
+**Contexto:** la home del dueño tiene "Vehicle care & activity": vehículo elegido, kilometraje y actividad reciente. Se decidió que las
+recomendaciones de mantenimiento las calcule un **agente** en el backend (no reglas fijas en la app).
+
+**Entradas disponibles:** datos del vehículo (marca, modelo, año, VIN, kilometraje), servicios completados y sus fechas, reportes OBD
+subidos por el dueño, pagos. **Falta:** historial de kilometraje con fecha (hoy se pisa el último valor).
+
+**Pedido:**
+1. `GET /api/vehicles/:id/care-recommendations` → `items[]` (máx. 5) con `id`, `title`, `reason`, `category`, `urgency` (`now|soon|later`),
+   `dueAtMileage?`, `dueAt?`, `suggestedService?` (`assistanceTypeId`, `issueId?`), `estimateRange?`, `source`, `updatedAt`.
+2. `POST …/care-recommendations/:recId/dismiss | snooze (days) | done`. Lo descartado no vuelve hasta que cambie el motivo.
+3. Tabla de kilometraje con fecha (`vehicle_mileage_readings`): cada `PATCH /vehicles/:id { mileage }` agrega una lectura; el último valor sigue en el vehículo.
+4. Ejecución: por evento (servicio completado, kilometraje, reporte OBD, vehículo nuevo) y semanal; resultado guardado, la app solo lee.
+5. Push a `now` (tope 1 por vehículo por semana; respeta permisos).
+
+**Reglas del agente:** plan de mantenimiento del fabricante + historial real; no inventar datos faltantes (pedirlos); no diagnosticar ni
+asegurar nada; idioma según `Accept-Language`; al modelo solo datos del vehículo (nada personal).
+
+**Costo/límites:** estimar USD por vehículo por mes; tope de corridas por día; si falla, se devuelve lo último guardado.
+
+**Decisiones de producto pendientes:** fuente del plan del fabricante, si las recomendaciones llevan estimado de precio, si el técnico también
+las ve (para ofrecer el servicio), y si algo se cobra aparte.
+
+**Cómo lo verificamos:** vehículo con 60.000 km sin cambio de aceite en el historial → recomendación de aceite; al registrar el servicio o descartarla, desaparece; sin kilometraje → pide cargarlo.
 
 ## 6. Orden de entrega sugerido
 1. **B, C, D, E** — verificaciones (rápidas, desbloquean pruebas de la app).

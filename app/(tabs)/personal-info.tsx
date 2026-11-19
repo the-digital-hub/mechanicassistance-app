@@ -220,10 +220,10 @@ export default function PersonalInfoScreen() {
                             </View>
                         )}
                     </TouchableOpacity>
-                    <Text className="text-gray-500 font-outfit-regular mt-2 text-[13px]">{t('personalInfo.tapToChangePhoto')}</Text>
+                    <Text className="text-gray-500 font-outfit-regular mt-2 text-[15px]">{t('personalInfo.tapToChangePhoto')}</Text>
                     {!!user?.refCode && (
                         // Selectable, so a long press copies it to read out or paste to support.
-                        <Text selectable className="text-gray-400 font-outfit-regular mt-3 text-[13px]" testID="personal-info-reference">
+                        <Text selectable className="text-gray-400 font-outfit-regular mt-3 text-[15px]" testID="personal-info-reference">
                             {t('personalInfo.reference')}: <Text className="font-outfit-semibold text-gray-600">{user.refCode}</Text>
                         </Text>
                     )}
@@ -370,7 +370,7 @@ export default function PersonalInfoScreen() {
                                         <Text className={`text-base font-outfit-medium ${formData.address.state === item.code ? 'text-blue-900' : 'text-gray-800'}`}>
                                             {item.name}
                                         </Text>
-                                        <Text className="text-sm font-outfit-bold text-blue-600">{item.code}</Text>
+                                        <Text className="text-base font-outfit-bold text-blue-600">{item.code}</Text>
                                     </TouchableOpacity>
                                 )}
                             />

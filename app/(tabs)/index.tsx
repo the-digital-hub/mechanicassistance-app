@@ -15,6 +15,7 @@ import { mediaDAO } from '@/lib/dao/MediaDAO';
 import { vehicleDAO } from '@/lib/dao/VehicleDAO';
 import { setAppLanguage } from '@/lib/i18n';
 import { startAddRoleFromProfile } from '@/lib/setup-add-role';
+import { installedVersionLabel } from '@/lib/appVersion';
 import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { ArrowLeftRight, Award, Briefcase, Camera, Car, Check, ChevronDown, ChevronLeft, ChevronRight, Circle, Clock, CreditCard, FileText, Heart, HelpCircle, Lock, LogOut, MapPin, Settings, User, Wallet } from 'lucide-react-native';
@@ -217,6 +218,30 @@ export default function ProfileScreen() {
 
         {/* User Info Card */}
         <View className="bg-white rounded-3xl p-8 mb-8 items-center" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 10, elevation: 5 }}>
+          {/* Language switch, same EN | ES pill as the welcome screen */}
+          <View
+            className="flex-row items-center"
+            style={{ position: 'absolute', top: 14, right: 14, zIndex: 10, gap: 8, paddingHorizontal: 12, height: 30, borderRadius: 15, backgroundColor: '#EEF2FA' }}
+          >
+            {(['en', 'es'] as const).map((code, i) => {
+              const on = (i18n.language?.startsWith('es') ? 'es' : 'en') === code;
+              return (
+                <React.Fragment key={code}>
+                  {i > 0 ? <Text style={{ color: '#C3CADB', fontSize: 13 }}>|</Text> : null}
+                  <TouchableOpacity
+                    onPress={() => setAppLanguage(code)}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: on }}
+                    hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
+                    testID={`profile-lang-${code}`}
+                  >
+                    <Text style={{ fontFamily: on ? 'Outfit_700Bold' : 'Outfit_500Medium', fontSize: 13, letterSpacing: 0.6, color: on ? '#1E56E3' : '#8C96AE' }}>{code.toUpperCase()}</Text>
+                  </TouchableOpacity>
+                </React.Fragment>
+              );
+            })}
+          </View>
+
           {/* User Info Section */}
           <View className="relative">
             {/* Avatar Circle with Initials or Image */}
@@ -467,32 +492,10 @@ export default function ProfileScreen() {
           );
         })()}
 
-        {/* Language Selector Card */}
-        <View className="bg-white rounded-3xl p-6" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 10, elevation: 5 }}>
-          <Text className="font-outfit-semibold text-base mb-4" style={{ color: '#2B66F8' }}>{t('profile.language.heading')}</Text>
-          <View className="flex-row gap-3">
-            <TouchableOpacity
-              onPress={() => setAppLanguage('en')}
-              className="flex-1 py-3 rounded-2xl border-2 items-center justify-center"
-              style={{
-                borderColor: i18n.language === 'en' ? '#2B66F8' : '#E5E7EB',
-                backgroundColor: i18n.language === 'en' ? '#E9F1FF' : '#FFFFFF'
-              }}
-            >
-              <Text className="font-outfit-semibold text-base" style={{ color: i18n.language === 'en' ? '#2B66F8' : '#9CA3AF' }}>{t('profile.language.english')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setAppLanguage('es')}
-              className="flex-1 py-3 rounded-2xl border-2 items-center justify-center"
-              style={{
-                borderColor: i18n.language === 'es' ? '#2B66F8' : '#E5E7EB',
-                backgroundColor: i18n.language === 'es' ? '#E9F1FF' : '#FFFFFF'
-              }}
-            >
-              <Text className="font-outfit-semibold text-base" style={{ color: i18n.language === 'es' ? '#2B66F8' : '#9CA3AF' }}>{t('profile.language.spanish')}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        {/* Installed version, small, at the very bottom */}
+        <Text className="font-outfit-regular" style={{ fontSize: 12, color: '#B4BBC9', marginTop: -12, marginBottom: 12, textAlign: 'center', letterSpacing: 0.3 }} testID="profile-app-version">
+          {installedVersionLabel()}
+        </Text>
 
       {/* Logout Confirmation Modal */}
       <ConfirmationModal

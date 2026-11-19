@@ -1,17 +1,24 @@
 import { useRouter } from 'expo-router';
-import { Bell, ChevronLeft, ChevronRight, Key, UserX } from 'lucide-react-native';
+import { Bell, ChevronLeft, ChevronRight, Globe, Key, UserX } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 export default function SettingsScreen() {
     const router = useRouter();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+    const current = i18n.language?.startsWith('es') ? 'es' : 'en';
 
-    const menuItems = [
+    const menuItems: { icon: typeof Bell; label: string; route: string; value?: string }[] = [
         {
             icon: Bell,
             label: t('settingsMenu.notifications'),
             route: '/settings/notifications',
+        },
+        {
+            icon: Globe,
+            label: t('settingsMenu.language'),
+            route: '/settings/language',
+            value: t(current === 'en' ? 'profile.language.english' : 'profile.language.spanish'),
         },
         {
             icon: Key,
@@ -55,12 +62,18 @@ export default function SettingsScreen() {
                             <item.icon size={24} color="#0047AB" />
                         </View>
                         <View className="flex-1 justify-center">
-                            <Text className="font-outfit-semibold text-base text-gray-900">{item.label}</Text>
+                            <Text className="font-outfit-semibold text-lg text-gray-900">{item.label}</Text>
                         </View>
+                        {item.value ? (
+                            <View className="px-2.5 py-1 rounded-full mr-2" style={{ backgroundColor: '#EAF1FF' }}>
+                                <Text className="font-outfit-bold" style={{ fontSize: 13, color: '#1E56E3' }}>{item.value}</Text>
+                            </View>
+                        ) : null}
                         <ChevronRight size={24} color="#0047AB" />
                     </TouchableOpacity>
                 ))}
             </View>
+
         </ScrollView>
     );
 }

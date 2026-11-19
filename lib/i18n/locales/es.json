@@ -371,7 +371,7 @@
       "title": "¿Cómo podemos ayudarte hoy?",
       "subtitle": "Elegí el tipo de asistencia — te vamos a conectar con el especialista adecuado.",
       "immediate": {
-        "badge": "RECOMENDADO · PERÍODO DE 24H",
+        "badge": "URGENTE · AYUDA AHORA",
         "title": "Asistencia inmediata",
         "description": "Un mecánico cercano enviado de inmediato."
       },
@@ -2286,6 +2286,9 @@
     "deleteFailedServer": "El servidor no pudo eliminar las notificaciones (error {{status}}). Intentá más tarde."
   },
   "settingsMenu": {
+    "language": "Idioma",
+    "languageBadge": "IDIOMA",
+    "languageSubtitle": "Elegí el idioma de la app",
     "notifications": "Notificaciones",
     "password": "Contraseña de la cuenta",
     "deleteAccount": "Eliminar cuenta",

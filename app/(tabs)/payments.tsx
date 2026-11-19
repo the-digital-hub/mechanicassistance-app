@@ -128,7 +128,7 @@ export default function PaymentsScreen() {
                 </TouchableOpacity>
             </View>
             {statementError && (
-                <Text className="font-outfit-semibold text-sm mb-2" style={{ color: '#B91C1C' }}>
+                <Text className="font-outfit-semibold text-base mb-2" style={{ color: '#B91C1C' }}>
                     {t(`${K}.actions.statementFailed`)}
                 </Text>
             )}
@@ -150,9 +150,9 @@ export default function PaymentsScreen() {
             {rows === null ? (
                 <ActivityIndicator color="#0047AB" style={{ marginTop: 12 }} />
             ) : earnings.error ? (
-                <Text className="font-outfit-regular text-sm text-gray-500">{t(`${K}.activity.loadFailed`)}</Text>
+                <Text className="font-outfit-regular text-base text-gray-500">{t(`${K}.activity.loadFailed`)}</Text>
             ) : rows.length === 0 ? (
-                <Text className="font-outfit-regular text-sm text-gray-500">{t(`${K}.activity.empty`)}</Text>
+                <Text className="font-outfit-regular text-base text-gray-500">{t(`${K}.activity.empty`)}</Text>
             ) : (
                 <>
                     {pageRows.map((row) => <EarningItemCard key={row.id} row={row} />)}

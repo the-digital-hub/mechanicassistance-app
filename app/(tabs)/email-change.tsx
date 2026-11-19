@@ -205,7 +205,7 @@ export default function EmailChangeScreen() {
                         </Text>
                         <Text className="text-gray-500 font-outfit-regular text-base mb-2">{t('emailChange.subtitle')}</Text>
                         {hasEmail && (
-                            <Text className="text-gray-400 font-outfit-regular text-sm mb-6">
+                            <Text className="text-gray-400 font-outfit-regular text-base mb-6">
                                 {t('emailChange.current', { email: user?.email ?? '' })}
                             </Text>
                         )}
@@ -307,7 +307,7 @@ export default function EmailChangeScreen() {
                         </TouchableOpacity>
 
                         {/* Always shown: the answer is identical whether or not the address is taken. */}
-                        <Text className="text-center font-outfit-regular text-sm text-slate-500 border-t border-slate-200 pt-5">
+                        <Text className="text-center font-outfit-regular text-base text-slate-500 border-t border-slate-200 pt-5">
                             {t('emailChange.noCodeHint')}
                         </Text>
                     </>

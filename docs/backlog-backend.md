@@ -1,6 +1,6 @@
-# Backlog para backend — videollamada (para Alejandro)
+# Backlog para backend (para Alejandro)
 
-**Fecha:** 18-nov-2026 · **De:** app mobile · **Detalle completo de cada punto:** [backend-brief-videollamada.md](backend-brief-videollamada.md)
+**Fecha:** 18-nov-2026 · **De:** app mobile · **Detalle completo de cada punto:** [backend-brief.md](backend-brief.md)
 (las referencias `§` de abajo apuntan a ese documento).
 
 Cuando estén hechos, avisar a la app: cada punto dice **cómo lo vamos a verificar** (contra producción, no solo contra la documentación;
@@ -74,6 +74,20 @@ Leyenda de prioridad: 🔴 bloquea o es de cumplimiento · 🟠 importante · �
 - **Definir con legal/producto:** consentimiento adicional, retención, y si el original y la traducción se guardan en la transcripción.
 - **Cómo lo verificamos:** una llamada con un teléfono en español y otro en inglés; cada uno ve los subtítulos en su idioma con un retraso de segundos.
 
+### [ ] W — Agente de recomendaciones de cuidado del vehículo (§5.16)
+- **Qué se quiere (19-nov):** en la home del dueño, sección "Vehicle care & activity", mostrar **recomendaciones de mantenimiento por vehículo** (cambio de aceite, frenos, neumáticos, batería, etc.) calculadas por un **agente** en el backend, en lugar de reglas fijas escritas a mano en la app.
+- **Datos que ya existen para alimentarlo:** marca, modelo, año, VIN, kilometraje (que el dueño actualiza), historial de servicios completados (`appointments`), reportes OBD que sube el dueño (códigos leídos) y los pagos asociados.
+- **Hacer:**
+  - `GET /api/vehicles/:id/care-recommendations` → `{ items: [{ id, title, reason, category, urgency: 'now'|'soon'|'later', dueAtMileage?, dueAt?, suggestedService?: { assistanceTypeId, issueId? }, estimateRange?, source: 'schedule'|'history'|'obd'|'agent', updatedAt }] }` (máximo 5, ordenadas por urgencia). Solo el dueño del vehículo; otro → 403.
+  - `POST /api/vehicles/:id/care-recommendations/:recId/{dismiss|snooze|done}` (`snooze` con `days`). Lo que el dueño descarta no vuelve a aparecer hasta que cambie el motivo.
+  - Guardar el **historial de kilometraje con fecha** (hoy `PATCH /vehicles/:id { mileage }` solo guarda el último valor): el agente lo necesita para estimar cuánto maneja la persona.
+  - El agente corre **por evento** (servicio completado, kilometraje actualizado, reporte OBD recibido, vehículo agregado) y **una vez por semana**; el resultado se guarda y la app solo lo lee (nunca se calcula al abrir la pantalla).
+  - Avisar por push (notifications-service) cuando una recomendación pasa a `now`, con tope de un aviso por vehículo por semana y respetando los permisos de notificación.
+- **Reglas del agente (definir con producto):** apoyarse en el plan de mantenimiento del fabricante (fuente de datos a elegir) y en el historial real; **no inventar** datos que no tenga (si falta el kilometraje o el modelo, pedirlo en vez de adivinar); nunca decir que algo "es seguro" ni diagnosticar, solo recomendar revisar; textos en el idioma de la app (`Accept-Language`); sin datos personales (nombre, teléfono, dirección) en lo que se envíe al modelo, solo datos del vehículo.
+- **Costo y límites:** estimar el costo por vehículo por mes; límite de corridas por vehículo por día; si el agente falla, la app muestra lo último guardado (o nada), nunca un error.
+- **La app:** debajo de la tarjeta del vehículo, hasta 3 recomendaciones con su urgencia; tocar una abre "Pedir asistencia" con el servicio sugerido ya elegido; opciones para descartar o posponer. Mientras el endpoint no exista, la sección no se muestra.
+- **Cómo lo verificamos:** un vehículo con 60.000 km y sin cambio de aceite en el historial recibe esa recomendación; al cargar el servicio completado o descartarla, desaparece; sin kilometraje, pide cargarlo.
+
 ### [ ] L — Habilitar la transcripción en Daily y permisos en el token (§5.8)
 - **Hacer:** confirmar transcripción habilitada en el dominio de Daily (plan, ya funciona en pruebas) y que el **meeting token del dueño** (no solo el del técnico, que ya es `is_owner`) permita iniciar la transcripción. Precios Daily al 18-nov: USD 0.0059/min por participante con micrófono activo (tiempo real).
 - **Cómo lo verificamos:** que el dueño pueda activar los subtítulos desde su teléfono.
@@ -119,4 +133,4 @@ Leyenda de prioridad: 🔴 bloquea o es de cumplimiento · 🟠 importante · �
 ---
 
 ## Orden sugerido
-1. **B** (desbloquea el precio; con **T** se comprueba la duración de 60 min) → 2. **N** y **O** (agendar 24/7 sin errores de hora) y **S** (aviso cuando otro técnico toma la solicitud) → 3. **Q** (con legal) → 4. **P**, **U**, **L** (y, si producto lo quiere, **V**) → 5. **M**, **K**, **J** → 6. **E** y documentación.
+1. **B** (desbloquea el precio; con **T** se comprueba la duración de 60 min) → 2. **N** y **O** (agendar 24/7 sin errores de hora) y **S** (aviso cuando otro técnico toma la solicitud) → 3. **Q** (con legal) → 4. **P**, **U**, **L** (y, si producto lo quiere, **V**) → **W** (agente de recomendaciones; necesita decisiones de producto antes de empezar) → 5. **M**, **K**, **J** → 6. **E** y documentación.

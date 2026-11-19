@@ -371,7 +371,7 @@
       "title": "How can we help today?",
       "subtitle": "Pick the type of assistance — we'll route you to the right specialist.",
       "immediate": {
-        "badge": "RECOMMENDED · 24H PERIOD",
+        "badge": "URGENT · HELP RIGHT NOW",
         "title": "Immediate Assistance",
         "description": "A nearby technician dispatched right away."
       },
@@ -2285,6 +2285,9 @@
     "deleteFailedServer": "The server could not delete the notifications (error {{status}}). Try again later."
   },
   "settingsMenu": {
+    "language": "Language",
+    "languageBadge": "LANGUAGE",
+    "languageSubtitle": "Choose the language of the app",
     "notifications": "Notifications",
     "password": "Account password",
     "deleteAccount": "Delete Account",

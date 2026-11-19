@@ -215,7 +215,7 @@ export default function PhoneChangeScreen() {
                         </Text>
                         <Text className="text-gray-500 font-outfit-regular text-base mb-2">{t('phoneChange.subtitle')}</Text>
                         {hasPhone && (
-                            <Text className="text-gray-400 font-outfit-regular text-sm mb-6">
+                            <Text className="text-gray-400 font-outfit-regular text-base mb-6">
                                 {t('phoneChange.current', { phone: `+1 ${formatUsPhone(user?.phone ?? '')}` })}
                             </Text>
                         )}
@@ -325,7 +325,7 @@ export default function PhoneChangeScreen() {
                           belongs to another account answers identically and sends
                           nothing, and showing this only then would reveal it.
                         */}
-                        <Text className="text-center font-outfit-regular text-sm text-slate-500 border-t border-slate-200 pt-5">
+                        <Text className="text-center font-outfit-regular text-base text-slate-500 border-t border-slate-200 pt-5">
                             {t('phoneChange.noCodeHint')}
                         </Text>
                     </>
