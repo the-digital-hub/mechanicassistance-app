@@ -532,7 +532,7 @@
       "timeframe4h": "4 Hours",
       "timeframe7d": "7 Days",
       "timeframeOnDemand": "On Demand",
-      "car": "Car",
+      "car": "Vehicle",
       "address": "Address",
       "notes": "Notes",
       "none": "None",
@@ -698,7 +698,11 @@
       "holdNoticeCard": "When you confirm, we'll hold {{amount}} on your card. It's charged once the work is done and approved; if it's canceled, the hold is released.",
       "holdNoticeWallet": "When you confirm, we'll reserve {{amount}} from your balance. It's charged once the work is done and approved; if it's canceled, it's released.",
       "holdNoticeLater": "We'll hold {{amount}} 24 h before the service. It's charged once the work is done and approved; if it's canceled, the hold is released.",
-      "rowDuration": "Duration"
+      "rowDuration": "Duration",
+      "callConditionsTitle": "Call conditions",
+      "callConditionsCharge": "Nothing is charged until the call ends and you confirm it.",
+      "callConditionsHold": "{{amount}} is held when you confirm.",
+      "callConditionsHoldLater": "{{amount}} is held 24 h before the call."
     },
     "when": {
       "headerTitle": "Video call",
@@ -1006,7 +1010,8 @@
       "locationAlwaysNeededAndroid": "To head out, set location access to \"Allow all the time\". The client keeps following you on the map while you drive, even with the app in the background or the phone locked.",
       "openSettings": "Open settings",
       "cancelOpenSettings": "Not now",
-      "leftAtShort": "Left at {{time}}"
+      "leftAtShort": "Left at {{time}}",
+      "retry": "Try again"
     },
     "userTracking": {
       "mechanicMatch": "Technician Match!",
@@ -1648,7 +1653,8 @@
         "requests": "Requests",
         "reputation": "Reputation",
         "duration": "Duration",
-        "extendedTime": "Extended time"
+        "extendedTime": "Extended time",
+        "total": "Total"
       },
       "about": "ABOUT {{name}}",
       "aseCodes": "ASE Certified · {{codes}}",
@@ -2031,7 +2037,12 @@
     "videoDurationNote": "The client can add more time during the call.",
     "videoConditions": "CALL CONDITIONS",
     "videoConditionsNote": "Before the call, you and the customer both accept its conditions. Live captions and a written transcript are created only if both agree during the call; they are saved with the appointment.",
-    "offerVideoCall": "Offer to take this call"
+    "offerVideoCall": "Offer to take this call",
+    "takenTitle": "Another technician took this request",
+    "takenMessage": "The owner already confirmed another technician. This request is no longer available.",
+    "takenTitleVideo": "Another technician took this video call",
+    "takenMessageVideo": "The owner already confirmed another technician. This video call is no longer available.",
+    "takenOk": "Back to requests"
   },
   "personalInfo": {
     "uploadFailedTitle": "Upload Failed",
@@ -3149,6 +3160,11 @@
         "accept": "I have read and accept these conditions",
         "acceptedOn": "Accepted on {{date}}"
       }
+    },
+    "joinSheet": {
+      "connect": "Connect",
+      "reconnect": "Reconnect",
+      "close": "Close"
     }
   },
   "wallet": {
@@ -3827,6 +3843,7 @@
     "location": "Location",
     "confirm": "Confirm",
     "scanner": "Scanner",
-    "when": "When"
+    "when": "When",
+    "eyebrow": "Step {{n}} · {{name}}"
   }
 }

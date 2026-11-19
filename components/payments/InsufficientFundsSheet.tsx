@@ -13,6 +13,7 @@ import { TopUpForm } from './TopUpSheet';
 import { SHEET } from '@/lib/ui/sheet';
 import { SheetHandle } from '@/components/ui/SheetHandle';
 import { SheetDim } from '@/components/ui/SheetDim';
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 const K = 'wallet.insufficient';
 
@@ -47,7 +48,7 @@ export function InsufficientFundsSheet({ visible, amount, wallet, cards, busy, o
     }, [visible]);
 
     return (
-        <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
+        <Modal supportedOrientations={MODAL_ORIENTATIONS} transparent visible={visible} animationType="fade" onRequestClose={onClose}>
           <SheetDim color="rgba(11,21,48,0.45)" />
             <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
             <Pressable style={{ flex: 1 }} onPress={busy ? undefined : onClose} />

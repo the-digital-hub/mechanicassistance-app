@@ -36,6 +36,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { appAlert } from '@/lib/ui/appAlert';
 import { TYPE } from '@/lib/ui/type';
 import { VehicleTitle } from '@/components/ui/VehicleTitle';
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 /** Returns a translation key for the current time of day — resolve with t() at the call site. */
 const getTimeGreetingKey = (): string => {
@@ -705,7 +706,7 @@ export default function DashboardScreen() {
 
                 {/* Status Modal */}
                 {showStatusModal && (
-                    <Modal transparent visible={showStatusModal} animationType="fade" onRequestClose={() => setShowStatusModal(false)}>
+                    <Modal supportedOrientations={MODAL_ORIENTATIONS} transparent visible={showStatusModal} animationType="fade" onRequestClose={() => setShowStatusModal(false)}>
                         <View className="flex-1 bg-black/50 justify-center items-center px-6">
                           {/* Tapping outside the card closes it. */}
                           <Pressable style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }} onPress={() => setShowStatusModal(false)} accessible={false} testID="status-modal-backdrop" />

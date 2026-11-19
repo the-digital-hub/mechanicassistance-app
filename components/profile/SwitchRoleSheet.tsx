@@ -7,6 +7,7 @@ import { Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
 import type { AddableRole } from '@/lib/dao/interfaces';
 import { SHEET } from '@/lib/ui/sheet';
 import { SheetDim } from '@/components/ui/SheetDim';
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 const C = {
     blue: '#1E56E3',
@@ -62,7 +63,7 @@ export function SwitchRoleSheet({ visible, current, held, onClose, onPick }: {
             : t('profile.switchRole.setUp', { role: label(selected) });
 
     return (
-        <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
+        <Modal supportedOrientations={MODAL_ORIENTATIONS} transparent visible={visible} animationType="slide" onRequestClose={onClose}>
           <SheetDim color="rgba(11,21,48,0.45)" />
             <Pressable style={{ flex: 1 }} onPress={onClose} />
             <View

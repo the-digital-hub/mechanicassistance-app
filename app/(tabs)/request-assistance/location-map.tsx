@@ -1,5 +1,5 @@
 import { Footer } from '@/components/scheduled/ui';
-import { RequestSteps } from '@/components/ui/RequestSteps';
+import { RequestSteps, stepEyebrow } from '@/components/ui/RequestSteps';
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { Button } from '@/components/ui/Button';
 import MapView, { Marker, Region } from '@/components/ui/Map';
@@ -56,16 +56,6 @@ export default function LocationMapScreen() {
             case 'videocall': return t('requestAssistance.header.videoCall');
             case 'witness': return t('requestAssistance.header.accident');
             default: return t('requestAssistance.header.default');
-        }
-    };
-
-    const getBadgeText = () => {
-        switch (type) {
-            case 'immediate': return t('requestAssistance.badge.immediate');
-            case 'scheduled': return t('requestAssistance.badge.scheduled');
-            case 'videocall': return t('requestAssistance.badge.videoCall');
-            case 'witness': return t('requestAssistance.badge.accident');
-            default: return t('requestAssistance.badge.default');
         }
     };
 
@@ -244,13 +234,15 @@ export default function LocationMapScreen() {
                 <View className="w-6" />
             </View>
             <ScrollView className="flex-1" keyboardShouldPersistTaps="handled">
-                <View className="px-6 pt-6">
+                <View className="px-6 pt-4">
                         <RequestSteps type={params.type} step="location" flush />
-                    <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
-                        <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
-                        <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                            {getBadgeText()}
-                        </Text>
+                    <View className="flex-row items-center justify-between" style={{ marginBottom: 16 }}>
+                        <View className="flex-row items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+                            <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+                            <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+                                {stepEyebrow(t, params.type, 'location')}
+                            </Text>
+                        </View>
                     </View>
 
                     <Text className="text-gray-900 font-outfit-medium text-3xl mb-2">{t('requestAssistance.locationMap.title')}</Text>
@@ -309,7 +301,12 @@ export default function LocationMapScreen() {
                 )}
 
                 <View className="px-6 pb-6">
-                    <View className="flex-row gap-4 mb-6">
+                    {/* The chosen place, in a card like the Home / Work ones below it */}
+                    <View className="bg-gray-50 p-4 rounded-xl border border-gray-100 mb-4" testID="selected-location-card">
+                        <Text className="text-blue-900 font-outfit-bold mb-1">{t('requestAssistance.locationMap.selectedLocationLabel')}</Text>
+                        <Text className="text-gray-900 font-outfit-semibold text-base">{locationName}</Text>
+                    </View>
+                    <View className="flex-row gap-4">
                         <TouchableOpacity
                             onPress={() => {
                                 if (homeAddress) {
@@ -352,9 +349,6 @@ export default function LocationMapScreen() {
                             </Text>
                         </TouchableOpacity>
                     </View>
-
-                    <Text className="text-gray-600 font-outfit-medium text-[16px] mb-2">{t('requestAssistance.locationMap.selectedLocationLabel')}</Text>
-                    <Text className="text-gray-900 font-outfit-bold text-base">{locationName}</Text>
                 </View>
             </ScrollView>
 

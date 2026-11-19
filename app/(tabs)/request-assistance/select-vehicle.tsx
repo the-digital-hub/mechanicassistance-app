@@ -1,14 +1,14 @@
-import { RequestSteps } from '@/components/ui/RequestSteps';
-import { CARD_STYLE, Chip, ChoiceCard, FieldLabel, Footer, StepHead, TextField, VehicleIdsRow, WizardHeader, SC } from '@/components/scheduled/ui';
+import { RequestSteps, stepEyebrow } from '@/components/ui/RequestSteps';
+import { AddVehicleButton, CARD_STYLE, Chip, ChoiceCard, FieldLabel, Footer, StepHead, TextField, VehicleIdsRow, WizardHeader, SC } from '@/components/scheduled/ui';
 import { useRequestDraft } from '@/context/RequestDraftContext';
 import { useUser } from '@/context/UserContext';
 import { vehicleDAO } from '@/lib/dao/VehicleDAO';
 import { Vehicle } from '@/lib/dao/interfaces';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { Car, Plus } from 'lucide-react-native';
+import { Car } from 'lucide-react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
 import { VehicleTitle } from '@/components/ui/VehicleTitle';
 
 /** Strips the grouping separators the placeholder suggests ("45,230") before parsing. */
@@ -132,11 +132,11 @@ export default function SelectVehicleScreen() {
                 <ScrollView
                     className="flex-1"
                     keyboardShouldPersistTaps="handled"
-                    contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 20, paddingBottom: 28, gap: 20 }}
+                    contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 28, gap: 20 }}
                 >
                         <RequestSteps type={params.type} step="vehicle" flush />
                     <StepHead
-                        eyebrow={t('requestAssistance.selectVehicle.badge')}
+                        eyebrow={stepEyebrow(t, params.type, 'vehicle')}
                         title={t('requestAssistance.selectVehicle.title')}
                         sub={t('requestAssistance.selectVehicle.subtitle')}
                     />
@@ -166,17 +166,7 @@ export default function SelectVehicleScreen() {
 
                     {/* Outside the loading branch: the user can add a vehicle before the list resolves. */}
                     {!isLoading ? (
-                        <TouchableOpacity
-                            onPress={() => router.push('/(tabs)/vehicles')}
-                            accessibilityRole="button"
-                            activeOpacity={0.85}
-                            className="flex-row items-center self-start rounded-full"
-                            style={{ gap: 8, paddingHorizontal: 16, paddingVertical: 11, backgroundColor: SC.blueSoft }}
-                            testID="select-vehicle-add"
-                        >
-                            <Plus size={18} color={SC.blue} />
-                            <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: SC.blue }}>{t('requestAssistance.selectVehicle.addVehicle')}</Text>
-                        </TouchableOpacity>
+                        <AddVehicleButton label={t('requestAssistance.selectVehicle.addVehicle')} onPress={() => router.push('/(tabs)/vehicles')} testID="select-vehicle-add" />
                     ) : null}
 
                     {selected ? (

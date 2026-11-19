@@ -41,10 +41,38 @@ Leyenda de prioridad: 🔴 bloquea o es de cumplimiento · 🟠 importante · �
 
 ## 🟠 2. Importantes
 
+### [ ] S — Avisar al técnico cuando otro técnico ya tomó la solicitud
+- **Problema (visto el 18-nov):** un técnico estaba por ofertar en una videollamada; el cliente confirmó a otro técnico y el primero se quedó en la pantalla de la oferta, sin aviso. La app ahora vuelve a consultar la solicitud (al abrir, cada 15 s, al volver a la app y antes de enviar), pero eso es un parche: el servidor no le avisa.
+- **Hacer:**
+  1. **Evento en tiempo real.** Cuando una solicitud deja de estar abierta (el cliente confirma a un técnico, se cancela o vence), publicar `assistance_update` (o un `request_taken`) a **los demás técnicos que la tienen en su feed o abierta**, con `{ requestId, status, mechanicId? }`. Hoy el feed solo se entera si el técnico vuelve a cargar.
+  2. **Error claro al ofertar sobre una solicitud ya cerrada.** `PATCH /api/assistance/:id` con `status: 'offered'` sobre una solicitud ya tomada o cancelada debe responder **409** con `error.code: 'request_unavailable'` y el `status` actual (hoy la app no distingue ese caso de un error cualquiera).
+  3. **Qué ve el técnico que no ganó.** `GET /api/assistance/:id` para un técnico que no es el asignado: documentar si responde 200 con el estado nuevo, 403 o 404 (la app trata 403/404/409 como "la tomó otro"; con 200 usa `status` y `mechanicId`).
+  4. Sacar la solicitud del listado `GET /api/assistance` (feed) de los otros técnicos apenas se toma.
+- **Cómo lo verificamos:** con dos técnicos viendo la misma videollamada, el cliente confirma a uno; el otro recibe el aviso "Otro técnico tomó esta videollamada" al instante y no puede ofertar; y si intenta ofertar justo en ese momento, recibe el 409 `request_unavailable`.
+
+### [ ] T — Confirmar que una duración nueva del menú (ej. 60 min) funciona de punta a punta
+- **Contexto:** el menú de duraciones sale del Hub (`videocall_settings.duration_options`, 1 a 6 opciones) y llega a la app en `durations` de `GET /api/video-call/now`. El 18-nov se agregó una opción de **60 min** en el Hub y, pasado el caché de 60 s de `VideoCallPricingClient`, ya aparece en la app (15/30/45/60). Falta confirmar el resto de la cadena.
+- **Hacer:** con una opción nueva en el menú, comprobar que (a) `GET /api/video-call/now` la devuelve con su precio (ya se ve en la app), (b) `POST /api/assistance` acepta `durationMinutes: 60` (no `invalid_duration`), (c) `POST /api/pricing/calculate` devuelve el precio de esa duración (ver B), (d) la sala de Daily y `baseMinutes` quedan en 60 y el contador arranca en 60:00.
+- **Cómo lo verificamos:** en "Plan your video call" aparece "60 min" y el resumen muestra su precio; al pedir la llamada, el técnico ve la duración de 60 min antes de aceptar.
+
 ### [ ] P — Guardar la transcripción como dato de la cita (§5.12)
 - **Hacer:** al terminar la transcripción de la sala, tomar el archivo de Daily (webhook `transcript.ready-to-download` o `GET api.daily.co/v1/transcript?roomName=…`) y guardarlo asociado a la cita. `GET /api/appointments/:id/video/transcript` (dueño, técnico de la cita, admin; otro → 403; sin transcripción → 404) → `{ appointmentId, language, consents[], lines: [{ id, role: 'owner'|'mechanic', name?, text, at }] }`. Verificar con Daily que la transcripción en tiempo real deja archivo en la cuenta.
 - **Depende de:** Q.
 - **Cómo lo verificamos:** hacer una llamada con subtítulos y ver que el botón "Transcripción de la llamada" muestre el texto del servidor (hoy dice "Guardada solo en este teléfono").
+
+### [ ] U — Recibir la transcripción que sube la app, anidada a la solicitud (§5.12)
+- **Qué se quiere (19-nov):** que el texto de la llamada que hoy queda solo en cada teléfono se **envíe al backend y quede anidado a la solicitud / cita**, para verlo desde cualquiera de los dos teléfonos, desde el Hub y en disputas.
+- **Hacer:** `PUT /api/appointments/:id/video/transcript` (dueño o técnico de esa cita; otro → 403) con `{ language, lines: [{ id, role, name?, text, at }] }`, idempotente por `id` de línea y combinando las líneas de los dos teléfonos sin repetirlas; solo con los consentimientos registrados (Q, si no 409 `consent_required`); `GET …/video/transcript` devuelve el texto combinado. Detalle en el brief §5.12 ("Pedido adicional").
+- **Relación con P:** P toma la transcripción de Daily en el servidor; U es el envío desde la app. Pueden convivir (el servidor deduplica por `id`) o U puede ir primero si P tarda.
+- **Cómo lo verificamos:** hacer una llamada con subtítulos, terminarla y ver que la transcripción aparece en la cita desde el otro teléfono, aunque ese no haya tenido los subtítulos encendidos.
+
+### [ ] V — Traducción de los subtítulos de la llamada (§5.15)
+- **Qué se quiere (19-nov):** que quien habla español y quien habla inglés se entiendan en la videollamada: cada uno lee los subtítulos **en su propio idioma**. Daily no traduce (su transcripción, de Deepgram, solo pasa voz a texto); hay que armarlo encima.
+- **Hacer:** `POST /api/appointments/:id/video/translate` (dueño o técnico de la cita; otro → 403) con `{ from, to, lines: [{ id, text }] }` → `{ lines: [{ id, text }] }` traducidas, usando el modelo de lenguaje que defina producto. Solo con los consentimientos de la llamada registrados (Q) **y** una aceptación nueva de ambos de que el texto se envía a un tercero para traducirlo (`kind: 'translation'` en el registro de consentimientos). Límite por minuto por persona y por llamada; sin guardar el texto traducido salvo que la transcripción (P/U) ya lo guarde.
+- **Costo:** se suma a la transcripción de Daily (USD 0.0059 por minuto con micrófono activo). Estimar el costo por minuto de llamada antes de ofrecerlo, y decidir si es de pago o parte del servicio.
+- **La app:** recibe cada frase final (`transcription-message`), la manda a este endpoint y muestra la traducción en la barra de subtítulos; ya tiene el selector de idioma de los subtítulos.
+- **Definir con legal/producto:** consentimiento adicional, retención, y si el original y la traducción se guardan en la transcripción.
+- **Cómo lo verificamos:** una llamada con un teléfono en español y otro en inglés; cada uno ve los subtítulos en su idioma con un retraso de segundos.
 
 ### [ ] L — Habilitar la transcripción en Daily y permisos en el token (§5.8)
 - **Hacer:** confirmar transcripción habilitada en el dominio de Daily (plan, ya funciona en pruebas) y que el **meeting token del dueño** (no solo el del técnico, que ya es `is_owner`) permita iniciar la transcripción. Precios Daily al 18-nov: USD 0.0059/min por participante con micrófono activo (tiempo real).
@@ -91,4 +119,4 @@ Leyenda de prioridad: 🔴 bloquea o es de cumplimiento · 🟠 importante · �
 ---
 
 ## Orden sugerido
-1. **B** (desbloquea el precio) → 2. **N** y **O** (agendar 24/7 sin errores de hora) → 3. **Q** (con legal) → 4. **P**, **L** → 5. **M**, **K**, **J** → 6. **E** y documentación.
+1. **B** (desbloquea el precio; con **T** se comprueba la duración de 60 min) → 2. **N** y **O** (agendar 24/7 sin errores de hora) y **S** (aviso cuando otro técnico toma la solicitud) → 3. **Q** (con legal) → 4. **P**, **U**, **L** (y, si producto lo quiere, **V**) → 5. **M**, **K**, **J** → 6. **E** y documentación.

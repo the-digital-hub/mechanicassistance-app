@@ -13,6 +13,7 @@ import { formatMoney, walletCovers } from '@/lib/payments/paymentSource';
 import { SHEET } from '@/lib/ui/sheet';
 import { SheetHandle } from '@/components/ui/SheetHandle';
 import { SheetDim } from '@/components/ui/SheetDim';
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 type Props = {
   visible: boolean;
@@ -44,7 +45,7 @@ export function CardPickerModal({ visible, cards, selectedId, onSelect, onClose,
   };
 
   return (
-    <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
+    <Modal supportedOrientations={MODAL_ORIENTATIONS} transparent visible={visible} animationType="fade" onRequestClose={onClose}>
       <SheetDim color="rgba(11,21,48,0.45)" />
       <Pressable style={{ flex: 1 }} onPress={onClose} />
       <View

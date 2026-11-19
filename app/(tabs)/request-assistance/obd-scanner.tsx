@@ -1,4 +1,4 @@
-import { RequestSteps } from '@/components/ui/RequestSteps';
+import { RequestSteps, stepEyebrow } from '@/components/ui/RequestSteps';
 import { FLOATING_CTA, FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
 import { MediaSlot, type Picked } from '@/components/on-site/MediaSlot';
 import { useRequestDraft } from '@/context/RequestDraftContext';
@@ -127,12 +127,16 @@ export default function ObdScannerScreen() {
                     <Text className="font-outfit-semibold" style={{ fontSize: 15, color: C.blue }}>{t(`${k}.skip`)}</Text>
                 </TouchableOpacity>
             </View>
-            <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 24, gap: 14 }}>
+            <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24, gap: 14 }}>
                     <RequestSteps type={params.type} step="scanner" flush />
                 <View>
-                    <View className="flex-row items-center gap-1.5 mb-3 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
-                        <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
-                        <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">{t(`${k}.badge`)}</Text>
+                    <View className="flex-row items-center justify-between" style={{ marginBottom: 12 }}>
+                        <View className="flex-row items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+                            <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+                            <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+                                {stepEyebrow(t, params.type, 'scanner')}
+                            </Text>
+                        </View>
                     </View>
                     <Text className="font-outfit-bold" style={{ fontSize: 26, color: C.ink }}>{t(`${k}.title`)}</Text>
                     <Text className="font-outfit-regular" style={{ fontSize: 14, color: C.muted, marginTop: 6, lineHeight: 20 }}>
@@ -145,6 +149,20 @@ export default function ObdScannerScreen() {
 
                 {answer === 'yes' ? (
                     <>
+                        <View style={{ marginHorizontal: -16 }}>
+                            <MediaSlot
+                                key={obdFile?.uri ?? 'none'}
+                                kind="file"
+                                compact
+                                placeholder={t(`${k}.placeholder`)}
+                                customUpload={keep}
+                                existingFileName={obdFile ? obdFile.name ?? obdFile.uri.split('/').pop() : undefined}
+                            />
+                        </View>
+                        <Text className="font-outfit-regular" style={{ fontSize: 13, color: C.muted, lineHeight: 17 }}>
+                            {t(`${k}.privacy`)}
+                        </Text>
+
                         <View style={{ backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: C.line, padding: 16, gap: 12 }}>
                             <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, color: C.ink }}>{t(`${k}.howTitle`)}</Text>
                             {STEPS.map((step, i) => (
@@ -158,20 +176,6 @@ export default function ObdScannerScreen() {
                                 </View>
                             ))}
                         </View>
-
-                        <View style={{ marginHorizontal: -16 }}>
-                            <MediaSlot
-                                key={obdFile?.uri ?? 'none'}
-                                kind="file"
-                                height={150}
-                                placeholder={t(`${k}.placeholder`)}
-                                customUpload={keep}
-                                existingFileName={obdFile ? obdFile.name ?? obdFile.uri.split('/').pop() : undefined}
-                            />
-                        </View>
-                        <Text className="font-outfit-regular" style={{ fontSize: 13, color: C.muted, lineHeight: 17 }}>
-                            {t(`${k}.privacy`)}
-                        </Text>
                     </>
                 ) : null}
             </ScrollView>

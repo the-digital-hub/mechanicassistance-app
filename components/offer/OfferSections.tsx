@@ -91,10 +91,12 @@ function Stat({ icon, label, value, caption, valueColor }: { icon: IconName; lab
 }
 
 /** `etaLabel`/`etaIcon` relabel the arrival tile (a video call shows "When" instead). */
-export function TechnicianCard({ mechanic, eta, etaCaption, etaLabel, etaIcon = 'time-outline', price }: {
+export function TechnicianCard({ mechanic, eta, etaCaption, etaLabel, etaIcon = 'time-outline', price, priceCaption = true }: {
     mechanic: AssistanceOfferSummary['mechanic'] | null;
     eta: string;
     etaCaption?: string;
+    /** "Fixed price" under the price; a video call leaves it out. */
+    priceCaption?: boolean;
     etaLabel?: string;
     etaIcon?: IconName;
     price: string;
@@ -155,7 +157,7 @@ export function TechnicianCard({ mechanic, eta, etaCaption, etaLabel, etaIcon = 
 
             <View className="flex-row" style={{ gap: 10, marginTop: 14 }}>
                 <Stat icon={etaIcon} label={etaLabel ?? t(`${k}.estimatedArrival`)} value={eta} caption={etaCaption} valueColor={AO.text} />
-                <Stat icon="card-outline" label={t(`${k}.serviceCost`)} value={price} caption={t(`${k}.fixedPrice`)} valueColor={AO.blue} />
+                <Stat icon="card-outline" label={t(`${k}.serviceCost`)} value={price} caption={priceCaption ? t(`${k}.fixedPrice`) : undefined} valueColor={AO.blue} />
             </View>
         </View>
     );
@@ -239,6 +241,24 @@ export function RequestSummaryRows({ rows }: { rows: SummaryRow[] }) {
                         )}
                     </View>
                 </View>
+            ))}
+        </View>
+    );
+}
+
+/**
+ * What a video call's offer comes with, as short as it can be and meant for the very bottom of the screen:
+ * when it is charged and when the amount is held.
+ */
+export function CallConditions({ hold }: { hold: string | null }) {
+    const { t } = useTranslation();
+    const k = 'requestAssistance.mechanicFound';
+    const lines = [t(`${k}.callConditionsCharge`), hold].filter((l): l is string => !!l);
+    return (
+        <View style={{ paddingHorizontal: 4, gap: 4 }} testID="call-conditions">
+            <Text className="font-outfit-bold" style={{ fontSize: 13, color: AO.muted }}>{t(`${k}.callConditionsTitle`)}</Text>
+            {lines.map((line) => (
+                <Text key={line} className="font-outfit-regular" style={{ fontSize: 13, color: AO.muted, lineHeight: 17 }}>{line}</Text>
             ))}
         </View>
     );

@@ -699,7 +699,11 @@
       "holdNoticeCard": "Al confirmar retendremos {{amount}} en tu tarjeta. Se cobra cuando el trabajo esté terminado y aprobado; si se cancela, se libera.",
       "holdNoticeWallet": "Al confirmar reservaremos {{amount}} de tu saldo. Se cobra cuando el trabajo esté terminado y aprobado; si se cancela, se libera.",
       "holdNoticeLater": "Retendremos {{amount}} 24 h antes del servicio. Se cobra cuando el trabajo esté terminado y aprobado; si se cancela, se libera.",
-      "rowDuration": "Duración"
+      "rowDuration": "Duración",
+      "callConditionsTitle": "Condiciones de la llamada",
+      "callConditionsCharge": "No se cobra nada hasta que termine la llamada y la confirmes.",
+      "callConditionsHold": "Se retienen {{amount}} al confirmar.",
+      "callConditionsHoldLater": "Se retienen {{amount}} 24 h antes de la llamada."
     },
     "when": {
       "headerTitle": "Videollamada",
@@ -1007,7 +1011,8 @@
       "locationAlwaysNeededAndroid": "Para salir, configurá el acceso a la ubicación en \"Permitir todo el tiempo\". Así el cliente te sigue en el mapa mientras manejás, aunque la app esté en segundo plano o el teléfono bloqueado.",
       "openSettings": "Abrir ajustes",
       "cancelOpenSettings": "Ahora no",
-      "leftAtShort": "Saliste a las {{time}}"
+      "leftAtShort": "Saliste a las {{time}}",
+      "retry": "Reintentar"
     },
     "userTracking": {
       "mechanicMatch": "¡Mecánico encontrado!",
@@ -1649,7 +1654,8 @@
         "requests": "Pedidos",
         "reputation": "Reputación",
         "duration": "Duración",
-        "extendedTime": "Tiempo extendido"
+        "extendedTime": "Tiempo extendido",
+        "total": "Total"
       },
       "about": "SOBRE {{name}}",
       "aseCodes": "Certificado ASE · {{codes}}",
@@ -2032,7 +2038,12 @@
     "videoDurationNote": "El cliente puede sumar más tiempo durante la llamada.",
     "videoConditions": "CONDICIONES DE LA LLAMADA",
     "videoConditionsNote": "Antes de la llamada, vos y el cliente aceptan sus condiciones. Los subtítulos en vivo y una transcripción escrita se crean solo si los dos están de acuerdo durante la llamada; se guardan con la cita.",
-    "offerVideoCall": "Ofrecerme para esta llamada"
+    "offerVideoCall": "Ofrecerme para esta llamada",
+    "takenTitle": "Otro técnico tomó esta solicitud",
+    "takenMessage": "El cliente ya confirmó a otro técnico. Esta solicitud ya no está disponible.",
+    "takenTitleVideo": "Otro técnico tomó esta videollamada",
+    "takenMessageVideo": "El cliente ya confirmó a otro técnico. Esta videollamada ya no está disponible.",
+    "takenOk": "Volver a solicitudes"
   },
   "personalInfo": {
     "uploadFailedTitle": "Error al subir",
@@ -3150,6 +3161,11 @@
         "accept": "Leí y acepto estas condiciones",
         "acceptedOn": "Aceptado el {{date}}"
       }
+    },
+    "joinSheet": {
+      "connect": "Conectar",
+      "reconnect": "Reconectar",
+      "close": "Cerrar"
     }
   },
   "wallet": {
@@ -3828,6 +3844,7 @@
     "location": "Ubicación",
     "confirm": "Confirmar",
     "scanner": "Escáner",
-    "when": "Cuándo"
+    "when": "Cuándo",
+    "eyebrow": "Paso {{n}} · {{name}}"
   }
 }

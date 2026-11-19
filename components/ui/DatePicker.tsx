@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import * as Haptics from "expo-haptics";
 import { useEffect, useRef, useState } from "react";
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 import {
     FlatList,
     Modal,
@@ -194,7 +195,7 @@ export function DatePicker({
       </TouchableOpacity>
 
       {/* Picker Modal */}
-      <Modal
+      <Modal supportedOrientations={MODAL_ORIENTATIONS}
         visible={visible}
         transparent
         animationType="slide"

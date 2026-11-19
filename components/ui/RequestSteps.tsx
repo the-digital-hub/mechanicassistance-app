@@ -7,7 +7,6 @@ const LINE = '#E2E7F1';
 const DONE_LINE = '#BFE3D0';
 const DONE_BG = '#DDF1E7';
 const DONE_CHECK = '#2E9468';
-const MUTED = '#8A93A6';
 
 export type RequestStep = { key: string; label: string };
 
@@ -17,13 +16,13 @@ const VIDEO = ['vehicle', 'issue', 'condition', 'scanner', 'when'] as const;
 
 /**
  * Timeline of a request wizard: a dot per step joined by lines. Done steps are a blue check, the
- * current one a ringed dot, the rest an empty ring; the current step's name sits underneath.
+ * current one a ringed dot, the rest an empty ring; the step name and number are in the screen's eyebrow badge ("STEP 2 · ISSUE").
  */
 export function Timeline({ steps, current, flush = false }: { steps: RequestStep[]; current: number; /** Inside a scroll that already has its own side padding: no padding of its own. */ flush?: boolean }) {
     const { t } = useTranslation();
     const label = t('requestSteps.label', { n: current + 1, total: steps.length, name: steps[current]?.label ?? '' });
     return (
-        <View style={flush ? { paddingBottom: 18, gap: 6 } : { paddingHorizontal: 24, paddingTop: 10, paddingBottom: 0, gap: 6 }} accessibilityLabel={label}>
+        <View style={flush ? { paddingBottom: 14 } : { paddingHorizontal: 24, paddingTop: 10, paddingBottom: 4 }} accessibilityLabel={label}>
             <View className="flex-row items-center">
                 {steps.map((s, i) => {
                     const done = i < current;
@@ -51,7 +50,6 @@ export function Timeline({ steps, current, flush = false }: { steps: RequestStep
                     );
                 })}
             </View>
-            <Text className="font-outfit-medium" style={{ fontSize: 13, color: MUTED }}>{label}</Text>
         </View>
     );
 }
@@ -63,4 +61,15 @@ export function RequestSteps({ type, step, flush }: { type?: string | string[]; 
     const index = keys.indexOf(step);
     if (index < 0) return null;
     return <Timeline steps={keys.map((key) => ({ key, label: t(`requestSteps.${key}`) }))} current={index} flush={flush} />;
+}
+
+/** The eyebrow badge of a step of the immediate / video-call flow, like the scheduled one: "STEP 2 · ISSUE". */
+export function stepEyebrow(
+    t: (key: string, options?: Record<string, unknown>) => string,
+    type: string | string[] | undefined,
+    step: (typeof IMMEDIATE)[number] | (typeof VIDEO)[number],
+): string {
+    const keys: readonly string[] = type === 'videocall' ? VIDEO : IMMEDIATE;
+    const index = keys.indexOf(step);
+    return t('requestSteps.eyebrow', { n: index + 1, name: t(`requestSteps.${step}`) }).toUpperCase();
 }

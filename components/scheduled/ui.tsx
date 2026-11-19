@@ -1,7 +1,7 @@
 import { FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
 import { TYPE } from '@/lib/ui/type';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Check, ChevronRight, type LucideIcon } from 'lucide-react-native';
+import { Check, ChevronRight, Plus, type LucideIcon } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { ActivityIndicator, Platform, Text, TextInput, TouchableOpacity, View, type TextInputProps } from 'react-native';
 
@@ -66,6 +66,23 @@ export function ProgressBar({ step, total, label }: { step: number; total: numbe
             </View>
             <Text className="font-outfit-semibold" style={{ fontSize: 13, color: SC.muted }}>{label}</Text>
         </View>
+    );
+}
+
+/** "Add a vehicle": the same soft-blue pill in every request flow (immediate, video call and scheduled), under the list of vehicles. */
+export function AddVehicleButton({ label, onPress, testID }: { label: string; onPress: () => void; testID?: string }) {
+    return (
+        <TouchableOpacity
+            onPress={onPress}
+            accessibilityRole="button"
+            activeOpacity={0.85}
+            className="flex-row items-center self-start rounded-full"
+            style={{ gap: 8, paddingHorizontal: 16, paddingVertical: 11, backgroundColor: SC.blueSoft }}
+            testID={testID}
+        >
+            <Plus size={18} color={SC.blue} />
+            <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: SC.blue }}>{label}</Text>
+        </TouchableOpacity>
     );
 }
 

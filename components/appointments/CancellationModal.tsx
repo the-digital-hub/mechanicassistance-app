@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal, Text, TouchableOpacity, View } from 'react-native';
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 interface CancellationModalProps {
     visible: boolean;
@@ -64,7 +65,7 @@ export function CancellationModal({ visible, onClose, onConfirm, departedAt, fre
                     : t('appointments.cancellationModal.message');
 
     return (
-        <Modal
+        <Modal supportedOrientations={MODAL_ORIENTATIONS}
             animationType="fade"
             transparent={true}
             visible={visible}

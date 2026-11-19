@@ -6,6 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 import {
     ActivityIndicator,
     Modal,
@@ -73,7 +74,7 @@ function MultiSelectDropdown({
                 )}
             </TouchableOpacity>
 
-            <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
+            <Modal supportedOrientations={MODAL_ORIENTATIONS} visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
                 <Pressable
                     onPress={() => setOpen(false)}
                     className="flex-1 bg-black/40 justify-center px-6"

@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import MapView, { Circle, Marker } from "react-native-maps";
 import { MAP_PROVIDER } from "@/lib/maps/provider";
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 import {
   BASE_LOCATION,
   DAYS,
@@ -52,7 +53,7 @@ function TimePickerModal({
 }) {
   const { t } = useTranslation();
   return (
-    <Modal visible={visible} transparent animationType="slide">
+    <Modal supportedOrientations={MODAL_ORIENTATIONS} visible={visible} transparent animationType="slide">
       <TouchableOpacity
         className="flex-1 bg-black/40"
         activeOpacity={1}

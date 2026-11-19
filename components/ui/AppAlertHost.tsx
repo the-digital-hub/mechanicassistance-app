@@ -5,6 +5,7 @@ import { Modal, Pressable, ScrollView, Text, TouchableOpacity, View } from 'reac
 
 import { OS, cardShadow } from '@/components/on-site/ui';
 import { type AppAlertButton, type AppAlertRequest, dismissAppAlert, subscribeAppAlerts } from '@/lib/ui/appAlert';
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 /** Draws `appAlert` calls with the app's dialog design. Mount once, at the root. */
 export function AppAlertHost() {
@@ -62,7 +63,7 @@ export function AppAlertHost() {
     };
 
     return (
-        <Modal visible={!!current} transparent animationType="fade" statusBarTranslucent onRequestClose={dismiss} onDismiss={() => pending.run?.()}>
+        <Modal supportedOrientations={MODAL_ORIENTATIONS} visible={!!current} transparent animationType="fade" statusBarTranslucent onRequestClose={dismiss} onDismiss={() => pending.run?.()}>
             <View className="flex-1 items-center justify-center px-5" style={{ backgroundColor: 'rgba(11,21,48,0.55)' }} testID="app-alert">
                 <Pressable style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }} onPress={dismiss} accessible={false} />
                 <View className="w-full" style={[cardShadow, { maxWidth: 400, borderRadius: 24, padding: 20, maxHeight: '80%' }]}>

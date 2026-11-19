@@ -8,6 +8,7 @@ import { Linking, Modal, Pressable, StyleSheet, Text, View } from 'react-native'
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TYPE } from '@/lib/ui/type';
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 export interface OwnerRouteMapProps {
     destination: LatLng | null;
@@ -203,7 +204,7 @@ export function OwnerRouteMap({ destination, mechanic, polyline, height = 190, s
                     <Text className="font-outfit-bold" style={{ fontSize: 16, color: AO.blue }}>{t('appointments.ownerAccepted.expandMap')}</Text>
                 </View>
             </Pressable>
-            <Modal visible={expanded} transparent animationType="fade" statusBarTranslucent onRequestClose={() => setExpanded(false)}>
+            <Modal supportedOrientations={MODAL_ORIENTATIONS} visible={expanded} transparent animationType="fade" statusBarTranslucent onRequestClose={() => setExpanded(false)}>
                 <RouteMapSheet destination={destination} mechanic={mechanic} route={route} onClose={() => setExpanded(false)} showOpenInMaps={showOpenInMaps} />
             </Modal>
         </>

@@ -2,6 +2,7 @@ import { useVideoPlayer, VideoView } from 'expo-video';
 import { X } from 'lucide-react-native';
 import React from 'react';
 import { Modal, TouchableOpacity, View } from 'react-native';
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 interface VideoPlayerModalProps {
     /** Absolute URL of the clip, or null when nothing is playing. */
@@ -27,7 +28,7 @@ export function VideoPlayerModal({ url, onClose }: VideoPlayerModalProps) {
     }, [url, player]);
 
     return (
-        <Modal visible={!!url} animationType="fade" transparent onRequestClose={onClose}>
+        <Modal supportedOrientations={MODAL_ORIENTATIONS} visible={!!url} animationType="fade" transparent onRequestClose={onClose}>
             <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center' }}>
                 <TouchableOpacity
                     onPress={onClose}

@@ -16,6 +16,7 @@ import { useWallet } from '@/lib/payments/useWallet';
 import { SHEET } from '@/lib/ui/sheet';
 import { SheetHandle } from '@/components/ui/SheetHandle';
 import { SheetDim } from '@/components/ui/SheetDim';
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 const K = 'videoCall.extend';
 
@@ -111,7 +112,7 @@ export function ExtendCallSheet({ visible, appointmentId, onClose, onExtended }:
 
     return (
         <>
-            <Modal transparent visible={visible && !pickerOpen && !shortOpen} animationType="slide" onRequestClose={onClose}>
+            <Modal supportedOrientations={MODAL_ORIENTATIONS} transparent visible={visible && !pickerOpen && !shortOpen} animationType="slide" onRequestClose={onClose}>
               <SheetDim color="rgba(0,0,0,0.4)" />
                 <Pressable style={{ flex: 1 }} onPress={busy ? undefined : onClose} />
                 <View

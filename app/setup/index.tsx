@@ -21,6 +21,7 @@ import {
     View,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 export default function PhoneNumberScreen() {
   const router = useRouter();
@@ -182,7 +183,7 @@ export default function PhoneNumberScreen() {
         </ScrollView>
 
         {/* Error Modal */}
-        <Modal
+        <Modal supportedOrientations={MODAL_ORIENTATIONS}
           visible={errorModal.visible}
           transparent
           animationType="fade"

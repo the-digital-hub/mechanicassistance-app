@@ -95,8 +95,11 @@ export default function VideoCallScreen() {
     join, leave, toggleAudio, toggleCamera, switchCamera,
   } = useDailyCall({ onTranscriptLine: (line) => { if (appointmentId) void addTranscriptLine(appointmentId, line); } });
 
-  // The flashlight of the rear camera: only while the rear camera is the one in use, and off when it is not.
+  // The flashlight of the rear camera. The button is always there (the call starts on the front camera, and a button that
+  // only shows on the rear one is never found): tapped on the front camera it switches to the rear one and lights it.
+  // It is off whenever the rear camera is not the one in use.
   const [torchOn, setTorchOn] = useState(false);
+  const [torchAfterSwitch, setTorchAfterSwitch] = useState(false);
   const torchAvailable = isTorchAvailable();
   useEffect(() => {
     if (!usingBackCamera && torchOn) {
@@ -104,8 +107,28 @@ export default function VideoCallScreen() {
       void setTorch(false);
     }
   }, [usingBackCamera, torchOn]);
+  // The rear camera came up after asking for the light: give its capture a moment to start, then light it.
+  useEffect(() => {
+    if (!torchAfterSwitch || !usingBackCamera) return undefined;
+    const timer = setTimeout(async () => {
+      setTorchAfterSwitch(false);
+      if (await setTorch(true)) setTorchOn(true);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [torchAfterSwitch, usingBackCamera]);
+  // If the rear camera never came up, the request to light it must not wait for a later, unrelated switch.
+  useEffect(() => {
+    if (!torchAfterSwitch) return undefined;
+    const timer = setTimeout(() => setTorchAfterSwitch(false), 5000);
+    return () => clearTimeout(timer);
+  }, [torchAfterSwitch]);
   useEffect(() => () => { void setTorch(false); }, []);
   const toggleTorch = async () => {
+    if (!usingBackCamera) {
+      setTorchAfterSwitch(true);
+      switchCamera();
+      return;
+    }
     const next = !torchOn;
     if (await setTorch(next)) setTorchOn(next);
   };
@@ -470,7 +493,7 @@ export default function VideoCallScreen() {
         )}
         {callState === 'joined' && (
           <View style={[styles.tools, toolsPlacement]} pointerEvents="box-none">
-            {torchAvailable && usingBackCamera && (
+            {torchAvailable && (
               <TouchableOpacity style={[styles.tool, torchOn && styles.toolOn]} onPress={toggleTorch} accessibilityRole="button" accessibilityLabel={t(`${K}.flashlight`)} testID="call-torch">
                 <Ionicons name={torchOn ? 'flashlight' : 'flashlight-outline'} size={20} color="#FFFFFF" />
               </TouchableOpacity>

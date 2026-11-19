@@ -318,25 +318,29 @@ export function OwnerTechnicianPanel({ mechanic }: { mechanic: Mechanic | null }
 }
 
 /** `payment` is the card row's value (`PaymentCardValue`), resolved by the screen; omitted (the mechanic) hides the row. */
-export function OwnerBudgetPanel({ total, payment, totalLabel, video, extendedMinutes = 0, extendedAmount }: {
+export function OwnerBudgetPanel({ total, payment, totalLabel, video, extendedMinutes = 0, extendedAmount, grandTotal }: {
     total: string | null;
     payment?: React.ReactNode;
     totalLabel?: string;
     /** A video call has no parts to approve; instead it can carry extra time bought during the call. */
     video?: boolean;
     extendedMinutes?: number;
-    /** What the added time is worth (the technician's view), as a 2-decimal string. */
+    /** What the added time is worth, as a 2-decimal string. */
     extendedAmount?: string | null;
+    /** The owner's whole bill: the call plus the extra time. Shown last, only when there is extra time to add up. */
+    grandTotal?: string | null;
 }) {
     const { t } = useTranslation();
     const rows: (SummaryRow | null)[] = [
         { icon: 'cash-outline', label: totalLabel ?? t(`${K}.rows.serviceValue`), value: total ? `$${total}` : '—', strong: true },
-        payment !== undefined ? { icon: 'card-outline', label: t(`${K}.rows.payment`), value: payment } : null,
+        // The extra time, with what it cost, comes before how it is paid.
         video
             ? extendedMinutes > 0
                 ? { icon: 'time-outline', label: t(`${K}.rows.extendedTime`), value: extendedAmount ? t(`${K}.extendedTimeValueAmount`, { minutes: extendedMinutes, amount: extendedAmount }) : t(`${K}.extendedTimeValue`, { minutes: extendedMinutes }) }
                 : null
             : { icon: 'document-text-outline', label: t(`${K}.rows.additionalParts`), value: t(`${K}.partsOnlyWithApproval`) },
+        payment !== undefined ? { icon: 'card-outline', label: t(`${K}.rows.payment`), value: payment } : null,
+        grandTotal ? { icon: 'receipt-outline', label: t(`${K}.rows.total`), value: `$${grandTotal}`, strong: true } : null,
     ];
     return <RequestSummaryRows rows={rows.filter((r): r is SummaryRow => r !== null)} />;
 }

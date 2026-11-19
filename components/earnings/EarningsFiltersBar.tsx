@@ -3,6 +3,7 @@ import { ArrowDownUp, CalendarDays } from 'lucide-react-native';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal, Platform, Pressable, Text, TouchableOpacity, View } from 'react-native';
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 const K = 'payments.activity';
 
@@ -79,7 +80,7 @@ function DateField({
             </TouchableOpacity>
 
             {Platform.OS === 'ios' && (
-                <Modal visible={iosOpen} transparent animationType="fade" onRequestClose={() => setIosOpen(false)}>
+                <Modal supportedOrientations={MODAL_ORIENTATIONS} visible={iosOpen} transparent animationType="fade" onRequestClose={() => setIosOpen(false)}>
                     <Pressable className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.35)' }} onPress={() => setIosOpen(false)}>
                         <Pressable className="bg-white rounded-t-3xl px-4 pt-4 pb-10" onPress={() => {}}>
                             <Text className="font-outfit-semibold text-base text-gray-900 mb-2">{label}</Text>

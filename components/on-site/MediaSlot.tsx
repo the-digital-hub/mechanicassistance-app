@@ -49,6 +49,8 @@ interface MediaSlotProps {
     customUpload?: (file: Picked) => Promise<void>;
     /** A file already uploaded through `customUpload`, shown as done. */
     existingFileName?: string;
+    /** Empty state as a compact card with a real button instead of a tall dashed box. */
+    compact?: boolean;
 }
 
 export interface Picked {
@@ -72,6 +74,7 @@ export function MediaSlot({
     padded = true,
     customUpload,
     existingFileName,
+    compact,
 }: MediaSlotProps) {
     const { t } = useTranslation();
     const ctx = React.useContext(OnSiteCaptureContext);
@@ -179,6 +182,28 @@ export function MediaSlot({
                     ? t('appointments.onSite.common.captured')
                     : t('appointments.onSite.common.pending');
     const statusColor = state === 'error' ? OS.red : filled ? OS.greenDark : OS.mutedLight;
+
+    if (compact && !picked) {
+        return (
+            <View className={padded ? 'p-4' : ''}>
+                <View style={{ backgroundColor: OS.page, borderRadius: 16, borderWidth: 1, borderColor: OS.border, padding: 14, gap: 12 }}>
+                    <View className="flex-row items-center gap-3">
+                        <Ionicons name={kind === 'video' ? 'videocam-outline' : kind === 'file' ? 'document-attach-outline' : 'camera-outline'} size={26} color={OS.mutedLight} />
+                        <Text className="font-outfit-medium flex-1" style={{ fontSize: 15, lineHeight: 20, color: OS.muted }}>{placeholder}</Text>
+                    </View>
+                    <TouchableOpacity
+                        onPress={pick}
+                        activeOpacity={0.85}
+                        className="flex-row items-center justify-center gap-2"
+                        style={{ height: 52, borderRadius: 14, backgroundColor: OS.blue }}
+                    >
+                        <Ionicons name="add-circle-outline" size={20} color="#FFFFFF" />
+                        <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#FFFFFF' }}>{t('appointments.onSite.common.tapToAdd')}</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        );
+    }
 
     return (
         <View className={padded ? 'p-4' : ''}>

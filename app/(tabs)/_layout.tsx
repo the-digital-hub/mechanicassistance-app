@@ -22,6 +22,7 @@ import { LocationRevalidator } from "@/components/LocationRevalidator";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { goBackOr } from "@/lib/navigation/goBackOr";
 import { useTranslation } from "react-i18next";
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 function MechanicStatusHeaderLeft() {
   return <MechanicStatusBadge />;
@@ -124,7 +125,7 @@ function MechanicStatusBadge() {
         </Text>
       </TouchableOpacity>
 
-      <Modal transparent visible={showModal} animationType="fade" onRequestClose={() => setShowModal(false)}>
+      <Modal supportedOrientations={MODAL_ORIENTATIONS} transparent visible={showModal} animationType="fade" onRequestClose={() => setShowModal(false)}>
         <View className="flex-1 bg-black/50 justify-center items-center px-6">
           {/* Tapping outside the card closes it. */}
           <Pressable style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }} onPress={() => setShowModal(false)} accessible={false} testID="status-modal-backdrop" />

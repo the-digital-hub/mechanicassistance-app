@@ -5,6 +5,7 @@ import { ActivityIndicator, Modal, ScrollView, Text, TouchableOpacity, View } fr
 import { MediaSlot, type Picked } from '@/components/on-site/MediaSlot';
 import { OS } from '@/components/on-site/ui';
 import { requestObdDAO } from '@/lib/dao/RequestObdDAO';
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 // Shown to the vehicle owner once a scanner report has been read and its VIN is
 // either another vehicle's (`mismatch`) or cannot be compared because the
@@ -59,7 +60,7 @@ export function RequestVinCheckModal({
     const tone = variant === 'mismatch' ? { fg: OS.red, bg: OS.redSoft } : { fg: OS.orange, bg: OS.orangeSoft };
 
     return (
-        <Modal visible transparent animationType="fade" onRequestClose={onContinue}>
+        <Modal supportedOrientations={MODAL_ORIENTATIONS} visible transparent animationType="fade" onRequestClose={onContinue}>
             <View className="flex-1 justify-center px-4" style={{ backgroundColor: 'rgba(11,21,48,0.55)' }}>
                 <View className="bg-white" style={{ borderRadius: 20, maxHeight: '90%' }}>
                     <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 18 }}>

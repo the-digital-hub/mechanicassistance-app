@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Image, KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { appAlert } from '@/lib/ui/appAlert';
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 export default function PersonalInfoScreen() {
     const router = useRouter();
@@ -341,7 +342,7 @@ export default function PersonalInfoScreen() {
                 </TouchableOpacity>
 
                 {/* State Selection Modal */}
-                <Modal
+                <Modal supportedOrientations={MODAL_ORIENTATIONS}
                     visible={showStateModal}
                     transparent
                     animationType="slide"
@@ -377,7 +378,7 @@ export default function PersonalInfoScreen() {
                     </View>
                 </Modal>
 
-                <Modal
+                <Modal supportedOrientations={MODAL_ORIENTATIONS}
                     visible={showSuccessModal}
                     transparent
                     animationType="fade"

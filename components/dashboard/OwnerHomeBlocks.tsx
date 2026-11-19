@@ -4,6 +4,7 @@ import { Calendar, Check, ChevronDown, ChevronRight, FileText, Wrench, X, type L
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Animated, Easing, KeyboardAvoidingView, Modal, Platform, Pressable, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { TYPE } from '@/lib/ui/type';
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 /** Building blocks of the vehicle owner home, following the Vehicle Owner Dashboard V2 design. */
 const C = {
@@ -310,7 +311,7 @@ export function OwnerSheet({ visible, title, subtitle, onClose, children }: { vi
     }, [visible, progress]);
 
     return (
-        <Modal visible={mounted} transparent animationType="none" onRequestClose={onClose}>
+        <Modal supportedOrientations={MODAL_ORIENTATIONS} visible={mounted} transparent animationType="none" onRequestClose={onClose}>
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1 justify-end">
                 <Animated.View pointerEvents="box-none" style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(11,21,48,0.32)', opacity: progress }}>
                     <Pressable style={{ flex: 1 }} onPress={onClose} accessibilityLabel={title} />

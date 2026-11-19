@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { ObdVinResolution, onSiteDAO, OnSiteVisit } from '@/lib/dao/OnSiteDAO';
 import { OS } from './ui';
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 // Asked as soon as an OBD reading's VIN is not the VIN of the request's
 // vehicle. It cannot be dismissed: the mechanic has to say why before going on.
@@ -57,7 +58,7 @@ export function VinMismatchModal({ appointmentId, visit, onVisit }: VinMismatchM
     const inputStyle = { borderRadius: 12, borderWidth: 1.5, borderColor: OS.border, backgroundColor: OS.page, color: OS.text, textAlign: 'left' as const };
 
     return (
-        <Modal visible transparent animationType="fade" onRequestClose={() => { /* must answer */ }}>
+        <Modal supportedOrientations={MODAL_ORIENTATIONS} visible transparent animationType="fade" onRequestClose={() => { /* must answer */ }}>
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1 justify-center px-4" style={{ backgroundColor: 'rgba(11,21,48,0.55)' }}>
                 <View className="bg-white" style={{ borderRadius: 20, maxHeight: '90%' }}>
                     <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 18 }}>

@@ -4,6 +4,7 @@ import { ChevronDown } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 /** Same limit as `user_addresses.label` (VARCHAR(40)). */
 const LABEL_MAX_LENGTH = 40;
@@ -58,7 +59,7 @@ export function AddressNameField({ value, onChange }: AddressNameFieldProps) {
                 />
             )}
 
-            <Modal transparent visible={open} animationType="fade" onRequestClose={() => setOpen(false)}>
+            <Modal supportedOrientations={MODAL_ORIENTATIONS} transparent visible={open} animationType="fade" onRequestClose={() => setOpen(false)}>
                 <Pressable className="flex-1 bg-black/40 justify-end" onPress={() => setOpen(false)}>
                     <Pressable className="bg-white rounded-t-3xl pb-8">
                         <View className="p-4 border-b border-gray-200 flex-row justify-between items-center">

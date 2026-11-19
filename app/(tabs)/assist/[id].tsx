@@ -10,7 +10,7 @@ import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { goBackOr } from '@/lib/navigation/goBackOr';
 import { HeaderBackButton } from '@/components/ui/HeaderBackButton';
 import { Calendar, Clock, Navigation, HelpCircle, Zap, Car, Wrench, Lock, ArrowUpRight, DollarSign, Video, Timer, ShieldCheck } from 'lucide-react-native';
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import type { AssistanceRequest } from '@/lib/dao/interfaces';
@@ -24,6 +24,8 @@ import { DEFAULT_CALL_MINUTES } from '@/lib/video/callLength';
 import { LinearGradient } from 'expo-linear-gradient';
 import { RequestIssueText } from '@/components/ui/RequestIssueText';
 import { appAlert } from '@/lib/ui/appAlert';
+import { ApiError } from '@/lib/api/types';
+import { useSocket } from '@/context/SocketContext';
 
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
     const R = 6371;
@@ -118,7 +120,7 @@ export default function RequestDetailScreen() {
     // this mechanic's offer — there is nothing left to accept.
     const alreadyOffered = status === 'offered';
     // Opened from an old push, the request may have been taken or canceled since.
-    const noLongerAvailable = !!status && status !== 'pending' && status !== 'offered';
+    const noLongerAvailableByStatus = !!status && status !== 'pending' && status !== 'offered';
 
     const isImmediate = type === 'immediate' || type === 'videocall' || type === 'witness' || assistanceType === 'witness';
     const isVideo = type === 'videocall';
@@ -235,6 +237,63 @@ export default function RequestDetailScreen() {
         })();
     }, [locationLat, locationLng, isVideo]);
 
+    // Another technician can be confirmed by the owner while this screen is open (or before it was opened). The screen
+    // checks the request again when it opens, when the app comes back, when an update arrives, every few seconds, and
+    // right before an offer is sent, and says so instead of leaving a button that does nothing.
+    const requestId = String(Array.isArray(id) ? id[0] : id ?? '');
+    const { lastMessage } = useSocket();
+    const [taken, setTaken] = useState(false);
+    const takenAlerted = useRef(false);
+    const markTaken = useCallback(() => {
+        setTaken(true);
+        setShowConfirm(false);
+        if (takenAlerted.current) return;
+        takenAlerted.current = true;
+        appAlert(
+            t(isVideo ? 'requestDetail.takenTitleVideo' : 'requestDetail.takenTitle'),
+            t(isVideo ? 'requestDetail.takenMessageVideo' : 'requestDetail.takenMessage'),
+            [{ text: t('requestDetail.takenOk'), onPress: () => goBackOr(router, '/(tabs)/assist') }],
+            { tone: 'warning', icon: 'people-outline', cancelable: false },
+        );
+    }, [isVideo, router, t]);
+    /** True while the request can still be offered on; false (and the notice shown) once someone else has it. */
+    const checkStillOpen = useCallback(async (): Promise<boolean> => {
+        if (!requestId) return true;
+        try {
+            const current = await assistanceDAO.getById(requestId);
+            if (!current?.status) return true;
+            const open = current.status === 'pending' || current.status === 'offered';
+            const mine = !!current.mechanicId && current.mechanicId === user?.id;
+            if (!open && !mine) {
+                markTaken();
+                return false;
+            }
+            return true;
+        } catch (err) {
+            // Gone, or no longer visible to this technician: the same as taken. A bad connection is not.
+            if (err instanceof ApiError && [403, 404, 409].includes(err.statusCode)) {
+                markTaken();
+                return false;
+            }
+            return true;
+        }
+    }, [requestId, user?.id, markTaken]);
+
+    useFocusEffect(
+        useCallback(() => {
+            if (taken || status === 'offered') return undefined;
+            checkStillOpen();
+            const timer = setInterval(checkStillOpen, 15000);
+            return () => clearInterval(timer);
+        }, [checkStillOpen, taken, status]),
+    );
+    useEffect(() => {
+        if (taken || !lastMessage) return;
+        if (['assistance_update', 'appointment_update', 'app_resumed', 'socket_connect'].includes(lastMessage.type)) checkStillOpen();
+    }, [lastMessage, taken, checkStillOpen]);
+
+    const noLongerAvailable = noLongerAvailableByStatus || taken;
+
     const gate = useVerifiedAction();
     const ensureAvailable = useAvailableToOffer();
 
@@ -247,6 +306,7 @@ export default function RequestDetailScreen() {
             return;
         }
         if (!(await ensureAvailable())) return;
+        if (!(await checkStillOpen())) return;
         setShowConfirm(true);
     });
 
@@ -293,6 +353,7 @@ export default function RequestDetailScreen() {
             );
         } catch (error: any) {
             setShowConfirm(false);
+            if (error instanceof ApiError && [403, 404, 409].includes(error.statusCode) && !(await checkStillOpen())) return;
             appAlert(t('requestDetail.acceptFailed', { error: error.message || 'Unknown error' }));
         } finally {
             setSubmitting(false);

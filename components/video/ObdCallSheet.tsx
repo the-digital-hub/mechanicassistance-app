@@ -6,6 +6,7 @@ import { RequestObdPanel, useRequestObd } from './RequestObdPanel';
 import { SHEET } from '@/lib/ui/sheet';
 import { SheetHandle } from '@/components/ui/SheetHandle';
 import { SheetDim } from '@/components/ui/SheetDim';
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 /**
  * The OBD scanner report over a live call, so neither side has to hang up to
@@ -20,7 +21,7 @@ export function ObdCallSheet({ visible, requestId, role, state, onClose }: {
 }) {
     const { t } = useTranslation();
     return (
-        <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
+        <Modal supportedOrientations={MODAL_ORIENTATIONS} transparent visible={visible} animationType="slide" onRequestClose={onClose}>
           <SheetDim color="rgba(0,0,0,0.4)" />
             <Pressable style={{ flex: 1 }} onPress={onClose} />
             <View

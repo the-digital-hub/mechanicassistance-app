@@ -4,6 +4,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Modal, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View, ViewStyle } from 'react-native';
 import { TYPE } from '@/lib/ui/type';
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 // Shared building blocks for the on-site assistance flow (check-in → execution →
 // check-out). Ported from the "Vehicle On-Site Assistance V2" design.
@@ -418,7 +419,7 @@ export function OnSiteDialog({ visible, tone = 'orange', icon = 'alert-circle-ou
 }) {
     const { color, bg } = DIALOG_TONES[tone];
     return (
-        <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onDismiss ?? onPrimary}>
+        <Modal supportedOrientations={MODAL_ORIENTATIONS} visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onDismiss ?? onPrimary}>
             <View className="flex-1 items-center justify-center px-5" style={{ backgroundColor: 'rgba(11,21,48,0.55)' }} testID={testID}>
                 <Pressable style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }} onPress={onDismiss ?? onPrimary} accessible={false} />
                 <View className="w-full bg-white" style={{ maxWidth: 400, borderRadius: 24, padding: 20, ...cardShadow }}>

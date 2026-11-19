@@ -1,4 +1,4 @@
-import { RequestSteps } from '@/components/ui/RequestSteps';
+import { RequestSteps, stepEyebrow } from '@/components/ui/RequestSteps';
 import { categoryIcon } from '@/lib/ui/categoryIcon';
 import { PickCard, PickChildren, PickGroup, PickItem, PickList, PickReveal, PickedChips, SearchField } from '@/components/scheduled/picker';
 import { CARD_STYLE, Footer, SC, TextField } from '@/components/scheduled/ui';
@@ -104,16 +104,6 @@ export default function IssueSelectionScreen() {
             case 'videocall': return t('requestAssistance.header.videoCall');
             case 'witness': return t('requestAssistance.header.accident');
             default: return t('requestAssistance.header.default');
-        }
-    };
-
-    const getBadgeText = () => {
-        switch (type) {
-            case 'immediate': return t('requestAssistance.badge.immediate');
-            case 'scheduled': return t('requestAssistance.badge.scheduled');
-            case 'videocall': return t('requestAssistance.badge.videoCall');
-            case 'witness': return t('requestAssistance.badge.accident');
-            default: return t('requestAssistance.badge.default');
         }
     };
 
@@ -261,13 +251,15 @@ export default function IssueSelectionScreen() {
                 </Text>
                 <View className="w-6" />
             </View>
-            <ScrollView className="flex-1 px-6 pt-6" contentContainerStyle={{ paddingBottom: 24 }}>
+            <ScrollView className="flex-1 px-6 pt-4" contentContainerStyle={{ paddingBottom: 24 }}>
                     <RequestSteps type={params.type} step="issue" flush />
-                <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
-                    <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
-                    <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                        {getBadgeText()}
-                    </Text>
+                <View className="flex-row items-center justify-between" style={{ marginBottom: 16 }}>
+                    <View className="flex-row items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+                        <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+                        <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+                            {stepEyebrow(t, params.type, 'issue')}
+                        </Text>
+                    </View>
                 </View>
 
                 <Text className="text-gray-900 font-outfit-medium text-3xl mb-1">{t('requestAssistance.issueSelection.title')}</Text>

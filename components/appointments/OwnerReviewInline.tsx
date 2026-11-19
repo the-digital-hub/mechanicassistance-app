@@ -20,6 +20,9 @@ export function useOwnerReviewPending(appointmentId: string | undefined, enabled
     const [pending, setPending] = React.useState(false);
     // True once the lookup answered: before that, "not pending" does not mean "already rated".
     const [loaded, setLoaded] = React.useState(false);
+    // Once the owner has sent the review here, a later lookup that still answers "none" (a slow read after the
+    // write) must not bring the rating block back.
+    const rated = React.useRef(false);
     React.useEffect(() => {
         if (!enabled || !appointmentId) {
             setPending(false);
@@ -29,13 +32,13 @@ export function useOwnerReviewPending(appointmentId: string | undefined, enabled
         let cancelled = false;
         reviewDAO
             .get(appointmentId)
-            .then((r) => { if (!cancelled) { setPending(!r); setLoaded(true); } })
+            .then((r) => { if (!cancelled) { setPending(!r && !rated.current); setLoaded(true); } })
             .catch(() => !cancelled && setPending(false));
         return () => {
             cancelled = true;
         };
     }, [appointmentId, enabled]);
-    return { pending, loaded, markDone: () => setPending(false) };
+    return { pending, loaded, markDone: () => { rated.current = true; setPending(false); } };
 }
 
 /** The reminder over the sub-navbar: the review is completed in the Status tab. */
@@ -63,7 +66,13 @@ export function OwnerReviewPrompt({ onPress }: { onPress: () => void }) {
 }
 
 /** The owner's rating of the technician, open in the Status tab: stars, what stood out, a comment and Send. */
-export function OwnerReviewInline({ appointmentId, onSent }: { appointmentId: string; onSent: () => void }) {
+export function OwnerReviewInline({ appointmentId, onSent, onDismissed }: {
+    appointmentId: string;
+    /** The review is saved (or already was): the status steps can show it as done. */
+    onSent: () => void;
+    /** A moment after "Thanks": the whole block can go away. */
+    onDismissed?: () => void;
+}) {
     const { t } = useTranslation();
     const { notify, dialog } = useMessageDialog();
     const [rating, setRating] = React.useState(0);
@@ -71,6 +80,14 @@ export function OwnerReviewInline({ appointmentId, onSent }: { appointmentId: st
     const [comment, setComment] = React.useState('');
     const [sending, setSending] = React.useState(false);
     const [done, setDone] = React.useState(false);
+
+    // "Thanks" is a confirmation, not a place to stay: a moment later the block leaves the screen.
+    React.useEffect(() => {
+        if (!done) return undefined;
+        const timer = setTimeout(() => onDismissed?.(), 2200);
+        return () => clearTimeout(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [done]);
 
     const toggleTag = (tag: string) => setTags((list) => (list.includes(tag) ? list.filter((x) => x !== tag) : [...list, tag]));
 

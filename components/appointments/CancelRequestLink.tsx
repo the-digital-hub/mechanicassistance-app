@@ -3,6 +3,7 @@ import { X } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal, Text, TouchableOpacity, View } from 'react-native';
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 /** Statuses where a job can still be called off before work starts. */
 export function canCancelBeforeStart(status?: string | null): boolean {
@@ -39,7 +40,7 @@ export function CancelRequestLink({ appointmentId, align = 'flex-end', scheduled
                 <Text className="font-outfit-bold text-[13px]" style={{ color: '#E53E3E' }}>{t('appointments.list.card.cancelRequest')}</Text>
             </TouchableOpacity>}
 
-            <Modal transparent visible={visible} animationType="fade" onRequestClose={() => setVisible(false)}>
+            <Modal supportedOrientations={MODAL_ORIENTATIONS} transparent visible={visible} animationType="fade" onRequestClose={() => setVisible(false)}>
                 <View className="flex-1 justify-center items-center bg-black/40 px-6">
                     <View className="bg-white rounded-2xl w-full p-6 items-center shadow-lg">
                         <View className="w-16 h-16 rounded-full border-2 border-red-500 items-center justify-center mb-4">

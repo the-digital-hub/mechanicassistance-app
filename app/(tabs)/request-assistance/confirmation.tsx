@@ -1,4 +1,4 @@
-import { RequestSteps } from '@/components/ui/RequestSteps';
+import { RequestSteps, stepEyebrow } from '@/components/ui/RequestSteps';
 import { FLOATING_CTA, FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
 import { CardPickerModal } from '@/components/payments/CardPickerModal';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
@@ -278,7 +278,6 @@ export default function ConfirmationScreen() {
     const SummaryRow = ({ icon, label, value, last, action }: { icon: React.ReactNode; label: string; value: string; last?: boolean; action?: React.ReactNode }) => (
         <View
             className="flex-row items-center py-4"
-            onLayout={(e) => console.log("[ROWH] SummaryRow", label, e.nativeEvent.layout.height)}
             style={{ gap: 16, minHeight: 77, borderBottomWidth: last ? 0 : 1, borderBottomColor: '#E5E9F5' }}
         >
             <View
@@ -345,15 +344,17 @@ export default function ConfirmationScreen() {
             </View>
             <ScrollView
                 className="flex-1"
-                contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24, gap: 20 }}
+                contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 24, gap: 20 }}
             >
                     <RequestSteps type={params.type} step="confirm" flush />
                 <View>
-                    <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
-                        <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
-                        <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                            {t('requestAssistance.confirmation.requestSummary')}
-                        </Text>
+                    <View className="flex-row items-center justify-between" style={{ marginBottom: 16 }}>
+                        <View className="flex-row items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+                            <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+                            <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+                                {stepEyebrow(t, params.type, 'confirm')}
+                            </Text>
+                        </View>
                     </View>
 
                     <Text className="text-gray-900 font-outfit-medium text-3xl mb-2">{t('requestAssistance.confirmation.title')}</Text>
@@ -362,29 +363,6 @@ export default function ConfirmationScreen() {
                         {t('requestAssistance.confirmation.subtitle')}
                     </Text>
                 </View>
-
-                {/* Assistance type */}
-                <LinearGradient
-                    colors={['#2B66F8', '#081E72']}
-                    start={{ x: 0, y: 1 }}
-                    end={{ x: 1, y: 0 }}
-                    style={{
-                        borderRadius: 12,
-                        paddingHorizontal: 20,
-                        paddingVertical: 16,
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 12,
-                    }}
-                >
-                    <CheckCircle2 size={20} color="#FFFFFF" />
-                    <View className="flex-1">
-                        <Text className="font-outfit-bold text-[13px] tracking-wide" style={{ color: 'rgba(255,255,255,0.8)' }}>
-                            {t('requestAssistance.confirmation.assistanceTypeLabel')}
-                        </Text>
-                        <Text className="text-white font-outfit-bold text-[18px] mt-1">{getTypeLabel()}</Text>
-                    </View>
-                </LinearGradient>
 
                 {/* Price */}
                 <View
@@ -419,6 +397,11 @@ export default function ConfirmationScreen() {
                     className="bg-white rounded-2xl px-5"
                     style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 3, elevation: 2 }}
                 >
+                    <SummaryRow
+                        icon={<CheckCircle2 size={20} color="#1E56E3" />}
+                        label={t('requestAssistance.confirmation.assistanceTypeLabel')}
+                        value={getTypeLabel()}
+                    />
                     <SummaryRow
                         icon={<Car size={20} color="#1E56E3" />}
                         label={t('requestAssistance.confirmation.car')}

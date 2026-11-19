@@ -11,6 +11,9 @@ import { getConsents } from '@/lib/video/consent';
 import { type TranscriptLine, getLocalTranscript } from '@/lib/video/transcriptStore';
 import { buildTranscriptHtml } from '@/lib/video/transcriptPdf';
 import { TYPE } from '@/lib/ui/type';
+import { SheetDim } from '@/components/ui/SheetDim';
+import { SHEET } from '@/lib/ui/sheet';
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 const K = 'appointments.videoCall.transcript';
 
@@ -136,9 +139,10 @@ export function TranscriptCard({ appointmentId, role, info }: {
                 <Ionicons name="chevron-forward" size={18} color={AO.mutedLight} />
             </TouchableOpacity>
 
-            <Modal transparent visible={open} animationType="fade" onRequestClose={() => setOpen(false)}>
-                <Pressable style={{ flex: 1, backgroundColor: 'rgba(11,21,48,0.35)' }} onPress={() => setOpen(false)} />
-                <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 28, borderTopRightRadius: 28, height: '75%', overflow: 'hidden' }} testID="transcript-sheet">
+            <Modal supportedOrientations={MODAL_ORIENTATIONS} transparent visible={open} animationType="fade" onRequestClose={() => setOpen(false)}>
+                <SheetDim color="rgba(11,21,48,0.35)" />
+                <Pressable style={{ flex: 1 }} onPress={() => setOpen(false)} />
+                <View style={{ ...SHEET, height: '75%', overflow: 'hidden' }} testID="transcript-sheet">
                     {/* The fixed top: rounded, with a soft shadow the lines slide under (no hard divider). */}
                     <View
                         className="flex-row items-center"

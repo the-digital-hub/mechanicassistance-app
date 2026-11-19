@@ -12,6 +12,7 @@ import { ActionBar, Card, OS } from './ui';
 import { FinalReportView } from './FinalReportView';
 import { appAlert } from '@/lib/ui/appAlert';
 import { TYPE } from '@/lib/ui/type';
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 // The final report of a visit, for the closeout screen and the report screen: the same data, as a page in
 // the app or as a PDF to keep and share.
@@ -129,7 +130,7 @@ export function DownloadPdfButton({ report, primary, compact }: { report: FinalR
 function FinalReportSheet({ report, visible, onClose }: { report: FinalReport | null; visible: boolean; onClose: () => void }) {
     const { t } = useTranslation();
     return (
-        <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+        <Modal supportedOrientations={MODAL_ORIENTATIONS} visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
             <SafeAreaProvider>
                 <SheetBody report={report} onClose={onClose} title={t('appointments.report.title')} />
             </SafeAreaProvider>

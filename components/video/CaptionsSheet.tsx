@@ -7,6 +7,7 @@ import { AO } from '@/components/offer/OfferSections';
 import { SHEET } from '@/lib/ui/sheet';
 import { SheetHandle } from '@/components/ui/SheetHandle';
 import { SheetDim } from '@/components/ui/SheetDim';
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 const K = 'appointments.videoCall.live';
 
@@ -38,7 +39,7 @@ export function CaptionsSheet({ visible, active, language, onLanguage, onStart, 
 }) {
     const { t } = useTranslation();
     return (
-        <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
+        <Modal supportedOrientations={MODAL_ORIENTATIONS} transparent visible={visible} animationType="fade" onRequestClose={onClose}>
           <SheetDim color="rgba(11,21,48,0.45)" />
             <Pressable style={{ flex: 1 }} onPress={onClose} />
             <View style={{ ...SHEET, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 32 }} testID="captions-sheet">

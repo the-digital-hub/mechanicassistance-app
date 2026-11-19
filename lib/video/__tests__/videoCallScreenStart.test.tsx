@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, waitFor } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import VideoCallScreen from '@/app/(tabs)/video-call/[id]';
 import { videoCallDAO } from '@/lib/dao/VideoCallDAO';
 
@@ -16,12 +16,15 @@ jest.mock('@expo/vector-icons', () => ({ Ionicons: 'Ionicons' }));
 jest.mock('@daily-co/react-native-webrtc', () => ({ MediaStream: jest.fn() }));
 jest.mock('@/lib/video/transcriptStore', () => ({ addTranscriptLine: jest.fn() }));
 jest.mock('@/lib/video/consent', () => ({ recordConsent: jest.fn() }));
+// A phone with a flashlight: its button has to be there from the start of the call (which is on the front camera).
+jest.mock('@/modules/camera-torch', () => ({ isTorchAvailable: () => true, setTorch: jest.fn().mockResolvedValue(true) }));
 jest.mock('@/components/video/CallControls', () => ({ CallControls: () => null }));
 jest.mock('@/components/video/VideoTile', () => ({ VideoTile: () => null }));
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'en' } }) }));
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }) }));
 jest.mock('expo-linear-gradient', () => ({ LinearGradient: 'LinearGradient' }));
 const mockNavigate = jest.fn();
+const mockSwitchCamera = jest.fn();
 const mockLeave = jest.fn();
 jest.mock('expo-router', () => ({
     useLocalSearchParams: () => ({ id: 'appt-1', roomUrl: 'https://x.daily.co/r', token: 't', expiry: '0' }),
@@ -40,7 +43,7 @@ jest.mock('@/lib/video/useDailyCall', () => ({
         leave: mockLeave,
         toggleAudio: jest.fn(),
         toggleCamera: jest.fn(),
-        switchCamera: jest.fn(),
+        switchCamera: mockSwitchCamera,
     }),
 }));
 jest.mock('@/lib/dao/VideoCallDAO', () => ({ videoCallDAO: { markStarted: jest.fn() } }));
@@ -155,5 +158,12 @@ describe('VideoCallScreen session start', () => {
     it('has no finish button: the owner finishes from the appointment detail', () => {
         const { queryByTestId } = render(<VideoCallScreen />);
         expect(queryByTestId('call-owner-finish')).toBeNull();
+    });
+
+    it('shows the flashlight from the start, and tapping it on the front camera switches to the rear one', () => {
+        mockSwitchCamera.mockReset();
+        const { getByTestId } = render(<VideoCallScreen />);
+        fireEvent.press(getByTestId('call-torch'));
+        expect(mockSwitchCamera).toHaveBeenCalledTimes(1);
     });
 });

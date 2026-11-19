@@ -10,6 +10,7 @@ import { ChevronRight } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -435,7 +436,7 @@ export default function AddressScreen() {
         </View>
 
         {/* State Selection Modal */}
-        <Modal
+        <Modal supportedOrientations={MODAL_ORIENTATIONS}
           visible={showStateModal}
           transparent
           animationType="slide"

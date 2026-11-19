@@ -1,4 +1,4 @@
-import { RequestSteps } from '@/components/ui/RequestSteps';
+import { RequestSteps, stepEyebrow } from '@/components/ui/RequestSteps';
 import { FLOATING_CTA, FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
 import { TYPE } from '@/lib/ui/type';
 import { DEFAULT_CALL_MINUTES } from '@/lib/video/callLength';
@@ -25,6 +25,7 @@ import {
     CalendarDays,
     Check,
     ChevronLeft,
+    ChevronRight,
     Clock,
     CreditCard,
     Info,
@@ -37,7 +38,7 @@ import {
     Video,
     Zap,
 } from 'lucide-react-native';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { ChangeBadge } from '@/components/ui/ChangeBadge';
@@ -126,6 +127,9 @@ export default function VideoCallWhenScreen() {
     const [mode, setMode] = useState<Mode>('now');
     // "Now" or "Schedule" is the user's explicit choice: until then neither is marked and the button asks for it.
     const [modeChosen, setModeChosen] = useState(false);
+    const [durationTrackWidth, setDurationTrackWidth] = useState(0);
+    const [durationScrollX, setDurationScrollX] = useState(0);
+    const durationScrollRef = useRef<ScrollView>(null);
     // Only with the call-length menu: the old flat-fee flow has no such step and keeps "Now" as it was.
     const modeReady = modeChosen || !durationSupported;
     // The call length is chosen first and has no default: nothing can be requested without it.
@@ -532,14 +536,16 @@ export default function VideoCallWhenScreen() {
                 </Text>
                 <View className="w-10" />
             </View>
-            <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 24, gap: 14 }}>
+            <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24, gap: 14 }}>
                     <RequestSteps type={params.type} step="when" flush />
                 <View>
-                    <View className="flex-row items-center gap-1.5 mb-3 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
-                        <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
-                        <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                            {t('requestAssistance.when.badge')}
-                        </Text>
+                    <View className="flex-row items-center justify-between" style={{ marginBottom: 12 }}>
+                        <View className="flex-row items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+                            <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+                            <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+                                {stepEyebrow(t, params.type, 'when')}
+                            </Text>
+                        </View>
                     </View>
                     <Text className="font-outfit-bold" style={{ fontSize: 26, color: C.ink }}>
                         {t('requestAssistance.when.title')}
@@ -571,49 +577,104 @@ export default function VideoCallWhenScreen() {
                 ) : (
                     <>
                         {durationSupported && (
-                        <View style={{ gap: 10 }} testID="when-duration-section">
-                            <Text className="font-outfit-bold" style={{ ...TYPE.question, color: C.ink }}>
+                        <LinearGradient
+                            colors={['#2B66F8', '#081E72']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={{ borderRadius: 20, padding: 16, gap: 12, shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.22, shadowRadius: 14, elevation: 5 }}
+                            testID="when-duration-section"
+                        >
+                            <Text className="font-outfit-bold" style={{ ...TYPE.question, color: '#FFFFFF' }}>
                                 {t('requestAssistance.when.durationTitle')}
                             </Text>
-                            {/* Same segmented control as the photo / video switch: a soft track, the picked length lifted on white. */}
-                            <View style={{ flexDirection: 'row', padding: 4, borderRadius: 16, backgroundColor: '#E1EAFB' }}>
-                                {(now?.durations ?? []).map((d) => {
-                                    const selected = duration === d.minutes;
-                                    return (
+                            {/* The length the call lasts is the first decision: a blue card, the picked length lifted on white. */}
+                            <View
+                                style={{ padding: 4, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.16)' }}
+                                onLayout={(e) => setDurationTrackWidth(e.nativeEvent.layout.width)}
+                            >
+                                {(() => {
+                                    const durations = now?.durations ?? [];
+                                    // Up to three lengths fit side by side. With more, exactly three show between two arrows
+                                    // and the rest slide in: nothing is cut off, and the arrows say there is more.
+                                    const slides = durations.length > 3;
+                                    const ARROW = 26;
+                                    const inner = durationTrackWidth > 0 ? durationTrackWidth - 8 - (slides ? ARROW * 2 : 0) : 0;
+                                    const segmentWidth = inner > 0 ? inner / (slides ? 3 : durations.length) : 0;
+                                    const maxScroll = Math.max(0, durations.length * segmentWidth - inner);
+                                    const canBack = durationScrollX > 1;
+                                    const canForward = durationScrollX < maxScroll - 1;
+                                    const slideBy = (dir: 1 | -1) => {
+                                        const target = Math.min(maxScroll, Math.max(0, Math.round(durationScrollX / segmentWidth) * segmentWidth + dir * segmentWidth));
+                                        durationScrollRef.current?.scrollTo({ x: target, animated: true });
+                                    };
+                                    const items = durations.map((d) => {
+                                        const selected = duration === d.minutes;
+                                        return (
+                                            <TouchableOpacity
+                                                key={d.minutes}
+                                                style={{
+                                                    ...(slides ? { width: segmentWidth } : { flex: 1 }),
+                                                    height: 46,
+                                                    borderRadius: 12,
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    backgroundColor: selected ? '#FFFFFF' : 'transparent',
+                                                    ...(selected ? { shadowColor: '#041048', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 8, elevation: 4 } : null),
+                                                }}
+                                                activeOpacity={0.85}
+                                                onPress={() => setDuration(d.minutes)}
+                                                accessibilityRole="button"
+                                                accessibilityState={{ selected }}
+                                                testID={`when-duration-${d.minutes}`}
+                                            >
+                                                <Text className="font-outfit-bold" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={{ ...TYPE.body, color: selected ? C.blue : 'rgba(255,255,255,0.88)' }}>
+                                                    {t('requestAssistance.when.durationShort', { count: d.minutes })}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        );
+                                    });
+                                    if (!slides) return <View style={{ flexDirection: 'row' }}>{items}</View>;
+                                    const arrow = (dir: 1 | -1, enabled: boolean) => (
                                         <TouchableOpacity
-                                            key={d.minutes}
-                                            style={{
-                                                flex: 1,
-                                                height: 46,
-                                                borderRadius: 12,
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                backgroundColor: selected ? C.blue : 'transparent',
-                                                ...(selected ? { shadowColor: '#1E56E3', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 } : null),
-                                            }}
-                                            activeOpacity={0.85}
-                                            onPress={() => setDuration(d.minutes)}
+                                            onPress={() => slideBy(dir)}
+                                            disabled={!enabled}
+                                            hitSlop={8}
                                             accessibilityRole="button"
-                                            accessibilityState={{ selected }}
-                                            testID={`when-duration-${d.minutes}`}
+                                            accessibilityLabel={dir === 1 ? 'More lengths' : 'Shorter lengths'}
+                                            style={{ width: ARROW, height: 46, alignItems: 'center', justifyContent: 'center', opacity: enabled ? 1 : 0.3 }}
+                                            testID={dir === 1 ? 'when-duration-next' : 'when-duration-prev'}
                                         >
-                                            <Text className="font-outfit-bold" style={{ ...TYPE.body, color: selected ? '#FFFFFF' : '#4A5F9A' }}>
-                                                {t('requestAssistance.when.durationShort', { count: d.minutes })}
-                                            </Text>
+                                            {dir === 1 ? <ChevronRight size={20} color="#FFFFFF" strokeWidth={2.6} /> : <ChevronLeft size={20} color="#FFFFFF" strokeWidth={2.6} />}
                                         </TouchableOpacity>
                                     );
-                                })}
+                                    return (
+                                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                            {arrow(-1, canBack)}
+                                            <ScrollView
+                                                ref={durationScrollRef}
+                                                horizontal
+                                                showsHorizontalScrollIndicator={false}
+                                                decelerationRate="fast"
+                                                snapToInterval={segmentWidth || undefined}
+                                                scrollEventThrottle={16}
+                                                onScroll={(e) => setDurationScrollX(e.nativeEvent.contentOffset.x)}
+                                                style={{ width: inner || undefined }}
+                                                testID="when-duration-scroll"
+                                            >
+                                                {items}
+                                            </ScrollView>
+                                            {arrow(1, canForward)}
+                                        </View>
+                                    );
+                                })()}
                             </View>
-                            {/* The same note as the other steps: an icon tile and the text, on a white card. */}
-                            <View className="flex-row items-center" style={{ gap: 12, padding: 12, borderRadius: 16, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: C.line }}>
-                                <View style={{ width: 36, height: 36, borderRadius: 11, alignItems: 'center', justifyContent: 'center', backgroundColor: C.blueSoft }}>
-                                    <Timer size={18} color={C.blue} />
-                                </View>
-                                <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: C.note, flex: 1 }}>
+                            <View className="flex-row items-center" style={{ gap: 8 }}>
+                                <Timer size={16} color="rgba(255,255,255,0.85)" />
+                                <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: 'rgba(255,255,255,0.88)', flex: 1 }}>
                                     {t('requestAssistance.when.durationHint')}
                                 </Text>
                             </View>
-                        </View>
+                        </LinearGradient>
                         )}
 
                         {durationSupported && (

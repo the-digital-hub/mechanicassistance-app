@@ -6,6 +6,7 @@ import { FlatList, KeyboardAvoidingView, Modal, Platform, Pressable, Text, TextI
 import { AO } from '@/components/offer/OfferSections';
 import type { ChatLine } from '@/lib/video/callMessages';
 import { SheetDim } from '@/components/ui/SheetDim';
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 const K = 'appointments.videoCall.live.chat';
 
@@ -26,7 +27,7 @@ export function CallChatSheet({ visible, lines, onSend, onClose }: {
     };
 
     return (
-        <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
+        <Modal supportedOrientations={MODAL_ORIENTATIONS} transparent visible={visible} animationType="fade" onRequestClose={onClose}>
           <SheetDim color="rgba(11,21,48,0.35)" />
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
                 <Pressable style={{ flex: 1 }} onPress={onClose} />

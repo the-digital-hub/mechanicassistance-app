@@ -1,5 +1,5 @@
 import { Footer } from '@/components/scheduled/ui';
-import { RequestSteps } from '@/components/ui/RequestSteps';
+import { RequestSteps, stepEyebrow } from '@/components/ui/RequestSteps';
 import { TYPE } from '@/lib/ui/type';
 import * as ImagePicker from 'expo-image-picker';
 import { useVideoPlayer, VideoView } from 'expo-video';
@@ -182,13 +182,15 @@ export default function VehicleDocumentationScreen() {
                 </Text>
                 <View className="w-6" />
             </View>
-            <ScrollView className="flex-1 px-6 pt-6" contentContainerStyle={{ paddingBottom: 24 }} keyboardShouldPersistTaps="handled">
+            <ScrollView className="flex-1 px-6 pt-4" contentContainerStyle={{ paddingBottom: 24 }} keyboardShouldPersistTaps="handled">
                     <RequestSteps type={params.type} step="photos" flush />
-                <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
-                    <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
-                    <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                        {t('requestAssistance.vehicleDocumentation.optional')}
-                    </Text>
+                <View className="flex-row items-center justify-between" style={{ marginBottom: 16 }}>
+                    <View className="flex-row items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+                        <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+                        <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+                            {stepEyebrow(t, params.type, 'photos')}
+                        </Text>
+                    </View>
                 </View>
 
                 <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">

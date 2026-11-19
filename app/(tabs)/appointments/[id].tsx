@@ -16,6 +16,7 @@ import { VideoCallTimerCard } from '@/components/appointments/VideoCallTimerCard
 import { TranscriptCard } from '@/components/video/TranscriptCard';
 import { ExtensionRequestPanel } from '@/components/video/ExtensionRequestPanel';
 import { ExtendCallSheet } from '@/components/video/ExtendCallSheet';
+import { JoinCallSheet } from '@/components/video/JoinCallSheet';
 import { CallTimeAddedToast } from '@/components/video/CallTimeAddedToast';
 import {
     CustomerInRoomCard,
@@ -23,8 +24,8 @@ import {
     JoinVideoCallButton,
     MechanicVideoCallStatusCard,
     NoteSheet,
+    GradientButton,
     OwnerVideoCallStatusCard,
-    QuietButton,
     VideoCallWhenCard,
 } from '@/components/appointments/VideoCallSections';
 import {
@@ -102,13 +103,20 @@ function assistanceTypeKey(appointment: { assistanceType?: string; type?: string
 
 export default function AppointmentDetailScreen() {
     // Switch back to Global params as Local causes context error in full tree
-    const { id } = useGlobalSearchParams();
+    const { id: globalId, join: joinParam } = useGlobalSearchParams();
     // const { id } = useLocalSearchParams();
     const router = useRouter();
     const { t, i18n } = useTranslation();
-    const { getAppointmentById, refresh: refreshAppointments } = useAppointments();
+    const { getAppointmentById, refresh: refreshAppointments, isLoading: appointmentsLoading } = useAppointments();
 
-    const baseAppointment = getAppointmentById(Array.isArray(id) ? id[0] : id || '');
+    // The global params are those of whichever screen is focused, and they come empty for a moment while navigating
+    // (coming back from the video lobby, say): the last real id is kept so the appointment is not "lost" meanwhile.
+    const lastId = React.useRef<string | undefined>(undefined);
+    const rawId = Array.isArray(globalId) ? globalId[0] : globalId;
+    if (rawId) lastId.current = rawId;
+    const id = rawId || lastId.current;
+
+    const baseAppointment = getAppointmentById(id || '');
     // A scheduled service is booked for the time the provider offered, not the window the owner asked for.
     const acceptedSlotTime = useAcceptedSlot(baseAppointment?.id, (baseAppointment?.assistanceType ?? baseAppointment?.type) === 'scheduled' && baseAppointment?.source === 'appointment');
     const appointment = React.useMemo(() => (baseAppointment && acceptedSlotTime ? { ...baseAppointment, date: acceptedSlotTime.start } : baseAppointment), [baseAppointment, acceptedSlotTime]);
@@ -265,6 +273,27 @@ export default function AppointmentDetailScreen() {
     const [showDisputeSheet, setShowDisputeSheet] = React.useState(false);
     const [showFinishSheet, setShowFinishSheet] = React.useState(false);
     const [offer, setOffer] = React.useState<AssistanceOfferSummary | null>(null);
+    // Owner: what the extra time cost. Each block the owner bought carries its amount (the server sends it to the owner
+    // only); the blocks that add time are the ones held, charged, released or still unpaid.
+    const [ownerExtensionsAmount, setOwnerExtensionsAmount] = React.useState<number | null>(null);
+    React.useEffect(() => {
+        if (!isUserRole || !isVideoCall || videoAddedMinutes <= 0 || !appointment?.id) return;
+        let cancelled = false;
+        videoCallDAO
+            .getExtensions(appointment.id)
+            .then((r) => {
+                const addsTime = ['held', 'captured', 'released', 'unpaid'];
+                const sum = (r.extensions ?? []).filter((e) => addsTime.includes(e.status)).reduce((acc, e) => acc + (Number(e.amount) || 0), 0);
+                if (!cancelled) setOwnerExtensionsAmount(sum > 0 ? sum : null);
+            })
+            .catch(() => undefined);
+        return () => { cancelled = true; };
+    }, [isUserRole, isVideoCall, videoAddedMinutes, appointment?.id]);
+    // The call's own price, from the offer: `budget` is not used here because it may already include the extra time.
+    const ownerServiceTotal = (() => {
+        const n = Number(String(offer?.breakdown?.total ?? offer?.price ?? '').replace(/[^0-9.]/g, ''));
+        return Number.isFinite(n) && n > 0 ? n : null;
+    })();
     // Owner: the card the request is charged to (null = made before the app sent one → default card).
     const [paymentMethodId, setPaymentMethodId] = React.useState<string | null>(null);
 
@@ -339,8 +368,25 @@ export default function AppointmentDetailScreen() {
         setVideoErrorMsg(message);
     };
 
+    // "Join video call" opens the sheet with the conditions of the call and "Connect" (it replaces the old lobby screen).
+    const [joinSheetOpen, setJoinSheetOpen] = React.useState(false);
     const openVideoLobby = () => {
-        if (appointment) router.push({ pathname: '/video-lobby/[id]' as never, params: { id: appointment.id } });
+        if (appointment) setJoinSheetOpen(true);
+    };
+    // Landing here with `join` (the old lobby address, a push, "confirm" on the offer) opens the sheet once.
+    const joinOpenedFor = React.useRef<string | null>(null);
+    React.useEffect(() => {
+        if (!joinParam || !appointment?.id || joinOpenedFor.current === appointment.id) return;
+        joinOpenedFor.current = appointment.id;
+        setJoinSheetOpen(true);
+    }, [joinParam, appointment?.id]);
+    // Connected: the sheet closes first, then the call opens (presenting a screen while a modal is still leaving can fail).
+    const enterVideoCall = (room: { roomUrl: string; token: string; expiry: number }) => {
+        if (!appointment) return;
+        setJoinSheetOpen(false);
+        setTimeout(() => {
+            router.push({ pathname: '/video-call/[id]' as never, params: { id: appointment.id, roomUrl: room.roomUrl, token: room.token, expiry: room.expiry } });
+        }, 350);
     };
 
     // Owner: it was resolved — charged now; then offer the mechanic review.
@@ -442,12 +488,38 @@ export default function AppointmentDetailScreen() {
     // hook count between renders ("Rendered fewer hooks than expected") when the appointment loads.
     const reviewSending = React.useRef(false);
 
+    // Not in the list (it may be mid-reload, or the list was replaced by a load that did not have it yet): ask for the list
+    // again once per appointment before giving up.
+    const reloadedFor = React.useRef<string | null>(null);
+    const [reloading, setReloading] = React.useState(false);
+    React.useEffect(() => {
+        if (appointment || !id || reloadedFor.current === id) return;
+        reloadedFor.current = id;
+        setReloading(true);
+        refreshAppointments().finally(() => setReloading(false));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [appointment, id]);
+
     if (!appointment) {
+        if (appointmentsLoading || reloading) {
+            return (
+                <View className="flex-1 bg-white justify-center items-center p-6">
+                    <ActivityIndicator size="large" color="#1E56E3" />
+                </View>
+            );
+        }
         return (
-            <View className="flex-1 bg-white justify-center items-center p-6">
+            <View className="flex-1 bg-white justify-center items-center p-6" style={{ gap: 12 }}>
                 <Text className="font-outfit-bold text-lg text-gray-900">{t('appointments.detail.notFound')}</Text>
-                <Text className="text-gray-500 mt-2">ID: {JSON.stringify(id)}</Text>
-                <TouchableOpacity onPress={() => goBackOr(router, '/(tabs)/appointments')} className="mt-4">
+                <TouchableOpacity
+                    onPress={() => { setReloading(true); refreshAppointments().finally(() => setReloading(false)); }}
+                    className="mt-2"
+                    accessibilityRole="button"
+                    testID="appointment-retry"
+                >
+                    <Text className="text-blue-600 font-outfit-bold">{t('appointments.detail.retry')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => goBackOr(router, '/(tabs)/appointments')} accessibilityRole="button">
                     <Text className="text-blue-600 font-outfit-medium">{t('appointments.detail.goBack')}</Text>
                 </TouchableOpacity>
             </View>
@@ -475,8 +547,9 @@ export default function AppointmentDetailScreen() {
                     return (
                         <View style={{ gap: 16 }}>
                             {/* The rating is the first thing here, where the reminder over the tabs points. */}
-                            {ownerReview.pending || reviewSent ? (
-                                <OwnerReviewInline appointmentId={appointment.id} onSent={() => { setReviewSent(true); ownerReview.markDone(); }} />
+                            {/* Only while the rating is still to do; after "Thanks" the whole block goes away. */}
+                            {ownerReview.pending ? (
+                                <OwnerReviewInline appointmentId={appointment.id} onSent={() => setReviewSent(true)} onDismissed={() => ownerReview.markDone()} />
                             ) : null}
                             <TranscriptCard appointmentId={appointment.id} role="owner" info={transcriptInfo} />
                             <MechanicVideoStatusTab
@@ -557,6 +630,8 @@ export default function AppointmentDetailScreen() {
                         payment={<PaymentCardValue paymentMethodId={paymentMethodId} card={resolvePaymentCard(paymentMethodId)} />}
                         video={isVideoCall}
                         extendedMinutes={isVideoCall ? videoAddedMinutes : 0}
+                        extendedAmount={isVideoCall && ownerExtensionsAmount !== null ? ownerExtensionsAmount.toFixed(2) : null}
+                        grandTotal={isVideoCall && ownerExtensionsAmount !== null && ownerServiceTotal !== null ? (ownerServiceTotal + ownerExtensionsAmount).toFixed(2) : null}
                     />
                 );
         }
@@ -683,6 +758,9 @@ export default function AppointmentDetailScreen() {
             nativeID="appointment-detail-root"
         >
             {messageDialog}
+            {appointment && isVideoCall ? (
+                <JoinCallSheet visible={joinSheetOpen} appointmentId={appointment.id} onClose={() => setJoinSheetOpen(false)} onEnter={enterVideoCall} />
+            ) : null}
             <OnSiteDialog
                 visible={finishAskOpen}
                 tone="blue"
@@ -736,7 +814,7 @@ export default function AppointmentDetailScreen() {
 
                                 {isVideoCall && (
                                     <>
-                                        <VideoCallWhenCard date={appointment.date} startNow={appointment.startNow} startedAt={appointment.startedAt} completedAt={appointment.completedAt} />
+                                        <VideoCallWhenCard date={appointment.date} startNow={appointment.startNow} startedAt={appointment.startedAt} completedAt={appointment.completedAt} live={videoCallLive} />
                                         {videoCallLive && <JoinVideoCallButton onPress={openVideoLobby} rejoin={videoStartedAtMs !== null} />}
                                         {videoCallLive && videoStartedAtMs !== null && (
                                             <>
@@ -755,7 +833,7 @@ export default function AppointmentDetailScreen() {
                                             </>
                                         )}
                                         {videoCallLive && (
-                                            <QuietButton
+                                            <GradientButton
                                                 label={t('appointments.videoCall.mechanic.finish')}
                                                 loading={videoBusy}
                                                 onPress={askOwnerFinishVideoCall}
@@ -954,15 +1032,16 @@ export default function AppointmentDetailScreen() {
                                             ) : (
                                                 <JoinVideoCallButton onPress={openVideoLobby} rejoin />
                                             )}
-                                            <QuietButton
+                                            {videoStartedAtMs === null && (
+                                                <SessionTimerNote minutes={videoState?.baseMinutes ?? DEFAULT_CALL_MINUTES} />
+                                            )}
+                                            {/* Finish comes after the note about the session timer. */}
+                                            <GradientButton
                                                 label={t('appointments.videoCall.mechanic.finish')}
                                                 loading={videoBusy}
                                                 onPress={() => setShowFinishSheet(true)}
                                                 testID="mechanic-video-finish"
                                             />
-                                            {videoStartedAtMs === null && (
-                                                <SessionTimerNote minutes={videoState?.baseMinutes ?? DEFAULT_CALL_MINUTES} />
-                                            )}
                                         </>
                                     ) : videoState ? (
                                         <>

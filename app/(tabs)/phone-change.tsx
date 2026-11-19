@@ -11,6 +11,7 @@ import { useRouter } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 import {
     ActivityIndicator,
     Keyboard,
@@ -331,7 +332,7 @@ export default function PhoneChangeScreen() {
                 )}
             </ScrollView>
 
-            <Modal visible={modal.visible} transparent animationType="fade" onRequestClose={closeModal}>
+            <Modal supportedOrientations={MODAL_ORIENTATIONS} visible={modal.visible} transparent animationType="fade" onRequestClose={closeModal}>
                 <View className="flex-1 bg-black/40 justify-center items-center px-6">
                     <View className="bg-white rounded-3xl w-full p-8 items-center shadow-xl">
                         <View className={`w-16 h-16 rounded-full justify-center items-center mb-6 ${modal.isSuccess ? 'bg-green-50' : 'bg-red-50'}`}>

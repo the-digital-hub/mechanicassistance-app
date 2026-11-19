@@ -22,6 +22,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { appAlert } from '@/lib/ui/appAlert';
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -517,7 +518,7 @@ export default function ProfileScreen() {
 
       {/* Status Modal */}
       {showStatusModal && (
-        <Modal transparent visible={showStatusModal} animationType="fade">
+        <Modal supportedOrientations={MODAL_ORIENTATIONS} transparent visible={showStatusModal} animationType="fade">
           <View className="flex-1 bg-black/50 justify-center items-center px-6">
             <View className="bg-white w-full rounded-2xl p-6 items-center">
               <Text className="text-lg font-outfit-bold text-gray-900 mb-6 text-center">

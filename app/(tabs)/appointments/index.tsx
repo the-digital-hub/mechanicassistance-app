@@ -8,6 +8,7 @@ import { ArrowDown, ArrowUp, X } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, Modal, Text, TouchableOpacity, View } from 'react-native';
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 export default function AppointmentsScreen() {
     const { t } = useTranslation();
@@ -192,7 +193,7 @@ export default function AppointmentsScreen() {
             />
 
             {/* Cancel Confirmation Modal */}
-            <Modal
+            <Modal supportedOrientations={MODAL_ORIENTATIONS}
                 transparent={true}
                 visible={cancelModalVisible}
                 animationType="fade"

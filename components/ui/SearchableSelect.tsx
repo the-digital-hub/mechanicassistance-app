@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { rankOptions } from '@/lib/searchRank';
 import { ReactNode, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, KeyboardAvoidingView, Modal, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 export interface SearchableSelectOption {
     value: string;
@@ -117,7 +118,7 @@ export function SearchableSelect<T extends SearchableSelectOption>({
                 </TouchableOpacity>
             )}
 
-            <Modal visible={open} transparent animationType="slide" onRequestClose={close}>
+            <Modal supportedOrientations={MODAL_ORIENTATIONS} visible={open} transparent animationType="slide" onRequestClose={close}>
                 <KeyboardAvoidingView
                     behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                     className="flex-1 bg-black/40 justify-end"

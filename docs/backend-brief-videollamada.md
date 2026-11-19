@@ -461,6 +461,22 @@ Limitaciones: es una copia por teléfono, solo existe si los subtítulos estuvie
   conserva. Los datos de salud o personales que se digan en la llamada pasan a ser datos guardados.
 - Opcional: mostrar la transcripción a staff en la lista de disputas del Hub.
 
+**Pedido adicional (19-nov): que la app también envíe la transcripción, anidada a esta solicitud.** Mientras (o además de) que el
+servidor la tome de Daily, el teléfono sube las frases que guardó localmente para esa cita, de modo que queden como dato de la
+solicitud y no solo en el teléfono:
+- `PUT /api/appointments/:id/video/transcript` (o `POST …/lines`), con la sesión del dueño o del técnico de esa cita (otro → 403; cita
+  inexistente → 404). Cuerpo: `{ language, lines: [{ id, role: 'owner'|'mechanic', name?, text, at (ISO) }] }`, hasta 2000 líneas por envío
+  (es el tope que la app guarda por llamada).
+- **Idempotente por `id` de línea** (el `message id` que entrega Daily): reenviar el mismo conjunto no duplica, y las líneas de los dos
+  teléfonos se **combinan sin repetirse** (cada teléfono recibe las dos voces, así que el servidor debe quedarse con una copia por `id`).
+  El `role` lo decide el servidor por la sesión de quien envía y por el `userId` de Daily, no por lo que diga el cuerpo.
+- Solo se acepta si los consentimientos de la llamada están registrados (§5.13): sin `precall` aceptado de ambos y `captions-answer` de
+  quien no pidió los subtítulos, 409 `consent_required` y no se guarda nada.
+- `GET /api/appointments/:id/video/transcript` devuelve el texto combinado (la app ya lo lee primero y usa su copia local solo si da 404).
+- La app lo manda al terminar la llamada y al abrir la cita si quedaron líneas sin enviar; si el envío falla, reintenta después y conserva
+  la copia local.
+- Definir con legal la retención, igual que en el pedido principal.
+
 ### 5.13 Q — Registro de consentimientos y cumplimiento (nuevo, 18-nov)
 **Objetivo:** estar en cumplimiento. Los **dos** lados aceptan las condiciones **antes** de la videollamada, y de nuevo, uno al otro, en el momento
 de activar subtítulos y transcripción; todo queda registrado y la transcripción solo existe si ambos aceptaron.
@@ -507,6 +523,25 @@ Tampoco hay un campo propio para el texto: hoy se mezcla con el título.
 - Que el técnico vea `customIssue` en la oferta y en el detalle de la asistencia.
 
 ---
+
+### 5.15 V — Traducción de los subtítulos de la llamada (nuevo, 19-nov)
+**Qué se quiere:** que dos personas que no comparten idioma se entiendan en la videollamada: cada una lee los subtítulos en el suyo.
+
+**Qué hay hoy:** la transcripción en vivo de Daily (Deepgram) pasa voz a texto en un idioma que se elige al activarla; Daily no ofrece
+traducción. La app ya recibe cada frase (`transcription-message`) y tiene el selector de idioma de los subtítulos (§5.8).
+
+**Pedido:**
+- `POST /api/appointments/:id/video/translate` (dueño o técnico de esa cita; otro → 403; cita inexistente → 404). Cuerpo:
+  `{ from, to, lines: [{ id, text }] }` (`from`/`to`: códigos de idioma, ej. `es`, `en`; hasta 20 frases por pedido). Respuesta:
+  `{ lines: [{ id, text }] }` con el mismo `id`.
+- Traducir con el modelo de lenguaje que defina producto; devolver el texto y nada más (sin comentarios ni agregados).
+- **Consentimiento:** solo con los consentimientos de la llamada registrados (§5.13) y una aceptación adicional de ambos de que el texto
+  se envía a un tercero para traducirlo: `kind: 'translation'` en `POST …/video/consent`. Sin eso, 409 `consent_required`.
+- **Límites:** frecuencia por persona y por llamada (como el chat: 30 por minuto) y tamaño máximo por frase; 429 al pasarse.
+- **Guardado:** no guardar el texto salvo que la transcripción (§5.12) ya lo haga; decidir con legal si original y traducción se guardan juntas.
+- **Costo:** se suma a la transcripción de Daily. Estimar el costo por minuto de llamada y decidir si es de pago.
+
+**Cómo lo verificamos:** una llamada con un teléfono en español y otro en inglés, cada uno ve los subtítulos en su idioma con segundos de retraso.
 
 ## 6. Orden de entrega sugerido
 1. **B, C, D, E** — verificaciones (rápidas, desbloquean pruebas de la app).

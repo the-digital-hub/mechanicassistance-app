@@ -408,7 +408,7 @@ export default function ScheduledRequestScreen() {
                     ref={scrollRef}
                     className="flex-1"
                     keyboardShouldPersistTaps="handled"
-                    contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 20, paddingBottom: 28, gap: 20 }}
+                    contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 28, gap: 20 }}
                 >
                         <Timeline steps={STEP_KEYS.map((key) => ({ key, label: t(`scheduled.steps.${key}`) }))} current={step - 1} flush />
                     {restored ? (

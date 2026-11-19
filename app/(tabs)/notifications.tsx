@@ -29,7 +29,7 @@ import { useRef, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { useTranslation } from 'react-i18next';
-import { Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { LayoutAnimation, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { appAlert } from '@/lib/ui/appAlert';
 
 // Tile palette from the Notification Center design: icon color + soft tint.
@@ -103,7 +103,18 @@ export default function NotificationsScreen() {
     const { notifications, deleteNotifications, markAllRead } = useNotifications();
     const { user } = useUser();
 
+    // A swipe must only delete: a touch that ends a swipe, or lands on the row that slides
+    // up into the freed space, must not open the notification it was not aimed at.
+    const pressBlockedUntil = useRef(0);
+    const blockPresses = (ms = 700) => { pressBlockedUntil.current = Date.now() + ms; };
+
     const deleteAndReport = async (ids: string[]) => {
+        // Rows below glide up and the removed one fades, instead of vanishing at once.
+        LayoutAnimation.configureNext({
+            duration: 320,
+            update: { type: LayoutAnimation.Types.easeInEaseOut },
+            delete: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
+        });
         const result = await deleteNotifications(ids);
         if (result.ok) return;
         // A status means the server answered: the connection is fine, so say so.
@@ -144,6 +155,7 @@ export default function NotificationsScreen() {
 
     // Same destination as tapping the push itself.
     const handleNotificationPress = (notif: typeof notifications[0]) => {
+        if (Date.now() < pressBlockedUntil.current) return;
         if (!user?.id || !user.role) return;
         const route = routeForPush(
             {
@@ -225,11 +237,14 @@ export default function NotificationsScreen() {
                             // Swipe to the left to delete: letting go past the halfway mark removes it.
                             <Swipeable
                                 key={notif.id}
-                                friction={1.6}
+                                friction={1.2}
                                 overshootRight={false}
                                 rightThreshold={72}
+                                animationOptions={{ damping: 30, stiffness: 170, mass: 1 }}
+                                onSwipeableOpenStartDrag={() => blockPresses()}
+                                onSwipeableCloseStartDrag={() => blockPresses()}
                                 renderRightActions={() => <DeleteAction />}
-                                onSwipeableOpen={(direction) => { if (direction === 'right' || direction === 'left') void deleteAndReport([notif.id]); }}
+                                onSwipeableOpen={() => { blockPresses(); void deleteAndReport([notif.id]); }}
                                 containerStyle={{ backgroundColor: '#E5484D' }}
                             >
                             <TouchableOpacity

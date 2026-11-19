@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View, Modal, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { appAlert } from '@/lib/ui/appAlert';
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 export default function EditAddressScreen() {
     const router = useRouter();
@@ -362,7 +363,7 @@ export default function EditAddressScreen() {
 
             {/* Status Modal */}
             {isMechanic && (
-                <Modal transparent visible={showStatusModal} animationType="fade">
+                <Modal supportedOrientations={MODAL_ORIENTATIONS} transparent visible={showStatusModal} animationType="fade">
                     <View className="flex-1 bg-black/50 justify-center items-center px-6">
                         <View className="bg-white w-full rounded-2xl p-6 items-center">
                             <Text className="text-lg font-outfit-bold text-gray-900 mb-6 text-center">

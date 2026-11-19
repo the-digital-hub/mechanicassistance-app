@@ -9,6 +9,7 @@ import {
     View,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 import Animated, {
     runOnJS,
     useAnimatedStyle,
@@ -78,7 +79,7 @@ export function ConfirmationModal({
   if (!showModal) return null;
 
   return (
-    <Modal transparent visible={showModal} animationType="none">
+    <Modal supportedOrientations={MODAL_ORIENTATIONS} transparent visible={showModal} animationType="none">
       <View style={styles.container}>
         <Animated.View style={[styles.backdrop, backdropStyle]}>
           <TouchableOpacity

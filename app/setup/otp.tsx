@@ -12,6 +12,7 @@ import { ActivityIndicator, Keyboard, Modal, Platform, Text, TextInput, Touchabl
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 export default function OTPScreen() {
     const router = useRouter();
@@ -311,7 +312,7 @@ export default function OTPScreen() {
             </TouchableWithoutFeedback>
 
             {/* Error Modal */}
-            <Modal
+            <Modal supportedOrientations={MODAL_ORIENTATIONS}
                 visible={errorModal.visible}
                 transparent
                 animationType="fade"

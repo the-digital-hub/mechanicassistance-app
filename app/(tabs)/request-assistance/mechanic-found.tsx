@@ -2,6 +2,7 @@ import { HeaderBackButton } from '@/components/ui/HeaderBackButton';
 import { FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
 import {
     AO,
+    CallConditions,
     OfferBreakdown,
     OfferHoldPill,
     ProtectionBox,
@@ -388,7 +389,7 @@ export default function MechanicFoundScreen() {
                 </View>
 
                 {videoWhen !== null ? (
-                    <TechnicianCard mechanic={offer?.mechanic ?? null} eta={videoWhen} etaLabel={t(`${k}.when`)} etaIcon="calendar-outline" price={price} />
+                    <TechnicianCard mechanic={offer?.mechanic ?? null} eta={videoWhen} etaLabel={t(`${k}.when`)} etaIcon="calendar-outline" price={price} priceCaption={false} />
                 ) : (
                     <TechnicianCard mechanic={offer?.mechanic ?? null} eta={etaValue} etaCaption={arrival} price={price} />
                 )}
@@ -419,7 +420,7 @@ export default function MechanicFoundScreen() {
                                 ) },
                         ]}
                     />
-                    {holdNotice !== null && confirmState !== 'done' && (
+                    {!isVideoCall && holdNotice !== null && confirmState !== 'done' && (
                         <View className="flex-row items-start" style={{ gap: 8, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, backgroundColor: AO.blueSofter, borderWidth: 1, borderColor: AO.border }}>
                             <Ionicons name="lock-closed-outline" size={14} color={AO.blue} style={{ marginTop: 2 }} />
                             <Text className="font-outfit-regular" style={{ flex: 1, fontSize: 13, color: AO.muted, lineHeight: 17 }}>{holdNotice}</Text>
@@ -427,7 +428,7 @@ export default function MechanicFoundScreen() {
                     )}
                 </View>
 
-                <ProtectionBox />
+                {!isVideoCall && <ProtectionBox />}
 
                 {!!requestId && (
                     <Text className="text-center font-outfit-regular" style={{ fontSize: 13, color: AO.mutedLight, lineHeight: 16 }}>
@@ -438,6 +439,13 @@ export default function MechanicFoundScreen() {
                 <TouchableOpacity onPress={handleCancel} disabled={confirmState !== 'idle'} style={{ paddingVertical: 12, alignItems: 'center' }} testID="mechanic-found-cancel">
                     <Text className="font-outfit-bold" style={{ fontSize: 16, color: AO.red }}>{t('requestAssistance.searching.cancelRequest')}</Text>
                 </TouchableOpacity>
+
+                {/* A video call: its few conditions, short, at the very bottom. */}
+                {isVideoCall && (
+                    <CallConditions
+                        hold={!request?.paymentMethodId || confirmState === 'done' ? null : t(holdLater ? `${k}.callConditionsHoldLater` : `${k}.callConditionsHold`, { amount: price })}
+                    />
+                )}
             </ScrollView>
 
             {/* Sticky footer */}

@@ -32,6 +32,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 import {
   Image,
   Keyboard,
@@ -778,7 +779,7 @@ export default function LoginScreen() {
       )}
 
       {/* Error Modal */}
-      <Modal
+      <Modal supportedOrientations={MODAL_ORIENTATIONS}
         visible={errorModal.visible}
         transparent
         animationType="fade"
@@ -825,7 +826,7 @@ export default function LoginScreen() {
       </Modal>
 
       {/* Forgot Password Modal */}
-      <Modal
+      <Modal supportedOrientations={MODAL_ORIENTATIONS}
         visible={forgotVisible}
         transparent
         animationType="fade"

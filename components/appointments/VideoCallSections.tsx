@@ -7,6 +7,8 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { TYPE } from '@/lib/ui/type';
+import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
+import { LiveRadar } from '@/components/video/LiveRadar';
 
 /*
  * Video-call assistance (remote): no check-in, no ETA. The mechanic finishes it,
@@ -21,15 +23,23 @@ type IconName = React.ComponentProps<typeof Ionicons>['name'];
  * "Scheduled for <local date time>"; "When: <date and time>" for a call asked for now that already took place;
  * "When: Now" only while a "now" call has not started.
  */
-export function VideoCallWhenCard({ date, startNow, startedAt, completedAt }: { date?: string | null; startNow?: boolean; startedAt?: string | null; completedAt?: string | null }) {
+export function VideoCallWhenCard({ date, startNow, startedAt, completedAt, live = false }: { date?: string | null; startNow?: boolean; startedAt?: string | null; completedAt?: string | null; /** The call can be joined now: the tile pulses like a radar. */ live?: boolean }) {
     const { t, i18n } = useTranslation();
     const booked = videoCallBookedLabel({ date, startNow, startedAt, completedAt }, i18n.language);
     const label = booked ?? t('requestDetail.videoCallNow');
     return (
         <View style={[card, { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14 }]} testID="video-call-when">
-            <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: AO.blueSoft, alignItems: 'center', justifyContent: 'center' }}>
-                <Ionicons name="calendar-outline" size={19} color={AO.blue} />
-            </View>
+            {live ? (
+                <View style={{ width: 38, height: 38, alignItems: 'center', justifyContent: 'center' }}>
+                    <LiveRadar size={30} color="#16A34A">
+                        <Ionicons name="videocam" size={16} color="#FFFFFF" />
+                    </LiveRadar>
+                </View>
+            ) : (
+                <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: AO.blueSoft, alignItems: 'center', justifyContent: 'center' }}>
+                    <Ionicons name="calendar-outline" size={19} color={AO.blue} />
+                </View>
+            )}
             <View style={{ flex: 1, minWidth: 0 }}>
                 <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 0.8, color: AO.muted }}>{booked && !startNow ? t(`${K}.scheduledFor`).toUpperCase() : t('requestDetail.videoCallWhen')}</Text>
                 <Text className="font-outfit-bold" style={{ fontSize: 15, color: AO.text, marginTop: 2 }}>{label}</Text>
@@ -72,9 +82,10 @@ export function QuietButton({ label, icon, onPress, disabled, loading, testID }:
 
 /**
  * The call's button system, one rule per intent:
- *  - GradientButton `primary` (blue): the main action that moves things forward (Join video call).
- *  - GradientButton `success` (green): only "it was resolved, charge it" (the owner's confirmation).
- *  - QuietButton (soft slate fill): secondary actions we do not want to encourage (Finish, Return to call).
+ *  - GradientButton `success` (green): the important actions of the call: Join video call, and "it was resolved, charge it"
+ *    (the owner's confirmation).
+ *  - GradientButton `primary` (blue): the other main actions (Finish assistance).
+ *  - QuietButton (soft slate fill): secondary actions we do not want to encourage (Return to call).
  *  - a soft red text button: "it was not resolved" and other problem actions.
  * All share the same height, radius and type.
  */
@@ -143,7 +154,7 @@ export function CustomerInRoomCard() {
 /** `rejoin`: the call already started (the person left and came back), so it says so. */
 export function JoinVideoCallButton({ onPress, rejoin = false }: { onPress: () => void; rejoin?: boolean }) {
     const { t } = useTranslation();
-    return <GradientButton label={t(rejoin ? `${K}.rejoin` : `${K}.join`)} icon="videocam" onPress={onPress} testID="join-video-call" />;
+    return <GradientButton label={t(rejoin ? `${K}.rejoin` : `${K}.join`)} icon="videocam" tone="success" onPress={onPress} testID="join-video-call" />;
 }
 
 function InfoCard({ icon, tone, title, body, children, testID }: {
@@ -295,7 +306,7 @@ export function NoteSheet({ visible, title, body, placeholder, confirmLabel, min
     const tooShort = trimmed.length < minLength;
 
     return (
-        <Modal animationType="fade" transparent visible={visible} onRequestClose={onClose}>
+        <Modal supportedOrientations={MODAL_ORIENTATIONS} animationType="fade" transparent visible={visible} onRequestClose={onClose}>
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1 bg-black/50 justify-center px-6">
                 <View className="bg-white w-full rounded-2xl p-6">
                     <Text className="font-outfit-bold text-xl text-gray-900 mb-2">{title}</Text>
