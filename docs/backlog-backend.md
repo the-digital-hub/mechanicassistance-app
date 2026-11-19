@@ -10,6 +10,29 @@ Leyenda de prioridad: 🔴 bloquea o es de cumplimiento · 🟠 importante · �
 
 ---
 
+## Resumen: qué hay en la app y qué falta del back
+
+Lo que ya está hecho en la app y espera algo del backend (endpoints, despliegues o datos). El detalle de cada punto está más abajo, con su letra.
+
+| Punto | Qué hace la app hoy | Qué necesitamos del back | Mientras tanto |
+|---|---|---|---|
+| **B** Cotización con duración | Manda `duration_minutes` al elegir 15/30/45/60 | Desplegar price-service con `duration_minutes` en `calculate` y `requests/:id/price` | El resumen muestra el precio base del menú, no el final |
+| **N** Agendar 24/7 | Trata los turnos fuera de horario como reservables | Que `POST /api/assistance` no rechace por `no_mechanics`; cancelación sin cargo si nadie acepta | El turno de madrugada falla con `409 slot_unavailable` |
+| **O** Zona horaria | Manda `timezone` (reintenta sin él si lo rechazan) | Aceptarlo, guardarlo y devolverlo en pedidos y citas | El técnico puede leer otra hora |
+| **Q** Consentimientos | Pide el consentimiento antes de entrar a la llamada | Registro y consulta de consentimientos | No queda registro del lado del servidor |
+| **S** Solicitud tomada por otro | Avisa en la oferta y consulta cada 15 s si sigue abierta | Evento al técnico + `409 request_unavailable` | Se entera por consulta, hasta 15 s tarde |
+| **T** Duración de 60 min | Muestra la opción que llega del menú | Confirmar la cadena completa de 60 min | Ya aparece; falta probar de punta a punta |
+| **P / U** Transcripción | Muestra y descarga la transcripción de la llamada | Guardarla en la cita (P) y recibir la que sube la app (U, `PUT …/video/transcript`) | Solo existe en el teléfono |
+| **X** Precio de agendadas | Muestra el precio que devuelve el backend | Precio diferenciado + asignador de descuento en el Hub, con el descuento en el desglose | Sin descuento |
+| **Y** Reseñas del perfil | Las estrellas del perfil abren las calificaciones con fecha; los comentarios del técnico se piden una por una y los del dueño no se pueden leer | `GET /api/reviews/me` paginado, con comentario, etiquetas y fecha | Se ve la nota y la fecha; casi todo "sin comentario" |
+| **Z** Otras certificaciones | Pantalla y hoja para agregar, editar y quitar (marca u organización, tipo, número, vencimiento y certificado adjunto) | `GET\|POST /api/mechanic-certifications` y `PATCH\|DELETE …/:id`, con estados y revisión en el Hub | La lista dice que no pudo cargar y no se puede guardar |
+| **V** Traducción de subtítulos | Nada todavía: solo existe el selector de idioma | `POST /api/appointments/:id/video/translate` + consentimiento nuevo | Sin traducción |
+| **W** Agente de cuidado del vehículo | Nada todavía | Endpoints de recomendaciones + historial de kilometraje con fecha | Sin recomendaciones |
+
+Los puntos **L, M, K, J, E** y la documentación siguen como están más abajo.
+
+---
+
 ## 🔴 1. Hacer primero
 
 ### [ ] B — Cotización con `duration_minutes` (§4.1)

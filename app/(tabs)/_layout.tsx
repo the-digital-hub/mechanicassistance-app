@@ -420,6 +420,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="certification-form"
+        options={{
+          href: null,
+          title: t('tabs.profile'),
+          headerLeft: () => <PersonalInfoHeaderLeft />,
+          headerRight: () => <PersonalInfoHeaderRight />,
+        }}
+      />
+      <Tabs.Screen
         name="other-certifications"
         options={{
           href: null,

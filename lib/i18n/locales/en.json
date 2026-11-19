@@ -71,24 +71,23 @@
       "manufacturer": [
         "Direct certified",
         "Master technician",
-        "Factory trained",
-        "EV / hybrid specialist"
+        "Factory trained"
       ],
       "industry": [
         "Technician",
         "Master technician",
-        "Specialist",
-        "Advanced diagnostics"
+        "Specialist"
       ],
       "other": [
         "Training course",
         "Diploma",
-        "Specialty license",
-        "Safety / compliance"
+        "Specialty license"
       ]
     },
     "expiresPlaceholder": "No expiry date",
-    "noExpiry": "No expiry date"
+    "noExpiry": "No expiry date",
+    "orTypeYourOwn": "Tap one, or type your own.",
+    "certificate": "Certificate"
   },
   "profile": {
     "badge": "MY PROFILE",
@@ -1642,6 +1641,7 @@
       "timeBand": "Time-of-day adjustment",
       "weather": "Weather adjustment",
       "serviceTotal": "Service total",
+      "serviceValue": "Service value",
       "payment": "Payment",
       "customerPaid": "Customer paid",
       "platformFee": "Platform fees & taxes",

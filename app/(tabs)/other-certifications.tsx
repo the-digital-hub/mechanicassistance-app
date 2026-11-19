@@ -1,11 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect, useRouter } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 import { AO } from '@/components/offer/OfferSections';
-import { GradientButton } from '@/components/appointments/VideoCallSections';
-import { CertificationSheet } from '@/components/profile/CertificationSheet';
+import { Footer } from '@/components/scheduled/ui';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { certificationsDAO, formatExpiry, isExpired, type Certification } from '@/lib/dao/CertificationsDAO';
 import { Trash2 } from 'lucide-react-native';
@@ -20,7 +20,7 @@ export default function OtherCertificationsScreen() {
     const [items, setItems] = React.useState<Certification[]>([]);
     const [loading, setLoading] = React.useState(true);
     const [loadFailed, setLoadFailed] = React.useState(false);
-    const [sheet, setSheet] = React.useState<{ open: boolean; item: Certification | null }>({ open: false, item: null });
+    const router = useRouter();
     const [removing, setRemoving] = React.useState<Certification | null>(null);
 
     const load = React.useCallback(() => {
@@ -31,12 +31,10 @@ export default function OtherCertificationsScreen() {
             .catch(() => setLoadFailed(true))
             .finally(() => setLoading(false));
     }, []);
-    React.useEffect(load, [load]);
-
-    const saved = (c: Certification) => {
-        setItems((prev) => (prev.some((x) => x.id === c.id) ? prev.map((x) => (x.id === c.id ? c : x)) : [c, ...prev]));
-        setSheet({ open: false, item: null });
-    };
+    // Back from the form: the list is read again, so what was added or edited shows up.
+    useFocusEffect(load);
+    const openForm = (item?: Certification) =>
+        router.push(item ? { pathname: '/certification-form', params: { data: JSON.stringify(item) } } : '/certification-form');
 
     const confirmRemove = async () => {
         const target = removing;
@@ -69,9 +67,8 @@ export default function OtherCertificationsScreen() {
                 onConfirm={confirmRemove}
                 onClose={() => setRemoving(null)}
             />
-            <CertificationSheet visible={sheet.open} initial={sheet.item} onClose={() => setSheet({ open: false, item: null })} onSaved={saved} />
 
-            <ScrollView contentContainerStyle={{ padding: 24, paddingBottom: 130, gap: 12 }}>
+            <ScrollView className="flex-1" contentContainerStyle={{ padding: 24, paddingBottom: 28, gap: 12 }}>
                 <View className="flex-row items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                     <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
                     <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">{t(`${K}.badge`)}</Text>
@@ -96,7 +93,7 @@ export default function OtherCertificationsScreen() {
                         return (
                             <TouchableOpacity
                                 key={c.id}
-                                onPress={() => setSheet({ open: true, item: c })}
+                                onPress={() => openForm(c)}
                                 onLongPress={() => setRemoving(c)}
                                 activeOpacity={0.85}
                                 accessibilityRole="button"
@@ -134,9 +131,7 @@ export default function OtherCertificationsScreen() {
                 )}
             </ScrollView>
 
-            <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: 20, paddingBottom: 28, backgroundColor: '#F6F8FC' }}>
-                <GradientButton large label={t(`${K}.add`)} onPress={() => setSheet({ open: true, item: null })} testID="certification-add" />
-            </View>
+            <Footer label={t(`${K}.add`)} onPress={() => openForm()} />
         </View>
     );
 }

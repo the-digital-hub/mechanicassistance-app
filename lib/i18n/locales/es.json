@@ -71,24 +71,23 @@
       "manufacturer": [
         "Certificado directo",
         "Técnico master",
-        "Capacitado por la marca",
-        "Especialista en eléctricos / híbridos"
+        "Capacitado por la marca"
       ],
       "industry": [
         "Técnico",
         "Técnico master",
-        "Especialista",
-        "Diagnóstico avanzado"
+        "Especialista"
       ],
       "other": [
         "Curso de capacitación",
         "Diploma",
-        "Licencia de especialidad",
-        "Seguridad / cumplimiento"
+        "Licencia de especialidad"
       ]
     },
     "expiresPlaceholder": "Sin vencimiento",
-    "noExpiry": "Sin vencimiento"
+    "noExpiry": "Sin vencimiento",
+    "orTypeYourOwn": "Tocá una, o escribí la tuya.",
+    "certificate": "Certificado"
   },
   "profile": {
     "badge": "MI PERFIL",
@@ -1643,6 +1642,7 @@
       "timeBand": "Ajuste por horario",
       "weather": "Ajuste por clima",
       "serviceTotal": "Total del servicio",
+      "serviceValue": "Valor del servicio",
       "payment": "Pago",
       "customerPaid": "El cliente pagó",
       "platformFee": "Comisiones e impuestos",

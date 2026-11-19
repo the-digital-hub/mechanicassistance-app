@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useGlobalSearchParams, useRouter } from 'expo-router';
-import { Banknote, Calendar, Car, CheckCircle2, CreditCard, Info, ReceiptText, RotateCcw, Wallet, Wrench, type LucideIcon } from 'lucide-react-native';
+import { Banknote, Calendar, Car, CheckCircle2, CreditCard, Info, ReceiptText, RotateCcw, Timer, Wallet, Wrench, type LucideIcon } from 'lucide-react-native';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, View } from 'react-native';
@@ -11,6 +11,7 @@ import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { earningsDAO } from '@/lib/dao/EarningsDAO';
 import type { MechanicEarning, ProviderBreakdown } from '@/lib/dao/interfaces';
 import { walletDAO, type PaymentHistoryItem } from '@/lib/dao/WalletDAO';
+import { mechanicReceiptTotals } from '@/lib/receipt/mechanicReceipt';
 import { formatLocalDateTime } from '@/lib/video/videoCallTime';
 
 // A mechanic's receipt for one finished job: what the customer paid, what the
@@ -21,19 +22,6 @@ const money = (v?: string | null) => {
     const n = Number(v);
     return `$${Number.isFinite(n) ? n.toFixed(2) : '0.00'}`;
 };
-
-function Line({ label, value, strong, negative }: { label: string; value: string; strong?: boolean; negative?: boolean }) {
-    return (
-        <View className="flex-row items-center justify-between px-4 py-2.5">
-            <Text className={strong ? 'font-outfit-bold text-[15px]' : 'font-outfit-medium text-sm'} style={{ color: strong ? OS.text : OS.muted }}>
-                {label}
-            </Text>
-            <Text className={strong ? 'font-outfit-bold text-lg' : 'font-outfit-bold text-sm'} style={{ color: negative ? OS.red : strong ? OS.blue : OS.text }}>
-                {negative ? `-${value}` : value}
-            </Text>
-        </View>
-    );
-}
 
 function IconRow({ icon: Icon, label, value, danger, last }: { icon: LucideIcon; label: string; value: string; danger?: boolean; last?: boolean }) {
     return (
@@ -178,7 +166,7 @@ export default function JobReceiptScreen() {
 
 function MechanicReceipt({ id }: { id: string }) {
     const router = useRouter();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const k = 'appointments.receipt';
     const { getAppointmentById } = useAppointments();
     const appointment = getAppointmentById(id);
@@ -204,13 +192,14 @@ function MechanicReceipt({ id }: { id: string }) {
     }, [id]);
 
     const back = () => (router.canGoBack() ? router.back() : router.replace('/(tabs)/appointments'));
-    // The same number the list card shows (`budget`: the technician's whole total, extra time included). The earning
-    // row and the service breakdown can hold only the call itself, so they are the fallback and the call's own line.
-    const budgetNumber = Number(String(appointment?.budget ?? '').replace(/[^0-9.]/g, ''));
-    const hasBudget = Number.isFinite(budgetNumber) && budgetNumber > 0;
-    const callNumber = Number(breakdown?.total);
-    const extensionNumber = hasBudget && Number.isFinite(callNumber) && budgetNumber > callNumber ? budgetNumber - callNumber : 0;
-    const net = hasBudget ? budgetNumber.toFixed(2) : earning?.netAmount ?? breakdown?.total;
+
+    // What the technician takes home is the number the list card shows (`budget`, extra time included). The service
+    // breakdown holds the call alone: its lines are the price before fees and its `total` is already net of them, so
+    // the difference is shown as one "fees and taxes" line, and the extra time (already net) comes after the call.
+    // The technician sees only what is theirs: the value of the service, the extra time and the sum. Never what was withheld.
+    const { total, extension } = mechanicReceiptTotals(breakdown, appointment?.budget, earning?.netAmount);
+    const when = formatLocalDateTime(appointment?.completedAt ?? appointment?.updatedAt, i18n.language);
+    const statusKey = earning?.status;
 
     return (
         <View className="flex-1" style={{ backgroundColor: OS.page }}>
@@ -219,39 +208,50 @@ function MechanicReceipt({ id }: { id: string }) {
                 <View className="flex-1 items-center justify-center"><ActivityIndicator color={OS.blue} /></View>
             ) : (
                 <Body>
-                    <Card>
-                        <View className="px-4 pt-4 pb-2">
-                            <Text className="font-outfit-bold text-[12px] uppercase tracking-widest" style={{ color: OS.mutedLight }}>
-                                {t(`${k}.earnings`)}
-                            </Text>
-                            <Text className="font-outfit-bold text-[32px]" style={{ color: OS.text }}>{money(net)}</Text>
-                            {appointment?.car ? (
-                                <Text className="font-outfit-medium text-[13px] mt-0.5" style={{ color: OS.muted }}>{appointment.car}</Text>
+                    <LinearGradient
+                        colors={['#2B66F8', '#081E72']}
+                        start={{ x: 0, y: 1 }}
+                        end={{ x: 1, y: 0 }}
+                        style={{ borderRadius: 20, padding: 20, marginHorizontal: 15, marginTop: 14 }}
+                    >
+                        <View className="flex-row items-center" style={{ gap: 10 }}>
+                            <View className="items-center justify-center" style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.18)' }}>
+                                <ReceiptText size={20} color="#FFFFFF" />
+                            </View>
+                            <Text className="font-outfit-bold uppercase" style={{ fontSize: 12, letterSpacing: 1.2, color: 'rgba(255,255,255,0.8)' }}>{t(`${k}.earnings`)}</Text>
+                        </View>
+                        <Text className="font-outfit-bold" style={{ fontSize: 38, letterSpacing: -1, color: '#FFFFFF', marginTop: 10 }}>{money(String(total))}</Text>
+                        <View className="flex-row items-center" style={{ gap: 8, marginTop: 8 }}>
+                            {appointment?.refCode ? (
+                                <Text className="font-outfit-medium" style={{ fontSize: 14, color: 'rgba(255,255,255,0.85)' }}>{appointment.refCode}</Text>
+                            ) : null}
+                            {statusKey ? (
+                                <View className="flex-row items-center" style={{ gap: 4, paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.18)' }}>
+                                    {statusKey === 'settled' ? <CheckCircle2 size={14} color="#FFFFFF" /> : null}
+                                    <Text className="font-outfit-bold" style={{ fontSize: 13, color: '#FFFFFF' }}>{t(`${k}.statusValue.${statusKey}`)}</Text>
+                                </View>
                             ) : null}
                         </View>
+                    </LinearGradient>
+
+                    <Card>
+                        {appointment?.title ? <IconRow icon={Wrench} label={t(`${k}.owner.service`)} value={appointment.title} /> : null}
+                        {appointment?.car ? <IconRow icon={Car} label={t(`${k}.owner.vehicle`)} value={appointment.car} /> : null}
+                        {when ? <IconRow icon={Calendar} label={t(`${k}.owner.date`)} value={when} last /> : null}
                     </Card>
 
-                    {breakdown && (
+                    {breakdown || earning ? (
                         <Card>
-                            <Text className="font-outfit-bold text-[13px] px-4 pt-3" style={{ color: OS.text }}>{t(`${k}.yourService`)}</Text>
-                            <Line label={t(`${k}.base`)} value={money(breakdown.base)} />
-                            {breakdown.timeBand && Number(breakdown.timeBand.amount) !== 0 && (
-                                <Line label={t(`${k}.timeBand`)} value={money(breakdown.timeBand.amount)} />
-                            )}
-                            {breakdown.weather && Number(breakdown.weather.amount) !== 0 && (
-                                <Line label={t(`${k}.weather`)} value={money(breakdown.weather.amount)} />
-                            )}
-                            <Line label={t(`${k}.serviceTotal`)} value={money(breakdown.total)} strong />
-                            {extensionNumber > 0 ? (
-                                <Line label={t(`${k}.extendedTime`)} value={`+${money(extensionNumber.toFixed(2))}`} />
+                            <Text className="font-outfit-bold uppercase px-4 pt-3 pb-1" style={{ fontSize: 12, letterSpacing: 1.2, color: OS.mutedLight }}>{t(`${k}.yourService`)}</Text>
+                            {breakdown ? (
+                                <>
+                                    <IconRow icon={ReceiptText} label={t(`${k}.serviceValue`)} value={money(breakdown.total)} last={extension <= 0} />
+                                    {extension > 0 ? (
+                                        <IconRow icon={Timer} label={t(`${k}.extendedTime`)} value={`+${money(extension.toFixed(2))}`} last />
+                                    ) : null}
+                                </>
                             ) : null}
-                        </Card>
-                    )}
 
-                    {earning ? (
-                        <Card>
-                            <Text className="font-outfit-bold text-[13px] px-4 pt-3" style={{ color: OS.text }}>{t(`${k}.payment`)}</Text>
-                            {/* Providers see what they get, never the fee or what the customer paid. */}
                             {/* The total: set apart by a line and a tinted band, like the owner's receipt. */}
                             <View
                                 className="flex-row items-center"
@@ -259,18 +259,20 @@ function MechanicReceipt({ id }: { id: string }) {
                                 testID="receipt-total-earned"
                             >
                                 <Text className="font-outfit-bold flex-1" style={{ fontSize: 17, color: OS.text }}>{t(`${k}.totalEarned`)}</Text>
-                                <Text className="font-outfit-bold" style={{ fontSize: 22, letterSpacing: -0.4, color: OS.blue }}>{money(net)}</Text>
+                                <Text className="font-outfit-bold" style={{ fontSize: 22, letterSpacing: -0.4, color: OS.blue }}>{money(String(total))}</Text>
                             </View>
-                            <View className="px-4 pb-3">
-                                <Text className="font-outfit-bold text-[13px] uppercase" style={{ color: OS.mutedLight }}>{t(`${k}.status`)}</Text>
-                                <Text className="font-outfit-bold text-sm mt-0.5" style={{ color: OS.text }}>
-                                    {t(`${k}.statusValue.${earning.status}`)}
-                                </Text>
-                            </View>
+                            {statusKey ? (
+                                <IconRow icon={Wallet} label={t(`${k}.status`)} value={t(`${k}.statusValue.${statusKey}`)} last />
+                            ) : null}
                         </Card>
                     ) : (
                         <Card>
-                            <Text className="font-outfit-medium text-sm p-4" style={{ color: OS.muted }}>{t(`${k}.notCharged`)}</Text>
+                            <View className="flex-row items-center p-4" style={{ gap: 12 }}>
+                                <View className="items-center justify-center" style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: OS.blueSoft }}>
+                                    <Info size={18} color={OS.blue} />
+                                </View>
+                                <Text className="font-outfit-medium flex-1" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>{t(`${k}.notCharged`)}</Text>
+                            </View>
                         </Card>
                     )}
                 </Body>
