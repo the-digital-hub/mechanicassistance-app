@@ -11,7 +11,7 @@ import {
 } from '@/lib/auth/session';
 import { addressDAO } from '@/lib/dao/AddressDAO';
 import { userDAO } from '@/lib/dao/UserDAO';
-import { AppRole, UserData } from '@/lib/dao/interfaces';
+import { AppRole, OpenWork, UserData } from '@/lib/dao/interfaces';
 import { firebaseSignOut } from '@/lib/firebase/auth';
 import { stopBackgroundLocation } from '@/lib/location/backgroundLocationTask';
 import { disablePush, forgetPushToken } from '@/lib/notifications/push';
@@ -41,7 +41,8 @@ interface UserContextType {
      * Makes another role the account holds the active one. Rejects with the
      * API error (403 role not held, 409 active jobs) and changes nothing then.
      */
-    switchRole: (role: AppRole) => Promise<void>;
+    /** Returns what the role just left still has open, to remind the person. */
+    switchRole: (role: AppRole) => Promise<OpenWork | undefined>;
     /**
      * Re-reads the account's addresses from the server into the session user.
      * Call it after any write to an address: ids, `role` and `isServiceBase`
@@ -298,9 +299,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
      * (mechanic details, addresses) matches. SocketContext reconnects on the
      * role change, so realtime-gateway moves the socket to the right rooms.
      */
-    const switchRole = useCallback(async (role: AppRole): Promise<void> => {
+    const switchRole = useCallback(async (role: AppRole): Promise<OpenWork | undefined> => {
         const current = userRef.current;
-        if (!current) return;
+        if (!current) return undefined;
 
         const result = await userDAO.switchActiveRole(role);
         const fresh = await userDAO.getById(current.id).catch(() => null);
@@ -315,6 +316,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         userRef.current = next;
         setUser(next);
         await saveCachedUser(next);
+        return result.openWork;
     }, []);
 
     const refreshAddresses = useCallback(async (): Promise<void> => {

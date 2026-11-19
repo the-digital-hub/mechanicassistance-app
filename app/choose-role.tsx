@@ -9,6 +9,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, View } from 'react-native';
 import { appAlert } from '@/lib/ui/appAlert';
+import { alertOpenWork, alertRoleSwitchBlocked } from '@/lib/roles/roleSwitchMessages';
 
 /** Roles the app can actually run as. Towing / locksmith are registered but never activated. */
 const ACTIVATABLE: AppRole[] = ["user", "mechanic"];
@@ -21,7 +22,7 @@ const ACTIVATABLE: AppRole[] = ["user", "mechanic"];
  */
 export default function ChooseRoleScreen() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user, isLoading, switchRole, logout } = useUser();
   const [busy, setBusy] = useState<AppRole | null>(null);
 
@@ -61,13 +62,14 @@ export default function ChooseRoleScreen() {
     setBusy(role);
     try {
       // Already the active role: nothing to switch, just go in.
-      if (role !== user.role) await switchRole(role);
+      const openWork = role !== user.role ? await switchRole(role) : undefined;
       router.replace("/(tabs)/dashboard");
+      alertOpenWork(openWork, t, i18n.language);
     } catch (err) {
       const status = err instanceof ApiError ? err.statusCode : null;
       const name = t(`profile.switchRole.roles.${role}.label`);
       if (status === 409) {
-        appAlert(t("profile.switchRole.activeJobsTitle"), t("profile.switchRole.activeJobsMessage"));
+        alertRoleSwitchBlocked(err, t, router);
       } else if (status === 403) {
         appAlert(t("profile.switchRole.notHeldTitle"), t("profile.switchRole.notHeldMessage", { role: name }));
       } else {

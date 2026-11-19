@@ -25,6 +25,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { appAlert } from '@/lib/ui/appAlert';
+import { alertOpenWork, alertRoleSwitchBlocked } from '@/lib/roles/roleSwitchMessages';
 import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 export default function ProfileScreen() {
@@ -149,17 +150,18 @@ export default function ProfileScreen() {
         router.push((await startAddRoleFromProfile(user, role)) as any);
         return;
       }
-      await switchRole(role as AppRole);
+      const openWork = await switchRole(role as AppRole);
       setToast(t('profile.switchRole.toastSwitched', { role: roleName(role) }));
       if (toastTimer.current) clearTimeout(toastTimer.current);
       toastTimer.current = setTimeout(() => setToast(null), 2400);
       router.replace('/(tabs)/dashboard');
+      alertOpenWork(openWork, t, i18n.language);
     } catch (err) {
       const status = err instanceof ApiError ? err.statusCode : null;
       if (!isHeld) {
         appAlert(t('profile.switchRole.failedTitle'), t('profile.switchRole.startFailed'));
       } else if (status === 409) {
-        appAlert(t('profile.switchRole.activeJobsTitle'), t('profile.switchRole.activeJobsMessage'));
+        alertRoleSwitchBlocked(err, t, router);
       } else if (status === 403) {
         appAlert(
           t('profile.switchRole.notHeldTitle'),

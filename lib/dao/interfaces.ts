@@ -220,6 +220,16 @@ export interface RoleChangeResult {
     roles: string[];
     permissions: string[];
     session: { accessToken: string; refreshToken: string; expiresIn: number } | null;
+    /** Work left open on the role just left; it did not block the change. */
+    openWork?: OpenWork;
+}
+
+/** What the role just left still has open (users-service `openWork`). */
+export interface OpenWork {
+    /** Requests still open as vehicle owner; their notices wait in that role. */
+    ownerRequestsOpen: number;
+    /** Booked services as mechanic not started yet, soonest first. ISO 8601 `date`. */
+    upcomingMechanicJobs: { appointmentId: string; date: string | null }[];
 }
 
 export interface MechanicDetail {

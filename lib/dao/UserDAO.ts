@@ -210,8 +210,9 @@ export class UserDAO implements IUserDAO {
     /**
      * Makes another role the account holds the active one.
      *
-     * 403: the account does not hold that role. 409: it still has active
-     * requests or appointments in the current role. Neither changes anything.
+     * 403: the account does not hold that role. 409
+     * `ROLE_SWITCH_BLOCKED_BY_ACTIVE_JOB`: leaving mechanic while a service is
+     * under way (`error.details` names it). Neither changes anything.
      */
     async switchActiveRole(role: AppRole): Promise<RoleChangeResult> {
         const result = await apiClient.post<RoleChangeResult>('/api/roles/self/active-role', { role });

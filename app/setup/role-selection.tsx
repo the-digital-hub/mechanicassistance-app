@@ -10,6 +10,7 @@ import { useRouter } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { alertOpenWork, blockedMessage, blockingJobOf } from '@/lib/roles/roleSwitchMessages';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -42,7 +43,7 @@ const roleConfigs: Record<'mechanic' | 'user', RoleConfig> = {
 
 export default function RoleSelectionScreen() {
     const router = useRouter();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { adoptSession } = useUser();
     const [selectedRole, setSelectedRole] = useState<'mechanic' | 'user'>('mechanic');
     const config = roleConfigs[selectedRole];
@@ -82,20 +83,26 @@ export default function RoleSelectionScreen() {
         setError(null);
         try {
             if (holdsRole(state, role)) {
-                if (role !== state.primaryRole) await userDAO.switchActiveRole(role);
+                const switched =
+                    role !== state.primaryRole ? await userDAO.switchActiveRole(role) : undefined;
                 const userId = state.userId ?? (await getSessionUserId());
                 const account = userId ? await userDAO.getById(userId) : null;
                 if (!account) throw new Error('Account profile could not be loaded');
                 await clearSetupProgress();
                 await adoptSession({ ...account, role });
                 router.replace('/(tabs)/dashboard');
+                alertOpenWork(switched?.openWork, t, i18n.language);
                 return false;
             }
             await prefillForAddRole(role);
             return true;
         } catch (err) {
             if (err instanceof ApiError && err.statusCode === 409) {
-                setError(t('setup.addRole.activeJobs', { role: roleLabel(state.primaryRole) }));
+                setError(
+                    blockingJobOf(err)
+                        ? blockedMessage(err, t)
+                        : t('setup.addRole.activeJobs', { role: roleLabel(state.primaryRole) }),
+                );
             } else {
                 setError(t(holdsRole(state, role) ? 'setup.addRole.signInFailed' : 'setup.addRole.loadFailed'));
             }
