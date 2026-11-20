@@ -11,7 +11,7 @@ import { setTabBarHidden, useTabBarHidden } from '@/lib/ui/tabBarVisibility';
 const WHITE_PATHS = /^\/(request-assistance(\/.+)?|assist\/scheduled.*|dashboard\/filter|privacy|appointments\/check-in.*|addresses.*)$/;
 
 /** Height of what stays when the bar is tucked away: just a handle at the very edge. */
-const TIP_HEIGHT = 26;
+const TIP_HEIGHT = 12;
 
 /** How long the bar takes to go down or come up. */
 const SLIDE_MS = 260;
@@ -59,7 +59,7 @@ export function RoundedTabBar(props: BottomTabBarProps) {
             <Animated.View
                 pointerEvents={hidden ? 'auto' : 'none'}
                 style={[
-                    { position: 'absolute', top: 0, left: 0, right: 0, height: TIP_HEIGHT, backgroundColor: '#FFFFFF', borderTopLeftRadius: 28, borderTopRightRadius: 28, ...SHADOW },
+                    { position: 'absolute', top: 0, left: 0, right: 0, height: TIP_HEIGHT, backgroundColor: '#FFFFFF', borderTopLeftRadius: 12, borderTopRightRadius: 12, ...SHADOW },
                     tip,
                 ]}
             >
@@ -68,11 +68,11 @@ export function RoundedTabBar(props: BottomTabBarProps) {
                     activeOpacity={0.8}
                     accessibilityRole="button"
                     accessibilityLabel="Show navigation"
-                    hitSlop={{ top: 10, bottom: 0, left: 40, right: 40 }}
+                    hitSlop={{ top: 22, bottom: 0, left: 60, right: 60 }}
                     style={{ height: TIP_HEIGHT, alignItems: 'center' }}
                     testID="tab-bar-tip"
                 >
-                    <View style={{ width: 44, height: 5, borderRadius: 3, backgroundColor: '#C9D3E6', marginTop: 8 }} />
+                    <View style={{ width: 30, height: 3, borderRadius: 2, backgroundColor: '#C9D3E6', marginTop: 4 }} />
                 </TouchableOpacity>
             </Animated.View>
         </Animated.View>

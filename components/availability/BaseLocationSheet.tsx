@@ -2,17 +2,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Modal, Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 import { AO } from '@/components/offer/OfferSections';
-import { SheetDim } from '@/components/ui/SheetDim';
-import { SheetHandle } from '@/components/ui/SheetHandle';
+import { OwnerSheet } from '@/components/dashboard/OwnerHomeBlocks';
 import { useUser } from '@/context/UserContext';
 import { addressDisplayName, addressesForRole } from '@/lib/address';
 import { ApiError } from '@/lib/api/types';
 import { addressDAO } from '@/lib/dao/AddressDAO';
-import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
-import { SHEET } from '@/lib/ui/sheet';
 import { appAlert } from '@/lib/ui/appAlert';
 import { TYPE } from '@/lib/ui/type';
 
@@ -59,17 +56,10 @@ export function BaseLocationSheet({ visible, onClose, onPicked }: { visible: boo
     };
 
     return (
-        <Modal supportedOrientations={MODAL_ORIENTATIONS} transparent visible={visible} animationType="slide" onRequestClose={onClose}>
-            <SheetDim />
-            <Pressable style={{ flex: 1 }} onPress={onClose} />
-            <View style={{ ...SHEET, paddingTop: 12, paddingBottom: 28, maxHeight: '75%' }} testID="base-location-sheet">
-                <SheetHandle />
-                <View style={{ paddingHorizontal: 20 }}>
-                    <Text className="font-outfit-bold" style={{ ...TYPE.section, color: AO.text }}>{t('addresses.pickTitle')}</Text>
-                    <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: AO.muted, marginTop: 4 }}>{t('addresses.pickSubtitle')}</Text>
-                </View>
-
-                <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, gap: 10 }} showsVerticalScrollIndicator={false}>
+        // The same sheet the dashboard opens for the three kinds of request: the backdrop fades in on its own and the sheet slides up by itself.
+        <OwnerSheet visible={visible} title={t('addresses.pickTitle')} subtitle={t('addresses.pickSubtitle')} onClose={onClose}>
+            <View testID="base-location-sheet">
+                <ScrollView style={{ maxHeight: 380 }} contentContainerStyle={{ gap: 10 }} showsVerticalScrollIndicator={false}>
                     {options.map((a) => {
                         const selected = !!a.isServiceBase;
                         const name = addressDisplayName(a, t);
@@ -101,20 +91,20 @@ export function BaseLocationSheet({ visible, onClose, onPicked }: { visible: boo
                             </TouchableOpacity>
                         );
                     })}
-
-                    <TouchableOpacity
-                        onPress={() => { onClose(); router.push('/(tabs)/addresses/create'); }}
-                        activeOpacity={0.85}
-                        accessibilityRole="button"
-                        className="flex-row items-center justify-center"
-                        style={{ gap: 8, minHeight: 52, borderRadius: 16, backgroundColor: '#E6EAF2', marginTop: 4 }}
-                        testID="base-add-address"
-                    >
-                        <Ionicons name="add" size={22} color="#4A5470" />
-                        <Text className="font-outfit-bold" style={{ ...TYPE.body, color: '#4A5470' }}>{t('addresses.addNew')}</Text>
-                    </TouchableOpacity>
                 </ScrollView>
+
+                <TouchableOpacity
+                    onPress={() => { onClose(); router.push('/(tabs)/addresses/create'); }}
+                    activeOpacity={0.85}
+                    accessibilityRole="button"
+                    className="flex-row items-center justify-center"
+                    style={{ gap: 8, minHeight: 52, borderRadius: 16, backgroundColor: '#E6EAF2', marginTop: 12 }}
+                    testID="base-add-address"
+                >
+                    <Ionicons name="add" size={22} color="#4A5470" />
+                    <Text className="font-outfit-bold" style={{ ...TYPE.body, color: '#4A5470' }}>{t('addresses.addNew')}</Text>
+                </TouchableOpacity>
             </View>
-        </Modal>
+        </OwnerSheet>
     );
 }

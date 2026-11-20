@@ -18,10 +18,10 @@ export function HeaderBackButton({ onPress, testID, marginLeft = 16 }: { onPress
             testID={testID}
         >
             <View
-                className="w-10 h-10 rounded-full justify-center items-center"
-                style={{ backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }}
+                className="rounded-full justify-center items-center"
+                style={{ width: 30, height: 30, backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }}
             >
-                <ChevronLeft size={20} color="#0047AB" />
+                <ChevronLeft size={16} color="#0047AB" />
             </View>
         </TouchableOpacity>
     );

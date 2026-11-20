@@ -1736,6 +1736,7 @@
       },
       "notCharged": "Este servicio aún no se cobró, así que no hay un pago para mostrar.",
       "owner": {
+        "purposes": {"service": "Servicio", "serviceVideo": "Videollamada", "scopeChange": "Trabajo adicional", "scopeChangeVideo": "Tiempo extra"},
         "service": "Servicio",
         "vehicle": "Vehículo",
         "date": "Fecha",

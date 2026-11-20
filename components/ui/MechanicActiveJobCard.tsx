@@ -53,7 +53,8 @@ export function MechanicActiveJobCard({ appointment }: { appointment: Appointmen
     const inRoom = appointment.status === 'started' || appointment.status === 'in_progress';
     const joinable = isVideoCall && (inRoom || appointment.startNow || (hasTime && at!.getTime() - Date.now() <= JOIN_WINDOW_MS));
 
-    const rows = [
+    const rows: { key: string; Icon: typeof Car; value: string; sub?: string }[] = [
+        hasTime ? { key: 'when', Icon: CalendarClock, value: whenLabel, sub: future ? relativeFromNow(at!, t) : undefined } : null,
         appointment.car ? { key: 'vehicle', Icon: Car, value: appointment.car } : null,
         appointment.address && !isVideoCall ? { key: 'location', Icon: MapPin, value: appointment.address } : null,
     ].filter((row): row is NonNullable<typeof row> => row !== null);
@@ -80,46 +81,38 @@ export function MechanicActiveJobCard({ appointment }: { appointment: Appointmen
             }}
             testID="mechanic-active-job"
         >
-            {/* Type icon + title */}
-            <View className="flex-row items-center">
-                <View className="justify-center items-center mr-3" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#EAF1FF' }}>
-                    <TypeIcon size={20} color="#1E56E3" />
+            {/* Header: type tile on the left, title with its status underneath on the right */}
+            <View className="flex-row" style={{ gap: 12 }}>
+                <View className="justify-center items-center" style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: '#EAF1FF' }}>
+                    <TypeIcon size={22} color="#1E56E3" />
                 </View>
-                <Text className="flex-1 font-outfit-bold" style={{ fontSize: 18, letterSpacing: -0.3, color: '#0B1530' }} numberOfLines={2}>
-                    {appointment.title}
-                </Text>
+                <View className="flex-1" style={{ minHeight: 44, justifyContent: 'center' }}>
+                    <Text className="font-outfit-bold" style={{ fontSize: 18, lineHeight: 22, letterSpacing: -0.3, color: '#0B1530' }} numberOfLines={2}>
+                        {appointment.title}
+                    </Text>
+                    <View className="flex-row items-center self-start rounded-full" style={{ gap: 6, marginTop: 6, paddingHorizontal: 10, paddingVertical: 3, backgroundColor: colors.bg }}>
+                        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.title }} />
+                        <Text className="font-outfit-semibold" style={{ fontSize: 13, color: colors.title }}>
+                            {t(`appointments.list.card.title.${state}`)}
+                        </Text>
+                    </View>
+                </View>
             </View>
-
-            {/* Status: one small pill, the hint in plain grey */}
-            <View className="flex-row items-center self-start mt-3 rounded-full" style={{ gap: 6, paddingHorizontal: 10, paddingVertical: 4, backgroundColor: colors.bg }}>
-                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.title }} />
-                <Text className="font-outfit-semibold" style={{ fontSize: 13, color: colors.title }}>
-                    {t(`appointments.list.card.title.${state}`)}
-                </Text>
-            </View>
-            <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: '#6B7490', marginTop: 6 }}>
+            <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: '#6B7490', marginTop: 10 }}>
                 {t(`appointments.list.card.status.${state}Hint`)}
             </Text>
 
-            {/* When */}
-            {hasTime && (
-                <View className="flex-row items-center" style={{ gap: 8, marginTop: 12 }}>
-                    <CalendarClock size={18} color="#6B7490" />
-                    <Text className="flex-1 font-outfit-semibold" style={{ ...TYPE.body, color: '#0B1530' }} numberOfLines={2}>
-                        {whenLabel}
-                        {future ? <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: '#6B7490' }}>{`  ·  ${relativeFromNow(at!, t)}`}</Text> : null}
-                    </Text>
-                </View>
-            )}
-
-            {/* Vehicle / location: plain rows under a hairline */}
+            {/* Details: when, vehicle, location. Same small tile and icon size on every row */}
             {rows.length > 0 && (
-                <View style={{ marginTop: 12, paddingTop: 4, borderTopWidth: 1, borderTopColor: '#EEF0F6' }}>
-                    {rows.map(({ key, Icon, value }) => (
-                        <View key={key} className="flex-row items-center" style={{ gap: 10, paddingTop: 10 }}>
-                            <Icon size={18} color="#6B7490" />
+                <View style={{ marginTop: 14, paddingTop: 14, borderTopWidth: 1, borderTopColor: '#EEF0F6', gap: 12 }}>
+                    {rows.map(({ key, Icon, value, sub }) => (
+                        <View key={key} className="flex-row items-center" style={{ gap: 12 }}>
+                            <View className="justify-center items-center" style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: '#F3F6FC' }}>
+                                <Icon size={16} color="#6B7490" />
+                            </View>
                             <Text className="flex-1 font-outfit-semibold" style={{ ...TYPE.body, color: '#0B1530' }} numberOfLines={2}>
                                 {value}
+                                {sub ? <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: '#6B7490' }}>{`  ·  ${sub}`}</Text> : null}
                             </Text>
                         </View>
                     ))}
@@ -127,7 +120,7 @@ export function MechanicActiveJobCard({ appointment }: { appointment: Appointmen
             )}
 
             {/* One main action */}
-            <View className="flex-row mt-4" style={{ gap: 10 }}>
+            <View className="flex-row" style={{ gap: 10, marginTop: 16 }}>
                 {canHeadOut && (
                     <TouchableOpacity
                         style={{ flex: 0.6 }}

@@ -73,8 +73,13 @@ function OwnerReceipt({ id }: { id: string }) {
 
     const isWallet = payment?.method === 'wallet';
     const refunded = refundedTotal > 0;
-    const purposeLabel = (purpose: string) =>
-        t(`${k}.owner.purposes.${purpose}`, { defaultValue: purpose.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase()) });
+    // What each charge was for, in the words of this job: on a video call the extra charge is the time that was added.
+    const isVideoCall = appointment?.type === 'videocall';
+    const purposeLabel = (purpose: string) => {
+        const key = purpose === 'scope_change' ? 'scopeChange' : purpose === 'service' ? 'service' : null;
+        if (key) return t(`${k}.owner.purposes.${key}${isVideoCall ? 'Video' : ''}`, { defaultValue: t(`${k}.owner.purposes.${key}`) });
+        return purpose.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase());
+    };
     const statusKey = payment?.status ?? '';
     const statusOk = ['succeeded', 'charged', 'captured'].includes(statusKey);
 

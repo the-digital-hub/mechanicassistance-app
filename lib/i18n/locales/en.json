@@ -1735,6 +1735,7 @@
       },
       "notCharged": "This service has not been charged yet, so there is no payment to show.",
       "owner": {
+        "purposes": {"service": "Service", "serviceVideo": "Video call", "scopeChange": "Additional work", "scopeChangeVideo": "Extended time"},
         "service": "Service",
         "vehicle": "Vehicle",
         "date": "Date",

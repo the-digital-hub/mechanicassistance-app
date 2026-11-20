@@ -74,7 +74,7 @@ export function JoinCallSheet({ visible, appointmentId, onClose, onEnter }: {
                     <View style={{ backgroundColor: '#FFFFFF', borderRadius: 18, borderWidth: 1, borderColor: AO.borderSoft, paddingHorizontal: 14, paddingVertical: 4 }}>
                         {rows.map((r, i) => (
                             <View key={r.icon} className="flex-row items-center" style={{ gap: 12, paddingVertical: 11, borderBottomWidth: i < rows.length - 1 ? 1 : 0, borderBottomColor: AO.borderSoft }}>
-                                <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: AO.blueSoft, alignItems: 'center', justifyContent: 'center' }}>
+                                <View style={{ width: 30, height: 30, borderRadius: 10, backgroundColor: AO.blueSoft, alignItems: 'center', justifyContent: 'center' }}>
                                     <Ionicons name={r.icon} size={18} color={AO.blue} />
                                 </View>
                                 <View style={{ flex: 1 }}>
@@ -87,7 +87,7 @@ export function JoinCallSheet({ visible, appointmentId, onClose, onEnter }: {
 
                     <View style={{ backgroundColor: AO.blueSofter, borderRadius: 18, borderWidth: 1, borderColor: AO.blueSoft, padding: 14, gap: 8 }} testID="lobby-consent">
                         <View className="flex-row items-center" style={{ gap: 12 }}>
-                            <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: AO.blueSoft, alignItems: 'center', justifyContent: 'center' }}>
+                            <View style={{ width: 30, height: 30, borderRadius: 10, backgroundColor: AO.blueSoft, alignItems: 'center', justifyContent: 'center' }}>
                                 <Ionicons name="shield-checkmark-outline" size={18} color={AO.blue} />
                             </View>
                             <Text className="font-outfit-bold" style={{ flex: 1, ...TYPE.body, color: AO.text }}>{t(`${L}.consent.title`)}</Text>
@@ -111,7 +111,7 @@ export function JoinCallSheet({ visible, appointmentId, onClose, onEnter }: {
                     </View>
 
                     <View className="flex-row items-center" style={{ gap: 12, padding: 14, borderRadius: 16, backgroundColor: AO.blueSofter, borderWidth: 1, borderColor: AO.blueSoft }}>
-                        <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: AO.blueSoft, alignItems: 'center', justifyContent: 'center' }}>
+                        <View style={{ width: 30, height: 30, borderRadius: 10, backgroundColor: AO.blueSoft, alignItems: 'center', justifyContent: 'center' }}>
                             <Ionicons name="time-outline" size={18} color={AO.blue} />
                         </View>
                         <Text className="font-outfit-regular" style={{ flex: 1, ...TYPE.helper, color: AO.muted }}>{t(`${L}.footer`, { minutes })}</Text>

@@ -214,7 +214,7 @@ export function ScreenDone({ variant, appointmentId, visit, onVisit, clientName,
                             <Text className="flex-1 font-outfit-bold text-[13px]" style={{ color: OS.greenDark }}>{t(`${k}.sent`)}</Text>
                         </View>
                         <View className="w-full mt-4 flex-row items-center gap-2.5 px-4 py-3.5" style={[cardShadow, { borderRadius: 16 }]}>
-                            <View className="items-center justify-center" style={{ width: 34, height: 34, borderRadius: 11, backgroundColor: OS.blueSoft }}>
+                            <View className="items-center justify-center" style={{ width: 30, height: 30, borderRadius: 11, backgroundColor: OS.blueSoft }}>
                                 <Text className="font-outfit-bold text-base" style={{ color: OS.blue }}>$</Text>
                             </View>
                             <Text className="flex-1 font-outfit-medium text-[13px] leading-4" style={{ color: OS.muted }}>{t(`${k}.payment`)}</Text>

@@ -45,7 +45,7 @@ export function WizardHeader({ title, onBack, right }: { title: string; onBack?:
     return (
         <View
             className="px-6 pt-20 pb-2 flex-row items-center justify-between"
-            style={ROUNDED_HEADER}
+            style={[ROUNDED_HEADER, { paddingTop: 63 }]}
         >
             {onBack ? <HeaderBackButton onPress={onBack} marginLeft={0} /> : <View style={{ width: 40 }} />}
             <Text style={{ fontFamily: 'Outfit_500Medium', fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>{title}</Text>

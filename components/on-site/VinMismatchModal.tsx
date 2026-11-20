@@ -63,7 +63,7 @@ export function VinMismatchModal({ appointmentId, visit, onVisit }: VinMismatchM
                 <View className="bg-white" style={{ borderRadius: 20, maxHeight: '90%' }}>
                     <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 18 }}>
                         <View className="flex-row items-center gap-2.5">
-                            <View className="items-center justify-center" style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: OS.redSoft }}>
+                            <View className="items-center justify-center" style={{ width: 30, height: 30, borderRadius: 17, backgroundColor: OS.redSoft }}>
                                 <Ionicons name="warning-outline" size={18} color={OS.red} />
                             </View>
                             <Text className="flex-1 font-outfit-bold text-[16px]" style={{ color: OS.text }}>{t(`${k}.title`)}</Text>

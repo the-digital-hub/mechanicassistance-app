@@ -65,7 +65,7 @@ export function RequestVinCheckModal({
                 <View className="bg-white" style={{ borderRadius: 20, maxHeight: '90%' }}>
                     <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 18 }}>
                         <View className="flex-row items-center gap-2.5">
-                            <View className="items-center justify-center" style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: tone.bg }}>
+                            <View className="items-center justify-center" style={{ width: 30, height: 30, borderRadius: 17, backgroundColor: tone.bg }}>
                                 <Ionicons name="warning-outline" size={18} color={tone.fg} />
                             </View>
                             <Text className="flex-1 font-outfit-bold text-[16px]" style={{ color: OS.text }} testID="vin-check-title">

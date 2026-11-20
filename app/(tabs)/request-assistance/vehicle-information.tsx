@@ -90,7 +90,7 @@ export default function VehicleInformationScreen() {
         // The same look as the issue step: a tinted page, white cards, a fixed bottom action.
         <View className="flex-1" style={{ backgroundColor: SC.page }}>
             {/* Custom Header */}
-            <View className="px-6 pt-20 pb-2 flex-row items-center justify-between" style={ROUNDED_HEADER}>
+            <View className="px-6 pt-20 pb-2 flex-row items-center justify-between" style={[ROUNDED_HEADER, { paddingTop: 63 }]}>
                 <HeaderBackButton marginLeft={0} onPress={() => router.back()} />
                 <Text style={{ fontFamily: 'Outfit_500Medium', fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>
                     {getTitle()}

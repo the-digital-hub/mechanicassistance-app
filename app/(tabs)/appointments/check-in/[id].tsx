@@ -140,8 +140,11 @@ export default function OnSiteFlowScreen() {
 
     if (!appointment) {
         return (
-            <View className="flex-1 items-center justify-center p-6" style={{ backgroundColor: OS.page }}>
-                <Text className="font-outfit-bold text-lg" style={{ color: OS.text }}>{t('appointments.detail.notFound')}</Text>
+            <View className="flex-1" style={{ backgroundColor: OS.page }}>
+                <FlowHeader title={t('appointments.detail.notFound')} onBack={() => router.back()} />
+                <View className="flex-1 items-center justify-center p-6">
+                    <Text className="font-outfit-bold text-lg" style={{ color: OS.text }}>{t('appointments.detail.notFound')}</Text>
+                </View>
             </View>
         );
     }

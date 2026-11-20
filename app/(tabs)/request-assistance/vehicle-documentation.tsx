@@ -211,10 +211,10 @@ export default function VehicleDocumentationScreen() {
     return (
         <View className="flex-1" style={{ backgroundColor: '#F4F6FC' }}>
             {/* Custom Header */}
-            <View className="px-6 pt-20 pb-2 flex-row items-center justify-between" style={ROUNDED_HEADER}>
+            <View className="px-6 pt-20 pb-2 flex-row items-center justify-between" style={[ROUNDED_HEADER, { paddingTop: 63 }]}>
                 <TouchableOpacity onPress={() => router.back()}>
-                    <View className="w-10 h-10 rounded-full justify-center items-center" style={{ backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }}>
-                        <ChevronLeft size={20} color="#0047AB" />
+                    <View className="rounded-full justify-center items-center" style={{ width: 30, height: 30, backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }}>
+                        <ChevronLeft size={16} color="#0047AB" />
                     </View>
                 </TouchableOpacity>
                 <Text style={{ fontFamily: 'Outfit_500Medium', fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>

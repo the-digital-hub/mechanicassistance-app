@@ -1,4 +1,7 @@
+import { HeaderBackButton } from '@/components/ui/HeaderBackButton';
 import { FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
+import { ROUNDED_HEADER } from '@/lib/ui/header';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -65,23 +68,33 @@ export function PhaseBar({ phase }: { phase: Phase }) {
     );
 }
 
+/**
+ * The one header of an on-site screen (receipt, review, check-in): back (or close) on the left and the screen's own name in the middle. These
+ * screens hide the tab header above them, so there are never two stacked headers; this one takes the status-bar room itself.
+ */
 export function FlowHeader({ title, onBack, closeIcon }: { title: string; onBack?: () => void; closeIcon?: boolean }) {
+    const insets = useSafeAreaInsets();
     return (
-        <View className="flex-row items-center gap-3 px-4 pt-2 pb-3" style={{ borderBottomWidth: 1, borderBottomColor: 'rgba(14,47,138,0.05)' }}>
-            <TouchableOpacity
-                onPress={onBack}
-                disabled={!onBack}
-                className="items-center justify-center bg-white"
-                style={{
-                    width: 38, height: 38, borderRadius: 19, opacity: onBack ? 1 : 0.3,
-                    shadowColor: '#0E2F8A', shadowOpacity: 0.1, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 1,
-                }}
-                testID="on-site-back"
-            >
-                <Ionicons name={closeIcon ? 'close' : 'chevron-back'} size={18} color="#111111" />
-            </TouchableOpacity>
-            <Text className="flex-1 text-center font-outfit-medium text-[15px]" style={{ color: '#1A1A1A' }}>{title}</Text>
-            <View style={{ width: 38 }} />
+        <View className="flex-row items-center px-4 pb-3" style={[ROUNDED_HEADER, { paddingTop: insets.top - 2 }]}>
+            <View style={{ opacity: onBack ? 1 : 0.3 }} pointerEvents={onBack ? 'auto' : 'none'}>
+                {closeIcon ? (
+                    <TouchableOpacity
+                        onPress={onBack}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        accessibilityRole="button"
+                        accessibilityLabel="Close"
+                        className="items-center justify-center bg-white"
+                        style={{ width: 30, height: 30, borderRadius: 15, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }}
+                        testID="on-site-back"
+                    >
+                        <Ionicons name="close" size={16} color="#0047AB" />
+                    </TouchableOpacity>
+                ) : (
+                    <HeaderBackButton onPress={onBack ?? (() => undefined)} marginLeft={0} testID="on-site-back" />
+                )}
+            </View>
+            <Text className="flex-1 text-center" style={{ fontFamily: 'Outfit_500Medium', fontSize: 18, color: '#1A1A1A' }}>{title}</Text>
+            <View style={{ width: 30 }} />
         </View>
     );
 }
@@ -207,7 +220,7 @@ export function InfoRow({ icon, label, value, last }: {
 }) {
     return (
         <View className="flex-row items-center gap-3 px-4 py-3" style={last ? undefined : { borderBottomWidth: 1, borderBottomColor: OS.borderSoft }}>
-            <View className="items-center justify-center" style={{ width: 34, height: 34, borderRadius: 11, backgroundColor: OS.blueSoft }}>
+            <View className="items-center justify-center" style={{ width: 30, height: 30, borderRadius: 11, backgroundColor: OS.blueSoft }}>
                 <Ionicons name={icon} size={15} color={OS.blue} />
             </View>
             <View className="flex-1">

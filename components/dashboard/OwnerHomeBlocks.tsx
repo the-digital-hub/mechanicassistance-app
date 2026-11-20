@@ -104,7 +104,7 @@ export function RequestAssistanceCta({ title, subtitle, onPress }: { title: stri
                     <Text className="font-outfit-bold" style={{ fontSize: 20, letterSpacing: -0.4, color: '#FFFFFF' }}>{title}</Text>
                     <Text className="font-outfit-regular" style={{ fontSize: 13, lineHeight: 17, color: 'rgba(255,255,255,0.88)', marginTop: 2 }}>{subtitle}</Text>
                 </View>
-                <View className="items-center justify-center" style={{ width: 34, height: 34, borderRadius: 11, backgroundColor: '#FFFFFF' }}>
+                <View className="items-center justify-center" style={{ width: 30, height: 30, borderRadius: 11, backgroundColor: '#FFFFFF' }}>
                     <ChevronRight size={18} color={C.blueDark} />
                 </View>
             </LinearGradient>
@@ -279,7 +279,7 @@ export function RecentActivityList({ items }: { items: ActivityItem[] }) {
                     className="flex-row items-center"
                     style={{ paddingHorizontal: 14, paddingVertical: 12, gap: 12, borderBottomWidth: i < items.length - 1 ? 1 : 0, borderBottomColor: C.borderSoft }}
                 >
-                    <View className="items-center justify-center" style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: C.blueSoft }}>
+                    <View className="items-center justify-center" style={{ width: 30, height: 30, borderRadius: 10, backgroundColor: C.blueSoft }}>
                         <FileText size={17} color={C.blue} />
                     </View>
                     <View className="flex-1">

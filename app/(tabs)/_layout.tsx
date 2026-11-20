@@ -1,3 +1,4 @@
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useUser } from "@/context/UserContext";
 import { useMechanicStatus } from "@/context/MechanicStatusContext";
 import { Tabs, useRouter, usePathname } from "expo-router";
@@ -19,7 +20,7 @@ import { HeaderBackButton } from "@/components/ui/HeaderBackButton";
 import { RoundedHeaderBackground } from "@/components/ui/RoundedHeaderBackground";
 import { RoundedTabBar } from "@/components/ui/RoundedTabBar";
 import { createScrollIntent } from "@/lib/ui/tabBarVisibility";
-import { ATTACHED_TAB_BAR, TAB_BAR_HEIGHT } from "@/lib/ui/header";
+import { ATTACHED_TAB_BAR, HEADER_OVERLAP, PAGE_BG, TAB_BAR_HEIGHT } from "@/lib/ui/header";
 import { NotificationBell } from "@/components/NotificationBell";
 import { MechanicLocationBroadcaster } from "@/components/MechanicLocationBroadcaster";
 import { LocationRevalidator } from "@/components/LocationRevalidator";
@@ -213,12 +214,17 @@ export default function TabLayout() {
   const { t } = useTranslation();
   const { user } = useUser();
   const pathname = usePathname();
+  const insets = useSafeAreaInsets();
+  // The native header is transparent, so the page runs under its rounded lower edge; the page starts HEADER_OVERLAP above the header's bottom.
+  const sceneUnderHeader = { backgroundColor: PAGE_BG, paddingTop: Math.max(0, insets.top + (Platform.OS === "ios" ? 44 : 56) - HEADER_OVERLAP) };
+  const sceneNoHeader = { backgroundColor: PAGE_BG, paddingTop: 0 };
 
   const isRequestAssistanceRoot = pathname === "/request-assistance" || pathname === "/request-assistance/";
   // The mechanic's quote screens (build, review, sent...) draw their own wizard header.
   const isScheduledQuote = pathname.startsWith("/assist/scheduled-request");
   // Only the appointment detail itself (/appointments/<id>) borrows the tab
   // header's back button: check-in, review and cancel-reason draw their own.
+  const hasOwnHeader = /^\/appointments\/(receipt|review|check-in)\//.test(pathname);
   const isAppointmentDetail =
     /^\/appointments\/[^/]+$/.test(pathname) && pathname !== "/appointments/cancel-reason";
 
@@ -254,6 +260,9 @@ export default function TabLayout() {
         // The header is a rounded surface drawn by headerBackground; the bar itself stays transparent so the corners show the page.
         headerStyle: { backgroundColor: "transparent" },
         headerShadowVisible: false,
+        // The scene behind the header corners is the page colour, so the corners blend with the body.
+        headerTransparent: true,
+        sceneStyle: sceneUnderHeader,
         headerBackground: () => <RoundedHeaderBackground />,
         headerTitleStyle: {
           fontFamily: "Outfit_500Medium",
@@ -278,6 +287,7 @@ export default function TabLayout() {
         options={{
           href: user?.role === "mechanic" ? undefined : null,
           headerShown: !isScheduledQuote,
+          sceneStyle: isScheduledQuote ? sceneNoHeader : sceneUnderHeader,
           title: t('tabs.requests'),
           tabBarIcon: ({ color }) => <Wrench size={24} color={color} />,
           headerLeft: () => <MechanicStatusHeaderLeft />,
@@ -297,6 +307,7 @@ export default function TabLayout() {
           title: t('tabs.requests'),
           tabBarIcon: ({ color }) => <Wrench size={24} color={color} />,
           headerShown: isRequestAssistanceRoot,
+          sceneStyle: isRequestAssistanceRoot ? sceneUnderHeader : sceneNoHeader,
           headerLeft: () => null,
           headerRight: () => <NotificationHeaderRight />,
         }}
@@ -311,6 +322,9 @@ export default function TabLayout() {
         name="appointments"
         options={{
           title: t('tabs.appointments'),
+          // Receipt, review and check-in draw their own header (back + their name): no second one stacked above it.
+          headerShown: !hasOwnHeader,
+          sceneStyle: hasOwnHeader ? sceneNoHeader : sceneUnderHeader,
           tabBarIcon: ({ color }) => <Calendar size={24} color={color} />,
           headerTitleStyle: {
             fontFamily: "Outfit_500Medium",
@@ -371,7 +385,8 @@ export default function TabLayout() {
         name="availability"
         options={{
           href: null,
-          title: t('profile.menu.availability'),
+          // The name the profile menu gives this section.
+          title: t('profile.menu.schedule'),
           headerLeft: () => <PersonalInfoHeaderLeft />,
           headerRight: () => <PersonalInfoHeaderRight />,
         }}
@@ -398,7 +413,7 @@ export default function TabLayout() {
         name="service-base"
         options={{
           href: null,
-          title: t('profile.menu.availability'),
+          title: t('profile.menu.schedule'),
           headerLeft: () => <PersonalInfoHeaderLeft />,
           headerRight: () => <PersonalInfoHeaderRight />,
         }}
@@ -537,16 +552,16 @@ export default function TabLayout() {
       />
 
       {/* Hidden deep-nav routes — keep tab bar visible */}
-      <Tabs.Screen name="chat" options={{ href: null, headerShown: false }} />
-      <Tabs.Screen name="call" options={{ href: null, headerShown: false }} />
+      <Tabs.Screen name="chat" options={{ href: null, headerShown: false, sceneStyle: sceneNoHeader }} />
+      <Tabs.Screen name="call" options={{ href: null, headerShown: false, sceneStyle: sceneNoHeader }} />
       <Tabs.Screen
         name="video-lobby"
-        options={{ href: null, headerShown: false }}
+        options={{ href: null, headerShown: false, sceneStyle: sceneNoHeader }}
       />
       {/* The call is full screen: no tab bar under it (sideways it would take a third of the height). */}
       <Tabs.Screen
         name="video-call"
-        options={{ href: null, headerShown: false, tabBarStyle: { display: "none" } }}
+        options={{ href: null, headerShown: false, sceneStyle: sceneNoHeader, tabBarStyle: { display: "none" } }}
       />
     </Tabs>
     </View>
