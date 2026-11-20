@@ -103,6 +103,7 @@ export default function ProfileAvailabilityScreen() {
     return (
         <>
             <AvailabilityForm
+              topInset={32}
                 initialValue={availabilityFromUser(account)}
                 baseLocation={baseLocationFromAddresses(account.addresses)}
                 onEditLocation={() => setBaseSheetOpen(true)}

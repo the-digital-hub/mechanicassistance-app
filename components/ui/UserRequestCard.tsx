@@ -187,7 +187,7 @@ export function UserRequestCard({
                             key={key}
                             className="flex-row items-center"
                             style={{
-                                paddingVertical: 11,
+                                paddingVertical: 12,
                                 paddingHorizontal: 14,
                                 borderBottomWidth: index < infoRows.length - 1 ? 1 : 0,
                                 borderBottomColor: '#EEF2FA',
@@ -199,16 +199,15 @@ export function UserRequestCard({
                             >
                                 <Icon size={17} color="#1E56E3" />
                             </View>
-                            <Text className="font-outfit-medium" style={{ fontSize: 13, color: '#6B7490', width: 60 }}>
-                                {label}
-                            </Text>
-                            <Text
-                                className="font-outfit-bold flex-1"
-                                style={{ fontSize: 13, lineHeight: 17, color: '#0B1530', textAlign: 'right' }}
-                                numberOfLines={2}
-                            >
-                                {value}
-                            </Text>
+                            {/* One column: the label above, the value under it in full width, so a long address never squeezes or cuts. */}
+                            <View className="flex-1">
+                                <Text className="font-outfit-medium" style={{ fontSize: 13, lineHeight: 17, color: '#6B7490' }}>
+                                    {label}
+                                </Text>
+                                <Text className="font-outfit-bold" style={{ fontSize: 15, lineHeight: 20, color: '#0B1530', marginTop: 1 }}>
+                                    {value}
+                                </Text>
+                            </View>
                         </View>
                     ))}
                 </View>

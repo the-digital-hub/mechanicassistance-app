@@ -5,6 +5,7 @@ import { useRouter } from "expo-router";
 import { ChevronRight } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
+import { VehicleTitle } from "@/components/ui/VehicleTitle";
 import { useTranslation } from "react-i18next";
 import {
   ScrollView,
@@ -68,7 +69,7 @@ export default function VehicleInfoScreen() {
               </View>
               <View className="flex-1">
                 <Text className="text-lg font-outfit-bold text-[#0F172A] uppercase">
-                  {v.make} {v.model}
+                  <VehicleTitle vehicle={v} />
                 </Text>
                 <Text className="text-blue-500 font-outfit-medium text-xs tracking-widest uppercase">
                   {v.plate}

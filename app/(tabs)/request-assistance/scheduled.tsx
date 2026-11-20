@@ -413,7 +413,7 @@ export default function ScheduledRequestScreen() {
                     keyboardShouldPersistTaps="handled"
                     contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 14, paddingBottom: 28, gap: 20 }}
                 >
-                        <Timeline steps={STEP_KEYS.map((key) => ({ key, label: t(`scheduled.steps.${key}`) }))} current={step - 1} flush />
+                        <Timeline steps={STEP_KEYS.map((key) => ({ key, label: t(`scheduled.steps.${key}`) }))} current={step - 1} gap={20} flush />
                     {restored ? (
                         <View className="flex-row items-center justify-between" style={{ gap: 12 }}>
                             <View style={{ flex: 1 }}>

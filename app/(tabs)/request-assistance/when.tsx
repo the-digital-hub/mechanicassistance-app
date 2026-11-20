@@ -480,12 +480,14 @@ export default function VideoCallWhenScreen() {
             <View style={{ width: 32, height: 32, borderRadius: 9, alignItems: 'center', justifyContent: 'center', backgroundColor: C.blueSoft }}>
                 <Icon size={16} color={C.blue} />
             </View>
-            <Text className="font-outfit-medium" style={{ ...TYPE.helper, color: C.muted }}>
-                {label}
-            </Text>
-            <Text className="font-outfit-bold" style={{ flex: 1, textAlign: 'right', ...TYPE.body, color: C.ink }}>
-                {value}
-            </Text>
+            <View style={{ flex: 1 }}>
+                <Text className="font-outfit-medium" style={{ ...TYPE.helper, color: C.muted }}>
+                    {label}
+                </Text>
+                <Text className="font-outfit-bold" style={{ ...TYPE.body, color: C.ink, marginTop: 1 }}>
+                    {value}
+                </Text>
+            </View>
             {action}
         </View>
     );

@@ -3,20 +3,24 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as Haptics from 'expo-haptics';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Animated, Easing, InputAccessoryView, Keyboard, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, Animated, Easing, InputAccessoryView, Keyboard, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { OnSiteVisit } from '@/lib/dao/OnSiteDAO';
 import { lockLandscape, lockPortrait } from '@/lib/orientation';
-import { compareVins, declaredVin, extractVin, isValidVin, normalizeVin, vinCheckDigitOk, type VinCapture } from '@/lib/onsite/vin';
+import { canReadText, recognizeText } from '@/modules/vin-text';
+import { compareVins, declaredVin, extractVin, extractVinFromText, isValidVin, normalizeVin, vinCheckDigitOk, type VinCapture } from '@/lib/onsite/vin';
 import { ActionBar, Body, Card, CardTitle, Checkbox, Intro, OnSiteDialog, OS, PrimaryButton, Tip } from './ui';
 
 // Step 1 of the diagnostic: the vehicle's VIN (scanned from its barcode or typed) and,
 // optionally, the odometer. The VIN is then compared with the one on the request and
 // the one the OBD reader reports (see VinCrossCheck, shown on the OBD step).
 
-const BARCODE_TYPES = ['code39', 'code128', 'pdf417', 'datamatrix', 'qr'] as const;
+const BARCODE_TYPES = ['code39', 'code93', 'code128', 'pdf417', 'datamatrix', 'qr'] as const;
+
+/** The door-jamb barcode is small: a closer view (about double) helps the camera read it from a comfortable distance. */
+const ZOOMED = 0.22;
 
 const CORNER = 34;
 
@@ -55,6 +59,11 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
     const [found, setFound] = React.useState<string | null>(null);
     // The flashlight, for a sticker in a dark door jamb. It goes off by itself when the scanner closes.
     const [torch, setTorch] = React.useState(false);
+    const [zoomed, setZoomed] = React.useState(true);
+    // Reading the printed VIN from a photo: for the windshield (no barcode) and for a door code the barcode reader misses.
+    const cameraRef = React.useRef<CameraView>(null);
+    const [reading, setReading] = React.useState(false);
+    const [noText, setNoText] = React.useState(false);
     const handled = React.useRef(false);
     const line = React.useRef(new Animated.Value(0)).current;
     // A small shake when something is read that is not a VIN, and a pop when the VIN is read.
@@ -96,13 +105,38 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
             });
             return;
         }
+        accept(vin);
+    };
+
+    const accept = (vin: string) => {
+        if (handled.current) return;
         handled.current = true;
         setNotVin(false);
+        setNoText(false);
         setFound(vin);
         void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
         Animated.spring(pop, { toValue: 1, friction: 6, tension: 120, useNativeDriver: true }).start();
         // A beat to see the read VIN before going back to the form.
         setTimeout(() => onVin(vin), 650);
+    };
+
+    const readPrinted = async () => {
+        if (reading || handled.current) return;
+        setReading(true);
+        setNoText(false);
+        try {
+            const picture = await cameraRef.current?.takePictureAsync({ quality: 0.8, skipProcessing: false });
+            const vin = picture?.uri ? extractVinFromText(await recognizeText(picture.uri)) : null;
+            if (vin) accept(vin);
+            else {
+                setNoText(true);
+                void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => undefined);
+            }
+        } catch {
+            setNoText(true);
+        } finally {
+            setReading(false);
+        }
     };
 
     const tips = [
@@ -159,10 +193,25 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
         </TouchableOpacity>
     );
 
+    const zoomButton = (
+        <TouchableOpacity
+            onPress={() => setZoomed((on) => !on)}
+            accessibilityRole="button"
+            accessibilityState={{ selected: zoomed }}
+            accessibilityLabel={zoomed ? t('appointments.onSite.vin.zoomOut') : t('appointments.onSite.vin.zoomIn')}
+            className="items-center justify-center"
+            style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: zoomed ? 'rgba(255,255,255,0.92)' : glass }}
+            testID="vin-zoom"
+        >
+            <MaterialCommunityIcons name={zoomed ? 'magnify-minus-outline' : 'magnify-plus-outline'} size={25} color={zoomed ? '#1E56E3' : '#FFFFFF'} />
+        </TouchableOpacity>
+    );
+
     const topButtons = (
         <View className="flex-row items-center justify-between">
             {closeButton}
             <View className="flex-row items-center" style={{ gap: 10 }}>
+                {zoomButton}
                 {torchButton}
                 {rotateButton}
             </View>
@@ -177,13 +226,30 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
     );
 
     const statusPill = (
-        <View className="flex-row items-center self-start" style={{ gap: 8, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 100, backgroundColor: notVin ? 'rgba(240,138,28,0.95)' : glass }}>
-            <Ionicons name={notVin ? 'alert-circle-outline' : 'scan-outline'} size={16} color="#FFFFFF" />
+        <View className="flex-row items-center self-start" style={{ gap: 8, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 100, backgroundColor: notVin || noText ? 'rgba(240,138,28,0.95)' : glass }}>
+            <Ionicons name={notVin || noText ? 'alert-circle-outline' : 'scan-outline'} size={16} color="#FFFFFF" />
             <Text className="font-outfit-semibold flex-shrink" style={{ fontSize: 14, color: '#FFFFFF' }}>
-                {found ? t('appointments.onSite.vin.scanned') : notVin ? t('appointments.onSite.vin.notVin') : t('appointments.onSite.vin.scanHint')}
+                {found ? t('appointments.onSite.vin.scanned') : noText ? t('appointments.onSite.vin.noText') : notVin ? t('appointments.onSite.vin.notVin') : t('appointments.onSite.vin.scanHint')}
             </Text>
         </View>
     );
+
+    const readText = canReadText ? (
+        <TouchableOpacity
+            onPress={readPrinted}
+            disabled={reading || !!found}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            className="items-center justify-center flex-row"
+            style={{ height: 52, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.92)', gap: 8, opacity: reading ? 0.75 : 1 }}
+            testID="vin-read-text"
+        >
+            {reading ? <ActivityIndicator color="#1E56E3" /> : <Ionicons name="text-outline" size={20} color="#1E56E3" />}
+            <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#1E56E3' }}>
+                {reading ? t('appointments.onSite.vin.reading') : t('appointments.onSite.vin.readText')}
+            </Text>
+        </TouchableOpacity>
+    ) : null;
 
     // Not a white block: a glass button with a light outline, so it does not shout over the picture.
     const typeInstead = (
@@ -203,9 +269,12 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
             <View className="flex-1" style={{ backgroundColor: '#06123A' }}>
                 <StatusBar style="light" />
                 <CameraView
+                    ref={cameraRef}
                     style={StyleSheet.absoluteFill}
                     facing="back"
                     enableTorch={torch}
+                    zoom={zoomed ? ZOOMED : 0}
+                    autofocus="on"
                     barcodeScannerSettings={{ barcodeTypes: [...BARCODE_TYPES] }}
                     onBarcodeScanned={found ? undefined : onScanned}
                 />
@@ -265,7 +334,10 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
                             {heading}
                             <View style={{ marginTop: 12 }}>{statusPill}</View>
                         </View>
-                        {typeInstead}
+                        <View style={{ gap: 10 }}>
+                            {readText}
+                            {typeInstead}
+                        </View>
                     </View>
                 ) : (
                     <>
@@ -285,6 +357,7 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
                                     </View>
                                 ))}
                             </View>
+                            {readText}
                             {typeInstead}
                         </View>
                     </>
@@ -299,7 +372,7 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
  */
 export function VinScanner({ visible, onClose, onVin }: { visible: boolean; onClose: () => void; onVin: (vin: string) => void }) {
     return (
-        <Modal visible={visible} animationType="slide" onRequestClose={onClose} statusBarTranslucent supportedOrientations={['portrait', 'landscape', 'landscape-left', 'landscape-right']}>
+        <Modal visible={visible} animationType="fade" onRequestClose={onClose} statusBarTranslucent supportedOrientations={['portrait', 'landscape', 'landscape-left', 'landscape-right']}>
             <SafeAreaProvider>
                 <VinScannerBody onClose={onClose} onVin={onVin} />
             </SafeAreaProvider>

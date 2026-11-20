@@ -98,10 +98,6 @@ export function ConfirmationModal({
           <Text style={styles.message}>{message}</Text>
 
           <View style={styles.buttonContainer}>
-            <TouchableOpacity onPress={onClose} style={styles.cancelButton}>
-              <Text style={styles.cancelButtonText}>{cancelText}</Text>
-            </TouchableOpacity>
-
             <TouchableOpacity
               onPress={onConfirm}
               activeOpacity={0.8}
@@ -115,6 +111,10 @@ export function ConfirmationModal({
               >
                 <Text style={styles.confirmButtonText}>{confirmText}</Text>
               </LinearGradient>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={onClose} style={styles.cancelButton}>
+              <Text style={styles.cancelButtonText}>{cancelText}</Text>
             </TouchableOpacity>
           </View>
         </Animated.View>
@@ -166,34 +166,32 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     lineHeight: 22,
   },
+  // Never two buttons side by side: the action on top, the way out under it, both full width.
   buttonContainer: {
-    flexDirection: "row",
-    gap: 12,
+    flexDirection: "column",
+    gap: 8,
     width: "100%",
   },
   cancelButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
+    minHeight: 52,
+    borderRadius: 14,
+    backgroundColor: "#E6EAF2",
     alignItems: "center",
+    justifyContent: "center",
   },
   confirmButtonTouchable: {
-    flex: 1,
-    borderRadius: 12,
+    borderRadius: 14,
     overflow: "hidden",
   },
   confirmButton: {
-    flex: 1,
-    paddingVertical: 12,
+    minHeight: 52,
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
   },
   cancelButtonText: {
     fontFamily: "Outfit_700Bold",
-    color: "#374151",
+    color: "#4A5470",
     fontSize: 16,
   },
   confirmButtonText: {

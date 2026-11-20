@@ -683,7 +683,14 @@ export default function AppointmentDetailScreen() {
                 return (
                     <View style={{ gap: 12 }}>
                         <RequestSummaryRows rows={rows} />
-                        {parseAttachments(appointment.photos).length > 0 && <AttachmentStrip photos={appointment.photos} />}
+                        {parseAttachments(appointment.photos).length > 0 && (
+                            <View style={{ gap: 8 }}>
+                                <Text className="font-outfit-bold" style={{ fontSize: 15, lineHeight: 20, color: '#0B1530' }}>
+                                    {t('appointments.ownerAccepted.mediaTitle', { count: parseAttachments(appointment.photos).length })}
+                                </Text>
+                                <AttachmentStrip photos={appointment.photos} />
+                            </View>
+                        )}
                     </View>
                 );
             }
@@ -805,7 +812,14 @@ export default function AppointmentDetailScreen() {
                 return (
                     <View style={{ gap: 12 }}>
                         <MechanicAssistanceInfoTab appointment={appointment} section="vehicle" />
-                        {parseAttachments(appointment.photos).length > 0 && <AttachmentStrip photos={appointment.photos} />}
+                        {parseAttachments(appointment.photos).length > 0 && (
+                            <View style={{ gap: 8 }}>
+                                <Text className="font-outfit-bold" style={{ fontSize: 15, lineHeight: 20, color: '#0B1530' }}>
+                                    {t('appointments.ownerAccepted.mediaTitle', { count: parseAttachments(appointment.photos).length })}
+                                </Text>
+                                <AttachmentStrip photos={appointment.photos} />
+                            </View>
+                        )}
                     </View>
                 );
             case 'budget':
@@ -876,7 +890,7 @@ export default function AppointmentDetailScreen() {
                 <View className="flex-1">
                     <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
                         {isUserRole ? (
-                            <View style={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 32, gap: 16 }} testID="owner-accepted">
+                            <View style={{ paddingHorizontal: 20, paddingTop: 32, paddingBottom: 32, gap: 16 }} testID="owner-accepted">
                                 <AcceptedHeader
                                     {...(isCancelled
                                         ? { title: t('appointments.cancellationDispute.cancelledTitle'), icon: 'close' as IconName, color: AO.mutedLight }

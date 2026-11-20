@@ -53,6 +53,33 @@ export function extractVin(scanned: string): string | null {
     return found.size === 1 ? [...found][0] : null;
 }
 
+/**
+ * Looks for a VIN in the lines of text read from a photo of the door label or the windshield. Text reading mixes up look-alike
+ * characters (a VIN has no I, O or Q, so those are really 1, 0 and 0), so each line is read as it is and with that correction.
+ * A reading whose check digit holds wins over one that does not; null when no line holds a single plausible VIN.
+ */
+export function extractVinFromText(lines: string[]): string | null {
+    const found = new Map<string, boolean>(); // VIN -> its check digit holds
+    for (const line of lines) {
+        const compact = line.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        if (compact.length < 17) continue;
+        const fixed = compact.replace(/I/g, '1').replace(/[OQ]/g, '0');
+        for (const text of new Set([compact, fixed])) {
+            // The VIN usually is the whole line; with a prefix (a label word) it is any 17 characters that read as a VIN.
+            for (let i = 0; i + 17 <= text.length; i++) {
+                const candidate = text.slice(i, i + 17);
+                if (VIN_REGEX.test(candidate) && /\d/.test(candidate) && /[A-Z]/.test(candidate)) {
+                    found.set(candidate, found.get(candidate) === true || vinCheckDigitOk(candidate));
+                }
+            }
+        }
+    }
+    const valid = [...found.entries()].filter(([, ok]) => ok).map(([vin]) => vin);
+    if (valid.length >= 1) return valid[0];
+    // No check digit holds (a market that does not use it, or a character misread): only trust a single candidate.
+    return found.size === 1 ? [...found.keys()][0] : null;
+}
+
 export type VinComparison = 'match' | 'differ' | 'unknown';
 
 export function compareVins(a?: string | null, b?: string | null): VinComparison {

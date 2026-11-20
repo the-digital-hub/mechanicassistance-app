@@ -461,7 +461,7 @@ export default function VideoCallScreen() {
         )}
         {remoteParticipant ? (
           swapped ? (
-            <VideoTile stream={localStream} name={t(`${K}.you`)} isCameraOff={isCameraOff} isLocal />
+            <VideoTile stream={localStream} name={t(`${K}.you`)} isCameraOff={isCameraOff} isLocal backCamera={usingBackCamera} />
           ) : (
             <VideoTile
               stream={remoteStream}
@@ -574,7 +574,7 @@ export default function VideoCallScreen() {
               isLocal={false}
             />
           ) : (
-            <VideoTile stream={localStream} name={t(`${K}.you`)} isCameraOff={isCameraOff} isLocal />
+            <VideoTile stream={localStream} name={t(`${K}.you`)} isCameraOff={isCameraOff} isLocal backCamera={usingBackCamera} />
           )}
         </DraggablePip>
       </LinearGradient>

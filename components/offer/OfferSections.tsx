@@ -232,12 +232,12 @@ export function RequestSummaryRows({ rows }: { rows: SummaryRow[] }) {
                     style={{ gap: 12, paddingHorizontal: 14, paddingVertical: 11, borderBottomWidth: i < rows.length - 1 ? 1 : 0, borderBottomColor: AO.borderSoft }}
                 >
                     <IconTile name={r.icon} tone={r.tone} />
-                    <Text className="font-outfit-medium" style={{ flexShrink: 0, fontSize: 13, color: AO.muted }}>{r.label}</Text>
-                    <View style={{ flex: 1, minWidth: 0, alignItems: 'flex-end' }}>
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                        <Text className="font-outfit-medium" style={{ fontSize: 13, lineHeight: 17, color: AO.muted }}>{r.label}</Text>
                         {typeof r.value === 'string' ? (
-                            <Text className="font-outfit-bold" style={{ fontSize: r.strong ? 14 : 13, color: r.tone === 'green' ? AO.greenText : AO.text, textAlign: 'right', lineHeight: 18 }}>{r.value}</Text>
+                            <Text className="font-outfit-bold" style={{ fontSize: r.strong ? 16 : 15, lineHeight: 20, marginTop: 1, color: r.tone === 'green' ? AO.greenText : AO.text }}>{r.value}</Text>
                         ) : (
-                            r.value
+                            <View style={{ marginTop: 2, alignItems: 'flex-start' }}>{r.value}</View>
                         )}
                     </View>
                 </View>

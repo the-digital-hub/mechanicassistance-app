@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowRight, Calendar, Car, Clock, CreditCard, ShieldCheck, Store, Home } from 'lucide-react-native';
+import { ArrowRight, Calendar, Car, Clock, CreditCard, ShieldCheck, Store, Home, Wrench } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -75,7 +75,7 @@ export function WaitingHub({
     const icons = { vehicle: Car, shop: Store, home: Home, when: Calendar } as const;
 
     return (
-        <ScrollView contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: 40 }}>
+        <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 32, gap: 16, paddingBottom: 40 }}>
             <View>
                 <View className="flex-row items-center self-start rounded-full" style={{ gap: 6, paddingHorizontal: 10, paddingVertical: 4, backgroundColor: SC.blueSoft }}>
                     <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: SC.blue }} />
@@ -138,26 +138,26 @@ export function WaitingHub({
                 ) : null}
             </View>
 
-            <View>
-                {services.length > 0 ? (
-                    <View style={{ ...CARD_STYLE, marginBottom: 14, paddingHorizontal: 14, paddingVertical: 12 }}>
-                        <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1, color: SC.muted }}>{t('scheduledOffers.hub.servicesRequested')}</Text>
-                        <Text className="font-outfit-bold" style={{ fontSize: 14, lineHeight: 20, color: SC.text, marginTop: 4 }}>{services.join(' · ')}</Text>
+            {/* One card for the whole request: its title and reference on top, then the services and the data, one column each. */}
+            <View style={{ ...CARD_STYLE, overflow: 'hidden' }}>
+                <View className="flex-row items-center justify-between" style={{ paddingHorizontal: 14, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: SC.borderSoft }}>
+                    <Text className="font-outfit-bold" style={{ fontSize: 17, lineHeight: 22, color: SC.text }}>{t('scheduledOffers.hub.requestTitle')}</Text>
+                    <View className="rounded-full" style={{ paddingHorizontal: 10, paddingVertical: 4, backgroundColor: SC.blueSoft }}>
+                        <Text className="font-outfit-bold" style={{ fontSize: 13, letterSpacing: 0.4, color: SC.blue }}>{refCode}</Text>
                     </View>
-                ) : null}
-                <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1.2, color: SC.muted, marginBottom: 8 }}>{t('scheduledOffers.hub.yourRequest', { ref: refCode })}</Text>
-                <View style={{ ...CARD_STYLE, overflow: 'hidden' }}>
-                    {rows.map((r, i) => {
-                        const Icon = icons[r.kind];
-                        return (
-                            <View key={r.key} className="flex-row items-center" style={{ paddingHorizontal: 14, paddingVertical: 11, gap: 12, borderBottomWidth: i < rows.length - 1 ? 1 : 0, borderBottomColor: SC.borderSoft }}>
-                                <View className="items-center justify-center" style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: SC.blueSoft }}><Icon size={17} color={SC.blue} /></View>
-                                <Text className="font-outfit-medium" style={{ fontSize: 13, color: SC.muted, width: 64 }}>{r.label}</Text>
-                                <Text className="font-outfit-bold flex-1" style={{ fontSize: 13, lineHeight: 18, color: SC.text, textAlign: 'right' }}>{r.value}</Text>
-                            </View>
-                        );
-                    })}
                 </View>
+                {[
+                    ...(services.length > 0 ? [{ key: 'services', Icon: Wrench, label: t('scheduledOffers.hub.servicesRequested'), value: services.join(' · ') }] : []),
+                    ...rows.map((r) => ({ key: r.key, Icon: icons[r.kind], label: r.label, value: r.value })),
+                ].map(({ key, Icon, label, value }, i, all) => (
+                    <View key={key} className="flex-row items-center" style={{ paddingHorizontal: 14, paddingVertical: 11, gap: 12, borderBottomWidth: i < all.length - 1 ? 1 : 0, borderBottomColor: SC.borderSoft }}>
+                        <View className="items-center justify-center" style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: SC.blueSoft }}><Icon size={17} color={SC.blue} /></View>
+                        <View className="flex-1">
+                            <Text className="font-outfit-medium" style={{ fontSize: 13, lineHeight: 17, color: SC.muted }}>{label}</Text>
+                            <Text className="font-outfit-bold" style={{ fontSize: 15, lineHeight: 20, color: SC.text, marginTop: 1 }}>{value}</Text>
+                        </View>
+                    </View>
+                ))}
             </View>
 
             <View className="flex-row" style={{ gap: 10, padding: 12, borderRadius: 12, backgroundColor: SC.blueSofter, borderWidth: 1, borderColor: SC.blueSoft }}>

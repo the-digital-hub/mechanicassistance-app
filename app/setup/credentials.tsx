@@ -83,7 +83,7 @@ export default function CredentialsScreen() {
     };
 
     return (
-        <ScrollView style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ padding: 24, paddingBottom: 40 }}>
+        <ScrollView style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ padding: 24, paddingTop: 18, paddingBottom: 40 }}>
             {/* Section Badge */}
             <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
               <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />

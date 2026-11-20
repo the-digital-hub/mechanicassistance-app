@@ -29,8 +29,10 @@ function IconRow({ icon: Icon, label, value, danger, last }: { icon: LucideIcon;
             <View className="items-center justify-center" style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: danger ? OS.redSoft : OS.blueSoft }}>
                 <Icon size={18} color={danger ? OS.red : OS.blue} />
             </View>
-            <Text className="font-outfit-medium" style={{ fontSize: 14, color: OS.muted }}>{label}</Text>
-            <Text className="font-outfit-bold flex-1" style={{ fontSize: 16, lineHeight: 22, color: danger ? OS.red : OS.text, textAlign: 'right' }}>{value}</Text>
+            <View className="flex-1">
+                <Text className="font-outfit-medium" style={{ fontSize: 14, lineHeight: 18, color: OS.muted }}>{label}</Text>
+                <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: danger ? OS.red : OS.text, marginTop: 1 }}>{value}</Text>
+            </View>
         </View>
     );
 }

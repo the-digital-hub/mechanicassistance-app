@@ -12,7 +12,7 @@ import { WALLET_METHOD } from '@/lib/payments/cardLabel';
 import { isPaymentMethodRequired, RETURN_TO_BACK } from '@/lib/payments/cardRequired';
 import { usePaymentChoice } from '@/lib/payments/usePaymentChoice';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { AlertCircle, AlignLeft, Car, CheckCircle2, ChevronLeft, CreditCard, MapPin } from 'lucide-react-native';
+import { AlertCircle, AlignLeft, Camera, Car, CheckCircle2, ChevronLeft, CreditCard, MapPin } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
@@ -275,6 +275,21 @@ export default function ConfirmationScreen() {
         }
     };
 
+    // What the owner attached on the documentation step, so the summary says it before the request goes out.
+    const attachedMedia: PendingAttachment[] = (() => {
+        try {
+            return attachments ? (JSON.parse(attachments as string) as PendingAttachment[]) : [];
+        } catch {
+            return [];
+        }
+    })();
+    const photoCount = attachedMedia.filter((m) => m.type !== 'video').length;
+    const videoCount = attachedMedia.filter((m) => m.type === 'video').length;
+    const mediaValue = [
+        photoCount > 0 ? t('requestAssistance.confirmation.mediaPhotos', { count: photoCount }) : null,
+        videoCount > 0 ? t('requestAssistance.confirmation.mediaVideos', { count: videoCount }) : null,
+    ].filter(Boolean).join(' · ') || t('requestAssistance.confirmation.mediaNone');
+
     /** Icon + label/value row of the white summary card. */
     const SummaryRow = ({ icon, label, value, last, action }: { icon: React.ReactNode; label: string; value: string; last?: boolean; action?: React.ReactNode }) => (
         <View
@@ -412,6 +427,11 @@ export default function ConfirmationScreen() {
                         icon={<AlertCircle size={20} color="#1E56E3" />}
                         label={t('requestAssistance.confirmation.carIssue')}
                         value={(description as string) || t('requestAssistance.confirmation.noDescription')}
+                    />
+                    <SummaryRow
+                        icon={<Camera size={20} color="#1E56E3" />}
+                        label={t('requestAssistance.confirmation.media')}
+                        value={mediaValue}
                     />
                     <SummaryRow
                         icon={<MapPin size={20} color="#1E56E3" />}

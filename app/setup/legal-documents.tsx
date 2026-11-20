@@ -88,7 +88,7 @@ export default function LegalDocumentsScreen() {
   return (
     <ScrollView
       style={{ backgroundColor: '#F6F8FC' }}
-      contentContainerStyle={{ padding: 24, paddingBottom: 40 }}
+      contentContainerStyle={{ padding: 24, paddingTop: 18, paddingBottom: 40 }}
     >
       {/* Section Badge */}
       <View

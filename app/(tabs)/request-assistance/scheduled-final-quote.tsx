@@ -101,7 +101,7 @@ export default function ScheduledFinalQuoteScreen() {
         return (
             <View className="flex-1" style={{ backgroundColor: SC.page }}>
                 {header}
-                <View style={{ padding: 24, gap: 16 }}>
+                <View style={{ padding: 24, paddingTop: 32, gap: 16 }}>
                     <StepHead
                         eyebrow={t(`finalQuote.${decided}.eyebrow`)}
                         title={t(`finalQuote.${decided}.title`)}
@@ -145,7 +145,7 @@ export default function ScheduledFinalQuoteScreen() {
                 }}
                 onClose={() => setCardModal(false)}
             />
-            <ScrollView contentContainerStyle={{ padding: 24, gap: 16 }}>
+            <ScrollView contentContainerStyle={{ padding: 24, paddingTop: 32, gap: 16 }}>
                 <StepHead eyebrow={t('finalQuote.eyebrow')} title={money(customerTotal?.amount)} sub={t('finalQuote.sub')} />
                 {notice ? <Note tone="amber">{notice}</Note> : null}
                 <QuoteDetails description={quote.description} />

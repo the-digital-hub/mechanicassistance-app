@@ -37,6 +37,8 @@ interface VehicleFormProps {
     onSubmit: (payload: VehicleFormPayload) => void | Promise<void>;
     /** Scrolls with the form, above the VIN card (badge, title, subtitle). */
     header?: ReactNode;
+    /** Space above the first block. 18 under a plain header; 32 under the rounded one, which the page runs 14 beneath. */
+    topInset?: number;
     /** Pads the fixed footer for the home indicator; off when a tab bar sits below. */
     safeBottom?: boolean;
 }
@@ -242,7 +244,7 @@ const toPayload = (v: FormValues, hidden: HiddenDecoded | null): VehicleFormPayl
  * step of sign-up. Laid out as the Claude Design "Add Vehicle" mock: VIN card
  * first (the one required field), collapsible sections, and a fixed Save bar.
  */
-export function VehicleForm({ initialValue, submitLabel, submitting, onSubmit, header, safeBottom }: VehicleFormProps) {
+export function VehicleForm({ initialValue, submitLabel, submitting, onSubmit, header, safeBottom, topInset = 18 }: VehicleFormProps) {
     const { t } = useTranslation();
     const insets = useSafeAreaInsets();
     const [values, setValues] = useState<FormValues>(() => toValues(initialValue));
@@ -473,7 +475,7 @@ export function VehicleForm({ initialValue, submitLabel, submitting, onSubmit, h
         >
             <ScrollView
                 style={{ flex: 1 }}
-                contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 20, gap: 14 }}
+                contentContainerStyle={{ paddingHorizontal: 20, paddingTop: topInset, paddingBottom: 20, gap: 14 }}
                 keyboardShouldPersistTaps="handled"
             >
                 {header}

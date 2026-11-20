@@ -248,7 +248,7 @@ export default function VehicleDocumentationScreen() {
                 {tab === 'video' ? (
                     <View className="bg-white rounded-2xl p-4 mb-8" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 8, elevation: 6 }}>
                         {video ? (
-                            <View className="rounded-2xl items-center justify-center" style={{ width: '85%', alignSelf: 'center', height: 180, backgroundColor: '#0B1530', overflow: 'hidden' }}>
+                            <View className="rounded-2xl items-center justify-center" style={{ width: '100%', aspectRatio: 4 / 3, backgroundColor: '#0B1530', overflow: 'hidden' }}>
                                 <VideoView
                                     player={player}
                                     style={{ width: '100%', height: '100%' }}
@@ -271,22 +271,24 @@ export default function VehicleDocumentationScreen() {
 
                         {video ? <StatusRow filled onRemove={() => setVideo(null)} /> : null}
 
-                        <TextInput
-                            multiline
-                            placeholder={t('requestAssistance.vehicleDocumentation.videoNotePlaceholder')}
-                            placeholderTextColor="#D1D5DB"
-                            value={video?.note ?? ''}
-                            editable={!!video}
-                            onChangeText={(note) => video && setVideo({ ...video, note })}
-                            className="rounded-xl p-3 mt-3 font-outfit-regular text-[#0F172A]"
-                            style={{ borderWidth: 1.5, borderColor: '#E4EAF5', backgroundColor: '#F4F6FC', height: 72, textAlignVertical: 'top', ...TYPE.body }}
-                        />
+                        {/* The note appears with the video, not before. */}
+                        {video ? (
+                            <TextInput
+                                multiline
+                                placeholder={t('requestAssistance.vehicleDocumentation.videoNotePlaceholder')}
+                                placeholderTextColor="#D1D5DB"
+                                value={video.note}
+                                onChangeText={(note) => setVideo({ ...video, note })}
+                                className="rounded-xl p-3 mt-3 font-outfit-regular text-[#0F172A]"
+                                style={{ borderWidth: 1.5, borderColor: '#E4EAF5', backgroundColor: '#F4F6FC', height: 72, textAlignVertical: 'top', ...TYPE.body }}
+                            />
+                        ) : null}
                     </View>
                 ) : (
                     <View className="bg-white rounded-2xl p-4 mb-8" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 8, elevation: 6 }}>
                         {photos.map((photo, index) => (
                             <View key={`${photo.uri}-${index}`} className={index < photos.length - 1 ? 'pb-4 mb-4' : 'mb-4'} style={index < photos.length - 1 ? { borderBottomWidth: 1, borderBottomColor: '#EEF2FA' } : undefined}>
-                                <Image source={{ uri: photo.uri }} className="w-full rounded-2xl" style={{ height: 150 }} />
+                                <Image source={{ uri: photo.uri }} resizeMode="cover" style={{ width: '100%', aspectRatio: 4 / 3, borderRadius: 16 }} />
                                 <StatusRow filled onRemove={() => setPhotos(photos.filter((_, i) => i !== index))} />
                                 <TextInput
                                     multiline

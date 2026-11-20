@@ -49,12 +49,12 @@ export function CancelRequestLink({ appointmentId, align = 'flex-end', scheduled
                         <Text className="text-xl font-outfit-medium text-blue-900 mb-2">{t('appointments.list.cancelModalTitle')}</Text>
                         <Text className="text-gray-500 text-center font-outfit-regular mb-6">{t('appointments.list.cancelModalMessage')}</Text>
                         {scheduled ? <Text className="text-gray-500 text-center font-outfit-regular mb-6 -mt-3" style={{ fontSize: 13 }}>{t('scheduled.cancelNote')}</Text> : null}
-                        <View className="flex-row gap-4 w-full">
-                            <TouchableOpacity className="flex-1 py-3 border border-gray-200 rounded-lg" onPress={() => setVisible(false)}>
-                                <Text className="text-center font-outfit-medium text-gray-700">{t('appointments.list.no')}</Text>
+                        <View className="w-full" style={{ gap: 8 }}>
+                            <TouchableOpacity style={{ minHeight: 52, borderRadius: 14, backgroundColor: '#1D4ED8', alignItems: 'center', justifyContent: 'center' }} onPress={confirm}>
+                                <Text className="text-center font-outfit-bold text-white" style={{ fontSize: 16 }}>{t('appointments.list.yesCancel')}</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity className="flex-1 py-3 bg-blue-700 rounded-lg" onPress={confirm}>
-                                <Text className="text-center font-outfit-medium text-white">{t('appointments.list.yesCancel')}</Text>
+                            <TouchableOpacity style={{ minHeight: 52, borderRadius: 14, backgroundColor: '#E6EAF2', alignItems: 'center', justifyContent: 'center' }} onPress={() => setVisible(false)}>
+                                <Text className="text-center font-outfit-bold" style={{ fontSize: 16, color: '#4A5470' }}>{t('appointments.list.no')}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>

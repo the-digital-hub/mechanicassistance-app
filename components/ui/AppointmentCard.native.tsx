@@ -6,10 +6,12 @@ import { refLabel } from '@/lib/refCode';
 import { approximateArea, coarseAddress } from '@/lib/maps/approximateLocation';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
-import { Calendar, Car, Clock, FileText, LucideIcon, MapPin, MessageSquare, Route, Star, Timer } from 'lucide-react-native';
+import { Calendar, Car, Clock, FileText, LucideIcon, MapPin, MessageSquare, Route, Star, Timer, Wallet } from 'lucide-react-native';
 import { ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, Platform, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, Platform, Text, TouchableOpacity, View } from 'react-native';
+import { shareServiceReportPdf } from '@/components/on-site/FinalReportActions';
+import { appAlert } from '@/lib/ui/appAlert';
 import { LinearGradient } from 'expo-linear-gradient';
 import { formatLocalDateTime, videoCallBookedLabel } from '@/lib/video/videoCallTime';
 import { BANNER_COLORS, getCardState, getTypeBar, isPastState } from './appointmentCardTheme';
@@ -74,7 +76,7 @@ function InfoRows({ rows }: { rows: { icon: LucideIcon; label: string; value?: s
                         className="flex-row items-center"
                         style={{
                             gap: 12,
-                            paddingVertical: 9,
+                            paddingVertical: 10,
                             paddingHorizontal: 12,
                             borderBottomWidth: i < rows.length - 1 ? 1 : 0,
                             borderBottomColor: C.borderSoft,
@@ -83,15 +85,17 @@ function InfoRows({ rows }: { rows: { icon: LucideIcon; label: string; value?: s
                         <View className="items-center justify-center" style={{ width: 30, height: 30, borderRadius: 9, backgroundColor: C.blueSoft }}>
                             <RowIcon size={16} color={C.blue} />
                         </View>
-                        {/* Plain rows keep a short fixed label; rating rows give the label all the room the stars leave. */}
-                        <Text className="font-outfit-medium text-[13px]" style={r.node ? { color: C.muted, flex: 1 } : { color: C.muted, width: 66 }}>{r.label}</Text>
-                        {r.node ? (
-                            <View className="flex-row items-center justify-end" style={{ flexShrink: 0 }}>{r.node}</View>
-                        ) : (
-                            <Text className="flex-1 font-outfit-bold text-[13px] text-right" style={{ color: C.text }} numberOfLines={2}>
-                                {r.value}
-                            </Text>
-                        )}
+                        {/* One column: the label above and the value (or the stars) under it, full width: nothing squeezes or cuts. */}
+                        <View className="flex-1">
+                            <Text className="font-outfit-medium text-[13px]" style={{ color: C.muted, lineHeight: 17 }}>{r.label}</Text>
+                            {r.node ? (
+                                <View className="flex-row items-center" style={{ marginTop: 2 }}>{r.node}</View>
+                            ) : (
+                                <Text className="font-outfit-bold" style={{ color: C.text, fontSize: 15, lineHeight: 20, marginTop: 1 }}>
+                                    {r.value}
+                                </Text>
+                            )}
+                        </View>
                     </View>
                 );
             })}
@@ -347,6 +351,10 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
     const hasPrice = !!appointment.budget && !/^\s*(\$?\s*0(\.0+)?|pending|-+)\s*$/i.test(appointment.budget);
     const amount = notCharged ? '$0' : hasPrice ? appointment.budget : t('appointments.list.card.pricePending');
 
+    // A finished or cancelled job lists what was paid (or charged) with the rest of its data (vehicle, ratings…); the other cards keep the amount in its own box.
+    const amountInRows = isPast;
+    const infoRows = amountInRows ? [...rows, { icon: Wallet, label: amountLabel, value: amount }] : rows;
+
     const ctaLabel = state === 'offered' && !isMechanic
         ? t('appointments.list.card.viewOffer')
         : state === 'completed'
@@ -359,6 +367,24 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
 
     // The offer summary is owner-only, and needs a mechanic on the request.
     const mechanic = useAppointmentMechanic(appointment.id, !isMechanic && !!appointment.mechanicId);
+
+    // A finished job: its service report as a PDF, next to the receipt.
+    const [makingPdf, setMakingPdf] = useState(false);
+    const downloadReport = async () => {
+        if (makingPdf) return;
+        setMakingPdf(true);
+        const fullName = [user?.name, user?.surname].filter(Boolean).join(' ') || null;
+        const ok = await shareServiceReportPdf({
+            appointment,
+            role: isMechanic ? 'mechanic' : 'user',
+            ownerName: isMechanic ? null : fullName,
+            mechanicName: isMechanic ? fullName : mechanic?.displayName ?? null,
+            t,
+            lang: i18n.language,
+        });
+        setMakingPdf(false);
+        if (!ok) appAlert(t('appointments.report.pdf.failed'));
+    };
 
     return (
         <TouchableOpacity
@@ -433,45 +459,32 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
             )}
 
             <View className="mt-3">
-                <InfoRows rows={rows} />
+                <InfoRows rows={infoRows} />
             </View>
 
-            {/* Amount + action */}
-            {/* A finished job puts the button (View receipt) on the left and the amount on the right. */}
-            <View className="mt-3" style={{ flexDirection: isPast && !isCanceled ? 'row-reverse' : 'row', gap: 10 }}>
-                {/* Outer view carries the width (50/50 on every card); the padded box fills it, so padding can't skew the split. */}
-                <View style={{ flex: 1 }}>
-                    <View
-                        style={{
-                            flex: 1,
-                            paddingVertical: 8,
-                            paddingHorizontal: 12,
-                            borderRadius: 13,
-                            backgroundColor: isPast ? C.page : C.blueSofter,
-                            borderWidth: 1,
-                            borderColor: isPast ? C.borderSoft : C.blueSoft,
-                            // A finished job has the receipt button on the left: the amount sits against the right edge.
-                            alignItems: isPast && !isCanceled ? 'flex-end' : 'flex-start',
-                        }}
-                    >
-                        <Text className="font-outfit-bold text-[12px] uppercase" style={{ color: C.muted, letterSpacing: 0.4, textAlign: isPast && !isCanceled ? 'right' : 'left' }}>{amountLabel}</Text>
-                        <Text className="font-outfit-bold text-xl" style={{ color: isPast ? C.text : C.blue, letterSpacing: -0.5, lineHeight: 23, textAlign: isPast && !isCanceled ? 'right' : 'left' }} numberOfLines={1}>{amount}</Text>
-                    </View>
-                </View>
+            {/* The amount in its own card (a finished job lists it with its data above), and the button under it at full width: never two columns. */}
+            {!amountInRows && (
+            <View
+                className="mt-3"
+                style={{
+                    paddingVertical: 10,
+                    paddingHorizontal: 14,
+                    borderRadius: 13,
+                    backgroundColor: isPast ? C.page : C.blueSofter,
+                    borderWidth: 1,
+                    borderColor: isPast ? C.borderSoft : C.blueSoft,
+                }}
+            >
+                <Text className="font-outfit-bold text-[12px] uppercase" style={{ color: C.muted, letterSpacing: 0.4 }}>{amountLabel}</Text>
+                <Text className="font-outfit-bold text-xl" style={{ color: isPast ? C.text : C.blue, letterSpacing: -0.5, lineHeight: 24 }} numberOfLines={1}>{amount}</Text>
+            </View>
+            )}
 
-                {/* A cancelled job has nothing to open: an empty half keeps the amount at 50% width. */}
-                {isCanceled && <View style={{ flex: 1 }} />}
-                {!isCanceled && (
-                <TouchableOpacity
-                    className="flex-1"
-                    activeOpacity={0.8}
-                    onPress={guardPress(openDetail)}
-                >
+            {/* A cancelled job has nothing to open. */}
+            {!isCanceled && (
+                <TouchableOpacity className={amountInRows ? 'mt-3' : 'mt-2'} activeOpacity={0.8} onPress={guardPress(openDetail)} accessibilityRole="button">
                     {isPast ? (
-                        <View
-                            className="flex-1 items-center justify-center"
-                            style={{ borderRadius: 13, backgroundColor: C.blueSoft }}
-                        >
+                        <View className="items-center justify-center" style={{ minHeight: 50, borderRadius: 13, backgroundColor: C.blueSoft }}>
                             <Text className="font-outfit-bold text-[15px]" style={{ color: C.blue }}>{ctaLabel}</Text>
                         </View>
                     ) : (
@@ -479,14 +492,31 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
                             colors={['#2B66F8', '#081E72']}
                             start={{ x: 0, y: 1 }}
                             end={{ x: 1, y: 0 }}
-                            style={{ flex: 1, borderRadius: 13, alignItems: 'center', justifyContent: 'center' }}
+                            style={{ minHeight: 50, borderRadius: 13, alignItems: 'center', justifyContent: 'center' }}
                         >
                             <Text className="font-outfit-bold text-[15px] text-white">{ctaLabel}</Text>
                         </LinearGradient>
                     )}
                 </TouchableOpacity>
-                )}
-            </View>
+            )}
+
+            {/* A finished job: the service report as a PDF, under the receipt button */}
+            {state === 'completed' && (
+                <TouchableOpacity
+                    className="mt-2 flex-row items-center justify-center"
+                    activeOpacity={0.8}
+                    onPress={guardPress(downloadReport)}
+                    disabled={makingPdf}
+                    accessibilityRole="button"
+                    style={{ gap: 8, minHeight: 46, borderRadius: 13, borderWidth: 1.5, borderColor: C.blueSoft, backgroundColor: C.page, opacity: makingPdf ? 0.7 : 1 }}
+                    testID={`appointment-report-pdf-${appointment.id}`}
+                >
+                    {makingPdf ? <ActivityIndicator color={C.blue} /> : <FileText size={18} color={C.blue} />}
+                    <Text className="font-outfit-bold text-[15px]" style={{ color: C.blue }}>
+                        {makingPdf ? t('appointments.report.pdf.preparing') : t('appointments.report.pdf.button')}
+                    </Text>
+                </TouchableOpacity>
+            )}
 
             {/* Footer: id + cancel, the same row everywhere */}
             <RequestIdRow id={appointment.id} refCode={appointment.refCode} onCancel={!isPast ? guardPress(() => onCancel(appointment.id)) : undefined} style={{ marginTop: 10 }} />

@@ -235,7 +235,7 @@ export default function ScheduledOffersScreen() {
         return (
             <View className="flex-1" style={{ backgroundColor: SC.page }}>
                 {header}
-                <ScrollView contentContainerStyle={{ padding: 24, gap: 16 }}>
+                <ScrollView contentContainerStyle={{ padding: 24, paddingTop: 32, gap: 16 }}>
                     <StepHead eyebrow={t('scheduledOffers.done.eyebrow')} title={t('scheduledOffers.done.title')} sub={t('scheduledOffers.done.sub')} />
                     <View style={{ ...CARD_STYLE, padding: 16, gap: 6 }}>
                         <Text className="font-outfit-bold" style={{ fontSize: 15, color: SC.text }}>{request?.title}</Text>
@@ -270,7 +270,7 @@ export default function ScheduledOffersScreen() {
                     }}
                     onClose={() => setCardModal(false)}
                 />
-                <ScrollView contentContainerStyle={{ padding: 24, gap: 16 }}>
+                <ScrollView contentContainerStyle={{ padding: 24, paddingTop: 32, gap: 16 }}>
                     <StepHead eyebrow={t('scheduledOffers.pay.eyebrow')} title={t('scheduledOffers.pay.title')} />
                     <View style={{ ...CARD_STYLE, padding: 16, gap: 10 }}>
                         <Row label={ct.basis === 'diagnostic_fee' ? t('scheduledOffers.diagnosticFee') : t('scheduledOffers.service')} value={money(ct.baseAmount)} />
@@ -304,7 +304,7 @@ export default function ScheduledOffersScreen() {
         return (
             <View className="flex-1" style={{ backgroundColor: SC.page }}>
                 {header}
-                <ScrollView contentContainerStyle={{ padding: 24, gap: 16 }}>
+                <ScrollView contentContainerStyle={{ padding: 24, paddingTop: 32, gap: 16 }}>
                     <StepHead eyebrow={t('scheduledOffers.detail.eyebrow')} title={money(chosenTotal)} sub={chosen.quoteType === 'diagnostic_then_quote' ? t('scheduledOffers.detail.diagnosticSub') : t('scheduledOffers.detail.finalSub')} />
                     {notice ? <Note tone="amber">{notice}</Note> : null}
                     {slot ? <Info label={t('scheduledOffers.detail.slot')} value={slot} /> : null}
@@ -395,7 +395,7 @@ export default function ScheduledOffersScreen() {
         return (
             <View className="flex-1" style={{ backgroundColor: SC.page }}>
                 <WizardHeader title={t('scheduledOffers.title')} onBack={back} />
-                <ScrollView contentContainerStyle={{ padding: 20, gap: 14, paddingBottom: 40 }}>
+                <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 32, gap: 14, paddingBottom: 40 }}>
                     <StepHead eyebrow={t('scheduledOffers.compare.eyebrow', { count: list.length })} title={t('scheduledOffers.compare.title')} sub={t('scheduledOffers.compare.sub')} />
                     <View className="flex-row flex-wrap" style={{ gap: 8 }}>
                         {chip('coverage', t('scheduledOffers.compare.mostCoverage'))}

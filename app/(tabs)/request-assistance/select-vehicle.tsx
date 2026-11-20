@@ -9,7 +9,7 @@ import { Car } from 'lucide-react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
-import { VehicleTitle } from '@/components/ui/VehicleTitle';
+import { VehicleTitle, vehicleLine } from '@/components/ui/VehicleTitle';
 
 /** Strips the grouping separators the placeholder suggests ("45,230") before parsing. */
 const parseMileage = (raw: string): number | undefined => {
@@ -115,7 +115,7 @@ export default function SelectVehicleScreen() {
             params: {
                 type,
                 vehicleId: selected.id,
-                vehicleName: `${selected.make} ${selected.model}`,
+                vehicleName: vehicleLine(selected),
             },
         });
     };

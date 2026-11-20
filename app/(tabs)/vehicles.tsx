@@ -16,6 +16,7 @@ import { VehicleIdsRow } from '@/components/scheduled/ui';
 import { VehicleForm, VehicleFormPayload } from '@/components/vehicles/VehicleForm';
 import { VehicleFormHeader } from '@/components/vehicles/vehicleFormDesign';
 import { appAlert } from '@/lib/ui/appAlert';
+import { VehicleTitle, vehicleLine } from '@/components/ui/VehicleTitle';
 
 export default function VehiclesScreen() {
     const router = useRouter();
@@ -112,7 +113,7 @@ export default function VehiclesScreen() {
         const id = vehicle.id;
         appAlert(
             t('vehicles.deleteTitle'),
-            t('vehicles.deleteMessage', { vehicle: `${vehicle.make} ${vehicle.model}`.trim() }),
+            t('vehicles.deleteMessage', { vehicle: vehicleLine(vehicle) }),
             [
                 { text: t('vehicles.cancel'), style: 'cancel' },
                 {
@@ -142,6 +143,7 @@ export default function VehiclesScreen() {
     if (isEditing) {
         return (
             <VehicleForm
+                topInset={32}
                 key={editingVehicle?.id ?? 'new'}
                 initialValue={editingVehicle ?? undefined}
                 submitLabel={t('vehicles.saveVehicle')}
@@ -192,7 +194,7 @@ export default function VehiclesScreen() {
                             className="bg-white rounded-2xl p-5 mb-4 border border-gray-300 flex-row items-center"
                         >
                             <View className="flex-1">
-                                <Text className="text-lg font-outfit-bold text-[#0F172A] uppercase">{v.make} {v.model}</Text>
+                                <Text className="text-lg font-outfit-bold text-[#0F172A] uppercase"><VehicleTitle vehicle={v} /></Text>
                                 <VehicleIdsRow plate={v.plate} vin={v.vin} plateLabel={t('requestAssistance.selectVehicle.plate')} />
                             </View>
                             <TouchableOpacity onPress={() => handleDeleteVehicle(v)} className="p-2">

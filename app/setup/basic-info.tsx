@@ -154,7 +154,7 @@ export default function BasicInfoScreen() {
       <ScrollView
         ref={scrollViewRef}
         style={{ backgroundColor: '#F6F8FC' }}
-        contentContainerStyle={{ padding: 24, paddingBottom: 40 }}
+        contentContainerStyle={{ padding: 24, paddingTop: 18, paddingBottom: 40 }}
         keyboardShouldPersistTaps="handled"
       >
         {/* Section Badge */}

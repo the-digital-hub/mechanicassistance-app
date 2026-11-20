@@ -258,6 +258,8 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                     ...((appt.assistanceType ?? appt.type) === 'scheduled' && !appt.date && ar?.date
                         ? { date: ar.date }
                         : {}),
+                    // The photos and clips the owner attached to the request belong to the job: the appointment row does not carry them.
+                    photos: parseAttachments(appt.photos ?? ar?.photos),
                     vehicleIssues: issuesById.get(appt.id) || [],
                     source: 'appointment' as const,
                 };

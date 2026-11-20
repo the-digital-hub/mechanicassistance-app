@@ -83,7 +83,7 @@ export default function PaymentActivityScreen() {
     return (
         <ScrollView
             style={{ backgroundColor: '#F4F6FC' }}
-            contentContainerStyle={{ padding: 24, paddingBottom: 40 }}
+            contentContainerStyle={{ padding: 24, paddingTop: 32, paddingBottom: 40 }}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor="#0047AB" />}
             testID="payment-activity-screen"
         >

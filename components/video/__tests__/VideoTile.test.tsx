@@ -22,4 +22,13 @@ describe('VideoTile', () => {
     );
     expect(getByTestId('rtc-view')).toBeTruthy();
   });
+
+  it('mirrors only the local picture of the selfie camera', () => {
+    const fakeStream: any = { toURL: () => 'stream-url' };
+    const mirrored = (props: { isLocal: boolean; backCamera?: boolean }) =>
+      render(<VideoTile name="Ana" isCameraOff={false} stream={fakeStream} {...props} />).getByTestId('rtc-view').props.mirror;
+    expect(mirrored({ isLocal: true })).toBe(true);
+    expect(mirrored({ isLocal: true, backCamera: true })).toBe(false);
+    expect(mirrored({ isLocal: false })).toBe(false);
+  });
 });

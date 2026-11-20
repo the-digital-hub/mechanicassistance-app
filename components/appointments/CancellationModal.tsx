@@ -86,19 +86,19 @@ export function CancellationModal({ visible, onClose, onConfirm, departedAt, fre
                         {message}
                     </Text>
 
-                    <View className="flex-row gap-4 w-full">
+                    <View className="w-full" style={{ gap: 8 }}>
                         <TouchableOpacity
-                            onPress={onClose}
-                            className="flex-1 bg-white border border-gray-200 py-3 rounded-lg items-center"
+                            onPress={onConfirm}
+                            style={{ minHeight: 52, borderRadius: 14, backgroundColor: '#2563EB', alignItems: 'center', justifyContent: 'center' }}
                         >
-                            <Text className="font-outfit-bold text-gray-700">{t('appointments.list.no')}</Text>
+                            <Text className="font-outfit-bold text-white" style={{ fontSize: 16 }}>{t('appointments.list.yesCancel')}</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
-                            onPress={onConfirm}
-                            className="flex-1 bg-blue-600 py-3 rounded-lg items-center"
+                            onPress={onClose}
+                            style={{ minHeight: 52, borderRadius: 14, backgroundColor: '#E6EAF2', alignItems: 'center', justifyContent: 'center' }}
                         >
-                            <Text className="font-outfit-bold text-white">{t('appointments.list.yesCancel')}</Text>
+                            <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#4A5470' }}>{t('appointments.list.no')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>

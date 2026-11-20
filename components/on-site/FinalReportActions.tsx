@@ -6,7 +6,10 @@ import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-cont
 import { useAppointments } from '@/context/AppointmentsContext';
 import { onSiteDAO } from '@/lib/dao/OnSiteDAO';
 import { userDAO } from '@/lib/dao/UserDAO';
+import type { Appointment } from '@/context/AppointmentsContext';
 import { buildFinalReport, finalReportHtml, type FinalReport } from '@/lib/onsite/finalReport';
+import { buildServiceReport } from '@/lib/onsite/serviceReport';
+import { walletDAO } from '@/lib/dao/WalletDAO';
 import { getVinCapture } from '@/lib/onsite/vin';
 import { ActionBar, Card, OS } from './ui';
 import { FinalReportView } from './FinalReportView';
@@ -72,6 +75,45 @@ export async function shareFinalReportPdf(report: FinalReport): Promise<boolean>
             await Sharing.shareAsync(uri, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf', dialogTitle: report.title });
         }
         return true;
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * The service report PDF of a finished job, from a card in the list: gathers what this viewer can read (the visit when
+ * they are the technician, the owner's payments when they are the owner), builds the report and opens the share sheet.
+ */
+export async function shareServiceReportPdf(args: {
+    appointment: Appointment;
+    role: 'user' | 'mechanic';
+    ownerName?: string | null;
+    mechanicName?: string | null;
+    t: (key: string, options?: Record<string, unknown>) => string;
+    lang: string;
+}): Promise<boolean> {
+    try {
+        const { appointment, role, t, lang } = args;
+        const [visit, capture, profile, history] = await Promise.all([
+            onSiteDAO.get(appointment.id).catch(() => null),
+            getVinCapture(appointment.id).catch(() => null),
+            role === 'mechanic' && appointment.userId ? userDAO.getPublicProfile(appointment.userId).catch(() => null) : Promise.resolve(null),
+            role === 'user' ? walletDAO.history(1, 100).catch(() => null) : Promise.resolve(null),
+        ]);
+        let paid: { total: number; refunded: number; method: 'wallet' | 'card' | null } | null = null;
+        const charges = history?.payments.items.filter((p) => p.assistanceRequestId === appointment.id && Number(p.amountCharged) > 0) ?? [];
+        if (charges.length > 0) {
+            paid = {
+                total: charges.reduce((sum, p) => sum + Number(p.amountCharged || 0), 0),
+                refunded: charges.reduce((sum, p) => sum + Number(p.amountRefunded || 0), 0),
+                method: charges[0].method === 'wallet' ? 'wallet' : 'card',
+            };
+        }
+        const ownerName = args.ownerName ?? ([profile?.name, profile?.surname].filter(Boolean).join(' ') || null);
+        const report = buildServiceReport({
+            appointment, role, visit, ownerName, mechanicName: args.mechanicName, paid, vin: capture?.vin, odometer: capture?.odometer, t, lang,
+        });
+        return await shareFinalReportPdf(report);
     } catch {
         return false;
     }

@@ -225,17 +225,16 @@ export default function AppointmentsScreen() {
                     <View className="bg-white rounded-2xl w-full p-6 items-center shadow-lg">
                         <Text className="text-xl font-outfit-bold text-blue-900 mb-2 text-center">{t('appointments.list.removeTitle')}</Text>
                         <Text className="text-gray-500 text-center font-outfit-regular mb-6" style={{ fontSize: 16 }}>{t('appointments.list.removeMessage')}</Text>
-                        <View className="flex-row gap-4 w-full">
-                            <TouchableOpacity className="flex-1 py-3 border border-gray-200 rounded-lg" onPress={() => setRemoveId(null)}>
-                                <Text className="text-center font-outfit-bold text-gray-700">{t('appointments.list.no')}</Text>
-                            </TouchableOpacity>
+                        <View className="w-full" style={{ gap: 8 }}>
                             <TouchableOpacity
-                                className="flex-1 py-3 rounded-lg"
-                                style={{ backgroundColor: '#D96B6B' }}
+                                style={{ minHeight: 52, borderRadius: 14, backgroundColor: '#D96B6B', alignItems: 'center', justifyContent: 'center' }}
                                 onPress={() => { if (removeId) hide(removeId); setRemoveId(null); }}
                                 testID="remove-cancelled-confirm"
                             >
-                                <Text className="text-center font-outfit-bold text-white">{t('appointments.list.removeConfirm')}</Text>
+                                <Text className="text-center font-outfit-bold text-white" style={{ fontSize: 16 }}>{t('appointments.list.removeConfirm')}</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={{ minHeight: 52, borderRadius: 14, backgroundColor: '#E6EAF2', alignItems: 'center', justifyContent: 'center' }} onPress={() => setRemoveId(null)}>
+                                <Text className="text-center font-outfit-bold" style={{ fontSize: 16, color: '#4A5470' }}>{t('appointments.list.no')}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -260,18 +259,18 @@ export default function AppointmentsScreen() {
                             {t('appointments.list.cancelModalMessage')}
                         </Text>
 
-                        <View className="flex-row gap-4 w-full">
+                        <View className="w-full" style={{ gap: 8 }}>
                             <TouchableOpacity
-                                className="flex-1 py-3 border border-gray-200 rounded-lg"
-                                onPress={() => setCancelModalVisible(false)}
-                            >
-                                <Text className="text-center font-outfit-bold text-gray-700">{t('appointments.list.no')}</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                className="flex-1 py-3 bg-blue-700 rounded-lg"
+                                style={{ minHeight: 52, borderRadius: 14, backgroundColor: '#1D4ED8', alignItems: 'center', justifyContent: 'center' }}
                                 onPress={confirmCancel}
                             >
-                                <Text className="text-center font-outfit-bold text-white">{t('appointments.list.yesCancel')}</Text>
+                                <Text className="text-center font-outfit-bold text-white" style={{ fontSize: 16 }}>{t('appointments.list.yesCancel')}</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={{ minHeight: 52, borderRadius: 14, backgroundColor: '#E6EAF2', alignItems: 'center', justifyContent: 'center' }}
+                                onPress={() => setCancelModalVisible(false)}
+                            >
+                                <Text className="text-center font-outfit-bold" style={{ fontSize: 16, color: '#4A5470' }}>{t('appointments.list.no')}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>

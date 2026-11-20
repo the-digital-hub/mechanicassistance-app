@@ -139,6 +139,8 @@ type AvailabilityFormProps = {
   submitting?: boolean;
   /** Only called with a value that passed validation. */
   onSubmit: (value: AvailabilityValue) => void | Promise<void>;
+  /** Space above the first block. 18 under a plain header; 32 under the rounded one, which the page runs 14 beneath. */
+  topInset?: number;
 };
 
 /**
@@ -153,6 +155,7 @@ export function AvailabilityForm({
   submitLabel,
   submitting = false,
   onSubmit,
+  topInset = 18,
 }: AvailabilityFormProps) {
   const { t } = useTranslation();
   const baseLocation = baseLocationProp ?? BASE_LOCATION;
@@ -349,7 +352,7 @@ export function AvailabilityForm({
 
       <ScrollView
         className="flex-1 bg-[#EEF2FF]"
-        contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
+        contentContainerStyle={{ padding: 20, paddingTop: topInset, paddingBottom: 40 }}
       >
         {/* ── Weekly schedule ── */}
         <View className="mb-4">

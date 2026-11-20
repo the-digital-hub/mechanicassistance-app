@@ -346,7 +346,7 @@ export default function ScheduledRequestScreen() {
         return (
             <View className="flex-1" style={{ backgroundColor: SC.page }}>
                 {header}
-                <ScrollView contentContainerStyle={{ padding: 16, gap: 14 }}>
+                <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 32, gap: 14 }}>
                     <StepHead eyebrow={t('scheduledProvider.decline.eyebrow')} title={t('scheduledProvider.decline.title')} sub={t('scheduledProvider.decline.sub')} />
                     <View style={{ ...CARD_STYLE, overflow: 'hidden' }} accessibilityRole="radiogroup">
                         {DECLINE_REASONS.map((r, i) => (
@@ -391,7 +391,7 @@ export default function ScheduledRequestScreen() {
                 <Steps step={view === 'quote' ? 1 : 2} labels={[t('scheduledProvider.quote.stepPrice'), t('scheduledProvider.quote.stepReview')]} />
                 <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
                     {view === 'quote' ? (
-                        <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, gap: 14 }}>
+                        <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingTop: 18, gap: 14 }}>
                             <StepHead eyebrow={t('scheduledProvider.quote.eyebrow1')} title={t('scheduledProvider.quote.title')} sub={t('scheduledProvider.quote.sub')} />
 
                             <View style={{ ...CARD_STYLE, overflow: 'hidden' }}>
@@ -476,7 +476,7 @@ export default function ScheduledRequestScreen() {
                             <Note>{t('scheduledProvider.quote.protect')}</Note>
                         </ScrollView>
                     ) : (
-                        <ScrollView contentContainerStyle={{ padding: 16, gap: 14 }}>
+                        <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 18, gap: 14 }}>
                             <StepHead eyebrow={t('scheduledProvider.review.eyebrow')} title={t('scheduledProvider.review.title')} sub={t('scheduledProvider.review.sub')} />
                             <View style={{ ...CARD_STYLE, overflow: 'hidden' }}>
                                 <View className="flex-row items-center justify-between" style={{ paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: SC.borderSoft }}>
@@ -538,7 +538,7 @@ export default function ScheduledRequestScreen() {
     return (
         <View className="flex-1" style={{ backgroundColor: SC.page }}>
             {header}
-            <ScrollView contentContainerStyle={{ padding: 16, gap: 14 }}>
+            <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 32, gap: 14 }}>
                 <StepHead eyebrow={t('scheduledProvider.eyebrow')} title={t('scheduledProvider.details.title')} sub={t('scheduledProvider.details.sub')} />
 
                 <View style={{ ...CARD_STYLE, padding: 14 }} className="flex-row items-center">
@@ -632,7 +632,7 @@ function cleanAmount(v: string): string {
 
 function Steps({ step, labels }: { step: number; labels: string[] }) {
     return (
-        <View className="flex-row" style={{ paddingHorizontal: 16, paddingTop: 12, gap: 6 }} accessibilityLabel={labels.join(' / ')}>
+        <View className="flex-row" style={{ paddingHorizontal: 16, paddingTop: 32, gap: 6 }} accessibilityLabel={labels.join(' / ')}>
             {labels.map((l, i) => {
                 const on = i === step - 1;
                 const done = i < step - 1;
@@ -734,9 +734,11 @@ function KV({ rows }: { rows: [string, string][] }) {
     return (
         <View style={{ ...CARD_STYLE, alignSelf: 'stretch', overflow: 'hidden' }}>
             {rows.map(([k, v], i) => (
-                <View key={k} className="flex-row justify-between" style={{ paddingHorizontal: 14, paddingVertical: 11, gap: 12, borderBottomWidth: i < rows.length - 1 ? 1 : 0, borderBottomColor: SC.borderSoft }}>
-                    <Text className="font-outfit-regular" style={{ fontSize: 13, color: SC.muted }}>{k}</Text>
-                    <Text className="font-outfit-bold flex-1" style={{ fontSize: 13, color: SC.text, textAlign: 'right' }}>{v}</Text>
+                <View key={k} className="flex-row" style={{ paddingHorizontal: 14, paddingVertical: 11, gap: 12, borderBottomWidth: i < rows.length - 1 ? 1 : 0, borderBottomColor: SC.borderSoft }}>
+                    <View className="flex-1">
+                        <Text className="font-outfit-regular" style={{ fontSize: 13, lineHeight: 17, color: SC.muted }}>{k}</Text>
+                        <Text className="font-outfit-bold" style={{ fontSize: 15, lineHeight: 20, color: SC.text, marginTop: 1 }}>{v}</Text>
+                    </View>
                 </View>
             ))}
         </View>

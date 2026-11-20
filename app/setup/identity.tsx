@@ -143,7 +143,7 @@ export default function IdentityScreen() {
   return (
     <ScrollView
       style={{ backgroundColor: "#F4F6FC" }}
-      contentContainerStyle={{ padding: 24, paddingBottom: 40 }}
+      contentContainerStyle={{ padding: 24, paddingTop: 18, paddingBottom: 40 }}
       keyboardShouldPersistTaps="handled"
     >
       {/* Section badge */}

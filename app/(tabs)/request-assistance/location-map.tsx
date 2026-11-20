@@ -12,7 +12,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Keyboard, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { appAlert } from '@/lib/ui/appAlert';
 
 export default function LocationMapScreen() {
@@ -170,6 +170,8 @@ export default function LocationMapScreen() {
         const label =
             address.formatted ||
             `${address.street}, ${address.city} ${address.zip}`.trim();
+        // The place is on the map now: the keyboard has nothing left to do.
+        Keyboard.dismiss();
         setSelectedFull(address);
         setSearchQuery(label);
         await geocodeAndSetAddress(address, label);
@@ -273,7 +275,7 @@ export default function LocationMapScreen() {
                         <ActivityIndicator size="large" color="#0047AB" />
                     </View>
                 ) : (
-                    <View className="h-80 mb-6 mx-6 rounded-xl overflow-hidden">
+                    <View className="h-80 mb-6 mx-6 rounded-xl overflow-hidden" style={{ borderWidth: 1.5, borderColor: '#D6E0F2' }}>
                         <MapView
                             style={{ flex: 1 }}
                             initialRegion={region}

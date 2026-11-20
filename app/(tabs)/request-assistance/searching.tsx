@@ -377,8 +377,10 @@ export default function SearchingScreen() {
                         <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
                             <Zap size={20} color="#0047AB" />
                         </View>
-                        <Text className="font-outfit-medium text-base text-gray-500">{t('requestAssistance.searching.service')}</Text>
-                        <Text className="flex-1 text-right font-outfit-semibold text-base text-gray-900" numberOfLines={1}>{getTitle()}</Text>
+                        <View className="flex-1">
+                            <Text className="font-outfit-medium text-base text-gray-500">{t('requestAssistance.searching.service')}</Text>
+                            <Text className="font-outfit-semibold text-base text-gray-900">{getTitle()}</Text>
+                        </View>
                     </View>
 
                     {/* Vehicle */}
@@ -386,8 +388,10 @@ export default function SearchingScreen() {
                         <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
                             <Car size={20} color="#0047AB" />
                         </View>
-                        <Text className="font-outfit-medium text-base text-gray-500">{t('requestAssistance.searching.vehicle')}</Text>
-                        <Text className="flex-1 text-right font-outfit-semibold text-base text-gray-900" numberOfLines={1}>{requestData?.car || '—'}</Text>
+                        <View className="flex-1">
+                            <Text className="font-outfit-medium text-base text-gray-500">{t('requestAssistance.searching.vehicle')}</Text>
+                            <Text className="font-outfit-semibold text-base text-gray-900">{requestData?.car || '—'}</Text>
+                        </View>
                     </View>
 
                     {/* Video call: no location; how long it lasts */}
@@ -396,8 +400,10 @@ export default function SearchingScreen() {
                         <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
                             <Timer size={20} color="#0047AB" />
                         </View>
-                        <Text className="font-outfit-medium text-base text-gray-500">{t('requestAssistance.searching.duration')}</Text>
-                        <Text className="flex-1 text-right font-outfit-semibold text-base text-gray-900" numberOfLines={1}>{requestData?.durationMinutes ? t('requestAssistance.when.durationValue', { count: requestData.durationMinutes }) : '—'}</Text>
+                        <View className="flex-1">
+                            <Text className="font-outfit-medium text-base text-gray-500">{t('requestAssistance.searching.duration')}</Text>
+                            <Text className="font-outfit-semibold text-base text-gray-900">{requestData?.durationMinutes ? t('requestAssistance.when.durationValue', { count: requestData.durationMinutes }) : '—'}</Text>
+                        </View>
                     </View>
 
                     ) : (
@@ -422,8 +428,10 @@ export default function SearchingScreen() {
                         <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
                             <DollarSign size={20} color="#0047AB" />
                         </View>
-                        <Text className="font-outfit-medium text-base text-gray-500">{t('requestAssistance.searching.budget')}</Text>
-                        <Text className="flex-1 text-right font-outfit-semibold text-base text-gray-900" numberOfLines={1}>{type === 'videocall' && Number(requestData?.price) > 0 ? formatMoney(requestData?.price) : requestData?.budget || '—'}</Text>
+                        <View className="flex-1">
+                            <Text className="font-outfit-medium text-base text-gray-500">{t('requestAssistance.searching.budget')}</Text>
+                            <Text className="font-outfit-semibold text-base text-gray-900">{type === 'videocall' && Number(requestData?.price) > 0 ? formatMoney(requestData?.price) : requestData?.budget || '—'}</Text>
+                        </View>
                     </View>
                 </View>
 
