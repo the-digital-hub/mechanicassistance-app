@@ -8,7 +8,7 @@ import { userDAO } from '@/lib/dao/UserDAO';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { goBackOr } from '@/lib/navigation/goBackOr';
 import * as ImagePicker from 'expo-image-picker';
-import { ChevronLeft, Lock, Paperclip, Phone, Send } from 'lucide-react-native';
+import { ChevronLeft, Lock, Paperclip, Send } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -53,17 +53,21 @@ export default function ChatScreen() {
     const load = useCallback(async () => {
         setLoadError(false);
         try {
-            const [conv, page] = await Promise.all([
-                chatDAO.getConversation(conversationId),
-                chatDAO.listMessages(conversationId),
-            ]);
+            // One after the other: the first read of a new chat creates it, and
+            // two parallel reads both tried to and one failed.
+            const conv = await chatDAO.getConversation(conversationId);
             setConversation(conv);
+            const page = await chatDAO.listMessages(conversationId);
             mergeChatMessages(conversationId, page.items.map(toChatMessage));
             setNextCursor(page.nextCursor);
 
             const recipientId = user?.id === conv.userId ? conv.mechanicId : conv.userId;
             // Public projection: the full record is owner-only server-side.
-            setRecipient(await userDAO.getPublicProfile(recipientId));
+            // A missing profile only blanks the header; the chat stays usable.
+            userDAO
+                .getPublicProfile(recipientId)
+                .then(setRecipient)
+                .catch((error) => console.error('Failed to load chat recipient:', error));
         } catch (error) {
             console.error('Failed to load chat:', error);
             setLoadError(true);
@@ -198,13 +202,6 @@ export default function ChatScreen() {
                             <Text className="text-white/80 text-[13px] font-outfit-regular">{t('chat.online')}</Text>
                         </View>
                     </View>
-                </View>
-                <View className="flex-row items-center gap-4 mr-2">
-                    <TouchableOpacity onPress={() => router.navigate(`/call/${id}`)}>
-                        <View className="w-8 h-8 rounded-full bg-white/20 items-center justify-center">
-                            <Phone size={18} color="white" />
-                        </View>
-                    </TouchableOpacity>
                 </View>
             </View>
 

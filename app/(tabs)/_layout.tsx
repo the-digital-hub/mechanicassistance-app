@@ -553,7 +553,6 @@ export default function TabLayout() {
 
       {/* Hidden deep-nav routes — keep tab bar visible */}
       <Tabs.Screen name="chat" options={{ href: null, headerShown: false, sceneStyle: sceneNoHeader }} />
-      <Tabs.Screen name="call" options={{ href: null, headerShown: false, sceneStyle: sceneNoHeader }} />
       <Tabs.Screen
         name="video-lobby"
         options={{ href: null, headerShown: false, sceneStyle: sceneNoHeader }}
