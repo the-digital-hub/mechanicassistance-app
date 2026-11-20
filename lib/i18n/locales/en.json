@@ -318,7 +318,7 @@
         "confirmed": "Confirmed"
       },
       "vehicleCare": {
-        "title": "Vehicle care & activity",
+        "title": "Your vehicle care",
         "subtitle": "Pick a vehicle to see its history.",
         "switchTitle": "Choose a vehicle",
         "mileage": "Mileage {{miles}} mi",
@@ -581,8 +581,8 @@
       "continue": "Continue",
       "conditionSub": {
         "drivable": "It starts and moves normally.",
-        "unsafe_to_drive": "Something is wrong: better not to drive it.",
-        "pushable_only": "It will not start or move by itself."
+        "unsafe_to_drive": "Something is wrong. Don't drive it.",
+        "pushable_only": "It won't start or move by itself."
       }
     },
     "vehicleDocumentation": {
@@ -599,6 +599,11 @@
       "photoNotePlaceholder": "Add a note about this photo (optional)…",
       "photoOfIssue": "Photo of the issue",
       "browsePhoto": "Take a photo or browse files",
+      "videoHint": "Show the problem as it happens.",
+      "addVideo": "Add a video",
+      "photoHint": "Up to {{max}} photos.",
+      "addPhoto": "Add a photo",
+      "addAnotherPhotoShort": "Add another photo",
       "addAnotherPhoto": "+ Add another photo",
       "remove": "Remove",
       "captured": "Captured",
@@ -867,6 +872,9 @@
       "ctaNow": "Confirm and request",
       "ctaSchedule": "Schedule for {{time}}",
       "ctaPickTime": "Pick a time to continue",
+      "ctaContinue": "Continue",
+      "reviewTitle": "Review your request",
+      "reviewSubtitle": "Check the details, then request your video call.",
       "loadFailed": "We couldn't load the times.",
       "retry": "Try again",
       "slotGoneTitle": "That time was just taken",
@@ -2307,7 +2315,7 @@
     "addVehicles": "Add Vehicle",
     "invalidVinTitle": "Invalid VIN",
     "invalidVinMessage": "A VIN must be exactly 17 characters.",
-    "vinDecodedTitle": "VIN Decoded",
+    "vinDecodedTitle": "Vehicle found",
     "vinDecodedMessage": "Found: {{make}} {{model}}",
     "ok": "OK",
     "vinNotFoundTitle": "VIN Not Found",
@@ -2327,7 +2335,7 @@
       "search": "Search",
       "noResults": "Nothing matches your search",
       "catalogLoadError": "Could not load this list.",
-      "decodeVin": "Decode VIN",
+      "decodeVin": "Autofill the vehicle data from the VIN",
       "vinHint": "Enter the 17-character VIN and tap search to fill in make, model, year and specifications.",
       "vinError": {
         "notFound": "We could not find this VIN. Check it, or enter the vehicle manually.",
@@ -2395,8 +2403,8 @@
         "vinManual": "Prefer to type? Edit any field below.",
         "vinFound": "✓ Vehicle found · details filled in below",
         "identityLocked": "VIN, make and model can't be changed. For a different car, add a new vehicle.",
-        "decode": "Decode",
-        "decoding": "Decoding…",
+        "decode": "Autofill vehicle data",
+        "decoding": "Looking up…",
         "infoSubtitle": "Basic details to identify your vehicle",
         "technicalSubtitle": "Engine, fuel, transmission and more",
         "technicalFromVin": "Filled from your VIN",
@@ -2535,6 +2543,8 @@
     "baseBadge": "BASE LOCATION",
     "setBaseFailedTitle": "Could not change base location",
     "setBaseFailedMessage": "Please try again.",
+    "setBaseNotForService": "This address is your home as a vehicle owner. Pick one of your work addresses, or add a new one.",
+    "setBaseWithoutLocation": "We couldn't place this address on the map. Check it and try again.",
     "name": {
       "label": "Address name",
       "optional": "(optional)",
@@ -2770,7 +2780,7 @@
     "vehicleInfo": {
       "invalidVinTitle": "Invalid VIN",
       "invalidVinMessage": "A VIN must be exactly 17 characters.",
-      "vinDecodedTitle": "VIN Decoded",
+      "vinDecodedTitle": "Vehicle found",
       "vinDecodedMessage": "Found: {{make}} {{model}}",
       "ok": "OK",
       "vinNotFoundTitle": "VIN Not Found",

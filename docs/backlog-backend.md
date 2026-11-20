@@ -29,6 +29,7 @@ Lo que ya está hecho en la app y espera algo del backend (endpoints, despliegue
 | **Z** Otras certificaciones | Pantalla y hoja para agregar, editar y quitar (marca u organización, tipo, número, vencimiento y certificado adjunto) | `GET\|POST /api/mechanic-certifications` y `PATCH\|DELETE …/:id`, con estados y revisión en el Hub | La lista dice que no pudo cargar y no se puede guardar |
 | **V** Traducción de subtítulos | Nada todavía: solo existe el selector de idioma | `POST /api/appointments/:id/video/translate` + consentimiento nuevo | Sin traducción |
 | **W** Agente de cuidado del vehículo | Nada todavía | Endpoints de recomendaciones + historial de kilometraje con fecha | Sin recomendaciones |
+| **AB** Textos de las notificaciones push | Muestra lo que manda el servidor, sin tocarlo | Textos más completos (título + cuerpo de dos líneas) en notifications-service | Textos cortos |
 
 Los puntos **L, M, K, J, E** y la documentación siguen como están más abajo.
 
@@ -172,6 +173,28 @@ Los puntos **L, M, K, J, E** y la documentación siguen como están más abajo.
 
 ### [ ] E — `offerExpiresAt` en el listado de pedidos (§5.1)
 - Hoy solo está en `GET /assistance/:id/offer-summary` y como columna. Agregarlo a `GET /api/assistance` (listado/feed).
+
+### [ ] AB — Textos de las notificaciones push más completos
+- **Qué se quiere (20-nov):** que lo que aparece en el centro de notificaciones del teléfono diga **una línea más**: hoy los avisos son muy cortos y la persona tiene que abrir la app para entender de qué se trata. El texto lo arma **notifications-service** (la app solo muestra `title` y `body` tal como llegan), así que el cambio es del lado del back.
+- **Pauta:** título de hasta ~40 caracteres que diga el hecho; cuerpo de **dos líneas** (~90–120 caracteres) con el dato útil (quién, cuánto dura, qué hacer ahora). Sin montos para el técnico (ni comisiones ni impuestos); sin datos sensibles en la pantalla de bloqueo (nada de direcciones exactas ni teléfonos). Español e inglés, según el idioma del teléfono.
+- **Propuesta de textos** (entre `{{ }}` va el dato que ya tiene el servicio):
+
+| `kind` | Título (EN / ES) | Cuerpo (EN / ES) |
+|---|---|---|
+| `new_request` (técnico) | New request near you / Nueva solicitud cerca tuyo | A customer needs help about {{distance}} mi away: {{issue}}. Open the app to review it and send your offer. / Un cliente necesita ayuda a unas {{distance}} millas: {{issue}}. Abrí la app, revisala y enviá tu oferta. |
+| `offer_accepted` (técnico) | Your offer was accepted / Aceptaron tu oferta | {{name}} chose you for this job. Open the details and get ready to start. / {{name}} te eligió para este trabajo. Mirá los detalles y prepará el inicio. |
+| `mechanic_found` (dueño) | A technician offered to help / Un técnico te ofrece ayuda | {{name}} can take your request. Review the offer and confirm to continue. / {{name}} puede tomar tu solicitud. Revisá la oferta y confirmá para continuar. |
+| `request_status` en camino (dueño) | Your technician is on the way / Tu técnico va en camino | {{name}} left for your location. We'll notify you again when they arrive. / {{name}} salió hacia tu ubicación. Te avisamos de nuevo cuando llegue. |
+| `request_status` llegó (dueño) | Your technician has arrived / Tu técnico llegó | {{name}} is at your location. Open the app to follow the visit. / {{name}} está en tu ubicación. Abrí la app para seguir la visita. |
+| `video_call` (sala lista) | Your video call is ready / Tu videollamada está lista | {{name}} is waiting for you. Tap to join: the call lasts {{minutes}} minutes. / {{name}} te está esperando. Tocá para entrar: la llamada dura {{minutes}} minutos. |
+| `video_call_reminder` | Your video call starts in 10 minutes / Tu videollamada empieza en 10 minutos | Scheduled for {{time}} with {{name}}. Have your vehicle and good light ready. / Agendada para las {{time}} con {{name}}. Tené a mano el vehículo y buena luz. |
+| `video_call_finished` (dueño) | Your video call has ended / Terminó tu videollamada | Confirm it was resolved, or tell us what went wrong. If you don't reply, it confirms itself in 24 hours. / Confirmá si se resolvió o contanos qué falló. Si no respondés, se confirma sola en 24 horas. |
+| `video_call_confirmed` (técnico) | Your video call was confirmed / Confirmaron tu videollamada | The customer confirmed the call. Your earnings will show in Payments. / El cliente confirmó la llamada. Tus ganancias van a aparecer en Pagos. |
+| `review_requested` | How did it go? / ¿Cómo te fue? | Rate {{name}} and tell others about your experience. It takes a few seconds. / Calificá a {{name}} y contá tu experiencia. Lleva unos segundos. |
+| `chat_message_created` | (nombre de quien escribe) | Subir el recorte del mensaje de 100 a **140 caracteres** (hoy "Te envió una foto" para imágenes está bien). |
+
+- **Hecho cuando:** los diez tipos de arriba salen con título y cuerpo en los dos idiomas, y ningún texto pasa de dos líneas en el centro de notificaciones de un iPhone (el cuerpo se corta en ~4 líneas al expandir).
+- **Cómo lo verificamos:** disparar cada tipo contra un teléfono de prueba (iOS y Android) en español e inglés y mirar el centro de notificaciones. La app no cambia.
 
 ### [ ] Actualizar la documentación (repo de análisis)
 - Turnos de `/video-call/slots`: ahora son 24 h, 48 por día (el README dice 08:00–19:30), y `period` incluye `night`.

@@ -94,17 +94,17 @@ export default function PaymentsScreen() {
 
             <EarningsSummaryCards summary={earnings.summary} />
 
-            <View className="flex-row mb-2" style={{ gap: 8 }}>
+            <View className="mb-2" style={{ gap: 8 }}>
                 <TouchableOpacity
                     onPress={downloadStatement}
                     disabled={downloading}
-                    className="flex-1 flex-row items-center justify-center rounded-xl border bg-white px-3"
+                    className="flex-row items-center justify-center rounded-xl border bg-white px-3"
                     style={{ minHeight: 48, borderColor: '#BFD3F5', gap: 8, opacity: downloading ? 0.6 : 1 }}
                     accessibilityRole="button"
                     testID="earnings-statement"
                 >
                     {downloading ? <ActivityIndicator color="#0047AB" /> : <FileDown size={16} color="#0047AB" />}
-                    <Text className="font-outfit-semibold" style={{ ...TYPE.helper, color: '#0047AB', flexShrink: 1 }} numberOfLines={2}>
+                    <Text className="font-outfit-semibold" style={{ ...TYPE.helper, color: '#0047AB' }} numberOfLines={1}>
                         {t(`${K}.actions.statement`)}
                     </Text>
                 </TouchableOpacity>

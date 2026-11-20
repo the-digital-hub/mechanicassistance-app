@@ -461,6 +461,14 @@ export default function LoginScreen() {
     }
   };
 
+  const switchMethodButton = (
+    <SocialButton
+      label={method === "email" ? t("login.signInWithMobile") : t("login.signInWithEmail")}
+      onPress={() => setMethod(method === "email" ? "mobile" : "email")}
+      icon={<Ionicons name={method === "email" ? "call-outline" : "mail-outline"} size={22} color="#1E56E3" />}
+    />
+  );
+
   return (
     <>
       {/* --- OTP Step UI --- */}
@@ -712,27 +720,26 @@ export default function LoginScreen() {
                       onChangeText={setPassword}
                       leftIcon={<Ionicons name="lock-closed-outline" size={20} color="#8C96AE" />}
                     />
-                    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                      <TouchableOpacity
-                        onPress={() => setRememberLogin((v) => !v)}
-                        hitSlop={8}
-                        accessibilityRole="checkbox"
-                        accessibilityState={{ checked: rememberLogin }}
-                        style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
-                      >
-                        <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 1.5, borderColor: rememberLogin ? "#1E56E3" : "#C5CEE3", backgroundColor: rememberLogin ? "#1E56E3" : "#FFFFFF", alignItems: "center", justifyContent: "center" }}>
-                          {rememberLogin && <Ionicons name="checkmark" size={16} color="#FFFFFF" />}
-                        </View>
-                        <Text className="font-outfit-medium" style={{ ...TYPE.helper, color: "#6B7490" }}>
-                          {t("login.rememberMe")}
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={openForgot} hitSlop={8}>
-                        <Text className="font-outfit-bold" style={{ ...TYPE.helper, color: "#1E56E3" }}>
-                          {t("login.forgotPassword")}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
+                    {/* Forgot password sits right under the field, on the right; Remember me is its own row below, so neither is cut on narrow screens. */}
+                    <TouchableOpacity onPress={openForgot} hitSlop={8} style={{ alignSelf: "flex-end", marginTop: -4 }} accessibilityRole="button">
+                      <Text className="font-outfit-bold" style={{ ...TYPE.helper, color: "#1E56E3" }}>
+                        {t("login.forgotPassword")}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => setRememberLogin((v) => !v)}
+                      hitSlop={8}
+                      accessibilityRole="checkbox"
+                      accessibilityState={{ checked: rememberLogin }}
+                      style={{ flexDirection: "row", alignItems: "center", gap: 8, alignSelf: "flex-start" }}
+                    >
+                      <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 1.5, borderColor: rememberLogin ? "#1E56E3" : "#C5CEE3", backgroundColor: rememberLogin ? "#1E56E3" : "#FFFFFF", alignItems: "center", justifyContent: "center" }}>
+                        {rememberLogin && <Ionicons name="checkmark" size={16} color="#FFFFFF" />}
+                      </View>
+                      <Text className="font-outfit-medium" style={{ ...TYPE.helper, color: "#6B7490" }}>
+                        {t("login.rememberMe")}
+                      </Text>
+                    </TouchableOpacity>
                   </View>
                 ) : (
                   <View style={{ flexDirection: "row", gap: 10 }}>
@@ -771,6 +778,8 @@ export default function LoginScreen() {
                 </View>
 
                 <View style={{ gap: 12 }}>
+                  {/* With the email form open, the way back to the phone comes first, above Google. */}
+                  {method === "email" && switchMethodButton}
                   <SocialButton
                     label={t("login.signInWithGoogle")}
                     onPress={handleGoogleLogin}
@@ -785,11 +794,7 @@ export default function LoginScreen() {
                       icon={<Ionicons name="logo-apple" size={22} color="#000000" />}
                     />
                   )}
-                  <SocialButton
-                    label={method === "email" ? t("login.signInWithMobile") : t("login.signInWithEmail")}
-                    onPress={() => setMethod(method === "email" ? "mobile" : "email")}
-                    icon={<Ionicons name={method === "email" ? "call-outline" : "mail-outline"} size={22} color="#1E56E3" />}
-                  />
+                  {method !== "email" && switchMethodButton}
                 </View>
 
                 <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", paddingTop: 2 }}>

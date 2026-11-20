@@ -406,8 +406,11 @@ export default function SearchingScreen() {
                         <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
                             <MapPin size={20} color="#0047AB" />
                         </View>
-                        <Text className="font-outfit-medium text-base text-gray-500">{t('requestAssistance.searching.location')}</Text>
-                        <Text className="flex-1 text-right font-outfit-semibold text-base text-gray-900" numberOfLines={1}>{requestData?.address || '—'}</Text>
+                        {/* An address is long: the label sits above it, and the address has the whole width to wrap. */}
+                        <View className="flex-1">
+                            <Text className="font-outfit-medium text-base text-gray-500">{t('requestAssistance.searching.location')}</Text>
+                            <Text className="font-outfit-semibold text-base text-gray-900" numberOfLines={2}>{requestData?.address || '—'}</Text>
+                        </View>
                     </View>
 
                     </>

@@ -25,7 +25,6 @@ import {
     CalendarDays,
     Check,
     ChevronLeft,
-    ChevronRight,
     Clock,
     CreditCard,
     Info,
@@ -127,9 +126,6 @@ export default function VideoCallWhenScreen() {
     const [mode, setMode] = useState<Mode>('now');
     // "Now" or "Schedule" is the user's explicit choice: until then neither is marked and the button asks for it.
     const [modeChosen, setModeChosen] = useState(false);
-    const [durationTrackWidth, setDurationTrackWidth] = useState(0);
-    const [durationScrollX, setDurationScrollX] = useState(0);
-    const durationScrollRef = useRef<ScrollView>(null);
     // Only with the call-length menu: the old flat-fee flow has no such step and keeps "Now" as it was.
     const modeReady = modeChosen || !durationSupported;
     // The call length is chosen first and has no default: nothing can be requested without it.
@@ -283,6 +279,20 @@ export default function VideoCallWhenScreen() {
     // ─── Submit ───
 
     const canSubmit = !submitting && !loading && modeReady && (!durationSupported || duration !== null) && (mode === 'now' ? (now?.mechanicsOnline ?? 0) > 0 : !!slot);
+
+    // Two phases on one screen: pick the length and the time, then review the summary and request. The summary and the
+    // payment notes only show in the second one, so the first stays light.
+    const [reviewing, setReviewing] = useState(false);
+    const showReview = reviewing && canSubmit;
+    const scrollRef = useRef<ScrollView>(null);
+    const goReview = () => {
+        setReviewing(true);
+        scrollRef.current?.scrollTo({ y: 0, animated: false });
+    };
+    const leaveReview = () => {
+        setReviewing(false);
+        scrollRef.current?.scrollTo({ y: 0, animated: false });
+    };
 
     const handleSubmit = async () => {
         if (!canSubmit) return;
@@ -521,11 +531,13 @@ export default function VideoCallWhenScreen() {
             ? t('requestAssistance.when.ctaPickDuration')
             : !modeReady
             ? t('requestAssistance.when.ctaPickWhen')
+            : mode === 'schedule' && !slot
+            ? t('requestAssistance.when.ctaPickTime')
+            : !showReview
+            ? t('requestAssistance.when.ctaContinue')
             : mode === 'now'
             ? t('requestAssistance.when.ctaNow')
-            : slot
-                ? t('requestAssistance.when.ctaSchedule', { time: slotLabel(slot) })
-                : t('requestAssistance.when.ctaPickTime');
+            : t('requestAssistance.when.ctaSchedule', { time: slot ? slotLabel(slot) : '' });
 
     const selectedDayRel = day ? relativeDay(dayIndex) : null;
     const selectedDayLabel = day
@@ -556,7 +568,7 @@ export default function VideoCallWhenScreen() {
                 className="px-6 pt-20 pb-2 flex-row items-center justify-between"
                 style={{ backgroundColor: '#F4F5FA', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 3, elevation: 3, borderBottomWidth: 0.5, borderBottomColor: '#D1D5DB' }}
             >
-                <TouchableOpacity onPress={() => router.back()} testID="when-back">
+                <TouchableOpacity onPress={() => (showReview ? leaveReview() : router.back())} testID="when-back">
                     <View className="w-10 h-10 rounded-full justify-center items-center" style={{ backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }}>
                         <ChevronLeft size={20} color="#0047AB" />
                     </View>
@@ -566,7 +578,7 @@ export default function VideoCallWhenScreen() {
                 </Text>
                 <View className="w-10" />
             </View>
-            <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24, gap: 14 }}>
+            <ScrollView ref={scrollRef} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24, gap: 14 }}>
                     <RequestSteps type={params.type} step="when" flush />
                 <View>
                     <View className="flex-row items-center justify-between" style={{ marginBottom: 12 }}>
@@ -578,10 +590,10 @@ export default function VideoCallWhenScreen() {
                         </View>
                     </View>
                     <Text className="font-outfit-bold" style={{ fontSize: 26, color: C.ink }}>
-                        {t('requestAssistance.when.title')}
+                        {showReview ? t('requestAssistance.when.reviewTitle') : t('requestAssistance.when.title')}
                     </Text>
                     <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: C.muted, marginTop: 6 }}>
-                        {t('requestAssistance.when.subtitle')}
+                        {showReview ? t('requestAssistance.when.reviewSubtitle') : t('requestAssistance.when.subtitle')}
                     </Text>
                 </View>
 
@@ -606,140 +618,77 @@ export default function VideoCallWhenScreen() {
                     </View>
                 ) : (
                     <>
+                        {!showReview && (
+                        <>
                         {durationSupported && (
-                        <LinearGradient
-                            colors={['#2B66F8', '#081E72']}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 1 }}
-                            style={{ borderRadius: 20, padding: 16, gap: 12, shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.22, shadowRadius: 14, elevation: 5 }}
-                            testID="when-duration-section"
-                        >
-                            {/* The header: a clock tile, what to do, and one short line. */}
-                            <View className="flex-row items-center" style={{ gap: 12 }}>
-                                <View className="items-center justify-center" style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.18)' }}>
-                                    <Timer size={24} color="#FFFFFF" />
-                                </View>
-                                <View style={{ flex: 1, gap: 2 }}>
-                                    <Text className="font-outfit-bold" style={{ fontSize: 20, lineHeight: 26, letterSpacing: -0.3, color: '#FFFFFF' }}>
-                                        {t('requestAssistance.when.durationTitle')}
-                                    </Text>
-                                    <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: 'rgba(255,255,255,0.85)' }}>
-                                        {t('requestAssistance.when.durationHint')}
-                                    </Text>
-                                </View>
+                        <View testID="when-duration-section" style={{ gap: 14 }}>
+                            {/* No blue card, no arrows: a clear question, and every length laid out in the open, two to a row. */}
+                            <View>
+                                <Text className="font-outfit-bold" style={{ fontSize: 22, lineHeight: 28, letterSpacing: -0.4, color: C.ink }}>
+                                    {t('requestAssistance.when.durationTitle')}
+                                </Text>
+                                <Text className="font-outfit-regular" style={{ ...TYPE.body, color: C.muted, marginTop: 4 }}>
+                                    {t('requestAssistance.when.durationHint')}
+                                </Text>
                             </View>
-                            {/* The length the call lasts is the first decision: a blue card, the picked length lifted on white. */}
-                            <View
-                                onLayout={(e) => setDurationTrackWidth(e.nativeEvent.layout.width)}
-                            >
+                            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
                                 {(() => {
-                                    const durations = now?.durations ?? [];
-                                    // Up to three lengths fit side by side. With more, exactly three show between two arrows
-                                    // and the rest slide in: nothing is cut off, and the arrows say there is more.
-                                    const slides = durations.length > 3;
-                                    const ARROW = 26;
-                                    const inner = durationTrackWidth > 0 ? durationTrackWidth - (slides ? ARROW * 2 : 0) : 0;
-                                    const segmentWidth = inner > 0 ? inner / (slides ? 3 : durations.length) : 0;
-                                    const maxScroll = Math.max(0, durations.length * segmentWidth - inner);
-                                    const canBack = durationScrollX > 1;
-                                    const canForward = durationScrollX < maxScroll - 1;
-                                    const slideBy = (dir: 1 | -1) => {
-                                        const target = Math.min(maxScroll, Math.max(0, Math.round(durationScrollX / segmentWidth) * segmentWidth + dir * segmentWidth));
-                                        durationScrollRef.current?.scrollTo({ x: target, animated: true });
-                                    };
-                                    const items = durations.map((d) => {
-                                        const selected = duration === d.minutes;
-                                        return (
-                                          <View key={d.minutes} style={{ ...(slides ? { width: segmentWidth } : { flex: 1 }), padding: 3 }}>
-                                            <TouchableOpacity
-                                                style={{
-                                                    height: 104,
-                                                    borderRadius: 14,
-                                                    alignItems: 'stretch',
-                                                    justifyContent: 'flex-start',
-                                                    backgroundColor: selected ? '#FFFFFF' : 'rgba(255,255,255,0.08)',
-                                                    borderWidth: 1.5,
-                                                    borderColor: selected ? '#FFFFFF' : 'rgba(255,255,255,0.28)',
-                                                    ...(selected ? { shadowColor: '#041048', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 8, elevation: 4 } : null),
-                                                }}
-                                                activeOpacity={0.85}
-                                                onPress={() => setDuration(d.minutes)}
-                                                accessibilityRole="button"
-                                                accessibilityState={{ selected }}
-                                                testID={`when-duration-${d.minutes}`}
-                                            >
-                                                {selected ? (
-                                                    <View style={{ position: 'absolute', top: 5, right: 5, width: 18, height: 18, borderRadius: 9, backgroundColor: C.blue, alignItems: 'center', justifyContent: 'center' }}>
-                                                        <Check size={12} color="#FFFFFF" strokeWidth={3.4} />
-                                                    </View>
-                                                ) : null}
-                                                {/* Two separate pieces: the length on top, its price in a band of its own below. */}
-                                                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                                                    <Text className="font-outfit-bold" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={{ fontSize: 26, lineHeight: 30, letterSpacing: -0.5, color: selected ? C.blue : '#FFFFFF' }}>
-                                                        {d.minutes}
-                                                        <Text className="font-outfit-semibold" style={{ fontSize: 15, letterSpacing: 0, color: selected ? C.blue : 'rgba(255,255,255,0.85)' }}>{' min'}</Text>
-                                                    </Text>
-                                                </View>
-                                                <View
-                                                    style={{
-                                                        alignSelf: 'stretch',
-                                                        height: 34,
-                                                        marginHorizontal: 6,
-                                                        marginBottom: 6,
-                                                        borderRadius: 10,
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        backgroundColor: selected ? '#E8F0FD' : 'rgba(255,255,255,0.18)',
-                                                    }}
-                                                >
-                                                    <Text className="font-outfit-bold" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={{ fontSize: 16, lineHeight: 22, color: selected ? C.ink : '#FFFFFF' }} testID={`when-duration-price-${d.minutes}`}>
-                                                        {`$${(optionPrices[d.minutes] ?? d.price).toFixed(2)}`}
-                                                    </Text>
-                                                </View>
-                                            </TouchableOpacity>
-                                          </View>
-                                        );
-                                    });
-                                    if (!slides) return <View style={{ flexDirection: 'row' }}>{items}</View>;
-                                    const arrow = (dir: 1 | -1, enabled: boolean) => (
+                                    // Columns follow how many lengths there are: up to three share one row, four make a square, and a
+                                    // longer menu goes three to a row when it divides evenly, else two. Never a lone tile stretched wide.
+                                    const list = now?.durations ?? [];
+                                    const cols = list.length <= 3 ? Math.max(1, list.length) : list.length === 4 ? 2 : list.length % 3 === 0 ? 3 : 2;
+                                    const tileWidth = cols === 1 ? '100%' : cols === 2 ? '48%' : '31%';
+                                    const tight = cols === 3;
+                                    return list.map((d) => {
+                                    const selected = duration === d.minutes;
+                                    return (
                                         <TouchableOpacity
-                                            onPress={() => slideBy(dir)}
-                                            disabled={!enabled}
-                                            hitSlop={8}
-                                            accessibilityRole="button"
-                                            accessibilityLabel={dir === 1 ? 'More lengths' : 'Shorter lengths'}
-                                            style={{ width: ARROW, height: 104, alignItems: 'center', justifyContent: 'center', opacity: enabled ? 1 : 0.3 }}
-                                            testID={dir === 1 ? 'when-duration-next' : 'when-duration-prev'}
+                                            key={d.minutes}
+                                            // A second tap on the chosen length lets go of it.
+                                            onPress={() => setDuration(selected ? null : d.minutes)}
+                                            activeOpacity={0.85}
+                                            accessibilityRole="radio"
+                                            accessibilityState={{ selected }}
+                                            style={{
+                                                // Two to a row; an odd last one keeps its width instead of stretching across.
+                                                width: tileWidth,
+                                                flexGrow: 0,
+                                                minHeight: tight ? 118 : 108,
+                                                paddingVertical: 16,
+                                                paddingHorizontal: tight ? 12 : 16,
+                                                borderRadius: 18,
+                                                borderWidth: 2,
+                                                borderColor: selected ? C.blue : '#E3EBFA',
+                                                backgroundColor: selected ? '#EDF3FF' : '#FAFCFF',
+                                                justifyContent: 'center',
+                                                shadowColor: '#0E2F8A',
+                                                shadowOffset: { width: 0, height: 4 },
+                                                shadowOpacity: selected ? 0.12 : 0.05,
+                                                shadowRadius: 10,
+                                                elevation: selected ? 4 : 2,
+                                            }}
+                                            testID={`when-duration-${d.minutes}`}
                                         >
-                                            {dir === 1 ? <ChevronRight size={20} color="#FFFFFF" strokeWidth={2.6} /> : <ChevronLeft size={20} color="#FFFFFF" strokeWidth={2.6} />}
+                                            <View style={{ position: 'absolute', top: 10, right: 10, width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center', backgroundColor: selected ? C.blue : '#FFFFFF', borderWidth: selected ? 0 : 2, borderColor: '#D5E1F8' }}>
+                                                {selected ? <Check size={14} color="#FFFFFF" strokeWidth={3.4} /> : null}
+                                            </View>
+                                            <Text className="font-outfit-bold" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ fontSize: tight ? 28 : 30, lineHeight: 36, letterSpacing: -0.6, color: selected ? C.blue : C.ink, marginTop: tight ? 10 : 0 }}>
+                                                {d.minutes}
+                                                <Text className="font-outfit-semibold" style={{ fontSize: 17, letterSpacing: 0, color: selected ? C.blue : C.muted }}>{' min'}</Text>
+                                            </Text>
+                                            <Text className="font-outfit-bold" style={{ ...TYPE.group, color: C.blue, marginTop: 6 }} testID={`when-duration-price-${d.minutes}`}>
+                                                {`$${(optionPrices[d.minutes] ?? d.price).toFixed(2)}`}
+                                            </Text>
                                         </TouchableOpacity>
                                     );
-                                    return (
-                                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                            {arrow(-1, canBack)}
-                                            <ScrollView
-                                                ref={durationScrollRef}
-                                                horizontal
-                                                showsHorizontalScrollIndicator={false}
-                                                decelerationRate="fast"
-                                                snapToInterval={segmentWidth || undefined}
-                                                scrollEventThrottle={16}
-                                                onScroll={(e) => setDurationScrollX(e.nativeEvent.contentOffset.x)}
-                                                style={{ width: inner || undefined }}
-                                                testID="when-duration-scroll"
-                                            >
-                                                {items}
-                                            </ScrollView>
-                                            {arrow(1, canForward)}
-                                        </View>
-                                    );
+                                    });
                                 })()}
                             </View>
-                        </LinearGradient>
+                        </View>
                         )}
 
                         {durationSupported && (
-                            <Text className="font-outfit-bold" style={{ ...TYPE.question, color: C.ink, marginTop: 10 }}>
+                            <Text className="font-outfit-bold" style={{ fontSize: 22, lineHeight: 28, letterSpacing: -0.4, color: C.ink, marginTop: 14 }}>
                                 {t('requestAssistance.when.whenTitle')}
                             </Text>
                         )}
@@ -902,9 +851,11 @@ export default function VideoCallWhenScreen() {
                             </View>
                         )}
 
-                        <View style={{ marginTop: 6 }}>
-                            <SectionLabel>{t('requestAssistance.when.summary')}</SectionLabel>
-                        </View>
+                        </>
+                        )}
+
+                        {showReview && (
+                        <>
                         <View style={{ backgroundColor: '#FFFFFF', borderRadius: 16, paddingHorizontal: 14, shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 }}>
                             <SummaryRow Icon={DollarSign} label={t('requestAssistance.when.price')} value={priceLabel} />
                             <SummaryRow Icon={Video} label={t('requestAssistance.when.service')} value={t('requestAssistance.header.videoCall')} />
@@ -945,6 +896,8 @@ export default function VideoCallWhenScreen() {
                                 {t('requestAssistance.when.consentNote')}
                             </Text>
                         </InfoNote>
+                        </>
+                        )}
                     </>
                 )}
             </ScrollView>
@@ -954,7 +907,7 @@ export default function VideoCallWhenScreen() {
                 {submitting ? (
                     <ActivityIndicator size="large" color={C.blue} />
                 ) : (
-                    <TouchableOpacity onPress={handleSubmit} disabled={!canSubmit} activeOpacity={0.85} testID="when-submit" style={canSubmit ? FLOATING_CTA : undefined}>
+                    <TouchableOpacity onPress={showReview ? handleSubmit : goReview} disabled={!canSubmit} activeOpacity={0.85} testID="when-submit" style={canSubmit ? FLOATING_CTA : undefined}>
                         {canSubmit ? (
                             <LinearGradient
                                 colors={['#2B66F8', '#081E72']}
@@ -962,7 +915,7 @@ export default function VideoCallWhenScreen() {
                                 end={{ x: 1, y: 0 }}
                                 style={{ borderRadius: 16, paddingVertical: 17, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                             >
-                                {mode === 'now' && <Video size={18} color="#FFFFFF" />}
+                                {showReview && mode === 'now' && <Video size={18} color="#FFFFFF" />}
                                 <Text className="text-white font-outfit-bold" style={TYPE.button}>
                                     {ctaLabel}
                                 </Text>

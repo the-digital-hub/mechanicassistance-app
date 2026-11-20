@@ -46,7 +46,7 @@ export function JoinCallSheet({ visible, appointmentId, onClose, onEnter }: {
         <Modal supportedOrientations={MODAL_ORIENTATIONS} transparent visible={visible} animationType="fade" onRequestClose={onClose}>
             <SheetDim color="rgba(11,21,48,0.45)" />
             <Pressable style={{ flex: 1 }} onPress={onClose} accessibilityLabel={t('videoCall.joinSheet.close')} />
-            <View style={{ ...SHEET, maxHeight: '88%', paddingTop: 12 }} testID="join-call-sheet">
+            <View style={{ ...SHEET, maxHeight: '72%', paddingTop: 12 }} testID="join-call-sheet">
                 <SheetHandle />
                 <View className="flex-row items-center" style={{ gap: 6, paddingHorizontal: 20, paddingTop: 4, paddingBottom: 12 }}>
                     <View style={{ marginLeft: -10, marginVertical: -10 }}>
@@ -98,21 +98,6 @@ export function JoinCallSheet({ visible, appointmentId, onClose, onEnter }: {
                                 <Text className="font-outfit-regular" style={{ flex: 1, ...TYPE.helper, color: AO.muted }}>{t(`${L}.consent.point${n}`)}</Text>
                             </View>
                         ))}
-                        <TouchableOpacity
-                            onPress={() => !join.acceptedAt && join.setAccepted((v) => !v)}
-                            activeOpacity={0.8}
-                            accessibilityRole="checkbox"
-                            accessibilityState={{ checked: join.accepted }}
-                            className="flex-row items-center"
-                            style={{ gap: 12, paddingTop: 6 }}
-                            testID="lobby-consent-check"
-                        >
-                            <Ionicons name={join.accepted ? 'checkbox' : 'square-outline'} size={24} color={join.accepted ? AO.blue : AO.mutedLight} />
-                            <Text className="font-outfit-semibold" style={{ flex: 1, ...TYPE.helper, color: AO.text }}>{t(`${L}.consent.accept`)}</Text>
-                        </TouchableOpacity>
-                        {join.acceptedAt ? (
-                            <Text className="font-outfit-regular" style={{ ...TYPE.caption, color: AO.muted, paddingLeft: 36 }}>{t(`${L}.consent.acceptedOn`, { date: new Date(join.acceptedAt).toLocaleString() })}</Text>
-                        ) : null}
                     </View>
 
                     <View style={{ backgroundColor: '#FFFFFF', borderRadius: 18, borderWidth: 1, borderColor: AO.borderSoft, paddingHorizontal: 14, paddingVertical: 10, gap: 4 }}>
@@ -133,7 +118,25 @@ export function JoinCallSheet({ visible, appointmentId, onClose, onEnter }: {
                     </View>
                 </ScrollView>
 
-                <View style={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 30, gap: 8 }}>
+                <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 30, gap: 10, borderTopWidth: 1, borderTopColor: AO.borderSoft }}>
+                    {/* The acceptance stays here, under the conditions and above the button: it never sits at the bottom of a long text. */}
+                    <TouchableOpacity
+                        onPress={() => !join.acceptedAt && join.setAccepted((v) => !v)}
+                        activeOpacity={0.8}
+                        accessibilityRole="checkbox"
+                        accessibilityState={{ checked: join.accepted }}
+                        className="flex-row items-center"
+                        style={{ gap: 12 }}
+                        testID="lobby-consent-check"
+                    >
+                        <Ionicons name={join.accepted ? 'checkbox' : 'square-outline'} size={26} color={join.accepted ? AO.blue : AO.mutedLight} />
+                        <View style={{ flex: 1 }}>
+                            <Text className="font-outfit-semibold" style={{ ...TYPE.helper, color: AO.text }}>{t(`${L}.consent.accept`)}</Text>
+                            {join.acceptedAt ? (
+                                <Text className="font-outfit-regular" style={{ ...TYPE.caption, color: AO.muted }}>{t(`${L}.consent.acceptedOn`, { date: new Date(join.acceptedAt).toLocaleString() })}</Text>
+                            ) : null}
+                        </View>
+                    </TouchableOpacity>
                     {waitingForRoom ? (
                         <View className="flex-row items-center justify-center" style={{ gap: 8 }}>
                             <ActivityIndicator size="small" color={AO.muted} />

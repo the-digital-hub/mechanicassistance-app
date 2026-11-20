@@ -318,7 +318,7 @@
         "confirmed": "Confirmada"
       },
       "vehicleCare": {
-        "title": "Cuidado y actividad del vehículo",
+        "title": "Cuidado de tu vehículo",
         "subtitle": "Elegí un vehículo para ver su historial.",
         "switchTitle": "Elegí un vehículo",
         "mileage": "Kilometraje {{miles}} mi",
@@ -582,7 +582,7 @@
       "continue": "Continuar",
       "conditionSub": {
         "drivable": "Arranca y se mueve normalmente.",
-        "unsafe_to_drive": "Algo anda mal: mejor no manejarlo.",
+        "unsafe_to_drive": "Algo anda mal. No lo manejes.",
         "pushable_only": "No arranca ni se mueve solo."
       }
     },
@@ -600,6 +600,11 @@
       "photoNotePlaceholder": "Agregá una nota sobre esta foto (opcional)…",
       "photoOfIssue": "Foto del problema",
       "browsePhoto": "Sacá una foto o elegí un archivo",
+      "videoHint": "Mostrá el problema mientras ocurre.",
+      "addVideo": "Agregar un video",
+      "photoHint": "Hasta {{max}} fotos.",
+      "addPhoto": "Agregar una foto",
+      "addAnotherPhotoShort": "Agregar otra foto",
       "addAnotherPhoto": "+ Agregar otra foto",
       "remove": "Quitar",
       "captured": "Cargado",
@@ -868,6 +873,9 @@
       "ctaNow": "Confirmar y solicitar",
       "ctaSchedule": "Agendar para las {{time}}",
       "ctaPickTime": "Elegí un horario para seguir",
+      "ctaContinue": "Continuar",
+      "reviewTitle": "Revisá tu solicitud",
+      "reviewSubtitle": "Mirá los detalles y pedí tu videollamada.",
       "loadFailed": "No pudimos cargar los horarios.",
       "retry": "Reintentar",
       "slotGoneTitle": "Ese horario se acaba de ocupar",
@@ -2308,7 +2316,7 @@
     "addVehicles": "Agregar vehículo",
     "invalidVinTitle": "VIN inválido",
     "invalidVinMessage": "El VIN debe tener exactamente 17 caracteres.",
-    "vinDecodedTitle": "VIN decodificado",
+    "vinDecodedTitle": "Vehículo encontrado",
     "vinDecodedMessage": "Encontrado: {{make}} {{model}}",
     "ok": "OK",
     "vinNotFoundTitle": "VIN no encontrado",
@@ -2328,7 +2336,7 @@
       "search": "Buscar",
       "noResults": "No hay resultados",
       "catalogLoadError": "No se pudo cargar la lista.",
-      "decodeVin": "Decodificar VIN",
+      "decodeVin": "Autocompletar los datos del vehículo con el VIN",
       "vinHint": "Ingresá el VIN de 17 caracteres y tocá buscar para completar marca, modelo, año y especificaciones.",
       "vinError": {
         "notFound": "No encontramos este VIN. Revisalo o cargá el vehículo a mano.",
@@ -2396,8 +2404,8 @@
         "vinManual": "¿Preferís cargarlo vos? Editá cualquier campo.",
         "vinFound": "✓ Vehículo encontrado · completamos los datos de abajo",
         "identityLocked": "El VIN, la marca y el modelo no se pueden cambiar. Si es otro auto, agregalo como vehículo nuevo.",
-        "decode": "Decodificar",
-        "decoding": "Decodificando…",
+        "decode": "Autocompletar datos",
+        "decoding": "Buscando…",
         "infoSubtitle": "Datos básicos para identificar tu vehículo",
         "technicalSubtitle": "Motor, combustible, transmisión y más",
         "technicalFromVin": "Completado con tu VIN",
@@ -2536,6 +2544,8 @@
     "baseBadge": "UBICACIÓN BASE",
     "setBaseFailedTitle": "No se pudo cambiar la ubicación base",
     "setBaseFailedMessage": "Intentá de nuevo.",
+    "setBaseNotForService": "Esta dirección es tu casa como dueño de vehículo. Elegí una de tus direcciones de trabajo o agregá una nueva.",
+    "setBaseWithoutLocation": "No pudimos ubicar esta dirección en el mapa. Revisala e intentá de nuevo.",
     "name": {
       "label": "Nombre de la dirección",
       "optional": "(opcional)",
@@ -2771,7 +2781,7 @@
     "vehicleInfo": {
       "invalidVinTitle": "VIN inválido",
       "invalidVinMessage": "El VIN debe tener exactamente 17 caracteres.",
-      "vinDecodedTitle": "VIN decodificado",
+      "vinDecodedTitle": "Vehículo encontrado",
       "vinDecodedMessage": "Encontrado: {{make}} {{model}}",
       "ok": "OK",
       "vinNotFoundTitle": "VIN no encontrado",

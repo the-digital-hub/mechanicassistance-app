@@ -1,12 +1,13 @@
 import { useUser } from '@/context/UserContext';
 import { addressDisplayName, addressesForRole } from '@/lib/address';
+import { ApiError } from '@/lib/api/types';
 import { addressDAO } from '@/lib/dao/AddressDAO';
 import { useRouter } from 'expo-router';
 import { CheckCircle2, ChevronRight, Circle, MapPin, Plus } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { appAlert } from '@/lib/ui/appAlert';
 
 /**
@@ -20,6 +21,13 @@ export function AddressesList({ picking = false }: { picking?: boolean }) {
     const { t } = useTranslation();
     const { user, updateUser, refreshAddresses } = useUser();
     const [savingId, setSavingId] = useState<string | null>(null);
+
+    // The base can only be a work address, and the session keeps the addresses it read at sign-in: read them again
+    // when this opens, so one that is the vehicle-owner's home (role 'user') is not offered by mistake.
+    useEffect(() => {
+        if (picking) void refreshAddresses().catch(() => undefined);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [picking]);
 
     const pickServiceBase = async (id: string) => {
         if (savingId) return;
@@ -36,10 +44,16 @@ export function AddressesList({ picking = false }: { picking?: boolean }) {
             );
             router.back();
         } catch (error) {
-            appAlert(
-                t('addresses.setBaseFailedTitle'),
-                error instanceof Error && error.message ? error.message : t('addresses.setBaseFailedMessage'),
-            );
+            const code = error instanceof ApiError && error.apiError && typeof error.apiError === 'object' ? (error.apiError as { code?: unknown }).code : undefined;
+            // The server answers with a code, not a sentence for the person: say what happened in plain words.
+            const message =
+                code === 'address_not_for_service'
+                    ? t('addresses.setBaseNotForService')
+                    : code === 'address_without_location'
+                        ? t('addresses.setBaseWithoutLocation')
+                        : t('addresses.setBaseFailedMessage');
+            if (code === 'address_not_for_service') void refreshAddresses().catch(() => undefined);
+            appAlert(t('addresses.setBaseFailedTitle'), message);
         } finally {
             setSavingId(null);
         }

@@ -180,13 +180,9 @@ export default function MechanicFoundScreen() {
             // history lands on this screen again, then open the appointment with
             // the list under it.
             if (router.canDismiss()) router.dismissAll();
-            // A video call asked for now starts right away, in the lobby; a booked
-            // one opens its appointment, which has "Join video call" for later.
-            if (request.type === 'videocall' && request.startNow) {
-                router.push({ pathname: '/video-lobby/[id]' as any, params: { id: requestId } });
-            } else {
-                router.push({ pathname: '/appointments/[id]', params: { id: requestId } }, { withAnchor: true });
-            }
+            // The owner lands on the appointment, video call or not: its screen has the details, the tabs and
+            // "Join video call", and they go in when they choose, not straight into the call.
+            router.push({ pathname: '/appointments/[id]', params: { id: requestId } }, { withAnchor: true });
         } catch (error) {
             const code = apiErrorCode(error);
             if (code === 'OFFER_EXPIRED') {

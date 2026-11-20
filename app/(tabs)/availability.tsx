@@ -1,4 +1,5 @@
 import { AvailabilityForm } from '@/components/availability/AvailabilityForm';
+import { BaseLocationSheet } from '@/components/availability/BaseLocationSheet';
 import {
     availabilityFromUser,
     baseLocationFromAddresses,
@@ -25,8 +26,15 @@ export default function ProfileAvailabilityScreen() {
     // edits, and showing stale hours would let a save overwrite newer ones.
     const [account, setAccount] = useState<UserData | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [baseSheetOpen, setBaseSheetOpen] = useState(false);
 
     const userId = user?.id;
+
+    const reloadAccount = useCallback(async () => {
+        if (!userId) return;
+        const fresh = await userDAO.getById(userId).catch(() => null);
+        if (fresh) setAccount(fresh);
+    }, [userId]);
 
     // On every focus, not just on mount: the base location's Edit leaves this
     // screen mounted underneath, and coming back must show the address just saved.
@@ -93,13 +101,16 @@ export default function ProfileAvailabilityScreen() {
     }
 
     return (
-        <AvailabilityForm
-            initialValue={availabilityFromUser(account)}
-            baseLocation={baseLocationFromAddresses(account.addresses)}
-            onEditLocation={() => router.push('/(tabs)/service-base')}
-            submitLabel={t('setup.availability.saveChanges')}
-            submitting={isSaving}
-            onSubmit={handleSubmit}
-        />
+        <>
+            <AvailabilityForm
+                initialValue={availabilityFromUser(account)}
+                baseLocation={baseLocationFromAddresses(account.addresses)}
+                onEditLocation={() => setBaseSheetOpen(true)}
+                submitLabel={t('setup.availability.saveChanges')}
+                submitting={isSaving}
+                onSubmit={handleSubmit}
+            />
+            <BaseLocationSheet visible={baseSheetOpen} onClose={() => setBaseSheetOpen(false)} onPicked={() => void reloadAccount()} />
+        </>
     );
 }

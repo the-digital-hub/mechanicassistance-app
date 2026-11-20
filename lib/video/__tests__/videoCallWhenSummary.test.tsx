@@ -59,22 +59,36 @@ describe('VideoCallWhenScreen summary', () => {
     });
 
     it('asks for the call length first and keeps the request locked until it is chosen', async () => {
-        const { findByTestId, getByText, queryByTestId } = render(<VideoCallWhenScreen />);
+        const { findByTestId, getByText, queryByTestId, queryByText } = render(<VideoCallWhenScreen />);
         expect(await findByTestId('when-duration-15')).toBeTruthy();
         expect(getByText('requestAssistance.when.ctaPickDuration')).toBeTruthy();
-        expect(getByText('requestAssistance.when.durationUnset')).toBeTruthy();
+        // The summary only appears in the review step, after Continue.
+        expect(queryByText('requestAssistance.when.durationUnset')).toBeNull();
         expect(queryByTestId('when-duration-note')).toBeNull();
     });
 
-    it('shows the chosen length, that it can be extended, the estimated wait and the search button', async () => {
-        const { findByTestId, getByText, getByTestId } = render(<VideoCallWhenScreen />);
+    it('lets go of the chosen length with a second tap', async () => {
+        const { findByTestId, getByText } = render(<VideoCallWhenScreen />);
         fireEvent.press(await findByTestId('when-duration-30'));
-        expect(getByText('requestAssistance.when.durationValue:30')).toBeTruthy();
-        expect(getByTestId('when-duration-note').props.children).toBe('requestAssistance.when.durationNote:30');
-        expect(getByText('requestAssistance.when.waitValue:2')).toBeTruthy();
+        expect(getByText('requestAssistance.when.ctaPickWhen')).toBeTruthy();
+        fireEvent.press(await findByTestId('when-duration-30'));
+        expect(getByText('requestAssistance.when.ctaPickDuration')).toBeTruthy();
+    });
+
+    it('picks first, then reviews the chosen length, that it can be extended and the estimated wait before requesting', async () => {
+        const { findByTestId, getByText, getByTestId, queryByTestId } = render(<VideoCallWhenScreen />);
+        fireEvent.press(await findByTestId('when-duration-30'));
         // Neither "Now" nor "Schedule" is marked until the owner picks: the button asks for it.
         expect(getByText('requestAssistance.when.ctaPickWhen')).toBeTruthy();
         fireEvent.press(getByTestId('when-option-now'));
+        // Step one ends with Continue; the summary is not there yet.
+        expect(getByText('requestAssistance.when.ctaContinue')).toBeTruthy();
+        expect(queryByTestId('when-duration-note')).toBeNull();
+        fireEvent.press(getByTestId('when-submit'));
+        // Step two: the summary and the button that requests.
+        expect(getByText('requestAssistance.when.durationValue:30')).toBeTruthy();
+        expect(getByTestId('when-duration-note').props.children).toBe('requestAssistance.when.durationNote:30');
+        expect(getByText('requestAssistance.when.waitValue:2')).toBeTruthy();
         expect(getByText('requestAssistance.when.ctaNow')).toBeTruthy();
     });
 
@@ -87,9 +101,11 @@ describe('VideoCallWhenScreen summary', () => {
 
     it('keeps the old flat-fee flow, with no length to pick, while the backend sends no menu', async () => {
         mockDurations = undefined;
-        const { findByText, queryByTestId } = render(<VideoCallWhenScreen />);
-        expect(await findByText('requestAssistance.when.ctaNow')).toBeTruthy();
+        const { findByText, getByTestId, getByText, queryByTestId } = render(<VideoCallWhenScreen />);
+        expect(await findByText('requestAssistance.when.ctaContinue')).toBeTruthy();
         expect(queryByTestId('when-duration-section')).toBeNull();
         expect(queryByTestId('when-duration-15')).toBeNull();
+        fireEvent.press(getByTestId('when-submit'));
+        expect(getByText('requestAssistance.when.ctaNow')).toBeTruthy();
     });
 });

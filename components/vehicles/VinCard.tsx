@@ -29,7 +29,8 @@ export function VinCard({ value, onChange, onDecode, decoding, decoded, error, l
     const { t } = useTranslation();
     const ready = value.replace(/\s/g, '').length === VIN_LENGTH;
     const canDecode = ready && !decoding;
-    const buttonInk = ready ? AV.blue : 'rgba(255,255,255,0.8)';
+    // Ready: the app's green for an important action, never white. Not ready: a translucent tile, like a disabled control.
+    const buttonInk = '#FFFFFF';
 
     return (
         <LinearGradient
@@ -60,8 +61,9 @@ export function VinCard({ value, onChange, onDecode, decoding, decoded, error, l
                 {t('vehicles.form.design.vinDescription')}
             </Text>
 
-            <View style={{ flexDirection: 'row', gap: 10, marginTop: 18 }}>
-                <View style={{ flex: 1, justifyContent: 'center' }}>
+            {/* The field takes the whole row and Decode sits under it: side by side the 17 characters had no room. */}
+            <View style={{ gap: 12, marginTop: 18 }}>
+                <View style={{ justifyContent: 'center' }}>
                 <TextInput
                     value={value}
                     onChangeText={v => onChange(v.toUpperCase())}
@@ -80,7 +82,7 @@ export function VinCard({ value, onChange, onDecode, decoding, decoded, error, l
                         borderWidth: 1,
                         borderColor: error ? '#FCA5A5' : 'transparent',
                         fontFamily: MONO_FONT,
-                        fontSize: 15,
+                        fontSize: 16,
                         letterSpacing: 0.5,
                         color: AV.text,
                     }}
@@ -111,12 +113,14 @@ export function VinCard({ value, onChange, onDecode, decoding, decoded, error, l
                         borderRadius: 14,
                         flexDirection: 'row',
                         alignItems: 'center',
+                        justifyContent: 'center',
                         gap: 8,
-                        backgroundColor: ready ? '#fff' : 'rgba(255,255,255,0.25)',
+                        backgroundColor: ready ? '#10B981' : 'rgba(255,255,255,0.22)',
+                        opacity: ready ? 1 : 0.85,
                     }}
                 >
                     <AVIcon name="search" color={buttonInk} />
-                    <Text className="font-outfit-bold" style={{ fontSize: 15, color: buttonInk }}>
+                    <Text className="font-outfit-bold" style={{ ...TYPE.body, color: buttonInk }}>
                         {decoding ? t('vehicles.form.design.decoding') : t('vehicles.form.design.decode')}
                     </Text>
                 </TouchableOpacity>

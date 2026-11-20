@@ -1,13 +1,12 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import * as Haptics from 'expo-haptics';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Animated, Easing, InputAccessoryView, Keyboard, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BRAND_GRADIENT } from '@/components/brand/MeshBackground';
 import type { OnSiteVisit } from '@/lib/dao/OnSiteDAO';
 import { lockLandscape, lockPortrait } from '@/lib/orientation';
 import { compareVins, declaredVin, extractVin, isValidVin, normalizeVin, vinCheckDigitOk, type VinCapture } from '@/lib/onsite/vin';
@@ -19,7 +18,6 @@ import { ActionBar, Body, Card, CardTitle, Checkbox, Intro, OnSiteDialog, OS, Pr
 
 const BARCODE_TYPES = ['code39', 'code128', 'pdf417', 'datamatrix', 'qr'] as const;
 
-const FRAME_H = 340;
 const CORNER = 34;
 
 /** One corner of the viewfinder. */
@@ -45,7 +43,7 @@ function Corner({ pos }: { pos: 'tl' | 'tr' | 'bl' | 'br' }) {
 }
 
 /**
- * Brand-blue full-screen scanner: the camera in a rounded window, a moving scan line, and a way out by typing.
+ * Full-screen scanner: the camera everywhere, a large window under a translucent veil, a moving scan line, and a way out by typing.
  * It follows how the phone is held: held on its side, the camera takes the wide side and the text sits next to it.
  */
 function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: string) => void }) {
@@ -59,6 +57,9 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
     const [torch, setTorch] = React.useState(false);
     const handled = React.useRef(false);
     const line = React.useRef(new Animated.Value(0)).current;
+    // A small shake when something is read that is not a VIN, and a pop when the VIN is read.
+    const shake = React.useRef(new Animated.Value(0)).current;
+    const pop = React.useRef(new Animated.Value(0)).current;
 
     // Opens upright, like the rest of the app. Turning it sideways is the mechanic's choice (the button), and
     // it always goes back upright when the scanner closes, whether a VIN was read or not.
@@ -81,12 +82,25 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
         if (handled.current) return;
         const vin = extractVin(data);
         if (!vin) {
-            setNotVin(true);
+            setNotVin((was) => {
+                if (!was) {
+                    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => undefined);
+                    Animated.sequence([
+                        Animated.timing(shake, { toValue: 1, duration: 60, useNativeDriver: true }),
+                        Animated.timing(shake, { toValue: -1, duration: 90, useNativeDriver: true }),
+                        Animated.timing(shake, { toValue: 0.6, duration: 80, useNativeDriver: true }),
+                        Animated.timing(shake, { toValue: 0, duration: 70, useNativeDriver: true }),
+                    ]).start();
+                }
+                return true;
+            });
             return;
         }
         handled.current = true;
         setNotVin(false);
         setFound(vin);
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
+        Animated.spring(pop, { toValue: 1, friction: 6, tension: 120, useNativeDriver: true }).start();
         // A beat to see the read VIN before going back to the form.
         setTimeout(() => onVin(vin), 650);
     };
@@ -97,8 +111,14 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
         { icon: 'flashlight-outline' as const, text: t('appointments.onSite.vin.tipLight') },
     ];
 
-    // Camera window: fixed height upright; in landscape it fills the height that is left.
-    const frameHeight = landscape ? Math.max(180, height - insets.top - insets.bottom - 32) : FRAME_H;
+    // The camera fills the whole screen; a large window is cut out of a translucent dark veil, so the picture shows
+    // everywhere and the window only says where to aim. Held on its side, the window takes the wide part.
+    const winW = landscape ? Math.min(width * 0.6, width - insets.left - insets.right - 300) : width - 24;
+    const winH = landscape ? height - insets.top - insets.bottom - 40 : Math.min(height * 0.4, 380);
+    const winTop = landscape ? insets.top + 20 : insets.top + 184;
+    const winLeft = landscape ? width - Math.max(insets.right, 20) - winW : 12;
+    const VEIL = 900; // border width of the veil: it spreads far past the screen on every side
+    const glass = 'rgba(8,16,40,0.42)';
 
     const closeButton = (
         <TouchableOpacity
@@ -106,7 +126,7 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
             accessibilityRole="button"
             accessibilityLabel={t('appointments.onSite.common.cancel')}
             className="items-center justify-center"
-            style={{ width: 46, height: 46, borderRadius: 23, backgroundColor: 'rgba(255,255,255,0.18)' }}
+            style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: glass }}
         >
             <Ionicons name="close" size={22} color="#FFFFFF" />
         </TouchableOpacity>
@@ -118,10 +138,10 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
             accessibilityRole="button"
             accessibilityLabel={landscape ? t('appointments.onSite.vin.rotateToPortrait') : t('appointments.onSite.vin.rotateToLandscape')}
             className="items-center justify-center"
-            style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(255,255,255,0.16)' }}
+            style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: glass }}
             testID="vin-rotate"
         >
-            <MaterialCommunityIcons name={landscape ? 'phone-rotate-portrait' : 'phone-rotate-landscape'} size={26} color="#FFFFFF" />
+            <MaterialCommunityIcons name={landscape ? 'phone-rotate-portrait' : 'phone-rotate-landscape'} size={25} color="#FFFFFF" />
         </TouchableOpacity>
     );
 
@@ -132,10 +152,10 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
             accessibilityState={{ selected: torch }}
             accessibilityLabel={torch ? t('appointments.onSite.vin.torchOff') : t('appointments.onSite.vin.torchOn')}
             className="items-center justify-center"
-            style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: torch ? '#FFFFFF' : 'rgba(255,255,255,0.16)' }}
+            style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: torch ? 'rgba(255,255,255,0.92)' : glass }}
             testID="vin-torch"
         >
-            <Ionicons name={torch ? 'flashlight' : 'flashlight-outline'} size={24} color={torch ? '#1E56E3' : '#FFFFFF'} />
+            <Ionicons name={torch ? 'flashlight' : 'flashlight-outline'} size={23} color={torch ? '#1E56E3' : '#FFFFFF'} />
         </TouchableOpacity>
     );
 
@@ -151,104 +171,122 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
 
     const heading = (
         <>
-            <Text className="font-outfit-bold" style={{ fontSize: landscape ? 26 : 30, letterSpacing: -0.8, lineHeight: landscape ? 30 : 34, color: '#FFFFFF', marginTop: landscape ? 14 : 18 }}>{t('appointments.onSite.vin.scanTitle')}</Text>
-            <Text className="font-outfit-regular" style={{ fontSize: 15, lineHeight: 21, color: 'rgba(255,255,255,0.82)', marginTop: 6 }}>{t('appointments.onSite.vin.scanSubtitle')}</Text>
+            <Text className="font-outfit-bold" style={{ fontSize: landscape ? 24 : 26, letterSpacing: -0.6, lineHeight: landscape ? 28 : 31, color: '#FFFFFF', marginTop: landscape ? 14 : 16 }}>{t('appointments.onSite.vin.scanTitle')}</Text>
+            <Text className="font-outfit-regular" style={{ fontSize: 15, lineHeight: 21, color: 'rgba(255,255,255,0.88)', marginTop: 4 }}>{t('appointments.onSite.vin.scanSubtitle')}</Text>
         </>
     );
 
-    const viewfinder = (
-        <View style={{ height: frameHeight, borderRadius: 26, overflow: 'hidden', backgroundColor: '#06123A', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.35)' }}>
-            <CameraView
-                style={StyleSheet.absoluteFill}
-                facing="back"
-                enableTorch={torch}
-                barcodeScannerSettings={{ barcodeTypes: [...BARCODE_TYPES] }}
-                onBarcodeScanned={found ? undefined : onScanned}
-            />
-            <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(8,24,100,0.18)' }]} />
-            <Corner pos="tl" /><Corner pos="tr" /><Corner pos="bl" /><Corner pos="br" />
-            {!found ? (
-                <Animated.View
-                    pointerEvents="none"
-                    style={{
-                        position: 'absolute', left: 26, right: 26, top: 26, height: 3, borderRadius: 2, backgroundColor: '#83D4ED',
-                        shadowColor: '#83D4ED', shadowOpacity: 0.9, shadowRadius: 8, shadowOffset: { width: 0, height: 0 },
-                        transform: [{ translateY: line.interpolate({ inputRange: [0, 1], outputRange: [0, frameHeight - 58] }) }],
-                    }}
-                />
-            ) : (
-                <View pointerEvents="none" className="items-center justify-center" style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(16,185,129,0.82)' }]}>
-                    <Ionicons name="checkmark-circle" size={54} color="#FFFFFF" />
-                    <Text className="font-outfit-bold" style={{ fontSize: 17, letterSpacing: 1.2, color: '#FFFFFF', marginTop: 8 }}>{found}</Text>
-                </View>
-            )}
-        </View>
-    );
-
     const statusPill = (
-        <View className="flex-row items-center self-start" style={{ gap: 8, marginTop: 14, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 100, backgroundColor: notVin ? 'rgba(240,138,28,0.95)' : 'rgba(255,255,255,0.16)' }}>
+        <View className="flex-row items-center self-start" style={{ gap: 8, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 100, backgroundColor: notVin ? 'rgba(240,138,28,0.95)' : glass }}>
             <Ionicons name={notVin ? 'alert-circle-outline' : 'scan-outline'} size={16} color="#FFFFFF" />
-            <Text className="font-outfit-semibold flex-shrink" style={{ fontSize: 13, color: '#FFFFFF' }}>
+            <Text className="font-outfit-semibold flex-shrink" style={{ fontSize: 14, color: '#FFFFFF' }}>
                 {found ? t('appointments.onSite.vin.scanned') : notVin ? t('appointments.onSite.vin.notVin') : t('appointments.onSite.vin.scanHint')}
             </Text>
         </View>
     );
 
+    // Not a white block: a glass button with a light outline, so it does not shout over the picture.
     const typeInstead = (
         <TouchableOpacity
             onPress={onClose}
             activeOpacity={0.85}
             accessibilityRole="button"
             className="items-center justify-center flex-row"
-            style={{ height: 56, borderRadius: 16, backgroundColor: '#FFFFFF', gap: 8 }}
+            style={{ height: 52, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.16)', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.45)', gap: 8 }}
         >
-            <Ionicons name="create-outline" size={20} color="#1E56E3" />
-            <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#1E56E3' }}>{t('appointments.onSite.vin.typeInstead')}</Text>
+            <Ionicons name="create-outline" size={20} color="#FFFFFF" />
+            <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#FFFFFF' }}>{t('appointments.onSite.vin.typeInstead')}</Text>
         </TouchableOpacity>
     );
 
     return (
-            <View className="flex-1">
+            <View className="flex-1" style={{ backgroundColor: '#06123A' }}>
                 <StatusBar style="light" />
-                <LinearGradient colors={[...BRAND_GRADIENT]} locations={[0, 0.55, 1]} start={{ x: 0.2, y: 0 }} end={{ x: 0.8, y: 1 }} style={StyleSheet.absoluteFill} />
+                <CameraView
+                    style={StyleSheet.absoluteFill}
+                    facing="back"
+                    enableTorch={torch}
+                    barcodeScannerSettings={{ barcodeTypes: [...BARCODE_TYPES] }}
+                    onBarcodeScanned={found ? undefined : onScanned}
+                />
+
+                {/* The veil: translucent, with a rounded hole where the barcode goes. */}
+                <View
+                    pointerEvents="none"
+                    style={{ position: 'absolute', left: winLeft - VEIL, top: winTop - VEIL, width: winW + 2 * VEIL, height: winH + 2 * VEIL, borderWidth: VEIL, borderColor: 'rgba(5,14,40,0.55)', borderRadius: VEIL + 26 }}
+                />
+
+                {/* The window: a thin outline, the corners and the scan line */}
+                <Animated.View
+                    pointerEvents="none"
+                    style={{
+                        position: 'absolute', left: winLeft, top: winTop, width: winW, height: winH, borderRadius: 26,
+                        borderWidth: 1.5, borderColor: notVin ? 'rgba(240,138,28,0.95)' : 'rgba(255,255,255,0.4)',
+                        transform: [{ translateX: shake.interpolate({ inputRange: [-1, 1], outputRange: [-10, 10] }) }],
+                    }}
+                >
+                  {/* A soft glow that breathes with the corners (its opacity moves; a shadow itself cannot be animated natively). */}
+                  <Animated.View
+                    style={{
+                        position: 'absolute', left: -1.5, top: -1.5, right: -1.5, bottom: -1.5, borderRadius: 26, borderWidth: 1.5,
+                        borderColor: found ? 'rgba(16,185,129,0.9)' : notVin ? 'rgba(240,138,28,0.9)' : 'rgba(131,212,237,0.8)',
+                        shadowColor: found ? '#10B981' : notVin ? '#F08A1C' : '#83D4ED', shadowOffset: { width: 0, height: 0 }, shadowRadius: 16, shadowOpacity: 0.9,
+                        opacity: line.interpolate({ inputRange: [0, 1], outputRange: [0.2, 0.85] }),
+                    }}
+                  />
+                  <View style={{ flex: 1, borderRadius: 26, overflow: 'hidden' }}>
+                    {/* No sweeping line: the corners breathe slowly, and turn green when the code is read. */}
+                    <Animated.View
+                        style={[
+                            StyleSheet.absoluteFill,
+                            found
+                                ? undefined
+                                : {
+                                      opacity: line.interpolate({ inputRange: [0, 1], outputRange: [0.55, 1] }),
+                                      transform: [{ scale: line.interpolate({ inputRange: [0, 1], outputRange: [0.985, 1.0] }) }],
+                                  },
+                        ]}
+                    >
+                        <Corner pos="tl" /><Corner pos="tr" /><Corner pos="bl" /><Corner pos="br" />
+                    </Animated.View>
+                    {!found ? null : (
+                        <Animated.View className="items-center justify-center" style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(16,185,129,0.8)', opacity: pop, transform: [{ scale: pop.interpolate({ inputRange: [0, 1], outputRange: [0.92, 1] }) }] }]}>
+                            <Ionicons name="checkmark-circle" size={54} color="#FFFFFF" />
+                            <Text className="font-outfit-bold" style={{ fontSize: 17, letterSpacing: 1.2, color: '#FFFFFF', marginTop: 8 }}>{found}</Text>
+                        </Animated.View>
+                    )}
+                  </View>
+                </Animated.View>
 
                 {landscape ? (
-                    <View className="flex-1 flex-row" style={{ paddingTop: insets.top + 16, paddingBottom: insets.bottom + 16, paddingLeft: Math.max(insets.left, 20), paddingRight: Math.max(insets.right, 20), gap: 20 }}>
-                        <View style={{ flex: 1, justifyContent: 'space-between' }}>
-                            <View>
-                                {topButtons}
-                                {heading}
-                                {statusPill}
-                            </View>
-                            {typeInstead}
+                    <View style={{ position: 'absolute', left: Math.max(insets.left, 20), top: insets.top + 16, bottom: insets.bottom + 16, width: winLeft - Math.max(insets.left, 20) - 20, justifyContent: 'space-between' }}>
+                        <View>
+                            {topButtons}
+                            {heading}
+                            <View style={{ marginTop: 12 }}>{statusPill}</View>
                         </View>
-                        <View style={{ flex: 1.5 }}>{viewfinder}</View>
+                        {typeInstead}
                     </View>
                 ) : (
                     <>
-                        <View style={{ paddingTop: insets.top + 10, paddingHorizontal: 20 }}>
+                        <View style={{ position: 'absolute', left: 20, right: 20, top: insets.top + 10 }}>
                             {topButtons}
                             {heading}
                         </View>
-                        <View style={{ marginHorizontal: 20, marginTop: 22 }}>{viewfinder}</View>
-                        <View style={{ marginHorizontal: 20 }}>
+
+                        <View style={{ position: 'absolute', left: 20, right: 20, bottom: insets.bottom + 16, gap: 14 }}>
                             <View className="self-center">{statusPill}</View>
-                        </View>
-
-                        {/* Where to look */}
-                        <View style={{ marginHorizontal: 20, marginTop: 18, padding: 14, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.1)', gap: 10 }}>
-                            {tips.map((tip) => (
-                                <View key={tip.icon} className="flex-row items-center" style={{ gap: 12 }}>
-                                    <View className="items-center justify-center" style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.16)' }}>
-                                        <Ionicons name={tip.icon} size={17} color="#FFFFFF" />
+                            {/* Where to look: one quiet glass card */}
+                            <View style={{ padding: 14, borderRadius: 18, backgroundColor: glass, gap: 10 }}>
+                                {tips.map((tip) => (
+                                    <View key={tip.icon} className="flex-row items-center" style={{ gap: 12 }}>
+                                        <Ionicons name={tip.icon} size={18} color="rgba(255,255,255,0.92)" />
+                                        <Text className="flex-1 font-outfit-medium" style={{ fontSize: 14, lineHeight: 19, color: 'rgba(255,255,255,0.92)' }}>{tip.text}</Text>
                                     </View>
-                                    <Text className="flex-1 font-outfit-medium" style={{ fontSize: 13, lineHeight: 18, color: 'rgba(255,255,255,0.9)' }}>{tip.text}</Text>
-                                </View>
-                            ))}
+                                ))}
+                            </View>
+                            {typeInstead}
                         </View>
-
-                        <View style={{ flex: 1 }} />
-                        <View style={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 16 }}>{typeInstead}</View>
                     </>
                 )}
             </View>

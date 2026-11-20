@@ -18,13 +18,52 @@ const MAX_VIDEO_MB = 250;
 type PhotoSlot = { uri: string; note: string };
 type VideoSlot = { uri: string; note: string };
 
+/**
+ * The empty state of a media slot: an icon tile, a title, one short line and a real button, instead of a tall dashed
+ * box with small text. The same structure as the OBD report upload.
+ */
+function PickCard({ icon, title, hint, actionLabel, actionIcon, onPress, testID }: {
+    icon: React.ReactNode;
+    title: string;
+    hint: string;
+    actionLabel: string;
+    actionIcon: React.ReactNode;
+    onPress: () => void;
+    testID?: string;
+}) {
+    return (
+        <View style={{ gap: 14 }}>
+            <View className="flex-row items-center" style={{ gap: 12 }}>
+                <View className="items-center justify-center" style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: '#E9F1FF' }}>
+                    {icon}
+                </View>
+                <View style={{ flex: 1 }}>
+                    <Text className="font-outfit-bold" style={{ ...TYPE.question, color: '#0B1530' }}>{title}</Text>
+                    <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: '#6B7490' }}>{hint}</Text>
+                </View>
+            </View>
+            <TouchableOpacity
+                onPress={onPress}
+                activeOpacity={0.85}
+                accessibilityRole="button"
+                className="flex-row items-center justify-center"
+                style={{ height: 52, borderRadius: 14, backgroundColor: '#1E56E3', gap: 8 }}
+                testID={testID}
+            >
+                {actionIcon}
+                <Text className="font-outfit-bold" style={{ ...TYPE.button, color: '#FFFFFF' }}>{actionLabel}</Text>
+            </TouchableOpacity>
+        </View>
+    );
+}
+
 export default function VehicleDocumentationScreen() {
     const router = useRouter();
     const { t } = useTranslation();
     const params = useLocalSearchParams();
     const { type } = params;
 
-    const [tab, setTab] = useState<'video' | 'photos'>('video');
+    const [tab, setTab] = useState<'video' | 'photos'>('photos');
     const [video, setVideo] = useState<VideoSlot | null>(null);
     const [photos, setPhotos] = useState<PhotoSlot[]>([]);
 
@@ -200,29 +239,15 @@ export default function VehicleDocumentationScreen() {
                     {t('requestAssistance.vehicleDocumentation.subtitle')}
                 </Text>
 
-                <Text className="text-gray-900 font-outfit-bold mb-3" style={TYPE.question}>
-                    {t('requestAssistance.vehicleDocumentation.sectionTitle')}{' '}
-                    <Text className="text-gray-500 font-outfit-regular" style={TYPE.helper}>
-                        {t('requestAssistance.vehicleDocumentation.sectionOptional')}
-                    </Text>
-                </Text>
-
                 <View className="flex-row p-1 rounded-2xl mb-4" style={{ backgroundColor: '#EEF2FA' }}>
-                    <Tab id="video" label={t('requestAssistance.vehicleDocumentation.tabVideo')} />
                     <Tab id="photos" label={t('requestAssistance.vehicleDocumentation.tabPhotos')} />
+                    <Tab id="video" label={t('requestAssistance.vehicleDocumentation.tabVideo')} />
                 </View>
 
                 {tab === 'video' ? (
                     <View className="bg-white rounded-2xl p-4 mb-8" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 8, elevation: 6 }}>
-                        <TouchableOpacity
-                            onPress={() => !video && askSource(pickVideo)}
-                            activeOpacity={video ? 1 : 0.8}
-                            className="rounded-2xl items-center justify-center"
-                            style={video
-                                ? { width: '85%', alignSelf: 'center', height: 180, backgroundColor: '#0B1530' }
-                                : { width: '85%', alignSelf: 'center', height: 180, borderWidth: 2, borderStyle: 'dashed', borderColor: '#E4EAF5', backgroundColor: '#F4F6FC' }}
-                        >
-                            {video ? (
+                        {video ? (
+                            <View className="rounded-2xl items-center justify-center" style={{ width: '85%', alignSelf: 'center', height: 180, backgroundColor: '#0B1530', overflow: 'hidden' }}>
                                 <VideoView
                                     player={player}
                                     style={{ width: '100%', height: '100%' }}
@@ -230,20 +255,20 @@ export default function VehicleDocumentationScreen() {
                                     nativeControls
                                     fullscreenOptions={{ enable: true }}
                                 />
-                            ) : (
-                                <View className="items-center px-6">
-                                    <VideoIcon size={30} color="#8C96AE" />
-                                    <Text className="text-gray-500 font-outfit-semibold mt-2 text-center" style={TYPE.helper}>
-                                        {t('requestAssistance.vehicleDocumentation.recordIssue')}
-                                    </Text>
-                                    <Text className="text-[#0047AB] font-outfit-bold mt-1 text-center underline" style={TYPE.helper}>
-                                        {t('requestAssistance.vehicleDocumentation.browseVideo')}
-                                    </Text>
-                                </View>
-                            )}
-                        </TouchableOpacity>
+                            </View>
+                        ) : (
+                            <PickCard
+                                icon={<VideoIcon size={24} color="#1E56E3" />}
+                                title={t('requestAssistance.vehicleDocumentation.recordIssue')}
+                                hint={t('requestAssistance.vehicleDocumentation.videoHint')}
+                                actionLabel={t('requestAssistance.vehicleDocumentation.addVideo')}
+                                actionIcon={<VideoIcon size={22} color="#FFFFFF" />}
+                                onPress={() => askSource(pickVideo)}
+                                testID="doc-add-video"
+                            />
+                        )}
 
-                        <StatusRow filled={!!video} onRemove={() => setVideo(null)} />
+                        {video ? <StatusRow filled onRemove={() => setVideo(null)} /> : null}
 
                         <TextInput
                             multiline
@@ -275,21 +300,15 @@ export default function VehicleDocumentationScreen() {
                         ))}
 
                         {photos.length < MAX_PHOTOS && (
-                            <TouchableOpacity
+                            <PickCard
+                                icon={<Camera size={24} color="#1E56E3" />}
+                                title={t('requestAssistance.vehicleDocumentation.photoOfIssue')}
+                                hint={t('requestAssistance.vehicleDocumentation.photoHint', { max: MAX_PHOTOS })}
+                                actionLabel={photos.length === 0 ? t('requestAssistance.vehicleDocumentation.addPhoto') : t('requestAssistance.vehicleDocumentation.addAnotherPhotoShort')}
+                                actionIcon={<Camera size={22} color="#FFFFFF" />}
                                 onPress={() => askSource(pickPhoto)}
-                                className="rounded-2xl items-center justify-center"
-                                style={{ height: 150, borderWidth: 2, borderStyle: 'dashed', borderColor: '#E4EAF5', backgroundColor: '#F4F6FC' }}
-                            >
-                                <Camera size={28} color="#8C96AE" />
-                                <Text className="text-gray-500 font-outfit-semibold mt-2" style={TYPE.helper}>
-                                    {t('requestAssistance.vehicleDocumentation.photoOfIssue')}
-                                </Text>
-                                <Text className="text-[#0047AB] font-outfit-bold mt-1 underline" style={TYPE.helper}>
-                                    {photos.length === 0
-                                        ? t('requestAssistance.vehicleDocumentation.browsePhoto')
-                                        : t('requestAssistance.vehicleDocumentation.addAnotherPhoto')}
-                                </Text>
-                            </TouchableOpacity>
+                                testID="doc-add-photo"
+                            />
                         )}
                     </View>
                 )}

@@ -474,6 +474,30 @@ export default function RequestDetailScreen() {
                             </View>
                         ) : null}
 
+                        {/* Video call: when it is booked for (instead of distance / ETA), one more row of the same card */}
+                        {isVideo ? (
+                            <View className="flex-row items-center px-5 py-4 border-b border-gray-100" testID="video-call-when">
+                                <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
+                                    <Clock size={20} color="#0047AB" />
+                                </View>
+                                <View className="flex-1">
+                                    <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">{t('requestDetail.videoCallWhen')}</Text>
+                                    <Text className="font-outfit-bold text-base text-gray-900">
+                                        {videoCallStartLabel(typeof date === 'string' ? date : undefined, i18n.language) ?? t('requestDetail.videoCallNow')}
+                                    </Text>
+                                    <View style={{ marginTop: 6 }}>
+                                        <VideoCallZoneNote
+                                            compact
+                                            call={{
+                                                date: typeof date === 'string' && videoCallStartLabel(date, i18n.language) ? date : null,
+                                                timezone: (fetched as { timezone?: string } | null)?.timezone ?? (typeof params.timezone === 'string' ? params.timezone : null),
+                                            }}
+                                        />
+                                    </View>
+                                </View>
+                            </View>
+                        ) : null}
+
                         {/* Vehicle */}
                         <View className="flex-row items-center px-5 py-4 border-b border-gray-100">
                             <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
@@ -545,32 +569,6 @@ export default function RequestDetailScreen() {
                             </View>
                         )}
                     </View>
-
-                    {/* Video call: when it is booked for, instead of distance / ETA */}
-                    {isVideo && (
-                        <View style={HERO_CARD} testID="video-call-when">
-                            <View className="flex-row items-center p-4">
-                                <View className="w-11 h-11 rounded-xl justify-center items-center mr-3" style={HERO_ICON}>
-                                    <Clock size={20} color={HERO_ICON_COLOR} />
-                                </View>
-                                <View className="flex-1">
-                                    <Text className="font-outfit-semibold text-xs tracking-widest mb-0.5" style={HERO_LABEL}>{t('requestDetail.videoCallWhen')}</Text>
-                                    <Text className="font-outfit-bold text-lg" style={HERO_VALUE}>
-                                        {videoCallStartLabel(typeof date === 'string' ? date : undefined, i18n.language) ?? t('requestDetail.videoCallNow')}
-                                    </Text>
-                                </View>
-                            </View>
-                            <View className="px-4 pb-4">
-                                <VideoCallZoneNote
-                                    compact
-                                    call={{
-                                        date: typeof date === 'string' && videoCallStartLabel(date, i18n.language) ? date : null,
-                                        timezone: (fetched as { timezone?: string } | null)?.timezone ?? (typeof params.timezone === 'string' ? params.timezone : null),
-                                    }}
-                                />
-                            </View>
-                        </View>
-                    )}
 
                     {/* Distance / ETA Card */}
                     {!isVideo && (etaText || distKm !== null) && (
@@ -668,12 +666,12 @@ export default function RequestDetailScreen() {
                             <Text className="text-blue-600 font-outfit-bold text-base">{t('requestDetail.waitingClientConfirmation')}</Text>
                         </View>
                     ) : (
-                    <View className="flex-row" style={{ gap: 12 }}>
+                    <View style={{ gap: 12 }}>
                     <TouchableOpacity
                         onPress={handleAccept}
                         disabled={declining || (!isImmediate && (!selectedDate || !selectedTime))}
                         activeOpacity={0.8}
-                        style={{ flex: 1 }}
+                        style={{ alignSelf: 'stretch' }}
                     >
                         {isImmediate || (selectedDate && selectedTime) ? (
                             <LinearGradient
@@ -700,10 +698,10 @@ export default function RequestDetailScreen() {
                         onPress={handleDecline}
                         disabled={declining || submitting}
                         activeOpacity={0.8}
-                        className="rounded-xl items-center justify-center px-6"
-                        style={{ backgroundColor: '#F1F2F7', opacity: declining ? 0.6 : 1 }}
+                        className="items-center justify-center"
+                        style={{ alignSelf: 'stretch', height: 52, borderRadius: 12, backgroundColor: '#E6EAF2', opacity: declining ? 0.6 : 1 }}
                     >
-                        <Text className="font-outfit-bold text-base" style={{ color: '#6B7280' }}>{t('requestDetail.decline')}</Text>
+                        <Text className="font-outfit-bold text-base" style={{ color: '#4A5470' }}>{t('requestDetail.decline')}</Text>
                     </TouchableOpacity>
                     </View>
                     )}

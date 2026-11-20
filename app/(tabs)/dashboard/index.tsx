@@ -603,16 +603,6 @@ export default function DashboardScreen() {
                             if (!multiRequests) return <View className="gap-4">{cards}</View>;
                             return (
                                 <View>
-                                    <View className="flex-row items-center justify-between mb-3">
-                                        <View className="flex-row" style={{ gap: 5 }}>
-                                            {visibleRequests.map((r, i) => (
-                                                <View key={r.id} style={{ width: i === requestPageIdx ? 16 : 6, height: 6, borderRadius: 3, backgroundColor: i === requestPageIdx ? '#1E56E3' : '#DCE7FA' }} />
-                                            ))}
-                                        </View>
-                                        <Text className="font-outfit-semibold" style={{ fontSize: 13, color: '#6B7490' }}>
-                                            {requestPageIdx + 1} / {visibleRequests.length}
-                                        </Text>
-                                    </View>
                                     <ScrollView
                                         horizontal
                                         showsHorizontalScrollIndicator={false}
@@ -628,6 +618,17 @@ export default function DashboardScreen() {
                                     >
                                         {cards}
                                     </ScrollView>
+                                    {/* Same-size dots centered under the cards, like any pager: nothing floats above the first card. */}
+                                    <View
+                                        className="flex-row items-center justify-center"
+                                        style={{ gap: 8, marginTop: 2 }}
+                                        accessibilityLabel={`${requestPageIdx + 1} / ${visibleRequests.length}`}
+                                        testID="request-pager-dots"
+                                    >
+                                        {visibleRequests.map((r, i) => (
+                                            <View key={r.id} style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: i === requestPageIdx ? '#1E56E3' : '#CBD8F5' }} />
+                                        ))}
+                                    </View>
                                 </View>
                             );
                         })()}

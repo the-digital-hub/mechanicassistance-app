@@ -29,11 +29,11 @@ const TONES: Record<TimerTone, { fg: string; bg: string }> = {
     over: { fg: AO.red, bg: '#FDECEC' },
 };
 
-const RING = 112;
+const RING = 128;
 const STROKE = 9;
 const RADIUS = (RING - STROKE) / 2;
 /** Widest the digits may be: the inside of the ring, minus some air. */
-const DIGITS_WIDTH = RING - 2 * STROKE - 12;
+const DIGITS_WIDTH = RING - 2 * STROKE - 28;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 /**
@@ -81,7 +81,7 @@ export function VideoCallTimerCard({ startedAtMs, limitSeconds = VIDEO_SESSION_S
                     <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' }}>
                         <Text
                             className="font-outfit-bold"
-                            style={{ fontSize: 20, width: DIGITS_WIDTH, textAlign: 'center', color: fg, letterSpacing: -0.5, fontVariant: ['tabular-nums'] }}
+                            style={{ fontSize: 24, width: DIGITS_WIDTH, textAlign: 'center', color: fg, letterSpacing: -0.5, fontVariant: ['tabular-nums'] }}
                             numberOfLines={1}
                             adjustsFontSizeToFit
                             minimumFontScale={0.7}
@@ -89,7 +89,7 @@ export function VideoCallTimerCard({ startedAtMs, limitSeconds = VIDEO_SESSION_S
                         >
                             {formatElapsed(remaining)}
                         </Text>
-                        <Text className="font-outfit-bold" style={{ fontSize: 13, color: AO.muted, marginTop: 3 }} testID="video-call-timer-label">
+                        <Text className="font-outfit-bold" style={{ fontSize: 13, color: AO.muted, marginTop: 4, width: DIGITS_WIDTH, textAlign: 'center' }} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} testID="video-call-timer-label">
                             {t(tone === 'over' ? `${K}.timeUp` : `${K}.remaining`)}
                         </Text>
                     </View>
