@@ -75,7 +75,7 @@ function AppShell() {
   useEffect(
     () =>
       onSessionExpired(() => {
-        router.replace("/login");
+        router.replace("/onboarding");
       }),
     [router],
   );

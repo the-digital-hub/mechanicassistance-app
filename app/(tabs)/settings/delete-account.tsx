@@ -16,7 +16,7 @@ export default function DeleteAccountScreen() {
         // API Call to delete account
         console.log('Account deleted');
         setShowModal(false);
-        router.replace('/login');
+        router.replace('/onboarding');
     };
 
     return (

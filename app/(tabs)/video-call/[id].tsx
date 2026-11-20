@@ -29,6 +29,7 @@ import { useUser } from '@/context/UserContext';
 import { useDailyCall } from '@/lib/video/useDailyCall';
 import { addTranscriptLine } from '@/lib/video/transcriptStore';
 import { recordConsent } from '@/lib/video/consent';
+import { CAPTION_TRANSLATION_ENABLED, translateCaption } from '@/lib/video/translateCaption';
 import { syncTranscript } from '@/lib/video/transcriptSync';
 import { goBackOr } from '@/lib/navigation/goBackOr';
 import { videoCallDAO } from '@/lib/dao/VideoCallDAO';
@@ -216,6 +217,22 @@ export default function VideoCallScreen() {
   const [captionsOpen, setCaptionsOpen] = useState(false);
   const [captionLanguage, setCaptionLanguage] = useState<CaptionLanguage>(() => defaultCaptionLanguage(i18n.language));
   // However the call ends (hang up, timer, screen closed) this phone's transcript goes to the server.
+  // Translation of the other person's captions into this person's language (off while the backend has no endpoint).
+  const [translateOn, setTranslateOn] = useState(false);
+  const [translation, setTranslation] = useState<{ id: string; text: string } | null>(null);
+  const myLanguage = defaultCaptionLanguage(i18n.language);
+  useEffect(() => {
+    if (!CAPTION_TRANSLATION_ENABLED || !translateOn || !caption || caption.mine || !appointmentId || captionLanguage === myLanguage) return;
+    let alive = true;
+    void translateCaption(appointmentId, { id: caption.id, text: caption.text, from: captionLanguage, to: myLanguage }).then((r) => {
+      if (alive && 'text' in r) setTranslation({ id: caption.id, text: r.text });
+    });
+    return () => { alive = false; };
+  }, [caption, translateOn, captionLanguage, myLanguage, appointmentId]);
+  const toggleTranslate = (on: boolean) => {
+    setTranslateOn(on);
+    if (on && appointmentId) void recordConsent(appointmentId, { kind: 'translation', role: myRole, accepted: true });
+  };
   const captionLanguageRef = useRef(captionLanguage);
   captionLanguageRef.current = captionLanguage;
   useEffect(
@@ -407,6 +424,7 @@ export default function VideoCallScreen() {
         onStart={applyCaptions}
         onStop={() => { setCaptionsOpen(false); stopCaptions?.(); }}
         onClose={() => setCaptionsOpen(false)}
+        translate={CAPTION_TRANSLATION_ENABLED && captionLanguage !== myLanguage ? { on: translateOn, onChange: toggleTranslate, targetLabel: myLanguage === 'es' ? 'español' : 'English' } : undefined}
       />
       <CallChatSheet visible={chatOpen} lines={chatLines} onSend={sendChat} onClose={() => setChatOpen(false)} />
       <ObdCallSheet
@@ -495,7 +513,7 @@ export default function VideoCallScreen() {
             />
           ) : null;
         })()}
-        {transcribing && <CaptionsBar caption={caption ?? null} />}
+        {transcribing && <CaptionsBar caption={caption ?? null} translated={translateOn && translation && caption && translation.id === caption.id ? translation.text : null} />}
         {askPending && (
           <View style={[styles.waiting, landscape && styles.pillBottom]} testID="captions-waiting">
             <ActivityIndicator size="small" color="#FFFFFF" />

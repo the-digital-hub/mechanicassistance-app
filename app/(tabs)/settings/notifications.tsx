@@ -13,13 +13,9 @@ export default function NotificationsSettingsScreen() {
     const [inAppAlerts, setInAppAlerts] = useInAppAlertsEnabled();
     const [settings, setSettings] = useState({
         general: true,
-        sound: true,
-        soundCall: true,
-        vibrate: false,
         specialOffers: false,
-        payments: false,
-        promo: false,
-        cashback: false,
+        sound: true,
+        vibrate: false,
     });
 
     const toggleSwitch = (key: keyof typeof settings) => {
@@ -28,13 +24,9 @@ export default function NotificationsSettingsScreen() {
 
     const items = [
         { key: 'general', label: t('settingsNotifications.general') },
-        { key: 'sound', label: t('settingsNotifications.sound') },
-        { key: 'soundCall', label: t('settingsNotifications.soundCall') },
-        { key: 'vibrate', label: t('settingsNotifications.vibrate') },
         { key: 'specialOffers', label: t('settingsNotifications.specialOffers') },
-        { key: 'payments', label: t('settingsNotifications.payments') },
-        { key: 'promo', label: t('settingsNotifications.promo') },
-        { key: 'cashback', label: t('settingsNotifications.cashback') },
+        { key: 'sound', label: t('settingsNotifications.sound') },
+        { key: 'vibrate', label: t('settingsNotifications.vibrate') },
     ];
 
     return (

@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Animated, Platform, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, PanResponder, Platform, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { dismissInAppBanner, useInAppBanner } from '@/lib/notifications/inAppAlerts';
@@ -21,11 +21,30 @@ export function InAppRequestBanner() {
     const insets = useSafeAreaInsets();
     const banner = useInAppBanner();
     const anim = React.useRef(new Animated.Value(0)).current;
+    // Finger drag: swiping the alert up (or flicking it) sends it away; a short drag springs back.
+    const drag = React.useRef(new Animated.Value(0)).current;
+    const pan = React.useMemo(
+        () =>
+            PanResponder.create({
+                onMoveShouldSetPanResponder: (_, g) => g.dy < -6 && Math.abs(g.dy) > Math.abs(g.dx),
+                onPanResponderMove: (_, g) => drag.setValue(Math.min(0, g.dy)),
+                onPanResponderRelease: (_, g) => {
+                    if (g.dy < -30 || g.vy < -0.6) {
+                        Animated.timing(drag, { toValue: -140, duration: 160, useNativeDriver: true }).start(() => dismissInAppBanner());
+                    } else {
+                        Animated.spring(drag, { toValue: 0, useNativeDriver: true }).start();
+                    }
+                },
+                onPanResponderTerminate: () => Animated.spring(drag, { toValue: 0, useNativeDriver: true }).start(),
+            }),
+        [drag],
+    );
     // Keeps the text while it slides out.
     const [shown, setShown] = React.useState(banner);
 
     React.useEffect(() => {
         if (banner) {
+            drag.setValue(0);
             setShown(banner);
             Animated.spring(anim, { toValue: 1, useNativeDriver: true, damping: 18, stiffness: 180 }).start();
             const timer = setTimeout(dismissInAppBanner, VISIBLE_MS);
@@ -35,7 +54,7 @@ export function InAppRequestBanner() {
             if (finished) setShown(null);
         });
         return undefined;
-    }, [banner, anim]);
+    }, [banner, anim, drag]);
 
     if (!shown) return null;
 
@@ -54,11 +73,12 @@ export function InAppRequestBanner() {
     return (
         <View pointerEvents="box-none" style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1000, elevation: 1000 }} testID="in-app-banner-host">
             <Animated.View
+                {...pan.panHandlers}
                 style={{
                     marginTop: insets.top + (Platform.OS === 'android' ? 8 : 4),
                     marginHorizontal: 12,
                     opacity: anim,
-                    transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [-24, 0] }) }],
+                    transform: [{ translateY: Animated.add(anim.interpolate({ inputRange: [0, 1], outputRange: [-24, 0] }), drag) }],
                 }}
             >
                 <TouchableOpacity

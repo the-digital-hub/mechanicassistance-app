@@ -12,7 +12,7 @@ import { apiClient } from '@/lib/api/apiClient';
  */
 export const CONSENT_VERSION = '2026-11-18';
 
-export type ConsentKind = 'precall' | 'captions-request' | 'captions-answer';
+export type ConsentKind = 'precall' | 'captions-request' | 'captions-answer' | 'translation';
 
 export interface ConsentRecord {
     id: string;

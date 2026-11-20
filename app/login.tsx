@@ -34,10 +34,12 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 import {
+  Animated,
   Image,
   Keyboard,
   KeyboardAvoidingView,
   Modal,
+  PanResponder,
   Platform,
   ActivityIndicator,
   Text,
@@ -115,6 +117,16 @@ export default function LoginScreen() {
   const expiresIn = useCountdown(expiresAtMs);
   const resendIn = useCountdown(resendAtMs);
 
+  // The white sheet follows the finger a little, like a card on a spring, and settles back on release.
+  const sheetDrag = useRef(new Animated.Value(0)).current;
+  const sheetPan = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dy) > 8 && Math.abs(g.dy) > Math.abs(g.dx),
+      onPanResponderMove: (_, g) => sheetDrag.setValue(Math.max(-36, Math.min(70, g.dy * 0.4))),
+      onPanResponderRelease: () => Animated.spring(sheetDrag, { toValue: 0, useNativeDriver: true, damping: 14, stiffness: 160 }).start(),
+      onPanResponderTerminate: () => Animated.spring(sheetDrag, { toValue: 0, useNativeDriver: true }).start(),
+    }),
+  ).current;
   const fullPhoneRef = useRef("");
   const sendInFlightRef = useRef(false);
   const otpInputRef = useRef<TextInput>(null);
@@ -611,18 +623,35 @@ export default function LoginScreen() {
               behavior={Platform.OS === "ios" ? "padding" : undefined}
               style={{ flex: 1 }}
             >
+              {/* Back to the phone form: the same small translucent badge as "Back to start". */}
               {method === "email" && (
                 <TouchableOpacity
                   onPress={() => setMethod("mobile")}
-                  className="absolute left-6 top-16 z-10 flex-row items-center gap-2"
+                  hitSlop={10}
                   accessibilityRole="button"
                   accessibilityLabel={t("login.backToPhone")}
-                  hitSlop={12}
+                  className="absolute z-10 flex-row items-center"
+                  style={{ left: 20, top: insets.top + 10, gap: 2, paddingVertical: 6, paddingLeft: 8, paddingRight: 12, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.16)" }}
+                  testID="login-back-to-phone"
                 >
-                  <Ionicons name="arrow-back" size={24} color="white" />
-                  <Text className="text-white font-outfit-medium">
-                    {t("login.backToPhone")}
-                  </Text>
+                  <Ionicons name="chevron-back" size={15} color="rgba(255,255,255,0.85)" />
+                  <Text className="font-outfit-medium" style={{ fontSize: 13, color: "rgba(255,255,255,0.85)" }}>{t("login.backToPhone")}</Text>
+                </TouchableOpacity>
+              )}
+
+              {/* A quiet way back to the welcome screen (the one with the photo): a small translucent badge. */}
+              {method === "mobile" && (
+                <TouchableOpacity
+                  onPress={() => router.replace("/onboarding")}
+                  hitSlop={10}
+                  accessibilityRole="button"
+                  accessibilityLabel={t("login.backToWelcome")}
+                  className="absolute z-10 flex-row items-center"
+                  style={{ left: 20, top: insets.top + 10, gap: 2, paddingVertical: 6, paddingLeft: 8, paddingRight: 12, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.16)" }}
+                  testID="login-back-to-welcome"
+                >
+                  <Ionicons name="chevron-back" size={15} color="rgba(255,255,255,0.85)" />
+                  <Text className="font-outfit-medium" style={{ fontSize: 13, color: "rgba(255,255,255,0.85)" }}>{t("login.backToWelcome")}</Text>
                 </TouchableOpacity>
               )}
 
@@ -641,14 +670,18 @@ export default function LoginScreen() {
               </View>
 
               {/* The form: a white sheet using the app's own controls (same 56px height, radius and palette) */}
-              <View
+              <Animated.View
+                {...sheetPan.panHandlers}
                 style={{
+                  transform: [{ translateY: sheetDrag }],
                   backgroundColor: "#FFFFFF",
                   borderTopLeftRadius: 32,
                   borderTopRightRadius: 32,
                   paddingHorizontal: 24,
                   paddingTop: 26,
-                  paddingBottom: Math.max(insets.bottom, 16) + 8,
+                  // Extends 40px past the bottom edge so lifting it never uncovers the blue behind.
+                  paddingBottom: Math.max(insets.bottom, 16) + 8 + 40,
+                  marginBottom: -40,
                   gap: 14,
                 }}
               >
@@ -772,7 +805,7 @@ export default function LoginScreen() {
 
                 {/* Consent notice at the very bottom, away from the phone field */}
                 {method === "mobile" && <SmsConsent variant="light" />}
-              </View>
+              </Animated.View>
             </KeyboardAvoidingView>
           </GradientLayout>
         </TouchableWithoutFeedback>

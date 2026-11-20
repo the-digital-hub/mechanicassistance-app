@@ -97,8 +97,8 @@ function OwnerReceipt({ id }: { id: string }) {
                             </View>
                             <Text className="font-outfit-bold uppercase" style={{ fontSize: 12, letterSpacing: 1.2, color: 'rgba(255,255,255,0.8)' }}>{t(`${k}.owner.paidTitle`)}</Text>
                         </View>
-                        <Text className="font-outfit-bold" style={{ fontSize: 38, letterSpacing: -1, color: '#FFFFFF', marginTop: 10 }}>{money(String(paid))}</Text>
-                        <View className="flex-row items-center" style={{ gap: 8, marginTop: 8 }}>
+                        <Text className="font-outfit-bold" style={{ fontSize: 38, letterSpacing: -1, color: '#FFFFFF', marginTop: 10, marginLeft: 46 }}>{money(String(paid))}</Text>
+                        <View className="flex-row items-center" style={{ gap: 8, marginTop: 8, marginLeft: 46 }}>
                             {appointment?.refCode ? (
                                 <Text className="font-outfit-medium" style={{ fontSize: 14, color: 'rgba(255,255,255,0.85)' }}>{appointment.refCode}</Text>
                             ) : null}
@@ -122,21 +122,12 @@ function OwnerReceipt({ id }: { id: string }) {
                     {payment ? (
                         <Card>
                             <Text className="font-outfit-bold uppercase px-4 pt-3" style={{ fontSize: 12, letterSpacing: 1.2, color: OS.mutedLight }}>{t(`${k}.owner.payment`)}</Text>
-                            {method ? <IconRow icon={isWallet ? Wallet : CreditCard} label={t(`${k}.owner.paidWith`)} value={method} /> : null}
+                            {method ? <IconRow icon={isWallet ? Wallet : CreditCard} label={t(`${k}.owner.paidWith`)} value={method} last={charges.length <= 1 && !refunded} /> : null}
                             {charges.length > 1
-                                ? charges.map((c) => (
-                                      <IconRow key={c.id} icon={Banknote} label={purposeLabel(c.purpose)} value={money(c.amountCharged)} />
+                                ? charges.map((c, i) => (
+                                      <IconRow key={c.id} icon={Banknote} label={purposeLabel(c.purpose)} value={money(c.amountCharged)} last={i === charges.length - 1 && !refunded} />
                                   ))
                                 : null}
-                            {/* The total: set apart by a line and a tinted band, like the budget's total. */}
-                            <View
-                                className="flex-row items-center"
-                                style={{ gap: 12, paddingHorizontal: 16, paddingVertical: 14, backgroundColor: OS.blueSoft, borderTopWidth: 2, borderTopColor: OS.blue }}
-                                testID="receipt-total-charged"
-                            >
-                                <Text className="font-outfit-bold flex-1" style={{ fontSize: 17, color: OS.text }}>{t(`${k}.owner.totalCharged`)}</Text>
-                                <Text className="font-outfit-bold" style={{ fontSize: 22, letterSpacing: -0.4, color: OS.blue }}>{money(String(chargedTotal))}</Text>
-                            </View>
                             {refunded ? (
                                 <IconRow icon={RotateCcw} label={t(`${k}.owner.refunded`)} value={`-${money(String(refundedTotal))}`} danger last />
                             ) : null}
@@ -220,8 +211,8 @@ function MechanicReceipt({ id }: { id: string }) {
                             </View>
                             <Text className="font-outfit-bold uppercase" style={{ fontSize: 12, letterSpacing: 1.2, color: 'rgba(255,255,255,0.8)' }}>{t(`${k}.earnings`)}</Text>
                         </View>
-                        <Text className="font-outfit-bold" style={{ fontSize: 38, letterSpacing: -1, color: '#FFFFFF', marginTop: 10 }}>{money(String(total))}</Text>
-                        <View className="flex-row items-center" style={{ gap: 8, marginTop: 8 }}>
+                        <Text className="font-outfit-bold" style={{ fontSize: 38, letterSpacing: -1, color: '#FFFFFF', marginTop: 10, marginLeft: 46 }}>{money(String(total))}</Text>
+                        <View className="flex-row items-center" style={{ gap: 8, marginTop: 8, marginLeft: 46 }}>
                             {appointment?.refCode ? (
                                 <Text className="font-outfit-medium" style={{ fontSize: 14, color: 'rgba(255,255,255,0.85)' }}>{appointment.refCode}</Text>
                             ) : null}
@@ -245,22 +236,13 @@ function MechanicReceipt({ id }: { id: string }) {
                             <Text className="font-outfit-bold uppercase px-4 pt-3 pb-1" style={{ fontSize: 12, letterSpacing: 1.2, color: OS.mutedLight }}>{t(`${k}.yourService`)}</Text>
                             {breakdown ? (
                                 <>
-                                    <IconRow icon={ReceiptText} label={t(`${k}.serviceValue`)} value={money(breakdown.total)} last={extension <= 0} />
+                                    <IconRow icon={ReceiptText} label={t(`${k}.serviceValue`)} value={money(breakdown.total)} last={extension <= 0 && !statusKey} />
                                     {extension > 0 ? (
-                                        <IconRow icon={Timer} label={t(`${k}.extendedTime`)} value={`+${money(extension.toFixed(2))}`} last />
+                                        <IconRow icon={Timer} label={t(`${k}.extendedTime`)} value={money(extension.toFixed(2))} last={!statusKey} />
                                     ) : null}
                                 </>
                             ) : null}
 
-                            {/* The total: set apart by a line and a tinted band, like the owner's receipt. */}
-                            <View
-                                className="flex-row items-center"
-                                style={{ gap: 12, paddingHorizontal: 16, paddingVertical: 14, backgroundColor: OS.blueSoft, borderTopWidth: 2, borderTopColor: OS.blue }}
-                                testID="receipt-total-earned"
-                            >
-                                <Text className="font-outfit-bold flex-1" style={{ fontSize: 17, color: OS.text }}>{t(`${k}.totalEarned`)}</Text>
-                                <Text className="font-outfit-bold" style={{ fontSize: 22, letterSpacing: -0.4, color: OS.blue }}>{money(String(total))}</Text>
-                            </View>
                             {statusKey ? (
                                 <IconRow icon={Wallet} label={t(`${k}.status`)} value={t(`${k}.statusValue.${statusKey}`)} last />
                             ) : null}

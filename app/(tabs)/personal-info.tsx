@@ -156,7 +156,7 @@ export default function PersonalInfoScreen() {
 
     useEffect(() => {
         if (!isLoading && !user) {
-            router.replace('/login' as any);
+            router.replace('/onboarding' as any);
         }
     }, [isLoading, user]);
 

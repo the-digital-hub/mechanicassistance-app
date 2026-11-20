@@ -264,6 +264,10 @@ export function OwnerTechnicianPanel({ mechanic }: { mechanic: Mechanic | null }
     const firstName = mechanic.displayName?.split(' ')[0] ?? '';
     const specialties = mechanic.specialties ?? [];
     const aseCodes = mechanic.aseCodes ?? [];
+    // Other certifications the technician loaded and the Hub verified: "Name · Issuer", one per line.
+    const otherCerts = (mechanic.certifications ?? [])
+        .map((c) => [c.name?.trim(), c.issuer?.trim()].filter(Boolean).join(' · '))
+        .filter(Boolean);
     const memberSince = mechanic.memberSince
         ? new Date(mechanic.memberSince).toLocaleDateString(i18n.language, { month: 'long', year: 'numeric' })
         : null;
@@ -286,6 +290,7 @@ export function OwnerTechnicianPanel({ mechanic }: { mechanic: Mechanic | null }
         aseCodes.length > 0 || mechanic.aseCertified
             ? { icon: 'shield-checkmark-outline', label: t(`${K}.rows.certification`), value: aseCodes.length > 0 ? t(`${K}.aseCodes`, { codes: aseCodes.join(', ') }) : t(`${K}.aseCertified`), tone: 'green' }
             : null,
+        otherCerts.length > 0 ? { icon: 'ribbon-outline', label: t(`${K}.rows.otherCertifications`), value: otherCerts.join('\n'), tone: 'green' } : null,
         mechanic.yearsExperience ? { icon: 'construct-outline', label: t(`${K}.rows.experience`), value: t(`${K}.years`, { years: mechanic.yearsExperience }) } : null,
         mechanic.idVerified ? { icon: 'shield-checkmark-outline', label: t(`${K}.rows.verified`), value: t(`${K}.idChecked`), tone: 'green' } : null,
         memberSince ? { icon: 'calendar-outline', label: t(`${K}.rows.memberSince`), value: memberSince } : null,

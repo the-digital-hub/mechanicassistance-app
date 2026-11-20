@@ -610,6 +610,8 @@ export interface AssistanceOfferSummary {
         memberSince?: string | null;
         specialties?: string[];
         aseCodes?: string[];
+        /** Verified, current certifications besides ASE (manufacturer, industry, other). Optional: older backends don't send it. */
+        certifications?: { name?: string | null; issuer?: string | null }[];
     };
     /** Dollar amounts as strings ("180.00"); null when the request has no stored breakdown. */
     breakdown: { service: string; fees: string; taxes: string; total: string } | null;

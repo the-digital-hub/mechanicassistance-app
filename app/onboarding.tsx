@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 import {
   Animated,
   Dimensions,
+  PanResponder,
   Easing,
   Image,
   StyleSheet,
@@ -67,6 +68,16 @@ const Onboarding = () => {
   const zoom = useRef(new Animated.Value(0)).current; // photo settles (native)
   const expand = useRef(new Animated.Value(0)).current; // card fills the screen (JS)
   const leaving = useRef(false);
+  // The blue card follows the finger a little, like a card on a spring, and settles back on release.
+  const drag = useRef(new Animated.Value(0)).current;
+  const pan = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, g) => !leaving.current && Math.abs(g.dy) > 8 && Math.abs(g.dy) > Math.abs(g.dx),
+      onPanResponderMove: (_, g) => drag.setValue(Math.max(-36, Math.min(70, g.dy * 0.4))),
+      onPanResponderRelease: () => Animated.spring(drag, { toValue: 0, useNativeDriver: true, damping: 14, stiffness: 160 }).start(),
+      onPanResponderTerminate: () => Animated.spring(drag, { toValue: 0, useNativeDriver: true }).start(),
+    }),
+  ).current;
 
   useEffect(() => {
     Animated.parallel([
@@ -187,9 +198,10 @@ const Onboarding = () => {
 
       <Animated.View
         pointerEvents="box-none"
+        {...pan.panHandlers}
         style={[
           styles.sheetWrap,
-          { transform: [{ translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [sheetH + 60, 0] }) }] },
+          { transform: [{ translateY: Animated.add(enter.interpolate({ inputRange: [0, 1], outputRange: [sheetH + 60, 0] }), drag) }] },
         ]}
       >
       <Animated.View
@@ -200,7 +212,8 @@ const Onboarding = () => {
         style={[
           styles.sheet,
           {
-            paddingBottom: Math.max(insets.bottom, 16) + 12,
+            // 40px extra: the card reaches past the bottom edge so lifting it never uncovers the photo behind.
+            paddingBottom: Math.max(insets.bottom, 16) + 12 + 40,
             minHeight: expand.interpolate({ inputRange: [0, 1], outputRange: [0, height] }),
             borderTopLeftRadius: expand.interpolate({ inputRange: [0, 1], outputRange: [32, 0] }),
             borderTopRightRadius: expand.interpolate({ inputRange: [0, 1], outputRange: [32, 0] }),
@@ -308,7 +321,7 @@ const styles = StyleSheet.create({
   langSep: { color: "rgba(255,255,255,0.35)", fontSize: 13 },
   loginPillText: { color: "#1E56E3", fontFamily: "Outfit_700Bold", fontSize: 15 },
 
-  sheetWrap: { position: "absolute", left: 0, right: 0, bottom: 0 },
+  sheetWrap: { position: "absolute", left: 0, right: 0, bottom: -40 },
   sheet: {
     justifyContent: "flex-end",
     paddingTop: 28,

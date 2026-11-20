@@ -240,6 +240,17 @@ export class VideoCallDAO {
         }
     }
 
+    /**
+     * Translates caption lines (`POST …/video/translate`; backlog item V). Only works once both people accepted the
+     * `translation` consent: otherwise 403 / 409. Throws the ApiError so the caller can tell the cases apart.
+     */
+    translate(
+        appointmentId: string,
+        body: { from: string; to: string; lines: { id: string; text: string }[] },
+    ): Promise<{ lines: { id: string; text: string }[] }> {
+        return apiClient.post(`/api/appointments/${appointmentId}/video/translate`, body);
+    }
+
     /** Extra time of the call; the owner also gets the blocks on sale with their prices. */
     getExtensions(appointmentId: string): Promise<VideoExtensions> {
         return apiClient.get(`/api/appointments/${appointmentId}/video/extensions`);

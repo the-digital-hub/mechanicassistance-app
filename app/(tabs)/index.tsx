@@ -113,7 +113,7 @@ export default function ProfileScreen() {
 
   useEffect(() => {
     if (!isLoading && !user) {
-      router.replace('/login');
+      router.replace('/onboarding');
     }
   }, [isLoading, user, router]);
 
@@ -135,7 +135,7 @@ export default function ProfileScreen() {
     } finally {
       setShowLogoutModal(false);
       setIsLoggingOut(false);
-      router.replace('/login');
+      router.replace('/onboarding');
     }
   };
 

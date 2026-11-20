@@ -85,14 +85,21 @@ function NotificationIcon({ kind, unread }: { kind: string; unread: boolean }) {
     );
 }
 
-/** What a swipe to the left uncovers: a red tile that says what letting go will do. */
-function DeleteAction() {
+/** What a swipe to the left uncovers: a red button. Nothing is deleted until it is pressed. */
+function DeleteAction({ onPress }: { onPress: () => void }) {
     const { t } = useTranslation();
     return (
-        <View style={{ width: 96, backgroundColor: '#E5484D', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+        <TouchableOpacity
+            onPress={onPress}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel={t('notifications.delete')}
+            style={{ width: 96, backgroundColor: '#E5484D', alignItems: 'center', justifyContent: 'center', gap: 4 }}
+            testID="notification-delete"
+        >
             <Trash2 size={22} color="#FFFFFF" />
             <Text className="font-outfit-semibold" style={{ fontSize: 13, color: '#FFFFFF' }}>{t('notifications.delete')}</Text>
-        </View>
+        </TouchableOpacity>
     );
 }
 
@@ -234,17 +241,17 @@ export default function NotificationsScreen() {
                         </View>
                     ) : (
                         filteredNotifications.map((notif) => (
-                            // Swipe to the left to delete: letting go past the halfway mark removes it.
+                            // Swipe to the left to uncover Delete; it stays open until Delete is pressed (or the row is swiped back).
                             <Swipeable
                                 key={notif.id}
                                 friction={1.2}
                                 overshootRight={false}
-                                rightThreshold={72}
+                                rightThreshold={40}
                                 animationOptions={{ damping: 30, stiffness: 170, mass: 1 }}
                                 onSwipeableOpenStartDrag={() => blockPresses()}
                                 onSwipeableCloseStartDrag={() => blockPresses()}
-                                renderRightActions={() => <DeleteAction />}
-                                onSwipeableOpen={() => { blockPresses(); void deleteAndReport([notif.id]); }}
+                                renderRightActions={() => <DeleteAction onPress={() => { blockPresses(); void deleteAndReport([notif.id]); }} />}
+                                onSwipeableOpen={() => blockPresses()}
                                 containerStyle={{ backgroundColor: '#E5484D' }}
                             >
                             <TouchableOpacity

@@ -49,8 +49,8 @@ const getTimeGreetingKey = (): string => {
 // Horizontal padding of the user dashboard.
 const DASHBOARD_PADDING_X = 20;
 // Technician request slider: card gap and how much of the next card peeks in.
-const REQUEST_CARD_GAP = 12;
-const REQUEST_CARD_PEEK = 36;
+// Each request is a full-width page: the gap equals the side padding so the next card stays out of sight until swiped.
+const REQUEST_CARD_GAP = 24;
 
 export default function DashboardScreen() {
     const router = useRouter();
@@ -235,7 +235,7 @@ export default function DashboardScreen() {
 
     useEffect(() => {
         if (!isUserLoading && !user) {
-            router.replace('/login');
+            router.replace('/onboarding');
         }
     }, [isUserLoading, user, router]);
 
@@ -276,8 +276,8 @@ export default function DashboardScreen() {
         // Nothing to show (or still loading the first time): hide the whole section.
         const multiRequests = visibleRequests.length > 1;
         const requestPageIdx = Math.min(requestPage, Math.max(0, visibleRequests.length - 1));
-        // Screen minus the 24px side padding, leaving a sliver of the next card visible.
-        const requestCardWidth = screenWidth - 48 - REQUEST_CARD_PEEK;
+        // Same width as a single request: screen minus the 24px side padding.
+        const requestCardWidth = screenWidth - 48;
         const showRequests = !isLoadingRequests && openRequests.length > 0;
 
         const attentionItems: AttentionItem[] = [];
@@ -471,9 +471,15 @@ export default function DashboardScreen() {
                                                 </View>
                                                 <View className="flex-1">
                                                     <View className="flex-row items-center gap-2">
-                                                        <Text className="text-gray-900 font-outfit-bold text-lg" numberOfLines={1}>
+                                                        <Text className="text-gray-900 font-outfit-bold text-lg" style={{ flexShrink: 1 }} numberOfLines={1}>
                                                             {serviceTypeLabel}
                                                         </Text>
+                                                    </View>
+                                                    <View className="flex-row items-center mt-1" style={{ gap: 8 }}>
+                                                        <View className="flex-row items-center gap-1">
+                                                            <Clock size={13} color="#9CA3AF" />
+                                                            <Text className="text-gray-500 font-outfit-regular text-sm">{formatTimeAgo(request.date || request.updatedAt)}</Text>
+                                                        </View>
                                                         {badge && (
                                                             <View className="px-2 py-0.5 rounded-md" style={{ backgroundColor: '#FEE2E2' }}>
                                                                 <Text className="font-outfit-bold text-[12px] tracking-widest" style={{ color: '#EF4444' }}>
@@ -481,10 +487,6 @@ export default function DashboardScreen() {
                                                                 </Text>
                                                             </View>
                                                         )}
-                                                    </View>
-                                                    <View className="flex-row items-center gap-1 mt-1">
-                                                        <Clock size={13} color="#9CA3AF" />
-                                                        <Text className="text-gray-500 font-outfit-regular text-sm">{formatTimeAgo(request.date || request.updatedAt)}</Text>
                                                     </View>
                                                 </View>
                                             </View>

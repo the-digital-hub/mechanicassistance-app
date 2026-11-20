@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
+import { Modal, Pressable, Switch, Text, TouchableOpacity, View } from 'react-native';
 
 import { AO } from '@/components/offer/OfferSections';
 import { SHEET } from '@/lib/ui/sheet';
@@ -27,7 +27,7 @@ export function defaultCaptionLanguage(appLanguage: string | undefined): Caption
  * Turn live captions on (with the language they are heard in and the notice that both are
  * transcribed), or, once they are on, change the language or turn them off.
  */
-export function CaptionsSheet({ visible, active, language, onLanguage, onStart, onStop, onClose }: {
+export function CaptionsSheet({ visible, active, language, onLanguage, onStart, onStop, onClose, translate }: {
     visible: boolean;
     /** The transcription is running. */
     active: boolean;
@@ -36,6 +36,8 @@ export function CaptionsSheet({ visible, active, language, onLanguage, onStart, 
     onStart: () => void;
     onStop: () => void;
     onClose: () => void;
+    /** The translation switch; left out while translation is not available (CAPTION_TRANSLATION_ENABLED). */
+    translate?: { on: boolean; onChange: (on: boolean) => void; targetLabel: string };
 }) {
     const { t } = useTranslation();
     return (
@@ -73,6 +75,16 @@ export function CaptionsSheet({ visible, active, language, onLanguage, onStart, 
                     })}
                 </View>
                 <Text className="font-outfit-regular" style={{ fontSize: 13, lineHeight: 18, color: AO.muted, marginTop: 8 }}>{t(`${K}.captionsLanguageHint`)}</Text>
+
+                {translate ? (
+                    <View className="flex-row items-center" style={{ gap: 12, marginTop: 16 }}>
+                        <View style={{ flex: 1 }}>
+                            <Text className="font-outfit-bold" style={{ fontSize: 16, color: AO.text }}>{t(`${K}.translateTitle`, { language: translate.targetLabel })}</Text>
+                            <Text className="font-outfit-regular" style={{ fontSize: 13, lineHeight: 18, color: AO.muted }}>{t(`${K}.translateHint`)}</Text>
+                        </View>
+                        <Switch value={translate.on} onValueChange={translate.onChange} trackColor={{ false: '#D5DBE8', true: AO.blue }} testID="captions-translate" />
+                    </View>
+                ) : null}
 
                 <View className="flex-row" style={{ gap: 10, marginTop: 20 }}>
                     <TouchableOpacity

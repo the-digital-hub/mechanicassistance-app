@@ -2,9 +2,10 @@ import { RequestTypeTabs } from '@/components/dashboard/MechanicHomeBlocks';
 import { AppointmentCard } from '@/components/ui/AppointmentCard';
 import { Appointment, isCancelledStatus, useAppointments } from '@/context/AppointmentsContext';
 import { useUser } from '@/context/UserContext';
+import { useHiddenAppointments } from '@/hooks/useHiddenAppointments';
 import { ScrollPressGuardContext, useScrollPressGuard } from '@/hooks/useScrollPressGuard';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowDown, ArrowUp, X } from 'lucide-react-native';
+import { ArrowDown, ArrowUp, Trash2, X } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, Modal, Text, TouchableOpacity, View } from 'react-native';
@@ -24,6 +25,8 @@ export default function AppointmentsScreen() {
     const [pastOrder, setPastOrder] = useState<Record<'completed' | 'cancelled', 'desc' | 'asc'>>({ completed: 'desc', cancelled: 'desc' });
     const [cancelModalVisible, setCancelModalVisible] = useState(false);
     const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
+    const { hidden, hide } = useHiddenAppointments(user?.id);
+    const [removeId, setRemoveId] = useState<string | null>(null);
 
     // Arriving with ?tab=pending (e.g. right after a mechanic sends an offer) opens that tab once.
     useEffect(() => {
@@ -42,8 +45,9 @@ export default function AppointmentsScreen() {
 
     const upcomingCount = getUpcoming().length;
     const pendingCount = getPendingApproval().length;
-    const pastCount = getPast().length;
-    const pastAll = getPast();
+    // A cancelled appointment the person removed is not shown (see useHiddenAppointments).
+    const pastAll = getPast().filter((a) => !(hidden.has(a.id) && isCancelledStatus(a.status)));
+    const pastCount = pastAll.length;
     const completedCount = pastAll.filter((a) => !isCancelledStatus(a.status)).length;
     const cancelledCount = pastAll.length - completedCount;
     // Default newest first: a finished job by when it ended, a cancelled one by when it was cancelled.
@@ -176,6 +180,19 @@ export default function AppointmentsScreen() {
                             appointment={item}
                             onCancel={handleCancelRequest}
                         />
+                        {activeTab === 'past' && isCancelledStatus(item.status) ? (
+                            <TouchableOpacity
+                                onPress={() => setRemoveId(item.id)}
+                                activeOpacity={0.85}
+                                accessibilityRole="button"
+                                className="flex-row items-center justify-center"
+                                style={{ gap: 8, height: 44, borderTopWidth: 1, borderTopColor: '#EEF1F7' }}
+                                testID={`remove-cancelled-${item.id}`}
+                            >
+                                <Trash2 size={18} color="#B4584F" />
+                                <Text className="font-outfit-semibold" style={{ fontSize: 15, color: '#B4584F' }}>{t('appointments.list.removeCancelled')}</Text>
+                            </TouchableOpacity>
+                        ) : null}
                     </View>
                 )}
                 contentContainerStyle={{ paddingBottom: 20 }}
@@ -191,6 +208,29 @@ export default function AppointmentsScreen() {
                     </View>
                 }
             />
+
+            {/* Remove a cancelled appointment from the list */}
+            <Modal supportedOrientations={MODAL_ORIENTATIONS} transparent visible={removeId !== null} animationType="fade" onRequestClose={() => setRemoveId(null)}>
+                <View className="flex-1 justify-center items-center bg-black/40 px-6">
+                    <View className="bg-white rounded-2xl w-full p-6 items-center shadow-lg">
+                        <Text className="text-xl font-outfit-bold text-blue-900 mb-2 text-center">{t('appointments.list.removeTitle')}</Text>
+                        <Text className="text-gray-500 text-center font-outfit-regular mb-6" style={{ fontSize: 16 }}>{t('appointments.list.removeMessage')}</Text>
+                        <View className="flex-row gap-4 w-full">
+                            <TouchableOpacity className="flex-1 py-3 border border-gray-200 rounded-lg" onPress={() => setRemoveId(null)}>
+                                <Text className="text-center font-outfit-bold text-gray-700">{t('appointments.list.no')}</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                className="flex-1 py-3 rounded-lg"
+                                style={{ backgroundColor: '#D96B6B' }}
+                                onPress={() => { if (removeId) hide(removeId); setRemoveId(null); }}
+                                testID="remove-cancelled-confirm"
+                            >
+                                <Text className="text-center font-outfit-bold text-white">{t('appointments.list.removeConfirm')}</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
 
             {/* Cancel Confirmation Modal */}
             <Modal supportedOrientations={MODAL_ORIENTATIONS}

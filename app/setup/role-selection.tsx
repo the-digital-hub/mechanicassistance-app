@@ -117,7 +117,7 @@ export default function RoleSelectionScreen() {
         await userDAO.logout();
         await clearSession();
         await clearSetupProgress();
-        router.replace('/login');
+        router.replace('/onboarding');
     };
 
     const handleContinue = async () => {

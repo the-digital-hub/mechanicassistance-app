@@ -51,7 +51,7 @@ export default function ChooseRoleScreen() {
   useEffect(() => {
     if (isLoading) return;
     if (!user) {
-      router.replace("/login");
+      router.replace("/onboarding");
     } else if (loadedRoles !== null && held.length < 2) {
       router.replace("/(tabs)/dashboard");
     }
