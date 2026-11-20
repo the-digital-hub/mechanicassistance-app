@@ -86,8 +86,8 @@ export default function DashboardScreen() {
     const { appointments, getActiveRequests, refresh: refreshAppointments, isLoading: isLoadingAppointments } = useAppointments();
     const jobsToday = countCompletedToday(appointments);
     const { earnedToday, stats: mechanicStats, week, summary: earningsSummary } = useMechanicKpis(user?.role === 'mechanic', jobsToday);
-    const { notifications } = useNotifications();
-    const unreadCount = notifications.filter((n) => n.unread).length;
+    const { totals } = useNotifications();
+    const unreadCount = totals.unread;
     // Hidden alerts and the collapsed state of "Needs your attention", kept per account and role.
     const attention = useAttentionState(user?.id ? `${user.role}:${user.id}` : undefined);
     const [requestTab, setRequestTab] = useState<'immediate' | 'scheduled' | 'video'>('immediate');

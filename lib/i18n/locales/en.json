@@ -2476,7 +2476,10 @@
     "tapToView": "Tap to view details →",
     "deleteFailedTitle": "Could not delete",
     "deleteFailedMessage": "The notifications could not be deleted. Check your connection and try again.",
-    "deleteFailedServer": "The server could not delete the notifications (error {{status}}). Try again later."
+    "deleteFailedServer": "The server could not delete the notifications (error {{status}}). Try again later.",
+    "deleteAllConfirmTitle": "Delete all notifications?",
+    "deleteAllConfirmMessage": "All your notifications ({{count}}) will be deleted, not only the ones on screen. This cannot be undone.",
+    "deleteAllUnreadConfirmMessage": "All your unread notifications ({{count}}) will be deleted. This cannot be undone."
   },
   "settingsMenu": {
     "language": "Language",

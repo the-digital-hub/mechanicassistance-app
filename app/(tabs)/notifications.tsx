@@ -29,7 +29,8 @@ import { useRef, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { useTranslation } from 'react-i18next';
-import { LayoutAnimation, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, LayoutAnimation, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import type { NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
 import { appAlert } from '@/lib/ui/appAlert';
 
 // Tile palette from the Notification Center design: icon color + soft tint.
@@ -107,7 +108,17 @@ export default function NotificationsScreen() {
     const router = useRouter();
     const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
-    const { notifications, deleteNotifications, markAllRead } = useNotifications();
+    const {
+        notifications,
+        deleteNotifications,
+        deleteAll,
+        markAllRead,
+        totals,
+        hasMore,
+        loadingMore,
+        loadMore,
+        setUnreadOnly,
+    } = useNotifications();
     const { user } = useUser();
 
     // A swipe must only delete: a touch that ends a swipe, or lands on the row that slides
@@ -115,14 +126,16 @@ export default function NotificationsScreen() {
     const pressBlockedUntil = useRef(0);
     const blockPresses = (ms = 700) => { pressBlockedUntil.current = Date.now() + ms; };
 
-    const deleteAndReport = async (ids: string[]) => {
+    const deleteAndReport = async (ids: string[] | 'all') => {
         // Rows below glide up and the removed one fades, instead of vanishing at once.
         LayoutAnimation.configureNext({
             duration: 320,
             update: { type: LayoutAnimation.Types.easeInEaseOut },
             delete: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
         });
-        const result = await deleteNotifications(ids);
+        const result = ids === 'all'
+            ? await deleteAll(activeTab === 'unread')
+            : await deleteNotifications(ids);
         if (result.ok) return;
         // A status means the server answered: the connection is fine, so say so.
         const message = result.status
@@ -158,7 +171,35 @@ export default function NotificationsScreen() {
         ? notifications
         : notifications.filter(n => n.unread);
 
-    const unreadCount = notifications.filter(n => n.unread).length;
+    // "Delete all" reaches every notification on the server, not only the loaded ones: ask first.
+    const handleDeleteAll = () => {
+        if (totals.all === 0) return;
+        const performDelete = () => void deleteAndReport('all');
+        const message = activeTab === 'unread'
+            ? t('notifications.deleteAllUnreadConfirmMessage', { count: totals.unread })
+            : t('notifications.deleteAllConfirmMessage', { count: totals.all });
+        if (Platform.OS === 'web') {
+            if (window.confirm(message)) performDelete();
+        } else {
+            appAlert(t('notifications.deleteAllConfirmTitle'), message, [
+                { text: t('notifications.cancel'), style: 'cancel' },
+                { text: t('notifications.delete'), style: 'destructive', onPress: performDelete },
+            ]);
+        }
+    };
+
+    const selectTab = (id: 'all' | 'unread') => {
+        setActiveTab(id);
+        setUnreadOnly(id === 'unread');
+    };
+
+    // Older notifications load as the list nears its end.
+    const handleScroll = ({ nativeEvent }: NativeSyntheticEvent<NativeScrollEvent>) => {
+        const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
+        if (hasMore && layoutMeasurement.height + contentOffset.y >= contentSize.height - 200) {
+            void loadMore();
+        }
+    };
 
     // Same destination as tapping the push itself.
     const handleNotificationPress = (notif: typeof notifications[0]) => {
@@ -178,7 +219,7 @@ export default function NotificationsScreen() {
 
     return (
         <GestureHandlerRootView className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
-            <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+            <ScrollView className="flex-1" showsVerticalScrollIndicator={false} onScroll={handleScroll} scrollEventThrottle={200}>
                 <View className="px-6 pt-4 pb-4">
                     {/* Section Badge */}
                     <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
@@ -200,12 +241,12 @@ export default function NotificationsScreen() {
                 {/* Tabs */}
                 <View className="px-6 flex-row items-center justify-between mb-3">
                     <View className="flex-row" style={{ gap: 8 }}>
-                        {([['all', t('notifications.all'), notifications.length], ['unread', t('notifications.unread'), unreadCount]] as const).map(([id, label, count]) => {
+                        {([['all', t('notifications.all'), totals.all], ['unread', t('notifications.unread'), totals.unread]] as const).map(([id, label, count]) => {
                             const on = activeTab === id;
                             return (
                                 <TouchableOpacity
                                     key={id}
-                                    onPress={() => setActiveTab(id)}
+                                    onPress={() => selectTab(id)}
                                     accessibilityRole="button"
                                     accessibilityState={{ selected: on }}
                                     style={{ paddingHorizontal: 15, paddingVertical: 9, borderRadius: 100, backgroundColor: on ? '#1E56E3' : '#FFFFFF', borderWidth: on ? 0 : 1, borderColor: '#E3E8F2' }}
@@ -221,7 +262,7 @@ export default function NotificationsScreen() {
                         <TouchableOpacity onPress={markAllRead}>
                             <Check size={20} color="#9CA3AF" />
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => void deleteAndReport(filteredNotifications.map(n => n.id))}>
+                        <TouchableOpacity onPress={handleDeleteAll}>
                             <X size={20} color="#9CA3AF" />
                         </TouchableOpacity>
                     </View>
@@ -287,6 +328,11 @@ export default function NotificationsScreen() {
                             </TouchableOpacity>
                             </Swipeable>
                         ))
+                    )}
+                    {loadingMore && (
+                        <View className="py-6 items-center">
+                            <ActivityIndicator color="#1E56E3" />
+                        </View>
                     )}
                 </View>
             </ScrollView>

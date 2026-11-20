@@ -2477,7 +2477,10 @@
     "tapToView": "Tocá para ver detalles →",
     "deleteFailedTitle": "No se pudo eliminar",
     "deleteFailedMessage": "No se pudieron eliminar las notificaciones. Revisá tu conexión e intentá de nuevo.",
-    "deleteFailedServer": "El servidor no pudo eliminar las notificaciones (error {{status}}). Intentá más tarde."
+    "deleteFailedServer": "El servidor no pudo eliminar las notificaciones (error {{status}}). Intentá más tarde.",
+    "deleteAllConfirmTitle": "¿Eliminar todas las notificaciones?",
+    "deleteAllConfirmMessage": "Se van a eliminar todas tus notificaciones ({{count}}), no solo las que ves. No se puede deshacer.",
+    "deleteAllUnreadConfirmMessage": "Se van a eliminar todas tus notificaciones no leídas ({{count}}). No se puede deshacer."
   },
   "settingsMenu": {
     "language": "Idioma",

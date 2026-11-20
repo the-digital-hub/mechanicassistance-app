@@ -9,8 +9,9 @@ import { Text, View } from 'react-native';
  * reads "99+".
  */
 export function NotificationBell({ size = 24, color = '#0047AB' }: { size?: number; color?: string }) {
-    const { notifications } = useNotifications();
-    const unread = notifications.reduce((n, item) => (item.unread ? n + 1 : n), 0);
+    // The backend's total, not the loaded page (which holds at most 30).
+    const { totals } = useNotifications();
+    const unread = totals.unread;
     const label = unread > 99 ? '99+' : String(unread);
     // The bubble is as wide as its text needs: a lone digit is a circle, "99+" a pill.
     const width = label.length === 1 ? 22 : label.length === 2 ? 28 : 36;

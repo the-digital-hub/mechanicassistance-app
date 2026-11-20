@@ -39,11 +39,26 @@ interface NotificationsContextType {
     /**
      * Deletes them from the inbox on the backend, so they stay gone after a
      * restart and on other phones. Removed from the list at once; put back if
-     * the backend call fails. Resolves false on failure, never throws.
+     * the backend call fails. Never throws: `ok: false` carries the HTTP status
+     * when the server answered, none when it was unreachable.
      */
-    /** `ok: false` carries the HTTP status when the server answered, none when it was unreachable. */
-    deleteNotifications: (ids: string[]) => Promise<{ ok: boolean; status?: number }>;
+    deleteNotifications: (ids: string[]) => Promise<DeleteResult>;
+    /** Deletes every notification of the role on the backend (only unread ones with `onlyUnread`). */
+    deleteAll: (onlyUnread: boolean) => Promise<DeleteResult>;
+    /** Real totals from the backend, not the size of the loaded list. */
+    totals: { all: number; unread: number };
+    /** More older notifications to load. */
+    hasMore: boolean;
+    loadingMore: boolean;
+    /** Loads the next (older) page and appends it. Never throws. */
+    loadMore: () => Promise<void>;
+    /** The "Unread" tab: the list pages over unread notifications only. */
+    setUnreadOnly: (on: boolean) => void;
 }
+
+type DeleteResult = { ok: boolean; status?: number };
+
+const PAGE_SIZE = 30;
 
 const NotificationsContext = createContext<NotificationsContextType | undefined>(undefined);
 
@@ -101,17 +116,71 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     // switching role reloads the list and the icon number for the new one.
     const role = user?.role;
     const [notifications, setNotifications] = useState<AppNotification[]>([]);
+    const [totals, setTotals] = useState({ all: 0, unread: 0 });
+    const [hasMore, setHasMore] = useState(false);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [unreadOnly, setUnreadOnly] = useState(false);
     const hidden = useRef<Set<string>>(new Set());
+    // Mirrors of state for callbacks that must not go stale or re-create.
+    const listRef = useRef<AppNotification[]>([]);
+    listRef.current = notifications;
+    const loadingMoreRef = useRef(false);
+
+    const applyTotals = useCallback((page: { total?: number; unread?: number }, loaded: AppNotification[]) => {
+        // Older backends send no totals: fall back to what was loaded.
+        setTotals({
+            all: page.total ?? loaded.length,
+            unread: page.unread ?? loaded.filter((n) => n.unread).length,
+        });
+    }, []);
 
     const refresh = useCallback(async () => {
         if (!userId) return;
         try {
-            const page = await notificationDAO.listInbox({ locale: i18next.language || undefined });
-            setNotifications(page.items.filter((i) => !hidden.current.has(i.id)).map(toAppNotification));
+            const page = await notificationDAO.listInbox({
+                locale: i18next.language || undefined,
+                limit: PAGE_SIZE,
+                unread: unreadOnly || undefined,
+            });
+            const list = page.items.filter((i) => !hidden.current.has(i.id)).map(toAppNotification);
+            setNotifications(list);
+            setHasMore(page.items.length === PAGE_SIZE);
+            applyTotals(page, list);
         } catch (err) {
             console.warn('[inbox] load failed:', (err as Error).message);
         }
-    }, [userId]);
+    }, [userId, unreadOnly, applyTotals]);
+
+    const loadMore = useCallback(async () => {
+        const last = listRef.current[listRef.current.length - 1];
+        if (!userId || !last || !hasMore || loadingMoreRef.current) return;
+        loadingMoreRef.current = true;
+        setLoadingMore(true);
+        try {
+            const page = await notificationDAO.listInbox({
+                locale: i18next.language || undefined,
+                limit: PAGE_SIZE,
+                before: new Date(last.createdAt).toISOString(),
+                unread: unreadOnly || undefined,
+            });
+            setNotifications((prev) => {
+                const known = new Set(prev.map((n) => n.id));
+                const more = page.items
+                    .filter((i) => !known.has(i.id) && !hidden.current.has(i.id))
+                    .map(toAppNotification);
+                return [...prev, ...more];
+            });
+            setHasMore(page.items.length === PAGE_SIZE);
+            if (page.total !== undefined && page.unread !== undefined) {
+                setTotals({ all: page.total, unread: page.unread });
+            }
+        } catch (err) {
+            console.warn('[inbox] load more failed:', (err as Error).message);
+        } finally {
+            loadingMoreRef.current = false;
+            setLoadingMore(false);
+        }
+    }, [userId, hasMore, unreadOnly]);
 
     const markSeen = useCallback(async () => {
         await clearAppBadge();
@@ -128,6 +197,8 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         if (!userId) {
             setNotifications([]);
+            setTotals({ all: 0, unread: 0 });
+            setHasMore(false);
             hidden.current.clear();
             void clearAppBadge();
             return;
@@ -144,6 +215,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
     const markAllRead = useCallback(() => {
         setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
+        setTotals(prev => ({ ...prev, unread: 0 }));
         notificationDAO.markRead().catch((err) =>
             console.warn('[inbox] mark read failed:', (err as Error).message),
         );
@@ -151,13 +223,20 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
     // `hidden` keeps a refresh that is already in flight from bringing back
     // what is being deleted; once the backend has them hidden, it never lists them.
-    const deleteNotifications = useCallback(async (ids: string[]) => {
+    const deleteNotifications = useCallback(async (ids: string[]): Promise<DeleteResult> => {
         if (ids.length === 0) return { ok: true };
         const gone = new Set(ids);
+        const removed = listRef.current.filter((n) => gone.has(n.id));
         ids.forEach((id) => hidden.current.add(id));
         setNotifications(prev => prev.filter(n => !gone.has(n.id)));
+        setTotals(prev => ({
+            all: Math.max(0, prev.all - removed.length),
+            unread: Math.max(0, prev.unread - removed.filter((n) => n.unread).length),
+        }));
         try {
             await notificationDAO.deleteInbox(ids);
+            // Keep the screen full: bring older ones in when few are left.
+            if (listRef.current.length < PAGE_SIZE / 2) void loadMore();
             return { ok: true };
         } catch (err) {
             console.warn('[inbox] delete failed:', (err as Error).message);
@@ -165,11 +244,43 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
             void refresh();
             return { ok: false, status: err instanceof ApiError ? err.statusCode : undefined };
         }
+    }, [refresh, loadMore]);
+
+    const deleteAll = useCallback(async (onlyUnread: boolean): Promise<DeleteResult> => {
+        if (onlyUnread) {
+            setNotifications(prev => prev.filter(n => !n.unread));
+            setTotals(prev => ({ all: Math.max(0, prev.all - prev.unread), unread: 0 }));
+        } else {
+            setNotifications([]);
+            setTotals({ all: 0, unread: 0 });
+            setHasMore(false);
+        }
+        try {
+            await notificationDAO.deleteAllInbox(onlyUnread);
+            void refresh();
+            return { ok: true };
+        } catch (err) {
+            console.warn('[inbox] delete all failed:', (err as Error).message);
+            void refresh();
+            return { ok: false, status: err instanceof ApiError ? err.statusCode : undefined };
+        }
     }, [refresh]);
 
     const value = useMemo(
-        () => ({ notifications, refresh, markSeen, markAllRead, deleteNotifications }),
-        [notifications, refresh, markSeen, markAllRead, deleteNotifications],
+        () => ({
+            notifications,
+            refresh,
+            markSeen,
+            markAllRead,
+            deleteNotifications,
+            deleteAll,
+            totals,
+            hasMore,
+            loadingMore,
+            loadMore,
+            setUnreadOnly,
+        }),
+        [notifications, refresh, markSeen, markAllRead, deleteNotifications, deleteAll, totals, hasMore, loadingMore, loadMore],
     );
 
     return <NotificationsContext.Provider value={value}>{children}</NotificationsContext.Provider>;

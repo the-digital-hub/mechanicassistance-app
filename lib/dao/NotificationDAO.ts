@@ -41,6 +41,10 @@ export interface InboxPage {
     items: InboxItem[];
     /** Arrived since the app was last opened — the number on the app icon. */
     unseen: number;
+    /** All notifications of the current role, not only this page. Missing on older backends. */
+    total?: number;
+    /** Not read yet, in all — the "Unread" counter and the bell. Missing on older backends. */
+    unread?: number;
 }
 
 /**
@@ -68,7 +72,9 @@ class NotificationDAO {
     }
 
     /** The signed-in person's notifications, newest first, text in `locale`. */
-    async listInbox(opts: { locale?: string; before?: string; limit?: number } = {}): Promise<InboxPage> {
+    async listInbox(
+        opts: { locale?: string; before?: string; limit?: number; unread?: boolean } = {},
+    ): Promise<InboxPage> {
         return apiClient.get<InboxPage>('/api/notifications/inbox', opts);
     }
 
@@ -90,6 +96,18 @@ class NotificationDAO {
      */
     async deleteInbox(ids: string[]): Promise<number> {
         const result = await apiClient.post<{ deleted: number }>('/api/notifications/inbox/delete', { ids });
+        return result.deleted;
+    }
+
+    /**
+     * Deletes every notification of the current role on the backend (only the
+     * unread ones with `onlyUnread`), not just the loaded page.
+     */
+    async deleteAllInbox(onlyUnread: boolean): Promise<number> {
+        const result = await apiClient.post<{ deleted: number }>('/api/notifications/inbox/delete', {
+            all: true,
+            onlyUnread,
+        });
         return result.deleted;
     }
 }
