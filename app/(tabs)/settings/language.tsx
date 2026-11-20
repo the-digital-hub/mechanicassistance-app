@@ -9,10 +9,12 @@ export default function LanguageScreen() {
 
     return (
         <ScrollView style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 24, paddingBottom: 40 }}>
-            <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+            <View style={{ marginTop: 8 }}>
+<View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                 <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
                 <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">{t('settingsMenu.languageBadge')}</Text>
             </View>
+</View>
             <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">{t('settingsMenu.language')}</Text>
             <Text className="text-gray-500 font-outfit-regular text-base mb-8">{t('settingsMenu.languageSubtitle')}</Text>
 

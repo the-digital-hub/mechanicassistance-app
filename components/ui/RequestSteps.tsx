@@ -3,6 +3,8 @@ import { Check } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 
+/** The same air under the header, between the timeline and the step badge, as every other screen leaves between its header and its badge. */
+const TIMELINE_GAP = 18;
 const BLUE = '#1E56E3';
 const LINE = '#E2E7F1';
 const DONE_LINE = '#BFE3D0';
@@ -19,11 +21,11 @@ const VIDEO = ['vehicle', 'issue', 'condition', 'scanner', 'when'] as const;
  * Timeline of a request wizard: a dot per step joined by lines. Done steps are a blue check, the
  * current one a ringed dot, the rest an empty ring; the step name and number are in the screen's eyebrow badge ("STEP 2 · ISSUE").
  */
-export function Timeline({ steps, current, flush = false }: { steps: RequestStep[]; current: number; /** Inside a scroll that already has its own side padding: no padding of its own. */ flush?: boolean }) {
+export function Timeline({ steps, current, flush = false, gap = 0 }: { steps: RequestStep[]; current: number; /** Inside a scroll that already has its own side padding: no padding of its own. */ flush?: boolean; /** Space the scroll's own `gap` already puts under the timeline. */ gap?: number }) {
     const { t } = useTranslation();
     const label = t('requestSteps.label', { n: current + 1, total: steps.length, name: steps[current]?.label ?? '' });
     return (
-        <View style={flush ? { paddingTop: HEADER_OVERLAP + 44, paddingBottom: 8 } : { paddingHorizontal: 24, paddingTop: 10 + HEADER_OVERLAP, paddingBottom: 4 }} accessibilityLabel={label}>
+        <View style={flush ? { paddingTop: TIMELINE_GAP, paddingBottom: Math.max(0, TIMELINE_GAP - gap) } : { paddingHorizontal: 24, paddingTop: 10 + HEADER_OVERLAP, paddingBottom: 4 }} accessibilityLabel={label}>
             <View className="flex-row items-center">
                 {steps.map((s, i) => {
                     const done = i < current;
@@ -56,12 +58,12 @@ export function Timeline({ steps, current, flush = false }: { steps: RequestStep
 }
 
 /** The timeline of the immediate / video-call flow for the screen that renders it. */
-export function RequestSteps({ type, step, flush }: { type?: string | string[]; step: (typeof IMMEDIATE)[number] | (typeof VIDEO)[number]; flush?: boolean }) {
+export function RequestSteps({ type, step, flush, gap }: { type?: string | string[]; step: (typeof IMMEDIATE)[number] | (typeof VIDEO)[number]; flush?: boolean; gap?: number }) {
     const { t } = useTranslation();
     const keys: readonly string[] = type === 'videocall' ? VIDEO : IMMEDIATE;
     const index = keys.indexOf(step);
     if (index < 0) return null;
-    return <Timeline steps={keys.map((key) => ({ key, label: t(`requestSteps.${key}`) }))} current={index} flush={flush} />;
+    return <Timeline steps={keys.map((key) => ({ key, label: t(`requestSteps.${key}`) }))} current={index} flush={flush} gap={gap} />;
 }
 
 /** The eyebrow badge of a step of the immediate / video-call flow, like the scheduled one: "STEP 2 · ISSUE". */

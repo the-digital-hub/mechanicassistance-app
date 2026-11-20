@@ -216,7 +216,8 @@ export default function TabLayout() {
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
   // The native header is transparent, so the page runs under its rounded lower edge; the page starts HEADER_OVERLAP above the header's bottom.
-  const sceneUnderHeader = { backgroundColor: PAGE_BG, paddingTop: Math.max(0, insets.top + (Platform.OS === "ios" ? 44 : 56) - HEADER_OVERLAP) };
+  const [headerHeight, setHeaderHeight] = useState(insets.top + (Platform.OS === "ios" ? 44 : 56));
+  const sceneUnderHeader = { backgroundColor: PAGE_BG, paddingTop: Math.max(0, headerHeight - HEADER_OVERLAP) };
   const sceneNoHeader = { backgroundColor: PAGE_BG, paddingTop: 0 };
 
   const isRequestAssistanceRoot = pathname === "/request-assistance" || pathname === "/request-assistance/";
@@ -237,7 +238,7 @@ export default function TabLayout() {
     <LocationRevalidator />
     <View
       style={{ flex: 1 }}
-      onTouchStart={(e) => scrollIntent.start(e.nativeEvent.pageX, e.nativeEvent.pageY)}
+      onTouchStart={(e) => scrollIntent.start(e.nativeEvent.pageX, e.nativeEvent.pageY, Number(e.nativeEvent.target) || undefined)}
       onTouchMove={(e) => scrollIntent.move(e.nativeEvent.pageX, e.nativeEvent.pageY)}
     >
     <Tabs
@@ -263,7 +264,7 @@ export default function TabLayout() {
         // The scene behind the header corners is the page colour, so the corners blend with the body.
         headerTransparent: true,
         sceneStyle: sceneUnderHeader,
-        headerBackground: () => <RoundedHeaderBackground />,
+        headerBackground: () => <RoundedHeaderBackground onHeight={setHeaderHeight} />,
         headerTitleStyle: {
           fontFamily: "Outfit_500Medium",
           fontSize: 18,

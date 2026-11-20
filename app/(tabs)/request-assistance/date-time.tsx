@@ -113,7 +113,7 @@ export default function DateTimeScreen() {
                 <View className="w-6" />
             </View>
 
-            <ScrollView className="flex-1 px-6 pt-6" contentContainerStyle={{ paddingBottom: 24 }}>
+            <ScrollView className="flex-1 px-6" contentContainerStyle={{ paddingTop: 32, paddingBottom: 24 }}>
                 <View
                     className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full"
                     style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}

@@ -222,11 +222,13 @@ export default function NotificationsScreen() {
             <ScrollView className="flex-1" showsVerticalScrollIndicator={false} onScroll={handleScroll} scrollEventThrottle={200}>
                 <View className="px-6 pt-4 pb-4">
                     {/* Section Badge */}
-                    <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+                    <View style={{ marginTop: 18 }}>
+                      <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                         <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
                         <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
                             {t('notifications.badge')}
                         </Text>
+                    </View>
                     </View>
 
                     {/* Title */}

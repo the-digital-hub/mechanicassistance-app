@@ -138,9 +138,9 @@ export default function SelectVehicleScreen() {
                 <ScrollView
                     className="flex-1"
                     keyboardShouldPersistTaps="handled"
-                    contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 28, gap: 20 }}
+                    contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 14, paddingBottom: 28, gap: 20 }}
                 >
-                        <RequestSteps type={params.type} step="vehicle" flush />
+                        <RequestSteps type={params.type} step="vehicle" gap={20} flush />
                     <StepHead
                         eyebrow={stepEyebrow(t, params.type, 'vehicle')}
                         title={t('requestAssistance.selectVehicle.title')}

@@ -307,11 +307,13 @@ export default function DashboardScreen() {
                 <ScrollView {...scrollProps} style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ paddingBottom: 40 }}>
                     <View className="px-6 pt-4">
                     {/* Section Badge */}
-                    <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+                    <View style={{ marginTop: 18 }}>
+                      <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                         <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
                         <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
                             {t(getTimeGreetingKey())}
                         </Text>
+                    </View>
                     </View>
 
                     {/* Title */}
@@ -961,11 +963,13 @@ export default function DashboardScreen() {
                 contentContainerStyle={{ paddingHorizontal: DASHBOARD_PADDING_X, paddingTop: 18, paddingBottom: 40 }}
             >
                 {/* Section Badge */}
-                <View className="flex-row items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#EAF1FF', alignSelf: 'flex-start', marginBottom: 12 }}>
+                <View style={{ marginTop: 14 }}>
+                  <View className="flex-row items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#EAF1FF', alignSelf: 'flex-start', marginBottom: 12 }}>
                     <View className="rounded-full" style={{ width: 5, height: 5, backgroundColor: '#1E56E3' }} />
                     <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1.3, color: '#1E56E3' }}>
                         {t(getTimeGreetingKey())}
                     </Text>
+                </View>
                 </View>
 
                 {/* Title */}

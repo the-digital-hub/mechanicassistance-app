@@ -128,8 +128,8 @@ export default function ObdScannerScreen() {
                     <Text className="font-outfit-semibold" style={{ fontSize: 15, color: C.blue }}>{t(`${k}.skip`)}</Text>
                 </TouchableOpacity>
             </View>
-            <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24, gap: 14 }}>
-                    <RequestSteps type={params.type} step="scanner" flush />
+            <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: 24, gap: 14 }}>
+                    <RequestSteps type={params.type} step="scanner" gap={14} flush />
                 <View>
                     <View className="flex-row items-center justify-between" style={{ marginBottom: 12 }}>
                         <View className="flex-row items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>

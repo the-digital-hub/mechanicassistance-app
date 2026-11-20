@@ -975,7 +975,7 @@ export default function AppointmentDetailScreen() {
                         ) : (
                             <>
                             {/* Badge + title + assistance type */}
-                            <View className="px-5 pt-5 pb-1">
+                            <View className="px-5 pb-1" style={{ paddingTop: 32 }}>
                                 {isVideoCall ? (
                                     <View className="flex-row items-center gap-1.5 mb-3 px-2.5 py-1 rounded-full" style={{ backgroundColor: MECH.blueSoft, alignSelf: 'flex-start' }}>
                                         <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: MECH.blue }} />

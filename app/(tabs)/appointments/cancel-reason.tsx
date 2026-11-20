@@ -43,11 +43,13 @@ export default function CancelReasonScreen() {
             <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
                 <View className="px-6 pt-4">
                     {/* Section Badge */}
-                    <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+                    <View style={{ marginTop: 18 }}>
+                      <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                         <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
                         <Text className="font-outfit-bold" style={{ ...TYPE.eyebrow, color: '#1E56E3' }}>
                             {t('appointments.cancelReason.badge')}
                         </Text>
+                    </View>
                     </View>
 
                     {/* Title */}

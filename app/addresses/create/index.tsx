@@ -167,12 +167,14 @@ export default function CreateAddressScreen() {
 
             <ScrollView className="flex-1 px-6 pt-6">
                 {/* Section Badge */}
+<View style={{ marginTop: 8 }}>
                 <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                     <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
                     <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
                         NEW ADDRESS
                     </Text>
                 </View>
+</View>
 
                 {/* Title */}
                 <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">Add New Address</Text>

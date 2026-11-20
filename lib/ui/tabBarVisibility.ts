@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { UIManager } from 'react-native';
 
 /**
  * Whether the bottom tab bar is tucked away. Scrolling down through a list hides it (a small tip stays so the person knows it is there);
@@ -33,11 +34,34 @@ export function createScrollIntent(options?: { hideAfter?: number; showAfter?: n
     let lastY = 0;
     let lastX = 0;
     let travelled = 0;
+    // Where the touched view was when the finger went down: if it does not follow the finger, nothing is scrolling and the bar stays.
+    let target = 0;
+    let startTop: number | null = null;
+    let checking = false;
+    const topOf = (tag: number, done: (top: number | null) => void) => {
+        try {
+            UIManager.measure(tag, (_x, _y, _w, _h, _pageX, pageY) => done(Number.isFinite(pageY) ? pageY : null));
+        } catch {
+            done(null);
+        }
+    };
+    const hideIfContentMoved = () => {
+        if (checking || !target || startTop === null) return;
+        checking = true;
+        topOf(target, (top) => {
+            checking = false;
+            // Could not measure: keep the earlier behaviour. Otherwise the view must have moved with the finger.
+            if (top === null || Math.abs(top - startTop!) >= 12) setTabBarHidden(true);
+        });
+    };
     return {
-        start(x: number, y: number) {
+        start(x: number, y: number, touched?: number) {
             lastX = x;
             lastY = y;
             travelled = 0;
+            target = touched ?? 0;
+            startTop = null;
+            if (target) topOf(target, (top) => { startTop = top; });
         },
         move(x: number, y: number) {
             const dy = y - lastY;
@@ -49,7 +73,7 @@ export function createScrollIntent(options?: { hideAfter?: number; showAfter?: n
             // The finger going up scrolls the content down: the direction accumulates, and flipping it starts over.
             if (dy < 0) travelled = Math.min(0, travelled) + dy;
             else travelled = Math.max(0, travelled) + dy;
-            if (travelled <= -hideAfter) setTabBarHidden(true);
+            if (travelled <= -hideAfter) hideIfContentMoved();
             else if (travelled >= showAfter) setTabBarHidden(false);
         },
     };

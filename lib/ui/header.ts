@@ -9,7 +9,7 @@ export const PAGE_BG = '#F6F8FC';
  * How far the page runs under the header's rounded lower edge (= its corner radius), so what scrolls shows through the corners and the shadow
  * falls on it. Screens start this much higher than the header's bottom; their own top padding absorbs it.
  */
-export const HEADER_OVERLAP = 20;
+export const HEADER_OVERLAP = 14;
 
 /**
  * Header of every screen: the same tint, but with the bottom corners rounded and a soft shadow instead of a hairline, so it reads as a
@@ -17,8 +17,8 @@ export const HEADER_OVERLAP = 20;
  */
 export const ROUNDED_HEADER: ViewStyle = {
     backgroundColor: HEADER_BG,
-    borderBottomLeftRadius: HEADER_OVERLAP,
-    borderBottomRightRadius: HEADER_OVERLAP,
+    borderBottomLeftRadius: 22,
+    borderBottomRightRadius: 22,
     shadowColor: '#0B1F5C',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.09,

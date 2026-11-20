@@ -100,18 +100,21 @@ export default function AppointmentsScreen() {
                 ListHeaderComponent={
                     <View style={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 12 }}>
                         {/* Section Badge */}
-                        <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+                        <View style={{ marginTop: 14 }}>
+                          <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                           <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
                           <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
                             {badgeLabel}
                           </Text>
+                        </View>
                         </View>
 
                         {/* Title */}
                         <Text className="text-gray-900 font-outfit-medium text-3xl">{t(user?.role === 'mechanic' ? 'appointments.list.title' : 'appointments.list.titleOwner')}</Text>
 
                         {/* Tab Switcher: only tabs with items, each at its natural width */}
-                        {tabs.length > 0 && (
+                        {/* A lone tab says nothing: Past alone is already named by its Completed / Cancelled selector. */}
+                        {tabs.length > 1 && (
                             <View style={{ marginTop: 16 }}>
                                 <RequestTypeTabs tabs={tabs} selected={activeTab} onSelect={setSelectedTab} horizontalInset={40} />
                             </View>
@@ -125,7 +128,7 @@ export default function AppointmentsScreen() {
                         )}
 
                         {activeTab === 'past' && (
-                            <View className="flex-row justify-end" style={{ marginTop: 12, gap: 8 }}>
+                            <View className="flex-row" style={{ marginTop: 16, padding: 4, borderRadius: 16, backgroundColor: '#EAEFF9' }}>
                                 {([
                                     { key: 'completed', label: t('appointments.list.pastFilter.completed'), count: completedCount },
                                     { key: 'cancelled', label: t('appointments.list.pastFilter.cancelled'), count: cancelledCount },
@@ -147,16 +150,23 @@ export default function AppointmentsScreen() {
                                                 }
                                             }}
                                             activeOpacity={0.7}
-                                            className="flex-row items-center"
-                                            style={{ gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 100, backgroundColor: on ? '#EAF1FF' : 'transparent' }}
+                                            className="flex-row items-center justify-center"
+                                            style={{
+                                                flex: 1,
+                                                gap: 6,
+                                                paddingVertical: 10,
+                                                borderRadius: 12,
+                                                backgroundColor: on ? '#FFFFFF' : 'transparent',
+                                                ...(on ? { shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 6, elevation: 2 } : null),
+                                            }}
                                             accessibilityRole="button"
                                             accessibilityState={{ selected: on }}
                                             accessibilityLabel={`${f.label}, ${asc ? t('appointments.list.sort.oldestFirst') : t('appointments.list.sort.newestFirst')}`}
                                         >
-                                            <Text className="font-outfit-medium text-[13px]" style={{ color }}>
+                                            <Text className="font-outfit-semibold text-[13px]" style={{ color }} numberOfLines={1}>
                                                 {f.label} · {f.count}
                                             </Text>
-                                            <Arrow size={14} color={color} />
+                                            {on ? <Arrow size={14} color={color} /> : null}
                                         </TouchableOpacity>
                                     );
                                 })}

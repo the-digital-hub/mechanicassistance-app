@@ -345,9 +345,9 @@ export default function ConfirmationScreen() {
             </View>
             <ScrollView
                 className="flex-1"
-                contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 24, gap: 20 }}
+                contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 14, paddingBottom: 24, gap: 20 }}
             >
-                    <RequestSteps type={params.type} step="confirm" flush />
+                    <RequestSteps type={params.type} step="confirm" gap={20} flush />
                 <View>
                     <View className="flex-row items-center justify-between" style={{ marginBottom: 16 }}>
                         <View className="flex-row items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>

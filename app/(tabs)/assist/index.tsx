@@ -9,13 +9,35 @@ import { buildMechanicFeedFilters } from '@/lib/mechanic-feed';
 import { pricingDAO } from '@/lib/dao/PricingDAO';
 import { AssistanceRequest } from '@/lib/dao/interfaces';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Search, Zap, Video, Calendar, Clock, Car, Wrench, Lock, DollarSign } from 'lucide-react-native';
+import { Radar, Search, Zap, Video, Calendar, Clock, Car, Wrench, Lock, DollarSign } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { TYPE } from '@/lib/ui/type';
 import { RequestIssueText } from '@/components/ui/RequestIssueText';
 import { useScrollPressGuard } from '@/hooks/useScrollPressGuard';
-import { ActivityIndicator, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Animated, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+
+/** "Listening for new requests": a small chip whose dot breathes, so the empty feed feels alive. */
+function ListeningChip({ label }: { label: string }) {
+  const pulse = useRef(new Animated.Value(0.35)).current;
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1, duration: 900, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0.35, duration: 900, useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulse]);
+  return (
+    <View className="flex-row items-center self-center rounded-full" style={{ gap: 8, marginTop: 20, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: '#E8F7EF' }}>
+      <Animated.View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#12A150', opacity: pulse }} />
+      <Text className="font-outfit-semibold" style={{ fontSize: 13, color: '#0E7A3E' }}>{label}</Text>
+    </View>
+  );
+}
 
 export default function AssistanceRequestsScreen() {
   const router = useRouter();
@@ -162,11 +184,13 @@ export default function AssistanceRequestsScreen() {
     <View className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
       <ScrollView {...scrollProps} contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 24, paddingBottom: 40 }}>
         {/* Section Badge */}
-        <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+        <View style={{ marginTop: 8 }}>
+          <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
           <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
           <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
             {t('assist.badge')}
           </Text>
+        </View>
         </View>
 
         {/* Title */}
@@ -189,7 +213,9 @@ export default function AssistanceRequestsScreen() {
           </View>
         ) : null}
 
-        {/* Search Bar */}
+        {/* Search and filters only make sense when there is something to search through */}
+        {visibleRequests.length > 0 && (
+          <>
         <View className="flex-row items-center bg-white rounded-2xl px-4 mb-6 border border-gray-200">
           <Search size={20} color="#9CA3AF" />
           <TextInput
@@ -231,10 +257,23 @@ export default function AssistanceRequestsScreen() {
             ))}
           </View>
         </ScrollView>
+          </>
+        )}
 
         {filteredRequests.length === 0 ? (
-          <View className="items-center justify-center py-12">
-            <Text className="text-gray-400 font-outfit-regular text-base">{t('dashboard.mechanic.noPendingRequests')}</Text>
+          <View className="items-center" style={{ paddingTop: 40, paddingBottom: 24, paddingHorizontal: 12 }}>
+            <View className="items-center justify-center" style={{ width: 112, height: 112, borderRadius: 56, backgroundColor: '#EAF1FF' }}>
+              <View className="items-center justify-center" style={{ width: 76, height: 76, borderRadius: 38, backgroundColor: '#FFFFFF', shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 12, elevation: 4 }}>
+                <Radar size={34} color="#1E56E3" />
+              </View>
+            </View>
+            <Text className="font-outfit-semibold text-center" style={{ fontSize: 20, color: '#0B1530', marginTop: 20 }}>
+              {t('dashboard.mechanic.emptyFeedTitle')}
+            </Text>
+            <Text className="font-outfit-regular text-center" style={{ ...TYPE.helper, color: '#6B7490', marginTop: 8, maxWidth: 300 }}>
+              {t(mechanicStatus === 'available' ? 'dashboard.mechanic.emptyFeedHint' : 'dashboard.mechanic.emptyFeedOffline')}
+            </Text>
+            {mechanicStatus === 'available' && <ListeningChip label={t('dashboard.mechanic.emptyFeedListening')} />}
           </View>
         ) : (
           <View className="gap-4">

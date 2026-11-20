@@ -34,7 +34,7 @@ export function AddressNameField({ value, onChange }: AddressNameFieldProps) {
 
     return (
         <View>
-            <Text className="font-outfit-medium mb-2 text-gray-900">
+            <Text className="font-outfit-medium text-base mb-2 text-gray-900">
                 {t('addresses.name.label')}{' '}
                 <Text className="text-gray-400 font-outfit-regular">{t('addresses.name.optional')}</Text>
             </Text>

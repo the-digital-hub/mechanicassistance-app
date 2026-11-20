@@ -120,7 +120,8 @@ export default function LegalDocumentsScreen() {
         contentContainerStyle={{ padding: 24, paddingBottom: 40 }}
       >
         {/* Section Badge */}
-        <View
+        <View style={{ marginTop: 8 }}>
+          <View
           className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full"
           style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}
         >
@@ -131,6 +132,7 @@ export default function LegalDocumentsScreen() {
           <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
             {t('setup.legalDocs.badge')}
           </Text>
+        </View>
         </View>
 
         <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">

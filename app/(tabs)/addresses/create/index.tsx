@@ -148,13 +148,15 @@ export default function CreateAddressScreen() {
 
     return (
         <View className="flex-1 bg-white">
-            <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 24, paddingBottom: 40 }}>
+            <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 24, paddingBottom: 40 }}>
                 {/* Section Badge */}
-                <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+                <View style={{ marginTop: 8 }}>
+                  <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                     <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
                     <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
                         {t('addressForm.newBadge')}
                     </Text>
+                </View>
                 </View>
 
                 {/* Title */}
@@ -170,7 +172,7 @@ export default function CreateAddressScreen() {
                     <AddressNameField value={name} onChange={setName} />
 
                     <View>
-                        <Text className="font-outfit-medium mb-2 text-gray-900">{t('addressForm.street')} <Text className="text-red-500">*</Text></Text>
+                        <Text className="font-outfit-medium text-base mb-2 text-gray-900">{t('addressForm.street')} <Text className="text-red-500">*</Text></Text>
                         <AddressAutocomplete
                             value={formData.street}
                             onChangeText={handleStreetChange}
@@ -181,7 +183,7 @@ export default function CreateAddressScreen() {
                     </View>
 
                     <View>
-                        <Text className="font-outfit-medium mb-2 text-gray-900">{t('addressForm.apartment')}</Text>
+                        <Text className="font-outfit-medium text-base mb-2 text-gray-900">{t('addressForm.apartment')}</Text>
                         <Input
                             value={formData.apartment}
                             onChangeText={(text) => setFormData({ ...formData, apartment: text })}
@@ -192,7 +194,7 @@ export default function CreateAddressScreen() {
 
                     <View className="flex-row gap-4">
                         <View className="flex-1">
-                            <Text className="font-outfit-medium mb-2 text-gray-900">{t('addressForm.city')} <Text className="text-red-500">*</Text></Text>
+                            <Text className="font-outfit-medium text-base mb-2 text-gray-900">{t('addressForm.city')} <Text className="text-red-500">*</Text></Text>
                             <Input
                                 value={formData.city}
                                 onChangeText={(text) => setFormData({ ...formData, city: text })}
@@ -200,12 +202,12 @@ export default function CreateAddressScreen() {
                             />
                         </View>
                         <View className="flex-1">
-                            <Text className="font-outfit-medium mb-2 text-gray-900">{t('addressForm.state')}</Text>
+                            <Text className="font-outfit-medium text-base mb-2 text-gray-900">{t('addressForm.state')}</Text>
                             <TouchableOpacity
                                 onPress={() => setShowStateModal(true)}
                                 className="bg-white border border-gray-300 rounded-2xl h-[52px] justify-center px-4"
                             >
-                                <Text className={`font-outfit-medium ${formData.state ? 'text-gray-900' : 'text-gray-400'}`}>
+                                <Text className={`font-outfit-medium text-[17px] ${formData.state ? 'text-gray-900' : 'text-gray-400'}`}>
                                     {formData.state || 'FL'}
                                 </Text>
                             </TouchableOpacity>
@@ -213,7 +215,7 @@ export default function CreateAddressScreen() {
                     </View>
 
                     <View>
-                        <Text className="font-outfit-medium mb-2 text-gray-900">{t('addressForm.zip')} <Text className="text-red-500">*</Text></Text>
+                        <Text className="font-outfit-medium text-base mb-2 text-gray-900">{t('addressForm.zip')} <Text className="text-red-500">*</Text></Text>
                         <Input
                             value={formData.zip}
                             onChangeText={(text) => {
@@ -230,22 +232,12 @@ export default function CreateAddressScreen() {
 
                 {/* Buttons Row */}
                 <View className="flex-row gap-3 mb-10">
-                    {/* Back Button - 30% width */}
-                    <TouchableOpacity
-                        onPress={() => router.back()}
-                        activeOpacity={0.8}
-                        style={{ flex: 0.3 }}
-                        className="py-4 rounded-lg border border-gray-300 items-center"
-                    >
-                        <Text className="text-gray-900 font-outfit-semibold text-base">{t('addressForm.back')}</Text>
-                    </TouchableOpacity>
-
-                    {/* Create Button - 70% width */}
+                    {/* The header's arrow already goes back */}
                     <TouchableOpacity
                         onPress={handleCreate}
                         activeOpacity={0.8}
                         disabled={isLoading}
-                        style={{ flex: 0.7 }}
+                        style={{ flex: 1 }}
                     >
                         <LinearGradient
                             colors={['#2B66F8', '#081E72']}
@@ -263,7 +255,7 @@ export default function CreateAddressScreen() {
                             {isLoading ? (
                                 <ActivityIndicator color="white" />
                             ) : (
-                                <Text className="text-white font-outfit-semibold text-base text-center">{t('addressForm.create')}</Text>
+                                <Text className="text-white font-outfit-semibold text-lg text-center">{t('addressForm.create')}</Text>
                             )}
                         </LinearGradient>
                     </TouchableOpacity>

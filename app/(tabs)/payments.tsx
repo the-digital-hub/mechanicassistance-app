@@ -83,10 +83,12 @@ export default function PaymentsScreen() {
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor="#0047AB" />}
             testID="earnings-screen"
         >
-            <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+            <View style={{ marginTop: 8 }}>
+<View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                 <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
                 <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">{t(`${K}.badge`)}</Text>
             </View>
+</View>
             <Text className="text-gray-900 font-outfit-medium text-3xl mb-2">{t(`${K}.title`)}</Text>
             <Text className="text-gray-500 font-outfit-regular text-base mb-6">{t(`${K}.subtitle`)}</Text>
 
