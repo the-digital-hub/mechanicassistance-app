@@ -1,4 +1,5 @@
 import { FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
+import { ROUNDED_HEADER } from '@/lib/ui/header';
 import { TYPE } from '@/lib/ui/type';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Check, ChevronRight, List, Plus, type LucideIcon } from 'lucide-react-native';
@@ -44,7 +45,7 @@ export function WizardHeader({ title, onBack, right }: { title: string; onBack?:
     return (
         <View
             className="px-6 pt-20 pb-2 flex-row items-center justify-between"
-            style={{ backgroundColor: '#F4F5FA', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 3, elevation: 3, borderBottomWidth: 0.5, borderBottomColor: '#D1D5DB' }}
+            style={ROUNDED_HEADER}
         >
             {onBack ? <HeaderBackButton onPress={onBack} marginLeft={0} /> : <View style={{ width: 40 }} />}
             <Text style={{ fontFamily: 'Outfit_500Medium', fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>{title}</Text>

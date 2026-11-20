@@ -22,7 +22,7 @@ export function Timeline({ steps, current, flush = false }: { steps: RequestStep
     const { t } = useTranslation();
     const label = t('requestSteps.label', { n: current + 1, total: steps.length, name: steps[current]?.label ?? '' });
     return (
-        <View style={flush ? { paddingBottom: 14 } : { paddingHorizontal: 24, paddingTop: 10, paddingBottom: 4 }} accessibilityLabel={label}>
+        <View style={flush ? { paddingBottom: 8 } : { paddingHorizontal: 24, paddingTop: 10, paddingBottom: 4 }} accessibilityLabel={label}>
             <View className="flex-row items-center">
                 {steps.map((s, i) => {
                     const done = i < current;

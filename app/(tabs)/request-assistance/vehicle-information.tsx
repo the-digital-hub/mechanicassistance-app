@@ -1,4 +1,5 @@
 import { RequestSteps, stepEyebrow } from '@/components/ui/RequestSteps';
+import { ROUNDED_HEADER } from '@/lib/ui/header';
 import { HeaderBackButton } from '@/components/ui/HeaderBackButton';
 import { CARD_STYLE, ChoiceCard, Footer, SC, TextField } from '@/components/scheduled/ui';
 import { TYPE } from '@/lib/ui/type';
@@ -89,7 +90,7 @@ export default function VehicleInformationScreen() {
         // The same look as the issue step: a tinted page, white cards, a fixed bottom action.
         <View className="flex-1" style={{ backgroundColor: SC.page }}>
             {/* Custom Header */}
-            <View className="px-6 pt-20 pb-2 flex-row items-center justify-between" style={{ backgroundColor: '#F4F5FA', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 3, elevation: 3, borderBottomWidth: 0.5, borderBottomColor: '#D1D5DB' }}>
+            <View className="px-6 pt-20 pb-2 flex-row items-center justify-between" style={ROUNDED_HEADER}>
                 <HeaderBackButton marginLeft={0} onPress={() => router.back()} />
                 <Text style={{ fontFamily: 'Outfit_500Medium', fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>
                     {getTitle()}

@@ -1,4 +1,5 @@
 import { useAppointments } from '@/context/AppointmentsContext';
+import { ROUNDED_HEADER } from '@/lib/ui/header';
 import { RequestVinCheckModal } from '@/components/video/RequestVinCheckModal';
 import { isCancelledStatus } from '@/context/AppointmentsContext';
 import { useSocket } from '@/context/SocketContext';
@@ -238,7 +239,7 @@ export default function SearchingScreen() {
     return (
         <View className="flex-1" style={{ backgroundColor: '#F4F6FC' }}>
             {/* Custom Header */}
-            <View className="px-6 pt-20 pb-2 flex-row items-center justify-between" style={{ backgroundColor: '#F4F5FA', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 3, elevation: 3, borderBottomWidth: 0.5, borderBottomColor: '#D1D5DB' }}>
+            <View className="px-6 pt-20 pb-2 flex-row items-center justify-between" style={ROUNDED_HEADER}>
                 <TouchableOpacity onPress={() => router.back()}>
                     <View className="w-10 h-10 rounded-full justify-center items-center" style={{ backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }}>
                         <ChevronLeft size={20} color="#0047AB" />

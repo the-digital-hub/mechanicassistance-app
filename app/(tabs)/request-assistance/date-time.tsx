@@ -1,4 +1,5 @@
 import { Footer } from '@/components/scheduled/ui';
+import { ROUNDED_HEADER } from '@/lib/ui/header';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
 import React, { useMemo, useState } from 'react';
@@ -96,7 +97,7 @@ export default function DateTimeScreen() {
         <View className="flex-1" style={{ backgroundColor: '#F4F6FC' }}>
             <View
                 className="px-6 pt-20 pb-2 flex-row items-center justify-between"
-                style={{ backgroundColor: '#F4F5FA', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 3, elevation: 3, borderBottomWidth: 0.5, borderBottomColor: '#D1D5DB' }}
+                style={ROUNDED_HEADER}
             >
                 <TouchableOpacity onPress={() => router.back()}>
                     <View

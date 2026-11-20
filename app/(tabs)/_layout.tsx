@@ -10,12 +10,16 @@ import {
   User as UserIcon,
   Wrench,
 } from "lucide-react-native";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Image, Modal, Platform, Pressable, Text, TouchableOpacity, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
 import { HapticTab } from "@/components/haptic-tab";
 import { HeaderBackButton } from "@/components/ui/HeaderBackButton";
+import { RoundedHeaderBackground } from "@/components/ui/RoundedHeaderBackground";
+import { RoundedTabBar } from "@/components/ui/RoundedTabBar";
+import { createScrollIntent } from "@/lib/ui/tabBarVisibility";
+import { ATTACHED_TAB_BAR, TAB_BAR_HEIGHT } from "@/lib/ui/header";
 import { NotificationBell } from "@/components/NotificationBell";
 import { MechanicLocationBroadcaster } from "@/components/MechanicLocationBroadcaster";
 import { LocationRevalidator } from "@/components/LocationRevalidator";
@@ -218,31 +222,39 @@ export default function TabLayout() {
   const isAppointmentDetail =
     /^\/appointments\/[^/]+$/.test(pathname) && pathname !== "/appointments/cancel-reason";
 
+  // A finger dragging over any screen tells whether the person scrolls down (the tab bar tucks away) or back up (it returns).
+  const scrollIntent = useMemo(() => createScrollIntent(), []);
+
   return (
     <>
     <MechanicLocationBroadcaster />
     <LocationRevalidator />
+    <View
+      style={{ flex: 1 }}
+      onTouchStart={(e) => scrollIntent.start(e.nativeEvent.pageX, e.nativeEvent.pageY)}
+      onTouchMove={(e) => scrollIntent.move(e.nativeEvent.pageX, e.nativeEvent.pageY)}
+    >
     <Tabs
       // Back follows the order the user actually visited tabs in. The default
       // ("firstRoute") sends every cross-tab back to Dashboard.
       backBehavior="history"
+      tabBar={(props) => <RoundedTabBar {...props} />}
       screenOptions={{
         tabBarActiveTintColor: "#0047AB",
         tabBarInactiveTintColor: "#8E8E93",
+        // Attached to the bottom edge, top corners rounded (see lib/ui/header.ts).
         tabBarStyle: {
-          backgroundColor: "#FFFFFF",
-          borderTopWidth: 1,
-          borderTopColor: "#E5E5E5",
-          height: Platform.OS === "ios" ? 88 : 68,
-          paddingTop: 8,
+          ...ATTACHED_TAB_BAR,
+          height: TAB_BAR_HEIGHT,
           paddingBottom: Platform.OS === "ios" ? 28 : 8,
         },
         headerShown: true,
         headerTitleAlign: "center",
         headerTintColor: "#0047AB",
-        headerStyle: {
-          backgroundColor: "#F4F5FA",
-        },
+        // The header is a rounded surface drawn by headerBackground; the bar itself stays transparent so the corners show the page.
+        headerStyle: { backgroundColor: "transparent" },
+        headerShadowVisible: false,
+        headerBackground: () => <RoundedHeaderBackground />,
         headerTitleStyle: {
           fontFamily: "Outfit_500Medium",
           fontSize: 18,
@@ -300,7 +312,6 @@ export default function TabLayout() {
         options={{
           title: t('tabs.appointments'),
           tabBarIcon: ({ color }) => <Calendar size={24} color={color} />,
-          headerStyle: { backgroundColor: "#F6F8FC" },
           headerTitleStyle: {
             fontFamily: "Outfit_500Medium",
             fontSize: 18,
@@ -538,6 +549,7 @@ export default function TabLayout() {
         options={{ href: null, headerShown: false, tabBarStyle: { display: "none" } }}
       />
     </Tabs>
+    </View>
     </>
   );
 }

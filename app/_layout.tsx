@@ -7,6 +7,10 @@ import {
 import { LogBox, Text, TouchableOpacity, View } from "react-native";
 
 import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
+import { PAGE_BG } from "@/lib/ui/header";
+
+// The page colour behind the rounded header and the floating tab bar.
+const APP_THEME = { ...DefaultTheme, colors: { ...DefaultTheme.colors, background: PAGE_BG } };
 import { useFonts } from "expo-font";
 import { Stack, useRouter, type ErrorBoundaryProps } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -174,7 +178,7 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={DefaultTheme}>
+    <ThemeProvider value={APP_THEME}>
       <UserProvider>
         <SocketProvider>
           <MechanicStatusProvider>

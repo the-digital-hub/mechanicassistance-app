@@ -1,4 +1,5 @@
 import { RequestSteps, stepEyebrow } from '@/components/ui/RequestSteps';
+import { ROUNDED_HEADER } from '@/lib/ui/header';
 import { FLOATING_CTA, FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
 import { MediaSlot, type Picked } from '@/components/on-site/MediaSlot';
 import { useRequestDraft } from '@/context/RequestDraftContext';
@@ -113,7 +114,7 @@ export default function ObdScannerScreen() {
             {/* Header — same as the other wizard steps */}
             <View
                 className="px-6 pt-20 pb-2 flex-row items-center justify-between"
-                style={{ backgroundColor: '#F4F5FA', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 3, elevation: 3, borderBottomWidth: 0.5, borderBottomColor: '#D1D5DB' }}
+                style={ROUNDED_HEADER}
             >
                 <TouchableOpacity onPress={() => router.back()} testID="obd-scanner-back">
                     <View className="w-10 h-10 rounded-full justify-center items-center" style={{ backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }}>

@@ -1,4 +1,5 @@
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
+import { ROUNDED_HEADER } from '@/lib/ui/header';
 import { Input } from '@/components/ui/Input';
 import { useUser } from '@/context/UserContext';
 import { useMechanicStatus } from '@/context/MechanicStatusContext';
@@ -137,7 +138,7 @@ export default function CreateAddressScreen() {
     return (
         <View className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
             {/* Custom Header */}
-            <View className="px-6 pt-20 pb-2 flex-row items-center justify-between" style={{ backgroundColor: '#F4F5FA', borderBottomWidth: 0.5, borderBottomColor: '#D1D5DB' }}>
+            <View className="px-6 pt-20 pb-2 flex-row items-center justify-between" style={ROUNDED_HEADER}>
                 {isMechanic ? (
                     <TouchableOpacity
                         onPress={() => setShowStatusModal(true)}

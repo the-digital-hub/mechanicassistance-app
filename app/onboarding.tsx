@@ -220,7 +220,10 @@ const Onboarding = () => {
           },
         ]}
       >
-        <MeshBackground />
+        {/* A touch of transparency, so the photo shows faintly through the card; it goes solid as the card grows to hold the next screen. */}
+        <Animated.View style={[StyleSheet.absoluteFill, { opacity: expand.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] }) }]} pointerEvents="none">
+          <MeshBackground />
+        </Animated.View>
         <Animated.View style={fadeOut}>
         <Reveal index={1}>
           <View style={styles.eyebrowRow}>
@@ -329,7 +332,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     overflow: "hidden",
-    backgroundColor: "#0B2A8E",
+    backgroundColor: "transparent",
   },
   eyebrowRow: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 14 },
   eyebrowLine: { width: 28, height: 2, borderRadius: 1, backgroundColor: CYAN },
