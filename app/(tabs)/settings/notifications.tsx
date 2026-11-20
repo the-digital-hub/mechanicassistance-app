@@ -3,10 +3,14 @@ import { ChevronLeft } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { useUser } from '@/context/UserContext';
+import { useInAppAlertsEnabled } from '@/lib/notifications/inAppAlerts';
 
 export default function NotificationsSettingsScreen() {
     const router = useRouter();
     const { t } = useTranslation();
+    const { user } = useUser();
+    const [inAppAlerts, setInAppAlerts] = useInAppAlertsEnabled();
     const [settings, setSettings] = useState({
         general: true,
         sound: true,
@@ -50,6 +54,23 @@ export default function NotificationsSettingsScreen() {
             <Text className="text-gray-500 font-outfit-regular text-base mb-8">
               {t('settingsNotifications.subtitle')}
             </Text>
+
+            {user?.role === 'mechanic' ? (
+                <View className="flex-row items-center mb-8" style={{ gap: 16 }}>
+                    <View style={{ flex: 1 }}>
+                        <Text className="font-outfit-medium text-gray-900 text-lg">{t('settingsNotifications.inAppRequests')}</Text>
+                        <Text className="font-outfit-regular text-gray-500 text-base">{t('settingsNotifications.inAppRequestsHelp')}</Text>
+                    </View>
+                    <Switch
+                        trackColor={{ false: '#767577', true: '#0047AB' }}
+                        thumbColor={inAppAlerts ? '#fff' : '#f4f3f4'}
+                        ios_backgroundColor="#E5E7EB"
+                        onValueChange={setInAppAlerts}
+                        value={inAppAlerts}
+                        testID="in-app-alerts-switch"
+                    />
+                </View>
+            ) : null}
 
             <View className="gap-6">
                 {items.map((item) => (

@@ -1,4 +1,10 @@
 {
+  "inAppAlert": {
+    "newRequestTitle": "Nueva solicitud",
+    "newRequestBody": "Un cliente necesita ayuda cerca.",
+    "view": "Ver",
+    "dismiss": "Cerrar"
+  },
   "certifications": {
     "badge": "PERFIL PROFESIONAL",
     "title": "Otras certificaciones",
@@ -1597,6 +1603,8 @@
         "skipWarn": "Sin el VIN no podemos verificar el vehículo contra el pedido.",
         "rotateToLandscape": "Girar a horizontal",
         "rotateToPortrait": "Volver a vertical",
+        "torchOn": "Encender la linterna",
+        "torchOff": "Apagar la linterna",
         "matched": "Coincide: es el vehículo del pedido.",
         "differs": "Este VIN no coincide con el vehículo del pedido.",
         "differTitle": "El VIN no coincide",
@@ -2467,6 +2475,8 @@
     "subtitle": "Gestioná las preferencias y seguridad de tu cuenta"
   },
   "settingsNotifications": {
+    "inAppRequests": "Aviso en pantalla de nuevas solicitudes",
+    "inAppRequestsHelp": "Un aviso pequeño arriba mientras la app está abierta.",
     "badge": "CONFIGURACIÓN DE NOTIFICACIONES",
     "title": "Notificaciones",
     "subtitle": "Personalizá tus preferencias de notificación",

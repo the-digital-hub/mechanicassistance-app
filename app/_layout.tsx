@@ -17,6 +17,7 @@ import "react-native-reanimated";
 
 import { GlobalNotificationListener } from "@/components/GlobalNotificationListener";
 import { AppAlertHost } from "@/components/ui/AppAlertHost";
+import { InAppRequestBanner } from "@/components/InAppRequestBanner";
 import { PushNotificationRouter } from "@/components/PushNotificationRouter";
 import { AppointmentsProvider } from "@/context/AppointmentsContext";
 import { MechanicStatusProvider } from "@/context/MechanicStatusContext";
@@ -86,6 +87,7 @@ function AppShell() {
       <GlobalNotificationListener />
       <AppAlertHost />
       <PushNotificationRouter />
+      <InAppRequestBanner />
       <Stack screenOptions={{ headerShown: false }}>
         {/* Every (tabs) screen has its own back arrow. With the edge swipe on,
             a second (tabs) entry on this stack could be dragged aside and

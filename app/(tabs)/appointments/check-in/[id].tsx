@@ -9,7 +9,7 @@ import { reportedIssue, ScreenCheckIn, ScreenDiagnosticsObd, ScreenDiagnosticsPh
 import { DoneVariant, ScreenCloseService } from '@/components/on-site/screens-checkout';
 import { ScreenCloseout } from '@/components/on-site/screens-closeout';
 import { PartsOrder, RedirectReason, ScreenBuyParts, ScreenEvaluateOptions, ScreenResolveIncident } from '@/components/on-site/screens-execution';
-import { FlowHeader, OS, Phase, PhaseBar, Spinner } from '@/components/on-site/ui';
+import { FlowHeader, OS, Phase, PhaseContext, Spinner } from '@/components/on-site/ui';
 import { useGlobalSearchParams, useRouter } from 'expo-router';
 import { goBackOr } from '@/lib/navigation/goBackOr';
 import React from 'react';
@@ -314,9 +314,11 @@ export default function OnSiteFlowScreen() {
                 <View className="flex-1 items-center justify-center"><Spinner /></View>
             ) : (
                 <OnSiteCaptureProvider value={captureContext}>
-                    {screen !== 'done' ? <PhaseBar phase={PHASE_OF[screen]} /> : null}
-                    {/* key resets each screen's local state when navigating between steps */}
-                    <View key={screen} className="flex-1">{body}</View>
+                    {/* The phase bar is drawn by each screen's scroll, not pinned here: only the header and the buttons below stay fixed. */}
+                    <PhaseContext.Provider value={screen !== 'done' ? PHASE_OF[screen] : null}>
+                        {/* key resets each screen's local state when navigating between steps */}
+                        <View key={screen} className="flex-1">{body}</View>
+                    </PhaseContext.Provider>
                 </OnSiteCaptureProvider>
             )}
         </KeyboardAvoidingView>

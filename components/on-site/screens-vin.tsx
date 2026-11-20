@@ -55,6 +55,8 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
     const landscape = width > height;
     const [notVin, setNotVin] = React.useState(false);
     const [found, setFound] = React.useState<string | null>(null);
+    // The flashlight, for a sticker in a dark door jamb. It goes off by itself when the scanner closes.
+    const [torch, setTorch] = React.useState(false);
     const handled = React.useRef(false);
     const line = React.useRef(new Animated.Value(0)).current;
 
@@ -123,10 +125,27 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
         </TouchableOpacity>
     );
 
+    const torchButton = (
+        <TouchableOpacity
+            onPress={() => setTorch((on) => !on)}
+            accessibilityRole="button"
+            accessibilityState={{ selected: torch }}
+            accessibilityLabel={torch ? t('appointments.onSite.vin.torchOff') : t('appointments.onSite.vin.torchOn')}
+            className="items-center justify-center"
+            style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: torch ? '#FFFFFF' : 'rgba(255,255,255,0.16)' }}
+            testID="vin-torch"
+        >
+            <Ionicons name={torch ? 'flashlight' : 'flashlight-outline'} size={24} color={torch ? '#1E56E3' : '#FFFFFF'} />
+        </TouchableOpacity>
+    );
+
     const topButtons = (
         <View className="flex-row items-center justify-between">
             {closeButton}
-            {rotateButton}
+            <View className="flex-row items-center" style={{ gap: 10 }}>
+                {torchButton}
+                {rotateButton}
+            </View>
         </View>
     );
 
@@ -142,6 +161,7 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
             <CameraView
                 style={StyleSheet.absoluteFill}
                 facing="back"
+                enableTorch={torch}
                 barcodeScannerSettings={{ barcodeTypes: [...BARCODE_TYPES] }}
                 onBarcodeScanned={found ? undefined : onScanned}
             />

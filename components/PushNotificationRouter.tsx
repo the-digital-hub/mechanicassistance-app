@@ -8,6 +8,8 @@ import { useRootNavigationState, useRouter, type Href } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import { useUser } from '@/context/UserContext';
+import { showInAppBanner } from '@/lib/notifications/inAppAlerts';
+import i18n from '@/lib/i18n';
 import {
     isForActiveRole,
     notifyCancellationDisputePush,
@@ -108,6 +110,17 @@ export function PushNotificationRouter() {
             if (data?.recipientId && data.recipientId !== userId) return;
             if (!isForActiveRole(data, role)) return;
             notifyCancellationDisputePush(data);
+            // The system shows nothing while the app is open: a new request gets a small alert on screen instead
+            // (unless the technician turned it off in Settings → Notifications).
+            if (data?.kind === 'new_request') {
+                const id = message.messageId ?? data.requestId ?? String(Date.now());
+                void showInAppBanner({
+                    id,
+                    title: message.notification?.title || i18n.t('inAppAlert.newRequestTitle'),
+                    body: message.notification?.body || i18n.t('inAppAlert.newRequestBody'),
+                    route: routeForPush(data, { id: userId, role }),
+                });
+            }
         });
     }, [userId, role]);
 

@@ -1,4 +1,10 @@
 {
+  "inAppAlert": {
+    "newRequestTitle": "New request",
+    "newRequestBody": "A customer needs help nearby.",
+    "view": "View",
+    "dismiss": "Dismiss"
+  },
   "certifications": {
     "badge": "PROFESSIONAL PROFILE",
     "title": "Other certifications",
@@ -1596,6 +1602,8 @@
         "skipWarn": "Without the VIN we can't check the vehicle against the request.",
         "rotateToLandscape": "Rotate to landscape",
         "rotateToPortrait": "Back to portrait",
+        "torchOn": "Turn on the flashlight",
+        "torchOff": "Turn off the flashlight",
         "matched": "Matched: this is the vehicle on the request.",
         "differs": "This VIN doesn't match the vehicle on the request.",
         "differTitle": "VIN doesn't match",
@@ -2466,6 +2474,8 @@
     "subtitle": "Manage your account preferences and security"
   },
   "settingsNotifications": {
+    "inAppRequests": "Alert on screen for new requests",
+    "inAppRequestsHelp": "A small notice at the top while the app is open.",
     "badge": "NOTIFICATION SETTINGS",
     "title": "Notifications",
     "subtitle": "Customize your notification preferences",

@@ -33,6 +33,12 @@ export const OS = {
 
 export type Phase = 'checkin' | 'execution' | 'checkout';
 
+/**
+ * The phase the flow is in. `Body` reads it and draws the phase bar as the first thing inside its scroll, so with a
+ * fixed bar of buttons below nothing is pinned at the top of the screen and the content keeps all the room.
+ */
+export const PhaseContext = React.createContext<Phase | null>(null);
+
 export function PhaseBar({ phase }: { phase: Phase }) {
     const { t } = useTranslation();
     const phases: Phase[] = ['checkin', 'execution', 'checkout'];
@@ -186,8 +192,10 @@ export function CheckRow({ checked, onToggle, label, sub, last, compact }: {
 
 /** Scrollable screen content; pair with an ActionBar below it. */
 export function Body({ children }: { children: React.ReactNode }) {
+    const phase = React.useContext(PhaseContext);
     return (
         <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 24 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+            {phase ? <PhaseBar phase={phase} /> : null}
             {children}
         </ScrollView>
     );
