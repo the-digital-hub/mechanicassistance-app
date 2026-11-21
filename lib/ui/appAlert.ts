@@ -12,7 +12,21 @@ export interface AppAlertButton {
 /** The look of the icon on top: blue for information, green for good news, orange for a warning, red for a problem. */
 export type AppAlertTone = 'info' | 'success' | 'warning' | 'danger';
 
+/** A fact the dialog is about (a day and time, an amount): shown big in its own block instead of inside the sentence. */
+export interface AppAlertHighlight {
+    /** What it is, small and above ("Booked service"). */
+    label: string;
+    /** The fact itself, large ("Tuesday, November 24"). */
+    value: string;
+    /** A second line under it, also large ("10:30 AM"). */
+    sub?: string;
+    /** An Ionicons name for the tile. */
+    icon?: string;
+}
+
 export interface AppAlertOptions {
+    /** A fact to show big under the title. */
+    highlight?: AppAlertHighlight;
     /** Colour of the icon tile (a destructive button already makes it red). */
     tone?: AppAlertTone;
     /** An Ionicons name to show instead of the default for the tone. */

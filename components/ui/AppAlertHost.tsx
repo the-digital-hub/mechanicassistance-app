@@ -73,6 +73,20 @@ export function AppAlertHost() {
                     {shown.title ? (
                         <Text className="font-outfit-bold text-center" style={{ fontSize: 20, lineHeight: 26, color: OS.text, marginTop: 14 }}>{shown.title}</Text>
                     ) : null}
+                    {shown.options?.highlight ? (
+                        <View className="flex-row items-center" style={{ marginTop: 14, gap: 14, paddingVertical: 14, paddingHorizontal: 16, borderRadius: 16, backgroundColor: tone.bg }} testID="app-alert-highlight">
+                            <View className="items-center justify-center" style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: '#FFFFFF' }}>
+                                <Ionicons name={(shown.options.highlight.icon ?? 'calendar-outline') as React.ComponentProps<typeof Ionicons>['name']} size={24} color={tone.color} />
+                            </View>
+                            <View className="flex-1">
+                                <Text className="font-outfit-semibold" style={{ fontSize: 13, lineHeight: 17, letterSpacing: 0.4, color: OS.muted, textTransform: 'uppercase' }}>{shown.options.highlight.label}</Text>
+                                <Text className="font-outfit-bold" style={{ fontSize: 20, lineHeight: 26, letterSpacing: -0.3, color: OS.text, marginTop: 2 }}>{shown.options.highlight.value}</Text>
+                                {shown.options.highlight.sub ? (
+                                    <Text className="font-outfit-bold" style={{ fontSize: 20, lineHeight: 26, letterSpacing: -0.3, color: tone.color }}>{shown.options.highlight.sub}</Text>
+                                ) : null}
+                            </View>
+                        </View>
+                    ) : null}
                     {shown.message ? (
                         <ScrollView style={{ flexGrow: 0, marginTop: 8 }}>
                             <Text className="font-outfit-regular text-center" style={{ fontSize: 16, lineHeight: 23, color: OS.muted }}>{shown.message}</Text>

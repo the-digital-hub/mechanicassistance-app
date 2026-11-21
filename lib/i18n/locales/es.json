@@ -196,6 +196,8 @@
       "ownerRequestsOpen_other": "Tenés {{count}} solicitudes abiertas como dueño. Sus avisos te esperan en ese rol; volvé para verlos.",
       "upcomingMechanicJob": "Tenés un servicio el {{date}}. Volvé a técnico antes para atenderlo.",
       "upcomingMechanicJobNoDate": "Tenés un servicio agendado como técnico. Volvé a técnico antes de la hora para atenderlo.",
+      "upcomingLabel": "Servicio agendado",
+      "upcomingMechanicJobSwitch": "Volvé a técnico antes de esa hora para atenderlo.",
       "notHeldTitle": "Rol no disponible",
       "notHeldMessage": "Esta cuenta no tiene el rol {{role}}. Configuralo desde este menú para agregarlo.",
       "failedTitle": "No se pudo cambiar",
@@ -289,6 +291,12 @@
       },
       "emergencyLabel": "SERVICIOS ADICIONALES",
       "attention": {
+        "rate": {
+          "title": "Califica a tu técnico",
+          "title_other": "Califica a tus {{count}} técnicos",
+          "sub": "Tu calificación ayuda a otros a elegir y mantiene buen el servicio.",
+          "cta": "Calificar"
+        },
         "title": "Requiere tu atención",
         "offers": {
           "title": "{{count}} oferta recibida",
@@ -443,6 +451,12 @@
         "D"
       ],
       "attention": {
+        "rate": {
+          "title": "Califica a tu cliente",
+          "title_other": "Califica a tus {{count}} clientes",
+          "sub": "Tu calificación ayuda a mantener una comunidad respetuosa.",
+          "cta": "Calificar"
+        },
         "title": "Requiere tu atención",
         "notifications": {
           "title": "{{count}} notificación sin leer",
@@ -1014,6 +1028,7 @@
         "message": "Mensaje",
         "cancelRequest": "Cancelar solicitud",
         "rows": {
+          "issue": "Problema",
           "vehicle": "Vehículo",
           "location": "Ubicación",
           "distance": "Distancia",
@@ -2555,6 +2570,12 @@
     "empty": "Todavía no hay notificaciones",
     "emptyHint": "Cuando un mecánico responda a tu solicitud, va a aparecer acá.",
     "tapToView": "Tocá para ver detalles →",
+    "offerEnded": "Esta oferta ya no está disponible",
+    "offerEndedTitle": "Esta oferta terminó",
+    "offerEndedMessage": "La oferta del técnico ya se respondió, venció o la solicitud se canceló, así que no hay nada para abrir. Puedes borrar esta notificación.",
+    "openFailedTitle": "No se pudo abrir",
+    "openFailedMessage": "Revisa tu conexión y vuelve a intentar.",
+    "opening": "Abriendo…",
     "deleteFailedTitle": "No se pudo eliminar",
     "deleteFailedMessage": "No se pudieron eliminar las notificaciones. Revisá tu conexión e intentá de nuevo.",
     "deleteFailedServer": "El servidor no pudo eliminar las notificaciones (error {{status}}). Intentá más tarde.",

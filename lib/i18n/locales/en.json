@@ -196,6 +196,8 @@
       "ownerRequestsOpen_other": "You have {{count}} open requests as a vehicle owner. Their updates wait in that role; switch back to see them.",
       "upcomingMechanicJob": "You have a service on {{date}}. Switch back to mechanic before then to attend it.",
       "upcomingMechanicJobNoDate": "You have a booked service as a mechanic. Switch back to mechanic before it is due to attend it.",
+      "upcomingLabel": "Booked service",
+      "upcomingMechanicJobSwitch": "Switch back to mechanic before then to attend it.",
       "notHeldTitle": "Role not available",
       "notHeldMessage": "This account doesn't have the {{role}} role. Set it up from this menu to add it.",
       "failedTitle": "Couldn't switch",
@@ -289,6 +291,12 @@
       },
       "emergencyLabel": "ADDITIONAL SERVICES",
       "attention": {
+        "rate": {
+          "title": "Rate your technician",
+          "title_other": "Rate your {{count}} technicians",
+          "sub": "Your rating helps others choose and keeps the service good.",
+          "cta": "Rate now"
+        },
         "title": "Needs your attention",
         "offers": {
           "title": "{{count}} offer received",
@@ -443,6 +451,12 @@
         "S"
       ],
       "attention": {
+        "rate": {
+          "title": "Rate your customer",
+          "title_other": "Rate your {{count}} customers",
+          "sub": "Your rating helps keep the community respectful.",
+          "cta": "Rate now"
+        },
         "title": "Needs your attention",
         "notifications": {
           "title": "{{count}} unread notification",
@@ -1013,6 +1027,7 @@
         "message": "Message",
         "cancelRequest": "Cancel request",
         "rows": {
+          "issue": "Issue",
           "vehicle": "Vehicle",
           "location": "Location",
           "distance": "Distance",
@@ -2554,6 +2569,12 @@
     "empty": "No notifications yet",
     "emptyHint": "When a technician responds to your request, it will appear here.",
     "tapToView": "Tap to view details →",
+    "offerEnded": "This offer is no longer available",
+    "offerEndedTitle": "This offer is over",
+    "offerEndedMessage": "The technician's offer was already answered, expired or the request was cancelled, so there is nothing to open. You can delete this notification.",
+    "openFailedTitle": "Couldn't open it",
+    "openFailedMessage": "Check your connection and try again.",
+    "opening": "Opening…",
     "deleteFailedTitle": "Could not delete",
     "deleteFailedMessage": "The notifications could not be deleted. Check your connection and try again.",
     "deleteFailedServer": "The server could not delete the notifications (error {{status}}). Try again later.",

@@ -1,5 +1,7 @@
 import { useNotifications } from '@/context/NotificationsContext';
 import { useUser } from '@/context/UserContext';
+import { ApiError } from '@/lib/api/types';
+import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { routeForPush } from '@/lib/notifications/push';
 import { useRouter } from 'expo-router';
 import {
@@ -201,10 +203,56 @@ export default function NotificationsScreen() {
         }
     };
 
+    // Notifications whose moment has passed (the offer was answered, expired or the request ended): shown dimmed.
+    const [endedIds, setEndedIds] = useState<Set<string>>(new Set());
+    const markEnded = (id: string) => setEndedIds((prev) => new Set(prev).add(id));
+    const [openingId, setOpeningId] = useState<string | null>(null);
+
+    /**
+     * "A technician was found" is an offer that lives for a few minutes: by the time it is tapped it may have been confirmed,
+     * lapsed or cancelled, and its screen has nothing to show for any of those. So the request is looked at first and the person
+     * goes where it stands now: the offer while it still is one, the appointment once it is booked, the search again if the hold
+     * ran out, and a short explanation when it is over.
+     */
+    const openOffer = async (notif: typeof notifications[0]) => {
+        if (!notif.requestId || openingId) return;
+        setOpeningId(notif.id);
+        try {
+            const req = await assistanceDAO.getById(notif.requestId);
+            const status = req?.status;
+            if (status === 'offered') {
+                router.push({ pathname: '/request-assistance/mechanic-found', params: { requestId: notif.requestId } }, { withAnchor: true });
+            } else if (status === 'pending') {
+                markEnded(notif.id);
+                router.push({ pathname: '/request-assistance/searching', params: { requestId: notif.requestId, type: req?.assistanceType ?? req?.type } });
+            } else if (status === 'cancelled' || status === 'canceled' || !req) {
+                markEnded(notif.id);
+                appAlert(t('notifications.offerEndedTitle'), t('notifications.offerEndedMessage'));
+            } else {
+                // Accepted and beyond: the request is a booked appointment now.
+                markEnded(notif.id);
+                router.push({ pathname: '/appointments/[id]', params: { id: notif.requestId } }, { withAnchor: true });
+            }
+        } catch (error) {
+            if (error instanceof ApiError && (error.statusCode === 404 || error.statusCode === 403)) {
+                markEnded(notif.id);
+                appAlert(t('notifications.offerEndedTitle'), t('notifications.offerEndedMessage'));
+            } else {
+                appAlert(t('notifications.openFailedTitle'), t('notifications.openFailedMessage'));
+            }
+        } finally {
+            setOpeningId(null);
+        }
+    };
+
     // Same destination as tapping the push itself.
     const handleNotificationPress = (notif: typeof notifications[0]) => {
         if (Date.now() < pressBlockedUntil.current) return;
         if (!user?.id || !user.role) return;
+        if (notif.type === 'mechanic_found' && notif.requestId) {
+            void openOffer(notif);
+            return;
+        }
         const route = routeForPush(
             {
                 kind: notif.kind,
@@ -312,7 +360,7 @@ export default function NotificationsScreen() {
                             >
                             <TouchableOpacity
                                 className={`px-6 py-5 border-b border-gray-50 flex-row gap-4 ${notif.unread ? 'bg-blue-50/30' : ''}`}
-                                style={{ backgroundColor: notif.unread ? '#F2F7FF' : '#F6F8FC' }}
+                                style={{ backgroundColor: notif.unread ? '#F2F7FF' : '#F6F8FC', opacity: endedIds.has(notif.id) ? 0.6 : 1 }}
                                 onPress={() => handleNotificationPress(notif)}
                                 activeOpacity={notif.requestId ? 0.7 : 1}
                                 accessibilityActions={[{ name: 'delete', label: t('notifications.delete') }]}
@@ -344,7 +392,9 @@ export default function NotificationsScreen() {
                                     </View>
                                     <Text className="text-gray-500 font-outfit-regular text-[16.5px] leading-6" style={{ marginTop: 2 }}>{notif.body}</Text>
                                     {notif.type === 'mechanic_found' && notif.requestId && (
-                                        <Text className="text-blue-500 font-outfit-medium text-[15px] mt-1">{t('notifications.tapToView')}</Text>
+                                        endedIds.has(notif.id)
+                                            ? <Text className="text-gray-400 font-outfit-medium text-[15px] mt-1">{t('notifications.offerEnded')}</Text>
+                                            : <Text className="text-blue-500 font-outfit-medium text-[15px] mt-1">{openingId === notif.id ? t('notifications.opening') : t('notifications.tapToView')}</Text>
                                     )}
                                 </View>
                             </TouchableOpacity>

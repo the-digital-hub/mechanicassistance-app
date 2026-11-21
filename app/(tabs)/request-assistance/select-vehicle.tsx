@@ -10,6 +10,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
 import { VehicleTitle, vehicleLine } from '@/components/ui/VehicleTitle';
+import { PickList, PickReveal } from '@/components/scheduled/picker';
 
 /** Strips the grouping separators the placeholder suggests ("45,230") before parsing. */
 const parseMileage = (raw: string): number | undefined => {
@@ -155,32 +156,39 @@ export default function SelectVehicleScreen() {
                             <Text className="font-outfit-bold text-center" style={{ fontSize: 15, color: SC.text }}>{t('requestAssistance.selectVehicle.noVehicles')}</Text>
                         </View>
                     ) : (
-                        <View style={{ gap: 10 }}>
-                            {/* Once one is chosen only it stays; the badge brings the others back. */}
+                        <PickList>
+                            {/* Once one is chosen only it stays: the badge slides in above it, the chosen card glides down to make room
+                                and the others fade out. The badge brings them back. */}
                             {selected ? (
-                                <SeeAllVehiclesBadge label={t('requestAssistance.selectVehicle.seeAll')} onPress={() => { setSelected(null); setMileage(''); }} />
+                                <PickReveal key="see-all">
+                                    <SeeAllVehiclesBadge label={t('requestAssistance.selectVehicle.seeAll')} onPress={() => { setSelected(null); setMileage(''); }} />
+                                </PickReveal>
                             ) : null}
                             {vehicles.filter((v) => !selected || v.id === selected.id).map((v) => {
                                 return (
-                                    <ChoiceCard
-                                        key={v.id}
-                                        on={selected?.id === v.id}
-                                        onPress={() => handleSelectVehicle(v)}
-                                        title={<VehicleTitle vehicle={v} />}
-                                        detail={<VehicleIdsRow plate={v.plate} vin={v.vin} plateLabel={t('requestAssistance.selectVehicle.plate')} />}
-                                    />
+                                    <PickReveal key={v.id}>
+                                        <ChoiceCard
+                                            on={selected?.id === v.id}
+                                            onPress={() => handleSelectVehicle(v)}
+                                            title={<VehicleTitle vehicle={v} />}
+                                            detail={<VehicleIdsRow plate={v.plate} vin={v.vin} plateLabel={t('requestAssistance.selectVehicle.plate')} />}
+                                        />
+                                    </PickReveal>
                                 );
                             })}
-                        </View>
+                        </PickList>
                     )}
 
                     {/* Outside the loading branch: the user can add a vehicle before the list resolves. */}
                     {!isLoading && !selected ? (
-                        <AddVehicleButton label={t('requestAssistance.selectVehicle.addVehicle')} onPress={() => router.push('/(tabs)/vehicles')} testID="select-vehicle-add" align="end" />
+                        <PickReveal>
+                            <AddVehicleButton label={t('requestAssistance.selectVehicle.addVehicle')} onPress={() => router.push('/(tabs)/vehicles')} testID="select-vehicle-add" align="end" />
+                        </PickReveal>
                     ) : null}
 
                     {selected ? (
-                        <>
+                        <PickReveal>
+                            <View style={{ gap: 20 }}>
                             <View>
                                 <FieldLabel>{t('requestAssistance.vehicleDetails.mileageLabel')}</FieldLabel>
                                 <TextField
@@ -220,7 +228,8 @@ export default function SelectVehicleScreen() {
                                     <Text className="font-outfit-regular" style={{ fontSize: 13, color: SC.muted, marginTop: 6 }}>{t('requestAssistance.vehicleDetails.hintOwner')}</Text>
                                 )}
                             </View>
-                        </>
+                            </View>
+                        </PickReveal>
                     ) : null}
                 </ScrollView>
             </KeyboardAvoidingView>

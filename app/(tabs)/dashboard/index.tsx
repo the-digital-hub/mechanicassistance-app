@@ -3,6 +3,7 @@ import { EmergencyRow, MileageField, OwnerAttentionList, OwnerSectionTitle, Owne
 import { AseCta, AttentionList, AvailabilityCard, RequestTypeTabs, SectionTitle, TodayBlock, WeeklyEarnings, type AttentionItem } from '@/components/dashboard/MechanicHomeBlocks';
 import { useNotifications } from '@/context/NotificationsContext';
 import { attentionKey, visibleAttention } from '@/lib/dashboard/attention';
+import { pendingRatings } from '@/lib/dashboard/pendingRatings';
 import { useAttentionState } from '@/lib/dashboard/useAttentionState';
 import { useScheduledAttention } from '@/lib/scheduled/useScheduledAttention';
 import { useMarketplaceFeed } from '@/lib/scheduled/useMarketplaceFeed';
@@ -26,7 +27,7 @@ import { countCompletedToday } from '@/lib/dashboard/mechanicKpis';
 import { useMechanicKpis } from '@/lib/dashboard/useMechanicKpis';
 import { formatMoney } from '@/lib/payments/paymentSource';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { FileText, RotateCcw, Calendar, Video, Zap, MapPin, Wrench, DollarSign, Circle, Clock, Car, Lock, Power, Bell, CreditCard, AlertTriangle, Briefcase, CheckCircle2, ClipboardList, Inbox } from 'lucide-react-native';
+import { FileText, RotateCcw, Calendar, Video, Zap, MapPin, Wrench, DollarSign, Circle, Clock, Car, Lock, Power, Bell, CreditCard, AlertTriangle, Star, Briefcase, CheckCircle2, ClipboardList, Inbox } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useScrollPressGuard } from '@/hooks/useScrollPressGuard';
@@ -300,6 +301,22 @@ export default function DashboardScreen() {
             });
         }
 
+        // Ratings still owed stay here until they are given: the customers of recent finished jobs.
+        const toRate = pendingRatings(appointments, 'mechanic');
+        if (toRate.length > 0) {
+            const first = toRate[0];
+            attentionItems.push({
+                id: 'rate', signature: `rate:${toRate.map((a) => a.id).join(',')}`, tone: 'blue', icon: Star,
+                title: t('dashboard.mechanic.attention.rate.title', { count: toRate.length }),
+                sub: t('dashboard.mechanic.attention.rate.sub'),
+                cta: t('dashboard.mechanic.attention.rate.cta'),
+                // A video call is rated from its detail; a visit, from the last screen of its check-in.
+                onPress: () => router.push(first.type === 'videocall'
+                    ? { pathname: '/appointments/[id]', params: { id: first.id } }
+                    : { pathname: '/appointments/check-in/[id]', params: { id: first.id } }),
+            });
+        }
+
         const shownAttention = visibleAttention(attentionItems, attention.dismissed);
 
         return (
@@ -543,10 +560,9 @@ export default function DashboardScreen() {
                                             </View>
                                             )}
 
-                                            {/* Buttons Row (inside card) */}
-                                            <View className="flex-row gap-3 px-5 py-4 border-t border-gray-100">
+                                            {/* Buttons (inside card): the main one at full width, Decline under it. Never side by side. */}
+                                            <View className="gap-2 px-5 py-4 border-t border-gray-100">
                                                 <TouchableOpacity
-                                                    style={{ flex: request.type === 'scheduled' ? 1 : 0.65 }}
                                                     onPress={guard(() => router.push({
                                                         pathname: (request.type === 'scheduled' ? '/assist/scheduled-request' : `/assist/${request.id}`) as any,
                                                         params: {
@@ -573,8 +589,8 @@ export default function DashboardScreen() {
                                                         start={{ x: 0, y: 1 }}
                                                         end={{ x: 1, y: 0 }}
                                                         style={{
-                                                            borderRadius: 16,
-                                                            paddingVertical: 14,
+                                                            borderRadius: 14,
+                                                            minHeight: 52,
                                                             paddingHorizontal: 16,
                                                             alignItems: 'center',
                                                             justifyContent: 'center',
@@ -587,12 +603,12 @@ export default function DashboardScreen() {
                                                 </TouchableOpacity>
                                                 {request.type !== 'scheduled' && (
                                                 <TouchableOpacity
-                                                    className="py-3 rounded-2xl items-center justify-center"
-                                                    style={{ flex: 0.35, backgroundColor: '#F3F4F6' }}
+                                                    className="items-center justify-center"
+                                                    style={{ minHeight: 52, borderRadius: 14, backgroundColor: '#E6EAF2' }}
                                                     activeOpacity={0.8}
                                                     onPress={guard(() => handleDecline(request.id))}
                                                 >
-                                                    <Text className="text-gray-600 font-outfit-semibold text-lg">
+                                                    <Text className="font-outfit-semibold text-lg" style={{ color: '#4A5470' }}>
                                                         {t('dashboard.mechanic.decline')}
                                                     </Text>
                                                 </TouchableOpacity>
@@ -900,6 +916,22 @@ export default function DashboardScreen() {
             sub: t('dashboard.user.attention.confirm.sub'),
             cta: t('dashboard.user.attention.confirm.cta'),
             onPress: guard(() => openRequest(toConfirm[0])),
+        });
+    }
+
+    // The rating of the technician is still owed: it stays here until it is given (recent finished jobs only).
+    const toRate = pendingRatings(appointments, 'user');
+    if (toRate.length > 0) {
+        const first = toRate[0];
+        attentionItems.push({
+            id: 'rate', signature: `rate:${toRate.map((a) => a.id).join(',')}`, tone: 'blue', icon: Star,
+            title: t('dashboard.user.attention.rate.title', { count: toRate.length }),
+            sub: t('dashboard.user.attention.rate.sub'),
+            cta: t('dashboard.user.attention.rate.cta'),
+            // A video call is rated from its detail; a visit, from its review screen.
+            onPress: guard(() => router.push(first.type === 'videocall'
+                ? { pathname: '/appointments/[id]', params: { id: first.id } }
+                : { pathname: '/appointments/review/[id]' as never, params: { id: first.id } })),
         });
     }
 

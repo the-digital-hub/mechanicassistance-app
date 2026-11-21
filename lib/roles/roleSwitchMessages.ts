@@ -77,21 +77,21 @@ export function alertOpenWork(openWork: OpenWork | undefined, t: TFunction, loca
         lines.push(t('profile.switchRole.ownerRequestsOpen', { count: openWork.ownerRequestsOpen }));
     }
     const next = openWork.upcomingMechanicJobs[0];
+    let highlight: { label: string; value: string; sub?: string; icon?: string } | undefined;
     if (next) {
         const when = next.date ? new Date(next.date) : null;
-        lines.push(
-            when && !Number.isNaN(when.getTime())
-                ? t('profile.switchRole.upcomingMechanicJob', {
-                      date: when.toLocaleString(locale, {
-                          weekday: 'long',
-                          day: 'numeric',
-                          month: 'long',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                      }),
-                  })
-                : t('profile.switchRole.upcomingMechanicJobNoDate'),
-        );
+        if (when && !Number.isNaN(when.getTime())) {
+            // The day and the hour are the point of the message: they get their own block, not a place inside the sentence.
+            highlight = {
+                label: t('profile.switchRole.upcomingLabel'),
+                value: when.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' }),
+                sub: when.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }),
+                icon: 'calendar-outline',
+            };
+            lines.push(t('profile.switchRole.upcomingMechanicJobSwitch'));
+        } else {
+            lines.push(t('profile.switchRole.upcomingMechanicJobNoDate'));
+        }
     }
-    if (lines.length > 0) appAlert(t('profile.switchRole.openWorkTitle'), lines.join('\n\n'));
+    if (lines.length > 0) appAlert(t('profile.switchRole.openWorkTitle'), lines.join('\n\n'), undefined, highlight ? { highlight } : undefined);
 }

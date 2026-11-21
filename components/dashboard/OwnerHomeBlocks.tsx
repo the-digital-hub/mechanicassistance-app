@@ -243,7 +243,7 @@ export function VehicleCareCard({
 }) {
     return (
         <View style={{ ...CARD, borderWidth: 1.5, borderColor: '#CFDDFB', overflow: 'hidden' }}>
-            <TouchableOpacity onPress={onSwitch} disabled={!canSwitch} activeOpacity={0.8} accessibilityRole="button" className="flex-row items-center" style={{ padding: 14, gap: 12 }}>
+            <TouchableOpacity onPress={onSwitch} disabled={!canSwitch} activeOpacity={0.8} accessibilityRole="button" className="flex-row items-center" style={{ paddingVertical: 14, paddingHorizontal: 20, gap: 12 }}>
                 <View className="flex-1">
                     <Text className="font-outfit-bold" style={{ fontSize: 16, letterSpacing: -0.3, color: C.text }} numberOfLines={1}>{name}</Text>
                     {ids}
@@ -254,7 +254,7 @@ export function VehicleCareCard({
                     </View>
                 )}
             </TouchableOpacity>
-            <View className="flex-row items-center" style={{ paddingHorizontal: 12, paddingVertical: 9, gap: 10, backgroundColor: '#F7FAFF', borderTopWidth: 1, borderTopColor: C.borderSoft }}>
+            <View className="flex-row items-center" style={{ paddingHorizontal: 20, paddingVertical: 9, gap: 10, backgroundColor: '#F7FAFF', borderTopWidth: 1, borderTopColor: C.borderSoft }}>
                 <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: C.green }} />
                 <Text className="font-outfit-semibold flex-1" style={{ fontSize: 13, color: C.muted }} numberOfLines={1}>{mileageText}</Text>
                 <TouchableOpacity onPress={onMileage} hitSlop={8} accessibilityRole="button">

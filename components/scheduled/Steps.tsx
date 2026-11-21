@@ -57,7 +57,7 @@ import {
 } from '@/lib/scheduled/draft';
 
 import { categoryIcon } from '@/lib/ui/categoryIcon';
-import { PickCard, PickChildren, PickGroup, PickItem, PickList, PickedChips, SearchField } from './picker';
+import { PickCard, PickChildren, PickGroup, PickItem, PickList, PickReveal, PickedChips, SearchField } from './picker';
 import { AddVehicleButton, SeeAllVehiclesBadge, CARD_STYLE, Checkbox, ChoiceCard, Chip, FieldLabel, Note, SC, StepHead, TextField, VehicleIdsRow } from './ui';
 import { VehicleTitle } from '@/components/ui/VehicleTitle';
 
@@ -122,19 +122,30 @@ export function VehicleStep({
                     <AddVehicleButton label={t('scheduled.vehicle.addVehicle')} onPress={onAddVehicle} />
                 </View>
             ) : (
-                <View style={{ gap: 10 }}>
-                    {/* Once one is chosen only it stays; the badge brings the others back. */}
+                <PickList>
+                    {/* Once one is chosen only it stays: the badge slides in above it, the chosen card glides down and the others fade out. */}
                     {draft.vehicleId ? (
-                        <SeeAllVehiclesBadge label={t('scheduled.vehicle.seeAll')} onPress={() => patch({ vehicleId: null, vehicleName: '', mileage: '' })} />
+                        <PickReveal key="see-all">
+                            <SeeAllVehiclesBadge label={t('scheduled.vehicle.seeAll')} onPress={() => patch({ vehicleId: null, vehicleName: '', mileage: '' })} />
+                        </PickReveal>
                     ) : null}
                     {vehicles.filter((v) => !draft.vehicleId || v.id === draft.vehicleId).map((v) => {
-                        return <ChoiceCard key={v.id} on={draft.vehicleId === v.id} onPress={() => onPick(v)} title={<VehicleTitle vehicle={v} />} detail={<VehicleIdsRow plate={v.plate} vin={v.vin} plateLabel={t('scheduled.vehicle.plate')} />} />;
+                        return (
+                            <PickReveal key={v.id}>
+                                <ChoiceCard on={draft.vehicleId === v.id} onPress={() => onPick(v)} title={<VehicleTitle vehicle={v} />} detail={<VehicleIdsRow plate={v.plate} vin={v.vin} plateLabel={t('scheduled.vehicle.plate')} />} />
+                            </PickReveal>
+                        );
                     })}
                     {/* Gone while a vehicle is chosen; tapping the chosen one again brings it back. */}
-                    {!draft.vehicleId ? <AddVehicleButton label={t('scheduled.vehicle.addVehicle')} onPress={onAddVehicle} align="end" /> : null}
-                </View>
+                    {!draft.vehicleId ? (
+                        <PickReveal>
+                            <AddVehicleButton label={t('scheduled.vehicle.addVehicle')} onPress={onAddVehicle} align="end" />
+                        </PickReveal>
+                    ) : null}
+                </PickList>
             )}
             {draft.vehicleId ? (
+                <PickReveal>
                 <View>
                     <FieldLabel>{t('scheduled.vehicle.mileageLabel')}</FieldLabel>
                     <TextField
@@ -146,6 +157,7 @@ export function VehicleStep({
                     />
                     <Text className="font-outfit-regular" style={{ fontSize: 13, color: SC.muted, marginTop: 6 }}>{t('scheduled.vehicle.mileageHint')}</Text>
                 </View>
+                </PickReveal>
             ) : null}
         </View>
     );

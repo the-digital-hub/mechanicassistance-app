@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Car, CalendarClock, MapPin, Navigation, Zap } from 'lucide-react-native';
+import { Car, CalendarClock, MapPin, Navigation, Wrench, Zap } from 'lucide-react-native';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
@@ -9,6 +9,7 @@ import { canCancelBeforeStart } from '@/components/appointments/CancelRequestLin
 import { RequestIdRow } from '@/components/ui/RequestIdRow';
 import type { Appointment } from '@/context/AppointmentsContext';
 import { useHeadOut } from '@/hooks/useHeadOut';
+import { splitJobTitle } from '@/lib/ui/jobTitle';
 import { TYPE } from '@/lib/ui/type';
 import { formatZonedDateTime } from '@/lib/video/videoCallTime';
 import { BANNER_COLORS, getCardState, getTypeBar } from './appointmentCardTheme';
@@ -51,12 +52,16 @@ export function MechanicActiveJobCard({ appointment }: { appointment: Appointmen
     const future = hasTime && at!.getTime() > Date.now() && !inRoomNow;
     const whenLabel = hasTime ? formatZonedDateTime(at!, i18n.language) : '';
     const inRoom = appointment.status === 'started' || appointment.status === 'in_progress';
-    const joinable = isVideoCall && (inRoom || appointment.startNow || (hasTime && at!.getTime() - Date.now() <= JOIN_WINDOW_MS));
+    // A call that already ended (finished and waiting for the owner, disputed, closed) has no room to enter.
+    const callOpen = ['accepted', 'scheduled', 'started', 'in_progress'].includes(appointment.status);
+    const joinable = isVideoCall && callOpen && (inRoom || appointment.startNow || (hasTime && at!.getTime() - Date.now() <= JOIN_WINDOW_MS));
 
-    const rows: { key: string; Icon: typeof Car; value: string; sub?: string }[] = [
-        hasTime ? { key: 'when', Icon: CalendarClock, value: whenLabel, sub: future ? relativeFromNow(at!, t) : undefined } : null,
-        appointment.car ? { key: 'vehicle', Icon: Car, value: appointment.car } : null,
-        appointment.address && !isVideoCall ? { key: 'location', Icon: MapPin, value: appointment.address } : null,
+    const { main: jobTitle, topic } = splitJobTitle(appointment.title);
+    const rows: { key: string; label: string; Icon: typeof Car; value: string; sub?: string }[] = [
+        topic ? { key: 'issue', label: t('appointments.list.card.rows.issue'), Icon: Wrench, value: topic } : null,
+        hasTime ? { key: 'when', label: t('appointments.list.card.rows.when'), Icon: CalendarClock, value: whenLabel, sub: future ? relativeFromNow(at!, t) : undefined } : null,
+        appointment.car ? { key: 'vehicle', label: t('appointments.list.card.rows.vehicle'), Icon: Car, value: appointment.car } : null,
+        appointment.address && !isVideoCall ? { key: 'location', label: t('appointments.list.card.rows.location'), Icon: MapPin, value: appointment.address } : null,
     ].filter((row): row is NonNullable<typeof row> => row !== null);
 
     const openDetail = () => router.navigate(`/appointments/${appointment.id}`);
@@ -81,39 +86,42 @@ export function MechanicActiveJobCard({ appointment }: { appointment: Appointmen
             }}
             testID="mechanic-active-job"
         >
-            {/* Header: type tile on the left, title with its status underneath on the right */}
-            <View className="flex-row" style={{ gap: 12 }}>
+            {/* Header: the icon and the service. Under it the status, as one block, and then the data, each with its own tile. */}
+            <View className="flex-row items-center" style={{ gap: 12 }}>
                 <View className="justify-center items-center" style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: '#EAF1FF' }}>
                     <TypeIcon size={22} color="#1E56E3" />
                 </View>
-                <View className="flex-1" style={{ minHeight: 44, justifyContent: 'center' }}>
-                    <Text className="font-outfit-bold" style={{ fontSize: 18, lineHeight: 22, letterSpacing: -0.3, color: '#0B1530' }} numberOfLines={2}>
-                        {appointment.title}
-                    </Text>
-                    <View className="flex-row items-center self-start rounded-full" style={{ gap: 6, marginTop: 6, paddingHorizontal: 10, paddingVertical: 3, backgroundColor: colors.bg }}>
-                        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.title }} />
-                        <Text className="font-outfit-semibold" style={{ fontSize: 13, color: colors.title }}>
-                            {t(`appointments.list.card.title.${state}`)}
-                        </Text>
-                    </View>
-                </View>
+                <Text className="flex-1 font-outfit-bold" style={{ fontSize: 18, lineHeight: 23, letterSpacing: -0.3, color: '#0B1530' }} numberOfLines={2}>
+                    {jobTitle}
+                </Text>
             </View>
-            <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: '#6B7490', marginTop: 10 }}>
-                {t(`appointments.list.card.status.${state}Hint`)}
-            </Text>
 
-            {/* Details: when, vehicle, location. Same small tile and icon size on every row */}
+            <View style={{ marginTop: 12, paddingVertical: 12, paddingHorizontal: 14, borderRadius: 14, backgroundColor: colors.bg, gap: 4 }}>
+                <View className="flex-row items-center" style={{ gap: 8 }}>
+                    <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: colors.title }} />
+                    <Text className="font-outfit-bold" style={{ fontSize: 15, lineHeight: 20, color: colors.title }}>
+                        {t(`appointments.list.card.title.${state}`)}
+                    </Text>
+                </View>
+                <Text className="font-outfit-regular" style={{ fontSize: 15, lineHeight: 21, color: '#4A5470' }}>
+                    {t(`appointments.list.card.status.${state}Hint`)}
+                </Text>
+            </View>
+
             {rows.length > 0 && (
-                <View style={{ marginTop: 14, paddingTop: 14, borderTopWidth: 1, borderTopColor: '#EEF0F6', gap: 12 }}>
-                    {rows.map(({ key, Icon, value, sub }) => (
+                <View style={{ marginTop: 14, gap: 12 }}>
+                    {rows.map(({ key, label, Icon, value, sub }) => (
                         <View key={key} className="flex-row items-center" style={{ gap: 12 }}>
                             <View className="justify-center items-center" style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: '#F3F6FC' }}>
                                 <Icon size={16} color="#6B7490" />
                             </View>
-                            <Text className="flex-1 font-outfit-semibold" style={{ ...TYPE.body, color: '#0B1530' }} numberOfLines={2}>
-                                {value}
-                                {sub ? <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: '#6B7490' }}>{`  ·  ${sub}`}</Text> : null}
-                            </Text>
+                            <View className="flex-1">
+                                <Text className="font-outfit-medium" style={{ fontSize: 13, lineHeight: 17, color: '#6B7490' }}>{label}</Text>
+                                <Text className="font-outfit-bold" style={{ fontSize: 15, lineHeight: 20, color: '#0B1530', marginTop: 1 }}>
+                                    {value}
+                                    {sub ? <Text className="font-outfit-regular" style={{ fontSize: 14, color: '#6B7490' }}>{`  ·  ${sub}`}</Text> : null}
+                                </Text>
+                            </View>
                         </View>
                     ))}
                 </View>
