@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Modal, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View, ViewStyle } from 'react-native';
 import { TYPE } from '@/lib/ui/type';
 import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
+import { KEYBOARD_SCROLL_PROPS } from '@/lib/ui/keyboard';
 
 // Shared building blocks for the on-site assistance flow (check-in → execution →
 // check-out). Ported from the "Vehicle On-Site Assistance V2" design.
@@ -207,7 +208,7 @@ export function CheckRow({ checked, onToggle, label, sub, last, compact }: {
 export function Body({ children }: { children: React.ReactNode }) {
     const phase = React.useContext(PhaseContext);
     return (
-        <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 24 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <ScrollView {...KEYBOARD_SCROLL_PROPS} className="flex-1" contentContainerStyle={{ paddingBottom: 24 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
             {phase ? <PhaseBar phase={phase} /> : null}
             {children}
         </ScrollView>

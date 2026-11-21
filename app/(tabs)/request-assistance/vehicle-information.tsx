@@ -8,6 +8,7 @@ import { CarFront, Hand, Lightbulb, TriangleAlert, type LucideIcon } from 'lucid
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { KEYBOARD_SCROLL_PROPS } from '@/lib/ui/keyboard';
 
 /**
  * Kept in sync with VEHICLE_CONDITIONS in
@@ -97,7 +98,7 @@ export default function VehicleInformationScreen() {
                 </Text>
                 <View className="w-6" />
             </View>
-            <ScrollView className="flex-1 px-6 pt-4" contentContainerStyle={{ paddingBottom: 24 }} keyboardShouldPersistTaps="handled">
+            <ScrollView {...KEYBOARD_SCROLL_PROPS} className="flex-1 px-6 pt-4" contentContainerStyle={{ paddingBottom: 24 }} keyboardShouldPersistTaps="handled">
                     <RequestSteps type={params.type} step="condition" flush />
                 <View className="flex-row items-center justify-between" style={{ marginBottom: 16 }}>
                     <View className="flex-row items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>

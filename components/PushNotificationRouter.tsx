@@ -4,11 +4,11 @@ import {
     onMessage,
     onNotificationOpenedApp,
 } from '@react-native-firebase/messaging';
-import { useRootNavigationState, useRouter, type Href } from 'expo-router';
+import { usePathname, useRootNavigationState, useRouter, type Href } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import { useUser } from '@/context/UserContext';
-import { showInAppBanner } from '@/lib/notifications/inAppAlerts';
+import { routeIsCurrent, showInAppBanner } from '@/lib/notifications/inAppAlerts';
 import i18n from '@/lib/i18n';
 import {
     isForActiveRole,
@@ -45,6 +45,10 @@ export function PushNotificationRouter() {
     const [pendingTick, setPendingTick] = useState(0);
     const navState = useRootNavigationState();
     const navReady = !!navState?.key;
+    // Read by the message listener without re-subscribing on every navigation.
+    const pathname = usePathname();
+    const pathnameRef = useRef(pathname);
+    pathnameRef.current = pathname;
 
     // Registration follows the session and the active role: the phone is saved
     // with the role in use, and only gets that role's pushes. Switching role
@@ -110,17 +114,24 @@ export function PushNotificationRouter() {
             if (data?.recipientId && data.recipientId !== userId) return;
             if (!isForActiveRole(data, role)) return;
             notifyCancellationDisputePush(data);
-            // The system shows nothing while the app is open: a new request gets a small alert on screen instead
-            // (unless the technician turned it off in Settings → Notifications).
-            if (data?.kind === 'new_request') {
-                const id = message.messageId ?? data.requestId ?? String(Date.now());
-                void showInAppBanner({
-                    id,
-                    title: message.notification?.title || i18n.t('inAppAlert.newRequestTitle'),
-                    body: message.notification?.body || i18n.t('inAppAlert.newRequestBody'),
-                    route: routeForPush(data, { id: userId, role }),
-                });
-            }
+            // The system shows nothing while the app is open: every push meant for this person, in the role they are using,
+            // gets a small alert on screen instead (unless they turned it off in Settings → Notifications).
+            if (!data?.kind) return;
+            // The technician already gets a dialog for these two from the live connection: a second notice would repeat it.
+            if (role === 'mechanic' && (data.kind === 'offer_accepted' || data.kind === 'request_canceled')) return;
+            const route = routeForPush(data, { id: userId, role });
+            // Not when they are already looking at what it opens, nor when the offer screen is about to open by itself.
+            if (routeIsCurrent(route, pathnameRef.current)) return;
+            if (data.kind === 'mechanic_found' && /searching|mechanic-found/.test(pathnameRef.current)) return;
+            const fallback = data.kind === 'new_request'
+                ? { title: i18n.t('inAppAlert.newRequestTitle'), body: i18n.t('inAppAlert.newRequestBody') }
+                : { title: i18n.t('inAppAlert.updateTitle'), body: i18n.t('inAppAlert.updateBody') };
+            void showInAppBanner({
+                id: message.messageId ?? `${data.kind}:${data.requestId ?? data.appointmentId ?? ''}:${Date.now()}`,
+                title: message.notification?.title || fallback.title,
+                body: message.notification?.body || fallback.body,
+                route,
+            });
         });
     }, [userId, role]);
 

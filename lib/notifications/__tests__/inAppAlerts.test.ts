@@ -31,3 +31,24 @@ describe('in-app alerts', () => {
         expect(await showInAppBanner(banner('c'))).toBe(true);
     });
 });
+
+describe('routeIsCurrent', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { routeIsCurrent } = require('../inAppAlerts');
+
+    it('is true when the alert would open the screen the person is on', () => {
+        expect(routeIsCurrent({ pathname: '/appointments/[id]', params: { id: 'a1' } }, '/appointments/a1')).toBe(true);
+        expect(routeIsCurrent('/appointments', '/appointments/')).toBe(true);
+        expect(routeIsCurrent({ pathname: '/request-assistance/mechanic-found', params: { requestId: 'r' } }, '/request-assistance/mechanic-found')).toBe(true);
+    });
+
+    it('is false for another screen, another id or no route', () => {
+        expect(routeIsCurrent({ pathname: '/appointments/[id]', params: { id: 'a1' } }, '/appointments/a2')).toBe(false);
+        expect(routeIsCurrent('/appointments', '/dashboard')).toBe(false);
+        expect(routeIsCurrent(null, '/dashboard')).toBe(false);
+    });
+
+    it('ignores route groups such as (tabs)', () => {
+        expect(routeIsCurrent('/(tabs)/notifications', '/notifications')).toBe(true);
+    });
+});

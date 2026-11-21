@@ -17,6 +17,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { KEYBOARD_SCROLL_PROPS } from '@/lib/ui/keyboard';
 
 type DropdownProps = {
     label: string;
@@ -89,7 +90,7 @@ function MultiSelectDropdown({
                                 <Ionicons name="close" size={22} color="#0F172A" />
                             </TouchableOpacity>
                         </View>
-                        <ScrollView className="px-2 py-2">
+                        <ScrollView {...KEYBOARD_SCROLL_PROPS} className="px-2 py-2">
                             {options.length === 0 && (
                                 <Text className="text-center text-[#0F172A]/60 py-6 font-outfit-regular">
                                     {t("setup.expertise.noOptions")}

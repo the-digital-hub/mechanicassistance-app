@@ -13,6 +13,7 @@ import { HelpCircle } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { KEYBOARD_SCROLL_PROPS } from '@/lib/ui/keyboard';
 
 // Fallback used only if the pricing catalog can't be fetched. These ids are NOT
 // real VehicleIssue UUIDs, so pricing will fall back to "TBD" when this is used.
@@ -252,7 +253,7 @@ export default function IssueSelectionScreen() {
                 </Text>
                 <View className="w-6" />
             </View>
-            <ScrollView className="flex-1 px-6 pt-4" contentContainerStyle={{ paddingBottom: 24 }}>
+            <ScrollView {...KEYBOARD_SCROLL_PROPS} className="flex-1 px-6 pt-4" contentContainerStyle={{ paddingBottom: 24 }}>
                     <RequestSteps type={params.type} step="issue" flush />
                 <View className="flex-row items-center justify-between" style={{ marginBottom: 16 }}>
                     <View className="flex-row items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { LayoutAnimation, Platform, ScrollView, Text, TextInput, TouchableOpacity, UIManager, View } from 'react-native';
 import { useUser } from '@/context/UserContext';
 import { HELP_SECTIONS } from '@/lib/help/helpContent';
+import { KEYBOARD_SCROLL_PROPS } from '@/lib/ui/keyboard';
 
 const SECTION_ICONS: Record<string, LucideIcon> = {
     platform: LayoutGrid,
@@ -62,7 +63,7 @@ export default function HelpScreen() {
 
     return (
         <View className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
-        <ScrollView className="flex-1 px-6 pt-6">
+        <ScrollView {...KEYBOARD_SCROLL_PROPS} className="flex-1 px-6 pt-6">
             {/* Section Badge */}
             <View style={{ marginTop: 11 }}>
               <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>

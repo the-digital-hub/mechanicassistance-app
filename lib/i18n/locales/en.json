@@ -2,6 +2,8 @@
   "inAppAlert": {
     "newRequestTitle": "New request",
     "newRequestBody": "A customer needs help nearby.",
+    "updateTitle": "Update on your request",
+    "updateBody": "Open it to see what changed.",
     "view": "View",
     "dismiss": "Dismiss"
   },
@@ -293,6 +295,7 @@
         "awaitingConfirmation": "The technician finished — confirm it",
         "disputed": "Support is reviewing it"
       },
+      "offerHeldHint": "Confirm it before the hold ends.",
       "viewRequest": "View request",
       "cancelRequest": "Cancel",
       "cancelConfirmTitle": "Cancel this request?",
@@ -782,6 +785,8 @@
       "subtitle": "Review the offer and confirm to send the technician on the way.",
       "yourTechnician": "YOUR TECHNICIAN",
       "technicianFallback": "Your technician",
+      "technicianLocked": "Technician found",
+      "technicianLockedHint": "Confirm to see who is coming",
       "servicesCount_one": "{{count}} service",
       "servicesCount_other": "{{count}} services",
       "newOnPlatform": "New on the platform",
@@ -2610,8 +2615,8 @@
     "subtitle": "Manage your account preferences and security"
   },
   "settingsNotifications": {
-    "inAppRequests": "Alert on screen for new requests",
-    "inAppRequestsHelp": "A small notice at the top while the app is open.",
+    "inAppRequests": "Alerts on screen",
+    "inAppRequestsHelp": "A small notice at the top while the app is open: new requests, offers and updates on your jobs.",
     "badge": "NOTIFICATION SETTINGS",
     "title": "Notifications",
     "subtitle": "Customize your notification preferences",

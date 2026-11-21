@@ -13,6 +13,7 @@ import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View, Modal, Pla
 import { LinearGradient } from 'expo-linear-gradient';
 import { appAlert } from '@/lib/ui/appAlert';
 import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
+import { KEYBOARD_SCROLL_PROPS } from '@/lib/ui/keyboard';
 
 export default function EditAddressScreen() {
     const router = useRouter();
@@ -171,7 +172,7 @@ export default function EditAddressScreen() {
                 </TouchableOpacity>
             </View>
 
-            <ScrollView className="flex-1 px-6 pt-6">
+            <ScrollView {...KEYBOARD_SCROLL_PROPS} className="flex-1 px-6 pt-6">
                 {/* Section Badge */}
 <View style={{ marginTop: 8 }}>
                 <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>

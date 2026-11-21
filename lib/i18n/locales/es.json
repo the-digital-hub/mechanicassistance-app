@@ -2,6 +2,8 @@
   "inAppAlert": {
     "newRequestTitle": "Nueva solicitud",
     "newRequestBody": "Un cliente necesita ayuda cerca.",
+    "updateTitle": "Novedad en tu solicitud",
+    "updateBody": "Ábrela para ver qué cambió.",
     "view": "Ver",
     "dismiss": "Cerrar"
   },
@@ -293,6 +295,7 @@
         "awaitingConfirmation": "El mecánico finalizó — confirmala",
         "disputed": "Soporte lo está revisando"
       },
+      "offerHeldHint": "Confírmala antes de que termine la reserva.",
       "viewRequest": "Ver solicitud",
       "cancelRequest": "Cancelar",
       "cancelConfirmTitle": "¿Cancelar la solicitud?",
@@ -783,6 +786,8 @@
       "subtitle": "Revisá la oferta y confirmá para que el técnico salga en camino.",
       "yourTechnician": "TU TÉCNICO",
       "technicianFallback": "Tu técnico",
+      "technicianLocked": "Técnico encontrado",
+      "technicianLockedHint": "Confirma para ver quién va",
       "servicesCount_one": "{{count}} servicio",
       "servicesCount_other": "{{count}} servicios",
       "newOnPlatform": "Nuevo en la plataforma",
@@ -2611,8 +2616,8 @@
     "subtitle": "Gestioná las preferencias y seguridad de tu cuenta"
   },
   "settingsNotifications": {
-    "inAppRequests": "Aviso en pantalla de nuevas solicitudes",
-    "inAppRequestsHelp": "Un aviso pequeño arriba mientras la app está abierta.",
+    "inAppRequests": "Avisos en pantalla",
+    "inAppRequestsHelp": "Un aviso pequeño arriba mientras la app está abierta: nuevas solicitudes, ofertas y novedades de tus trabajos.",
     "badge": "CONFIGURACIÓN DE NOTIFICACIONES",
     "title": "Notificaciones",
     "subtitle": "Personalizá tus preferencias de notificación",

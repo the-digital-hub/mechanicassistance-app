@@ -39,6 +39,7 @@ import { appAlert } from '@/lib/ui/appAlert';
 import { TYPE } from '@/lib/ui/type';
 import { VehicleTitle } from '@/components/ui/VehicleTitle';
 import { MechanicStatusSheet } from '@/components/profile/MechanicStatusSheet';
+import { KEYBOARD_SCROLL_PROPS } from '@/lib/ui/keyboard';
 
 /** Returns a translation key for the current time of day — resolve with t() at the call site. */
 const getTimeGreetingKey = (): string => {
@@ -322,7 +323,7 @@ export default function DashboardScreen() {
 
         return (
             <View className="flex-1">
-                <ScrollView {...scrollProps} style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ paddingBottom: 40 }}>
+                <ScrollView {...KEYBOARD_SCROLL_PROPS} {...scrollProps} style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ paddingBottom: 40 }}>
                     <View className="px-6 pt-4">
                     {/* Section Badge */}
                     <View style={{ marginTop: 18 }}>
@@ -953,6 +954,7 @@ export default function DashboardScreen() {
     return (
         <View className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
             <ScrollView
+                {...KEYBOARD_SCROLL_PROPS}
                 {...scrollProps}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingHorizontal: DASHBOARD_PADDING_X, paddingTop: 18, paddingBottom: 40 }}
@@ -1012,6 +1014,7 @@ export default function DashboardScreen() {
                                 car={item.car}
                                 address={item.address}
                                 status={item.status}
+                                offerExpiresAt={item.offerExpiresAt}
                                 onPress={guard(() => openRequest(item))}
                                 onCancel={guard(() => cancelRequest(item.id))}
                             />

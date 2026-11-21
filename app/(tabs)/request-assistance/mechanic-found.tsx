@@ -387,9 +387,9 @@ export default function MechanicFoundScreen() {
                 </View>
 
                 {videoWhen !== null ? (
-                    <TechnicianCard mechanic={offer?.mechanic ?? null} eta={videoWhen} etaLabel={t(`${k}.when`)} etaIcon="calendar-outline" price={price} priceCaption={false} />
+                    <TechnicianCard mechanic={offer?.mechanic ?? null} eta={videoWhen} etaLabel={t(`${k}.when`)} etaIcon="calendar-outline" price={price} priceCaption={false} locked={confirmState !== 'done'} />
                 ) : (
-                    <TechnicianCard mechanic={offer?.mechanic ?? null} eta={etaValue} etaCaption={arrival} price={price} />
+                    <TechnicianCard mechanic={offer?.mechanic ?? null} eta={etaValue} etaCaption={arrival} price={price} locked={confirmState !== 'done'} />
                 )}
 
                 <OfferBreakdown included={included} lines={lines} total={breakdown ? formatMoney(breakdown.total) : null} />

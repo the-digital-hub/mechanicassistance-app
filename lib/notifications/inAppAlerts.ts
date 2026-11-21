@@ -55,6 +55,22 @@ export function useInAppAlertsEnabled(): [boolean, (on: boolean) => void] {
     return [on, (next) => void setInAppAlertsEnabled(next)];
 }
 
+/**
+ * Whether `route` is the screen the person is on (`pathname` as expo-router reports it, groups left out). An alert for what is
+ * already on screen would only repeat it.
+ */
+export function routeIsCurrent(route: Href | null, pathname: string): boolean {
+    if (!route) return false;
+    const clean = (p: string) => p.replace(/\/\([^/]+\)/g, '').replace(/\/+$/, '') || '/';
+    let target: string;
+    if (typeof route === 'string') target = route.split('?')[0];
+    else {
+        const params = (route as { params?: Record<string, unknown> }).params ?? {};
+        target = String((route as { pathname: string }).pathname).replace(/\[(\w+)\]/g, (_, key: string) => String(params[key] ?? ''));
+    }
+    return clean(target) === clean(pathname);
+}
+
 export interface InAppBanner {
     /** Same id = the same alert: it is not shown twice. */
     id: string;

@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight } from 'lucide-react-native';
+import { KEYBOARD_SCROLL_PROPS } from '@/lib/ui/keyboard';
 
 export default function ASEScreen() {
     const { t } = useTranslation();
@@ -92,7 +93,7 @@ export default function ASEScreen() {
     };
 
     return (
-        <ScrollView style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ padding: 24, paddingBottom: 40 }}>
+        <ScrollView {...KEYBOARD_SCROLL_PROPS} style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ padding: 24, paddingBottom: 40 }}>
             {/* Section Badge */}
             <View style={{ marginTop: 8 }}>
               <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>

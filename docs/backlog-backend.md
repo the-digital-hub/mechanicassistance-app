@@ -21,7 +21,7 @@ Leyenda: ✅ hecho según el repo de análisis (a confirmar en producción) · �
 |---|---|---|
 | **1. Videollamada: precio, duración y reserva** | AA sin impuestos · B cotización con duración · N agendar 24/7 · O zona horaria | **X** descuento de agendadas (pantalla del Hub y valor) · **T** confirmar 60 min |
 | **2. Videollamada: durante y después** | Q consentimientos · P/U transcripción · J presencia · K ganancia por extensión · M push de tiempo extra | **L** transcripción en la cuenta de Daily · **V** traducción de subtítulos |
-| **3. Solicitudes y feed del técnico** | — | **S** solicitud tomada por otro · **E** `offerExpiresAt` en el listado · **AE** `refCode` en la vista del prestador · **AF** `new_request` fuera de la bandeja · **R** entrada "Other" en el catálogo |
+| **3. Solicitudes y feed del técnico** | — | **S** solicitud tomada por otro · **E** `offerExpiresAt` en el listado · **AE** `refCode` en la vista del prestador · **AF** `new_request` fuera de la bandeja · **AG** identidad del técnico solo al aceptar · **R** entrada "Other" en el catálogo |
 | **4. Perfil y reputación** | Y reseñas del perfil · Z otras certificaciones | Pantalla de revisión de certificaciones en el Hub, permisos del admin y push de vencimiento |
 | **5. Cuidado del vehículo** | — | **W** agente de recomendaciones |
 | **6. Notificaciones** | — | **AB** textos más completos |
@@ -105,6 +105,11 @@ Leyenda: ✅ hecho según el repo de análisis (a confirmar en producción) · �
 - **Hacer:** que `new_request` siga saliendo como **push** pero **no se guarde en la bandeja** (ni cuente en `total` / `unread` ni en el número del ícono).
 - **Mientras tanto:** la app ya no las lista y descuenta las que alcanza a ver de `total` y `unread`; con el cambio del backend ese ajuste queda sin efecto y se puede quitar.
 - **Cómo lo verificamos:** crear dos solicitudes con un técnico disponible: llegan los dos push, y la bandeja del técnico no suma ninguna.
+
+### [ ] AG — No enviar identidad del técnico mientras la oferta no está aceptada
+- **Problema:** la app oculta nombre y foto del técnico (foto borrosa, candado) hasta que el dueño confirma la oferta, pero la respuesta de `GET /api/assistance/:id/offer` (`mechanic.displayName`, `profileImage`, `initials`) los trae completos. Quien mire el tráfico de red los ve antes de confirmar.
+- **Hacer:** mientras la solicitud está `offered`, no incluir `displayName`, `profileImage` ni `initials` (sí `avgRating`, `servicesCount`, `aseCertified`, `idVerified`); enviarlos una vez `accepted`.
+- **Cómo lo verificamos:** pedir una asistencia, recibir la oferta y ver que la respuesta no trae nombre ni foto; tras confirmar, sí.
 
 ### [ ] AE — `refCode` en la vista reducida del prestador (`GET /marketplace/requests[/:id]`)
 - **Problema:** la lista blanca de campos del prestador (`id`, `assistanceType`, `title`, …) no trae `refCode`. Las pantallas de cotización del técnico muestran hoy el comienzo del `id` (ej. `#3F9A1C2B`) y no el código corto que ve el cliente y soporte (`AS-XXXXXX`).

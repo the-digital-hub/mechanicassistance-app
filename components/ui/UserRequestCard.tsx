@@ -1,10 +1,12 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { Car, ClipboardList, Clock, MapPin, ShieldCheck } from 'lucide-react-native';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, TouchableOpacity, View } from 'react-native';
 
 import type { AppointmentStatus } from '@/context/AppointmentsContext';
 import type { AssistanceType } from '@/lib/dao/interfaces';
+import { useCountdown } from '@/hooks/useCountdown';
 import { RequestIdRow } from '@/components/ui/RequestIdRow';
 
 interface UserRequestCardProps {
@@ -17,6 +19,8 @@ interface UserRequestCardProps {
     car?: string;
     address?: string;
     status: AppointmentStatus;
+    /** While `offered`: when the hold on the technician's offer ends (ISO). The time left shows on the card. */
+    offerExpiresAt?: string | null;
     onPress: () => void;
     /** Only rendered while the request can still be called off (pending/offered). */
     onCancel?: () => void;
@@ -35,10 +39,17 @@ export function UserRequestCard({
     car,
     address,
     status,
+    offerExpiresAt,
     onPress,
     onCancel,
 }: UserRequestCardProps) {
     const { t } = useTranslation();
+    const heldUntil = useMemo(() => {
+        const ms = status === 'offered' && offerExpiresAt ? new Date(offerExpiresAt).getTime() : NaN;
+        return Number.isFinite(ms) ? ms : null;
+    }, [status, offerExpiresAt]);
+    const heldLeft = useCountdown(heldUntil);
+    const heldTime = `${Math.floor(heldLeft / 60)}:${String(heldLeft % 60).padStart(2, '0')}`;
 
     const isWitness = assistanceType === 'witness' || type === 'witness';
     const canCancel = !!onCancel && (status === 'pending' || status === 'offered');
@@ -178,6 +189,17 @@ export function UserRequestCard({
                     · {badge.detail}
                 </Text>
             </View>
+
+            {/* The offer is held only for a while: the time left stays visible here when the person comes back from elsewhere. */}
+            {heldUntil !== null && heldLeft > 0 ? (
+                <View className="flex-row items-center" style={{ marginTop: 10, gap: 10, paddingVertical: 10, paddingHorizontal: 12, borderRadius: 12, backgroundColor: '#FEF4E2' }} testID="offer-held-banner">
+                    <Clock size={18} color="#F08A1C" />
+                    <View className="flex-1">
+                        <Text className="font-outfit-bold" style={{ fontSize: 15, color: '#8A5A12' }}>{t('requestAssistance.mechanicFound.heldFor', { time: heldTime })}</Text>
+                        <Text className="font-outfit-regular" style={{ fontSize: 13, lineHeight: 18, color: '#8A5A12' }}>{t('dashboard.user.offerHeldHint')}</Text>
+                    </View>
+                </View>
+            ) : null}
 
             {/* Info block */}
             {infoRows.length > 0 && (

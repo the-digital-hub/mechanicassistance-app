@@ -91,7 +91,7 @@ function Stat({ icon, label, value, caption, valueColor }: { icon: IconName; lab
 }
 
 /** `etaLabel`/`etaIcon` relabel the arrival tile (a video call shows "When" instead). */
-export function TechnicianCard({ mechanic, eta, etaCaption, etaLabel, etaIcon = 'time-outline', price, priceCaption = true }: {
+export function TechnicianCard({ mechanic, eta, etaCaption, etaLabel, etaIcon = 'time-outline', price, priceCaption = true, locked = false }: {
     mechanic: AssistanceOfferSummary['mechanic'] | null;
     eta: string;
     etaCaption?: string;
@@ -100,6 +100,8 @@ export function TechnicianCard({ mechanic, eta, etaCaption, etaLabel, etaIcon = 
     etaLabel?: string;
     etaIcon?: IconName;
     price: string;
+    /** Who it is stays hidden (blurred photo, no name) until the owner confirms the offer. Rating, services and badges stay. */
+    locked?: boolean;
 }) {
     const { t } = useTranslation();
     const k = 'requestAssistance.mechanicFound';
@@ -112,7 +114,15 @@ export function TechnicianCard({ mechanic, eta, etaCaption, etaLabel, etaIcon = 
         <View style={[card, { padding: 16 }]}>
             <View className="flex-row items-center" style={{ gap: 12 }}>
                 <View>
-                    {mechanic?.profileImage ? (
+                    {locked ? (
+                        <View testID="technician-locked-avatar" style={{ width: 52, height: 52, borderRadius: 26, overflow: 'hidden', backgroundColor: AO.blueDark, alignItems: 'center', justifyContent: 'center' }}>
+                            {mechanic?.profileImage ? (
+                                <Image source={{ uri: mechanic.profileImage }} blurRadius={20} style={{ position: 'absolute', width: 52, height: 52 }} />
+                            ) : null}
+                            <View style={{ position: 'absolute', width: 52, height: 52, backgroundColor: 'rgba(11,42,142,0.45)' }} />
+                            <Ionicons name="lock-closed" size={20} color="#fff" />
+                        </View>
+                    ) : mechanic?.profileImage ? (
                         <Image source={{ uri: mechanic.profileImage }} style={{ width: 52, height: 52, borderRadius: 26 }} />
                     ) : (
                         <View style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: AO.blueDark, alignItems: 'center', justifyContent: 'center' }}>
@@ -123,7 +133,7 @@ export function TechnicianCard({ mechanic, eta, etaCaption, etaLabel, etaIcon = 
                             )}
                         </View>
                     )}
-                    {mechanic?.idVerified && (
+                    {mechanic?.idVerified && !locked && (
                         <View style={{ position: 'absolute', right: -2, bottom: -2, width: 20, height: 20, borderRadius: 10, backgroundColor: AO.green, borderWidth: 2, borderColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
                             <Ionicons name="checkmark" size={10} color="#fff" />
                         </View>
@@ -132,8 +142,9 @@ export function TechnicianCard({ mechanic, eta, etaCaption, etaLabel, etaIcon = 
                 <View style={{ flex: 1, minWidth: 0 }}>
                     <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1, color: AO.muted }}>{t(`${k}.yourTechnician`)}</Text>
                     <Text className="font-outfit-bold" numberOfLines={1} style={{ fontSize: 17, color: AO.text, letterSpacing: -0.3, marginTop: 1 }}>
-                        {mechanic?.displayName ?? t(`${k}.technicianFallback`)}
+                        {locked ? t(`${k}.technicianLocked`) : (mechanic?.displayName ?? t(`${k}.technicianFallback`))}
                     </Text>
+                    {locked ? <Text className="font-outfit-regular" style={{ fontSize: 13, color: AO.muted, marginTop: 1 }}>{t(`${k}.technicianLockedHint`)}</Text> : null}
                     <View className="flex-row items-center" style={{ gap: 6, marginTop: 2 }}>
                         {mechanic?.avgRating != null && <Stars rating={mechanic.avgRating} />}
                         <Text className="font-outfit-regular" style={{ fontSize: 13, color: AO.muted }}>

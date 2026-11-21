@@ -30,4 +30,15 @@ describe('the offer of a video call', () => {
         const without = render(<TechnicianCard mechanic={null} eta="Now" price="$69.00" priceCaption={false} />);
         expect(without.queryByText('requestAssistance.mechanicFound.fixedPrice')).toBeNull();
     });
+
+    it('hides who the technician is while locked, and keeps price and rating', () => {
+        const mechanic = { displayName: 'Diego M.', initials: 'DM', profileImage: null, avgRating: 4.8, servicesCount: 12, aseCertified: true, idVerified: true } as never;
+        const locked = render(<TechnicianCard mechanic={mechanic} eta="Now" price="$69.00" locked />);
+        expect(locked.queryByText('Diego M.')).toBeNull();
+        expect(locked.queryByText('DM')).toBeNull();
+        expect(locked.queryByText('requestAssistance.mechanicFound.technicianLocked')).toBeTruthy();
+        expect(locked.queryByText('$69.00')).toBeTruthy();
+        const open = render(<TechnicianCard mechanic={mechanic} eta="Now" price="$69.00" />);
+        expect(open.queryByText('Diego M.')).toBeTruthy();
+    });
 });

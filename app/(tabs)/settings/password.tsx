@@ -11,6 +11,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { KEYBOARD_SCROLL_PROPS } from '@/lib/ui/keyboard';
 
 export default function PasswordScreen() {
   const router = useRouter();
@@ -35,7 +36,7 @@ export default function PasswordScreen() {
   const hasSymbolOrNumber = /[0-9!@#$%^&*]/.test(passwords.new);
 
   return (
-    <ScrollView style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 24, paddingBottom: 40 }}>
+    <ScrollView {...KEYBOARD_SCROLL_PROPS} style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 24, paddingBottom: 40 }}>
       {/* Section Badge */}
       <View style={{ marginTop: 8 }}>
         <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>

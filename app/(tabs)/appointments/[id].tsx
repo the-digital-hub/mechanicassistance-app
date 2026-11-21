@@ -76,6 +76,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Dimensions, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { chatAvailability } from '@/lib/chat/chatAvailability';
 import { RequestIdRow } from '@/components/ui/RequestIdRow';
+import { KEYBOARD_SCROLL_PROPS } from '@/lib/ui/keyboard';
 
 const { width } = Dimensions.get('window');
 
@@ -888,7 +889,7 @@ export default function AppointmentDetailScreen() {
                 <View><Text>Cancellation Feedback Placeholder</Text></View>
             ) : (
                 <View className="flex-1">
-                    <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+                    <ScrollView {...KEYBOARD_SCROLL_PROPS} className="flex-1" showsVerticalScrollIndicator={false}>
                         {isUserRole ? (
                             <View style={{ paddingHorizontal: 20, paddingTop: 32, paddingBottom: 32, gap: 16 }} testID="owner-accepted">
                                 <AcceptedHeader
