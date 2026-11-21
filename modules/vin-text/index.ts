@@ -20,3 +20,28 @@ export async function recognizeText(uri: string): Promise<string[]> {
         return [];
     }
 }
+
+export interface BackCameraZoomInfo {
+    /** The camera's name, for expo-camera's `selectedLens`. */
+    lens: string;
+    /** Its zoom limit (a factor, e.g. 15). */
+    max: number;
+    /** The zoom factor where the main lens takes over: the "1x" of the Camera app (2 on a triple camera). */
+    wideAt: number;
+}
+
+interface NativeWithZoom {
+    backCameraZoomInfo?: () => BackCameraZoomInfo | null;
+}
+
+/**
+ * The back camera as the Camera app uses it (the virtual camera that switches lenses by itself), or null when this build or
+ * this phone does not have one: the scanner then keeps the single main lens.
+ */
+export function backCameraZoomInfo(): BackCameraZoomInfo | null {
+    try {
+        return (native as unknown as NativeWithZoom | null)?.backCameraZoomInfo?.() ?? null;
+    } catch {
+        return null;
+    }
+}

@@ -29,8 +29,23 @@ import { goBackOr } from "@/lib/navigation/goBackOr";
 import { useTranslation } from "react-i18next";
 import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
+/** The brand's isologo, where the technician has their availability badge: the vehicle owner's root screens. */
+function BrandMark() {
+  return (
+    <Image
+      source={require("@/assets/images/mechanic_assistance_isologo.png")}
+      style={{ width: 36, height: 36, marginLeft: 16 }}
+      resizeMode="contain"
+      accessibilityLabel="Mechanic Assistance"
+      testID="header-brand-mark"
+    />
+  );
+}
+
+/** Top left of the root screens: the technician's availability badge, the owner's isologo. A back arrow replaces either. */
 function MechanicStatusHeaderLeft() {
-  return <MechanicStatusBadge />;
+  const { user } = useUser();
+  return user?.role === "mechanic" ? <MechanicStatusBadge /> : <BrandMark />;
 }
 
 function PersonalInfoHeaderLeft() {
@@ -309,7 +324,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <Wrench size={24} color={color} />,
           headerShown: isRequestAssistanceRoot,
           sceneStyle: isRequestAssistanceRoot ? sceneUnderHeader : sceneNoHeader,
-          headerLeft: () => null,
+          headerLeft: () => <BrandMark />,
           headerRight: () => <NotificationHeaderRight />,
         }}
         listeners={({ navigation }) => ({

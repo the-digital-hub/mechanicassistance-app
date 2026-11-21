@@ -1,3 +1,4 @@
+import AVFoundation
 import ExpoModulesCore
 import UIKit
 import Vision
@@ -7,6 +8,25 @@ import Vision
 public class VinTextModule: Module {
   public func definition() -> ModuleDefinition {
     Name("VinText")
+
+    // The back camera the way the Camera app uses it: the virtual one (ultra wide + wide + telephoto) when the phone has it, so the
+    // system switches lenses by itself while zooming and focuses close up. `lens` is its name for expo-camera's `selectedLens`,
+    // `max` its zoom limit and `wideAt` the zoom factor where the main lens takes over (the "1x" of the Camera app).
+    Function("backCameraZoomInfo") { () -> [String: Any]? in
+      let virtual: [AVCaptureDevice.DeviceType] = [.builtInTripleCamera, .builtInDualWideCamera, .builtInDualCamera]
+      for type in virtual {
+        guard let device = AVCaptureDevice.default(type, for: .video, position: .back) else { continue }
+        let switchOvers = device.virtualDeviceSwitchOverVideoZoomFactors.map { $0.doubleValue }
+        // Only the ultra wide + wide pairs start below the main lens; a wide + telephoto pair already starts on it.
+        let wideAt = type == .builtInDualCamera ? 1.0 : (switchOvers.first ?? 1.0)
+        return [
+          "lens": device.localizedName,
+          "max": Double(min(device.activeFormat.videoMaxZoomFactor, device.maxAvailableVideoZoomFactor)),
+          "wideAt": wideAt,
+        ]
+      }
+      return nil
+    }
 
     // The lines of text found in the image at `uri` (a file:// or a plain path), best guess first. Empty when there is none.
     AsyncFunction("recognize") { (uri: String, promise: Promise) in

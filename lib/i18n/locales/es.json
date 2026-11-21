@@ -1625,6 +1625,7 @@
         "skipWarn": "Sin el VIN no podemos verificar el vehículo contra el pedido.",
         "rotateToLandscape": "Girar a horizontal",
         "rotateToPortrait": "Volver a vertical",
+        "rotateAuto": "Volver al giro automático",
         "torchOn": "Encender la linterna",
         "torchOff": "Apagar la linterna",
         "zoomIn": "Acercar",

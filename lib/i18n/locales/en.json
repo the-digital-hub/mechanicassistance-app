@@ -1624,6 +1624,7 @@
         "skipWarn": "Without the VIN we can't check the vehicle against the request.",
         "rotateToLandscape": "Rotate to landscape",
         "rotateToPortrait": "Back to portrait",
+        "rotateAuto": "Turn automatic rotation back on",
         "torchOn": "Turn on the flashlight",
         "torchOff": "Turn off the flashlight",
         "zoomIn": "Zoom in",

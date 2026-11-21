@@ -3,13 +3,15 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as Haptics from 'expo-haptics';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import type { GestureResponderEvent } from 'react-native';
 import { ActivityIndicator, Animated, Easing, InputAccessoryView, Keyboard, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { OnSiteVisit } from '@/lib/dao/OnSiteDAO';
-import { lockLandscape, lockPortrait } from '@/lib/orientation';
-import { canReadText, recognizeText } from '@/modules/vin-text';
+import { allowAutoRotation, lockLandscape, lockPortrait } from '@/lib/orientation';
+import { pinchZoom, startZoom } from '@/lib/onsite/cameraZoom';
+import { backCameraZoomInfo, canReadText, recognizeText } from '@/modules/vin-text';
 import { compareVins, declaredVin, extractVin, extractVinFromText, isValidVin, normalizeVin, vinCheckDigitOk, type VinCapture } from '@/lib/onsite/vin';
 import { ActionBar, Body, Card, CardTitle, Checkbox, Intro, OnSiteDialog, OS, PrimaryButton, Tip } from './ui';
 
@@ -19,8 +21,6 @@ import { ActionBar, Body, Card, CardTitle, Checkbox, Intro, OnSiteDialog, OS, Pr
 
 const BARCODE_TYPES = ['code39', 'code93', 'code128', 'pdf417', 'datamatrix', 'qr'] as const;
 
-/** The door-jamb barcode is small: a closer view (about double) helps the camera read it from a comfortable distance. */
-const ZOOMED = 0.22;
 
 const CORNER = 34;
 
@@ -59,7 +59,28 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
     const [found, setFound] = React.useState<string | null>(null);
     // The flashlight, for a sticker in a dark door jamb. It goes off by itself when the scanner closes.
     const [torch, setTorch] = React.useState(false);
-    const [zoomed, setZoomed] = React.useState(true);
+    // Zoom like the Camera app: the virtual back camera (it switches lenses and focuses close up by itself), starting on the main
+    // lens, and a pinch of two fingers anywhere on the picture zooms it.
+    const zoomInfo = React.useMemo(() => backCameraZoomInfo(), []);
+    const [zoom, setZoom] = React.useState(() => startZoom(zoomInfo));
+    const zoomRef = React.useRef(zoom);
+    zoomRef.current = zoom;
+    const pinch = React.useRef<{ d0: number; z0: number } | null>(null);
+    const onPinchTouch = (e: GestureResponderEvent) => {
+        const touches = e.nativeEvent.touches;
+        if (touches.length < 2) {
+            pinch.current = null;
+            return;
+        }
+        const d = Math.hypot(touches[0].pageX - touches[1].pageX, touches[0].pageY - touches[1].pageY);
+        if (!pinch.current) {
+            pinch.current = { d0: d, z0: zoomRef.current };
+            return;
+        }
+        if (pinch.current.d0 > 0) setZoom(pinchZoom(pinch.current.z0, d / pinch.current.d0, zoomInfo?.max));
+    };
+    // The bottom block's height decides how much room the frame has: they must never overlap.
+    const [stackH, setStackH] = React.useState(330);
     // Reading the printed VIN from a photo: for the windshield (no barcode) and for a door code the barcode reader misses.
     const cameraRef = React.useRef<CameraView>(null);
     const [reading, setReading] = React.useState(false);
@@ -70,10 +91,25 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
     const shake = React.useRef(new Animated.Value(0)).current;
     const pop = React.useRef(new Animated.Value(0)).current;
 
-    // Opens upright, like the rest of the app. Turning it sideways is the mechanic's choice (the button), and
-    // it always goes back upright when the scanner closes, whether a VIN was read or not.
-    React.useEffect(() => () => lockPortrait(), []);
-    const toggleOrientation = () => (landscape ? lockPortrait() : lockLandscape());
+    // The scanner turns with the phone: sideways when the phone is, upright when it comes back. Only here: the rest of the app stays
+    // upright, so leaving the scanner (a VIN read or not) always puts it back.
+    // The button locks the screen the other way round (a wide barcode on a desk is easier to frame with the phone on its side, even if
+    // the phone is not tilted); pressing it again goes back to following the phone.
+    const [rotationLocked, setRotationLocked] = React.useState(false);
+    React.useEffect(() => {
+        allowAutoRotation();
+        return () => lockPortrait();
+    }, []);
+    const toggleOrientation = () => {
+        if (rotationLocked) {
+            setRotationLocked(false);
+            allowAutoRotation();
+            return;
+        }
+        setRotationLocked(true);
+        if (landscape) lockPortrait();
+        else lockLandscape();
+    };
 
     React.useEffect(() => {
         const loop = Animated.loop(
@@ -148,8 +184,11 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
     // The camera fills the whole screen; a large window is cut out of a translucent dark veil, so the picture shows
     // everywhere and the window only says where to aim. Held on its side, the window takes the wide part.
     const winW = landscape ? Math.min(width * 0.6, width - insets.left - insets.right - 300) : width - 24;
-    const winH = landscape ? height - insets.top - insets.bottom - 40 : Math.min(height * 0.4, 380);
     const winTop = landscape ? insets.top + 20 : insets.top + 184;
+    const stackTop = height - insets.bottom - 16 - stackH;
+    const winH = landscape ? height - insets.top - insets.bottom - 40 : Math.max(170, Math.min(height * 0.4, 380, stackTop - 14 - winTop));
+    // On a short screen the tips would not leave room for the frame.
+    const showTips = height >= 760;
     const winLeft = landscape ? width - Math.max(insets.right, 20) - winW : 12;
     const VEIL = 900; // border width of the veil: it spreads far past the screen on every side
     const glass = 'rgba(8,16,40,0.42)';
@@ -170,12 +209,13 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
         <TouchableOpacity
             onPress={toggleOrientation}
             accessibilityRole="button"
-            accessibilityLabel={landscape ? t('appointments.onSite.vin.rotateToPortrait') : t('appointments.onSite.vin.rotateToLandscape')}
+            accessibilityState={{ selected: rotationLocked }}
+            accessibilityLabel={rotationLocked ? t('appointments.onSite.vin.rotateAuto') : landscape ? t('appointments.onSite.vin.rotateToPortrait') : t('appointments.onSite.vin.rotateToLandscape')}
             className="items-center justify-center"
-            style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: glass }}
+            style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: rotationLocked ? 'rgba(255,255,255,0.92)' : glass }}
             testID="vin-rotate"
         >
-            <MaterialCommunityIcons name={landscape ? 'phone-rotate-portrait' : 'phone-rotate-landscape'} size={25} color="#FFFFFF" />
+            <MaterialCommunityIcons name={landscape ? 'phone-rotate-portrait' : 'phone-rotate-landscape'} size={25} color={rotationLocked ? '#1E56E3' : '#FFFFFF'} />
         </TouchableOpacity>
     );
 
@@ -193,25 +233,10 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
         </TouchableOpacity>
     );
 
-    const zoomButton = (
-        <TouchableOpacity
-            onPress={() => setZoomed((on) => !on)}
-            accessibilityRole="button"
-            accessibilityState={{ selected: zoomed }}
-            accessibilityLabel={zoomed ? t('appointments.onSite.vin.zoomOut') : t('appointments.onSite.vin.zoomIn')}
-            className="items-center justify-center"
-            style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: zoomed ? 'rgba(255,255,255,0.92)' : glass }}
-            testID="vin-zoom"
-        >
-            <MaterialCommunityIcons name={zoomed ? 'magnify-minus-outline' : 'magnify-plus-outline'} size={25} color={zoomed ? '#1E56E3' : '#FFFFFF'} />
-        </TouchableOpacity>
-    );
-
     const topButtons = (
         <View className="flex-row items-center justify-between">
             {closeButton}
             <View className="flex-row items-center" style={{ gap: 10 }}>
-                {zoomButton}
                 {torchButton}
                 {rotateButton}
             </View>
@@ -244,7 +269,7 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
             style={{ height: 52, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.92)', gap: 8, opacity: reading ? 0.75 : 1 }}
             testID="vin-read-text"
         >
-            {reading ? <ActivityIndicator color="#1E56E3" /> : <Ionicons name="text-outline" size={20} color="#1E56E3" />}
+            {reading ? <ActivityIndicator color="#1E56E3" /> : <MaterialCommunityIcons name="text-recognition" size={22} color="#1E56E3" />}
             <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#1E56E3' }}>
                 {reading ? t('appointments.onSite.vin.reading') : t('appointments.onSite.vin.readText')}
             </Text>
@@ -266,15 +291,22 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
     );
 
     return (
-            <View className="flex-1" style={{ backgroundColor: '#06123A' }}>
+            <View
+                className="flex-1"
+                style={{ backgroundColor: '#06123A' }}
+                onTouchStart={onPinchTouch}
+                onTouchMove={onPinchTouch}
+                onTouchEnd={onPinchTouch}
+                onTouchCancel={() => { pinch.current = null; }}
+            >
                 <StatusBar style="light" />
                 <CameraView
                     ref={cameraRef}
                     style={StyleSheet.absoluteFill}
                     facing="back"
                     enableTorch={torch}
-                    zoom={zoomed ? ZOOMED : 0}
-                    autofocus="on"
+                    zoom={zoom}
+                    selectedLens={zoomInfo?.lens}
                     barcodeScannerSettings={{ barcodeTypes: [...BARCODE_TYPES] }}
                     onBarcodeScanned={found ? undefined : onScanned}
                 />
@@ -346,9 +378,10 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
                             {heading}
                         </View>
 
-                        <View style={{ position: 'absolute', left: 20, right: 20, bottom: insets.bottom + 16, gap: 14 }}>
+                        <View onLayout={(e) => setStackH(Math.round(e.nativeEvent.layout.height))} style={{ position: 'absolute', left: 20, right: 20, bottom: insets.bottom + 16, gap: 14 }}>
                             <View className="self-center">{statusPill}</View>
                             {/* Where to look: one quiet glass card */}
+                            {showTips ? (
                             <View style={{ padding: 14, borderRadius: 18, backgroundColor: glass, gap: 10 }}>
                                 {tips.map((tip) => (
                                     <View key={tip.icon} className="flex-row items-center" style={{ gap: 12 }}>
@@ -357,6 +390,7 @@ function VinScannerBody({ onClose, onVin }: { onClose: () => void; onVin: (vin: 
                                     </View>
                                 ))}
                             </View>
+                            ) : null}
                             {readText}
                             {typeInstead}
                         </View>
