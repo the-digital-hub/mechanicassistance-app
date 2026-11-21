@@ -260,12 +260,25 @@ export default function NotificationsScreen() {
                             );
                         })}
                     </View>
-                    <View className="flex-row gap-4">
-                        <TouchableOpacity onPress={markAllRead}>
-                            <Check size={20} color="#9CA3AF" />
+                    {/* Two small badges, like the tabs next to them: not bare icons floating on the page. */}
+                    <View className="flex-row" style={{ gap: 8 }}>
+                        <TouchableOpacity
+                            onPress={markAllRead}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('notifications.markAllRead')}
+                            style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#E6EAF2', alignItems: 'center', justifyContent: 'center' }}
+                            testID="notifications-mark-all-read"
+                        >
+                            <Check size={17} color="#4A5470" strokeWidth={2.4} />
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={handleDeleteAll}>
-                            <X size={20} color="#9CA3AF" />
+                        <TouchableOpacity
+                            onPress={handleDeleteAll}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('notifications.deleteAll')}
+                            style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#FDECEC', alignItems: 'center', justifyContent: 'center' }}
+                            testID="notifications-delete-all"
+                        >
+                            <X size={17} color="#D93636" strokeWidth={2.4} />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -302,30 +315,37 @@ export default function NotificationsScreen() {
                                 style={{ backgroundColor: notif.unread ? '#F2F7FF' : '#F6F8FC' }}
                                 onPress={() => handleNotificationPress(notif)}
                                 activeOpacity={notif.requestId ? 0.7 : 1}
+                                accessibilityActions={[{ name: 'delete', label: t('notifications.delete') }]}
+                                onAccessibilityAction={(e) => { if (e.nativeEvent.actionName === 'delete') handleDelete(notif.id); }}
                             >
                                 {/* Icon */}
                                 <NotificationIcon kind={notif.kind} unread={notif.unread} />
 
-                                {/* Content */}
+                                {/* Content: the title and the time share the first line; the text under them has the whole width. */}
                                 <View className="flex-1">
-                                    <View className="flex-row justify-between items-start mb-1">
-                                        <View className="flex-1 pr-2">
-                                            <Text className="text-gray-900 font-outfit-bold text-lg mb-1">{notif.title}</Text>
-                                            <Text className="text-gray-500 font-outfit-regular text-[16.5px] leading-6">{notif.body}</Text>
-                                            {notif.type === 'mechanic_found' && notif.requestId && (
-                                                <Text className="text-blue-500 font-outfit-medium text-[15px] mt-1">{t('notifications.tapToView')}</Text>
-                                            )}
-                                        </View>
-                                        <View className="items-end min-w-[30px]">
-                                            <Text className="text-gray-400 text-[13px] mb-2">{notif.time}</Text>
+                                    <View className="flex-row items-center justify-between" style={{ gap: 10 }}>
+                                        <Text className="flex-1 text-gray-900 font-outfit-bold text-lg" style={{ lineHeight: 24 }}>{notif.title}</Text>
+                                        <View className="flex-row items-center" style={{ gap: 8 }}>
+                                            <Text
+                                                className={notif.unread ? 'font-outfit-bold' : 'font-outfit-medium'}
+                                                style={{ fontSize: 13, color: notif.unread ? '#1E56E3' : '#9CA3AF' }}
+                                            >
+                                                {notif.time}
+                                            </Text>
                                             <TouchableOpacity
                                                 onPress={() => handleDelete(notif.id)}
-                                                hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+                                                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                                                accessibilityRole="button"
+                                                accessibilityLabel={t('notifications.delete')}
                                             >
                                                 <MoreHorizontal size={18} color="#4B5563" />
                                             </TouchableOpacity>
                                         </View>
                                     </View>
+                                    <Text className="text-gray-500 font-outfit-regular text-[16.5px] leading-6" style={{ marginTop: 2 }}>{notif.body}</Text>
+                                    {notif.type === 'mechanic_found' && notif.requestId && (
+                                        <Text className="text-blue-500 font-outfit-medium text-[15px] mt-1">{t('notifications.tapToView')}</Text>
+                                    )}
                                 </View>
                             </TouchableOpacity>
                             </Swipeable>

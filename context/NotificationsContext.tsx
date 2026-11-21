@@ -70,6 +70,13 @@ function formatTime(ts: number): string {
     return `${Math.floor(diff / 86400)}d`;
 }
 
+/**
+ * Kinds the backend keeps in the inbox that the app does not list. A new request is an opportunity that goes stale (another
+ * technician takes it, or it expires) and the technician already has it live in the feed and in the in-app alert; as a
+ * list item it only piles up and opens a request that may be gone. It still arrives as a push.
+ */
+const NOT_LISTED: ReadonlySet<string> = new Set(['new_request']);
+
 const KNOWN: ReadonlySet<string> = new Set([
     'new_request',
     'mechanic_found',
@@ -126,11 +133,27 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     listRef.current = notifications;
     const loadingMoreRef = useRef(false);
 
+    // What was left out of the list (id -> was unread), so the totals the backend sends — which count it — can be corrected.
+    const skipped = useRef<Map<string, boolean>>(new Map());
+    // Where the next older page starts: the last item the backend sent, listed or not.
+    const cursor = useRef<number | null>(null);
+
+    /** The items to list from a page; the left-out ones are only counted. */
+    const listable = useCallback((items: InboxItem[]): AppNotification[] => {
+        for (const i of items) {
+            if (NOT_LISTED.has(i.kind)) skipped.current.set(i.id, !i.read);
+        }
+        const last = items[items.length - 1];
+        if (last) cursor.current = new Date(last.createdAt).getTime();
+        return items.filter((i) => !NOT_LISTED.has(i.kind) && !hidden.current.has(i.id)).map(toAppNotification);
+    }, []);
+
     const applyTotals = useCallback((page: { total?: number; unread?: number }, loaded: AppNotification[]) => {
+        const skippedUnread = [...skipped.current.values()].filter(Boolean).length;
         // Older backends send no totals: fall back to what was loaded.
         setTotals({
-            all: page.total ?? loaded.length,
-            unread: page.unread ?? loaded.filter((n) => n.unread).length,
+            all: page.total !== undefined ? Math.max(0, page.total - skipped.current.size) : loaded.length,
+            unread: page.unread !== undefined ? Math.max(0, page.unread - skippedUnread) : loaded.filter((n) => n.unread).length,
         });
     }, []);
 
@@ -142,37 +165,35 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
                 limit: PAGE_SIZE,
                 unread: unreadOnly || undefined,
             });
-            const list = page.items.filter((i) => !hidden.current.has(i.id)).map(toAppNotification);
+            skipped.current.clear();
+            const list = listable(page.items);
             setNotifications(list);
             setHasMore(page.items.length === PAGE_SIZE);
             applyTotals(page, list);
         } catch (err) {
             console.warn('[inbox] load failed:', (err as Error).message);
         }
-    }, [userId, unreadOnly, applyTotals]);
+    }, [userId, unreadOnly, applyTotals, listable]);
 
     const loadMore = useCallback(async () => {
-        const last = listRef.current[listRef.current.length - 1];
-        if (!userId || !last || !hasMore || loadingMoreRef.current) return;
+        if (!userId || cursor.current === null || !hasMore || loadingMoreRef.current) return;
         loadingMoreRef.current = true;
         setLoadingMore(true);
         try {
             const page = await notificationDAO.listInbox({
                 locale: i18next.language || undefined,
                 limit: PAGE_SIZE,
-                before: new Date(last.createdAt).toISOString(),
+                before: new Date(cursor.current).toISOString(),
                 unread: unreadOnly || undefined,
             });
+            const more = listable(page.items);
             setNotifications((prev) => {
                 const known = new Set(prev.map((n) => n.id));
-                const more = page.items
-                    .filter((i) => !known.has(i.id) && !hidden.current.has(i.id))
-                    .map(toAppNotification);
-                return [...prev, ...more];
+                return [...prev, ...more.filter((n) => !known.has(n.id))];
             });
             setHasMore(page.items.length === PAGE_SIZE);
             if (page.total !== undefined && page.unread !== undefined) {
-                setTotals({ all: page.total, unread: page.unread });
+                applyTotals(page, []);
             }
         } catch (err) {
             console.warn('[inbox] load more failed:', (err as Error).message);
@@ -180,7 +201,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
             loadingMoreRef.current = false;
             setLoadingMore(false);
         }
-    }, [userId, hasMore, unreadOnly]);
+    }, [userId, hasMore, unreadOnly, listable, applyTotals]);
 
     const markSeen = useCallback(async () => {
         await clearAppBadge();

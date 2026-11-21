@@ -7,6 +7,8 @@ import { ObdPanel } from './ObdPanel';
 import type { RedirectReason } from './screens-execution';
 import { ActionBar, Body, Card, Eyebrow, InfoRow, Intro, NoteInput, OS, PrimaryButton, Tip, cardShadow } from './ui';
 import { appAlert } from '@/lib/ui/appAlert';
+import { useAppointments } from '@/context/AppointmentsContext';
+import { refLabel } from '@/lib/refCode';
 
 // Phase 3 of the on-site flow: close-out summary and the final screen.
 // Charges and the owner rating are not sent anywhere yet.
@@ -132,6 +134,7 @@ export function ScreenDone({ variant, appointmentId, visit, onVisit, clientName,
     onSubmitReview: (rating: number, comment: string) => Promise<void>;
     onBackToDashboard: () => void;
 }) {
+    const { getAppointmentById } = useAppointments();
     const { t } = useTranslation();
     const k = 'appointments.onSite.done';
     const completed = variant === 'completed';
@@ -163,7 +166,7 @@ export function ScreenDone({ variant, appointmentId, visit, onVisit, clientName,
                     </View>
                     <Text className="font-outfit-bold text-xl" style={{ color: OS.text }}>{completed ? t(`${k}.completed`) : t(`${k}.finished`)}</Text>
                     <Text className="font-outfit-bold text-[13px]" style={{ color: OS.mutedLight }}>
-                        {t('appointments.detail.idLabel', { id: `#${appointmentId.slice(0, 8)}` })}
+                        {t('appointments.detail.idLabel', { id: refLabel(getAppointmentById(appointmentId)?.refCode, appointmentId) })}
                     </Text>
                     <Text className="font-outfit-regular text-[14px] text-center leading-5" style={{ color: OS.muted }}>
                         {completed ? t(`${k}.completedBody`) : t(`${k}.finishedBody`)}

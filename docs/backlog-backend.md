@@ -21,7 +21,7 @@ Leyenda: ✅ hecho según el repo de análisis (a confirmar en producción) · �
 |---|---|---|
 | **1. Videollamada: precio, duración y reserva** | AA sin impuestos · B cotización con duración · N agendar 24/7 · O zona horaria | **X** descuento de agendadas (pantalla del Hub y valor) · **T** confirmar 60 min |
 | **2. Videollamada: durante y después** | Q consentimientos · P/U transcripción · J presencia · K ganancia por extensión · M push de tiempo extra | **L** transcripción en la cuenta de Daily · **V** traducción de subtítulos |
-| **3. Solicitudes y feed del técnico** | — | **S** solicitud tomada por otro · **E** `offerExpiresAt` en el listado · **R** entrada "Other" en el catálogo |
+| **3. Solicitudes y feed del técnico** | — | **S** solicitud tomada por otro · **E** `offerExpiresAt` en el listado · **AE** `refCode` en la vista del prestador · **AF** `new_request` fuera de la bandeja · **R** entrada "Other" en el catálogo |
 | **4. Perfil y reputación** | Y reseñas del perfil · Z otras certificaciones | Pantalla de revisión de certificaciones en el Hub, permisos del admin y push de vencimiento |
 | **5. Cuidado del vehículo** | — | **W** agente de recomendaciones |
 | **6. Notificaciones** | — | **AB** textos más completos |
@@ -99,6 +99,17 @@ Leyenda: ✅ hecho según el repo de análisis (a confirmar en producción) · �
 
 ### [ ] E — `offerExpiresAt` en el listado de pedidos
 - Hoy solo está en `GET /assistance/:id/offer-summary` y como columna. Agregarlo a `GET /api/assistance` (listado/feed).
+
+### [ ] AF — No guardar `new_request` en la bandeja de notificaciones
+- **Problema:** cada solicitud nueva queda como notificación en la bandeja del técnico (`GET /api/notifications/inbox`), y se acumula (decenas). Es una oportunidad que caduca: si otro técnico la toma o vence, tocarla lleva a una solicitud que ya no está. El técnico ya la ve en vivo en el feed de solicitudes y en el aviso dentro de la app.
+- **Hacer:** que `new_request` siga saliendo como **push** pero **no se guarde en la bandeja** (ni cuente en `total` / `unread` ni en el número del ícono).
+- **Mientras tanto:** la app ya no las lista y descuenta las que alcanza a ver de `total` y `unread`; con el cambio del backend ese ajuste queda sin efecto y se puede quitar.
+- **Cómo lo verificamos:** crear dos solicitudes con un técnico disponible: llegan los dos push, y la bandeja del técnico no suma ninguna.
+
+### [ ] AE — `refCode` en la vista reducida del prestador (`GET /marketplace/requests[/:id]`)
+- **Problema:** la lista blanca de campos del prestador (`id`, `assistanceType`, `title`, …) no trae `refCode`. Las pantallas de cotización del técnico muestran hoy el comienzo del `id` (ej. `#3F9A1C2B`) y no el código corto que ve el cliente y soporte (`AS-XXXXXX`).
+- **Hacer:** agregar `refCode` a esa vista (no identifica a nadie). La app ya lo usa si llega y, si no, cae al `id` como antes.
+- **Cómo lo verificamos:** abrir una solicitud agendada como técnico y ver el mismo código `AS-XXXXXX` que ve el cliente.
 
 ### [ ] R — Entrada "Other" cotizable en el catálogo
 - **Problema:** la app ya tiene una tarjeta "Other" en la pantalla de problemas (inmediata y videollamada) con texto libre, pero sin un issue de catálogo la solicitud no se puede cotizar (queda `TBD`) y el texto viaja mezclado en el título.

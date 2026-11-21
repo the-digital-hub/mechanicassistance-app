@@ -14,7 +14,8 @@ import { AssistanceRequest } from '@/lib/dao/interfaces';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Animated, Easing, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Easing, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { refLabel } from '@/lib/refCode';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faWrench } from '@fortawesome/free-solid-svg-icons';
 import { appAlert } from '@/lib/ui/appAlert';
@@ -447,9 +448,12 @@ export default function SearchingScreen() {
                     <Text className="text-[13px] text-gray-400 text-center font-outfit-medium">
                         {t('requestAssistance.searching.footer')}
                     </Text>
-                    <Text className="text-[13px] text-gray-400 text-center font-outfit-medium">
-                        FL-{new Date().toISOString().split('T')[0]}-{requestId || 'PENDING'}
-                    </Text>
+                    {/* The request's own short code (AS-XXXXXX), the one support and every card use. */}
+                    {requestId ? (
+                        <Text selectable className="text-center" style={{ marginTop: 2, fontFamily: Platform.select({ ios: 'Menlo', default: 'monospace' }), fontSize: 13, letterSpacing: 0.4, color: '#8C96AE' }} testID="searching-ref-code">
+                            {refLabel(requestData?.refCode ?? getAppointmentById(requestId as string)?.refCode, requestId as string)}
+                        </Text>
+                    ) : null}
                 </View>
             </ScrollView>
 

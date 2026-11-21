@@ -13,6 +13,7 @@ import { apiErrorCode } from '@/lib/payments/cardRequired';
 import { declineRequest } from '@/lib/scheduled/declined';
 import { dateFromKey, formatMinutes } from '@/lib/scheduled/draft';
 import { money, parseSentQuote, splitQuoteDescription } from '@/lib/scheduled/offers';
+import { refLabel } from '@/lib/refCode';
 import {
     amountOf,
     arrivalTimes,
@@ -250,7 +251,7 @@ export default function ScheduledRequestScreen() {
             <View className="flex-1" style={{ backgroundColor: SC.page }}>
                 {header}
                 <Outcome icon={Hourglass} tone="amber" title={mine?.status === 'withdrawn' ? t('scheduledProvider.withdrawn.title') : t('scheduledProvider.expired.title')} sub={mine?.status === 'withdrawn' ? t('scheduledProvider.withdrawn.sub') : t('scheduledProvider.expired.sub')} footer={<Primary label={t('scheduledProvider.back')} onPress={toRequests} />}>
-                    <KV rows={[[t('scheduledProvider.expired.closed'), closesLabel], [t('scheduledProvider.expired.request'), `#${request.id.slice(0, 8).toUpperCase()}`]]} />
+                    <KV rows={[[t('scheduledProvider.expired.closed'), closesLabel], [t('scheduledProvider.expired.request'), refLabel(request.refCode, request.id)]]} />
                 </Outcome>
             </View>
         );
@@ -313,7 +314,7 @@ export default function ScheduledRequestScreen() {
                         <View className="flex-1">
                             <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 0.9, color: SC.blue }}>{t('scheduledProvider.sent.decidesBy')}</Text>
                             <Text className="font-outfit-bold" style={{ fontSize: 17, letterSpacing: -0.3, color: SC.blueDark, marginTop: 2 }}>{closesLabel}</Text>
-                            <Text className="font-outfit-semibold" style={{ fontSize: 13, color: SC.muted, marginTop: 3 }}>{t('scheduledProvider.expired.request')} #{request.id.slice(0, 8).toUpperCase()}</Text>
+                            <Text className="font-outfit-semibold" style={{ fontSize: 13, color: SC.muted, marginTop: 3 }}>{t('scheduledProvider.expired.request')} {refLabel(request.refCode, request.id)}</Text>
                         </View>
                     </View>
                     {/* Everything the customer is shown, as it was sent. */}
@@ -395,7 +396,7 @@ export default function ScheduledRequestScreen() {
                             <StepHead eyebrow={t('scheduledProvider.quote.eyebrow1')} title={t('scheduledProvider.quote.title')} sub={t('scheduledProvider.quote.sub')} />
 
                             <View style={{ ...CARD_STYLE, overflow: 'hidden' }}>
-                                <SummaryRow icon={Calendar} label={t('scheduledProvider.quote.request')} value={t('scheduledProvider.scheduledAssistance')} sub={`ID: ${request.id.slice(0, 8).toUpperCase()}`} />
+                                <SummaryRow icon={Calendar} label={t('scheduledProvider.quote.request')} value={t('scheduledProvider.scheduledAssistance')} sub={`ID: ${refLabel(request.refCode, request.id)}`} />
                                 <SummaryRow icon={Wrench} label={t('scheduledProvider.quote.needed')} value={q.lines.map((l) => l.name).join(' · ')} />
                                 <SummaryRow icon={Car} label={t('scheduledProvider.vehicle')} value={vehicle} sub={request.vehicle?.vin ? `VIN ${request.vehicle.vin}` : undefined} last />
                             </View>
@@ -611,7 +612,7 @@ export default function ScheduledRequestScreen() {
                         </View>
                     </View>
                 ) : null}
-                <Text className="font-outfit-regular text-center" style={{ fontSize: 13, lineHeight: 19, color: SC.mutedLight }}>{t('scheduledProvider.id', { id: `#${request.id.slice(0, 8).toUpperCase()}` })}</Text>
+                <Text className="font-outfit-regular text-center" style={{ fontSize: 13, lineHeight: 19, color: SC.mutedLight }}>{t('scheduledProvider.id', { id: refLabel(request.refCode, request.id) })}</Text>
             </ScrollView>
             <ActionBar>
                 <Primary label={t('scheduledProvider.sendQuoteCta')} onPress={() => setView('quote')} />

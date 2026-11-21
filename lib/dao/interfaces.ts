@@ -918,6 +918,8 @@ export interface MarketplaceOffer {
  */
 export interface MarketplaceRequest {
     id: string;
+    /** The request's short code (`AS-XXXXXX`). Not in the documented provider view yet: the screens fall back to the start of the id. */
+    refCode?: string | null;
     assistanceType?: string | null;
     title?: string | null;
     notes?: string | null;

@@ -2548,6 +2548,8 @@
     "title": "Centro de notificaciones",
     "subtitle": "Mantenete al tanto de la última actividad en tus solicitudes y mensajes",
     "all": "Todas",
+    "markAllRead": "Marcar todas como leídas",
+    "deleteAll": "Borrar todas",
     "unread": "No leídas",
     "empty": "Todavía no hay notificaciones",
     "emptyHint": "Cuando un mecánico responda a tu solicitud, va a aparecer acá.",

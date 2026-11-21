@@ -2547,6 +2547,8 @@
     "title": "Notification center",
     "subtitle": "Stay updated with the latest activity on your requests and messages",
     "all": "All",
+    "markAllRead": "Mark all as read",
+    "deleteAll": "Delete all",
     "unread": "Unread",
     "empty": "No notifications yet",
     "emptyHint": "When a technician responds to your request, it will appear here.",

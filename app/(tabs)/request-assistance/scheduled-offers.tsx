@@ -31,6 +31,7 @@ import {
 } from '@/lib/scheduled/offers';
 import { appAlert } from '@/lib/ui/appAlert';
 import { ChangeBadge } from '@/components/ui/ChangeBadge';
+import { refLabel } from '@/lib/refCode';
 
 type View_ = 'list' | 'compare' | 'detail' | 'pay' | 'done';
 type SortId = 'coverage' | 'price' | 'date' | 'distance';
@@ -494,7 +495,7 @@ export default function ScheduledOffersScreen() {
                     closed={left.closed}
                     offerCount={sorted.length}
                     latestAgo={agoLabel(newestOffer?.createdAt)}
-                    refCode={request?.refCode ? `#${request.refCode}` : `#${String(requestId).slice(0, 8)}`}
+                    refCode={refLabel(request?.refCode, String(requestId))}
                     rows={hubRows}
                     services={requested}
                     onCompare={() => { setNotice(null); setView('compare'); }}
