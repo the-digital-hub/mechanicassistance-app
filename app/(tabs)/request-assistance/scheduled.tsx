@@ -469,6 +469,7 @@ export default function ScheduledRequestScreen() {
                 label={isReview ? (submitting ? uploadLabel || t('scheduled.review.sending') : t('scheduled.review.send')) : t('scheduled.next')}
                 disabled={!valid}
                 loading={submitting}
+                tone={isReview ? 'confirm' : 'primary'}
                 onPress={isReview ? publish : () => goTo(step + 1)}
             />
         </View>

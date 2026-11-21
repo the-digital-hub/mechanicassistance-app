@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Modal, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View, ViewStyle } from 'react-native';
 import { TYPE } from '@/lib/ui/type';
 import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
-import { KEYBOARD_SCROLL_PROPS } from '@/lib/ui/keyboard';
+import { KeyboardAwareScrollView } from '@/components/ui/KeyboardAwareScrollView';
 
 // Shared building blocks for the on-site assistance flow (check-in → execution →
 // check-out). Ported from the "Vehicle On-Site Assistance V2" design.
@@ -48,7 +48,7 @@ export function PhaseBar({ phase }: { phase: Phase }) {
     const phases: Phase[] = ['checkin', 'execution', 'checkout'];
     const idx = phases.indexOf(phase);
     return (
-        <View className="flex-row items-center gap-1.5 mx-4 mt-3.5">
+        <View className="flex-row items-center gap-1.5 mx-4" style={{ marginTop: 32 }}>
             {phases.map((p, i) => {
                 const done = i < idx;
                 const active = i === idx;
@@ -208,10 +208,11 @@ export function CheckRow({ checked, onToggle, label, sub, last, compact }: {
 export function Body({ children }: { children: React.ReactNode }) {
     const phase = React.useContext(PhaseContext);
     return (
-        <ScrollView {...KEYBOARD_SCROLL_PROPS} className="flex-1" contentContainerStyle={{ paddingBottom: 24 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-            {phase ? <PhaseBar phase={phase} /> : null}
+        <KeyboardAwareScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 24 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+            {/* Always the same room under the rounded header: the phase bar carries it, a screen without one gets the same. */}
+            {phase ? <PhaseBar phase={phase} /> : <View style={{ height: 16 }} />}
             {children}
-        </ScrollView>
+        </KeyboardAwareScrollView>
     );
 }
 
@@ -285,24 +286,25 @@ export function Segmented<K extends string>({ value, onChange, options }: {
     options: { key: K; label: string; icon?: React.ComponentProps<typeof Ionicons>['name'] }[];
 }) {
     return (
-        <View className="mx-4 flex-row gap-1 p-1" style={{ borderRadius: 14, backgroundColor: OS.borderSoft }}>
+        <View className="mx-4 flex-row gap-1.5 p-1.5" style={{ borderRadius: 18, backgroundColor: OS.borderSoft }}>
             {options.map((o) => {
                 const active = o.key === value;
                 return (
                     <TouchableOpacity
                         key={o.key}
                         onPress={() => onChange(o.key)}
-                        className="flex-1 flex-row items-center justify-center gap-1.5 py-3"
+                        className="flex-1 flex-row items-center justify-center gap-2"
                         style={{
-                            borderRadius: 12,
+                            minHeight: 56,
+                            borderRadius: 14,
                             backgroundColor: active ? '#FFFFFF' : 'transparent',
                             shadowColor: '#0E2F8A', shadowOpacity: active ? 0.1 : 0, shadowRadius: 8, shadowOffset: { width: 0, height: 2 },
                             elevation: active ? 2 : 0,
                         }}
                         testID={`segment-${o.key}`}
                     >
-                        {o.icon ? <Ionicons name={o.icon} size={14} color={active ? OS.blue : OS.mutedLight} /> : null}
-                        <Text className="font-outfit-bold text-[13px]" style={{ color: active ? OS.blue : OS.mutedLight }}>{o.label}</Text>
+                        {o.icon ? <Ionicons name={o.icon} size={20} color={active ? OS.blue : OS.mutedLight} /> : null}
+                        <Text className="font-outfit-bold" style={{ fontSize: 16, color: active ? OS.blue : OS.mutedLight }}>{o.label}</Text>
                     </TouchableOpacity>
                 );
             })}
@@ -361,7 +363,7 @@ export function MaintenanceChecklist({ state, withHeader = true, compact = true,
                             style={{ gap: 6, minHeight: 36, paddingHorizontal: 12, borderRadius: 100, backgroundColor: OS.blueSoft }}
                             testID="maintenance-select-all"
                         >
-                            <Ionicons name={state.allChecked ? 'close-circle-outline' : 'checkmark-done-outline'} size={16} color={OS.blue} />
+                            <Ionicons name={state.allChecked ? 'close' : 'checkmark'} size={16} color={OS.blue} />
                             <Text className="font-outfit-bold" style={{ fontSize: 14, color: OS.blue }}>
                                 {state.allChecked ? t('appointments.onSite.common.unselectAll') : t('appointments.onSite.common.selectAll')}
                             </Text>

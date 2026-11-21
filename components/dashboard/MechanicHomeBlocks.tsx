@@ -1,7 +1,8 @@
+import { AttentionQuickButton, AttentionTimer, type AttentionQuick, type AttentionTimerSpec } from '@/components/dashboard/AttentionExtras';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Award, ChevronDown, ChevronRight, Star, Wallet, Wrench, type LucideIcon } from 'lucide-react-native';
-import type { ReactNode } from 'react';
-import { Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { useEffect, useRef, type ReactNode } from 'react';
+import { Animated, Easing, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 
 import type { MechanicStatus } from '@/lib/dao/interfaces';
 
@@ -167,6 +168,52 @@ function MiniStat({ icon, accent, label, value, sub, children }: { icon: ReactNo
     );
 }
 
+/** What to say (and do) while nothing has been earned today: a nudge to be ready for the next request. */
+export type EarnNudge = {
+    text: string;
+    /** Green and pulsing: the technician is listening for requests right now. */
+    live?: boolean;
+    /** A one-tap way to get going (e.g. go Available); the pill then reads as a button. */
+    cta?: string;
+    onPress?: () => void;
+};
+
+/** A pulsing dot: someone is on the lookout. */
+function LiveDot() {
+    const pulse = useRef(new Animated.Value(0)).current;
+    useEffect(() => {
+        const loop = Animated.loop(Animated.timing(pulse, { toValue: 1, duration: 1400, easing: Easing.out(Easing.quad), useNativeDriver: true }));
+        loop.start();
+        return () => loop.stop();
+    }, [pulse]);
+    return (
+        <View style={{ width: 14, height: 14, alignItems: 'center', justifyContent: 'center' }}>
+            <Animated.View style={{ position: 'absolute', width: 14, height: 14, borderRadius: 7, backgroundColor: '#4ADE80', opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.55, 0] }), transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1.6] }) }] }} />
+            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#4ADE80' }} />
+        </View>
+    );
+}
+
+function EarnNudgePill({ nudge }: { nudge: EarnNudge }) {
+    const body = (
+        <View className="flex-row items-center" style={{ gap: 10, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.18)' }}>
+            {nudge.live ? <LiveDot /> : <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#FCD34D' }} />}
+            <Text className="font-outfit-bold flex-1" style={{ fontSize: 14, lineHeight: 20, color: '#FFFFFF' }}>{nudge.text}</Text>
+            {nudge.cta ? (
+                <View className="flex-row items-center" style={{ gap: 2 }}>
+                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: '#FFFFFF' }}>{nudge.cta}</Text>
+                    <ChevronRight size={16} color="#FFFFFF" />
+                </View>
+            ) : null}
+        </View>
+    );
+    return nudge.onPress ? (
+        <TouchableOpacity onPress={nudge.onPress} activeOpacity={0.8} accessibilityRole="button" style={{ marginTop: 12 }} testID="earn-nudge">{body}</TouchableOpacity>
+    ) : (
+        <View style={{ marginTop: 12 }} testID="earn-nudge">{body}</View>
+    );
+}
+
 /** Earned today as a hero amount plus two stat tiles (jobs done, rating). */
 export function TodayBlock({
     earnedLabel,
@@ -177,6 +224,7 @@ export function TodayBlock({
     ratingLabel,
     rating,
     ratingSub,
+    nudge,
 }: {
     earnedLabel: string;
     earned: string;
@@ -186,6 +234,8 @@ export function TodayBlock({
     ratingLabel: string;
     rating: string;
     ratingSub?: string;
+    /** Shown under the amount while it is still zero. */
+    nudge?: EarnNudge;
 }) {
     const stars = Number.parseFloat(rating);
     const hasStars = Number.isFinite(stars);
@@ -211,6 +261,7 @@ export function TodayBlock({
                                 {footer}
                             </View>
                         ) : null}
+                        {nudge ? <EarnNudgePill nudge={nudge} /> : null}
                     </View>
                 </View>
             </LinearGradient>
@@ -342,6 +393,10 @@ export type AttentionItem = {
     cta: string;
     /** Changes when the alert is a new one (e.g. another count), so a hidden alert can return. */
     signature?: string;
+    /** The time left to deal with it, ticking. */
+    timer?: AttentionTimerSpec;
+    /** A simple action to do right on the card. */
+    quick?: AttentionQuick;
     onPress: () => void;
 };
 
@@ -350,8 +405,8 @@ const TONES = { amber: { bg: '#FFF4E0', fg: '#8A5200' }, blue: { bg: C.blueSoft,
 /** "Needs your attention": one tappable row per thing the technician should act on. */
 export function AttentionList({ items, hideLabel, onDismiss }: { items: AttentionItem[]; hideLabel?: string; onDismiss?: (item: AttentionItem) => void }) {
     return (
-        <View style={{ ...CARD, overflow: 'hidden' }}>
-            {items.map((a, i) => {
+        <View style={{ gap: 10 }}>
+            {items.map((a) => {
                 const tone = TONES[a.tone];
                 const Icon = a.icon;
                 return (
@@ -361,7 +416,8 @@ export function AttentionList({ items, hideLabel, onDismiss }: { items: Attentio
                         activeOpacity={0.7}
                         accessibilityRole="button"
                         className="flex-row"
-                        style={{ gap: 12, paddingHorizontal: 14, paddingVertical: 14, backgroundColor: a.tone === 'amber' ? '#FFFAEF' : '#F5F9FF', borderBottomWidth: i < items.length - 1 ? 1 : 0, borderBottomColor: a.tone === 'amber' ? '#F6E2B5' : '#DCE8FB' }}
+                        // One card per alert with its own shadow and a faint tint of its tone, the same as the owner's.
+                        style={{ ...CARD, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 10, padding: 14, gap: 12, backgroundColor: a.tone === 'amber' ? '#FFFAEF' : '#F5F9FF', borderColor: a.tone === 'amber' ? '#F6E2B5' : '#DCE8FB' }}
                     >
                         <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: tone.bg }}>
                             <Icon size={20} color={tone.fg} />
@@ -377,6 +433,8 @@ export function AttentionList({ items, hideLabel, onDismiss }: { items: Attentio
                                 ) : null}
                             </View>
                             <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: C.muted, marginTop: 2 }}>{a.sub}</Text>
+                            {a.timer ? <AttentionTimer spec={a.timer} /> : null}
+                            {a.quick ? <AttentionQuickButton quick={a.quick} /> : null}
                             <View className="flex-row items-center" style={{ gap: 16, marginTop: 10 }}>
                                 <View className="flex-row items-center" style={{ gap: 2, minHeight: 36, paddingLeft: 14, paddingRight: 8, borderRadius: 100, backgroundColor: tone.bg }}>
                                     <Text className="font-outfit-bold" style={{ fontSize: 14, color: tone.fg }}>{a.cta}</Text>

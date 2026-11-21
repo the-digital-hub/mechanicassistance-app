@@ -1,6 +1,6 @@
 import { RequestSteps, stepEyebrow } from '@/components/ui/RequestSteps';
 import { ROUNDED_HEADER } from '@/lib/ui/header';
-import { FLOATING_CTA, FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
+import { FLOATING_CTA, FLOATING_FOOTER, CONFIRM_CTA, CONFIRM_GRADIENT } from '@/lib/ui/floatingFooter';
 import { TYPE } from '@/lib/ui/type';
 import { DEFAULT_CALL_MINUTES } from '@/lib/video/callLength';
 import { useMessageDialog } from '@/components/ui/useMessageDialog';
@@ -910,10 +910,10 @@ export default function VideoCallWhenScreen() {
                 {submitting ? (
                     <ActivityIndicator size="large" color={C.blue} />
                 ) : (
-                    <TouchableOpacity onPress={showReview ? handleSubmit : goReview} disabled={!canSubmit} activeOpacity={0.85} testID="when-submit" style={canSubmit ? FLOATING_CTA : undefined}>
+                    <TouchableOpacity onPress={showReview ? handleSubmit : goReview} disabled={!canSubmit} activeOpacity={0.85} testID="when-submit" style={canSubmit ? (showReview ? CONFIRM_CTA : FLOATING_CTA) : undefined}>
                         {canSubmit ? (
                             <LinearGradient
-                                colors={['#2B66F8', '#081E72']}
+                                colors={showReview ? [...CONFIRM_GRADIENT] : ['#2B66F8', '#081E72']}
                                 start={{ x: 0, y: 1 }}
                                 end={{ x: 1, y: 0 }}
                                 style={{ borderRadius: 16, paddingVertical: 17, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}

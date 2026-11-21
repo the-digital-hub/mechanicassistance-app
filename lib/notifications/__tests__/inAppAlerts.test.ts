@@ -9,13 +9,31 @@ jest.mock('@react-native-async-storage/async-storage', () => {
     };
 });
 
+const mockRing = jest.fn();
+const mockVibrate = jest.fn();
+jest.mock('../sound', () => ({ ringIfEnabled: () => mockRing() }));
+jest.mock('../vibration', () => ({ vibrateIfEnabled: () => mockVibrate() }));
+
 import { __resetInAppAlerts, dismissInAppBanner, getInAppAlertsEnabled, setInAppAlertsEnabled, showInAppBanner } from '../inAppAlerts';
 
 const banner = (id: string) => ({ id, title: 'New request', body: 'Nearby', route: null });
 
-beforeEach(() => __resetInAppAlerts());
+beforeEach(() => {
+    __resetInAppAlerts();
+    mockRing.mockClear();
+    mockVibrate.mockClear();
+});
 
 describe('in-app alerts', () => {
+    it('rings and vibrates (when those are on) only for an alert that is actually shown', async () => {
+        await showInAppBanner(banner('a'));
+        expect(mockRing).toHaveBeenCalledTimes(1);
+        expect(mockVibrate).toHaveBeenCalledTimes(1);
+        await showInAppBanner(banner('a')); // same id: not shown again, no second bell
+        expect(mockRing).toHaveBeenCalledTimes(1);
+        expect(mockVibrate).toHaveBeenCalledTimes(1);
+    });
+
     it('is on by default and shows an alert once per id', async () => {
         expect(await getInAppAlertsEnabled()).toBe(true);
         expect(await showInAppBanner(banner('a'))).toBe(true);

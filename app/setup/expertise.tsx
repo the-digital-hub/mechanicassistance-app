@@ -17,7 +17,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
-import { KEYBOARD_SCROLL_PROPS } from '@/lib/ui/keyboard';
+import { KeyboardAwareScrollView } from '@/components/ui/KeyboardAwareScrollView';
 
 type DropdownProps = {
     label: string;
@@ -90,7 +90,7 @@ function MultiSelectDropdown({
                                 <Ionicons name="close" size={22} color="#0F172A" />
                             </TouchableOpacity>
                         </View>
-                        <ScrollView {...KEYBOARD_SCROLL_PROPS} className="px-2 py-2">
+                        <KeyboardAwareScrollView className="px-2 py-2">
                             {options.length === 0 && (
                                 <Text className="text-center text-[#0F172A]/60 py-6 font-outfit-regular">
                                     {t("setup.expertise.noOptions")}
@@ -115,7 +115,7 @@ function MultiSelectDropdown({
                                     </TouchableOpacity>
                                 );
                             })}
-                        </ScrollView>
+                        </KeyboardAwareScrollView>
                         <View className="px-5 py-4 border-t border-gray-100">
                             <Button onPress={() => setOpen(false)} size="default" className="bg-blue-700 rounded-xl">
                                 {t("setup.expertise.done")}

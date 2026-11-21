@@ -6,9 +6,9 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import type { ObdCode, OnSiteVisit } from '@/lib/dao/OnSiteDAO';
 import { ObdPanel } from './ObdPanel';
 import { VinCrossCheck } from './screens-vin';
-import { MediaSlot, PhotoList, useExistingCaptures } from './MediaSlot';
+import { ExtraCaptures, MediaSlot, useExistingCaptures } from './MediaSlot';
 import {
-    ActionBar, Body, Card, CardTitle, GhostButton, InfoRow, Intro, OS, PrimaryButton, Segmented, Spinner, Tip, cardShadow,
+    ActionBar, Body, Card, CardTitle, InfoRow, Intro, OS, PrimaryButton, Segmented, Spinner, Tip, cardShadow,
 } from './ui';
 
 // Phase 1 of the on-site flow: check-in, issue review and diagnostic.
@@ -88,25 +88,9 @@ export function ScreenCheckIn({ onSubmit, onMismatch }: {
 
             {mode === 'qr' ? (
                 <Card style={{ padding: 20 }}>
-                    <View
-                        className="items-center justify-center overflow-hidden"
-                        style={{
-                            height: 260, borderRadius: 16,
-                            backgroundColor: cameraOpen ? OS.text : OS.page,
-                            borderWidth: cameraOpen ? 0 : 2, borderStyle: 'dashed', borderColor: OS.border,
-                        }}
-                    >
-                        {!cameraOpen ? (
-                            <View className="items-center gap-3 px-4">
-                                <Ionicons name="scan-outline" size={40} color={OS.mutedLight} />
-                                <Text className="font-outfit-bold text-[13px] text-center" style={{ color: OS.mutedLight }}>
-                                    {permission && !permission.granted && !permission.canAskAgain
-                                        ? t('appointments.checkIn.cameraPermission')
-                                        : t('appointments.checkIn.cameraOff')}
-                                </Text>
-                            </View>
-                        ) : (
-                            <>
+                    {cameraOpen ? (
+                        <>
+                            <View className="items-center justify-center overflow-hidden" style={{ height: 300, borderRadius: 16, backgroundColor: OS.text }}>
                                 <CameraView
                                     style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }}
                                     facing="back"
@@ -115,19 +99,29 @@ export function ScreenCheckIn({ onSubmit, onMismatch }: {
                                 />
                                 <View pointerEvents="none" style={{ position: 'absolute', top: 24, right: 24, bottom: 24, left: 24, borderWidth: 2, borderColor: 'rgba(255,255,255,0.55)', borderRadius: 18 }} />
                                 {submitting ? <ActivityIndicator size="large" color="#FFFFFF" /> : null}
-                            </>
-                        )}
-                    </View>
-                    {cameraOpen ? (
-                        <Text className="font-outfit-medium text-[13px] text-center mt-3" style={{ color: OS.muted }}>
-                            {submitting ? t('appointments.checkIn.checking') : t('appointments.checkIn.scanHint')}
-                        </Text>
+                            </View>
+                            <Text className="font-outfit-medium text-center mt-3" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>
+                                {submitting ? t('appointments.checkIn.checking') : t('appointments.checkIn.scanHint')}
+                            </Text>
+                        </>
                     ) : (
-                        <View className="flex-row mt-3.5">
-                            <PrimaryButton
-                                label={permission && !permission.granted && !permission.canAskAgain ? t('appointments.checkIn.allowCamera') : t('appointments.checkIn.openCamera')}
-                                onPress={() => void openCamera()}
-                            />
+                        // No empty frame standing in for the camera: a short line and the button that opens it.
+                        <View className="items-center">
+                            <View className="items-center justify-center" style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: OS.blueSoft }}>
+                                <Ionicons name="qr-code-outline" size={32} color={OS.blue} />
+                            </View>
+                            <Text className="font-outfit-medium text-center" style={{ fontSize: 15, lineHeight: 21, color: OS.muted, marginTop: 12, marginBottom: 16 }}>
+                                {permission && !permission.granted && !permission.canAskAgain
+                                    ? t('appointments.checkIn.cameraPermission')
+                                    : t('appointments.checkIn.scanHint')}
+                            </Text>
+                            <View className="flex-row" style={{ alignSelf: 'stretch' }}>
+                                <PrimaryButton
+                                    label={permission && !permission.granted && !permission.canAskAgain ? t('appointments.checkIn.allowCamera') : t('appointments.checkIn.openCamera')}
+                                    onPress={() => void openCamera()}
+                                    testID="check-in-open-camera"
+                                />
+                            </View>
                         </View>
                     )}
                 </Card>
@@ -220,7 +214,6 @@ export function ScreenDiagnosticsPhotos({ onNext }: { onNext: () => void }) {
     const walkaround = useExistingCaptures('walkaround_in');
     const [plateFilled, setPlateFilled] = React.useState(false);
     const [dashFilled, setDashFilled] = React.useState(false);
-    const [tab, setTab] = React.useState<'video' | 'photos'>('video');
 
     const doneCount = Number(plateFilled) + Number(dashFilled);
     const ready = doneCount === 2;
@@ -231,11 +224,11 @@ export function ScreenDiagnosticsPhotos({ onNext }: { onNext: () => void }) {
                 <Intro eyebrow={t(`${k}.eyebrow`)} title={t(`${k}.title`)} subtitle={t(`${k}.subtitle`)} />
                 <Card>
                     <CardTitle title={t(`${k}.plate`)} right={<RequiredPill done={plateFilled} />} />
-                    <MediaSlot height={150} placeholder={t(`${k}.platePh`)} captureKind="plate" existing={plate[0]} onChange={setPlateFilled} />
+                    <MediaSlot compact actionLabel={t('appointments.onSite.common.addPhoto')} actionIcon="camera-outline" height={150} placeholder={t(`${k}.platePh`)} captureKind="plate" existing={plate[0]} onChange={setPlateFilled} />
                 </Card>
                 <Card>
                     <CardTitle title={t(`${k}.dash`)} right={<RequiredPill done={dashFilled} />} />
-                    <MediaSlot height={150} placeholder={t(`${k}.dashPh`)} captureKind="dashboard" existing={dashboard[0]} onChange={setDashFilled} />
+                    <MediaSlot compact actionLabel={t('appointments.onSite.common.addPhoto')} actionIcon="camera-outline" height={150} placeholder={t(`${k}.dashPh`)} captureKind="dashboard" existing={dashboard[0]} onChange={setDashFilled} />
                 </Card>
 
                 <View className="px-5 mt-6">
@@ -245,23 +238,7 @@ export function ScreenDiagnosticsPhotos({ onNext }: { onNext: () => void }) {
                     </Text>
                     <Text className="font-outfit-regular mt-1" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>{t(`${k}.extraSub`)}</Text>
                 </View>
-                <View className="mt-3">
-                    <Segmented
-                        value={tab}
-                        onChange={setTab}
-                        options={[
-                            { key: 'video', label: t('appointments.onSite.common.recordVideo'), icon: 'videocam-outline' },
-                            { key: 'photos', label: t(`${k}.addExtra`), icon: 'images-outline' },
-                        ]}
-                    />
-                </View>
-                <Card>
-                    {tab === 'video' ? (
-                        <MediaSlot kind="video" height={170} placeholder={t(`${k}.videoPh`)} captureKind="walkaround_in" existing={walkaround[0]} />
-                    ) : (
-                        <PhotoList placeholder={t(`${k}.extraPh`)} captureKind="extra_in" />
-                    )}
-                </Card>
+                <ExtraCaptures videoKind="walkaround_in" photoKind="extra_in" existingVideo={walkaround[0]} videoPlaceholder={t(`${k}.videoPh`)} photoPlaceholder={t(`${k}.extraPh`)} />
 
                 {/* How many required photos are in: part of the page, not of the Continue bar. */}
                 {!ready ? <Tip>{t(`${k}.needRequired`, { done: doneCount })}</Tip> : null}
@@ -325,6 +302,13 @@ export function ScreenFeasibility({ appointment, obdCodes, onYes, onNeedParts, o
 }) {
     const { t, i18n } = useTranslation();
     const k = 'appointments.onSite.feasibility';
+    const [choice, setChoice] = React.useState<'yes' | 'parts' | 'no' | null>(null);
+    const options: { id: 'yes' | 'parts' | 'no'; icon: React.ComponentProps<typeof Ionicons>['name']; title: string; sub: string; tone: 'green' | 'blue' | 'red' }[] = [
+        { id: 'yes', icon: 'checkmark-circle-outline', title: t(`${k}.yes`), sub: t(`${k}.yesSub`), tone: 'green' },
+        ...(ON_SITE_PARTS_ENABLED ? [{ id: 'parts' as const, icon: 'cart-outline' as const, title: t(`${k}.needParts`), sub: t(`${k}.needPartsSub`), tone: 'blue' as const }] : []),
+        { id: 'no', icon: 'close-circle-outline', title: t(`${k}.no`), sub: t(`${k}.noSub`), tone: 'red' },
+    ];
+    const go = () => (choice === 'yes' ? onYes() : choice === 'parts' ? onNeedParts() : choice === 'no' ? onNo() : undefined);
     const lang: 'en' | 'es' = i18n.language?.startsWith('en') ? 'en' : 'es';
     const findings = obdCodes.length
         ? obdCodes.map((c) => (c.description ? `${c.code} — ${c.description[lang]}` : c.code)).join('\n')
@@ -343,13 +327,41 @@ export function ScreenFeasibility({ appointment, obdCodes, onYes, onNeedParts, o
                         last
                     />
                 </View>
-            </Body>
-            <ActionBar stacked>
-                <View className="flex-row">
-                    <PrimaryButton label={t(`${k}.yes`)} onPress={onYes} tone="green" />
+
+                {/* The ways out are options to choose from, in the page; the bar below only confirms the choice. */}
+                <View className="mx-4 mt-3.5" style={{ gap: 10 }}>
+                    {options.map((o) => {
+                        const on = choice === o.id;
+                        const ink = o.tone === 'green' ? OS.greenDark : o.tone === 'red' ? OS.red : OS.blue;
+                        const soft = o.tone === 'green' ? OS.greenSoft : o.tone === 'red' ? OS.redSoft : OS.blueSoft;
+                        return (
+                            <TouchableOpacity
+                                key={o.id}
+                                onPress={() => setChoice(o.id)}
+                                activeOpacity={0.8}
+                                accessibilityRole="radio"
+                                accessibilityState={{ selected: on }}
+                                className="flex-row items-center"
+                                style={{ gap: 12, padding: 14, borderRadius: 18, backgroundColor: on ? soft : '#FFFFFF', borderWidth: 1.5, borderColor: on ? ink : OS.border }}
+                                testID={`feasibility-${o.id}`}
+                            >
+                                <View className="items-center justify-center" style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: on ? '#FFFFFF' : soft }}>
+                                    <Ionicons name={o.icon} size={24} color={ink} />
+                                </View>
+                                <View className="flex-1">
+                                    <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: OS.text }}>{o.title}</Text>
+                                    <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: OS.muted, marginTop: 1 }}>{o.sub}</Text>
+                                </View>
+                                <View className="items-center justify-center" style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: on ? ink : OS.border, backgroundColor: on ? ink : '#FFFFFF' }}>
+                                    {on ? <Ionicons name="checkmark" size={15} color="#FFFFFF" /> : null}
+                                </View>
+                            </TouchableOpacity>
+                        );
+                    })}
                 </View>
-                {ON_SITE_PARTS_ENABLED ? <GhostButton label={t(`${k}.needParts`)} onPress={onNeedParts} /> : null}
-                <GhostButton label={t(`${k}.no`)} onPress={onNo} />
+            </Body>
+            <ActionBar>
+                <PrimaryButton label={t('appointments.onSite.common.continue')} onPress={go} disabled={!choice} testID="feasibility-continue" />
             </ActionBar>
         </>
     );

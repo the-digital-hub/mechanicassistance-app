@@ -294,7 +294,7 @@ export default function ScheduledOffersScreen() {
                     {ct.basis === 'diagnostic_fee' ? <Note tone="amber">{t('scheduledOffers.pay.diagnosticNote')}</Note> : null}
                     {notice ? <Note tone="amber">{notice}</Note> : null}
                 </ScrollView>
-                <Footer label={t('scheduledOffers.pay.confirm', { total: money(ct.amount) })} onPress={confirmPay} loading={busy} disabled={!payment.selectedId} />
+                <Footer label={t('scheduledOffers.pay.confirm', { total: money(ct.amount) })} onPress={confirmPay} loading={busy} disabled={!payment.selectedId} tone="confirm" />
             </View>
         );
     }

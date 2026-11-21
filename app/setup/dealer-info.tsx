@@ -5,7 +5,7 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { KEYBOARD_SCROLL_PROPS } from '@/lib/ui/keyboard';
+import { KeyboardAwareScrollView } from '@/components/ui/KeyboardAwareScrollView';
 
 export default function DealerInfoScreen() {
   const router = useRouter();
@@ -32,7 +32,7 @@ export default function DealerInfoScreen() {
   };
 
   return (
-    <ScrollView {...KEYBOARD_SCROLL_PROPS}
+    <KeyboardAwareScrollView
       className="flex-1 bg-white"
       contentContainerStyle={{ padding: 24, paddingBottom: 40 }}
     >
@@ -106,6 +106,6 @@ export default function DealerInfoScreen() {
       >
         {t("setup.dealerInfo.continue")}
       </Button>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }

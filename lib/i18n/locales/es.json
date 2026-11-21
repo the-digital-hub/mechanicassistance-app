@@ -241,6 +241,17 @@
     "accept": "Aceptar"
   },
   "dashboard": {
+    "attention": {
+      "timer": {
+        "days": "{{days}} d {{hours}} h",
+        "hours": "{{hours}} h {{minutes}} min",
+        "minutes": "{{minutes}} min",
+        "seconds": "{{minutes}}:{{seconds}}",
+        "confirm": "Se confirma solo en {{time}}",
+        "offer": "Oferta reservada por {{time}}",
+        "rate": "Quedan {{time}} para calificar"
+      }
+    },
     "rating": {
       "heading": {
         "user": "Califica tus servicios recientes",
@@ -295,7 +306,7 @@
         "awaitingConfirmation": "El mecánico finalizó — confirmala",
         "disputed": "Soporte lo está revisando"
       },
-      "offerHeldHint": "Confírmala antes de que termine la reserva.",
+      "offerHeldHint": "Confirmala antes de que termine la reserva.",
       "viewRequest": "Ver solicitud",
       "cancelRequest": "Cancelar",
       "cancelConfirmTitle": "¿Cancelar la solicitud?",
@@ -325,9 +336,14 @@
           "cta": "Comparar"
         },
         "confirm": {
-          "title": "Confirmá la llamada finalizada",
+          "title": "Confirmá el servicio finalizado",
           "sub": "Confirmá que se resolvió para que el técnico cobre.",
-          "cta": "Revisar"
+          "cta": "Revisar",
+          "quick": "Confirmar ahora",
+          "alertTitle": "¿Confirmar el servicio?",
+          "alertBody": "El trabajo se hizo y se le pagará al técnico.",
+          "alertNo": "Todavía no",
+          "alertYes": "Sí, confirmar"
         },
         "hide": "Ocultar",
         "finalQuote": {
@@ -410,6 +426,13 @@
         }
       },
       "jobsToday": "Trabajos hoy",
+      "nudge": {
+        "goAvailable": "Ponete Disponible para empezar a ganar hoy",
+        "goAvailableCta": "Conectarme",
+        "lookout": "Estate atento: tomá el próximo pedido y empezá a ganar",
+        "requests_one": "{{count}} pedido cerca tuyo. Tomalo y empezá a ganar",
+        "requests_other": "{{count}} pedidos cerca tuyo. Tomá uno y empezá a ganar"
+      },
       "earnedToday": "Ganado hoy",
       "rating": "Calificación",
       "noRating": "Nuevo",
@@ -787,7 +810,7 @@
       "yourTechnician": "TU TÉCNICO",
       "technicianFallback": "Tu técnico",
       "technicianLocked": "Técnico encontrado",
-      "technicianLockedHint": "Confirma para ver quién va",
+      "technicianLockedHint": "Confirmá para ver quién va",
       "servicesCount_one": "{{count}} servicio",
       "servicesCount_other": "{{count}} servicios",
       "newOnPlatform": "Nuevo en la plataforma",
@@ -1323,6 +1346,7 @@
         "addAnotherPhoto": "Agregar otra foto",
         "tapToAdd": "Tocá para sacar o elegir",
         "recordVideo": "Grabar video",
+        "addPhoto": "Agregar foto",
         "video": "Video capturado",
         "selectAll": "Marcar todo",
         "unselectAll": "Desmarcar todo",
@@ -1379,6 +1403,7 @@
         "subtitle": "Conectá el escáner OBD-II y hacé un escaneo completo.",
         "tipLater": "No hace falta subir el archivo del escáner ahora — podés hacerlo después desde el resumen del servicio.",
         "file": "Archivo del escáner OBD",
+        "upload": "Subir archivo del escáner",
         "placeholder": "Subí el archivo o una foto del escaneo",
         "codesFound": "Códigos encontrados en este escaneo",
         "aiFix": "Solución sugerida por IA",
@@ -1460,6 +1485,8 @@
         "extra": "Video 360° o fotos extra",
         "addExtra": "Agregar fotos extra",
         "videoPh": "Grabá una vuelta completa al vehículo",
+        "videoTitle": "Video 360°",
+        "extraTitle": "Fotos extra",
         "extraPh": "Algo que valga la pena anotar en el reporte",
         "extraSub": "Un video corto alrededor del vehículo o más fotos te respaldan si el cliente hace un reclamo.",
         "required": "Obligatoria",
@@ -1481,6 +1508,9 @@
         "yes": "Sí, puedo hacerlo",
         "needParts": "Puedo hacerlo, pero necesito comprar repuestos",
         "no": "No, no puedo",
+        "yesSub": "Empezás la reparación en el lugar.",
+        "needPartsSub": "Comprás los repuestos primero; el dueño los paga en la plataforma.",
+        "noSub": "Terminás la visita y ves las otras opciones.",
         "noCodes": "No hay códigos OBD registrados."
       },
       "buyParts": {
@@ -1552,6 +1582,11 @@
         "proofPh": "Foto del trabajo realizado, o del vehículo como lo dejás",
         "removePhoto": "Quitar foto",
         "workPh": "Describí el trabajo realizado…",
+        "outcomeTitle": "¿Cómo salió?",
+        "resolvedTitle": "Problema resuelto",
+        "resolvedSub": "El vehículo funciona de nuevo. Una última revisión y listo.",
+        "notResolvedTitle": "No pude resolverlo",
+        "notResolvedSub": "Terminás la visita y ves las otras opciones.",
         "question": "¿Se resolvió la asistencia?",
         "no": "No",
         "yes": "Sí, resuelto",
@@ -1565,6 +1600,12 @@
         "checklistWarnSkip": "Continuar igual",
         "proofSub": "Fotografiá el trabajo hecho y el vehículo como lo dejás. Un video corto también sirve.",
         "addPhotos": "Agregar fotos"
+      },
+      "finalCheck": {
+        "eyebrow": "REVISIÓN FINAL",
+        "title": "Hacé la revisión final",
+        "subtitle": "Repasá estos puntos antes de cerrar el servicio.",
+        "finish": "Terminar la reparación"
       },
       "videoOut": {
         "eyebrow": "ANTES DE IRTE · OPCIONAL",
@@ -1653,9 +1694,9 @@
           "partial": "Todavía no hay con qué comparar. El escaneo OBD completa el control."
         },
         "scanSubtitle": "Centrá el código dentro del marco, o tocá Leer el VIN impreso.",
-        "tipDoor": "Etiqueta en el marco de la puerta del conductor",
-        "tipWindshield": "Placa en la base del parabrisas, lado del conductor",
-        "tipLight": "Inclinalo si hay reflejo, o prendé una luz",
+        "tipDoor": "Etiqueta del marco de la puerta",
+        "tipWindshield": "Placa del parabrisas",
+        "tipLight": "Inclinalo o usá luz",
         "typeInstead": "Escribir el VIN a mano",
         "skipSub": "Igual podés cargar el kilometraje del odómetro.",
         "skipWarn": "Sin el VIN no podemos verificar el vehículo contra el pedido.",
@@ -1732,11 +1773,31 @@
       "heroTitleReleased": "Soporte determinó que el trabajo no se realizó. No se cobró al cliente.",
       "walletDisputed": "En revisión: se libera si soporte confirma el trabajo",
       "walletReleased": "Sin cobro: soporte determinó que el trabajo no se realizó",
+      "confirmWindowTitle": "Tiempo del cliente para confirmar",
+      "confirmWindowLeft": "Quedan {{time}}",
+      "confirmWindowDays": "{{days}} d {{hours}} h",
+      "confirmWindowHours": "{{hours}} h {{minutes}} min",
+      "confirmWindowMinutes": "{{minutes}} min",
+      "confirmWindowNote": "Si no responde, se confirma solo el {{date}} a las {{time}} y se libera tu pago.",
+      "confirmWindowDue": "Confirmándose automáticamente ahora",
+      "obdAlertTitle": "Subí el reporte del escáner OBD",
+      "obdAlertBody": "Completa el diagnóstico en tu reporte del servicio. Subilo ahora o más tarde: te lo vamos a recordar.",
+      "obdAlertNow": "Subir ahora",
+      "obdAlertLater": "Más tarde, ir al dashboard",
+      "obdPendingRow": "Reporte del escáner OBD pendiente",
+      "obdPendingAction": "Subir",
       "itemOwnerConfirmation": "Confirmación del cliente"
     },
     "onSiteConfirm": {
-      "autoConfirmIn": "Se confirmará automáticamente en {{hours}} h",
-      "autoConfirmSoon": "Se confirmará automáticamente en menos de 1 h",
+      "autoConfirmTitle": "Confirmación automática",
+      "autoConfirmLeft": "En {{time}}",
+      "autoConfirmDays": "{{days}} d {{hours}} h",
+      "autoConfirmHours": "{{hours}} h {{minutes}} min",
+      "autoConfirmMinutes": "{{minutes}} min",
+      "autoConfirmNote": {
+        "owner": "Si no respondés, el servicio se confirma el {{date}} a las {{time}} y se le paga al mecánico.",
+        "mechanic": "Si el cliente no responde, se confirma el {{date}} a las {{time}} y se libera tu pago."
+      },
       "owner": {
         "awaitingTitle": "El mecánico marcó el servicio como finalizado",
         "awaitingBody": "¿Se hizo el trabajo? Confirmalo para completar el servicio. Si no se hizo, avisanos: no se te cobrará hasta que soporte lo revise.",
@@ -2289,6 +2350,8 @@
     "selectTimeTitle": "Seleccioná la hora",
     "selectTime": "Seleccioná la hora",
     "acceptRequest": "Aceptar solicitud",
+    "confirmOfferPending": "El cliente todavía tiene que aceptarla.",
+    "offerHighlight": { "video": "Videollamada", "immediate": "Asistencia inmediata", "scheduled": "Oferta agendada" },
     "confirmOfferTitle": "¿Enviar esta oferta?",
     "waitingClientConfirmation": "Esperando la confirmación del cliente",
     "confirmOfferImmediate": "Vas a ofrecer asistencia inmediata para {{title}}. El cliente todavía tiene que aceptarla.",

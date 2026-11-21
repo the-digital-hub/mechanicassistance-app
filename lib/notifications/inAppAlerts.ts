@@ -2,6 +2,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Href } from 'expo-router';
 import { useEffect, useState } from 'react';
 
+import { ringIfEnabled } from './sound';
+import { vibrateIfEnabled } from './vibration';
+
 // The small alert shown on screen when a push arrives while the app is open (the system shows nothing then), and the
 // switch that turns it on or off from Settings → Notifications.
 
@@ -93,6 +96,9 @@ export async function showInAppBanner(banner: InAppBanner): Promise<boolean> {
     shownIds.add(banner.id);
     current = banner;
     publish();
+    // With Sound and Vibrate on, the alert is heard and felt as well as seen.
+    void ringIfEnabled();
+    void vibrateIfEnabled();
     return true;
 }
 

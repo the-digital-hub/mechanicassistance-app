@@ -1,6 +1,7 @@
+import { AttentionQuickButton, AttentionTimer, type AttentionQuick, type AttentionTimerSpec } from '@/components/dashboard/AttentionExtras';
 import { VehicleIdsRow } from '@/components/scheduled/ui';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Calendar, Check, ChevronDown, ChevronRight, FileText, Wrench, X, type LucideIcon } from 'lucide-react-native';
+import { Calendar, Check, ChevronDown, ChevronRight, FileText, Pencil, Wrench, X, type LucideIcon } from 'lucide-react-native';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Animated, Easing, KeyboardAvoidingView, Modal, Platform, Pressable, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { TYPE } from '@/lib/ui/type';
@@ -163,6 +164,10 @@ export type OwnerAttentionItem = {
     cta: string;
     /** Changes when the alert is a new one (e.g. another count), so a hidden alert can return. */
     signature?: string;
+    /** The time left to deal with it, ticking. */
+    timer?: AttentionTimerSpec;
+    /** A simple action to do right on the card. */
+    quick?: AttentionQuick;
     onPress: () => void;
 };
 
@@ -196,6 +201,8 @@ export function OwnerAttentionList({ items, hideLabel, onDismiss }: { items: Own
                                 ) : null}
                             </View>
                             <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: C.muted, marginTop: 2 }}>{a.sub}</Text>
+                            {a.timer ? <AttentionTimer spec={a.timer} /> : null}
+                            {a.quick ? <AttentionQuickButton quick={a.quick} /> : null}
                             <View className="flex-row items-center" style={{ gap: 16, marginTop: 10 }}>
                                 <View className="flex-row items-center" style={{ gap: 2, minHeight: 36, paddingLeft: 14, paddingRight: 8, borderRadius: 100, backgroundColor: amber ? C.amberSoft : C.blueSoft }}>
                                     <Text className="font-outfit-bold" style={{ fontSize: 14, color: amber ? C.amberText : C.blue }}>{a.cta}</Text>
@@ -264,11 +271,13 @@ export function VehicleCareCard({
                     </View>
                 )}
             </TouchableOpacity>
-            <View className="flex-row items-center" style={{ paddingHorizontal: 20, paddingVertical: 9, gap: 10, backgroundColor: '#F7FAFF', borderTopWidth: 1, borderTopColor: C.borderSoft }}>
+            <View className="flex-row items-center" style={{ paddingHorizontal: 20, paddingVertical: 8, gap: 10, backgroundColor: '#F7FAFF', borderTopWidth: 1, borderTopColor: C.borderSoft }}>
                 <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: C.green }} />
                 <Text className="font-outfit-semibold flex-1" style={{ fontSize: 13, color: C.muted }} numberOfLines={1}>{mileageText}</Text>
-                <TouchableOpacity onPress={onMileage} hitSlop={8} accessibilityRole="button">
-                    <Text className="font-outfit-bold" style={{ fontSize: 13, color: C.blue }}>{mileageCta}</Text>
+                {/* Update / Add as a badge, like the other quick actions. */}
+                <TouchableOpacity onPress={onMileage} hitSlop={6} activeOpacity={0.8} accessibilityRole="button" className="flex-row items-center" style={{ gap: 6, minHeight: 32, paddingHorizontal: 12, borderRadius: 100, backgroundColor: C.blueSoft }} testID="mileage-badge">
+                    <Pencil size={14} color={C.blue} />
+                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: C.blue }}>{mileageCta}</Text>
                 </TouchableOpacity>
             </View>
         </View>

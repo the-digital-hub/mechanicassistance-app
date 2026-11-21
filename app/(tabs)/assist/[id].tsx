@@ -739,12 +739,14 @@ export default function RequestDetailScreen() {
                 onConfirm={handleConfirmAccept}
                 icon={HelpCircle}
                 iconColor="#1E56E3"
+                confirmTone="success"
                 title={t(isVideo ? 'requestDetail.confirmVideoTitle' : 'requestDetail.confirmOfferTitle')}
-                message={isVideo
-                    ? t('requestDetail.confirmVideoCall', { title })
+                message={t('requestDetail.confirmOfferPending')}
+                highlight={isVideo
+                    ? { label: t('requestDetail.offerHighlight.video'), value: String(title ?? ''), icon: 'videocam-outline' }
                     : isImmediate
-                    ? t('requestDetail.confirmOfferImmediate', { title })
-                    : t('requestDetail.confirmOfferScheduled', { date: selectedDate, time: selectedTime })
+                    ? { label: t('requestDetail.offerHighlight.immediate'), value: String(title ?? ''), icon: 'flash-outline' }
+                    : { label: t('requestDetail.offerHighlight.scheduled'), value: selectedDate ?? '', sub: selectedTime ?? undefined, icon: 'calendar-outline' }
                 }
                 confirmText={submitting ? t('requestDetail.sendingOffer') : t(isVideo ? 'requestDetail.confirmVideo' : 'requestDetail.confirmOffer')}
                 cancelText={t('requestDetail.cancel')}

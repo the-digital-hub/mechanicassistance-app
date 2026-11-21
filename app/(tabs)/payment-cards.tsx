@@ -1,3 +1,4 @@
+import { CONFIRM_GRADIENT } from '@/lib/ui/floatingFooter';
 import { CardField, StripeProvider, useStripe } from '@stripe/stripe-react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -382,7 +383,7 @@ function PaymentCardsContent() {
                     style={{ flex: 0.7, opacity: !cardComplete || saving ? 0.6 : 1 }}
                   >
                     <LinearGradient
-                      colors={['#2B66F8', '#081E72']}
+                      colors={[...CONFIRM_GRADIENT]}
                       start={{ x: 0, y: 1 }}
                       end={{ x: 1, y: 0 }}
                       style={{

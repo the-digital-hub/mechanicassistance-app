@@ -9,7 +9,7 @@ import { VIN_LENGTH, VinCard } from '@/components/vehicles/VinCard';
 import type { Vehicle, VehicleDecodedFields, VehicleStatus } from '@/lib/dao/interfaces';
 import { decodeVin, fetchMakes, fetchModelsByMake } from '@/lib/vehicle';
 import { TireSize, formatTireSize, parseTireSize } from '@/lib/vehicleTires';
-import { FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
+import { FLOATING_FOOTER, CONFIRM_GRADIENT } from '@/lib/ui/floatingFooter';
 import { Ionicons } from '@expo/vector-icons';
 import { TYPE } from '@/lib/ui/type';
 import { useCameraPermissions } from 'expo-camera';
@@ -757,7 +757,7 @@ export function VehicleForm({ initialValue, submitLabel, submitting, onSubmit, h
             >
                 <TouchableOpacity onPress={handleSubmit} disabled={!canSave} activeOpacity={0.8}>
                     <LinearGradient
-                        colors={vinReady ? [AV.blue, AV.blueDark] : [AV.disabled, AV.disabled]}
+                        colors={vinReady ? [...CONFIRM_GRADIENT] : [AV.disabled, AV.disabled]}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
                         style={{

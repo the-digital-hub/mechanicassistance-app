@@ -1,5 +1,5 @@
 import { HeaderBackButton } from '@/components/ui/HeaderBackButton';
-import { FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
+import { FLOATING_FOOTER, CONFIRM_GRADIENT } from '@/lib/ui/floatingFooter';
 import {
     AO,
     CallConditions,
@@ -452,7 +452,7 @@ export default function MechanicFoundScreen() {
             >
                 <TouchableOpacity onPress={handleConfirm} disabled={confirmState !== 'idle' || !request?.mechanicId} activeOpacity={0.85}>
                     <LinearGradient
-                        colors={confirmState === 'done' ? [AO.green, AO.green] : [AO.blue, AO.blueDark]}
+                        colors={[...CONFIRM_GRADIENT]}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
                         style={{ borderRadius: 16, paddingVertical: 16, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}

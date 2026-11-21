@@ -1,3 +1,4 @@
+import { CONFIRM_GRADIENT } from '@/lib/ui/floatingFooter';
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "expo-router";
 import { ChevronLeft, ChevronRight, Eye, EyeOff } from "lucide-react-native";
@@ -11,7 +12,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
-import { KEYBOARD_SCROLL_PROPS } from '@/lib/ui/keyboard';
+import { KeyboardAwareScrollView } from '@/components/ui/KeyboardAwareScrollView';
 
 export default function PasswordScreen() {
   const router = useRouter();
@@ -36,7 +37,7 @@ export default function PasswordScreen() {
   const hasSymbolOrNumber = /[0-9!@#$%^&*]/.test(passwords.new);
 
   return (
-    <ScrollView {...KEYBOARD_SCROLL_PROPS} style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 24, paddingBottom: 40 }}>
+    <KeyboardAwareScrollView style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 24, paddingBottom: 40 }}>
       {/* Section Badge */}
       <View style={{ marginTop: 8 }}>
         <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
@@ -165,7 +166,7 @@ export default function PasswordScreen() {
           style={{ flex: 0.7 }}
         >
           <LinearGradient
-            colors={['#2B66F8', '#081E72']}
+            colors={[...CONFIRM_GRADIENT]}
             start={{ x: 0, y: 1 }}
             end={{ x: 1, y: 0 }}
             style={{
@@ -181,6 +182,6 @@ export default function PasswordScreen() {
           </LinearGradient>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }

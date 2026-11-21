@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { KEYBOARD_SCROLL_PROPS } from '@/lib/ui/keyboard';
+import { KeyboardAwareScrollView } from '@/components/ui/KeyboardAwareScrollView';
 
 export default function CredentialsScreen() {
     const router = useRouter();
@@ -84,7 +84,7 @@ export default function CredentialsScreen() {
     };
 
     return (
-        <ScrollView {...KEYBOARD_SCROLL_PROPS} style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ padding: 24, paddingTop: 18, paddingBottom: 40 }}>
+        <KeyboardAwareScrollView style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ padding: 24, paddingTop: 18, paddingBottom: 40 }}>
             {/* Section Badge */}
             <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
               <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
@@ -230,6 +230,6 @@ export default function CredentialsScreen() {
                     </TouchableOpacity>
                 </View>
             )}
-        </ScrollView>
+        </KeyboardAwareScrollView>
     );
 }

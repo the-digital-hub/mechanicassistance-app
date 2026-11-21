@@ -8,7 +8,7 @@ import { getVinCapture, saveVinCapture, type VinCapture } from '@/lib/onsite/vin
 import { reportedIssue, ScreenCheckIn, ScreenDiagnosticsObd, ScreenDiagnosticsPhotos, ScreenFeasibility, ScreenRetry, ScreenValidating } from '@/components/on-site/screens-checkin';
 import { DoneVariant, ScreenCloseService } from '@/components/on-site/screens-checkout';
 import { ScreenCloseout } from '@/components/on-site/screens-closeout';
-import { PartsOrder, RedirectReason, ScreenBuyParts, ScreenEvaluateOptions, ScreenResolveIncident } from '@/components/on-site/screens-execution';
+import { PartsOrder, RedirectReason, ScreenBuyParts, ScreenEvaluateOptions, ScreenFinalCheck, ScreenResolveIncident } from '@/components/on-site/screens-execution';
 import { FlowHeader, OS, Phase, PhaseContext, Spinner } from '@/components/on-site/ui';
 import { useGlobalSearchParams, useRouter } from 'expo-router';
 import { goBackOr } from '@/lib/navigation/goBackOr';
@@ -24,20 +24,20 @@ import { appAlert } from '@/lib/ui/appAlert';
 // OBD codes are read off the uploaded scanner report by the document service
 // (an `obd_update` socket event says when). Still simulated: the "buy parts" branch.
 
-// 'diagnostics-vin' is app-only for now: the visit does not store it, so it is never saved as `step`.
-type Screen = 'checkin' | 'retry' | 'diagnostics-vin' | OnSiteStep;
+// 'diagnostics-vin' and 'final-check' are app-only for now: the visit does not store them, so they are never saved as `step`.
+type Screen = 'checkin' | 'retry' | 'diagnostics-vin' | 'final-check' | OnSiteStep;
 
 const TITLE_KEY: Record<Screen, string> = {
     checkin: 'checkin', retry: 'retry', incident: 'incident', 'diagnostics-vin': 'diagnosticsVin', 'diagnostics-obd': 'diagnosticsObd',
     'diagnostics-photos': 'diagnosticsPhotos', validating: 'validating', feasibility: 'feasibility',
-    'options-checkin': 'options', 'buy-parts': 'buyParts', resolve: 'resolve', 'options-execution': 'options',
+    'options-checkin': 'options', 'buy-parts': 'buyParts', resolve: 'resolve', 'final-check': 'maintenance', 'options-execution': 'options',
     'video-out': 'videoOut', close: 'close', done: 'done',
 };
 
 const PHASE_OF: Record<Screen, Phase> = {
     checkin: 'checkin', retry: 'checkin', incident: 'checkin', 'diagnostics-vin': 'checkin', 'diagnostics-obd': 'checkin', 'diagnostics-photos': 'checkin',
     validating: 'checkin', feasibility: 'checkin', 'options-checkin': 'checkin', 'buy-parts': 'checkin',
-    resolve: 'execution', 'options-execution': 'execution',
+    resolve: 'execution', 'final-check': 'execution', 'options-execution': 'execution',
     'video-out': 'checkout', close: 'checkout', done: 'checkout',
 };
 
@@ -46,7 +46,7 @@ const PHASE_OF: Record<Screen, Phase> = {
 const BACK_OF: Partial<Record<Screen, Screen>> = {
     retry: 'checkin', 'diagnostics-photos': 'diagnostics-vin', 'diagnostics-obd': 'diagnostics-photos',
     feasibility: 'diagnostics-obd', 'options-checkin': 'feasibility', 'buy-parts': 'feasibility', resolve: 'feasibility',
-    'options-execution': 'resolve', close: 'resolve',
+    'options-execution': 'resolve', 'final-check': 'resolve',
 };
 
 /** Screen to reopen a saved visit on. */
@@ -160,7 +160,7 @@ export default function OnSiteFlowScreen() {
 
     const go = (s: Screen) => {
         setScreen(s);
-        if (s !== 'checkin' && s !== 'retry' && s !== 'done' && s !== 'diagnostics-vin') save({ step: s });
+        if (s !== 'checkin' && s !== 'retry' && s !== 'done' && s !== 'diagnostics-vin' && s !== 'final-check') save({ step: s });
     };
 
     const checkIn = async (method: 'pin' | 'qr', code: string) => {
@@ -209,7 +209,10 @@ export default function OnSiteFlowScreen() {
         ? () => goBackOr(router, { pathname: '/appointments/[id]', params: { id } })
         : screen === 'done'
             ? () => router.replace('/(tabs)/appointments')
-            : BACK_OF[screen] ? () => go(BACK_OF[screen]!) : undefined;
+            : screen === 'close'
+                // A resolved repair came through the final check; a redirected one, from the resolve screen.
+                ? () => go(doneVariant === 'completed' ? 'final-check' : 'resolve')
+                : BACK_OF[screen] ? () => go(BACK_OF[screen]!) : undefined;
     const checklist = visit?.maintenanceChecklist ?? {};
     const saveChecklist = (c: Record<string, boolean>) => save({ maintenanceChecklist: c });
 
@@ -269,12 +272,13 @@ export default function OnSiteFlowScreen() {
                     workStartedAt={visit?.workStartedAt ?? null}
                     workNotes={visit?.workNotes ?? ''}
                     onWorkNotesChange={(workNotes) => save({ workNotes })}
-                    checklist={checklist}
-                    onChecklistChange={saveChecklist}
-                    onResolved={() => go('close')}
+                    onResolved={() => go('final-check')}
                     onNotResolved={() => go('options-execution')}
                 />
             );
+            break;
+        case 'final-check':
+            body = <ScreenFinalCheck checklist={checklist} onChecklistChange={saveChecklist} onDone={() => go('close')} />;
             break;
         case 'options-execution':
             body = <ScreenEvaluateOptions context="execution" onSelect={redirect} checklist={checklist} onChecklistChange={saveChecklist} />;

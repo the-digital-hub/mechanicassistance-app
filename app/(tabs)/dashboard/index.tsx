@@ -3,7 +3,10 @@ import { EmergencyRow, MileageField, OwnerAttentionList, OwnerSectionTitle, Owne
 import { AseCta, AttentionList, AvailabilityCard, RequestTypeTabs, SectionTitle, TodayBlock, WeeklyEarnings, type AttentionItem } from '@/components/dashboard/MechanicHomeBlocks';
 import { useNotifications } from '@/context/NotificationsContext';
 import { attentionKey, visibleAttention } from '@/lib/dashboard/attention';
-import { pendingRatings } from '@/lib/dashboard/pendingRatings';
+import { pendingRatings, RATING_WINDOW_DAYS } from '@/lib/dashboard/pendingRatings';
+import { useConfirmDeadlines } from '@/lib/dashboard/useConfirmDeadlines';
+import { onSiteDAO } from '@/lib/dao/OnSiteDAO';
+import { videoCallDAO } from '@/lib/dao/VideoCallDAO';
 import { PendingRatings } from '@/components/dashboard/PendingRatings';
 import { useAttentionState } from '@/lib/dashboard/useAttentionState';
 import { useScheduledAttention } from '@/lib/scheduled/useScheduledAttention';
@@ -39,7 +42,7 @@ import { appAlert } from '@/lib/ui/appAlert';
 import { TYPE } from '@/lib/ui/type';
 import { VehicleTitle } from '@/components/ui/VehicleTitle';
 import { MechanicStatusSheet } from '@/components/profile/MechanicStatusSheet';
-import { KEYBOARD_SCROLL_PROPS } from '@/lib/ui/keyboard';
+import { KeyboardAwareScrollView } from '@/components/ui/KeyboardAwareScrollView';
 
 /** Returns a translation key for the current time of day — resolve with t() at the call site. */
 const getTimeGreetingKey = (): string => {
@@ -47,6 +50,13 @@ const getTimeGreetingKey = (): string => {
     if (hour >= 5 && hour < 12) return 'dashboard.greeting.morning';
     if (hour >= 12 && hour < 18) return 'dashboard.greeting.afternoon';
     return 'dashboard.greeting.night';
+};
+
+
+/** The soonest a rating still owed stops being possible: the oldest finished job plus the rating window. */
+const ratingDeadline = (list: readonly Appointment[]): string | undefined => {
+    const ends = list.map((a) => Date.parse(a.completedAt ?? a.updatedAt ?? '') + RATING_WINDOW_DAYS * 86_400_000).filter(Number.isFinite);
+    return ends.length ? new Date(Math.min(...ends)).toISOString() : undefined;
 };
 
 // Horizontal padding of the user dashboard.
@@ -108,6 +118,9 @@ export default function DashboardScreen() {
     const { lastMessage } = useSocket();
     const marketplaceFeed = useMarketplaceFeed(user?.role === 'mechanic', lastMessage);
     const scheduledAttention = useScheduledAttention(user?.role === 'user', user?.id, getActiveRequests(), lastMessage);
+    // Services waiting for the owner's confirmation: when each confirms by itself, and the one being confirmed from the alert.
+    const confirmDeadlines = useConfirmDeadlines(user?.role === 'user' ? getActiveRequests().filter((r) => r.status === 'awaiting_confirmation') : []);
+    const [confirmingId, setConfirmingId] = useState<string | null>(null);
     const { mechanicStatus, setMechanicStatus, isUpdatingStatus } = useMechanicStatus();
 
     const getStatusStyles = () => {
@@ -314,6 +327,7 @@ export default function DashboardScreen() {
                 count: toRate.length,
                 sub: t('dashboard.mechanic.attention.rate.sub'),
                 cta: t('dashboard.mechanic.attention.rate.cta'),
+                timer: ratingDeadline(toRate) ? { deadline: ratingDeadline(toRate)!, urgentUnderMinutes: 3 * 1440, label: (time) => t('dashboard.attention.timer.rate', { time }) } : undefined,
                 // They open right here: a card per customer, side by side.
                 onPress: () => setRatingOpen(true),
             });
@@ -323,7 +337,7 @@ export default function DashboardScreen() {
 
         return (
             <View className="flex-1">
-                <ScrollView {...KEYBOARD_SCROLL_PROPS} {...scrollProps} style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ paddingBottom: 40 }}>
+                <KeyboardAwareScrollView {...scrollProps} style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ paddingBottom: 40 }}>
                     <View className="px-6 pt-4">
                     {/* Section Badge */}
                     <View style={{ marginTop: 18 }}>
@@ -670,9 +684,6 @@ export default function DashboardScreen() {
                                     onDismiss={(item) => attention.dismiss(attentionKey(item))}
                                 />
                             )}
-                            {!attention.collapsed && ratingOpen && toRate.length > 0 ? (
-                                <PendingRatings appointments={toRate} role="mechanic" onSent={() => void refreshAppointments()} onClose={() => setRatingOpen(false)} />
-                            ) : null}
                         </View>
                     )}
 
@@ -687,6 +698,12 @@ export default function DashboardScreen() {
                                     {t('dashboard.mechanic.readyToPay')} · <Text className="font-outfit-bold" style={{ color: '#FFFFFF' }}>{formatMoney(Number(earningsSummary.readyNet) || 0)}</Text>
                                 </Text>
                             ) : undefined}
+                            // Nothing earned yet today: motivate. Not available -> one tap to be; available -> be on the lookout for the next request.
+                            nudge={earnedToday !== null && earnedToday <= 0
+                                ? mechanicStatus !== 'available'
+                                    ? { text: t('dashboard.mechanic.nudge.goAvailable'), cta: t('dashboard.mechanic.nudge.goAvailableCta'), onPress: () => { setMechanicStatus('available').catch(() => undefined); } }
+                                    : { live: true, text: openRequests.length > 0 ? t('dashboard.mechanic.nudge.requests', { count: openRequests.length }) : t('dashboard.mechanic.nudge.lookout') }
+                                : undefined}
                             jobsLabel={t('dashboard.mechanic.jobsToday')}
                             jobs={jobsToday.toString()}
                             ratingLabel={t('dashboard.mechanic.rating')}
@@ -727,7 +744,12 @@ export default function DashboardScreen() {
                         />
                     </View>
                     </View>
-                </ScrollView>
+                </KeyboardAwareScrollView>
+
+                {/* The ratings still owed open from below */}
+                <OwnerSheet visible={ratingOpen && toRate.length > 0} title={t('dashboard.rating.heading.mechanic')} onClose={() => setRatingOpen(false)}>
+                    <PendingRatings appointments={toRate} role="mechanic" onSent={() => void refreshAppointments()} onClose={() => setRatingOpen(false)} />
+                </OwnerSheet>
 
                 {/* Status sheet */}
                 <MechanicStatusSheet
@@ -836,12 +858,38 @@ export default function DashboardScreen() {
     const offered = activeRequests.filter((r) => r.status === 'offered');
     const toConfirm = activeRequests.filter((r) => r.status === 'awaiting_confirmation');
     const attentionItems: OwnerAttentionItem[] = [];
+    // Confirm the finished service right from the alert (it is charged then); "not done" goes through the detail.
+    const doConfirm = async (a: Appointment) => {
+        setConfirmingId(a.id);
+        try {
+            if (a.type === 'videocall') await videoCallDAO.confirm(a.id);
+            else await onSiteDAO.confirm(a.id);
+        } catch (error) {
+            // 409: it was already confirmed (or confirmed itself): the refresh below shows it as it is.
+            if (!(error instanceof ApiError && error.statusCode === 409)) appAlert(t('appointments.onSiteConfirm.owner.confirmFailed'));
+        } finally {
+            setConfirmingId(null);
+            await refreshAppointments();
+        }
+    };
+    const askConfirm = (a: Appointment) =>
+        appAlert(t('dashboard.user.attention.confirm.alertTitle'), t('dashboard.user.attention.confirm.alertBody'), [
+            { text: t('dashboard.user.attention.confirm.alertNo'), style: 'cancel' },
+            { text: t('dashboard.user.attention.confirm.alertYes'), onPress: () => void doConfirm(a) },
+        ]);
+    // The soonest moment each kind of alert runs out: an offer's hold, a service's automatic confirmation.
+    const soonest = (list: (string | null | undefined)[]) => list.filter((d): d is string => !!d && Number.isFinite(Date.parse(d))).sort((a, b) => Date.parse(a) - Date.parse(b))[0];
+    const offerDeadline = soonest(offered.map((r) => r.offerExpiresAt));
+    const confirmDeadline = soonest(toConfirm.map((r) => confirmDeadlines[r.id]));
+    // The one to confirm first is the one that confirms itself first.
+    const confirmFirst = [...toConfirm].sort((a, b) => Date.parse(confirmDeadlines[a.id] ?? '9999') - Date.parse(confirmDeadlines[b.id] ?? '9999'))[0];
     if (offered.length > 0) {
         attentionItems.push({
             id: 'offers', signature: `offers:${offered.map((r) => r.id).join(',')}`, tone: 'blue', icon: Zap,
             title: t('dashboard.user.attention.offers.title', { count: offered.length }),
             sub: t('dashboard.user.attention.offers.sub'),
             cta: t('dashboard.user.attention.offers.cta'),
+            timer: offerDeadline ? { deadline: offerDeadline, urgentUnderMinutes: 3, label: (time) => t('dashboard.attention.timer.offer', { time }) } : undefined,
             onPress: guard(() => openRequest(offered[0])),
         });
     }
@@ -881,7 +929,10 @@ export default function DashboardScreen() {
             title: t('dashboard.user.attention.confirm.title'),
             sub: t('dashboard.user.attention.confirm.sub'),
             cta: t('dashboard.user.attention.confirm.cta'),
-            onPress: guard(() => openRequest(toConfirm[0])),
+            timer: confirmDeadline ? { deadline: confirmDeadline, urgentUnderMinutes: 120, label: (time) => t('dashboard.attention.timer.confirm', { time }) } : undefined,
+            // The simple case is done right here; the work not being done goes through the detail ("Review").
+            quick: { label: t('dashboard.user.attention.confirm.quick'), busy: confirmingId !== null, onPress: guard(() => askConfirm(confirmFirst)) },
+            onPress: guard(() => openRequest(confirmFirst)),
         });
     }
 
@@ -894,6 +945,7 @@ export default function DashboardScreen() {
             count: toRate.length,
             sub: t('dashboard.user.attention.rate.sub'),
             cta: t('dashboard.user.attention.rate.cta'),
+            timer: ratingDeadline(toRate) ? { deadline: ratingDeadline(toRate)!, urgentUnderMinutes: 3 * 1440, label: (time) => t('dashboard.attention.timer.rate', { time }) } : undefined,
             // They open right here: a card per service, side by side.
             onPress: () => setRatingOpen(true),
         });
@@ -953,8 +1005,8 @@ export default function DashboardScreen() {
 
     return (
         <View className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
-            <ScrollView
-                {...KEYBOARD_SCROLL_PROPS}
+            <KeyboardAwareScrollView
+                
                 {...scrollProps}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingHorizontal: DASHBOARD_PADDING_X, paddingTop: 18, paddingBottom: 40 }}
@@ -1037,9 +1089,6 @@ export default function DashboardScreen() {
                                 onDismiss={(item) => attention.dismiss(attentionKey(item))}
                             />
                         )}
-                        {!attention.collapsed && ratingOpen && toRate.length > 0 ? (
-                            <PendingRatings appointments={toRate} role="user" onSent={() => void refreshAppointments()} onClose={() => setRatingOpen(false)} />
-                        ) : null}
                     </View>
                 )}
 
@@ -1087,9 +1136,12 @@ export default function DashboardScreen() {
                         )}
                     </View>
                 )}
-            </ScrollView>
+            </KeyboardAwareScrollView>
 
             {/* Request assistance: the three ways to ask for help */}
+            <OwnerSheet visible={ratingOpen && toRate.length > 0} title={t('dashboard.rating.heading.user')} onClose={() => setRatingOpen(false)}>
+                <PendingRatings appointments={toRate} role="user" onSent={() => void refreshAppointments()} onClose={() => setRatingOpen(false)} />
+            </OwnerSheet>
             <OwnerSheet visible={sheet === 'request'} title={t('dashboard.user.sheet.title')} subtitle={t('dashboard.user.sheet.subtitle')} onClose={() => setSheet(null)}>
                 <View style={{ gap: 10 }}>
                     {mainTypes.map((item) => (

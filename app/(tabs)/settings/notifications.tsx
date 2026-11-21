@@ -5,17 +5,19 @@ import { useTranslation } from 'react-i18next';
 import { ScrollView, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { useUser } from '@/context/UserContext';
 import { useInAppAlertsEnabled } from '@/lib/notifications/inAppAlerts';
+import { useSoundEnabled } from '@/lib/notifications/sound';
+import { useVibrateEnabled } from '@/lib/notifications/vibration';
 
 export default function NotificationsSettingsScreen() {
     const router = useRouter();
     const { t } = useTranslation();
     const { user } = useUser();
     const [inAppAlerts, setInAppAlerts] = useInAppAlertsEnabled();
+    const [vibrate, setVibrate] = useVibrateEnabled();
+    const [sound, setSound] = useSoundEnabled();
     const [settings, setSettings] = useState({
         general: true,
         specialOffers: false,
-        sound: true,
-        vibrate: false,
     });
 
     const toggleSwitch = (key: keyof typeof settings) => {
@@ -25,8 +27,6 @@ export default function NotificationsSettingsScreen() {
     const items = [
         { key: 'general', label: t('settingsNotifications.general') },
         { key: 'specialOffers', label: t('settingsNotifications.specialOffers') },
-        { key: 'sound', label: t('settingsNotifications.sound') },
-        { key: 'vibrate', label: t('settingsNotifications.vibrate') },
     ];
 
     return (
@@ -49,7 +49,7 @@ export default function NotificationsSettingsScreen() {
               {t('settingsNotifications.subtitle')}
             </Text>
 
-            {user?.role === 'mechanic' ? (
+            {user ? (
                 <View className="flex-row items-center mb-8" style={{ gap: 16 }}>
                     <View style={{ flex: 1 }}>
                         <Text className="font-outfit-medium text-gray-900 text-lg">{t('settingsNotifications.inAppRequests')}</Text>
@@ -79,6 +79,30 @@ export default function NotificationsSettingsScreen() {
                         />
                     </View>
                 ))}
+                {/* Sound and Vibrate do something: with them on, an alert that arrives while the app is open rings a bell and buzzes. */}
+                <View className="flex-row justify-between items-center">
+                    <Text className="font-outfit-medium text-gray-900 text-lg">{t('settingsNotifications.sound')}</Text>
+                    <Switch
+                        trackColor={{ false: '#767577', true: '#0047AB' }}
+                        thumbColor={sound ? '#fff' : '#f4f3f4'}
+                        ios_backgroundColor="#E5E7EB"
+                        onValueChange={setSound}
+                        value={sound}
+                        testID="sound-switch"
+                    />
+                </View>
+                {/* Vibrate does something: with it on, an alert that arrives while the app is open buzzes the phone. */}
+                <View className="flex-row justify-between items-center">
+                    <Text className="font-outfit-medium text-gray-900 text-lg">{t('settingsNotifications.vibrate')}</Text>
+                    <Switch
+                        trackColor={{ false: '#767577', true: '#0047AB' }}
+                        thumbColor={vibrate ? '#fff' : '#f4f3f4'}
+                        ios_backgroundColor="#E5E7EB"
+                        onValueChange={setVibrate}
+                        value={vibrate}
+                        testID="vibrate-switch"
+                    />
+                </View>
             </View>
         </ScrollView>
     );

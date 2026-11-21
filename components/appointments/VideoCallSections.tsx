@@ -223,19 +223,18 @@ export function ConfirmOrDisputeRow({ busy, confirmLabel, disputeLabel, onConfir
     testIDPrefix: string;
 }) {
     return (
-        <View className="flex-row" style={{ gap: 10, marginTop: 14 }}>
+        // Never side by side: the action on top, the way out under it, both at full width.
+        <View style={{ gap: 8, marginTop: 14 }}>
+            <GradientButton label={confirmLabel} onPress={onConfirm} loading={busy} tone="success" testID={`${testIDPrefix}-confirm`} />
             <TouchableOpacity
                 onPress={onDispute}
                 disabled={busy}
                 activeOpacity={0.85}
-                style={{ flex: 0.45, minHeight: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FDECEC', paddingHorizontal: 8 }}
+                style={{ minHeight: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, alignItems: 'center', justifyContent: 'center', backgroundColor: '#E6EAF2', paddingHorizontal: 12, opacity: busy ? 0.6 : 1 }}
                 testID={`${testIDPrefix}-not-resolved`}
             >
-                <Text className="font-outfit-bold" style={{ fontSize: 16, color: AO.red, textAlign: 'center' }}>{disputeLabel}</Text>
+                <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#4A5470', textAlign: 'center' }}>{disputeLabel}</Text>
             </TouchableOpacity>
-            <View style={{ flex: 0.55 }}>
-                <GradientButton label={confirmLabel} onPress={onConfirm} loading={busy} tone="success" testID={`${testIDPrefix}-confirm`} />
-            </View>
         </View>
     );
 }

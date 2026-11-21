@@ -29,16 +29,25 @@ import { goBackOr } from "@/lib/navigation/goBackOr";
 import { useTranslation } from "react-i18next";
 import { MechanicStatusSheet } from '@/components/profile/MechanicStatusSheet';
 
-/** The brand's isologo, where the technician has their availability badge: the vehicle owner's root screens. */
+/** The brand's isologo, where the technician has their availability badge: the vehicle owner's root screens. Tapping it goes to the dashboard. */
 function BrandMark() {
+  const router = useRouter();
   return (
-    <Image
-      source={require("@/assets/images/mechanic_assistance_isologo.png")}
-      style={{ width: 36, height: 36, marginLeft: 16 }}
-      resizeMode="contain"
+    <TouchableOpacity
+      onPress={() => router.navigate("/(tabs)/dashboard")}
+      activeOpacity={0.7}
+      hitSlop={8}
+      accessibilityRole="button"
       accessibilityLabel="Mechanic Assistance"
       testID="header-brand-mark"
-    />
+      style={{ marginLeft: 16 }}
+    >
+      <Image
+        source={require("@/assets/images/mechanic_assistance_isologo.png")}
+        style={{ width: 36, height: 36 }}
+        resizeMode="contain"
+      />
+    </TouchableOpacity>
   );
 }
 

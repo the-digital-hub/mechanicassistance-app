@@ -482,19 +482,26 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
 
             {/* A cancelled job has nothing to open. */}
             {!isCanceled && (
-                <TouchableOpacity className={amountInRows ? 'mt-3' : 'mt-2'} activeOpacity={0.8} onPress={guardPress(openDetail)} accessibilityRole="button">
+                // The same button as the rest of the app: full width, tall, radius 14, 16 px; the active one on the blue gradient with its glow.
+                <TouchableOpacity
+                    className="mt-3"
+                    activeOpacity={0.85}
+                    onPress={guardPress(openDetail)}
+                    accessibilityRole="button"
+                    style={isPast ? undefined : { borderRadius: 14, shadowColor: '#1E56E3', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 4 }}
+                >
                     {isPast ? (
-                        <View className="items-center justify-center" style={{ minHeight: 50, borderRadius: 13, backgroundColor: C.blueSoft }}>
-                            <Text className="font-outfit-bold text-[15px]" style={{ color: C.blue }}>{ctaLabel}</Text>
+                        <View className="items-center justify-center" style={{ minHeight: 56, borderRadius: 14, backgroundColor: C.blueSoft }}>
+                            <Text className="font-outfit-bold" style={{ fontSize: 16, color: C.blue }}>{ctaLabel}</Text>
                         </View>
                     ) : (
                         <LinearGradient
-                            colors={['#2B66F8', '#081E72']}
-                            start={{ x: 0, y: 1 }}
+                            colors={['#1E56E3', '#0B2A8E']}
+                            start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 0 }}
-                            style={{ minHeight: 50, borderRadius: 13, alignItems: 'center', justifyContent: 'center' }}
+                            style={{ minHeight: 56, borderRadius: 14, alignItems: 'center', justifyContent: 'center' }}
                         >
-                            <Text className="font-outfit-bold text-[15px] text-white">{ctaLabel}</Text>
+                            <Text className="font-outfit-bold text-white" style={{ fontSize: 16 }}>{ctaLabel}</Text>
                         </LinearGradient>
                     )}
                 </TouchableOpacity>

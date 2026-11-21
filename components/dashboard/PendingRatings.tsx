@@ -3,7 +3,6 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import type { NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 import { NoteInput, OS } from '@/components/on-site/ui';
 import type { Appointment } from '@/context/AppointmentsContext';
@@ -17,7 +16,7 @@ import { TYPE } from '@/lib/ui/type';
 import { splitJobTitle } from '@/lib/ui/jobTitle';
 
 const GAP = 12;
-const SIDE = 24; // the dashboard's side padding
+const SIDE = 20; // the sheet's side padding
 
 /** Who the rating is about: the technician for the owner, the customer for the technician. */
 function useRatedPerson(appointment: Appointment, role: 'user' | 'mechanic'): string | null {
@@ -128,7 +127,7 @@ function RatingCard({ appointment, role, width, position, total, onSent, onSkip 
 }
 
 /**
- * The ratings still owed, open in the dashboard: one card per finished job, side by side. Swipe sideways to go through them; each
+ * The ratings still owed, the content of the sheet the dashboard opens from below: one card per finished job, side by side. Swipe sideways to go through them; each
  * sends its own rating and, once sent, the next one comes up. The list shrinks as they are given; with none left it closes itself.
  */
 export function PendingRatings({ appointments, role, onSent, onClose }: {
@@ -138,7 +137,6 @@ export function PendingRatings({ appointments, role, onSent, onClose }: {
     onSent: () => void;
     onClose: () => void;
 }) {
-    const { t } = useTranslation();
     const { width: screen } = useWindowDimensions();
     const cardWidth = screen - SIDE * 2;
     const scroller = React.useRef<ScrollView>(null);
@@ -160,13 +158,7 @@ export function PendingRatings({ appointments, role, onSent, onClose }: {
 
     if (list.length === 0) return null;
     return (
-        <Animated.View entering={FadeIn.duration(220)} exiting={FadeOut.duration(150)} style={{ marginTop: 14 }} testID="pending-ratings">
-            <View className="flex-row items-center justify-between" style={{ marginBottom: 10 }}>
-                <Text className="font-outfit-bold" style={{ fontSize: 17, lineHeight: 22, color: OS.text }}>{t(`dashboard.rating.heading.${role}`)}</Text>
-                <TouchableOpacity onPress={onClose} hitSlop={10} accessibilityRole="button" accessibilityLabel={t('dashboard.rating.close')} className="items-center justify-center" style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#EEF1F6' }} testID="pending-ratings-close">
-                    <Ionicons name="close" size={16} color="#4B5563" />
-                </TouchableOpacity>
-            </View>
+        <View testID="pending-ratings">
             <ScrollView
                 ref={scroller}
                 horizontal
@@ -198,6 +190,6 @@ export function PendingRatings({ appointments, role, onSent, onClose }: {
                     ))}
                 </View>
             ) : null}
-        </Animated.View>
+        </View>
     );
 }

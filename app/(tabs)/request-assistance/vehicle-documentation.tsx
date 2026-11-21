@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import type { PendingAttachment } from '@/lib/media/attachments';
 import { appAlert } from '@/lib/ui/appAlert';
-import { KEYBOARD_SCROLL_PROPS } from '@/lib/ui/keyboard';
+import { KeyboardAwareScrollView } from '@/components/ui/KeyboardAwareScrollView';
 
 const MAX_PHOTOS = 3;
 /** Mirrors MAX_UPLOAD_BYTES.video in media-service — the upload 413s past this. */
@@ -223,7 +223,7 @@ export default function VehicleDocumentationScreen() {
                 </Text>
                 <View className="w-6" />
             </View>
-            <ScrollView {...KEYBOARD_SCROLL_PROPS} className="flex-1 px-6 pt-4" contentContainerStyle={{ paddingBottom: 24 }} keyboardShouldPersistTaps="handled">
+            <KeyboardAwareScrollView className="flex-1 px-6 pt-4" contentContainerStyle={{ paddingBottom: 24 }} keyboardShouldPersistTaps="handled">
                     <RequestSteps type={params.type} step="photos" flush />
                 <View className="flex-row items-center justify-between" style={{ marginBottom: 16 }}>
                     <View className="flex-row items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
@@ -316,7 +316,7 @@ export default function VehicleDocumentationScreen() {
                         )}
                     </View>
                 )}
-            </ScrollView>
+            </KeyboardAwareScrollView>
 
             <Footer
                 label={hasMedia ? t('requestAssistance.continue') : t('requestAssistance.vehicleDocumentation.skip')}

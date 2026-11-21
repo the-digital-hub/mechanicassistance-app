@@ -32,3 +32,12 @@ export const FLOATING_CTA: ViewStyle = {
     shadowRadius: 8,
     elevation: 5,
 };
+
+/**
+ * The green of the buttons that confirm: the last action of a process that loads data (confirm the request, send the offer, save, pay).
+ * Continue / Next steps along the way stay blue; green says "this finishes it".
+ */
+export const CONFIRM_GRADIENT = ['#10B981', '#047857'] as const;
+
+/** FLOATING_CTA with the glow in green, for a confirm button inside a floating footer. */
+export const CONFIRM_CTA: ViewStyle = { ...FLOATING_CTA, shadowColor: '#10B981' };

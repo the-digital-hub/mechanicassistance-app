@@ -64,7 +64,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useGlobalSearchParams, useRouter } from 'expo-router';
 import { goBackOr } from '@/lib/navigation/goBackOr';
 import React from 'react';
-import { AttachmentStrip } from '@/components/appointments/AttachmentStrip';
+import { AttachmentCard, AttachmentStrip } from '@/components/appointments/AttachmentStrip';
 import { OnSiteDialog } from '@/components/on-site/ui';
 import { useMessageDialog } from '@/components/ui/useMessageDialog';
 import { RequestObdPanel, useRequestObd } from '@/components/video/RequestObdPanel';
@@ -76,7 +76,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Dimensions, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { chatAvailability } from '@/lib/chat/chatAvailability';
 import { RequestIdRow } from '@/components/ui/RequestIdRow';
-import { KEYBOARD_SCROLL_PROPS } from '@/lib/ui/keyboard';
+import { KeyboardAwareScrollView } from '@/components/ui/KeyboardAwareScrollView';
 
 const { width } = Dimensions.get('window');
 
@@ -684,14 +684,7 @@ export default function AppointmentDetailScreen() {
                 return (
                     <View style={{ gap: 12 }}>
                         <RequestSummaryRows rows={rows} />
-                        {parseAttachments(appointment.photos).length > 0 && (
-                            <View style={{ gap: 8 }}>
-                                <Text className="font-outfit-bold" style={{ fontSize: 15, lineHeight: 20, color: '#0B1530' }}>
-                                    {t('appointments.ownerAccepted.mediaTitle', { count: parseAttachments(appointment.photos).length })}
-                                </Text>
-                                <AttachmentStrip photos={appointment.photos} />
-                            </View>
-                        )}
+                        <AttachmentCard photos={appointment.photos} title={t('appointments.ownerAccepted.mediaTitle', { count: parseAttachments(appointment.photos).length })} />
                     </View>
                 );
             }
@@ -813,14 +806,7 @@ export default function AppointmentDetailScreen() {
                 return (
                     <View style={{ gap: 12 }}>
                         <MechanicAssistanceInfoTab appointment={appointment} section="vehicle" />
-                        {parseAttachments(appointment.photos).length > 0 && (
-                            <View style={{ gap: 8 }}>
-                                <Text className="font-outfit-bold" style={{ fontSize: 15, lineHeight: 20, color: '#0B1530' }}>
-                                    {t('appointments.ownerAccepted.mediaTitle', { count: parseAttachments(appointment.photos).length })}
-                                </Text>
-                                <AttachmentStrip photos={appointment.photos} />
-                            </View>
-                        )}
+                        <AttachmentCard photos={appointment.photos} title={t('appointments.ownerAccepted.mediaTitle', { count: parseAttachments(appointment.photos).length })} />
                     </View>
                 );
             case 'budget':
@@ -889,7 +875,7 @@ export default function AppointmentDetailScreen() {
                 <View><Text>Cancellation Feedback Placeholder</Text></View>
             ) : (
                 <View className="flex-1">
-                    <ScrollView {...KEYBOARD_SCROLL_PROPS} className="flex-1" showsVerticalScrollIndicator={false}>
+                    <KeyboardAwareScrollView className="flex-1" showsVerticalScrollIndicator={false}>
                         {isUserRole ? (
                             <View style={{ paddingHorizontal: 20, paddingTop: 32, paddingBottom: 32, gap: 16 }} testID="owner-accepted">
                                 <AcceptedHeader
@@ -984,7 +970,7 @@ export default function AppointmentDetailScreen() {
                                 <RequestIdRow
                                     id={appointment.id}
                                     refCode={appointment.refCode}
-                                    onCancel={appointment.status === 'accepted' || appointment.status === 'pending' ? () => setShowCancelModal(true) : undefined}
+                                    onCancel={canCancelBeforeStart(appointment.status) ? () => setShowCancelModal(true) : undefined}
                                 />
                             </View>
                         ) : (
@@ -1246,7 +1232,7 @@ export default function AppointmentDetailScreen() {
                             )}
                             </>
                         )}
-                    </ScrollView>
+                    </KeyboardAwareScrollView>
                 </View>
             )}
 

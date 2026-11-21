@@ -153,10 +153,11 @@ export function CertificationForm({ initial, onSaved }: { initial: Certification
                                     accessibilityRole="radio"
                                     accessibilityState={{ selected: on }}
                                     className="flex-1 items-center justify-center"
-                                    style={{ minHeight: 52, borderRadius: 14, borderWidth: 1.5, borderColor: on ? SC.blue : SC.border, backgroundColor: on ? SC.blueSoft : '#fff' }}
+                                    // The longest label gets more room, and none wraps: a word split over two lines reads as a mistake.
+                                    style={{ flexGrow: tp === 'manufacturer' ? 1.6 : 1, minHeight: 52, paddingHorizontal: 6, borderRadius: 14, borderWidth: 1.5, borderColor: on ? SC.blue : SC.border, backgroundColor: on ? SC.blueSoft : '#fff' }}
                                     testID={`cert-type-${tp}`}
                                 >
-                                    <Text className="font-outfit-bold" style={{ fontSize: 16, color: on ? SC.blue : SC.text }}>{t(`${K}.types.${tp}`)}</Text>
+                                    <Text className="font-outfit-bold" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85} style={{ fontSize: 16, color: on ? SC.blue : SC.text }}>{t(`${K}.types.${tp}`)}</Text>
                                 </TouchableOpacity>
                             );
                         })}
@@ -259,7 +260,7 @@ export function CertificationForm({ initial, onSaved }: { initial: Certification
                 {error ? <Text className="font-outfit-medium" style={{ fontSize: 15, color: SC.red }}>{error}</Text> : null}
             </ScrollView>
 
-            <Footer label={saving ? t(`${K}.saving`) : t(`${K}.save`)} onPress={() => void save()} disabled={!canSave} loading={saving} />
+            <Footer label={saving ? t(`${K}.saving`) : t(`${K}.save`)} onPress={() => void save()} disabled={!canSave} loading={saving} tone="confirm" />
         </KeyboardAvoidingView>
     );
 }

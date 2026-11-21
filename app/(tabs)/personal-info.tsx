@@ -1,3 +1,4 @@
+import { CONFIRM_GRADIENT } from '@/lib/ui/floatingFooter';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useUser } from '@/context/UserContext';
@@ -329,7 +330,7 @@ export default function PersonalInfoScreen() {
                     className="mb-10"
                 >
                     <LinearGradient
-                        colors={['#2B66F8', '#081E72']}
+                        colors={[...CONFIRM_GRADIENT]}
                         start={{ x: 0, y: 1 }}
                         end={{ x: 1, y: 0 }}
                         style={{

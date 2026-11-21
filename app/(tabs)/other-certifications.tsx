@@ -9,7 +9,7 @@ import { Footer } from '@/components/scheduled/ui';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { certificationsDAO, formatExpiry, isExpired, type Certification } from '@/lib/dao/CertificationsDAO';
 import { Trash2 } from 'lucide-react-native';
-import { KEYBOARD_SCROLL_PROPS } from '@/lib/ui/keyboard';
+import { KeyboardAwareScrollView } from '@/components/ui/KeyboardAwareScrollView';
 
 const K = 'certifications';
 
@@ -69,7 +69,7 @@ export default function OtherCertificationsScreen() {
                 onClose={() => setRemoving(null)}
             />
 
-            <ScrollView {...KEYBOARD_SCROLL_PROPS} className="flex-1" contentContainerStyle={{ padding: 24, paddingBottom: 28, gap: 12 }}>
+            <KeyboardAwareScrollView  className="flex-1" contentContainerStyle={{ padding: 24, paddingBottom: 28, gap: 12 }}>
                 <View style={{ marginTop: 8 }}>
 <View className="flex-row items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                     <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
@@ -132,7 +132,7 @@ export default function OtherCertificationsScreen() {
                         );
                     })
                 )}
-            </ScrollView>
+            </KeyboardAwareScrollView>
 
             <Footer label={t(`${K}.add`)} onPress={() => openForm()} />
         </View>

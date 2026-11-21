@@ -5,7 +5,7 @@ import { Text, TouchableOpacity, View } from 'react-native';
 import type { OnSiteVisit } from '@/lib/dao/OnSiteDAO';
 import { ObdPanel } from './ObdPanel';
 import type { RedirectReason } from './screens-execution';
-import { ActionBar, Body, Card, Eyebrow, InfoRow, Intro, NoteInput, OS, PrimaryButton, Tip, cardShadow } from './ui';
+import { ActionBar, Body, Card, Eyebrow, InfoRow, Intro, NoteInput, OS, PrimaryButton, cardShadow } from './ui';
 import { appAlert } from '@/lib/ui/appAlert';
 import { useAppointments } from '@/context/AppointmentsContext';
 import { refLabel } from '@/lib/refCode';
@@ -52,6 +52,13 @@ export function ScreenCloseService({ variant, partsCost, redirectReason, service
         <>
             <Body>
                 <Intro eyebrow={t(`${k}.eyebrow`)} title={t(`${k}.title`)} subtitle={completed ? t(`${k}.subtitleCompleted`) : t(`${k}.redirected`)} />
+
+                {/* What the mechanic gets, in a card of its own at the top: this is a payout, not a charge to anyone. */}
+                <View className="mx-4 mt-3.5 px-5 py-4" style={[cardShadow, { backgroundColor: OS.blueSofter, borderWidth: 1, borderColor: OS.blueSoft }]} testID="close-total">
+                    <Text className="font-outfit-bold uppercase" style={{ fontSize: 13, letterSpacing: 0.8, color: OS.muted }}>{t(`${k}.chargesEyebrow`)}</Text>
+                    <Text className="font-outfit-bold" style={{ fontSize: 36, lineHeight: 42, letterSpacing: -1, color: OS.blueDark, marginTop: 4 }}>{amount}</Text>
+                    <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: OS.muted, marginTop: 4 }}>{t(`${k}.payoutHint`)}</Text>
+                </View>
                 <Card>
                     {completed ? (
                         <>
@@ -92,23 +99,6 @@ export function ScreenCloseService({ variant, partsCost, redirectReason, service
                         </View>
                     </>
                 ) : null}
-
-                {/* What the mechanic gets, not a charge to anyone: this is a payout. */}
-                <View className="px-5 pt-4"><Eyebrow>{t(`${k}.chargesEyebrow`)}</Eyebrow></View>
-                <Card>
-                    <InfoRow icon="cash-outline" label={t(`${k}.serviceValue`)} value={amount} last />
-                    {/* The total stands apart from the line above it: a dashed rule and its own tinted block. */}
-                    <View style={{ marginHorizontal: 16, borderTopWidth: 1.5, borderStyle: 'dashed', borderColor: OS.blueIce }} />
-                    <View style={{ backgroundColor: OS.blueSofter, borderBottomLeftRadius: 19, borderBottomRightRadius: 19, marginTop: 4, paddingVertical: 4 }}>
-                        <InfoRow
-                            icon="wallet-outline"
-                            label={t(`${k}.total`)}
-                            last
-                            value={<Text className="font-outfit-bold mt-0.5" style={{ fontSize: 24, lineHeight: 30, color: OS.blueDark }}>{amount}</Text>}
-                        />
-                    </View>
-                </Card>
-                <Tip>{t(`${k}.payoutHint`)}</Tip>
             </Body>
             <ActionBar>
                 <PrimaryButton label={closing ? t(`${k}.closing`) : t(`${k}.finish`)} onPress={() => void finish()} disabled={closing} tone="green" />

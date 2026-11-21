@@ -184,7 +184,7 @@ export default function ScheduledFinalQuoteScreen() {
                     </TouchableOpacity>
                 ) : null}
             </ScrollView>
-            {open ? <Footer label={t('finalQuote.approve', { amount: money(view.additionalToHold ?? customerTotal?.amount) })} onPress={approve} loading={busy} /> : null}
+            {open ? <Footer label={t('finalQuote.approve', { amount: money(view.additionalToHold ?? customerTotal?.amount) })} onPress={approve} loading={busy} tone="confirm" /> : null}
         </View>
     );
 }

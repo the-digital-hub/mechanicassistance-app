@@ -1,6 +1,6 @@
 import { RequestSteps, stepEyebrow } from '@/components/ui/RequestSteps';
 import { ROUNDED_HEADER } from '@/lib/ui/header';
-import { FLOATING_CTA, FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
+import { CONFIRM_CTA, CONFIRM_GRADIENT, FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
 import { CardPickerModal } from '@/components/payments/CardPickerModal';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { useRequestDraft } from '@/context/RequestDraftContext';
@@ -12,7 +12,7 @@ import { WALLET_METHOD } from '@/lib/payments/cardLabel';
 import { isPaymentMethodRequired, RETURN_TO_BACK } from '@/lib/payments/cardRequired';
 import { usePaymentChoice } from '@/lib/payments/usePaymentChoice';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { AlertCircle, AlignLeft, Camera, Car, CheckCircle2, ChevronLeft, CreditCard, MapPin } from 'lucide-react-native';
+import { AlertCircle, AlignLeft, Camera, Car, CheckCircle2, ChevronLeft, CreditCard, MapPin, ShieldCheck } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
@@ -290,23 +290,23 @@ export default function ConfirmationScreen() {
         videoCount > 0 ? t('requestAssistance.confirmation.mediaVideos', { count: videoCount }) : null,
     ].filter(Boolean).join(' · ') || t('requestAssistance.confirmation.mediaNone');
 
-    /** Icon + label/value row of the white summary card. */
+    /** Icon + label/value row of the white summary card: compact, like the rows of the other cards (label above, value under it). */
     const SummaryRow = ({ icon, label, value, last, action }: { icon: React.ReactNode; label: string; value: string; last?: boolean; action?: React.ReactNode }) => (
         <View
-            className="flex-row items-center py-4"
-            style={{ gap: 16, minHeight: 77, borderBottomWidth: last ? 0 : 1, borderBottomColor: '#E5E9F5' }}
+            className="flex-row items-center"
+            style={{ gap: 12, paddingVertical: 10, borderBottomWidth: last ? 0 : 1, borderBottomColor: '#EEF2FA' }}
         >
             <View
                 className="items-center justify-center"
-                style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(30,86,227,0.08)' }}
+                style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: 'rgba(30,86,227,0.08)' }}
             >
                 {icon}
             </View>
             <View className="flex-1">
-                <Text className="font-outfit-semibold text-xs tracking-widest mb-0.5" style={{ color: '#A8B2C7' }}>
+                <Text className="font-outfit-semibold" style={{ fontSize: 12, lineHeight: 16, letterSpacing: 0.8, color: '#8C96AE' }}>
                     {label.toUpperCase()}
                 </Text>
-                <Text className="text-gray-900 font-outfit-bold text-base">{value}</Text>
+                <Text className="font-outfit-bold" style={{ fontSize: 15, lineHeight: 20, color: '#0B1530' }}>{value}</Text>
             </View>
             {action}
         </View>
@@ -360,9 +360,9 @@ export default function ConfirmationScreen() {
             </View>
             <ScrollView
                 className="flex-1"
-                contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 14, paddingBottom: 24, gap: 20 }}
+                contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 14, paddingBottom: 24, gap: 14 }}
             >
-                    <RequestSteps type={params.type} step="confirm" gap={20} flush />
+                    <RequestSteps type={params.type} step="confirm" gap={14} flush />
                 <View>
                     <View className="flex-row items-center justify-between" style={{ marginBottom: 16 }}>
                         <View className="flex-row items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
@@ -387,11 +387,11 @@ export default function ConfirmationScreen() {
                         borderRadius: 16,
                         borderWidth: 1,
                         borderColor: '#D5DCED',
-                        paddingHorizontal: 20,
-                        paddingVertical: 18,
+                        paddingHorizontal: 18,
+                        paddingVertical: 14,
                     }}
                 >
-                    <View className="px-2.5 py-1 rounded-full mb-3" style={{ backgroundColor: '#1E56E3', alignSelf: 'flex-start' }}>
+                    <View className="px-2.5 py-1 rounded-full mb-2" style={{ backgroundColor: '#1E56E3', alignSelf: 'flex-start' }}>
                         <Text className="text-white font-outfit-bold text-[13px] tracking-widest">
                             {t('requestAssistance.confirmation.priceLabel')}
                         </Text>
@@ -410,65 +410,65 @@ export default function ConfirmationScreen() {
 
                 {/* Summary */}
                 <View
-                    className="bg-white rounded-2xl px-5"
+                    className="bg-white rounded-2xl px-4"
                     style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 3, elevation: 2 }}
                 >
                     <SummaryRow
-                        icon={<CheckCircle2 size={20} color="#1E56E3" />}
+                        icon={<CheckCircle2 size={18} color="#1E56E3" />}
                         label={t('requestAssistance.confirmation.assistanceTypeLabel')}
                         value={getTypeLabel()}
                     />
                     <SummaryRow
-                        icon={<Car size={20} color="#1E56E3" />}
+                        icon={<Car size={18} color="#1E56E3" />}
                         label={t('requestAssistance.confirmation.car')}
                         value={vehicleStr}
                     />
                     <SummaryRow
-                        icon={<AlertCircle size={20} color="#1E56E3" />}
+                        icon={<AlertCircle size={18} color="#1E56E3" />}
                         label={t('requestAssistance.confirmation.carIssue')}
                         value={(description as string) || t('requestAssistance.confirmation.noDescription')}
                     />
                     <SummaryRow
-                        icon={<Camera size={20} color="#1E56E3" />}
+                        icon={<Camera size={18} color="#1E56E3" />}
                         label={t('requestAssistance.confirmation.media')}
                         value={mediaValue}
                     />
                     <SummaryRow
-                        icon={<MapPin size={20} color="#1E56E3" />}
+                        icon={<MapPin size={18} color="#1E56E3" />}
                         label={t('requestAssistance.confirmation.location')}
                         value={((finalAddress || addressLabel) as string) || ''}
                     />
                     <SummaryRow
-                        icon={<CreditCard size={20} color="#1E56E3" />}
+                        icon={<CreditCard size={18} color="#1E56E3" />}
                         label={t('requestAssistance.confirmation.payment')}
                         value={paymentLabel}
                         action={<ChangeBadge onPress={() => setCardPickerOpen(true)} />}
                     />
                     <SummaryRow
                         last
-                        icon={<AlignLeft size={20} color="#1E56E3" />}
+                        icon={<AlignLeft size={18} color="#1E56E3" />}
                         label={t('requestAssistance.confirmation.notes')}
                         value={(details as string) || t('requestAssistance.confirmation.none')}
                     />
                 </View>
 
-                {/* Included with the service */}
-                <View style={{ backgroundColor: '#EFFAF3', borderRadius: 12, borderWidth: 1, borderColor: '#BFE8D0', paddingHorizontal: 16, paddingVertical: 14 }}>
-                    <View className="flex-row items-center mb-3" style={{ gap: 8 }}>
-                        <CheckCircle2 size={18} color="#1E9E5A" />
-                        <Text className="font-outfit-bold text-[14px]" style={{ color: '#0F6B3E' }}>
+                {/* Included with the service: the list sits under the title, in its column, not under the icon. */}
+                <View className="flex-row" style={{ gap: 10, backgroundColor: '#EFFAF3', borderRadius: 14, borderWidth: 1, borderColor: '#BFE8D0', paddingHorizontal: 14, paddingVertical: 12 }}>
+                    <CheckCircle2 size={20} color="#1E9E5A" style={{ marginTop: 1 }} />
+                    <View className="flex-1">
+                        <Text className="font-outfit-bold" style={{ fontSize: 15, lineHeight: 20, color: '#0F6B3E' }}>
                             {t('requestAssistance.confirmation.includedTitle')}
                         </Text>
+                        {[
+                            t('requestAssistance.confirmation.includedChecklist'),
+                            t('requestAssistance.confirmation.includedScanner'),
+                        ].map((item) => (
+                            <View key={item} className="flex-row items-center" style={{ gap: 8, marginTop: 6 }}>
+                                <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: '#1E9E5A' }} />
+                                <Text className="flex-1 font-outfit-regular" style={{ fontSize: 14, lineHeight: 19, color: '#3B7A57' }}>{item}</Text>
+                            </View>
+                        ))}
                     </View>
-                    {[
-                        t('requestAssistance.confirmation.includedChecklist'),
-                        t('requestAssistance.confirmation.includedScanner'),
-                    ].map((item) => (
-                        <View key={item} className="flex-row items-center mb-2" style={{ gap: 8 }}>
-                            <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: '#1E9E5A' }} />
-                            <Text className="font-outfit-regular text-[14px]" style={{ color: '#3B7A57' }}>{item}</Text>
-                        </View>
-                    ))}
                 </View>
 
                 {/* What the submit is doing: a message goes in the body, never in the fixed footer */}
@@ -476,9 +476,10 @@ export default function ConfirmationScreen() {
                     <Text className="text-gray-500 font-outfit-regular text-center" style={{ fontSize: 14, marginTop: 12 }}>{uploadProgress}</Text>
                 ) : null}
 
-                {/* Fees Info */}
-                <View style={{ backgroundColor: 'rgba(30,86,227,0.08)', borderRadius: 8, borderWidth: 1, borderColor: 'rgba(30,86,227,0.13)', paddingHorizontal: 16, paddingVertical: 12 }}>
-                    <Text className="font-outfit-medium text-[14px]" style={{ color: '#1E56E3', lineHeight: 19 }}>
+                {/* Fees Info: nothing is charged yet, with its own icon like the other notes */}
+                <View className="flex-row items-start" style={{ gap: 10, backgroundColor: 'rgba(30,86,227,0.08)', borderRadius: 14, borderWidth: 1, borderColor: 'rgba(30,86,227,0.13)', paddingHorizontal: 14, paddingVertical: 12 }}>
+                    <ShieldCheck size={20} color="#1E56E3" style={{ marginTop: 1 }} />
+                    <Text className="flex-1 font-outfit-medium" style={{ fontSize: 14, lineHeight: 20, color: '#1E56E3' }}>
                         {t('requestAssistance.confirmation.feesInfo')}
                     </Text>
                 </View>
@@ -493,9 +494,9 @@ export default function ConfirmationScreen() {
                         <ActivityIndicator size="large" color="#0047AB" />
                     </View>
                 ) : (
-                    <TouchableOpacity onPress={handleConfirm} activeOpacity={0.8} style={FLOATING_CTA}>
+                    <TouchableOpacity onPress={handleConfirm} activeOpacity={0.8} style={CONFIRM_CTA}>
                         <LinearGradient
-                            colors={['#2B66F8', '#081E72']}
+                            colors={[...CONFIRM_GRADIENT]}
                             start={{ x: 0, y: 1 }}
                             end={{ x: 1, y: 0 }}
                             style={{

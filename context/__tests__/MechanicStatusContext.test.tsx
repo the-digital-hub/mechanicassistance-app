@@ -4,7 +4,7 @@ import { MechanicStatusProvider, useMechanicStatus } from '../MechanicStatusCont
 
 let mockLastMessage: any = null;
 const mockUpdateUser = jest.fn().mockResolvedValue(undefined);
-const mockUser: { id: string; mechanicStatus?: string; isOnline?: boolean } = { id: 'mech-1', mechanicStatus: 'available', isOnline: true };
+const mockUser: { id: string; role?: string; mechanicStatus?: string; isOnline?: boolean } = { id: 'mech-1', mechanicStatus: 'available', isOnline: true };
 const mockSetPresence = jest.fn();
 
 jest.mock('@/context/SocketContext', () => ({
@@ -27,6 +27,7 @@ describe('MechanicStatusProvider', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockLastMessage = null;
+    mockUser.role = undefined;
     mockUser.mechanicStatus = 'available';
     mockUser.isOnline = true;
     mockSetPresence.mockImplementation((_id: string, status: string) =>
@@ -93,5 +94,30 @@ describe('MechanicStatusProvider', () => {
     rerender({});
 
     expect(result.current.mechanicStatus).toBe('available');
+  });
+
+  it('puts the profile online when switching into the technician role', async () => {
+    mockUser.role = 'user';
+    mockUser.mechanicStatus = 'offline';
+    mockUser.isOnline = false;
+    const { result, rerender } = renderHook(() => useMechanicStatus(), { wrapper });
+    expect(result.current.mechanicStatus).toBe('offline');
+
+    // The switch: the account now answers as a technician (still offline on the server).
+    mockUser.role = 'mechanic';
+    await act(async () => { rerender({}); });
+
+    expect(mockSetPresence).toHaveBeenCalledWith('mech-1', 'available');
+    expect(result.current.mechanicStatus).toBe('available');
+  });
+
+  it('keeps what the technician had picked when the app opens already in that role', async () => {
+    mockUser.role = 'mechanic';
+    mockUser.mechanicStatus = 'busy';
+    const { result, rerender } = renderHook(() => useMechanicStatus(), { wrapper });
+    await act(async () => { rerender({}); });
+
+    expect(mockSetPresence).not.toHaveBeenCalled();
+    expect(result.current.mechanicStatus).toBe('busy');
   });
 });

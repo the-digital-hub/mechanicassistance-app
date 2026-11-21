@@ -8,6 +8,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 import Animated, {
@@ -30,6 +31,10 @@ interface ConfirmationModalProps {
   confirmText?: string;
   cancelText?: string;
   confirmButtonColor?: string;
+  /** `success` (green): the dialog's button finishes a process (sends the offer, confirms). */
+  confirmTone?: "primary" | "success";
+  /** The fact the dialog is about (a day and time, a service), big in its own block, as in the app's alerts. */
+  highlight?: { label: string; value: string; sub?: string; icon?: keyof typeof Ionicons.glyphMap };
 }
 
 export function ConfirmationModal({
@@ -43,6 +48,8 @@ export function ConfirmationModal({
   confirmText = "Yes",
   cancelText = "No",
   confirmButtonColor = "#0047AB",
+  highlight,
+  confirmTone = "primary",
 }: ConfirmationModalProps) {
   const scale = useSharedValue(0);
   const opacity = useSharedValue(0);
@@ -95,7 +102,19 @@ export function ConfirmationModal({
           </View>
 
           <Text style={styles.title}>{title}</Text>
-          <Text style={styles.message}>{message}</Text>
+          {highlight ? (
+            <View style={styles.highlight} testID="confirmation-highlight">
+              <View style={styles.highlightIcon}>
+                <Ionicons name={highlight.icon ?? "calendar-outline"} size={24} color={iconColor} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.highlightLabel}>{highlight.label}</Text>
+                <Text style={styles.highlightValue}>{highlight.value}</Text>
+                {highlight.sub ? <Text style={[styles.highlightValue, { color: iconColor }]}>{highlight.sub}</Text> : null}
+              </View>
+            </View>
+          ) : null}
+          <Text style={[styles.message, highlight ? { marginTop: 12 } : null]}>{message}</Text>
 
           <View style={styles.buttonContainer}>
             <TouchableOpacity
@@ -104,7 +123,7 @@ export function ConfirmationModal({
               style={styles.confirmButtonTouchable}
             >
               <LinearGradient
-                colors={['#2B66F8', '#081E72']}
+                colors={confirmTone === "success" ? ['#10B981', '#047857'] : ['#2B66F8', '#081E72']}
                 start={{ x: 0, y: 1 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.confirmButton}
@@ -165,6 +184,41 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 24,
     lineHeight: 22,
+  },
+  highlight: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "stretch",
+    gap: 14,
+    marginTop: 6,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    backgroundColor: "#EAF1FF",
+  },
+  highlightIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  highlightLabel: {
+    fontSize: 13,
+    lineHeight: 17,
+    letterSpacing: 0.4,
+    fontFamily: "Outfit_600SemiBold",
+    color: "#6B7490",
+    textTransform: "uppercase",
+  },
+  highlightValue: {
+    fontSize: 20,
+    lineHeight: 26,
+    letterSpacing: -0.3,
+    fontFamily: "Outfit_700Bold",
+    color: "#0B1530",
+    marginTop: 2,
   },
   // Never two buttons side by side: the action on top, the way out under it, both full width.
   buttonContainer: {

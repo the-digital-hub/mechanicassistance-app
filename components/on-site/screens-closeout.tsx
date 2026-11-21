@@ -1,11 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Animated, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Animated, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { onSiteConfirmationStage, onSiteDAO, OnSiteConfirmationStage, OnSiteVisit } from '@/lib/dao/OnSiteDAO';
 import { FinalReportCard } from './FinalReportActions';
 import { ObdPanel } from './ObdPanel';
-import { Body, Card, NoteInput, OS, PrimaryButton, cardShadow } from './ui';
+import { SlideModal } from '@/components/ui/SlideModal';
+import { SHEET } from '@/lib/ui/sheet';
+import { Body, Card, NoteInput, OnSiteDialog, OS, PrimaryButton, cardShadow } from './ui';
 import { appAlert } from '@/lib/ui/appAlert';
 import { TYPE } from '@/lib/ui/type';
 
@@ -210,6 +212,50 @@ function Checklist({ visit }: { visit: OnSiteVisit }) {
     );
 }
 
+// ─────────── How long the customer has to confirm ───────────
+/** The customer's time to confirm, live, so the technician knows when the service confirms by itself. */
+function ConfirmWindow({ deadline }: { deadline: string }) {
+    const { t } = useTranslation();
+    const k = 'appointments.closeout';
+    const fmt = useFormatters();
+    const [now, setNow] = React.useState(() => Date.now());
+    React.useEffect(() => {
+        const id = setInterval(() => setNow(Date.now()), 30000);
+        return () => clearInterval(id);
+    }, []);
+    const end = Date.parse(deadline);
+    if (!Number.isFinite(end)) return null;
+    const minutesLeft = Math.max(0, Math.ceil((end - now) / 60000));
+    const days = Math.floor(minutesLeft / 1440);
+    const hours = Math.floor((minutesLeft % 1440) / 60);
+    const minutes = minutesLeft % 60;
+    const left = minutesLeft <= 0
+        ? null
+        : days > 0
+            ? t(`${k}.confirmWindowDays`, { days, hours })
+            : hours > 0
+                ? t(`${k}.confirmWindowHours`, { hours, minutes })
+                : t(`${k}.confirmWindowMinutes`, { minutes });
+    return (
+        <View className="mx-4 mt-3.5 flex-row items-start" style={[cardShadow, { gap: 12, padding: 16, backgroundColor: OS.orangeSoft }]} testID="confirm-window">
+            <View className="items-center justify-center" style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: '#FFFFFF' }}>
+                <Ionicons name="hourglass-outline" size={24} color={OS.orange} />
+            </View>
+            <View className="flex-1">
+                <Text className="font-outfit-semibold uppercase" style={{ fontSize: 13, lineHeight: 17, letterSpacing: 0.6, color: OS.orangeText }}>{t(`${k}.confirmWindowTitle`)}</Text>
+                <Text className="font-outfit-bold" style={{ fontSize: 26, lineHeight: 32, letterSpacing: -0.5, color: OS.text, marginTop: 2 }}>
+                    {left ? t(`${k}.confirmWindowLeft`, { time: left }) : t(`${k}.confirmWindowDue`)}
+                </Text>
+                {left ? (
+                    <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: OS.orangeText, marginTop: 4 }}>
+                        {t(`${k}.confirmWindowNote`, { date: fmt.date(deadline), time: fmt.time(deadline) })}
+                    </Text>
+                ) : null}
+            </View>
+        </View>
+    );
+}
+
 // ─────────── Screen ───────────
 export function ScreenCloseout({ visit, onVisit, onBackToDashboard }: {
     visit: OnSiteVisit;
@@ -222,20 +268,36 @@ export function ScreenCloseout({ visit, onVisit, onBackToDashboard }: {
     const [obdPending] = React.useState(
         () => visit.obdStatus === 'none' || visit.obdStatus === 'failed' || visit.obdStatus === 'processing',
     );
+    // Not a form in the page: an alert asks for it once, the upload opens from below, and "later" goes to the dashboard.
+    const [obdAlert, setObdAlert] = React.useState(obdPending);
+    const [obdSheet, setObdSheet] = React.useState(false);
+    const stage = onSiteConfirmationStage(visit);
+    const stillNoReport = visit.obdStatus === 'none' || visit.obdStatus === 'failed';
 
     return (
         <>
             <Body>
-                <Hero redirected={visit.outcome === 'redirected'} stage={onSiteConfirmationStage(visit)} />
+                <Hero redirected={visit.outcome === 'redirected'} stage={stage} />
+                {stage === 'awaiting' && visit.confirmDeadline ? <ConfirmWindow deadline={visit.confirmDeadline} /> : null}
                 <Payout visit={visit} />
                 <Checklist visit={visit} />
                 <RateOwner visit={visit} onVisit={onVisit} />
                 <FinalReportCard appointmentId={visit.appointmentId} />
-                {obdPending ? (
-                    <View className="mt-5">
-                        <Text className="font-outfit-bold mx-5" style={{ ...TYPE.cardTitle, color: OS.text }}>{t(`${k}.obdTitle`)}</Text>
-                        <ObdPanel appointmentId={visit.appointmentId} visit={visit} onVisit={onVisit} />
-                    </View>
+                {stillNoReport && !obdAlert ? (
+                    <TouchableOpacity
+                        onPress={() => setObdSheet(true)}
+                        activeOpacity={0.8}
+                        accessibilityRole="button"
+                        className="mx-4 mt-3.5 flex-row items-center"
+                        style={{ gap: 12, padding: 14, borderRadius: 18, backgroundColor: OS.blueSofter, borderWidth: 1, borderColor: OS.blueSoft }}
+                        testID="obd-pending-row"
+                    >
+                        <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#FFFFFF' }}>
+                            <Ionicons name="document-text-outline" size={22} color={OS.blue} />
+                        </View>
+                        <Text className="flex-1 font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: OS.text }}>{t(`${k}.obdPendingRow`)}</Text>
+                        <Text className="font-outfit-bold" style={{ fontSize: 15, color: OS.blue }}>{t(`${k}.obdPendingAction`)}</Text>
+                    </TouchableOpacity>
                 ) : null}
                 <Text className="font-outfit-regular text-center mx-5 mt-5" style={{ fontSize: 14, lineHeight: 20, color: visit.closeoutCompletedAt ? OS.greenDark : OS.muted }}>
                     {visit.closeoutCompletedAt ? t(`${k}.footerClosed`) : t(`${k}.footer`)}
@@ -245,6 +307,34 @@ export function ScreenCloseout({ visit, onVisit, onBackToDashboard }: {
                     <PrimaryButton label={t(`${k}.back`)} onPress={onBackToDashboard} testID="closeout-back" />
                 </View>
             </Body>
+
+            <OnSiteDialog
+                visible={obdAlert}
+                tone="blue"
+                icon="document-text-outline"
+                title={t(`${k}.obdAlertTitle`)}
+                body={t(`${k}.obdAlertBody`)}
+                primaryLabel={t(`${k}.obdAlertNow`)}
+                onPrimary={() => { setObdAlert(false); setObdSheet(true); }}
+                secondaryLabel={t(`${k}.obdAlertLater`)}
+                onSecondary={() => { setObdAlert(false); onBackToDashboard(); }}
+                onDismiss={() => setObdAlert(false)}
+                testID="obd-alert"
+            />
+
+            <SlideModal visible={obdSheet} onClose={() => setObdSheet(false)} avoidKeyboard>
+                <View style={{ ...SHEET, maxHeight: '88%', paddingTop: 16 }} testID="obd-sheet">
+                    <View className="flex-row items-center justify-between px-5 pb-2">
+                        <Text className="font-outfit-bold" style={{ fontSize: 22, letterSpacing: -0.4, color: OS.text }}>{t(`${k}.obdTitle`)}</Text>
+                        <TouchableOpacity onPress={() => setObdSheet(false)} hitSlop={10} accessibilityRole="button" accessibilityLabel="Close" className="items-center justify-center" style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#EEF1F6' }}>
+                            <Ionicons name="close" size={16} color="#4B5563" />
+                        </TouchableOpacity>
+                    </View>
+                    <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 34 }}>
+                        <ObdPanel appointmentId={visit.appointmentId} visit={visit} onVisit={onVisit} />
+                    </ScrollView>
+                </View>
+            </SlideModal>
         </>
     );
 }

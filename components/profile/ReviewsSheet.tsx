@@ -1,13 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Modal, Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 import { AO, Stars } from '@/components/offer/OfferSections';
-import { SheetDim } from '@/components/ui/SheetDim';
+import { SlideModal } from '@/components/ui/SlideModal';
 import { SheetHandle } from '@/components/ui/SheetHandle';
 import type { ProfileReview } from '@/hooks/useProfileReviews';
-import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 import { SHEET } from '@/lib/ui/sheet';
 
 const K = 'profile.reviews';
@@ -32,9 +31,7 @@ export function ReviewsSheet({ visible, onClose, isTechnician, average, count, i
         return d && !Number.isNaN(d.getTime()) ? d.toLocaleDateString(i18n.language, { day: 'numeric', month: 'short', year: 'numeric' }) : '';
     };
     return (
-        <Modal supportedOrientations={MODAL_ORIENTATIONS} transparent visible={visible} animationType="fade" onRequestClose={onClose}>
-            <SheetDim />
-            <Pressable style={{ flex: 1 }} onPress={onClose} />
+        <SlideModal visible={visible} onClose={onClose}>
             <View style={{ ...SHEET, maxHeight: '82%', paddingTop: 12 }} testID="reviews-sheet">
                 <SheetHandle />
                 <View className="flex-row items-center" style={{ paddingHorizontal: 20, gap: 12 }}>
@@ -98,6 +95,6 @@ export function ReviewsSheet({ visible, onClose, isTechnician, average, count, i
                     ) : null}
                 </ScrollView>
             </View>
-        </Modal>
+        </SlideModal>
     );
 }

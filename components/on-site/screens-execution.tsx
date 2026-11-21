@@ -6,10 +6,10 @@ import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'reac
 import MapView, { Marker } from 'react-native-maps';
 import { MAP_PROVIDER } from '@/lib/maps/provider';
 import { TYPE } from '@/lib/ui/type';
-import { MediaSlot, PhotoList, useExistingCaptures } from './MediaSlot';
+import { ExtraCaptures, MediaSlot, useExistingCaptures } from './MediaSlot';
 import {
-    ActionBar, Body, Card, CardTitle, Checkbox, Eyebrow, GhostButton, Intro, MaintenanceChecklist, NoteInput, OS,
-    OnSiteDialog, PrimaryButton, Segmented, Tip, useMaintenanceItems,
+    ActionBar, Body, Card, CardTitle, Checkbox, Eyebrow, Intro, MaintenanceChecklist, NoteInput, OS,
+    OnSiteDialog, PrimaryButton, Tip, useMaintenanceItems,
 } from './ui';
 
 // Parts purchase, "can't resolve" options and the repair itself. All data here is
@@ -103,7 +103,7 @@ export function ScreenBuyParts({ obdFilled, onDone }: { obdFilled: boolean; onDo
                         ) : (
                             <Card>
                                 <CardTitle title={t('appointments.onSite.obd.file')} optional />
-                                <MediaSlot kind="file" height={150} placeholder={t('appointments.onSite.obd.placeholder')} onChange={handleObd} />
+                                <MediaSlot kind="file" compact actionLabel={t('appointments.onSite.obd.upload')} actionIcon="cloud-upload-outline" height={150} placeholder={t('appointments.onSite.obd.placeholder')} onChange={handleObd} />
                             </Card>
                         )}
                     </>
@@ -290,7 +290,7 @@ function IconTile({ name, light }: { name: React.ComponentProps<typeof Ionicons>
 
 // ─────────── Resolve the issue ───────────
 export function ScreenResolveIncident({
-    issue, partsOrder, workStartedAt, workNotes, onWorkNotesChange, checklist: initialChecklist, onChecklistChange,
+    issue, partsOrder, workStartedAt, workNotes, onWorkNotesChange,
     onResolved, onNotResolved,
 }: {
     issue: string;
@@ -299,33 +299,16 @@ export function ScreenResolveIncident({
     workStartedAt: string | null;
     workNotes: string;
     onWorkNotesChange: (notes: string) => void;
-    checklist?: Record<string, boolean>;
-    onChecklistChange?: (c: Record<string, boolean>) => void;
     onResolved: () => void;
     onNotResolved: () => void;
 }) {
     const { t } = useTranslation();
     const k = 'appointments.onSite.resolve';
+    const [outcome, setOutcome] = React.useState<'resolved' | 'not' | null>(null);
     const startedAt = React.useMemo(() => (workStartedAt ? new Date(workStartedAt).getTime() : Date.now()), [workStartedAt]);
     const [seconds, setSeconds] = React.useState(() => Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
     const [notes, setNotes] = React.useState(workNotes);
     const walkaroundOut = useExistingCaptures('walkaround_out');
-    const [proofTab, setProofTab] = React.useState<'video' | 'photos'>('video');
-    const checklist = useMaintenanceItems(initialChecklist, onChecklistChange);
-    // Set once the mechanic tries to resolve with the checklist unfinished: the checklist then stays flagged.
-    const [warned, setWarned] = React.useState(false);
-    const [warnOpen, setWarnOpen] = React.useState(false);
-
-    /** Resolving without the maintenance checklist hurts the rating and the assistance's compliance: say so first. */
-    const resolve = () => {
-        if (checklist.allChecked) {
-            onResolved();
-            return;
-        }
-        setWarned(true);
-        setWarnOpen(true);
-    };
-
     React.useEffect(() => {
         const id = setInterval(() => setSeconds(Math.max(0, Math.floor((Date.now() - startedAt) / 1000))), 1000);
         return () => clearInterval(id);
@@ -438,23 +421,7 @@ export function ScreenResolveIncident({
                     </Text>
                     <Text className="font-outfit-regular mt-1" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>{t(`${k}.proofSub`)}</Text>
                 </View>
-                <View className="mt-3">
-                    <Segmented
-                        value={proofTab}
-                        onChange={setProofTab}
-                        options={[
-                            { key: 'video', label: t('appointments.onSite.common.recordVideo'), icon: 'videocam-outline' },
-                            { key: 'photos', label: t(`${k}.addPhotos`), icon: 'images-outline' },
-                        ]}
-                    />
-                </View>
-                <Card>
-                    {proofTab === 'video' ? (
-                        <MediaSlot kind="video" height={170} placeholder={t('appointments.onSite.photos.videoPh')} captureKind="walkaround_out" existing={walkaroundOut[0]} />
-                    ) : (
-                        <PhotoList placeholder={t(`${k}.proofPh`)} captureKind="proof" />
-                    )}
-                </Card>
+                <ExtraCaptures videoKind="walkaround_out" photoKind="proof" existingVideo={walkaroundOut[0]} videoPlaceholder={t('appointments.onSite.photos.videoPh')} photoPlaceholder={t(`${k}.proofPh`)} />
 
                 <Card>
                     <CardTitle title={t(`${k}.workTitle`)} optional />
@@ -463,27 +430,99 @@ export function ScreenResolveIncident({
                     </View>
                 </Card>
 
+                {/* How it ended is a choice made in the page; the bar below only moves on with it. */}
+                <View className="px-5 mt-6">
+                    <Text className="font-outfit-bold" style={{ ...TYPE.question, color: OS.text }}>{t(`${k}.outcomeTitle`)}</Text>
+                </View>
+                <View className="mx-4 mt-3" style={{ gap: 10 }}>
+                    {([
+                        { id: 'resolved' as const, icon: 'checkmark-circle-outline' as const, title: t(`${k}.resolvedTitle`), sub: t(`${k}.resolvedSub`), ink: OS.greenDark, soft: OS.greenSoft },
+                        { id: 'not' as const, icon: 'close-circle-outline' as const, title: t(`${k}.notResolvedTitle`), sub: t(`${k}.notResolvedSub`), ink: OS.red, soft: OS.redSoft },
+                    ]).map((o) => {
+                        const on = outcome === o.id;
+                        return (
+                            <TouchableOpacity
+                                key={o.id}
+                                onPress={() => setOutcome(o.id)}
+                                activeOpacity={0.8}
+                                accessibilityRole="radio"
+                                accessibilityState={{ selected: on }}
+                                className="flex-row items-center"
+                                style={{ gap: 12, padding: 14, borderRadius: 18, backgroundColor: on ? o.soft : '#FFFFFF', borderWidth: 1.5, borderColor: on ? o.ink : OS.border }}
+                                testID={`resolve-${o.id}`}
+                            >
+                                <View className="items-center justify-center" style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: on ? '#FFFFFF' : o.soft }}>
+                                    <Ionicons name={o.icon} size={24} color={o.ink} />
+                                </View>
+                                <View className="flex-1">
+                                    <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: OS.text }}>{o.title}</Text>
+                                    <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: OS.muted, marginTop: 1 }}>{o.sub}</Text>
+                                </View>
+                                <View className="items-center justify-center" style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: on ? o.ink : OS.border, backgroundColor: on ? o.ink : '#FFFFFF' }}>
+                                    {on ? <Ionicons name="checkmark" size={15} color="#FFFFFF" /> : null}
+                                </View>
+                            </TouchableOpacity>
+                        );
+                    })}
+                </View>
+            </Body>
+            <ActionBar>
+                <PrimaryButton
+                    label={t('appointments.onSite.common.continue')}
+                    onPress={() => (outcome === 'resolved' ? onResolved() : outcome === 'not' ? onNotResolved() : undefined)}
+                    disabled={!outcome}
+                    testID="resolve-continue"
+                />
+            </ActionBar>
+        </>
+    );
+}
+
+// ─────────── Final check (after the repair is resolved) ───────────
+export function ScreenFinalCheck({ checklist: initialChecklist, onChecklistChange, onDone }: {
+    checklist?: Record<string, boolean>;
+    onChecklistChange?: (c: Record<string, boolean>) => void;
+    onDone: () => void;
+}) {
+    const { t } = useTranslation();
+    const k = 'appointments.onSite.finalCheck';
+    const w = 'appointments.onSite.resolve';
+    const checklist = useMaintenanceItems(initialChecklist, onChecklistChange);
+    // Set once the mechanic tries to finish with the checklist unfinished: the checklist then stays flagged.
+    const [warned, setWarned] = React.useState(false);
+    const [warnOpen, setWarnOpen] = React.useState(false);
+
+    /** Finishing without the checklist hurts the rating and the assistance's compliance: say so first. */
+    const finish = () => {
+        if (checklist.allChecked) {
+            onDone();
+            return;
+        }
+        setWarned(true);
+        setWarnOpen(true);
+    };
+
+    return (
+        <>
+            <Body>
+                <Intro eyebrow={t(`${k}.eyebrow`)} tone="green" title={t(`${k}.title`)} subtitle={t(`${k}.subtitle`)} />
                 <MaintenanceChecklist state={checklist} highlight={warned && !checklist.allChecked} />
             </Body>
-            <ActionBar stacked>
-                <Text className="font-outfit-bold text-center" style={{ fontSize: 16, lineHeight: 22, color: OS.text }}>{t(`${k}.question`)}</Text>
-                <View className="flex-row gap-3">
-                    <GhostButton label={t(`${k}.no`)} onPress={onNotResolved} flex />
-                    <PrimaryButton label={t(`${k}.yes`)} onPress={resolve} tone="green" />
-                </View>
+            <ActionBar>
+                <PrimaryButton label={t(`${k}.finish`)} onPress={finish} tone="green" testID="final-check-finish" />
             </ActionBar>
             <OnSiteDialog
                 visible={warnOpen}
                 tone="orange"
                 icon="clipboard-outline"
-                title={t(`${k}.checklistWarnTitle`)}
-                body={t(`${k}.checklistWarnBody`)}
-                primaryLabel={t(`${k}.checklistWarnFix`)}
+                title={t(`${w}.checklistWarnTitle`)}
+                body={t(`${w}.checklistWarnBody`)}
+                primaryLabel={t(`${w}.checklistWarnFix`)}
                 onPrimary={() => setWarnOpen(false)}
-                secondaryLabel={t(`${k}.checklistWarnSkip`)}
+                secondaryLabel={t(`${w}.checklistWarnSkip`)}
                 onSecondary={() => {
                     setWarnOpen(false);
-                    onResolved();
+                    onDone();
                 }}
                 testID="checklist-warning"
             />

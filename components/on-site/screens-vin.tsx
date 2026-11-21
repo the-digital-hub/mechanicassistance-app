@@ -13,6 +13,9 @@ import { allowAutoRotation, lockLandscape, lockPortrait } from '@/lib/orientatio
 import { pinchZoom, startZoom } from '@/lib/onsite/cameraZoom';
 import { backCameraZoomInfo, canReadText, recognizeText } from '@/modules/vin-text';
 import { compareVins, declaredVin, extractVin, extractVinFromText, isValidVin, normalizeVin, vinCheckDigitOk, type VinCapture } from '@/lib/onsite/vin';
+import { LinearGradient } from 'expo-linear-gradient';
+import { AV, MONO_FONT } from '@/components/vehicles/vehicleFormDesign';
+import { TYPE } from '@/lib/ui/type';
 import { ActionBar, Body, Card, CardTitle, Checkbox, Intro, OnSiteDialog, OS, PrimaryButton, Tip } from './ui';
 
 // Step 1 of the diagnostic: the vehicle's VIN (scanned from its barcode or typed) and,
@@ -463,58 +466,70 @@ export function ScreenDiagnosticsVin({ initial, requestVin, onNext }: {
             <Body>
                 <Intro eyebrow={t(`${k}.eyebrow`)} title={t(`${k}.title`)} subtitle={t(`${k}.subtitle`)} />
 
-                <Card style={{ padding: 16 }}>
-                    <CardTitle title={t(`${k}.label`)} />
-                    <TouchableOpacity
-                        onPress={() => void openScanner()}
-                        disabled={noVin}
-                        activeOpacity={0.85}
-                        accessibilityRole="button"
-                        className="flex-row items-center justify-center gap-2.5 py-3.5 mt-1"
-                        style={{ borderRadius: 14, backgroundColor: OS.blueSoft, borderWidth: 1.5, borderColor: OS.blueIce, opacity: noVin ? 0.4 : 1 }}
-                        testID="vin-scan"
+                {/* The blue VIN card of "Add vehicle", so the same field looks the same wherever it is asked for. */}
+                <View className="mx-4 mt-3.5">
+                    <LinearGradient
+                        colors={[AV.blue, AV.blueDark]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={{ borderRadius: 20, paddingHorizontal: 20, paddingVertical: 22, shadowColor: AV.blue, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.35, shadowRadius: 12, elevation: 6 }}
                     >
-                        <Ionicons name="barcode-outline" size={22} color={OS.blue} />
-                        <Text className="font-outfit-bold text-[15px]" style={{ color: OS.blue }}>
-                            {blocked ? t(`${k}.allowCamera`) : t(`${k}.scan`)}
-                        </Text>
-                    </TouchableOpacity>
-                    {blocked ? <Text className="font-outfit-regular text-[13px] mt-2" style={{ color: OS.muted }}>{t(`${k}.cameraBlocked`)}</Text> : null}
+                        <Text className="font-outfit-bold" style={{ ...TYPE.question, color: '#fff' }}>{t(`${k}.label`)}</Text>
 
-                    <View className="flex-row items-center gap-3 my-3.5">
-                        <View style={{ flex: 1, height: 1, backgroundColor: OS.border }} />
-                        <Text className="font-outfit-bold text-[13px]" style={{ color: OS.mutedLight }}>{t(`${k}.or`)}</Text>
-                        <View style={{ flex: 1, height: 1, backgroundColor: OS.border }} />
-                    </View>
+                        <View style={{ gap: 12, marginTop: 16 }}>
+                            <TouchableOpacity
+                                onPress={() => void openScanner()}
+                                disabled={noVin}
+                                activeOpacity={0.85}
+                                accessibilityRole="button"
+                                className="flex-row items-center justify-center"
+                                style={{ gap: 10, height: 52, borderRadius: 14, backgroundColor: '#10B981', opacity: noVin ? 0.4 : 1 }}
+                                testID="vin-scan"
+                            >
+                                <Ionicons name="barcode-outline" size={22} color="#FFFFFF" />
+                                <Text className="font-outfit-bold" style={{ ...TYPE.body, color: '#FFFFFF' }}>
+                                    {blocked ? t(`${k}.allowCamera`) : t(`${k}.scan`)}
+                                </Text>
+                            </TouchableOpacity>
+                            {blocked ? <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: 'rgba(255,255,255,0.88)' }}>{t(`${k}.cameraBlocked`)}</Text> : null}
 
-                    <TextInput
-                        value={vin}
-                        onChangeText={(v) => {
-                            setJustScanned(false);
-                            setVin(normalizeVin(v).slice(0, 17));
-                        }}
-                        placeholder={t(`${k}.placeholder`)}
-                        placeholderTextColor={OS.mutedLight}
-                        autoCapitalize="characters"
-                        autoCorrect={false}
-                        maxLength={20}
-                        editable={!noVin}
-                        className="font-outfit-bold"
-                        style={{ fontSize: 17, letterSpacing: 1.2, color: OS.text, borderWidth: 1.5, borderColor: typedSomething && !valid && clean.length >= 17 && !noVin ? OS.red : OS.border, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 14, backgroundColor: OS.page, opacity: noVin ? 0.4 : 1 }}
-                        testID="vin-input"
-                    />
-                    <View className="flex-row items-center justify-between mt-2">
-                        <Text className="font-outfit-regular text-[13px]" style={{ color: typedSomething && !valid && clean.length >= 17 ? OS.red : OS.muted }}>
-                            {typedSomething && !valid && clean.length >= 17 ? t(`${k}.invalid`) : t(`${k}.charCount`, { count: clean.length })}
-                        </Text>
-                        {valid ? (
-                            <View className="flex-row items-center gap-1">
-                                <Ionicons name="checkmark-circle" size={16} color={OS.greenDark} />
-                                <Text className="font-outfit-bold text-[13px]" style={{ color: OS.greenDark }}>{justScanned ? t(`${k}.scanned`) : t(`${k}.valid`)}</Text>
+                            <View className="flex-row items-center" style={{ gap: 12 }}>
+                                <View style={{ flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.3)' }} />
+                                <Text className="font-outfit-bold" style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)' }}>{t(`${k}.or`)}</Text>
+                                <View style={{ flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.3)' }} />
                             </View>
-                        ) : null}
-                    </View>
-                </Card>
+
+                            <TextInput
+                                value={vin}
+                                onChangeText={(v) => {
+                                    setJustScanned(false);
+                                    setVin(normalizeVin(v).slice(0, 17));
+                                }}
+                                placeholder={t(`${k}.placeholder`)}
+                                placeholderTextColor={AV.mutedLight}
+                                autoCapitalize="characters"
+                                autoCorrect={false}
+                                maxLength={20}
+                                editable={!noVin}
+                                style={{
+                                    height: 52, borderRadius: 14, paddingHorizontal: 16, backgroundColor: '#fff',
+                                    borderWidth: 1, borderColor: typedSomething && !valid && clean.length >= 17 && !noVin ? '#FCA5A5' : 'transparent',
+                                    fontFamily: MONO_FONT, fontSize: 16, letterSpacing: 0.5, color: AV.text, opacity: noVin ? 0.4 : 1,
+                                }}
+                                testID="vin-input"
+                            />
+                        </View>
+
+                        <View className="flex-row items-start justify-between" style={{ gap: 12, marginTop: 14 }}>
+                            <Text className="font-outfit-regular" style={{ flex: 1, ...TYPE.helper, color: typedSomething && !valid && clean.length >= 17 ? '#FECACA' : 'rgba(255,255,255,0.85)' }}>
+                                {valid
+                                    ? (justScanned ? t(`${k}.scanned`) : t(`${k}.valid`))
+                                    : typedSomething && clean.length >= 17 ? t(`${k}.invalid`) : t(`${k}.charCount`, { count: clean.length })}
+                            </Text>
+                            {valid ? <Ionicons name="checkmark-circle" size={20} color="#86EFAC" /> : null}
+                        </View>
+                    </LinearGradient>
+                </View>
 
                 {valid && !vinCheckDigitOk(clean) ? <Tip tone="orange">{t(`${k}.checkDigit`)}</Tip> : null}
 

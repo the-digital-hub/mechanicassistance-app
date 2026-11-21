@@ -1,3 +1,4 @@
+import { CONFIRM_GRADIENT } from '@/lib/ui/floatingFooter';
 import { AddressNameField, addressNamePayload, type AddressNameValue } from '@/components/addresses/AddressNameField';
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { Input } from '@/components/ui/Input';
@@ -15,7 +16,7 @@ import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View, Modal, Pla
 import { LinearGradient } from 'expo-linear-gradient';
 import { appAlert } from '@/lib/ui/appAlert';
 import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
-import { KEYBOARD_SCROLL_PROPS } from '@/lib/ui/keyboard';
+import { KeyboardAwareScrollView } from '@/components/ui/KeyboardAwareScrollView';
 
 export default function CreateAddressScreen() {
     const router = useRouter();
@@ -149,7 +150,7 @@ export default function CreateAddressScreen() {
 
     return (
         <View className="flex-1 bg-white">
-            <ScrollView {...KEYBOARD_SCROLL_PROPS} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 24, paddingBottom: 40 }}>
+            <KeyboardAwareScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 24, paddingBottom: 40 }}>
                 {/* Section Badge */}
                 <View style={{ marginTop: 8 }}>
                   <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
@@ -241,7 +242,7 @@ export default function CreateAddressScreen() {
                         style={{ flex: 1 }}
                     >
                         <LinearGradient
-                            colors={['#2B66F8', '#081E72']}
+                            colors={[...CONFIRM_GRADIENT]}
                             start={{ x: 0, y: 1 }}
                             end={{ x: 1, y: 0 }}
                             style={{
@@ -261,7 +262,7 @@ export default function CreateAddressScreen() {
                         </LinearGradient>
                     </TouchableOpacity>
                 </View>
-            </ScrollView>
+            </KeyboardAwareScrollView>
 
             {/* State Modal */}
             {showStateModal && (

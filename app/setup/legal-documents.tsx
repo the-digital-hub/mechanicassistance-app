@@ -1,3 +1,4 @@
+import { CONFIRM_GRADIENT } from '@/lib/ui/floatingFooter';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { ShieldCheck } from 'lucide-react-native';
@@ -173,7 +174,7 @@ export default function LegalDocumentsScreen() {
           style={{ flex: 0.7 }}
         >
           <LinearGradient
-            colors={['#2B66F8', '#081E72']}
+            colors={[...CONFIRM_GRADIENT]}
             start={{ x: 0, y: 1 }}
             end={{ x: 1, y: 0 }}
             style={{

@@ -1,4 +1,4 @@
-import { FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
+import { FLOATING_FOOTER, CONFIRM_GRADIENT } from '@/lib/ui/floatingFooter';
 import { ROUNDED_HEADER } from '@/lib/ui/header';
 import { TYPE } from '@/lib/ui/type';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -284,24 +284,28 @@ export function Footer({
     disabled,
     loading,
     hint,
+    tone = 'primary',
 }: {
     label: string;
     onPress: () => void;
     disabled?: boolean;
     loading?: boolean;
     hint?: string;
+    /** `confirm` (green): the button that finishes the process (send, pay, save). The steps along the way stay blue. */
+    tone?: 'primary' | 'confirm';
 }) {
+    const confirm = tone === 'confirm';
     const off = disabled || loading;
     return (
         <View
             style={{ ...FLOATING_FOOTER, gap: 10 }}
         >
             {hint ? <Text className="font-outfit-regular text-center" style={{ fontSize: 13, color: SC.muted }}>{hint}</Text> : null}
-            <TouchableOpacity onPress={onPress} disabled={off} activeOpacity={0.85} accessibilityRole="button" accessibilityState={{ disabled: !!off }} style={{ opacity: off ? 0.55 : 1, borderRadius: 16, shadowColor: '#2B66F8', shadowOffset: { width: 0, height: 6 }, shadowOpacity: off ? 0 : 0.3, shadowRadius: 12, elevation: off ? 0 : 6 }}>
-                <LinearGradient colors={['#2B66F8', '#081E72']} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }} style={{ borderRadius: 16, paddingVertical: 17, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}>
+            <TouchableOpacity onPress={onPress} disabled={off} activeOpacity={0.85} accessibilityRole="button" accessibilityState={{ disabled: !!off }} style={{ opacity: off ? 0.55 : 1, borderRadius: 16, shadowColor: confirm ? '#10B981' : '#2B66F8', shadowOffset: { width: 0, height: 6 }, shadowOpacity: off ? 0 : 0.3, shadowRadius: 12, elevation: off ? 0 : 6 }}>
+                <LinearGradient colors={confirm ? [...CONFIRM_GRADIENT] : ['#2B66F8', '#081E72']} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }} style={{ borderRadius: 16, paddingVertical: 17, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}>
                     {loading ? <ActivityIndicator color="#FFFFFF" /> : null}
                     <Text className="font-outfit-bold" style={{ ...TYPE.button, color: '#FFFFFF' }}>{label}</Text>
-                    {!loading ? <ChevronRight size={20} color="#FFFFFF" /> : null}
+                    {!loading ? (confirm ? <Check size={20} color="#FFFFFF" strokeWidth={3} /> : <ChevronRight size={20} color="#FFFFFF" />) : null}
                 </LinearGradient>
             </TouchableOpacity>
         </View>

@@ -5,7 +5,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, Text, TouchableOpacity, View } from 'react-native';
 import { absoluteMediaUrl, MediaKind, onSiteDAO, OnSiteMedia } from '@/lib/dao/OnSiteDAO';
-import { NoteInput, OS } from './ui';
+import { Card, CardTitle, NoteInput, OS } from './ui';
 import { appAlert } from '@/lib/ui/appAlert';
 
 // Capture slot for the on-site flow. Inside an OnSiteCaptureProvider, a slot with
@@ -193,7 +193,8 @@ export function MediaSlot({
     if (compact && !picked) {
         return (
             <View className={padded ? 'p-4' : ''}>
-                <View style={{ backgroundColor: OS.page, borderRadius: 16, borderWidth: 1, borderColor: OS.border, padding: 14, gap: 12 }}>
+                {/* No grey box inside the card: the card is the frame, the icon and the hint sit on it and the button under them. */}
+                <View style={{ gap: 14 }}>
                     <View className="flex-row items-center gap-3">
                         <View className="items-center justify-center" style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: OS.blueSoft }}>
                             <Ionicons name={kind === 'video' ? 'videocam-outline' : kind === 'file' ? 'document-text-outline' : 'camera-outline'} size={24} color={OS.blue} />
@@ -322,6 +323,9 @@ export function PhotoList({
             {slots.map((slot, i) => (
                 <View key={slot.id}>
                     <MediaSlot
+                        compact
+                        actionLabel={t('appointments.onSite.common.addPhoto')}
+                        actionIcon="camera-outline"
                         height={height}
                         placeholder={placeholder}
                         captureKind={captureKind}
@@ -346,5 +350,31 @@ export function PhotoList({
                 </TouchableOpacity>
             </View>
         </View>
+    );
+}
+
+/**
+ * The optional evidence of a visit, both options on screen at once (no tabs to choose between): a walk-around video and extra photos,
+ * each in its own card with its button.
+ */
+export function ExtraCaptures({ videoKind, photoKind, existingVideo, videoPlaceholder, photoPlaceholder }: {
+    videoKind: MediaKind;
+    photoKind: MediaKind;
+    existingVideo?: OnSiteMedia;
+    videoPlaceholder: string;
+    photoPlaceholder: string;
+}) {
+    const { t } = useTranslation();
+    return (
+        <>
+            <Card>
+                <CardTitle title={t('appointments.onSite.photos.videoTitle')} optional />
+                <MediaSlot kind="video" compact actionLabel={t('appointments.onSite.common.recordVideo')} actionIcon="videocam-outline" placeholder={videoPlaceholder} captureKind={videoKind} existing={existingVideo} />
+            </Card>
+            <Card>
+                <CardTitle title={t('appointments.onSite.photos.extraTitle')} optional />
+                <PhotoList placeholder={photoPlaceholder} captureKind={photoKind} />
+            </Card>
+        </>
     );
 }

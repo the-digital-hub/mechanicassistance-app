@@ -355,7 +355,7 @@ export default function LocationMapScreen() {
                 </View>
             </ScrollView>
 
-            <Footer label={t('requestAssistance.locationMap.confirmLocation')} disabled={!marker} onPress={handleConfirm} />
+            <Footer label={t('requestAssistance.locationMap.confirmLocation')} disabled={!marker} onPress={handleConfirm} tone="confirm" />
         </View>
     );
 }

@@ -241,6 +241,17 @@
     "accept": "Accept"
   },
   "dashboard": {
+    "attention": {
+      "timer": {
+        "days": "{{days}} d {{hours}} h",
+        "hours": "{{hours}} h {{minutes}} min",
+        "minutes": "{{minutes}} min",
+        "seconds": "{{minutes}}:{{seconds}}",
+        "confirm": "Confirms automatically in {{time}}",
+        "offer": "Offer held for {{time}}",
+        "rate": "{{time}} left to rate"
+      }
+    },
     "rating": {
       "heading": {
         "user": "Rate your recent services",
@@ -325,9 +336,14 @@
           "cta": "Compare"
         },
         "confirm": {
-          "title": "Confirm the finished call",
+          "title": "Confirm the finished service",
           "sub": "Confirm it was resolved so the technician can be paid.",
-          "cta": "Review"
+          "cta": "Review",
+          "quick": "Confirm now",
+          "alertTitle": "Confirm the service?",
+          "alertBody": "The work was done and the technician will be paid.",
+          "alertNo": "Not yet",
+          "alertYes": "Yes, confirm"
         },
         "hide": "Hide",
         "finalQuote": {
@@ -410,6 +426,13 @@
         }
       },
       "jobsToday": "Jobs today",
+      "nudge": {
+        "goAvailable": "Go Available to start earning today",
+        "goAvailableCta": "Go online",
+        "lookout": "Stay alert: take the next request and start earning",
+        "requests_one": "{{count}} request near you. Take it and start earning",
+        "requests_other": "{{count}} requests near you. Take one and start earning"
+      },
       "earnedToday": "Earned today",
       "rating": "Rating",
       "noRating": "New",
@@ -1322,6 +1345,7 @@
         "addAnotherPhoto": "Add another photo",
         "tapToAdd": "Tap to take or choose",
         "recordVideo": "Record video",
+        "addPhoto": "Add photo",
         "video": "Video captured",
         "selectAll": "Select all",
         "unselectAll": "Unselect all",
@@ -1378,6 +1402,7 @@
         "subtitle": "Plug in the OBD-II scanner and run a full scan.",
         "tipLater": "You don't need to upload the scanner file right now — you can do it later from the service summary.",
         "file": "OBD scanner file",
+        "upload": "Upload scan file",
         "placeholder": "Upload the scan file or photo",
         "codesFound": "Codes found in this scan",
         "aiFix": "AI suggested fix",
@@ -1459,6 +1484,8 @@
         "extra": "360° video or extra photos",
         "addExtra": "Add extra photos",
         "videoPh": "Record a full walk-around of the vehicle",
+        "videoTitle": "360° video",
+        "extraTitle": "Extra photos",
         "extraPh": "Something worth noting for the report",
         "extraSub": "A short walk-around video or a few more photos help if the client ever raises a claim.",
         "required": "Required",
@@ -1480,6 +1507,9 @@
         "yes": "Yes, I can work it",
         "needParts": "I can do the job, but I need to buy auto parts",
         "no": "No, I can't",
+        "yesSub": "Start the repair on-site.",
+        "needPartsSub": "Buy the parts first; the owner pays for them on the platform.",
+        "noSub": "End the visit and see the other options.",
         "noCodes": "No OBD codes recorded."
       },
       "buyParts": {
@@ -1551,6 +1581,11 @@
         "proofPh": "Photo of the work done, or of the vehicle as you leave it",
         "removePhoto": "Remove photo",
         "workPh": "Describe the work performed…",
+        "outcomeTitle": "How did it go?",
+        "resolvedTitle": "Issue resolved",
+        "resolvedSub": "The vehicle is working again. One last check and you're done.",
+        "notResolvedTitle": "I couldn't resolve it",
+        "notResolvedSub": "End the visit and see the other options.",
         "question": "Is the assistance resolved?",
         "no": "No",
         "yes": "Yes, resolved",
@@ -1564,6 +1599,12 @@
         "checklistWarnSkip": "Continue anyway",
         "proofSub": "Photograph the work done and the vehicle as you leave it. A short video works too.",
         "addPhotos": "Add photos"
+      },
+      "finalCheck": {
+        "eyebrow": "FINAL CHECK",
+        "title": "Run the final check",
+        "subtitle": "Go through these points before closing the service.",
+        "finish": "Finish the repair"
       },
       "videoOut": {
         "eyebrow": "BEFORE YOU GO · OPTIONAL",
@@ -1652,9 +1693,9 @@
           "partial": "Not enough to compare yet. The OBD scan will complete the check."
         },
         "scanSubtitle": "Center the barcode inside the frame, or tap Read the printed VIN.",
-        "tipDoor": "Sticker on the driver's door jamb",
-        "tipWindshield": "Plate at the base of the windshield, driver's side",
-        "tipLight": "Tilt the phone if there's glare, or turn on a light",
+        "tipDoor": "Door jamb sticker",
+        "tipWindshield": "Windshield plate",
+        "tipLight": "Tilt the phone or add light",
         "typeInstead": "Type the VIN instead",
         "skipSub": "You can still add the odometer reading.",
         "skipWarn": "Without the VIN we can't check the vehicle against the request.",
@@ -1731,13 +1772,33 @@
       "heroTitleReleased": "Support found the work was not done. The customer was not charged.",
       "walletDisputed": "Under review: released if support confirms the work",
       "walletReleased": "Not charged: support found the work was not done",
+      "confirmWindowTitle": "Time for the customer to confirm",
+      "confirmWindowLeft": "{{time}} left",
+      "confirmWindowDays": "{{days}} d {{hours}} h",
+      "confirmWindowHours": "{{hours}} h {{minutes}} min",
+      "confirmWindowMinutes": "{{minutes}} min",
+      "confirmWindowNote": "If they don't answer, it confirms automatically on {{date}} at {{time}} and your payout is released.",
+      "confirmWindowDue": "Confirming automatically now",
+      "obdAlertTitle": "Upload the OBD scan report",
+      "obdAlertBody": "It completes the diagnosis in your service report. Upload it now, or later: we'll remind you.",
+      "obdAlertNow": "Upload now",
+      "obdAlertLater": "Later, go to the dashboard",
+      "obdPendingRow": "OBD scan report pending",
+      "obdPendingAction": "Upload",
       "itemOwnerConfirmation": "Customer confirmation"
     },
     "onSiteConfirm": {
-      "autoConfirmIn": "Confirms automatically in {{hours}} h",
-      "autoConfirmSoon": "Confirms automatically in less than 1 h",
+      "autoConfirmTitle": "Automatic confirmation",
+      "autoConfirmLeft": "In {{time}}",
+      "autoConfirmDays": "{{days}} d {{hours}} h",
+      "autoConfirmHours": "{{hours}} h {{minutes}} min",
+      "autoConfirmMinutes": "{{minutes}} min",
+      "autoConfirmNote": {
+        "owner": "If you don't answer, the service is confirmed on {{date}} at {{time}} and the technician is paid.",
+        "mechanic": "If the customer doesn't answer, it is confirmed on {{date}} at {{time}} and your payout is released."
+      },
       "owner": {
-        "awaitingTitle": "The mechanic marked the service as finished",
+        "awaitingTitle": "The technician marked the service as finished",
         "awaitingBody": "Was the work done? Confirm it to complete the service. If it wasn't, let us know: you won't be charged until support reviews it.",
         "confirm": "Confirm",
         "notDone": "The work wasn't done",
@@ -2288,6 +2349,8 @@
     "selectTimeTitle": "Select time",
     "selectTime": "Select Time",
     "acceptRequest": "Accept request",
+    "confirmOfferPending": "The client still has to accept it.",
+    "offerHighlight": { "video": "Video call", "immediate": "Immediate assistance", "scheduled": "Scheduled offer" },
     "confirmOfferTitle": "Send this offer?",
     "waitingClientConfirmation": "Waiting for the client to confirm",
     "confirmOfferImmediate": "You are about to offer immediate assistance for {{title}}. The client still has to accept it.",

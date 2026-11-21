@@ -100,6 +100,9 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true }: 
                     <MediaSlot
                         key={visit?.obdDocumentKey ?? 'none'}
                         kind="file"
+                        compact
+                        actionLabel={t(`${k}.upload`)}
+                        actionIcon="cloud-upload-outline"
                         height={150}
                         placeholder={t(`${k}.placeholder`)}
                         customUpload={upload}

@@ -107,6 +107,20 @@ export function MechanicStatusProvider({ children }: { children: React.ReactNode
     }
   }, [user, updateUser]);
 
+  // Switching INTO the technician role puts the profile online: someone who changes to work is available to receive requests. Only the
+  // switch does it: opening the app or logging in as a technician keeps whatever they had picked (busy, offline).
+  const role = user?.role ?? null;
+  const roleRef = useRef<{ id: string | null; role: string | null }>({ id: userId, role });
+  useEffect(() => {
+    const prev = roleRef.current;
+    roleRef.current = { id: userId, role };
+    const switchedIn = !!userId && prev.id === userId && role === 'mechanic' && !!prev.role && prev.role !== 'mechanic';
+    if (switchedIn && statusRef.current !== 'available') {
+      // A refusal (profile not ready, offline) leaves the status as the server has it.
+      void setMechanicStatus('available').catch(() => undefined);
+    }
+  }, [role, userId, setMechanicStatus]);
+
   const value = useMemo(
     () => ({ mechanicStatus, setMechanicStatus, isUpdatingStatus }),
     [mechanicStatus, setMechanicStatus, isUpdatingStatus],
