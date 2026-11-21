@@ -23,10 +23,10 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { ArrowLeftRight, Award, BadgeCheck, Briefcase, Camera, Car, Check, ChevronDown, ChevronLeft, ChevronRight, Circle, Clock, CreditCard, FileText, Heart, HelpCircle, Lock, LogOut, MapPin, Settings, User, Wallet } from 'lucide-react-native';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Image, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { appAlert } from '@/lib/ui/appAlert';
 import { alertOpenWork, alertRoleSwitchBlocked } from '@/lib/roles/roleSwitchMessages';
-import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
+import { MechanicStatusSheet } from '@/components/profile/MechanicStatusSheet';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -551,51 +551,15 @@ export default function ProfileScreen() {
         onPick={handlePickRole}
       />
 
-      {/* Status Modal */}
-      {showStatusModal && (
-        <Modal supportedOrientations={MODAL_ORIENTATIONS} transparent visible={showStatusModal} animationType="fade">
-          <View className="flex-1 bg-black/50 justify-center items-center px-6">
-            <View className="bg-white w-full rounded-2xl p-6 items-center">
-              <Text className="text-lg font-outfit-bold text-gray-900 mb-6 text-center">
-                {t('profile.modals.changeStatus')}
-              </Text>
-
-              <View className="w-full gap-3">
-                {statusOptions.map((option) => (
-                  <TouchableOpacity
-                    key={option.id}
-                    onPress={() => {
-                      void changeStatus(option.id);
-                      setShowStatusModal(false);
-                    }}
-                    activeOpacity={0.8}
-                    className={`flex-row items-start gap-3 p-4 rounded-xl border ${
-                      mechanicStatus === option.id ? 'bg-blue-50 border-blue-200' : 'border-gray-200'
-                    }`}
-                  >
-                    <View className="mt-0.5">
-                      <Circle size={10} color={getStatusColor(option.id)} fill={getStatusColor(option.id)} />
-                    </View>
-                    <View className="flex-1">
-                      <Text className={`font-outfit-semibold text-base ${
-                        mechanicStatus === option.id ? 'text-blue-600' : 'text-gray-900'
-                      }`}>
-                        {option.label}
-                      </Text>
-                      <Text className="text-gray-600 font-outfit-regular text-[13px] mt-1">
-                        {option.description}
-                      </Text>
-                    </View>
-                    {mechanicStatus === option.id && (
-                      <View className="w-5 h-5 rounded-full bg-blue-600 mt-0.5" />
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-          </View>
-        </Modal>
-      )}
+      {/* Status sheet */}
+      <MechanicStatusSheet
+        visible={showStatusModal}
+        title={t('profile.modals.changeStatus')}
+        current={mechanicStatus === 'busy' || mechanicStatus === 'offline' ? mechanicStatus : 'available'}
+        options={statusOptions}
+        onPick={(id) => void changeStatus(id)}
+        onClose={() => setShowStatusModal(false)}
+      />
       </ScrollView>
       )}
       {toast && (

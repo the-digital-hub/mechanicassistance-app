@@ -336,6 +336,8 @@ export type AttentionItem = {
     tone: 'amber' | 'blue';
     icon: LucideIcon;
     title: string;
+    /** A number shown as a badge next to the title (how many there are). */
+    count?: number;
     sub: string;
     cta: string;
     /** Changes when the alert is a new one (e.g. another count), so a hidden alert can return. */
@@ -359,14 +361,21 @@ export function AttentionList({ items, hideLabel, onDismiss }: { items: Attentio
                         activeOpacity={0.7}
                         accessibilityRole="button"
                         className="flex-row"
-                        style={{ gap: 12, paddingHorizontal: 14, paddingVertical: 14, borderBottomWidth: i < items.length - 1 ? 1 : 0, borderBottomColor: C.borderSoft }}
+                        style={{ gap: 12, paddingHorizontal: 14, paddingVertical: 14, backgroundColor: a.tone === 'amber' ? '#FFFAEF' : '#F5F9FF', borderBottomWidth: i < items.length - 1 ? 1 : 0, borderBottomColor: a.tone === 'amber' ? '#F6E2B5' : '#DCE8FB' }}
                     >
                         <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: tone.bg }}>
                             <Icon size={20} color={tone.fg} />
                         </View>
                         {/* Text first, then the actions under it: nothing is squeezed into a right-hand column. */}
                         <View className="flex-1" style={{ minWidth: 0 }}>
-                            <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: C.text }}>{a.title}</Text>
+                            <View className="flex-row items-center" style={{ gap: 8 }}>
+                                <Text className="font-outfit-bold flex-shrink" style={{ fontSize: 16, lineHeight: 22, color: C.text }}>{a.title}</Text>
+                                {a.count !== undefined ? (
+                                    <View className="items-center justify-center" style={{ minWidth: 24, height: 24, paddingHorizontal: 7, borderRadius: 12, backgroundColor: tone.fg }} testID="attention-count">
+                                        <Text className="font-outfit-bold" style={{ fontSize: 13, lineHeight: 16, color: '#FFFFFF' }}>{a.count}</Text>
+                                    </View>
+                                ) : null}
+                            </View>
                             <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: C.muted, marginTop: 2 }}>{a.sub}</Text>
                             <View className="flex-row items-center" style={{ gap: 16, marginTop: 10 }}>
                                 <View className="flex-row items-center" style={{ gap: 2, minHeight: 36, paddingLeft: 14, paddingRight: 8, borderRadius: 100, backgroundColor: tone.bg }}>

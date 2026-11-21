@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { rankOptions } from '@/lib/searchRank';
 import { ReactNode, useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, KeyboardAvoidingView, Modal, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
+import { ActivityIndicator, Dimensions, FlatList, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { SlideModal } from '@/components/ui/SlideModal';
 
 export interface SearchableSelectOption {
     value: string;
@@ -118,12 +118,9 @@ export function SearchableSelect<T extends SearchableSelectOption>({
                 </TouchableOpacity>
             )}
 
-            <Modal supportedOrientations={MODAL_ORIENTATIONS} visible={open} transparent animationType="slide" onRequestClose={close}>
-                <KeyboardAvoidingView
-                    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-                    className="flex-1 bg-black/40 justify-end"
-                >
-                    <View className="bg-white rounded-t-3xl h-[75%] p-6">
+            <SlideModal visible={open} onClose={close} dim="rgba(0,0,0,0.4)" avoidKeyboard>
+                <View>
+                    <View className="bg-white rounded-t-3xl p-6" style={{ height: Dimensions.get('window').height * 0.75 }}>
                         <View className="flex-row justify-between items-center mb-4">
                             <Text className="text-xl font-outfit-bold text-[#0F172A]">{title}</Text>
                             <TouchableOpacity onPress={close}>
@@ -193,8 +190,8 @@ export function SearchableSelect<T extends SearchableSelectOption>({
                             />
                         )}
                     </View>
-                </KeyboardAvoidingView>
-            </Modal>
+                </View>
+            </SlideModal>
         </>
     );
 }

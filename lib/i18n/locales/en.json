@@ -239,6 +239,24 @@
     "accept": "Accept"
   },
   "dashboard": {
+    "rating": {
+      "heading": {
+        "user": "Rate your recent services",
+        "mechanic": "Rate your recent customers"
+      },
+      "counter": "{{current}} of {{total}}",
+      "yourTechnician": "Your technician",
+      "yourCustomer": "Your customer",
+      "stars": "{{count}} stars",
+      "commentPh": "Add a comment (optional)…",
+      "send": "Send rating",
+      "next": "Next",
+      "later": "Not now",
+      "thanks": "Thanks for your rating",
+      "errorTitle": "Couldn't send it",
+      "errorMessage": "Check your connection and try again.",
+      "close": "Close"
+    },
     "greeting": {
       "morning": "GOOD MORNING",
       "afternoon": "GOOD AFTERNOON",
@@ -292,9 +310,8 @@
       "emergencyLabel": "ADDITIONAL SERVICES",
       "attention": {
         "rate": {
-          "title": "Rate your technician",
-          "title_other": "Rate your {{count}} technicians",
-          "sub": "Your rating helps others choose and keeps the service good.",
+          "title": "Technicians to rate",
+          "sub": "Tell us how your technician did.",
           "cta": "Rate now"
         },
         "title": "Needs your attention",
@@ -452,9 +469,8 @@
       ],
       "attention": {
         "rate": {
-          "title": "Rate your customer",
-          "title_other": "Rate your {{count}} customers",
-          "sub": "Your rating helps keep the community respectful.",
+          "title": "Customers to rate",
+          "sub": "Tell us how the customer was.",
           "cta": "Rate now"
         },
         "title": "Needs your attention",

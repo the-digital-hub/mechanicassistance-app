@@ -12,7 +12,7 @@ import {
   Wrench,
 } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
-import { Image, Modal, Platform, Pressable, Text, TouchableOpacity, View } from "react-native";
+import { Image, Platform, Text, TouchableOpacity, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
 import { HapticTab } from "@/components/haptic-tab";
@@ -27,7 +27,7 @@ import { LocationRevalidator } from "@/components/LocationRevalidator";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { goBackOr } from "@/lib/navigation/goBackOr";
 import { useTranslation } from "react-i18next";
-import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
+import { MechanicStatusSheet } from '@/components/profile/MechanicStatusSheet';
 
 /** The brand's isologo, where the technician has their availability badge: the vehicle owner's root screens. */
 function BrandMark() {
@@ -145,50 +145,14 @@ function MechanicStatusBadge() {
         </Text>
       </TouchableOpacity>
 
-      <Modal supportedOrientations={MODAL_ORIENTATIONS} transparent visible={showModal} animationType="fade" onRequestClose={() => setShowModal(false)}>
-        <View className="flex-1 bg-black/50 justify-center items-center px-6">
-          {/* Tapping outside the card closes it. */}
-          <Pressable style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }} onPress={() => setShowModal(false)} accessible={false} testID="status-modal-backdrop" />
-          <View className="bg-white w-full rounded-2xl p-6 items-center">
-            <Text className="text-lg font-outfit-bold text-gray-900 mb-6 text-center">
-              {t('profile.modals.changeStatus')}
-            </Text>
-
-            <View className="w-full gap-3">
-              {statusOptions.map((option) => (
-                <TouchableOpacity
-                  key={option.id}
-                  onPress={() => {
-                    setMechanicStatus(option.id).catch(() => undefined);
-                    setShowModal(false);
-                  }}
-                  activeOpacity={0.8}
-                  className={`flex-row items-start gap-3 p-4 rounded-xl border ${
-                    mechanicStatus === option.id ? 'bg-blue-50 border-blue-200' : 'border-gray-200'
-                  }`}
-                >
-                  <View className="mt-0.5">
-                    <Circle size={10} color={getStatusColor(option.id)} fill={getStatusColor(option.id)} />
-                  </View>
-                  <View className="flex-1">
-                    <Text className={`font-outfit-semibold text-base ${
-                      mechanicStatus === option.id ? 'text-blue-600' : 'text-gray-900'
-                    }`}>
-                      {option.label}
-                    </Text>
-                    <Text className="text-gray-600 font-outfit-regular text-[13px] mt-1">
-                      {option.description}
-                    </Text>
-                  </View>
-                  {mechanicStatus === option.id && (
-                    <View className="w-5 h-5 rounded-full bg-blue-600 mt-0.5" />
-                  )}
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <MechanicStatusSheet
+        visible={showModal}
+        title={t('profile.modals.changeStatus')}
+        current={mechanicStatus === 'busy' || mechanicStatus === 'offline' ? mechanicStatus : 'available'}
+        options={statusOptions}
+        onPick={(id) => setMechanicStatus(id).catch(() => undefined)}
+        onClose={() => setShowModal(false)}
+      />
     </>
   );
 }

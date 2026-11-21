@@ -2,11 +2,11 @@ import { useTranslation } from 'react-i18next';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { Calendar, Check, ChevronDown, Clock } from 'lucide-react-native';
 import { useState } from 'react';
-import { Modal, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, ScrollView, Text, TouchableOpacity, View, Dimensions } from 'react-native';
 
 import { dateFromKey, formatMinutes, toDateKey } from '@/lib/scheduled/draft';
 import { CARD_STYLE, SC } from './ui';
-import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
+import { SlideModal } from '@/components/ui/SlideModal';
 
 const IOS = Platform.OS === 'ios';
 
@@ -293,10 +293,9 @@ export function SelectField({
                 <Text className="font-outfit-medium flex-1" style={{ fontSize: 16, color: selected ? SC.text : SC.mutedLight }}>{selected?.label ?? placeholder}</Text>
                 <ChevronDown size={16} color={SC.blue} />
             </TouchableOpacity>
-            <Modal supportedOrientations={MODAL_ORIENTATIONS} visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>
-                <View style={{ flex: 1, justifyContent: 'flex-end' }}>
-                    <TouchableOpacity activeOpacity={1} onPress={() => setOpen(false)} accessibilityLabel="Close" style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(11,21,48,0.45)' }} />
-                    <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingTop: 10, paddingBottom: 28, maxHeight: '60%' }}>
+            <SlideModal visible={open} onClose={() => setOpen(false)} dim="rgba(11,21,48,0.4)">
+                <View>
+                    <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingTop: 10, paddingBottom: 28, maxHeight: Dimensions.get('window').height * 0.6 }}>
                         <View style={{ width: 40, height: 4, borderRadius: 4, backgroundColor: '#E4EAF5', alignSelf: 'center', marginBottom: 10 }} />
                         {timeGrid ? (
                             <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 8 }}>
@@ -345,7 +344,7 @@ export function SelectField({
                         )}
                     </View>
                 </View>
-            </Modal>
+            </SlideModal>
         </>
     );
 }

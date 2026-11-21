@@ -239,6 +239,24 @@
     "accept": "Aceptar"
   },
   "dashboard": {
+    "rating": {
+      "heading": {
+        "user": "Califica tus servicios recientes",
+        "mechanic": "Califica a tus clientes recientes"
+      },
+      "counter": "{{current}} de {{total}}",
+      "yourTechnician": "Tu técnico",
+      "yourCustomer": "Tu cliente",
+      "stars": "{{count}} estrellas",
+      "commentPh": "Agrega un comentario (opcional)…",
+      "send": "Enviar calificación",
+      "next": "Siguiente",
+      "later": "Ahora no",
+      "thanks": "Gracias por tu calificación",
+      "errorTitle": "No se pudo enviar",
+      "errorMessage": "Revisa tu conexión y vuelve a intentar.",
+      "close": "Cerrar"
+    },
     "greeting": {
       "morning": "BUENOS DÍAS",
       "afternoon": "BUENAS TARDES",
@@ -292,9 +310,8 @@
       "emergencyLabel": "SERVICIOS ADICIONALES",
       "attention": {
         "rate": {
-          "title": "Califica a tu técnico",
-          "title_other": "Califica a tus {{count}} técnicos",
-          "sub": "Tu calificación ayuda a otros a elegir y mantiene buen el servicio.",
+          "title": "Técnicos por calificar",
+          "sub": "Cuéntanos cómo te fue con tu técnico.",
           "cta": "Calificar"
         },
         "title": "Requiere tu atención",
@@ -452,9 +469,8 @@
       ],
       "attention": {
         "rate": {
-          "title": "Califica a tu cliente",
-          "title_other": "Califica a tus {{count}} clientes",
-          "sub": "Tu calificación ayuda a mantener una comunidad respetuosa.",
+          "title": "Clientes por calificar",
+          "sub": "Cuéntanos cómo fue el cliente.",
           "cta": "Calificar"
         },
         "title": "Requiere tu atención",

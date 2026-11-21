@@ -1,12 +1,11 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View, Dimensions } from 'react-native';
 import { AO } from '@/components/offer/OfferSections';
 import { RequestObdPanel, useRequestObd } from './RequestObdPanel';
 import { SHEET } from '@/lib/ui/sheet';
 import { SheetHandle } from '@/components/ui/SheetHandle';
-import { SheetDim } from '@/components/ui/SheetDim';
-import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
+import { SlideModal } from '@/components/ui/SlideModal';
 
 /**
  * The OBD scanner report over a live call, so neither side has to hang up to
@@ -21,11 +20,9 @@ export function ObdCallSheet({ visible, requestId, role, state, onClose }: {
 }) {
     const { t } = useTranslation();
     return (
-        <Modal supportedOrientations={MODAL_ORIENTATIONS} transparent visible={visible} animationType="slide" onRequestClose={onClose}>
-          <SheetDim color="rgba(0,0,0,0.4)" />
-            <Pressable style={{ flex: 1 }} onPress={onClose} />
+        <SlideModal visible={visible} onClose={onClose} dim="rgba(0,0,0,0.4)">
             <View
-                style={{ ...SHEET, backgroundColor: AO.page, paddingTop: 12, paddingBottom: 34, maxHeight: '75%' }}
+                style={{ ...SHEET, backgroundColor: AO.page, paddingTop: 12, paddingBottom: 34, maxHeight: Dimensions.get('window').height * 0.75 }}
                 testID="obd-call-sheet"
             >
                 <SheetHandle />
@@ -36,6 +33,6 @@ export function ObdCallSheet({ visible, requestId, role, state, onClose }: {
                     <RequestObdPanel requestId={requestId} role={role} editable state={state} />
                 </ScrollView>
             </View>
-        </Modal>
+        </SlideModal>
     );
 }

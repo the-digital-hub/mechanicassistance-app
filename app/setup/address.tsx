@@ -10,16 +10,16 @@ import { ChevronRight } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
+import { SlideModal } from '@/components/ui/SlideModal';
 import {
   FlatList,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
+  Dimensions,
 } from "react-native";
 
 /**
@@ -436,14 +436,9 @@ export default function AddressScreen() {
         </View>
 
         {/* State Selection Modal */}
-        <Modal supportedOrientations={MODAL_ORIENTATIONS}
-          visible={showStateModal}
-          transparent
-          animationType="slide"
-          onRequestClose={() => setShowStateModal(false)}
-        >
-          <View className="flex-1 bg-black/50 justify-end">
-            <View className="bg-white rounded-t-3xl h-2/3">
+        <SlideModal visible={showStateModal} onClose={() => setShowStateModal(false)} dim="rgba(0,0,0,0.5)">
+          <View>
+            <View className="bg-white rounded-t-3xl" style={{ height: Dimensions.get('window').height * 0.66 }}>
               <View className="p-6 border-b border-gray-100 flex-row justify-between items-center">
                 <Text className="text-xl font-outfit-bold text-blue-900">
                   {t('setup.address.selectState')}
@@ -476,7 +471,7 @@ export default function AddressScreen() {
               />
             </View>
           </View>
-        </Modal>
+        </SlideModal>
       </ScrollView>
     </KeyboardAvoidingView>
   );

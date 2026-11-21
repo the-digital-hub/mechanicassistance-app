@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 
 import { AO } from '@/components/offer/OfferSections';
 import { CardPickerModal } from '@/components/payments/CardPickerModal';
@@ -15,8 +15,7 @@ import { usePaymentCards } from '@/lib/payments/usePaymentCards';
 import { useWallet } from '@/lib/payments/useWallet';
 import { SHEET } from '@/lib/ui/sheet';
 import { SheetHandle } from '@/components/ui/SheetHandle';
-import { SheetDim } from '@/components/ui/SheetDim';
-import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
+import { SlideModal } from '@/components/ui/SlideModal';
 
 const K = 'videoCall.extend';
 
@@ -112,9 +111,7 @@ export function ExtendCallSheet({ visible, appointmentId, onClose, onExtended }:
 
     return (
         <>
-            <Modal supportedOrientations={MODAL_ORIENTATIONS} transparent visible={visible && !pickerOpen && !shortOpen} animationType="slide" onRequestClose={onClose}>
-              <SheetDim color="rgba(0,0,0,0.4)" />
-                <Pressable style={{ flex: 1 }} onPress={busy ? undefined : onClose} />
+            <SlideModal visible={visible && !pickerOpen && !shortOpen} onClose={onClose} dim="rgba(0,0,0,0.4)" closeOnBackdrop={!busy}>
                 <View
                     style={{ ...SHEET, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 34 }}
                     testID="extend-call-sheet"
@@ -211,7 +208,7 @@ export function ExtendCallSheet({ visible, appointmentId, onClose, onExtended }:
                         </TouchableOpacity>
                     </View>
                 </View>
-            </Modal>
+            </SlideModal>
 
             <CardPickerModal
                 visible={visible && pickerOpen}

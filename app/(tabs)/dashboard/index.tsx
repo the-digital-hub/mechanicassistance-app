@@ -4,6 +4,7 @@ import { AseCta, AttentionList, AvailabilityCard, RequestTypeTabs, SectionTitle,
 import { useNotifications } from '@/context/NotificationsContext';
 import { attentionKey, visibleAttention } from '@/lib/dashboard/attention';
 import { pendingRatings } from '@/lib/dashboard/pendingRatings';
+import { PendingRatings } from '@/components/dashboard/PendingRatings';
 import { useAttentionState } from '@/lib/dashboard/useAttentionState';
 import { useScheduledAttention } from '@/lib/scheduled/useScheduledAttention';
 import { useMarketplaceFeed } from '@/lib/scheduled/useMarketplaceFeed';
@@ -27,17 +28,17 @@ import { countCompletedToday } from '@/lib/dashboard/mechanicKpis';
 import { useMechanicKpis } from '@/lib/dashboard/useMechanicKpis';
 import { formatMoney } from '@/lib/payments/paymentSource';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { FileText, RotateCcw, Calendar, Video, Zap, MapPin, Wrench, DollarSign, Circle, Clock, Car, Lock, Power, Bell, CreditCard, AlertTriangle, Star, Briefcase, CheckCircle2, ClipboardList, Inbox } from 'lucide-react-native';
+import { FileText, RotateCcw, Calendar, Video, Zap, MapPin, Wrench, DollarSign, Clock, Car, Lock, Power, Bell, CreditCard, AlertTriangle, Star, Briefcase, CheckCircle2, ClipboardList, Inbox } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useScrollPressGuard } from '@/hooks/useScrollPressGuard';
 import { ApiError } from '@/lib/api/types';
-import { ActivityIndicator, Modal, Platform, Pressable, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, Platform, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { appAlert } from '@/lib/ui/appAlert';
 import { TYPE } from '@/lib/ui/type';
 import { VehicleTitle } from '@/components/ui/VehicleTitle';
-import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
+import { MechanicStatusSheet } from '@/components/profile/MechanicStatusSheet';
 
 /** Returns a translation key for the current time of day — resolve with t() at the call site. */
 const getTimeGreetingKey = (): string => {
@@ -84,6 +85,8 @@ export default function DashboardScreen() {
         });
     };
     const [showStatusModal, setShowStatusModal] = useState(false);
+    // The pending ratings open here, in the dashboard, one card per job to swipe through.
+    const [ratingOpen, setRatingOpen] = useState(false);
     const { appointments, getActiveRequests, refresh: refreshAppointments, isLoading: isLoadingAppointments } = useAppointments();
     const jobsToday = countCompletedToday(appointments);
     const { earnedToday, stats: mechanicStats, week, summary: earningsSummary } = useMechanicKpis(user?.role === 'mechanic', jobsToday);
@@ -304,16 +307,14 @@ export default function DashboardScreen() {
         // Ratings still owed stay here until they are given: the customers of recent finished jobs.
         const toRate = pendingRatings(appointments, 'mechanic');
         if (toRate.length > 0) {
-            const first = toRate[0];
             attentionItems.push({
                 id: 'rate', signature: `rate:${toRate.map((a) => a.id).join(',')}`, tone: 'blue', icon: Star,
-                title: t('dashboard.mechanic.attention.rate.title', { count: toRate.length }),
+                title: t('dashboard.mechanic.attention.rate.title'),
+                count: toRate.length,
                 sub: t('dashboard.mechanic.attention.rate.sub'),
                 cta: t('dashboard.mechanic.attention.rate.cta'),
-                // A video call is rated from its detail; a visit, from the last screen of its check-in.
-                onPress: () => router.push(first.type === 'videocall'
-                    ? { pathname: '/appointments/[id]', params: { id: first.id } }
-                    : { pathname: '/appointments/check-in/[id]', params: { id: first.id } }),
+                // They open right here: a card per customer, side by side.
+                onPress: () => setRatingOpen(true),
             });
         }
 
@@ -658,7 +659,6 @@ export default function DashboardScreen() {
                         <View className="mt-4 mb-2">
                             <SectionTitle
                                 title={t('dashboard.mechanic.attention.title')}
-                                badge={shownAttention.length}
                                 collapsed={attention.collapsed}
                                 onToggle={attention.toggleCollapsed}
                             />
@@ -669,6 +669,9 @@ export default function DashboardScreen() {
                                     onDismiss={(item) => attention.dismiss(attentionKey(item))}
                                 />
                             )}
+                            {!attention.collapsed && ratingOpen && toRate.length > 0 ? (
+                                <PendingRatings appointments={toRate} role="mechanic" onSent={() => void refreshAppointments()} onClose={() => setRatingOpen(false)} />
+                            ) : null}
                         </View>
                     )}
 
@@ -725,53 +728,15 @@ export default function DashboardScreen() {
                     </View>
                 </ScrollView>
 
-                {/* Status Modal */}
-                {showStatusModal && (
-                    <Modal supportedOrientations={MODAL_ORIENTATIONS} transparent visible={showStatusModal} animationType="fade" onRequestClose={() => setShowStatusModal(false)}>
-                        <View className="flex-1 bg-black/50 justify-center items-center px-6">
-                          {/* Tapping outside the card closes it. */}
-                          <Pressable style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }} onPress={() => setShowStatusModal(false)} accessible={false} testID="status-modal-backdrop" />
-                            <View className="bg-white w-full rounded-2xl p-6 items-center">
-                                <Text className="text-lg font-outfit-bold text-gray-900 mb-6 text-center">
-                                    {t('dashboard.mechanic.changeStatus')}
-                                </Text>
-
-                                <View className="w-full gap-3">
-                                    {statusOptions.map((option) => (
-                                        <TouchableOpacity
-                                            key={option.id}
-                                            onPress={() => {
-                                                setMechanicStatus(option.id).catch(() => undefined);
-                                                setShowStatusModal(false);
-                                            }}
-                                            activeOpacity={0.8}
-                                            className={`flex-row items-start gap-3 p-4 rounded-xl border ${
-                                                mechanicStatus === option.id ? 'bg-blue-50 border-blue-200' : 'border-gray-200'
-                                            }`}
-                                        >
-                                            <View className="mt-0.5">
-                                                <Circle size={10} color={getStatusColor(option.id)} fill={getStatusColor(option.id)} />
-                                            </View>
-                                            <View className="flex-1">
-                                                <Text className={`font-outfit-semibold text-base ${
-                                                    mechanicStatus === option.id ? 'text-blue-600' : 'text-gray-900'
-                                                }`}>
-                                                    {option.label}
-                                                </Text>
-                                                <Text className="text-gray-600 font-outfit-regular text-[13px] mt-1">
-                                                    {option.description}
-                                                </Text>
-                                            </View>
-                                            {mechanicStatus === option.id && (
-                                                <View className="w-5 h-5 rounded-full bg-blue-600 mt-0.5" />
-                                            )}
-                                        </TouchableOpacity>
-                                    ))}
-                                </View>
-                            </View>
-                        </View>
-                    </Modal>
-                )}
+                {/* Status sheet */}
+                <MechanicStatusSheet
+                    visible={showStatusModal}
+                    title={t('dashboard.mechanic.changeStatus')}
+                    current={mechanicStatus === 'busy' || mechanicStatus === 'offline' ? mechanicStatus : 'available'}
+                    options={statusOptions}
+                    onPick={(id) => { setMechanicStatus(id).catch(() => undefined); }}
+                    onClose={() => setShowStatusModal(false)}
+                />
             </View>
         );
     }
@@ -922,16 +887,14 @@ export default function DashboardScreen() {
     // The rating of the technician is still owed: it stays here until it is given (recent finished jobs only).
     const toRate = pendingRatings(appointments, 'user');
     if (toRate.length > 0) {
-        const first = toRate[0];
         attentionItems.push({
             id: 'rate', signature: `rate:${toRate.map((a) => a.id).join(',')}`, tone: 'blue', icon: Star,
-            title: t('dashboard.user.attention.rate.title', { count: toRate.length }),
+            title: t('dashboard.user.attention.rate.title'),
+            count: toRate.length,
             sub: t('dashboard.user.attention.rate.sub'),
             cta: t('dashboard.user.attention.rate.cta'),
-            // A video call is rated from its detail; a visit, from its review screen.
-            onPress: guard(() => router.push(first.type === 'videocall'
-                ? { pathname: '/appointments/[id]', params: { id: first.id } }
-                : { pathname: '/appointments/review/[id]' as never, params: { id: first.id } })),
+            // They open right here: a card per service, side by side.
+            onPress: () => setRatingOpen(true),
         });
     }
 
@@ -1061,7 +1024,6 @@ export default function DashboardScreen() {
                     <View style={{ marginTop: 24 }}>
                         <OwnerSectionTitle
                             title={t('dashboard.user.attention.title')}
-                            badge={shownAttention.length}
                             collapsed={attention.collapsed}
                             onToggle={attention.toggleCollapsed}
                         />
@@ -1072,6 +1034,9 @@ export default function DashboardScreen() {
                                 onDismiss={(item) => attention.dismiss(attentionKey(item))}
                             />
                         )}
+                        {!attention.collapsed && ratingOpen && toRate.length > 0 ? (
+                            <PendingRatings appointments={toRate} role="user" onSent={() => void refreshAppointments()} onClose={() => setRatingOpen(false)} />
+                        ) : null}
                     </View>
                 )}
 

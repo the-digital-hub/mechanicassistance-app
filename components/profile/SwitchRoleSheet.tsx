@@ -2,12 +2,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Car, Check, KeyRound, Truck, Wrench, type LucideIcon } from 'lucide-react-native';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 
 import type { AddableRole } from '@/lib/dao/interfaces';
-import { SHEET } from '@/lib/ui/sheet';
-import { SheetDim } from '@/components/ui/SheetDim';
-import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
+import { OwnerSheet } from '@/components/dashboard/OwnerHomeBlocks';
 
 const C = {
     blue: '#1E56E3',
@@ -62,23 +60,11 @@ export function SwitchRoleSheet({ visible, current, held, onClose, onPick }: {
             ? t('profile.switchRole.switchTo', { role: label(selected) })
             : t('profile.switchRole.setUp', { role: label(selected) });
 
+    // The same sheet as the dashboard's pickers: the dim fades in on its own and the sheet slides up, instead of the dim riding up with it.
     return (
-        <Modal supportedOrientations={MODAL_ORIENTATIONS} transparent visible={visible} animationType="slide" onRequestClose={onClose}>
-          <SheetDim color="rgba(11,21,48,0.45)" />
-            <Pressable style={{ flex: 1 }} onPress={onClose} />
-            <View
-                style={{ ...SHEET, paddingHorizontal: 16, paddingTop: 10, paddingBottom: 34 }}
-                testID="switch-role-sheet"
-            >
-                <View style={{ width: 40, height: 5, borderRadius: 4, backgroundColor: C.border, alignSelf: 'center', marginBottom: 16 }} />
-                <View style={{ paddingHorizontal: 4 }}>
-                    <Text className="font-outfit-bold" style={{ fontSize: 20, color: C.text }}>{t('profile.switchRole.sheetTitle')}</Text>
-                    <Text className="font-outfit-regular" style={{ fontSize: 13, color: C.muted, marginTop: 4, lineHeight: 19 }}>
-                        {t('profile.switchRole.sheetSubtitle')}
-                    </Text>
-                </View>
-
-                <View style={{ gap: 8, marginTop: 16 }}>
+        <OwnerSheet visible={visible} title={t('profile.switchRole.sheetTitle')} subtitle={t('profile.switchRole.sheetSubtitle')} onClose={onClose}>
+            <View testID="switch-role-sheet">
+                <View style={{ gap: 8, marginTop: 4 }}>
                     {SHEET_ROLES.map(({ id, icon: Icon }) => {
                         const on = selected === id;
                         const disabled = comingSoon(id);
@@ -139,7 +125,7 @@ export function SwitchRoleSheet({ visible, current, held, onClose, onPick }: {
                     </LinearGradient>
                 </TouchableOpacity>
             </View>
-        </Modal>
+        </OwnerSheet>
     );
 }
 

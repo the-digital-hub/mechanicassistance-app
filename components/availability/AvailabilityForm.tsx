@@ -4,7 +4,6 @@ import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   FlatList,
-  Modal,
   PanResponder,
   ScrollView,
   Text,
@@ -13,7 +12,7 @@ import {
 } from "react-native";
 import MapView, { Circle, Marker } from "react-native-maps";
 import { MAP_PROVIDER } from "@/lib/maps/provider";
-import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
+import { SlideModal } from '@/components/ui/SlideModal';
 import {
   BASE_LOCATION,
   DAYS,
@@ -53,12 +52,7 @@ function TimePickerModal({
 }) {
   const { t } = useTranslation();
   return (
-    <Modal supportedOrientations={MODAL_ORIENTATIONS} visible={visible} transparent animationType="slide">
-      <TouchableOpacity
-        className="flex-1 bg-black/40"
-        activeOpacity={1}
-        onPress={onClose}
-      />
+    <SlideModal visible={visible} onClose={onClose} dim="rgba(0,0,0,0.4)">
       <View className="bg-white rounded-t-3xl pb-8">
         {/* Handle */}
         <View className="items-center pt-3 pb-2">
@@ -121,7 +115,7 @@ function TimePickerModal({
           }}
         />
       </View>
-    </Modal>
+    </SlideModal>
   );
 }
 

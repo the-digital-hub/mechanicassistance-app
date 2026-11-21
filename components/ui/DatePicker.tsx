@@ -1,14 +1,13 @@
 import { cn } from "@/lib/utils";
 import * as Haptics from "expo-haptics";
 import { useEffect, useRef, useState } from "react";
-import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
+import { SlideModal } from '@/components/ui/SlideModal';
 import {
-    FlatList,
-    Modal,
-    Text,
-    TouchableOpacity,
-    View,
-    ViewToken,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  View,
+  ViewToken,
 } from "react-native";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -195,18 +194,7 @@ export function DatePicker({
       </TouchableOpacity>
 
       {/* Picker Modal */}
-      <Modal supportedOrientations={MODAL_ORIENTATIONS}
-        visible={visible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setVisible(false)}
-      >
-        <TouchableOpacity
-          className="flex-1 bg-black/30"
-          activeOpacity={1}
-          onPress={() => setVisible(false)}
-        />
-
+      <SlideModal visible={visible} onClose={() => setVisible(false)} dim="rgba(0,0,0,0.3)">
         <View className="bg-white rounded-t-3xl pb-8">
           {/* Header */}
           <View className="flex-row justify-between items-center px-6 pt-5 pb-3 border-b border-slate-100">
@@ -255,7 +243,7 @@ export function DatePicker({
             </View>
           </View>
         </View>
-      </Modal>
+      </SlideModal>
     </>
   );
 }
