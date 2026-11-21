@@ -6,8 +6,9 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 
 import type { PaymentCard } from '@/lib/dao/interfaces';
-import { type WalletMovement, walletDAO } from '@/lib/dao/WalletDAO';
-import { movementServiceTitles } from '@/lib/payments/movementServices';
+import { type PaymentHistoryItem, type WalletMovement, walletDAO } from '@/lib/dao/WalletDAO';
+import { paymentHeadline } from '@/lib/payments/paymentHeadline';
+import { NO_SERVICE_INFO, type WalletServiceInfo, walletServiceInfo } from '@/lib/payments/movementServices';
 import { formatMoney } from '@/lib/payments/paymentSource';
 import { useWallet } from '@/lib/payments/useWallet';
 import { formatLocalDateTime } from '@/lib/video/videoCallTime';
@@ -26,12 +27,15 @@ const CREDITS = ['deposit', 'refund', 'auto_replenish', 'adjustment_credit'];
  * the latest movements. Services are paid from here before the card when the
  * balance covers them.
  */
-export function WalletSection({ cards }: { cards: PaymentCard[] }) {
+export function WalletSection({ cards, cardsContent }: { cards: PaymentCard[]; cardsContent?: React.ReactNode }) {
     const { t, i18n } = useTranslation();
     const router = useRouter();
     const { wallet, setWallet } = useWallet();
     const [movements, setMovements] = React.useState<WalletMovement[] | null>(null);
-    const [titles, setTitles] = React.useState<Record<string, string>>({});
+    const [payments, setPayments] = React.useState<PaymentHistoryItem[] | null>(null);
+    // The balance stays on top; what is under it is one thing at a time, so nothing has to be scrolled past to reach the rest.
+    const [tab, setTab] = React.useState<'activity' | 'payments' | 'cards'>('activity');
+    const [info, setInfo] = React.useState<WalletServiceInfo>(NO_SERVICE_INFO);
     const [topUpOpen, setTopUpOpen] = React.useState(false);
     const [notice, setNotice] = React.useState<string | null>(null);
 
@@ -40,9 +44,11 @@ export function WalletSection({ cards }: { cards: PaymentCard[] }) {
             const history = await walletDAO.history(1, 10);
             const recent = history.walletMovements.slice(0, 5);
             setMovements(recent);
-            movementServiceTitles(history.payments.items, recent).then(setTitles).catch(() => setTitles({}));
+            setPayments(history.payments.items.slice(0, 5));
+            walletServiceInfo(history.payments.items, recent).then(setInfo).catch(() => setInfo(NO_SERVICE_INFO));
         } catch {
             setMovements([]);
+            setPayments([]);
         }
     }, []);
 
@@ -120,44 +126,113 @@ export function WalletSection({ cards }: { cards: PaymentCard[] }) {
 
             <Text className="text-gray-500 font-outfit-regular text-sm mt-3">{t(`${K}.howItWorks`)}</Text>
 
-            <View className="flex-row items-center justify-between mt-6 mb-2">
-                <Text className="text-gray-900 font-outfit-bold" style={{ ...TYPE.section }}>{t(`${K}.movements`)}</Text>
-                <TouchableOpacity
-                    onPress={() => router.push('/payment-activity' as Href)}
-                    accessibilityRole="link"
-                    className="px-3 py-1.5 rounded-full"
-                    style={{ backgroundColor: '#E9F1FF' }}
-                    testID="wallet-see-all"
-                >
-                    <Text className="font-outfit-bold" style={{ fontSize: 13, lineHeight: 18, color: '#1E56E3' }}>{t(`${K}.seeAll`)}</Text>
-                </TouchableOpacity>
-            </View>
-            {movements === null ? (
-                <ActivityIndicator color="#0047AB" />
-            ) : movements.length === 0 ? (
-                <Text className="text-gray-500 font-outfit-regular text-sm">{t(`${K}.noMovements`)}</Text>
-            ) : (
-                movements.map((m) => {
-                    const credit = CREDITS.includes(m.type);
+            {/* One thing at a time under the balance. */}
+            <View className="flex-row" style={{ marginTop: 18, padding: 4, borderRadius: 16, backgroundColor: '#EEF2FA' }} accessibilityRole="tablist">
+                {([
+                    { id: 'activity', label: t(`${K}.tabs.activity`) },
+                    { id: 'payments', label: t(`${K}.tabs.payments`) },
+                    ...(cardsContent ? [{ id: 'cards', label: t(`${K}.tabs.cards`) }] : []),
+                ] as { id: 'activity' | 'payments' | 'cards'; label: string }[]).map((item) => {
+                    const on = tab === item.id;
                     return (
-                        <View key={m.id} className="flex-row items-center bg-white rounded-xl px-4 py-3 mb-2">
-                            <View className="flex-1">
-                                <Text className="text-gray-900 font-outfit-semibold text-sm">
-                                    {t(`${K}.movementType.${m.type}`, { defaultValue: t(`${K}.movementType.other`) })}
-                                </Text>
-                                {titles[m.id] ? (
-                                    <Text className="text-gray-600 font-outfit-regular text-[13px]" numberOfLines={1}>{titles[m.id]}</Text>
-                                ) : null}
-                                <Text className="text-gray-500 font-outfit-regular text-[13px]">{formatLocalDateTime(m.createdAt, i18n.language)}</Text>
-                            </View>
-                            <Text className="font-outfit-bold text-sm" style={{ color: credit ? '#15803D' : '#111827' }}>
-                                {credit ? '+' : '−'}
-                                {formatMoney(Math.abs(Number(m.amount)))}
-                            </Text>
-                        </View>
+                        <TouchableOpacity
+                            key={item.id}
+                            onPress={() => setTab(item.id)}
+                            activeOpacity={0.8}
+                            accessibilityRole="tab"
+                            accessibilityState={{ selected: on }}
+                            className="flex-1 items-center justify-center"
+                            style={on
+                                ? { minHeight: 46, borderRadius: 12, backgroundColor: '#FFFFFF', shadowColor: '#0E2F8A', shadowOpacity: 0.1, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 }
+                                : { minHeight: 46, borderRadius: 12 }}
+                            testID={`wallet-tab-${item.id}`}
+                        >
+                            <Text className="font-outfit-bold" style={{ fontSize: 15, color: on ? '#0047AB' : '#8C96AE' }} numberOfLines={1}>{item.label}</Text>
+                        </TouchableOpacity>
                     );
-                })
-            )}
+                })}
+            </View>
+
+            {tab === 'activity' ? (
+                <View style={{ marginTop: 16 }}>
+                    <View className="flex-row items-center justify-between mb-2">
+                        <Text className="text-gray-900 font-outfit-bold" style={{ ...TYPE.section }}>{t(`${K}.movements`)}</Text>
+                        <TouchableOpacity
+                            onPress={() => router.push('/payment-activity' as Href)}
+                            accessibilityRole="link"
+                            className="px-3 py-1.5 rounded-full"
+                            style={{ backgroundColor: '#E9F1FF' }}
+                            testID="wallet-see-all"
+                        >
+                            <Text className="font-outfit-bold" style={{ fontSize: 13, lineHeight: 18, color: '#1E56E3' }}>{t(`${K}.seeAll`)}</Text>
+                        </TouchableOpacity>
+                    </View>
+                    {movements === null ? (
+                        <ActivityIndicator color="#0047AB" />
+                    ) : movements.length === 0 ? (
+                        <Text className="text-gray-500 font-outfit-regular text-sm">{t(`${K}.noMovements`)}</Text>
+                    ) : (
+                        movements.map((m) => {
+                            const credit = CREDITS.includes(m.type);
+                            return (
+                                <View key={m.id} className="flex-row items-center bg-white rounded-xl px-4 py-3 mb-2">
+                                    <View className="flex-1">
+                                        <Text className="text-gray-900 font-outfit-semibold text-sm">
+                                            {t(`${K}.movementType.${m.type}`, { defaultValue: t(`${K}.movementType.other`) })}
+                                        </Text>
+                                        {info.movements[m.id]?.title ? (
+                                            <Text className="text-gray-600 font-outfit-regular text-[13px]" numberOfLines={1}>{info.movements[m.id].title}</Text>
+                                        ) : null}
+                                        <Text className="text-gray-500 font-outfit-regular text-[13px]">{formatLocalDateTime(m.createdAt, i18n.language)}</Text>
+                                        {info.movements[m.id] && <Text className="text-gray-400 font-outfit-regular" style={{ fontSize: 12, lineHeight: 16 }} numberOfLines={1} selectable>{info.movements[m.id].ref}</Text>}
+                                    </View>
+                                    <Text className="font-outfit-bold text-sm" style={{ color: credit ? '#15803D' : '#111827' }}>
+                                        {credit ? '+' : '−'}
+                                        {formatMoney(Math.abs(Number(m.amount)))}
+                                    </Text>
+                                </View>
+                            );
+                        })
+                    )}
+                </View>
+            ) : null}
+
+            {tab === 'payments' ? (
+                <View style={{ marginTop: 16 }}>
+                    <View className="flex-row items-center justify-between mb-2">
+                        <Text className="text-gray-900 font-outfit-bold" style={{ ...TYPE.section }}>{t(`${K}.activity.title`)}</Text>
+                        <TouchableOpacity
+                            onPress={() => router.push('/payment-activity' as Href)}
+                            accessibilityRole="link"
+                            className="px-3 py-1.5 rounded-full"
+                            style={{ backgroundColor: '#E9F1FF' }}
+                            testID="wallet-see-all-payments"
+                        >
+                            <Text className="font-outfit-bold" style={{ fontSize: 13, lineHeight: 18, color: '#1E56E3' }}>{t(`${K}.seeAll`)}</Text>
+                        </TouchableOpacity>
+                    </View>
+                    {payments === null ? (
+                        <ActivityIndicator color="#0047AB" />
+                    ) : payments.length === 0 ? (
+                        <Text className="text-gray-500 font-outfit-regular text-sm">{t(`${K}.activity.empty`)}</Text>
+                    ) : (
+                        payments.map((p) => (
+                            <View key={p.id} className="flex-row items-center bg-white rounded-xl px-4 py-3 mb-2">
+                                <View className="flex-1">
+                                    <Text className="text-gray-900 font-outfit-semibold text-sm">
+                                        {t(`${K}.activity.status.${p.status}`, { defaultValue: t(`${K}.activity.status.other`) })} · {t(`${K}.activity.method.${p.method}`, { defaultValue: t(`${K}.activity.method.other`) })}
+                                    </Text>
+                                    <Text className="text-gray-500 font-outfit-regular text-[13px]">{formatLocalDateTime(p.createdAt, i18n.language)}</Text>
+                                    {info.payments[p.id] && <Text className="text-gray-400 font-outfit-regular" style={{ fontSize: 12, lineHeight: 16 }} numberOfLines={1} selectable>{info.payments[p.id].ref}</Text>}
+                                </View>
+                                <Text className="font-outfit-bold text-sm text-gray-900">{formatMoney(paymentHeadline(p))}</Text>
+                            </View>
+                        ))
+                    )}
+                </View>
+            ) : null}
+
+            {tab === 'cards' && cardsContent ? <View style={{ marginTop: 16 }}>{cardsContent}</View> : null}
         </View>
     );
 }

@@ -38,7 +38,7 @@ describe('owner budget of a video call with extra time', () => {
         expect(at('rows.serviceValue')).toBe(-1);
         // The minutes live in the label, the value is the amount.
         expect(text.some((l) => l.includes('rows.extendedTimeMinutes:30'))).toBe(true);
-        expect(text.some((l) => l.includes('+$30.00'))).toBe(true);
+        expect(text.some((l) => l.includes('$30.00') && !l.includes('+$30.00'))).toBe(true);
         expect(at('rows.extendedTimeMinutes')).toBeLessThan(at('rows.total'));
         expect(at('rows.total')).toBeLessThan(at('rows.payment'));
         expect(at('rows.payment')).toBeLessThan(text.indexOf('VISA'));

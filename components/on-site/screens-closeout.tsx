@@ -286,10 +286,11 @@ export function ScreenCloseout({ visit, onVisit, onBackToDashboard }: {
         <>
             <Body>
                 <Hero redirected={visit.outcome === 'redirected'} stage={stage} />
+                {/* The rating of the customer is part of closing the job: right under the result, not buried below the payout and the checklist. */}
+                <RateOwner visit={visit} onVisit={onVisit} />
                 {stage === 'awaiting' && visit.confirmDeadline ? <ConfirmWindow deadline={visit.confirmDeadline} /> : null}
                 <Payout visit={visit} />
                 <Checklist visit={visit} />
-                <RateOwner visit={visit} onVisit={onVisit} />
                 <FinalReportCard appointmentId={visit.appointmentId} />
                 {stillNoReport && !obdAlert ? (
                     <TouchableOpacity

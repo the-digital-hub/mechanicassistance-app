@@ -1,10 +1,12 @@
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
+import { type ActivityFilterState, EarningsFiltersBar, toYmd } from '@/components/earnings/EarningsFiltersBar';
 import { type PaymentHistoryItem, type WalletMovement, walletDAO } from '@/lib/dao/WalletDAO';
-import { movementServiceTitles } from '@/lib/payments/movementServices';
+import { NO_SERVICE_INFO, type WalletServiceInfo, walletServiceInfo } from '@/lib/payments/movementServices';
+import { paymentHeadline } from '@/lib/payments/paymentHeadline';
 import { formatMoney } from '@/lib/payments/paymentSource';
 import { formatLocalDateTime } from '@/lib/video/videoCallTime';
 
@@ -14,13 +16,6 @@ const PAGE = 20;
 /** Movements that put money in; the rest take it out. Same list as WalletSection. */
 const CREDITS = ['deposit', 'refund', 'auto_replenish', 'adjustment_credit'];
 
-/** The amount that best describes a payment in its current state. */
-function headline(p: PaymentHistoryItem): string {
-    if (Number(p.amountRefunded) > 0) return p.amountRefunded;
-    if (Number(p.amountCharged) > 0) return p.amountCharged;
-    return p.amountHeld;
-}
-
 /**
  * The customer's full payment activity: every service payment (paged) and the
  * wallet's own movements, like the portal's "Recent payment activity".
@@ -29,12 +24,25 @@ export default function PaymentActivityScreen() {
     const { t, i18n } = useTranslation();
     const [payments, setPayments] = useState<PaymentHistoryItem[] | null>(null);
     const [movements, setMovements] = useState<WalletMovement[]>([]);
-    const [titles, setTitles] = useState<Record<string, string>>({});
+    const [info, setInfo] = useState<WalletServiceInfo>(NO_SERVICE_INFO);
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
     const [loadingMore, setLoadingMore] = useState(false);
     const [error, setError] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
+    const [filters, setFilters] = useState<ActivityFilterState>({ sort: 'newest' });
+
+    /** Date range (both days inclusive) and order, over what is loaded. */
+    const shape = useCallback(<T extends { createdAt: string }>(items: T[]): T[] => {
+        const out = items.filter((i) => {
+            const d = toYmd(new Date(i.createdAt));
+            return (!filters.from || d >= filters.from) && (!filters.to || d <= filters.to);
+        });
+        out.sort((a, b) => (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()) * (filters.sort === 'oldest' ? 1 : -1));
+        return out;
+    }, [filters]);
+    const shownPayments = useMemo(() => (payments ? shape(payments) : null), [payments, shape]);
+    const shownMovements = useMemo(() => shape(movements), [movements, shape]);
 
     const loadFirst = useCallback(async () => {
         setError(false);
@@ -43,7 +51,7 @@ export default function PaymentActivityScreen() {
             setPayments(res.payments.items);
             setTotal(res.payments.total);
             setMovements(res.walletMovements);
-            movementServiceTitles(res.payments.items, res.walletMovements).then(setTitles).catch(() => setTitles({}));
+            walletServiceInfo(res.payments.items, res.walletMovements).then(setInfo).catch(() => setInfo(NO_SERVICE_INFO));
             setPage(1);
         } catch {
             setError(true);
@@ -62,6 +70,7 @@ export default function PaymentActivityScreen() {
         try {
             const res = await walletDAO.history(page + 1, PAGE);
             setPayments((prev) => [...(prev ?? []), ...res.payments.items]);
+            walletServiceInfo(res.payments.items, []).then((more) => setInfo((prev) => ({ ...prev, payments: { ...prev.payments, ...more.payments } }))).catch(() => undefined);
             setTotal(res.payments.total);
             setPage(page + 1);
         } catch {
@@ -91,14 +100,16 @@ export default function PaymentActivityScreen() {
 
             {error && <Text className="font-outfit-semibold text-sm mb-3" style={{ color: '#B91C1C' }}>{t(`${K}.activity.loadFailed`)}</Text>}
 
+            <EarningsFiltersBar value={filters} onChange={setFilters} />
+
             <Text className="text-gray-900 font-outfit-semibold text-base mb-2">{t(`${K}.activity.payments`)}</Text>
-            {payments === null ? (
+            {shownPayments === null ? (
                 <ActivityIndicator color="#0047AB" />
-            ) : payments.length === 0 ? (
+            ) : shownPayments.length === 0 ? (
                 <Text className="text-gray-500 font-outfit-regular text-sm">{t(`${K}.activity.empty`)}</Text>
             ) : (
                 <>
-                    {payments.map((p) => (
+                    {shownPayments.map((p) => (
                         <View key={p.id} className="bg-white rounded-xl px-4 py-3 mb-2 border" style={{ borderColor: '#E1EAFB' }}>
                             <View className="flex-row items-center">
                                 <View className="flex-1">
@@ -106,8 +117,9 @@ export default function PaymentActivityScreen() {
                                         {statusLabel(p.status)} · {methodLabel(p.method)}
                                     </Text>
                                     <Text className="text-gray-500 font-outfit-regular text-[13px]">{formatLocalDateTime(p.createdAt, i18n.language)}</Text>
+                                    {info.payments[p.id] && <Text className="text-gray-400 font-outfit-regular" style={{ fontSize: 12, lineHeight: 16 }} numberOfLines={1} selectable>{info.payments[p.id].ref}</Text>}
                                 </View>
-                                <Text className="font-outfit-bold text-sm text-gray-900">{formatMoney(headline(p))}</Text>
+                                <Text className="font-outfit-bold text-sm text-gray-900">{formatMoney(paymentHeadline(p))}</Text>
                             </View>
                             {Number(p.amountRefunded) > 0 && Number(p.amountCharged) > 0 && (
                                 <Text className="text-gray-500 font-outfit-regular text-[13px] mt-1">
@@ -116,7 +128,7 @@ export default function PaymentActivityScreen() {
                             )}
                         </View>
                     ))}
-                    {payments.length < total && (
+                    {(payments?.length ?? 0) < total && (
                         <TouchableOpacity
                             onPress={loadMore}
                             disabled={loadingMore}
@@ -135,10 +147,10 @@ export default function PaymentActivityScreen() {
             )}
 
             <Text className="text-gray-900 font-outfit-semibold text-base mt-6 mb-2">{t(`${K}.activity.movements`)}</Text>
-            {movements.length === 0 ? (
+            {shownMovements.length === 0 ? (
                 <Text className="text-gray-500 font-outfit-regular text-sm">{t(`${K}.noMovements`)}</Text>
             ) : (
-                movements.map((m) => {
+                shownMovements.map((m) => {
                     const credit = CREDITS.includes(m.type);
                     return (
                         <View key={m.id} className="flex-row items-center bg-white rounded-xl px-4 py-3 mb-2">
@@ -146,10 +158,11 @@ export default function PaymentActivityScreen() {
                                 <Text className="text-gray-900 font-outfit-semibold text-sm">
                                     {t(`${K}.movementType.${m.type}`, { defaultValue: t(`${K}.movementType.other`) })}
                                 </Text>
-                                {titles[m.id] ? (
-                                    <Text className="text-gray-600 font-outfit-regular text-[13px]" numberOfLines={1}>{titles[m.id]}</Text>
+                                {info.movements[m.id]?.title ? (
+                                    <Text className="text-gray-600 font-outfit-regular text-[13px]" numberOfLines={1}>{info.movements[m.id].title}</Text>
                                 ) : null}
                                 <Text className="text-gray-500 font-outfit-regular text-[13px]">{formatLocalDateTime(m.createdAt, i18n.language)}</Text>
+                                {info.movements[m.id] && <Text className="text-gray-400 font-outfit-regular" style={{ fontSize: 12, lineHeight: 16 }} numberOfLines={1} selectable>{info.movements[m.id].ref}</Text>}
                             </View>
                             <Text className="font-outfit-bold text-sm" style={{ color: credit ? '#15803D' : '#111827' }}>
                                 {credit ? '+' : '−'}

@@ -5,6 +5,7 @@ import { RequestSteps, stepEyebrow } from '@/components/ui/RequestSteps';
 import { TYPE } from '@/lib/ui/type';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { ChevronLeft } from 'lucide-react-native';
 import { CaptureTile } from '@/components/ui/CaptureTile';
 import React, { useState } from 'react';
@@ -162,27 +163,23 @@ export default function VehicleDocumentationScreen() {
                     {t('requestAssistance.vehicleDocumentation.subtitle')}
                 </Text>
 
-                {/* One grid, no tabs: the video and the photos together, each tile is the button. */}
+                {/* No tabs. Photo first, then video. With nothing yet: the two ways in, as tiles. With something: just what was added,
+                    and buttons to keep adding (no empty tiles waiting to be filled). */}
                 {(() => {
+                    const voc = 'requestAssistance.vehicleDocumentation';
+                    if (!video && photos.length === 0) {
+                        return (
+                            <View className="flex-row" style={{ gap: 12 }}>
+                                <CaptureTile title={t(`${voc}.tilePhoto`)} hint={t(`${voc}.addPhoto`)} icon="camera-outline" onPress={() => askSource(pickPhoto)} testID="doc-add-photo" />
+                                <CaptureTile title={t(`${voc}.tileVideo`)} hint={t(`${voc}.addVideo`)} icon="videocam-outline" onPress={() => askSource(pickVideo)} testID="doc-add-video" />
+                            </View>
+                        );
+                    }
                     const cells: React.ReactNode[] = [
-                        <CaptureTile
-                            key="video"
-                            title={t('requestAssistance.vehicleDocumentation.tileVideo')}
-                            hint={t('requestAssistance.vehicleDocumentation.addVideo')}
-                            icon="videocam-outline"
-                            uri={video?.uri}
-                            isVideo
-                            onPress={() => askSource(pickVideo)}
-                            onRemove={() => { setVideo(null); if (noteFor === 'video') setNoteFor(null); }}
-                            onPressFilled={() => setNoteFor(noteFor === 'video' ? null : 'video')}
-                            hasNote={!!video?.note.trim()}
-                            selected={noteFor === 'video'}
-                            testID="doc-add-video"
-                        />,
                         ...photos.map((photo, index) => (
                             <CaptureTile
                                 key={`${photo.uri}-${index}`}
-                                title={t('requestAssistance.vehicleDocumentation.tilePhoto')}
+                                title={t(`${voc}.tilePhoto`)}
                                 hint=""
                                 icon="camera-outline"
                                 uri={photo.uri}
@@ -192,19 +189,37 @@ export default function VehicleDocumentationScreen() {
                                 selected={noteFor === index}
                             />
                         )),
-                        ...(photos.length < MAX_PHOTOS ? [
+                        ...(video ? [
                             <CaptureTile
-                                key="add-photo"
-                                title={t('requestAssistance.vehicleDocumentation.tilePhoto')}
-                                hint={t('requestAssistance.vehicleDocumentation.addPhoto')}
-                                icon="camera-outline"
-                                onPress={() => askSource(pickPhoto)}
-                                testID="doc-add-photo"
+                                key="video"
+                                title={t(`${voc}.tileVideo`)}
+                                hint=""
+                                icon="videocam-outline"
+                                uri={video.uri}
+                                isVideo
+                                onRemove={() => { setVideo(null); if (noteFor === 'video') setNoteFor(null); }}
+                                onPressFilled={() => setNoteFor(noteFor === 'video' ? null : 'video')}
+                                hasNote={!!video.note.trim()}
+                                selected={noteFor === 'video'}
                             />,
                         ] : []),
                     ];
                     const rows: React.ReactNode[][] = [];
                     for (let i = 0; i < cells.length; i += 2) rows.push(cells.slice(i, i + 2));
+                    const addButton = (key: string, label: string, icon: 'camera-outline' | 'videocam-outline', onPress: () => void, testID: string) => (
+                        <TouchableOpacity
+                            key={key}
+                            onPress={onPress}
+                            activeOpacity={0.8}
+                            accessibilityRole="button"
+                            className="flex-row items-center justify-center"
+                            style={{ gap: 8, minHeight: 52, borderRadius: 14, backgroundColor: '#E6EAF2' }}
+                            testID={testID}
+                        >
+                            <Ionicons name={icon} size={22} color="#4A5470" />
+                            <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#4A5470' }}>{label}</Text>
+                        </TouchableOpacity>
+                    );
                     return (
                         <View style={{ gap: 12 }}>
                             {rows.map((row, r) => (
@@ -213,6 +228,8 @@ export default function VehicleDocumentationScreen() {
                                     {row.length === 1 ? <View style={{ flex: 1, minWidth: 140 }} /> : null}
                                 </View>
                             ))}
+                            {photos.length < MAX_PHOTOS ? addButton('more-photo', t(`${voc}.addAnotherPhotoShort`), 'camera-outline', () => askSource(pickPhoto), 'doc-add-photo') : null}
+                            {!video ? addButton('more-video', t(`${voc}.addVideo`), 'videocam-outline', () => askSource(pickVideo), 'doc-add-video') : null}
                         </View>
                     );
                 })()}

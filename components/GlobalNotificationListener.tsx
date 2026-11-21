@@ -5,7 +5,9 @@ import { useUser } from '@/context/UserContext';
 import { useRouter, useSegments } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { appAlert } from '@/lib/ui/appAlert';
+import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
+import { appAlert, type AppAlertHighlight } from '@/lib/ui/appAlert';
+import { splitJobTitle } from '@/lib/ui/jobTitle';
 import { showOnSiteConfirmAlert } from '@/lib/notifications/onSiteConfirmAlert';
 
 /** How long the backend takes, roughly, to record a notification after the socket event. */
@@ -38,8 +40,26 @@ export function GlobalNotificationListener() {
     const notifiedIds = useRef<Set<string>>(new Set());
 
     // Mechanic-side popups use the app's own dialog (big OK button), not a custom overlay.
-    const popup = (title: string, body: string, action: () => void, look: { tone: 'success' | 'danger'; icon: string }) =>
-        appAlert(title, body, [{ text: t('common.ok'), onPress: action }], { cancelable: false, ...look });
+    const popup = (title: string, body: string, action: () => void, look: { tone: 'success' | 'danger'; icon: string }, highlight?: AppAlertHighlight) =>
+        appAlert(title, body, [{ text: t('common.ok'), onPress: action }], { cancelable: false, ...look, ...(highlight ? { highlight } : {}) });
+
+    /** Which assistance an alert is about: its kind, what is wrong and the vehicle, so "accepted" says what was accepted. */
+    const describeRequest = async (requestId: string): Promise<AppAlertHighlight | undefined> => {
+        try {
+            const r = await assistanceDAO.getById(requestId);
+            if (!r) return undefined;
+            const kind = r.assistanceType === 'witness' ? 'accident' : r.type === 'videocall' ? 'videocall' : r.type === 'scheduled' ? 'scheduled' : 'immediate';
+            const issue = splitJobTitle(r.title).main;
+            return {
+                label: t(`appointments.detail.types.${kind}`),
+                value: issue || r.car || '',
+                sub: issue && r.car ? r.car : undefined,
+                icon: kind === 'videocall' ? 'videocam-outline' : kind === 'scheduled' ? 'calendar-outline' : 'flash-outline',
+            };
+        } catch {
+            return undefined;
+        }
+    };
 
     useEffect(() => {
         if (!lastMessage) return;
@@ -102,13 +122,15 @@ export function GlobalNotificationListener() {
             notifiedIds.current.add(notificationKey);
             reloadInboxSoon();
 
-            // Show custom notification popup for mechanic
-            popup(t('notificationsPopup.offerAcceptedTitle'), t('notificationsPopup.offerAcceptedBody'), () => {
-                router.push({
-                    pathname: '/appointments/[id]',
-                    params: { id: requestId }
-                }, { withAnchor: true });
-            }, { tone: 'success', icon: 'checkmark-circle-outline' });
+            // Show custom notification popup for mechanic, saying which assistance was accepted.
+            void describeRequest(requestId).then((highlight) =>
+                popup(t('notificationsPopup.offerAcceptedTitle'), t('notificationsPopup.offerAcceptedBody'), () => {
+                    router.push({
+                        pathname: '/appointments/[id]',
+                        params: { id: requestId }
+                    }, { withAnchor: true });
+                }, { tone: 'success', icon: 'checkmark-circle-outline' }, highlight?.value ? highlight : undefined),
+            );
         }
 
         // 3. Mechanic Logic: Job Canceled (Status: canceled)
@@ -120,9 +142,11 @@ export function GlobalNotificationListener() {
             // Shows up in the notifications tab
             reloadInboxSoon();
 
-            popup(t('notificationsPopup.jobCanceledTitle'), t('notificationsPopup.jobCanceledBody'), () => {
-                router.navigate('/(tabs)/appointments');
-            }, { tone: 'danger', icon: 'close-circle-outline' });
+            void describeRequest(requestId).then((highlight) =>
+                popup(t('notificationsPopup.jobCanceledTitle'), t('notificationsPopup.jobCanceledBody'), () => {
+                    router.navigate('/(tabs)/appointments');
+                }, { tone: 'danger', icon: 'close-circle-outline' }, highlight?.value ? highlight : undefined),
+            );
         }
 
     }, [lastMessage, user?.role, user?.id, segments]);

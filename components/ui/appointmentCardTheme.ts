@@ -8,6 +8,7 @@ export type CardState =
     | 'offered'
     | 'ready'
     | 'enRoute'
+    | 'inProgress'
     | 'scheduled'
     | 'awaitingConfirmation'
     | 'disputed'
@@ -31,7 +32,8 @@ export function getCardState(appointment: Pick<Appointment, 'status' | 'type' | 
             return appointment.departedAt ? 'enRoute' : 'ready';
         case 'started':
         case 'in_progress':
-            return 'enRoute';
+            // Checked in (or the call is under way): no longer "on the way". The backend moves the appointment here at check-in.
+            return 'inProgress';
         case 'awaiting_confirmation':
             return 'awaitingConfirmation';
         case 'disputed':
@@ -57,6 +59,7 @@ export const BANNER_COLORS: Record<CardState, { bg: string; label: string; title
     offered: { bg: '#E9F1FF', label: '#6B8BD6', title: '#1E56E3', hint: '#3B6FE8' },
     ready: { bg: '#FFF4E8', label: '#F59E0B', title: '#EA580C', hint: '#FB923C' },
     enRoute: { bg: '#E7F6EE', label: '#6BAF8A', title: '#15803D', hint: '#22A35A' },
+    inProgress: { bg: '#E9F1FF', label: '#6B8BD6', title: '#1E56E3', hint: '#3B6FE8' },
     scheduled: { bg: '#E9F1FF', label: '#6B8BD6', title: '#1E56E3', hint: '#3B6FE8' },
     awaitingConfirmation: { bg: '#FFF4E8', label: '#F59E0B', title: '#EA580C', hint: '#FB923C' },
     disputed: { bg: '#FDECEC', label: '#E58A8A', title: '#C53030', hint: '#E53E3E' },

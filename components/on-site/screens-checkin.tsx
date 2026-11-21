@@ -1,5 +1,7 @@
 import { PinBoxes } from '@/components/on-site/PinBoxes';
+import { usePinchZoom } from '@/hooks/usePinchZoom';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
@@ -9,7 +11,7 @@ import { ObdPanel } from './ObdPanel';
 import { VinCrossCheck } from './screens-vin';
 import { ExtraCaptures, MediaSlot, useExistingCaptures } from './MediaSlot';
 import {
-    ActionBar, Body, Card, CardTitle, InfoRow, Intro, OS, PrimaryButton, Segmented, Spinner, Tip, cardShadow,
+    ActionBar, Body, Card, CardTitle, GhostButton, InfoRow, Intro, OS, PrimaryButton, Segmented, Spinner, Tip, cardShadow,
 } from './ui';
 
 // Phase 1 of the on-site flow: check-in, issue review and diagnostic.
@@ -44,6 +46,8 @@ export function ScreenCheckIn({ onSubmit, onMismatch }: {
     const [cameraOpen, setCameraOpen] = React.useState(false);
     // Tapping the tab that is already open closes it: the camera for Scan QR, the code boxes for Enter PIN.
     const [pinFolded, setPinFolded] = React.useState(false);
+    // The scanner zooms like the Camera app: starts on the main lens (the phone switches lenses and focuses by itself) and a pinch zooms.
+    const { zoom, lens, touchProps } = usePinchZoom();
     const [submitting, setSubmitting] = React.useState(false);
     const [pin, setPin] = React.useState('');
     const [permission, requestPermission] = useCameraPermissions();
@@ -103,10 +107,12 @@ export function ScreenCheckIn({ onSubmit, onMismatch }: {
                 <Card style={{ padding: 20 }}>
                     {cameraOpen ? (
                         <>
-                            <View className="items-center justify-center overflow-hidden" style={{ height: 300, borderRadius: 16, backgroundColor: OS.text }}>
+                            <View className="items-center justify-center overflow-hidden" style={{ height: 340, borderRadius: 16, backgroundColor: OS.text }} {...touchProps}>
                                 <CameraView
                                     style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }}
                                     facing="back"
+                                    zoom={zoom}
+                                    selectedLens={lens}
                                     barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
                                     onBarcodeScanned={submitting ? undefined : onScanned}
                                 />
@@ -114,7 +120,7 @@ export function ScreenCheckIn({ onSubmit, onMismatch }: {
                                 {submitting ? <ActivityIndicator size="large" color="#FFFFFF" /> : null}
                             </View>
                             <Text className="font-outfit-medium text-center mt-3" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>
-                                {submitting ? t('appointments.checkIn.checking') : t('appointments.checkIn.scanHint')}
+                                {submitting ? t('appointments.checkIn.checking') : t('appointments.checkIn.scanHintZoom')}
                             </Text>
                         </>
                     ) : (
@@ -161,19 +167,33 @@ export function ScreenCheckIn({ onSubmit, onMismatch }: {
 }
 
 // ─────────── Doesn't match → retry ───────────
-export function ScreenRetry({ onRetry }: { onRetry: () => void }) {
+export function ScreenRetry({ onRetry, vehicle, refCode }: { onRetry: () => void; vehicle?: string | null; refCode?: string | null }) {
     const { t } = useTranslation();
+    const router = useRouter();
     return (
         <>
-            <View className="flex-1 items-center justify-center px-7">
-                <View className="items-center justify-center mb-4" style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: OS.orangeSoft }}>
-                    <Ionicons name="alert-circle-outline" size={28} color={OS.orange} />
+            <Body>
+                {/* What happened, calm: a soft warning card at the top (not a lone icon in the middle of an empty screen). */}
+                <View className="mx-4 mt-4 flex-row items-start" style={{ gap: 14, padding: 16, borderRadius: 20, backgroundColor: OS.orangeSoft }}>
+                    <View className="items-center justify-center" style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: '#FFFFFF' }}>
+                        <Ionicons name="alert-circle-outline" size={28} color={OS.orange} />
+                    </View>
+                    <View className="flex-1">
+                        <Text className="font-outfit-bold" style={{ fontSize: 19, lineHeight: 25, letterSpacing: -0.3, color: OS.text }}>{t('appointments.checkIn.mismatchTitle')}</Text>
+                        <Text className="font-outfit-regular" style={{ fontSize: 15, lineHeight: 21, color: OS.muted, marginTop: 4 }}>{t('appointments.checkIn.mismatchBody')}</Text>
+                    </View>
                 </View>
-                <Text className="font-outfit-bold text-[18px] text-center" style={{ color: OS.text }}>{t('appointments.checkIn.mismatchTitle')}</Text>
-                <Text className="font-outfit-regular text-[14px] text-center mt-2 leading-5" style={{ color: OS.muted }}>{t('appointments.checkIn.mismatchBody')}</Text>
-            </View>
-            <ActionBar>
-                <PrimaryButton label={t('appointments.checkIn.retry')} onPress={onRetry} tone="orange" testID="check-in-retry" />
+                {/* What to compare it with: the vehicle this request is for. */}
+                {vehicle || refCode ? (
+                    <View className="mx-4 mt-3.5" style={cardShadow}>
+                        {vehicle ? <InfoRow icon="car-outline" label={t('appointments.checkIn.mismatchVehicle')} value={vehicle} last={!refCode} /> : null}
+                        {refCode ? <InfoRow icon="document-text-outline" label={t('appointments.checkIn.mismatchRef')} value={refCode} last /> : null}
+                    </View>
+                ) : null}
+            </Body>
+            <ActionBar stacked>
+                <PrimaryButton label={t('appointments.checkIn.retry')} onPress={onRetry} testID="check-in-retry" />
+                <GhostButton label={t('profile.menu.help')} onPress={() => router.push('/help' as never)} />
             </ActionBar>
         </>
     );

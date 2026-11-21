@@ -8,7 +8,7 @@ import type { Appointment } from '@/context/AppointmentsContext';
 
 /**
  * The assistances still in their offer period, pinned above the list: they are held for a limited time, so they come first, in their own
- * tinted block with a count and the cards (each with its clock), whatever else is filtered below.
+ * heading with a count and the cards (each with its clock), whatever else is filtered below.
  */
 export function OffersSection({ appointments, isMechanic, onCancel }: {
     appointments: Appointment[];
@@ -18,8 +18,9 @@ export function OffersSection({ appointments, isMechanic, onCancel }: {
     const { t } = useTranslation();
     if (appointments.length === 0) return null;
     return (
-        <View style={{ marginHorizontal: 20, marginBottom: 18, padding: 12, borderRadius: 24, backgroundColor: '#FFFAEF', borderWidth: 1, borderColor: '#F6E2B5', gap: 12 }} testID="offers-section">
-            <View className="flex-row items-center" style={{ gap: 12, paddingHorizontal: 4 }}>
+        // No box around the cards (a card inside a card): the heading sits on the page and the offers are cards like the rest of the list.
+        <View style={{ marginHorizontal: 20, marginBottom: 6, gap: 14 }} testID="offers-section">
+            <View className="flex-row items-center" style={{ gap: 12 }}>
                 <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#FFEFC9' }}>
                     <Zap size={20} color="#8A5200" />
                 </View>

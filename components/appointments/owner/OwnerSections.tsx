@@ -348,7 +348,7 @@ export function OwnerBudgetPanel({ total, payment, totalLabel, video, extendedMi
                       icon: 'time-outline',
                       // The minutes sit next to the name; the value is what they cost.
                       label: t(`${K}.rows.extendedTimeMinutes`, { minutes: extendedMinutes }),
-                      value: extendedAmount ? `+$${extendedAmount}` : t(`${K}.extendedTimeValue`, { minutes: extendedMinutes }),
+                      value: extendedAmount ? `$${extendedAmount}` : t(`${K}.extendedTimeValue`, { minutes: extendedMinutes }),
                   }
                 : null
             : partsNote === null

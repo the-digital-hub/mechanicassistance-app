@@ -24,7 +24,7 @@ import {
     JoinVideoCallButton,
     MechanicVideoCallStatusCard,
     NoteSheet,
-    GradientButton,
+    QuietButton,
     OwnerVideoCallStatusCard,
     VideoCallWhenCard,
 } from '@/components/appointments/VideoCallSections';
@@ -44,6 +44,7 @@ import { AO, IconName, RequestSummaryRows } from '@/components/offer/OfferSectio
 import { PaymentCardValue } from '@/components/payments/PaymentCardValue';
 import { isCancelledStatus, useAppointments } from '@/context/AppointmentsContext';
 import { useUser } from '@/context/UserContext';
+import { VehicleIdsRow } from '@/components/scheduled/ui';
 import { vehicleDAO } from '@/lib/dao/VehicleDAO';
 import { formatEtaTime, useAppointmentEta } from '@/hooks/useAppointmentEta';
 import { useHeadOut } from '@/hooks/useHeadOut';
@@ -716,9 +717,17 @@ export default function AppointmentDetailScreen() {
                     isVideoCall && (appointment.durationMinutes ?? videoState?.baseMinutes)
                         ? { icon: 'timer-outline' as const, label: t('appointments.ownerAccepted.rows.duration'), value: t('requestAssistance.when.durationValue', { count: (appointment.durationMinutes ?? videoState?.baseMinutes) as number }) }
                         : null,
-                    appointment.car ? { icon: 'car-outline' as const, label: t('appointments.ownerAccepted.rows.vehicle'), value: appointment.car } : null,
-                    vehicleIds.plate ? { icon: 'id-card-outline' as const, label: t('requestAssistance.selectVehicle.plate'), value: vehicleIds.plate } : null,
-                    vehicleIds.vin ? { icon: 'barcode-outline' as const, label: 'VIN', value: vehicleIds.vin } : null,
+                    // The plate and the VIN sit with the vehicle as small badges, not as rows of their own.
+                    appointment.car ? {
+                        icon: 'car-outline' as const,
+                        label: t('appointments.ownerAccepted.rows.vehicle'),
+                        value: vehicleIds.plate || vehicleIds.vin ? (
+                            <View>
+                                <Text className="font-outfit-bold" style={{ fontSize: 15, lineHeight: 20, color: '#0B1530' }}>{appointment.car}</Text>
+                                <VehicleIdsRow plate={vehicleIds.plate} vin={vehicleIds.vin} plateLabel={t('requestAssistance.selectVehicle.plate')} />
+                            </View>
+                        ) : appointment.car,
+                    } : null,
                     issues ? { icon: 'construct-outline' as const, label: t('appointments.ownerAccepted.rows.issue'), value: issues } : null,
                     appointment.notes ? { icon: 'document-text-outline' as const, label: t('appointments.ownerAccepted.rows.notes'), value: appointment.notes } : null,
                     appointment.address ? { icon: 'location-outline' as const, label: t('appointments.ownerAccepted.rows.location'), value: appointment.address } : null,
@@ -956,6 +965,15 @@ export default function AppointmentDetailScreen() {
                                     <>
                                         <VideoCallWhenCard date={appointment.date} startNow={appointment.startNow} startedAt={appointment.startedAt} completedAt={appointment.completedAt} live={videoCallLive} />
                                         {videoCallLive && <JoinVideoCallButton onPress={openVideoLobby} rejoin={videoStartedAtMs !== null} />}
+                                        {/* Finish is the quiet one, right under Join. */}
+                                        {videoCallLive && (
+                                            <QuietButton
+                                                label={t('appointments.videoCall.mechanic.finish')}
+                                                loading={videoBusy}
+                                                onPress={askOwnerFinishVideoCall}
+                                                testID="owner-video-finish"
+                                            />
+                                        )}
                                         {videoCallLive && videoStartedAtMs !== null && (
                                             <>
                                                 <VideoCallTimerCard
@@ -971,14 +989,6 @@ export default function AppointmentDetailScreen() {
                                                     onExtended={() => reloadVideoState()}
                                                 />
                                             </>
-                                        )}
-                                        {videoCallLive && (
-                                            <GradientButton
-                                                label={t('appointments.videoCall.mechanic.finish')}
-                                                loading={videoBusy}
-                                                onPress={askOwnerFinishVideoCall}
-                                                testID="owner-video-finish"
-                                            />
                                         )}
                                         {videoState && (
                                             <OwnerVideoCallStatusCard
@@ -1089,27 +1099,27 @@ export default function AppointmentDetailScreen() {
 
                             {/* Status card — a finished video call shows its close-out card instead */}
                             {!isVideoCall && !isCancelled && !onSiteClosePending && (
-                            // Waiting for "Head out": the card is calm, so the button below is the one thing that pulls.
-                            // Once on the way there is no button, and the card takes the strong blue.
+                            // Always the calm light blue (before heading out and once on the way): what has to pull the eye is the next action
+                            // ("Head out", then "Start check-in"), not this status.
                             <LinearGradient
-                                colors={awaitingHeadOut ? ['#F1F6FF', '#E6EEFF'] : ['#2F6BFF', '#1E56E3', '#0B2A8E']}
-                                locations={awaitingHeadOut ? [0, 1] : [0, 0.5, 1]}
+                                colors={['#F1F6FF', '#E6EEFF']}
+                                locations={[0, 1]}
                                 start={{ x: 0, y: 0 }}
                                 end={{ x: 0.9, y: 1 }}
-                                style={{ marginHorizontal: 16, marginTop: 14, borderRadius: 22, padding: 18, ...(awaitingHeadOut ? { borderWidth: 1, borderColor: '#DCE7FA' } : null) }}
+                                style={{ marginHorizontal: 16, marginTop: 14, borderRadius: 22, padding: 18, borderWidth: 1, borderColor: '#DCE7FA' }}
                                 testID="status-badge"
                                 nativeID="status-badge"
                             >
-                                <View className="flex-row items-center self-start" style={{ gap: 6, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 100, backgroundColor: awaitingHeadOut ? 'rgba(30,86,227,0.10)' : 'rgba(255,255,255,0.18)' }}>
-                                    <PulseDot color={awaitingHeadOut ? '#10B981' : '#4ADE80'} size={7} />
-                                    <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1.2, color: awaitingHeadOut ? '#1E56E3' : '#FFFFFF' }} testID="status-value">
+                                <View className="flex-row items-center self-start" style={{ gap: 6, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 100, backgroundColor: 'rgba(30,86,227,0.10)' }}>
+                                    <PulseDot color="#10B981" size={7} />
+                                    <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1.2, color: '#1E56E3' }} testID="status-value">
                                         {awaitingHeadOut ? t('appointments.detail.readyBadge') : t('appointments.detail.onTheWayBadge')}
                                     </Text>
                                 </View>
-                                <Text className="font-outfit-bold" style={{ fontSize: 26, lineHeight: 31, letterSpacing: -0.7, color: awaitingHeadOut ? '#0B2A8E' : '#FFFFFF', marginTop: 12 }}>
+                                <Text className="font-outfit-bold" style={{ fontSize: 26, lineHeight: 31, letterSpacing: -0.7, color: '#0B2A8E', marginTop: 12 }}>
                                     {awaitingHeadOut ? t('appointments.detail.acceptedTitle') : t('appointments.detail.onTheWayTitle')}
                                 </Text>
-                                <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: awaitingHeadOut ? '#6B7490' : 'rgba(255,255,255,0.88)', marginTop: 6 }} testID="status-description">
+                                <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: '#6B7490', marginTop: 6 }} testID="status-description">
                                     {awaitingHeadOut
                                         ? t('appointments.detail.headOutPrompt')
                                         : `${t('appointments.detail.leftAtShort', { time: departedAt ? formatEtaTime(departedAt) : '--' })} · ${t('appointments.detail.clientNotified')}`}
@@ -1179,16 +1189,16 @@ export default function AppointmentDetailScreen() {
                                             ) : (
                                                 <JoinVideoCallButton onPress={openVideoLobby} rejoin />
                                             )}
-                                            {videoStartedAtMs === null && (
-                                                <SessionTimerNote minutes={videoState?.baseMinutes ?? DEFAULT_CALL_MINUTES} />
-                                            )}
-                                            {/* Finish comes after the note about the session timer. */}
-                                            <GradientButton
+                                            {/* Finish is the quiet one, right under Join: only one button here asks for attention. */}
+                                            <QuietButton
                                                 label={t('appointments.videoCall.mechanic.finish')}
                                                 loading={videoBusy}
                                                 onPress={() => setShowFinishSheet(true)}
                                                 testID="mechanic-video-finish"
                                             />
+                                            {videoStartedAtMs === null && (
+                                                <SessionTimerNote minutes={videoState?.baseMinutes ?? DEFAULT_CALL_MINUTES} />
+                                            )}
                                         </>
                                     ) : videoState ? (
                                         <>

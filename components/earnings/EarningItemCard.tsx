@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 
 import type { MechanicEarning } from '@/lib/dao/interfaces';
+import { refLabel } from '@/lib/refCode';
 import { formatMoney } from '@/lib/payments/paymentSource';
 import type { EarningRow } from '@/lib/payments/useEarnings';
 import { TYPE } from '@/lib/ui/type';
@@ -34,9 +35,6 @@ export function EarningItemCard({ row }: { row: EarningRow }) {
                     <Text className="font-outfit-semibold text-gray-900" style={TYPE.body} numberOfLines={1}>
                         {job?.title || t(`${K}.activity.fallbackTitle`)}
                     </Text>
-                    <Text className="font-outfit-regular text-gray-500 mt-0.5" style={TYPE.helper} numberOfLines={1} selectable>
-                        {t(`${K}.activity.assistanceId`, { id: row.assistanceRequestId })}
-                    </Text>
                     <Text className="font-outfit-medium mt-1" style={{ ...TYPE.helper, color: '#0047AB' }}>
                         {formatLocalDateTime(row.createdAt, i18n.language)}
                     </Text>
@@ -45,6 +43,9 @@ export function EarningItemCard({ row }: { row: EarningRow }) {
                             {job ? t(`${K}.activity.location`, { address: job.address }) : t(`${K}.activity.unavailable`)}
                         </Text>
                     )}
+                    <Text className="text-gray-400 font-outfit-regular mt-1" style={{ fontSize: 12, lineHeight: 16 }} numberOfLines={1} selectable>
+                        {refLabel(job?.refCode, row.assistanceRequestId)}
+                    </Text>
                 </View>
                 <View className="items-end" style={{ gap: 6 }}>
                     <Text

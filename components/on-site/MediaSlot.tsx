@@ -394,7 +394,7 @@ export function PhotoList({
     height = 150,
     onAnyFilled,
     title,
-    leading,
+    second,
     tileHint,
 }: {
     placeholder: string;
@@ -402,8 +402,8 @@ export function PhotoList({
     height?: number;
     onAnyFilled?: (v: boolean) => void;
     title?: string;
-    /** A first cell of the grid that is not a photo (e.g. the video tile). */
-    leading?: React.ReactNode;
+    /** A cell of the grid that is not a photo (e.g. the video tile), placed right after the first photo tile: photo on the left, it on the right. */
+    second?: React.ReactNode;
     tileHint?: string;
 }) {
     const existing = useExistingCaptures(captureKind);
@@ -428,8 +428,7 @@ export function PhotoList({
     }, [lastId, fills]);
 
     // Two cells per row; an odd one out keeps its half instead of stretching.
-    const cells: React.ReactNode[] = [
-        ...(leading ? [leading] : []),
+    const photoCells: React.ReactNode[] = [
         ...slots.map((slot) => (
             <MediaSlot
                 key={slot.id}
@@ -446,6 +445,8 @@ export function PhotoList({
             />
         )),
     ];
+    // Photo first (left), then the extra cell (right), then the rest of the photos.
+    const cells: React.ReactNode[] = second ? [photoCells[0], second, ...photoCells.slice(1)] : photoCells;
     const rows: React.ReactNode[][] = [];
     for (let i = 0; i < cells.length; i += 2) rows.push(cells.slice(i, i + 2));
 
@@ -480,7 +481,7 @@ export function ExtraCaptures({ videoKind, photoKind, existingVideo, videoPlaceh
                 captureKind={photoKind}
                 title={t('appointments.onSite.photos.extraTitle')}
                 tileHint={t('appointments.onSite.common.addPhoto')}
-                leading={
+                second={
                     <MediaSlot kind="video" tile padded={false} height={150} title={t('appointments.onSite.photos.videoTitle')} tileIcon="videocam-outline" tileHint={t('appointments.onSite.common.recordVideo')} placeholder={videoPlaceholder} captureKind={videoKind} existing={existingVideo} />
                 }
             />

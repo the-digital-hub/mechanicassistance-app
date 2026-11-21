@@ -521,6 +521,12 @@
           "title_other": "Ofertas esperando al cliente",
           "sub": "Está decidiendo. Te avisamos apenas responda.",
           "cta": "Ver oferta"
+        },
+        "obd": {
+          "title": "Reporte del escáner pendiente",
+          "title_other": "Reportes del escáner pendientes",
+          "sub": "Subí el reporte OBD para completar el servicio.",
+          "cta": "Subir"
         }
       },
       "summaryJobs_one": "{{count}} trabajo activo",
@@ -711,7 +717,11 @@
       "work": "Trabajo",
       "notSet": "No configurada",
       "selectedLocationLabel": "Ubicación seleccionada",
-      "confirmLocation": "Confirmar ubicación"
+      "confirmLocation": "Confirmar ubicación",
+      "change": "Cambiar",
+      "pickTitle": "Elegí una ubicación",
+      "pickSubtitle": "Tus direcciones guardadas. También podés buscar arriba o mover el pin.",
+      "noSaved": "Todavía no tenés direcciones guardadas. Buscá arriba o mové el pin."
     },
     "confirmation": {
       "media": "Fotos y video",
@@ -1105,7 +1115,9 @@
           "disputed": "En revisión",
           "disputedHint": "Soporte lo está revisando",
           "notCharged": "Sin cargo",
-          "notChargedHint": "No resuelta — sin cargo"
+          "notChargedHint": "No resuelta — sin cargo",
+          "inProgress": "Servicio en curso",
+          "inProgressHint": "El servicio está en marcha"
         },
         "type": {
           "immediate": "Asistencia inmediata",
@@ -1125,7 +1137,8 @@
           "awaitingConfirmationMechanic": "Finalizada – Esperando confirmación del cliente",
           "awaitingConfirmationOwner": "Finalizada – Confirmá el servicio",
           "disputed": "En disputa – En revisión",
-          "notCharged": "Completada – Sin cargo"
+          "notCharged": "Completada – Sin cargo",
+          "inProgress": "Confirmado – En curso"
         },
         "vehicleId": "Vehículo:",
         "distance": "Distancia: {{miles}} mi",
@@ -1377,7 +1390,10 @@
       "cameraPermission": "Permití el acceso a la cámara para escanear el QR del cliente.",
       "allowCamera": "Permitir cámara",
       "scanHint": "Apuntá la cámara al QR del cliente",
-      "checking": "Verificando…"
+      "checking": "Verificando…",
+      "mismatchVehicle": "Vehículo de esta solicitud",
+      "mismatchRef": "Referencia",
+      "scanHintZoom": "Apuntá la cámara al código QR del cliente. Pellizcá para hacer zoom."
     },
     "onSite": {
       "titles": {
@@ -1615,7 +1631,7 @@
         "eyebrowCheckin": "NO SE PUEDE RESOLVER EN EL LUGAR",
         "eyebrowExecution": "PROBLEMA NO RESUELTO",
         "title": "Contanos qué pasó",
-        "subtitle": "Explicá por qué no se puede arreglar y completá la revisión de mantenimiento antes de cerrar.",
+        "subtitle": "Explicá por qué no se puede resolver acá.",
         "whyEyebrow": "¿POR QUÉ NO SE PUEDE RESOLVER ACÁ?",
         "otherPh": "Describí el motivo…",
         "notePh": "Agregá una nota (opcional)…",
@@ -1630,7 +1646,8 @@
           "needsShop": "Necesita equipamiento de taller (elevador, alineadora, etc.)",
           "other": "Otro"
         },
-        "whyTitle": "¿Por qué no se puede resolver acá?"
+        "whyTitle": "¿Por qué no se puede resolver acá?",
+        "checklistTitle": "Antes de cerrar la visita"
       },
       "resolve": {
         "eyebrow": "REPARACIÓN EN CURSO",
@@ -1677,7 +1694,8 @@
         "stepProofSub": "Es opcional, pero unas fotos o un video corto del resultado te ayudan si el cliente hace un reclamo.",
         "backToWork": "Volver",
         "backToPhotos": "Volver",
-        "working": "Trabajando en el vehículo…"
+        "working": "Trabajando en el vehículo…",
+        "workingHint": "El cronómetro sigue corriendo. Cuando termines, tocá \"Terminé el trabajo\"."
       },
       "finalCheck": {
         "eyebrow": "REVISIÓN FINAL",
@@ -1722,7 +1740,30 @@
         "minutes": "{{minutes}} min",
         "closing": "Cerrando…",
         "payoutHint": "El pago se libera cuando el cliente confirma el trabajo.",
-        "subtitleCompleted": "Revisá la visita y lo que vas a cobrar por ella."
+        "subtitleCompleted": "Revisá la visita y lo que vas a cobrar por ella.",
+        "doneEyebrow": "LO QUE SE HIZO",
+        "vehicle": "Vehículo",
+        "vin": "VIN",
+        "checkIn": "Check-in",
+        "checkInValue": "Verificado con {{method}}",
+        "method": {
+          "pin": "PIN",
+          "qr": "código QR"
+        },
+        "obd": "Escaneo OBD",
+        "obdCodes_one": "{{count}} código leído",
+        "obdCodes_other": "{{count}} códigos leídos",
+        "obdNoCodes": "Sin códigos",
+        "obdProcessing": "Leyéndose",
+        "obdNone": "Sin reporte del escáner",
+        "media": "Fotos y video",
+        "photosCount_one": "{{count}} foto",
+        "photosCount_other": "{{count}} fotos",
+        "videosCount_one": "{{count}} video",
+        "videosCount_other": "{{count}} videos",
+        "mediaNone": "Sin agregar",
+        "checklistDone": "{{done}} de {{total}} hechos",
+        "notes": "Notas del trabajo"
       },
       "done": {
         "completed": "Servicio completado",
@@ -3732,6 +3773,11 @@
         "pending": "Pendiente",
         "other": "—"
       }
+    },
+    "tabs": {
+      "activity": "Actividad",
+      "payments": "Pagos",
+      "cards": "Tarjetas"
     }
   },
   "crash": {

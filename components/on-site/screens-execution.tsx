@@ -9,7 +9,7 @@ import { TYPE } from '@/lib/ui/type';
 import { ExtraCaptures, MediaSlot, useExistingCaptures } from './MediaSlot';
 import { WorkingAnimation } from './WorkingAnimation';
 import {
-    ActionBar, Body, Card, CardTitle, Checkbox, Eyebrow, GhostButton, Intro, MaintenanceChecklist, NoteInput, OS,
+    ActionBar, Body, Card, CardTitle, Checkbox, Eyebrow, Intro, MaintenanceChecklist, NoteInput, OS,
     OnSiteDialog, PrimaryButton, Tip, useMaintenanceItems,
 } from './ui';
 
@@ -205,31 +205,54 @@ export function ScreenBuyParts({ obdFilled, onDone }: { obdFilled: boolean; onDo
 // ─────────── Evaluate options (can't resolve) ───────────
 const REASONS = ['notReported', 'obdFlag', 'noParts', 'needsShop', 'other'];
 
-export function ScreenEvaluateOptions({ context, onSelect, checklist: initialChecklist, onChecklistChange }: {
+export function ScreenEvaluateOptions({ context, onSelect, checklist: initialChecklist, onChecklistChange, step: controlledStep, onStepChange }: {
     context: 'checkin' | 'execution';
     onSelect: (r: RedirectReason) => void;
     checklist?: Record<string, boolean>;
     onChecklistChange?: (c: Record<string, boolean>) => void;
+    /** Which of the two steps is open (why it can't be done, then the maintenance check). Held by the screen when its back arrow has to step back. */
+    step?: 'why' | 'checklist';
+    onStepChange?: (step: 'why' | 'checklist') => void;
 }) {
     const { t } = useTranslation();
     const k = 'appointments.onSite.options';
     const [reason, setReason] = React.useState<string | null>(null);
     const [note, setNote] = React.useState('');
+    const [ownStep, setOwnStep] = React.useState<'why' | 'checklist'>('why');
+    const step = controlledStep ?? ownStep;
+    const setStep = onStepChange ?? setOwnStep;
     const checklist = useMaintenanceItems(initialChecklist, onChecklistChange);
     const label = (id: string) => t(`${k}.reasons.${id}`);
+    const eyebrow = context === 'checkin' ? t(`${k}.eyebrowCheckin`) : t(`${k}.eyebrowExecution`);
+
+    // Two short screens instead of one long one: why it can't be done here, then the maintenance check before closing.
+    if (step === 'checklist') {
+        return (
+            <>
+                <Body>
+                    <Intro eyebrow={eyebrow} tone="red" title={t(`${k}.checklistTitle`)} subtitle={t(`${k}.checklistIntro`)} />
+                    <MaintenanceChecklist state={checklist} />
+                    <Tip>{t(`${k}.tip`)}</Tip>
+                </Body>
+                <ActionBar>
+                    <PrimaryButton
+                        label={t(`${k}.confirm`)}
+                        onPress={() => reason && onSelect({ id: reason, label: label(reason), note })}
+                        disabled={!reason}
+                        // It closes the visit, like the other "finish" buttons of the technician: green marks the action that ends the job, not a good outcome.
+                        tone="green"
+                    />
+                </ActionBar>
+            </>
+        );
+    }
 
     return (
         <>
             <Body>
-                <Intro
-                    eyebrow={context === 'checkin' ? t(`${k}.eyebrowCheckin`) : t(`${k}.eyebrowExecution`)}
-                    tone="red"
-                    title={t(`${k}.title`)}
-                    subtitle={t(`${k}.subtitle`)}
-                />
+                <Intro eyebrow={eyebrow} tone="red" title={t(`${k}.title`)} subtitle={t(`${k}.subtitle`)} />
 
                 <Card>
-                    {/* 1 · why */}
                     <View className="px-4 pt-4 pb-1">
                         <Text className="font-outfit-bold" style={{ ...TYPE.question, color: OS.text }}>{t(`${k}.whyTitle`)}</Text>
                     </View>
@@ -254,27 +277,14 @@ export function ScreenEvaluateOptions({ context, onSelect, checklist: initialChe
                     })}
 
                     {reason ? (
-                        <>
-                            <View className="px-4 pt-1 pb-4" style={{ borderTopWidth: 1, borderTopColor: OS.borderSoft }}>
-                                <NoteInput value={note} onChangeText={setNote} white rows={3} placeholder={reason === 'other' ? t(`${k}.otherPh`) : t(`${k}.notePh`)} />
-                            </View>
-
-                            {/* 2 · maintenance checklist */}
-                            <View style={{ borderTopWidth: 1, borderTopColor: OS.borderSoft }}>
-                                <MaintenanceChecklist state={checklist} bare />
-                            </View>
-                        </>
+                        <View className="px-4 pt-1 pb-4" style={{ borderTopWidth: 1, borderTopColor: OS.borderSoft }}>
+                            <NoteInput value={note} onChangeText={setNote} white rows={3} placeholder={reason === 'other' ? t(`${k}.otherPh`) : t(`${k}.notePh`)} />
+                        </View>
                     ) : null}
                 </Card>
-
-                {reason ? <Tip>{t(`${k}.tip`)}</Tip> : null}
             </Body>
             <ActionBar>
-                <PrimaryButton
-                    label={t(`${k}.confirm`)}
-                    onPress={() => reason && onSelect({ id: reason, label: label(reason), note })}
-                    disabled={!reason}
-                />
+                <PrimaryButton label={t('appointments.onSite.common.continue')} onPress={() => setStep('checklist')} disabled={!reason} testID="options-continue" />
             </ActionBar>
         </>
     );
@@ -292,7 +302,7 @@ function IconTile({ name, light }: { name: React.ComponentProps<typeof Ionicons>
 // ─────────── Resolve the issue ───────────
 export function ScreenResolveIncident({
     issue, partsOrder, workStartedAt, workNotes, onWorkNotesChange,
-    onResolved, onNotResolved,
+    onResolved, onNotResolved, part: controlledPart, onPartChange,
 }: {
     issue: string;
     partsOrder: PartsOrder | null;
@@ -302,12 +312,17 @@ export function ScreenResolveIncident({
     onWorkNotesChange: (notes: string) => void;
     onResolved: () => void;
     onNotResolved: () => void;
+    /** Which of the three steps is open. Held by the screen when it has to move it itself (the header's back arrow goes one step back). */
+    part?: 'work' | 'proof' | 'outcome';
+    onPartChange?: (part: 'work' | 'proof' | 'outcome') => void;
 }) {
     const { t } = useTranslation();
     const k = 'appointments.onSite.resolve';
     const [outcome, setOutcome] = React.useState<'resolved' | 'not' | null>(null);
     // One thing at a time, for someone standing next to the vehicle: the work, then the proof, then how it went.
-    const [part, setPart] = React.useState<'work' | 'proof' | 'outcome'>('work');
+    const [ownPart, setOwnPart] = React.useState<'work' | 'proof' | 'outcome'>('work');
+    const part = controlledPart ?? ownPart;
+    const setPart = onPartChange ?? setOwnPart;
     const startedAt = React.useMemo(() => (workStartedAt ? new Date(workStartedAt).getTime() : Date.now()), [workStartedAt]);
     const [seconds, setSeconds] = React.useState(() => Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
     const [notes, setNotes] = React.useState(workNotes);
@@ -367,7 +382,7 @@ export function ScreenResolveIncident({
                             </View>
                         </LinearGradient>
 
-                        <WorkingAnimation label={t(`${k}.working`)} />
+                        <WorkingAnimation label={t(`${k}.working`)} hint={t(`${k}.workingHint`)} />
 
                 {partsOrder ? (
                     <>
@@ -484,7 +499,6 @@ export function ScreenResolveIncident({
                 ) : part === 'proof' ? (
                     <>
                         <PrimaryButton label={t('appointments.onSite.common.continue')} onPress={() => setPart('outcome')} testID="resolve-proof-next" />
-                        <GhostButton label={t(`${k}.backToWork`)} onPress={() => setPart('work')} />
                     </>
                 ) : (
                     <>
@@ -494,7 +508,6 @@ export function ScreenResolveIncident({
                             disabled={!outcome}
                             testID="resolve-continue"
                         />
-                        <GhostButton label={t(`${k}.backToPhotos`)} onPress={() => setPart('proof')} />
                     </>
                 )}
             </ActionBar>

@@ -7,7 +7,8 @@ import { refLabel } from '@/lib/refCode';
 import { approximateArea, coarseAddress } from '@/lib/maps/approximateLocation';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
-import { Calendar, Car, Clock, FileText, IdCard, MapPin, MessageSquare, Route, ScanBarcode, Star, Timer, Wallet } from 'lucide-react-native';
+import { Calendar, Car, Clock, FileText, MapPin, MessageSquare, Route, Star, Timer, Wallet } from 'lucide-react-native';
+import { VehicleIdsRow } from '@/components/scheduled/ui';
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, Platform, Text, TouchableOpacity, View } from 'react-native';
@@ -279,10 +280,20 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
                 ),
             }]
             : []),
-        { icon: Car, label: t('appointments.list.card.rows.vehicle'), value: appointment.car },
-        // The owner knows which vehicle it was by its plate and VIN, not only by its name.
-        ...(vehicleIds.plate ? [{ icon: IdCard, label: t('requestAssistance.selectVehicle.plate'), value: vehicleIds.plate }] : []),
-        ...(vehicleIds.vin ? [{ icon: ScanBarcode, label: 'VIN', value: vehicleIds.vin }] : []),
+        // The owner knows which vehicle it was by its plate and VIN too: they sit with the vehicle as small badges (like the dashboard's
+        // vehicle card), not as rows of their own.
+        vehicleIds.plate || vehicleIds.vin
+            ? {
+                icon: Car,
+                label: t('appointments.list.card.rows.vehicle'),
+                node: (
+                    <View style={{ flex: 1 }}>
+                        <Text className="font-outfit-bold" style={{ color: C.text, fontSize: 15, lineHeight: 20 }}>{appointment.car}</Text>
+                        <VehicleIdsRow plate={vehicleIds.plate} vin={vehicleIds.vin} plateLabel={t('requestAssistance.selectVehicle.plate')} />
+                    </View>
+                ),
+            }
+            : { icon: Car, label: t('appointments.list.card.rows.vehicle'), value: appointment.car },
         ...(isVideoCall
             ? []
             : [

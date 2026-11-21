@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 import { Text, TouchableOpacity, View } from 'react-native';
 
 import type { AddableRole } from '@/lib/dao/interfaces';
-import { TYPE } from '@/lib/ui/type';
 import { OwnerSheet } from '@/components/dashboard/OwnerHomeBlocks';
 
 const C = {
@@ -17,7 +16,8 @@ const C = {
     muted: '#6B7490',
     border: '#E4EAF5',
     page: '#F6F8FC',
-    disabled: '#B7BECD',
+    // The system's disabled primary: a pale blue with white text (never grey), as every other main button.
+    disabled: '#DCE7FA',
 };
 
 /** Every role the sheet lists, in the design's order. */
@@ -112,7 +112,7 @@ export function SwitchRoleSheet({ visible, current, held, onClose, onPick }: {
                     onPress={() => onPick(selected, isHeld(selected))}
                     disabled={!canConfirm}
                     activeOpacity={0.8}
-                    style={{ marginTop: 18 }}
+                    style={{ marginTop: 18, borderRadius: 14, ...(canConfirm ? { shadowColor: C.blue, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 4 } : null) }}
                     testID="switch-role-confirm"
                     accessibilityRole="button"
                 >
@@ -120,9 +120,9 @@ export function SwitchRoleSheet({ visible, current, held, onClose, onPick }: {
                         colors={canConfirm ? [C.blue, C.blueDark] : [C.disabled, C.disabled]}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
-                        style={{ borderRadius: 14, minHeight: 56, alignItems: 'center', justifyContent: 'center' }}
+                        style={{ borderRadius: 14, minHeight: 60, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}
                     >
-                        <Text className="font-outfit-bold" style={{ ...TYPE.button, color: '#fff' }}>{buttonText}</Text>
+                        <Text className="font-outfit-bold text-center" style={{ fontSize: 18, lineHeight: 24, color: '#fff' }} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>{buttonText}</Text>
                     </LinearGradient>
                 </TouchableOpacity>
             </View>

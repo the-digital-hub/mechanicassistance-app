@@ -5,7 +5,7 @@ import { Text, TouchableOpacity, View } from 'react-native';
 import type { OnSiteVisit } from '@/lib/dao/OnSiteDAO';
 import { ObdPanel } from './ObdPanel';
 import type { RedirectReason } from './screens-execution';
-import { ActionBar, Body, Card, Eyebrow, InfoRow, Intro, NoteInput, OS, PrimaryButton, cardShadow } from './ui';
+import { ActionBar, Body, Card, Eyebrow, InfoRow, Intro, MAINTENANCE_ITEMS, NoteInput, OS, PrimaryButton, cardShadow } from './ui';
 import { appAlert } from '@/lib/ui/appAlert';
 import { useAppointments } from '@/context/AppointmentsContext';
 import { refLabel } from '@/lib/refCode';
@@ -22,7 +22,7 @@ function formatAmount(amount: string | null): string {
     return Number.isFinite(n) && n > 0 ? `$${n.toFixed(2)}` : amount;
 }
 
-export function ScreenCloseService({ variant, partsCost, redirectReason, serviceAmount, checkedInAt, onClose }: {
+export function ScreenCloseService({ variant, partsCost, redirectReason, serviceAmount, checkedInAt, onClose, visit, vehicle, vin }: {
     variant: DoneVariant;
     partsCost: number;
     redirectReason: RedirectReason | null;
@@ -30,6 +30,11 @@ export function ScreenCloseService({ variant, partsCost, redirectReason, service
     serviceAmount: string | null;
     checkedInAt: string | null;
     onClose: () => Promise<void>;
+    /** The visit as the server has it: what was captured, scanned and checked. */
+    visit?: OnSiteVisit | null;
+    vehicle?: string | null;
+    /** The VIN the technician entered at check-in. */
+    vin?: string | null;
 }) {
     const { t } = useTranslation();
     const k = 'appointments.onSite.close';
@@ -38,6 +43,34 @@ export function ScreenCloseService({ variant, partsCost, redirectReason, service
     const minutesOnSite = checkedInAt ? Math.max(1, Math.round((Date.now() - new Date(checkedInAt).getTime()) / 60000)) : null;
     const timeValue = minutesOnSite !== null ? t(`${k}.minutes`, { minutes: minutesOnSite }) : '—';
     const amount = formatAmount(serviceAmount);
+
+    // What was done, from the visit itself: so the summary says what the technician did and not only the outcome.
+    const media = visit?.media ?? [];
+    const photos = media.filter((m) => m.mediaType === 'image').length;
+    const videos = media.filter((m) => m.mediaType === 'video').length;
+    const mediaValue = [
+        photos > 0 ? t(`${k}.photosCount`, { count: photos }) : null,
+        videos > 0 ? t(`${k}.videosCount`, { count: videos }) : null,
+    ].filter(Boolean).join(' · ');
+    const obdCount = visit?.obdCodes?.length ?? 0;
+    const obdValue = visit?.obdStatus === 'processing'
+        ? t(`${k}.obdProcessing`)
+        : obdCount > 0
+            ? t(`${k}.obdCodes`, { count: obdCount })
+            : visit?.obdStatus === 'ready' || visit?.obdStatus === 'manual'
+                ? t(`${k}.obdNoCodes`)
+                : t(`${k}.obdNone`);
+    const checklistDone = Object.values(visit?.maintenanceChecklist ?? {}).filter(Boolean).length;
+    const shownVin = vin || visit?.obdVin || null;
+    const detailRows: { icon: React.ComponentProps<typeof Ionicons>['name']; label: string; value: string }[] = [
+        vehicle ? { icon: 'car-outline' as const, label: t(`${k}.vehicle`), value: vehicle } : null,
+        shownVin ? { icon: 'barcode-outline' as const, label: t(`${k}.vin`), value: shownVin } : null,
+        visit?.checkinMethod ? { icon: 'log-in-outline' as const, label: t(`${k}.checkIn`), value: t(`${k}.checkInValue`, { method: t(`${k}.method.${visit.checkinMethod}`) }) } : null,
+        visit ? { icon: 'hardware-chip-outline' as const, label: t(`${k}.obd`), value: obdValue } : null,
+        visit ? { icon: 'images-outline' as const, label: t(`${k}.media`), value: mediaValue || t(`${k}.mediaNone`) } : null,
+        completed && visit ? { icon: 'list-outline' as const, label: t(`${k}.checklist`), value: t(`${k}.checklistDone`, { done: checklistDone, total: MAINTENANCE_ITEMS.length }) } : null,
+        visit?.workNotes?.trim() ? { icon: 'document-text-outline' as const, label: t(`${k}.notes`), value: visit.workNotes.trim() } : null,
+    ].filter((r): r is NonNullable<typeof r> => r !== null);
 
     const finish = async () => {
         setClosing(true);
@@ -63,7 +96,6 @@ export function ScreenCloseService({ variant, partsCost, redirectReason, service
                     {completed ? (
                         <>
                             <InfoRow icon="checkmark" label={t(`${k}.issue`)} value={t(`${k}.resolved`)} />
-                            <InfoRow icon="list-outline" label={t(`${k}.checklist`)} value={t(`${k}.checklistValue`)} />
                             <InfoRow icon="time-outline" label={t(`${k}.time`)} value={timeValue} last />
                         </>
                     ) : (
@@ -87,6 +119,17 @@ export function ScreenCloseService({ variant, partsCost, redirectReason, service
                         </>
                     )}
                 </Card>
+
+                {detailRows.length > 0 ? (
+                    <>
+                        <View className="px-5 pt-4"><Eyebrow>{t(`${k}.doneEyebrow`)}</Eyebrow></View>
+                        <Card>
+                            {detailRows.map((r, i) => (
+                                <InfoRow key={r.label} icon={r.icon} label={r.label} value={r.value} last={i === detailRows.length - 1} />
+                            ))}
+                        </Card>
+                    </>
+                ) : null}
 
                 {partsCost > 0 ? (
                     <>

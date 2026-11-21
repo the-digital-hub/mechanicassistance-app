@@ -188,63 +188,14 @@ function PaymentCardsContent() {
     }
   };
 
-  return (
+  // The saved cards and the add-card form: a tab of the wallet, or the whole screen when coming back to finish a request.
+  const cardsBlock = (
     <>
-      <ConfirmationModal
-        visible={pendingRemoval !== null}
-        title={t('paymentCards.deleteTitle')}
-        message={t('paymentCards.deleteMessage', { last4: pendingRemoval?.last4 ?? '' })}
-        icon={Trash2}
-        confirmText={t('paymentCards.delete')}
-        cancelText={t('paymentCards.cancel')}
-        confirmButtonColor="#EF4444"
-        onConfirm={handleRemove}
-        onClose={() => setPendingRemoval(null)}
-      />
-
-      <ScrollView
-        style={{ backgroundColor: '#F6F8FC' }}
-        contentContainerStyle={{ padding: 24, paddingBottom: 40 }}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Section Badge */}
-        <View style={{ marginTop: 8 }}>
-          <View
-          className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full"
-          style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}
-        >
-          <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
-          <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-            {t('paymentCards.badge')}
+        {resumesRequest ? (
+          <Text className="text-gray-900 font-outfit-bold mb-3 mt-2" style={{ ...TYPE.section }}>
+            {t('paymentCards.cardsHeading')}
           </Text>
-        </View>
-        </View>
-
-        <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
-          {t('paymentCards.title')}
-        </Text>
-
-        <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-          {t('paymentCards.subtitle')}
-        </Text>
-
-        {resumesRequest && (
-          <View
-            className="flex-row items-start gap-2 rounded-xl p-4 mb-6"
-            style={{ backgroundColor: '#F4F8FF', borderWidth: 1, borderColor: '#E1EAFB' }}
-          >
-            <Info size={18} color="#0047AB" style={{ marginTop: 1 }} />
-            <Text className="flex-1 text-gray-900 font-outfit-regular text-sm">
-              {t('paymentCards.returnBanner')}
-            </Text>
-          </View>
-        )}
-
-        {!resumesRequest && <WalletSection cards={cards} />}
-
-        <Text className="text-gray-900 font-outfit-bold mb-3 mt-2" style={{ ...TYPE.section }}>
-          {t('paymentCards.cardsHeading')}
-        </Text>
+        ) : null}
 
         {loading ? (
           <ActivityIndicator color="#0047AB" />
@@ -432,6 +383,62 @@ function PaymentCardsContent() {
             </View>
           </>
         )}
+    </>
+  );
+
+  return (
+    <>
+      <ConfirmationModal
+        visible={pendingRemoval !== null}
+        title={t('paymentCards.deleteTitle')}
+        message={t('paymentCards.deleteMessage', { last4: pendingRemoval?.last4 ?? '' })}
+        icon={Trash2}
+        confirmText={t('paymentCards.delete')}
+        cancelText={t('paymentCards.cancel')}
+        confirmButtonColor="#EF4444"
+        onConfirm={handleRemove}
+        onClose={() => setPendingRemoval(null)}
+      />
+
+      <ScrollView
+        style={{ backgroundColor: '#F6F8FC' }}
+        contentContainerStyle={{ padding: 24, paddingBottom: 40 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Section Badge */}
+        <View style={{ marginTop: 8 }}>
+          <View
+          className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full"
+          style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}
+        >
+          <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+          <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+            {t('paymentCards.badge')}
+          </Text>
+        </View>
+        </View>
+
+        <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
+          {t('paymentCards.title')}
+        </Text>
+
+        <Text className="text-gray-500 font-outfit-regular text-base mb-8">
+          {t('paymentCards.subtitle')}
+        </Text>
+
+        {resumesRequest && (
+          <View
+            className="flex-row items-start gap-2 rounded-xl p-4 mb-6"
+            style={{ backgroundColor: '#F4F8FF', borderWidth: 1, borderColor: '#E1EAFB' }}
+          >
+            <Info size={18} color="#0047AB" style={{ marginTop: 1 }} />
+            <Text className="flex-1 text-gray-900 font-outfit-regular text-sm">
+              {t('paymentCards.returnBanner')}
+            </Text>
+          </View>
+        )}
+
+        {resumesRequest ? cardsBlock : <WalletSection cards={cards} cardsContent={cardsBlock} />}
       </ScrollView>
     </>
   );

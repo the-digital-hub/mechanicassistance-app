@@ -1,7 +1,6 @@
 import { VehicleIdsRow } from '@/components/scheduled/ui';
 import { EmergencyRow, MileageField, OwnerAttentionList, OwnerSectionTitle, OwnerSheet, RecentActivityList, RequestAssistanceCta, SheetOption, UpcomingCard, VehicleCareCard, type OwnerAttentionItem } from '@/components/dashboard/OwnerHomeBlocks';
 import { AseCta, AttentionList, AvailabilityCard, RequestTypeTabs, SectionTitle, TodayBlock, WeeklyEarnings, type AttentionItem } from '@/components/dashboard/MechanicHomeBlocks';
-import { useNotifications } from '@/context/NotificationsContext';
 import { attentionKey, visibleAttention } from '@/lib/dashboard/attention';
 import { pendingRatings, RATING_WINDOW_DAYS } from '@/lib/dashboard/pendingRatings';
 import { useConfirmDeadlines } from '@/lib/dashboard/useConfirmDeadlines';
@@ -31,13 +30,16 @@ import { countCompletedToday } from '@/lib/dashboard/mechanicKpis';
 import { useMechanicKpis } from '@/lib/dashboard/useMechanicKpis';
 import { formatMoney } from '@/lib/payments/paymentSource';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { FileText, RotateCcw, Calendar, Video, Zap, MapPin, Wrench, DollarSign, Clock, Car, Lock, Power, Bell, CreditCard, AlertTriangle, Star, Briefcase, CheckCircle2, ClipboardList, Inbox } from 'lucide-react-native';
+import { FileText, RotateCcw, Calendar, Video, Zap, MapPin, Wrench, DollarSign, Clock, Car, Lock, Power, CreditCard, AlertTriangle, Star, Briefcase, CheckCircle2, ClipboardList, Inbox, ScanLine } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useScrollPressGuard } from '@/hooks/useScrollPressGuard';
 import { ApiError } from '@/lib/api/types';
 import { ActivityIndicator, Platform, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { ImmediateOfferPanel } from '@/components/dashboard/ImmediateOfferPanel';
+import { useOfferFromCard } from '@/hooks/useOfferFromCard';
+import { useObdPending } from '@/hooks/useObdPending';
 import { ReviewsSheet } from '@/components/profile/ReviewsSheet';
 import { useProfileReviews } from '@/hooks/useProfileReviews';
 import { splitJobTitle } from '@/lib/ui/jobTitle';
@@ -88,6 +90,8 @@ export default function DashboardScreen() {
     // Declining hides the request right away and persists it server-side (the
     // feed stops returning it to this mechanic until the rejection expires). If
     // the call fails the request comes back.
+    // Immediate requests are offered right from their card (no detail screen in between): one tap, one confirmation.
+    const { startOffer, offerDialog } = useOfferFromCard();
     const [declinedIds, setDeclinedIds] = useState<Set<string>>(new Set());
     const handleDecline = (id: string) => {
         setDeclinedIds((prev) => new Set(prev).add(id));
@@ -106,14 +110,26 @@ export default function DashboardScreen() {
     const [reviewsOpen, setReviewsOpen] = useState(false);
     const profileReviews = useProfileReviews(reviewsOpen);
     const { appointments, getActiveRequests, refresh: refreshAppointments, isLoading: isLoadingAppointments } = useAppointments();
+    // Confirming a finished service closes it: the rating of the technician is asked right then (the card stays in "Needs your attention"
+    // if it is skipped). Armed by the confirm, it opens the ratings once the refreshed list has the service as completed.
+    const [rateAfterConfirm, setRateAfterConfirm] = useState(false);
+    useEffect(() => {
+        if (!rateAfterConfirm) return undefined;
+        if (pendingRatings(appointments, 'user').length > 0) {
+            setRateAfterConfirm(false);
+            setRatingOpen(true);
+            return undefined;
+        }
+        const giveUp = setTimeout(() => setRateAfterConfirm(false), 10_000);
+        return () => clearTimeout(giveUp);
+    }, [rateAfterConfirm, appointments]);
     // The full-page spinner is only for the first load: a later refresh (e.g. after sending a rating) must not blank the dashboard
     // and take the open sheet with it.
     const loadedAppointmentsOnce = useRef(false);
     if (!isLoadingAppointments) loadedAppointmentsOnce.current = true;
     const jobsToday = countCompletedToday(appointments);
     const { earnedToday, stats: mechanicStats, week, summary: earningsSummary } = useMechanicKpis(user?.role === 'mechanic', jobsToday);
-    const { totals } = useNotifications();
-    const unreadCount = totals.unread;
+    const obdPending = useObdPending(appointments, user?.role === 'mechanic');
     // Hidden alerts and the collapsed state of "Needs your attention", kept per account and role.
     const attention = useAttentionState(user?.id ? `${user.role}:${user.id}` : undefined);
     const [requestTab, setRequestTab] = useState<'immediate' | 'scheduled' | 'video'>('immediate');
@@ -319,13 +335,17 @@ export default function DashboardScreen() {
                 onPress: () => router.push('/payments'),
             });
         }
-        if (unreadCount > 0) {
+        // A closed visit without its scanner report: the one thing worth reminding about here (the unread count is already on the bell).
+        if (obdPending.length > 0) {
+            const first = obdPending[0];
             attentionItems.push({
-                id: 'notifications', signature: `notifications:${unreadCount}`, tone: 'blue', icon: Bell,
-                title: t('dashboard.mechanic.attention.notifications.title', { count: unreadCount }),
-                sub: t('dashboard.mechanic.attention.notifications.sub'),
-                cta: t('dashboard.mechanic.attention.notifications.cta'),
-                onPress: () => router.push('/notifications'),
+                id: 'obd', signature: `obd:${obdPending.map((a) => a.id).join(',')}`, tone: 'amber', icon: ScanLine,
+                title: t('dashboard.mechanic.attention.obd.title', { count: obdPending.length }),
+                count: obdPending.length > 1 ? obdPending.length : undefined,
+                sub: [splitJobTitle(first.title).main, first.car].filter(Boolean).join(' · ') || t('dashboard.mechanic.attention.obd.sub'),
+                cta: t('dashboard.mechanic.attention.obd.cta'),
+                // The closed visit reopens on its final screen, where the report is uploaded.
+                onPress: () => router.push({ pathname: '/appointments/check-in/[id]', params: { id: first.id } } as never),
             });
         }
 
@@ -339,12 +359,13 @@ export default function DashboardScreen() {
                 id: 'held-offers', signature: `held-offers:${heldOffers.map((a) => a.id).join(',')}`, tone: 'amber', icon: Clock,
                 title: t('dashboard.mechanic.attention.heldOffers.title', { count: heldOffers.length }),
                 count: heldOffers.length > 1 ? heldOffers.length : undefined,
-                // Which offer it is, in a line: the service and when it was asked for (+ how many more wait).
+                // Which offer it is, in a line: the kind of assistance, what is wrong and the vehicle (+ how many more wait).
                 sub: [
-                    splitJobTitle(heldFirst.title).main || t('dashboard.mechanic.attention.heldOffers.sub'),
-                    formatLocalDateTime(heldFirst.date, i18n.language),
+                    t(`appointments.detail.types.${heldFirst.assistanceType === 'witness' ? 'accident' : heldFirst.type === 'videocall' ? 'videocall' : heldFirst.type === 'scheduled' ? 'scheduled' : 'immediate'}`),
+                    splitJobTitle(heldFirst.title).main,
+                    heldFirst.car,
                     heldOffers.length > 1 ? t('dashboard.user.attention.confirm.more', { count: heldOffers.length - 1 }) : null,
-                ].filter(Boolean).join(' · '),
+                ].filter(Boolean).join(' · ') || t('dashboard.mechanic.attention.heldOffers.sub'),
                 cta: t('dashboard.mechanic.attention.heldOffers.cta'),
                 timer: { deadline: heldDeadline, urgentUnderMinutes: 1, label: (time) => t('dashboard.attention.timer.offer', { time }) },
                 onPress: () => router.push({ pathname: '/(tabs)/appointments', params: { tab: 'pending' } } as never),
@@ -609,7 +630,10 @@ export default function DashboardScreen() {
                                             </View>
                                             )}
 
-                                            {/* Buttons (inside card): the main one at full width, Decline under it. Never side by side. */}
+                                            {/* Immediate: the zone, distance and ETA and "Send offer" are on the card itself; the rest keeps the detail screen. */}
+                                            {request.type === 'immediate' ? (
+                                                <ImmediateOfferPanel request={request} onSend={guard(startOffer)} onDecline={guard(handleDecline)} />
+                                            ) : (
                                             <View className="gap-2 px-5 py-4 border-t border-gray-100">
                                                 <TouchableOpacity
                                                     onPress={guard(() => router.push({
@@ -663,6 +687,7 @@ export default function DashboardScreen() {
                                                 </TouchableOpacity>
                                                 )}
                                             </View>
+                                            )}
                                         </View>
                                     </View>
                                 );
@@ -781,6 +806,7 @@ export default function DashboardScreen() {
                 </KeyboardAwareScrollView>
 
                 {/* The ratings still owed open from below */}
+                {offerDialog}
                 <ReviewsSheet
                     visible={reviewsOpen}
                     onClose={() => setReviewsOpen(false)}
@@ -911,6 +937,7 @@ export default function DashboardScreen() {
         try {
             if (a.type === 'videocall') await videoCallDAO.confirm(a.id);
             else await onSiteDAO.confirm(a.id);
+            setRateAfterConfirm(true);
         } catch (error) {
             // 409: it was already confirmed (or confirmed itself): the refresh below shows it as it is.
             if (!(error instanceof ApiError && error.statusCode === 409)) appAlert(t('appointments.onSiteConfirm.owner.confirmFailed'));

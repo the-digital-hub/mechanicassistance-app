@@ -3,12 +3,13 @@ import React from 'react';
 import { Animated, Easing, Text, View } from 'react-native';
 
 import { OS } from '@/components/on-site/ui';
+import { TYPE } from '@/lib/ui/type';
 
 /**
  * Something alive while the technician works: a ring that breathes, a gear that turns slowly and a wrench that swings over it.
  * Only transforms and opacity, so it runs on the native driver and costs next to nothing.
  */
-export function WorkingAnimation({ label }: { label: string }) {
+export function WorkingAnimation({ label, hint }: { label: string; hint?: string }) {
     const turn = React.useRef(new Animated.Value(0)).current;
     const swing = React.useRef(new Animated.Value(0)).current;
     const breathe = React.useRef(new Animated.Value(0)).current;
@@ -39,7 +40,9 @@ export function WorkingAnimation({ label }: { label: string }) {
     const ringOpacity = breathe.interpolate({ inputRange: [0, 1], outputRange: [0.55, 0.15] });
 
     return (
-        <View className="items-center" style={{ marginTop: 22, marginBottom: 6 }} accessibilityLabel={label} testID="working-animation">
+        // The block takes a roomy area of its own and centres what is in it (animation, title and hint) both ways, so it sits in the
+        // middle of the space under the timer instead of hugging it.
+        <View className="items-center justify-center" style={{ minHeight: 330, paddingHorizontal: 32 }} accessibilityLabel={label} testID="working-animation">
             <View className="items-center justify-center" style={{ width: 170, height: 150 }}>
                 <Animated.View style={{ position: 'absolute', width: 140, height: 140, borderRadius: 70, backgroundColor: '#CFDDFB', opacity: ringOpacity, transform: [{ scale: ringScale }] }} />
                 <View className="items-center justify-center" style={{ width: 112, height: 112, borderRadius: 56, backgroundColor: '#E6EEFF' }}>
@@ -51,7 +54,8 @@ export function WorkingAnimation({ label }: { label: string }) {
                     </Animated.View>
                 </View>
             </View>
-            <Text className="font-outfit-semibold text-center" style={{ fontSize: 15, lineHeight: 21, color: OS.muted, marginTop: 4 }}>{label}</Text>
+            <Text className="font-outfit-bold text-center" style={{ ...TYPE.question, color: OS.text, marginTop: 8 }}>{label}</Text>
+            {hint ? <Text className="font-outfit-regular text-center" style={{ ...TYPE.helper, color: OS.muted, marginTop: 4 }}>{hint}</Text> : null}
         </View>
     );
 }

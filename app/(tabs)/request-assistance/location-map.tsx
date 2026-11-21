@@ -10,7 +10,8 @@ import { addressDisplayName, addressesForRole } from '@/lib/address';
 import type { ParsedAddress } from '@/lib/places';
 import * as Location from 'expo-location';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ChevronLeft } from 'lucide-react-native';
+import { Briefcase, ChevronDown, ChevronLeft, Home, MapPin } from 'lucide-react-native';
+import { OwnerSheet, SheetOption } from '@/components/dashboard/OwnerHomeBlocks';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Keyboard, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -34,6 +35,8 @@ export default function LocationMapScreen() {
     const [locationName, setLocationName] = useState(t('requestAssistance.locationMap.myCurrentLocation'));
     const [locationZip, setLocationZip] = useState('');
     const [isLoading, setIsLoading] = useState(true);
+    const [pickerOpen, setPickerOpen] = useState(false);
+    const [pickedAddressId, setPickedAddressId] = useState<string | null>(null);
     const [isResolving, setIsResolving] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     /** Last address picked from the autocomplete — keeps Google's formatted string. */
@@ -305,56 +308,60 @@ export default function LocationMapScreen() {
                 )}
 
                 <View className="px-6 pb-6">
-                    {/* The chosen place, in a card like the Home / Work ones below it */}
-                    <View className="bg-gray-50 p-4 rounded-xl border border-gray-100 mb-4" testID="selected-location-card">
-                        <Text className="text-blue-900 font-outfit-bold mb-1">{t('requestAssistance.locationMap.selectedLocationLabel')}</Text>
-                        <Text className="text-gray-900 font-outfit-semibold text-base">{locationName}</Text>
-                    </View>
-                    <View className="flex-row gap-4">
-                        <TouchableOpacity
-                            onPress={() => {
-                                if (homeAddress) {
-                                    geocodeAndSetAddress(
-                                        homeAddress,
-                                        `${homeAddress.street || ''}, ${homeAddress.city || ''}`.trim().replace(/^,\s*/, '')
-                                    );
-                                } else {
-                                    appAlert(t('requestAssistance.locationMap.noHomeAddress'));
-                                }
-                            }}
-                            className="flex-1 bg-gray-50 p-4 rounded-xl border border-gray-100 relative"
-                        >
-                            <View className="flex-row justify-between items-start mb-1">
-                                <Text numberOfLines={1} className="text-blue-900 font-outfit-bold">{addressDisplayName(homeAddress, t) ?? t('requestAssistance.locationMap.home')}</Text>
-                            </View>
-                            <Text numberOfLines={1} className="text-gray-500 text-[14px]">
-                                {homeAddress ? `${homeAddress.street || ''}, ${homeAddress.city || ''}` : t('requestAssistance.locationMap.notSet')}
-                            </Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            onPress={() => {
-                                if (workAddress) {
-                                    geocodeAndSetAddress(
-                                        workAddress,
-                                        `${workAddress.street || ''}, ${workAddress.city || ''}`.trim().replace(/^,\s*/, '')
-                                    );
-                                } else {
-                                    appAlert(t('requestAssistance.locationMap.noWorkAddress'));
-                                }
-                            }}
-                            className="flex-1 bg-gray-50 p-4 rounded-xl border border-gray-100 relative"
-                        >
-                            <View className="flex-row justify-between items-start mb-1">
-                                <Text numberOfLines={1} className="text-blue-900 font-outfit-bold">{addressDisplayName(workAddress, t) ?? t('requestAssistance.locationMap.work')}</Text>
-                            </View>
-                            <Text numberOfLines={1} className="text-gray-500 text-[14px]">
-                                {workAddress ? `${workAddress.street || ''}, ${workAddress.city || ''}` : t('requestAssistance.locationMap.notSet')}
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
+                    {/* The chosen place is one selector: tapping it opens the saved addresses from below (no Home / Work cards taking room here). */}
+                    <TouchableOpacity
+                        onPress={() => { Keyboard.dismiss(); setPickerOpen(true); }}
+                        activeOpacity={0.8}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${t('requestAssistance.locationMap.selectedLocationLabel')}: ${locationName}. ${t('requestAssistance.locationMap.change')}`}
+                        className="flex-row items-center bg-gray-50 p-4 rounded-xl border border-gray-100"
+                        style={{ gap: 12 }}
+                        testID="selected-location-card"
+                    >
+                        <View className="items-center justify-center" style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: '#E6EEFF' }}>
+                            <MapPin size={22} color="#0047AB" />
+                        </View>
+                        <View className="flex-1">
+                            <Text className="text-blue-900 font-outfit-bold mb-0.5">{t('requestAssistance.locationMap.selectedLocationLabel')}</Text>
+                            <Text className="text-gray-900 font-outfit-semibold text-base" numberOfLines={2}>{locationName}</Text>
+                        </View>
+                        <View className="flex-row items-center" style={{ gap: 2 }}>
+                            <Text className="font-outfit-bold" style={{ fontSize: 15, color: '#1E56E3' }}>{t('requestAssistance.locationMap.change')}</Text>
+                            <ChevronDown size={18} color="#1E56E3" />
+                        </View>
+                    </TouchableOpacity>
                 </View>
             </ScrollView>
+
+            <OwnerSheet
+                visible={pickerOpen}
+                title={t('requestAssistance.locationMap.pickTitle')}
+                subtitle={t('requestAssistance.locationMap.pickSubtitle')}
+                onClose={() => setPickerOpen(false)}
+            >
+                <View style={{ gap: 10 }} testID="location-picker">
+                    {roleAddresses.length === 0 ? (
+                        <Text className="text-gray-500 font-outfit-regular text-base">{t('requestAssistance.locationMap.noSaved')}</Text>
+                    ) : roleAddresses.map((a) => {
+                        const line = `${a.street || ''}, ${a.city || ''}`.trim().replace(/^,\s*/, '');
+                        const name = addressDisplayName(a, t) ?? (a.type === 'work' ? t('requestAssistance.locationMap.work') : t('requestAssistance.locationMap.home'));
+                        return (
+                            <SheetOption
+                                key={a.id ?? line}
+                                icon={a.type === 'work' ? Briefcase : Home}
+                                title={name}
+                                subtitle={line}
+                                selected={!!a.id && a.id === pickedAddressId}
+                                onPress={() => {
+                                    setPickedAddressId(a.id ?? null);
+                                    setPickerOpen(false);
+                                    void geocodeAndSetAddress(a, line);
+                                }}
+                            />
+                        );
+                    })}
+                </View>
+            </OwnerSheet>
 
             <Footer label={t('requestAssistance.locationMap.confirmLocation')} disabled={!marker} onPress={handleConfirm} />
         </View>

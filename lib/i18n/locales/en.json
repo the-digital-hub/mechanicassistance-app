@@ -521,6 +521,12 @@
           "title_other": "Offers waiting for the customer",
           "sub": "They're deciding. We'll tell you as soon as they answer.",
           "cta": "View offer"
+        },
+        "obd": {
+          "title": "Scanner report pending",
+          "title_other": "Scanner reports pending",
+          "sub": "Upload the OBD report to complete the service.",
+          "cta": "Upload"
         }
       },
       "summaryJobs_one": "{{count}} active job",
@@ -710,7 +716,11 @@
       "work": "Work",
       "notSet": "Not set",
       "selectedLocationLabel": "Selected Location",
-      "confirmLocation": "Confirm Location"
+      "confirmLocation": "Confirm Location",
+      "change": "Change",
+      "pickTitle": "Choose a location",
+      "pickSubtitle": "Your saved addresses. You can also search above or move the pin.",
+      "noSaved": "You have no saved addresses yet. Search above or move the pin."
     },
     "confirmation": {
       "media": "Photos & video",
@@ -1104,7 +1114,9 @@
           "disputed": "Under review",
           "disputedHint": "Support is reviewing it",
           "notCharged": "Not charged",
-          "notChargedHint": "Not resolved — no charge"
+          "notChargedHint": "Not resolved — no charge",
+          "inProgress": "Service in progress",
+          "inProgressHint": "The service is under way"
         },
         "type": {
           "immediate": "Immediate Assistance",
@@ -1124,7 +1136,8 @@
           "awaitingConfirmationMechanic": "Finished – Awaiting customer confirmation",
           "awaitingConfirmationOwner": "Finished – Confirm the service",
           "disputed": "Disputed – Under review",
-          "notCharged": "Completed – Not charged"
+          "notCharged": "Completed – Not charged",
+          "inProgress": "Confirmed – In progress"
         },
         "vehicleId": "Vehicle ID:",
         "distance": "Distance: {{miles}} mi",
@@ -1376,7 +1389,10 @@
       "cameraPermission": "Allow camera access to scan the customer's QR code.",
       "allowCamera": "Allow camera",
       "scanHint": "Point the camera at the customer's QR code",
-      "checking": "Checking…"
+      "checking": "Checking…",
+      "mismatchVehicle": "Vehicle on this request",
+      "mismatchRef": "Reference",
+      "scanHintZoom": "Point the camera at the customer's QR code. Pinch to zoom."
     },
     "onSite": {
       "titles": {
@@ -1614,7 +1630,7 @@
         "eyebrowCheckin": "CANNOT RESOLVE ON-SITE",
         "eyebrowExecution": "ISSUE NOT RESOLVED",
         "title": "Tell us what happened",
-        "subtitle": "Explain why it can't be fixed, then complete the maintenance check before closing out.",
+        "subtitle": "Explain why it can't be fixed here.",
         "whyEyebrow": "WHY CAN'T IT BE RESOLVED HERE?",
         "otherPh": "Describe the reason…",
         "notePh": "Add a note about this (optional)…",
@@ -1629,7 +1645,8 @@
           "needsShop": "Needs shop equipment (lift, alignment rack, etc.)",
           "other": "Other"
         },
-        "whyTitle": "Why can't it be resolved here?"
+        "whyTitle": "Why can't it be resolved here?",
+        "checklistTitle": "Before closing the visit"
       },
       "resolve": {
         "eyebrow": "REPAIR IN PROGRESS",
@@ -1676,7 +1693,8 @@
         "stepProofSub": "Optional, but a few photos or a short video of the result help if the customer ever raises a claim.",
         "backToWork": "Back",
         "backToPhotos": "Back",
-        "working": "Working on the vehicle…"
+        "working": "Working on the vehicle…",
+        "workingHint": "The timer keeps running. When you are done, tap \"I finished the work\"."
       },
       "finalCheck": {
         "eyebrow": "FINAL CHECK",
@@ -1721,7 +1739,30 @@
         "minutes": "{{minutes}} min",
         "closing": "Closing…",
         "payoutHint": "Payment is released once the client confirms the work.",
-        "subtitleCompleted": "Check the visit and what you'll get paid for it."
+        "subtitleCompleted": "Check the visit and what you'll get paid for it.",
+        "doneEyebrow": "WHAT WAS DONE",
+        "vehicle": "Vehicle",
+        "vin": "VIN",
+        "checkIn": "Check-in",
+        "checkInValue": "Verified with {{method}}",
+        "method": {
+          "pin": "PIN",
+          "qr": "QR code"
+        },
+        "obd": "OBD scan",
+        "obdCodes_one": "{{count}} code read",
+        "obdCodes_other": "{{count}} codes read",
+        "obdNoCodes": "No codes found",
+        "obdProcessing": "Being read",
+        "obdNone": "No scanner report",
+        "media": "Photos and video",
+        "photosCount_one": "{{count}} photo",
+        "photosCount_other": "{{count}} photos",
+        "videosCount_one": "{{count}} video",
+        "videosCount_other": "{{count}} videos",
+        "mediaNone": "None added",
+        "checklistDone": "{{done}} of {{total}} done",
+        "notes": "Work notes"
       },
       "done": {
         "completed": "Service completed",
@@ -3731,6 +3772,11 @@
         "pending": "Pending",
         "other": "—"
       }
+    },
+    "tabs": {
+      "activity": "Activity",
+      "payments": "Payments",
+      "cards": "Cards"
     }
   },
   "crash": {

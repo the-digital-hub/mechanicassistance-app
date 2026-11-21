@@ -66,7 +66,7 @@ export default function OnSiteFlowScreen() {
     const id = Array.isArray(rawId) ? rawId[0] : rawId || '';
     const router = useRouter();
     const { t } = useTranslation();
-    const { getAppointmentById } = useAppointments();
+    const { getAppointmentById, refresh: refreshAppointments } = useAppointments();
     const appointment = getAppointmentById(id);
 
     const [loading, setLoading] = React.useState(true);
@@ -169,6 +169,8 @@ export default function OnSiteFlowScreen() {
             if (result.ok) {
                 setVisit(result.visit);
                 setScreen('diagnostics-vin');
+                // Checking in moves the appointment to in progress: the dashboard and the lists must say so now, not "en route".
+                void refreshAppointments();
             } else if (result.reason === 'mismatch') {
                 setScreen('retry');
             } else {
@@ -185,6 +187,7 @@ export default function OnSiteFlowScreen() {
     };
 
     const redirect = (r: RedirectReason) => {
+        setOptionsStep('why');
         setDoneVariant('redirected');
         setRedirectReason(r);
         go('close');
@@ -205,7 +208,16 @@ export default function OnSiteFlowScreen() {
         }
     };
 
-    const back = screen === 'checkin'
+    // The resolve screen has three steps (the work, the proof, how it went): its back arrow goes one step back before it leaves.
+    const [resolvePart, setResolvePart] = React.useState<'work' | 'proof' | 'outcome'>('work');
+    // Can't resolve: two steps (why, then the maintenance check), the same way.
+    const [optionsStep, setOptionsStep] = React.useState<'why' | 'checklist'>('why');
+    const inOptions = screen === 'options-checkin' || screen === 'options-execution';
+    const back = inOptions && optionsStep === 'checklist'
+        ? () => setOptionsStep('why')
+        : screen === 'resolve' && resolvePart !== 'work'
+        ? () => setResolvePart(resolvePart === 'outcome' ? 'proof' : 'work')
+        : screen === 'checkin'
         ? () => goBackOr(router, { pathname: '/appointments/[id]', params: { id } })
         : screen === 'done'
             ? () => router.replace('/(tabs)/appointments')
@@ -213,13 +225,21 @@ export default function OnSiteFlowScreen() {
                 // A resolved repair came through the final check; a redirected one, from the resolve screen.
                 ? () => go(doneVariant === 'completed' ? 'final-check' : 'resolve')
                 : BACK_OF[screen] ? () => go(BACK_OF[screen]!) : undefined;
+    // The close-out summary lists what was captured, scanned and checked: ask the server for the visit as it is now (captures upload
+    // while the technician moves through the steps, and the copy held here is from before them).
+    React.useEffect(() => {
+        if (screen !== 'close' || !id) return;
+        let cancelled = false;
+        onSiteDAO.get(id).then((fresh) => { if (!cancelled && fresh) setVisit(fresh); }).catch(() => undefined);
+        return () => { cancelled = true; };
+    }, [screen, id]);
     const checklist = visit?.maintenanceChecklist ?? {};
     const saveChecklist = (c: Record<string, boolean>) => save({ maintenanceChecklist: c });
 
     let body: React.ReactNode = null;
     switch (screen) {
         case 'checkin': body = <ScreenCheckIn onSubmit={checkIn} onMismatch={() => setScreen('retry')} />; break;
-        case 'retry': body = <ScreenRetry onRetry={() => setScreen('checkin')} />; break;
+        case 'retry': body = <ScreenRetry onRetry={() => setScreen('checkin')} vehicle={appointment.car ?? null} refCode={appointment.refCode ?? null} />; break;
         case 'diagnostics-vin':
             body = (
                 <ScreenDiagnosticsVin
@@ -262,7 +282,7 @@ export default function OnSiteFlowScreen() {
             break;
         case 'buy-parts': body = <ScreenBuyParts obdFilled={obdFilled} onDone={(order) => { setPartsOrder(order); go('resolve'); }} />; break;
         case 'options-checkin':
-            body = <ScreenEvaluateOptions context="checkin" onSelect={redirect} checklist={checklist} onChecklistChange={saveChecklist} />;
+            body = <ScreenEvaluateOptions context="checkin" onSelect={redirect} checklist={checklist} onChecklistChange={saveChecklist} step={optionsStep} onStepChange={setOptionsStep} />;
             break;
         case 'resolve':
             body = (
@@ -274,6 +294,8 @@ export default function OnSiteFlowScreen() {
                     onWorkNotesChange={(workNotes) => save({ workNotes })}
                     onResolved={() => go('final-check')}
                     onNotResolved={() => go('options-execution')}
+                    part={resolvePart}
+                    onPartChange={setResolvePart}
                 />
             );
             break;
@@ -281,7 +303,7 @@ export default function OnSiteFlowScreen() {
             body = <ScreenFinalCheck checklist={checklist} onChecklistChange={saveChecklist} onDone={() => go('close')} />;
             break;
         case 'options-execution':
-            body = <ScreenEvaluateOptions context="execution" onSelect={redirect} checklist={checklist} onChecklistChange={saveChecklist} />;
+            body = <ScreenEvaluateOptions context="execution" onSelect={redirect} checklist={checklist} onChecklistChange={saveChecklist} step={optionsStep} onStepChange={setOptionsStep} />;
             break;
         case 'close':
             body = (
@@ -291,6 +313,9 @@ export default function OnSiteFlowScreen() {
                     redirectReason={redirectReason}
                     serviceAmount={visit?.serviceAmount ?? null}
                     checkedInAt={visit?.checkedInAt ?? null}
+                    visit={visit}
+                    vehicle={appointment.car ?? null}
+                    vin={vinCapture?.vin ?? null}
                     onClose={close}
                 />
             );

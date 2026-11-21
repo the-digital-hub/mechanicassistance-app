@@ -4,7 +4,6 @@ import { useUser } from '@/context/UserContext';
 import { useVerifiedAction } from '@/hooks/useVerifiedAction';
 import { useAvailableToOffer } from '@/hooks/useAvailableToOffer';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
-import * as Location from 'expo-location';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { goBackOr } from '@/lib/navigation/goBackOr';
@@ -15,8 +14,6 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import type { AssistanceRequest } from '@/lib/dao/interfaces';
 import { FixedLocationMap } from '@/components/ui/FixedLocationMap';
-import { approximateArea } from '@/lib/maps/approximateLocation';
-import { apiClient } from '@/lib/api/apiClient';
 import { VideoCallZoneNote } from '@/components/video/VideoCallZoneNote';
 import { videoCallStartLabel } from '@/lib/video/videoCallTime';
 import { videoCallDAO } from '@/lib/dao/VideoCallDAO';
@@ -26,23 +23,7 @@ import { RequestIssueText } from '@/components/ui/RequestIssueText';
 import { appAlert } from '@/lib/ui/appAlert';
 import { ApiError } from '@/lib/api/types';
 import { useSocket } from '@/context/SocketContext';
-
-function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
-    const R = 6371;
-    const toRad = (d: number) => (d * Math.PI) / 180;
-    const dLat = toRad(lat2 - lat1);
-    const dLng = toRad(lng2 - lng1);
-    const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
-function formatEta(minutes: number): string {
-    if (minutes < 1) return '1 min';
-    if (minutes < 60) return `${Math.round(minutes)} min`;
-    const h = Math.floor(minutes / 60);
-    const m = Math.round(minutes % 60);
-    return m > 0 ? `${h} hr ${m} min` : `${h} hr`;
-}
+import { useRequestRoute } from '@/hooks/useRequestRoute';
 
 // Distance / ETA (and video-call time) card: a quiet white card, with the brand blue only on the icons.
 const HERO_CARD = { backgroundColor: '#FFFFFF', borderRadius: 18, borderWidth: 1, borderColor: '#EEF2FA', marginBottom: 16, overflow: 'hidden' as const, shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.06, shadowRadius: 12, elevation: 2 };
@@ -183,8 +164,6 @@ export default function RequestDetailScreen() {
     const callMinutes = chosenMinutes ?? defaultMinutes;
     const [submitting, setSubmitting] = useState(false);
     const [declining, setDeclining] = useState(false);
-    const [etaText, setEtaText] = useState<string | null>(null);
-    const [distKm, setDistKm] = useState<number | null>(null);
 
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
     const [isDateOpen, setIsDateOpen] = useState(false);
@@ -199,43 +178,8 @@ export default function RequestDetailScreen() {
     ];
     const TIMES = ['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '04:00 PM'];
 
-    useEffect(() => {
-        // A video call is remote: no route, distance or ETA to work out.
-        if (!hasLocation || isVideo) return;
-
-        (async () => {
-            try {
-                const { status } = await Location.requestForegroundPermissionsAsync();
-                if (status !== 'granted') return;
-                const loc = await Location.getCurrentPositionAsync({});
-                const { latitude, longitude } = loc.coords;
-
-                // Measured to the approximate zone, not the client's real point:
-                // an exact distance from a known position would give it back.
-                // The request is not accepted yet, so the mechanic gets the area only.
-                const zone = approximateArea(reqLat, reqLng, String(id));
-
-                // Rough placeholder while the road-based figures load below —
-                // straight-line distance at an assumed average speed.
-                const km = haversineKm(latitude, longitude, zone.latitude, zone.longitude);
-                setDistKm(km);
-                const minutes = (km * 1.3 / 25) * 60;
-                setEtaText(formatEta(minutes));
-
-                // Backend asks Google Directions for the real road route, which
-                // returns a more accurate distance/ETA than the estimate above.
-                const route: any = await apiClient.get(
-                    `/api/appointments/route?fromLat=${latitude}&fromLng=${longitude}&toLat=${zone.latitude}&toLng=${zone.longitude}`
-                ).catch(() => null);
-                if (route?.available) {
-                    if (typeof route.distanceKm === 'number') setDistKm(route.distanceKm);
-                    if (typeof route.minutesAway === 'number') setEtaText(formatEta(route.minutesAway));
-                }
-            } catch {
-                // no-op: ETA and distance stay null
-            }
-        })();
-    }, [locationLat, locationLng, isVideo]);
+    // A video call is remote: no route, distance or ETA to work out.
+    const { distKm, etaText } = useRequestRoute(String(Array.isArray(id) ? id[0] : id ?? ''), hasLocation ? reqLat : undefined, hasLocation ? reqLng : undefined, !isVideo);
 
     // Another technician can be confirmed by the owner while this screen is open (or before it was opened). The screen
     // checks the request again when it opens, when the app comes back, when an update arrives, every few seconds, and

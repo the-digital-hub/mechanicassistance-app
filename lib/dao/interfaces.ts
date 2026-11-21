@@ -92,6 +92,8 @@ export interface AssistanceSummary {
     id: string;
     assistanceType: string;
     title: string;
+    /** Short reference, e.g. `AS-4H8TX2`. Newer backends only; the screens fall back to the start of the id. */
+    refCode?: string;
     address: string | null;
     createdAt: string;
     isVideoCall: boolean;

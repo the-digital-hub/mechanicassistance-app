@@ -321,7 +321,7 @@ export function Spinner({ color = OS.blue }: { color?: string }) {
     return <ActivityIndicator size="large" color={color} />;
 }
 
-const MAINTENANCE_ITEMS = ['m1', 'm2', 'm3', 'm4', 'm5', 'm6', 'm7'];
+export const MAINTENANCE_ITEMS = ['m1', 'm2', 'm3', 'm4', 'm5', 'm6', 'm7'];
 
 /**
  * Checklist state. `initial` restores what the visit already saved; `onChange`
