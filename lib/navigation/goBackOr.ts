@@ -1,4 +1,4 @@
-import type { Href, Router } from 'expo-router';
+import type { Href, ImperativeRouter as Router } from 'expo-router';
 
 /**
  * Go back when there is somewhere to go back to, otherwise land on `fallback`.

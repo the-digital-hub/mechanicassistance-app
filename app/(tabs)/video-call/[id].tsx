@@ -623,7 +623,7 @@ const styles = StyleSheet.create({
   },
   networkBad: { backgroundColor: 'rgba(229,62,62,0.92)' },
   addTimeText: { fontFamily: 'Outfit_700Bold', fontSize: 13, color: '#FFFFFF' },
-  loadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: VC.navy, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
+  loadingOverlay: { ...StyleSheet.absoluteFill, backgroundColor: VC.navy, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
   loadingText: { fontFamily: 'Outfit_500Medium', fontSize: 14, color: 'rgba(255,255,255,0.7)', marginTop: 12 },
   waitingText: { fontFamily: 'Outfit_500Medium', fontSize: 14, color: 'rgba(255,255,255,0.7)', textAlign: 'center' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },

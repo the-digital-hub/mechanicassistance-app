@@ -6,7 +6,7 @@ import {
 } from "@expo-google-fonts/outfit";
 import { LogBox, Text, TouchableOpacity, View } from "react-native";
 
-import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
+import { DefaultTheme, ThemeProvider } from "expo-router/react-navigation";
 import { PAGE_BG } from "@/lib/ui/header";
 
 // The page colour behind the rounded header and the floating tab bar.

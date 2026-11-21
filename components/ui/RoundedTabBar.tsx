@@ -1,4 +1,4 @@
-import { BottomTabBar, type BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { BottomTabBar, type BottomTabBarProps } from "expo-router/js-tabs";
 import { usePathname } from 'expo-router';
 import React, { useEffect } from 'react';
 import { TouchableOpacity, View } from 'react-native';

@@ -1,5 +1,3 @@
-jest.mock('react-native', () => ({ Alert: { alert: jest.fn() }, Linking: { openURL: jest.fn() } }));
-
 import { directionsUrl } from '../directions';
 
 describe('directionsUrl', () => {

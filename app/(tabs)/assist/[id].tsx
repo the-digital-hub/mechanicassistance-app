@@ -5,7 +5,7 @@ import { useVerifiedAction } from '@/hooks/useVerifiedAction';
 import { useAvailableToOffer } from '@/hooks/useAvailableToOffer';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import * as Location from 'expo-location';
-import { CommonActions, useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation } from "expo-router/react-navigation";
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { goBackOr } from '@/lib/navigation/goBackOr';
 import { HeaderBackButton } from '@/components/ui/HeaderBackButton';

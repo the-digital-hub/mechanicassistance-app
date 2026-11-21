@@ -6,7 +6,7 @@ import { useAvailableToOffer } from '@/hooks/useAvailableToOffer';
 import { useUser } from '@/context/UserContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import * as Location from 'expo-location';
-import { CommonActions, useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation } from "expo-router/react-navigation";
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Calendar, Clock, Navigation, HelpCircle, ScanLine } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
