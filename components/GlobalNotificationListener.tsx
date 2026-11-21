@@ -5,6 +5,7 @@ import { useUser } from '@/context/UserContext';
 import { useRouter, useSegments } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { refLabel } from '@/lib/refCode';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { appAlert, type AppAlertHighlight } from '@/lib/ui/appAlert';
 import { splitJobTitle } from '@/lib/ui/jobTitle';
@@ -54,6 +55,7 @@ export function GlobalNotificationListener() {
                 label: t(`appointments.detail.types.${kind}`),
                 value: issue || r.car || '',
                 sub: issue && r.car ? r.car : undefined,
+                ref: refLabel(r.refCode, r.id),
                 icon: kind === 'videocall' ? 'videocam-outline' : kind === 'scheduled' ? 'calendar-outline' : 'flash-outline',
             };
         } catch {

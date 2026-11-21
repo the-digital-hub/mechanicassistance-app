@@ -516,6 +516,12 @@
           "cta": "Configurar"
         },
         "hide": "Ocultar",
+        "quotesWaiting": {
+          "title": "Presupuesto esperando al cliente",
+          "title_other": "Presupuestos esperando al cliente",
+          "sub": "Está decidiendo. Te avisamos apenas responda.",
+          "cta": "Ver presupuestos"
+        },
         "heldOffers": {
           "title": "Oferta esperando al cliente",
           "title_other": "Ofertas esperando al cliente",
@@ -1027,7 +1033,7 @@
   },
   "appointments": {
     "filters": {
-      "searchPlaceholder": "Buscá por código, vehículo o servicio",
+      "searchPlaceholder": "Código, vehículo o servicio",
       "clearSearch": "Borrar búsqueda",
       "button": "Filtros",
       "sheetTitle": "Filtros",
@@ -1098,6 +1104,8 @@
           "offeredHint": "Tocá para ver la oferta",
           "ready": "El mecánico aún no salió",
           "readyHint": "Esperando que el mecánico salga",
+          "readyMechanic": "Aceptada por el dueño del vehículo",
+          "readyMechanicHint": "Salí cuando estés listo",
           "enRoute": "Mecánico en camino",
           "enRouteHint": "El mecánico está en camino",
           "scheduled": "Agendada",
@@ -1129,6 +1137,7 @@
           "pending": "Pendiente – Pendiente",
           "offered": "Pendiente – Ofertada",
           "ready": "Confirmada – Pendiente de salida",
+          "readyMechanic": "Confirmada – Aceptada por el dueño del vehículo",
           "enRoute": "Confirmada – En camino",
           "scheduled": "Confirmada – Agendada",
           "completed": "Completada – Resuelta",
@@ -1582,6 +1591,9 @@
       "validating": {
         "title": "Validando el diagnóstico reportado…",
         "subtitle": "Procesando la información capturada.",
+        "stepPhotos": "Leyendo las fotos",
+        "stepObd": "Revisando los códigos OBD",
+        "stepReady": "Preparando el diagnóstico",
         "missing": "Agregá las fotos de la patente y del tablero para continuar."
       },
       "feasibility": {
@@ -1866,6 +1878,7 @@
       "rateBody": "Tu opinión es privada y ayuda a que la comunidad sea confiable para otros mecánicos.",
       "ratePh": "Nota opcional sobre el cliente (ej. fácil de ubicar, buen acceso al vehículo)…",
       "rateSubmit": "Enviar calificación",
+      "rateButton": "Dejá tu reseña",
       "rateDone": "Gracias — enviaste una calificación de {{rating}} estrellas",
       "obdTitle": "Reporte del escaneo OBD",
       "checklistTitle": "Cierre de la asistencia",
@@ -2130,6 +2143,8 @@
         "disputedBody": "Reportaste que el problema no se resolvió. No se te cobrará hasta que soporte decida.",
         "notChargedTitle": "Sin cargo",
         "notChargedBody": "Soporte determinó que el problema no se resolvió, así que no se te cobró.",
+        "completedTitle": "Asistencia completada",
+        "completedBody": "Confirmaste la asistencia.",
         "finishTitle": "¿Finalizar la videollamada?",
         "finishBody": "La llamada termina para los dos y se cobra la asistencia. No se puede deshacer.",
         "finishConfirm": "Finalizar",
@@ -2166,7 +2181,9 @@
         },
         "clientLabel": "CLIENTE",
         "clientFallback": "Cliente",
-        "customerInRoomTitle": "El cliente ya está en la sala de video"
+        "customerInRoomTitle": "El cliente ya está en la sala de video",
+        "waitingForCustomerTitle": "Esperando al dueño del vehículo",
+        "waitingForCustomerBody": "Vas a poder unirte apenas entre a la sala de video."
       },
       "header": {
         "booked": "Videollamada agendada",
@@ -2490,6 +2507,7 @@
     "confirmOfferImmediate": "Vas a ofrecer asistencia inmediata para {{title}}. El cliente todavía tiene que aceptarla.",
     "confirmOfferScheduled": "Vas a ofrecer asistencia para el {{date}} a las {{time}}. El cliente todavía tiene que aceptarla.",
     "confirmOffer": "Enviar oferta",
+    "confirmOfferYes": "Enviar ahora",
     "sendingOffer": "Enviando...",
     "cancel": "Cancelar",
     "offerAccepted": "¡Oferta aceptada!",
@@ -2907,7 +2925,7 @@
     "state": "Estado",
     "zip": "Código postal",
     "back": "Volver",
-    "create": "Crear",
+    "create": "Agregar dirección",
     "save": "Guardar",
     "selectState": "Seleccionar estado",
     "done": "Listo",
@@ -3318,7 +3336,8 @@
     "title": "Tomá tu próximo pedido",
     "subtitle": "Filtrá las solicitudes entrantes por estado, tipo de servicio y distancia.",
     "searchPlaceholder": "Buscar por vehículo, zona o problema",
-    "all": "Todas"
+    "all": "Todas",
+    "yourQuotes": "Tus presupuestos"
   },
   "ase": {
     "notFound": "No se encontró ningún mecánico ASE con ese ID. Verificá y volvé a intentar.",
@@ -4151,6 +4170,11 @@
     }
   },
   "scheduledProvider": {
+    "quoteCard": {
+      "sent": "Presupuesto enviado",
+      "decides": "El cliente decide en {{time}}",
+      "open": "Ver o editar presupuesto"
+    },
     "title": "Solicitud programada",
     "eyebrow": "SOLICITUD PROGRAMADA",
     "sendQuote": "Enviá tu cotización",
@@ -4374,7 +4398,7 @@
   },
   "notificationsPopup": {
     "offerAcceptedTitle": "¡Oferta aceptada!",
-    "offerAcceptedBody": "El cliente aceptó tu oferta para ayudar.",
+    "offerAcceptedBody": "El cliente aceptó tu oferta.",
     "jobCanceledTitle": "Trabajo cancelado",
     "jobCanceledBody": "El cliente canceló esta solicitud.",
     "onSiteConfirmTitle": "Servicio finalizado por el mecánico",

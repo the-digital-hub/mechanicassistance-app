@@ -32,7 +32,9 @@ export default function RequestAssistanceLayout() {
         <Stack.Screen name="date-time" options={{ headerShown: false }} />
         <Stack.Screen name="obd-scanner" options={{ headerShown: false }} />
         <Stack.Screen name="when" options={{ headerShown: false }} />
-        <Stack.Screen name="scheduled" options={{ headerShown: false }} />
+        {/* The wizard has the radius slider and a map-like preview: a sideways drag there must not carry the whole screen back
+            (the header has the back arrow). */}
+        <Stack.Screen name="scheduled" options={{ headerShown: false, gestureEnabled: false, fullScreenGestureEnabled: false }} />
         <Stack.Screen name="scheduled-offers" options={{ headerShown: false }} />
         <Stack.Screen name="searching"options={{ headerShown: false }} />
         <Stack.Screen name="mechanic-found" options={{ headerShown: false }} />

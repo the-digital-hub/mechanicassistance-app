@@ -153,9 +153,40 @@ export function CustomerInRoomCard() {
     );
 }
 
-/** `rejoin`: the call already started (the person left and came back), so it says so. */
-export function JoinVideoCallButton({ onPress, rejoin = false }: { onPress: () => void; rejoin?: boolean }) {
+/** Technician: the customer has not opened the video room yet. Joining waits for them. */
+export function WaitingForCustomerCard() {
     const { t } = useTranslation();
+    return (
+        <InfoCard
+            icon="hourglass-outline"
+            tone="orange"
+            title={t(`${K}.mechanic.waitingForCustomerTitle`)}
+            body={t(`${K}.mechanic.waitingForCustomerBody`)}
+            testID="waiting-for-customer"
+        />
+    );
+}
+
+/**
+ * `rejoin`: the call already started (the person left and came back), so it says so. `disabled`: not yet (the technician waits for the
+ * customer to enter first): a grey, quiet button instead of the green one, so there is nothing to press that does not work yet.
+ */
+export function JoinVideoCallButton({ onPress, rejoin = false, disabled = false }: { onPress: () => void; rejoin?: boolean; disabled?: boolean }) {
+    const { t } = useTranslation();
+    if (disabled) {
+        return (
+            <View
+                className="flex-row items-center justify-center"
+                style={{ minHeight: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, paddingHorizontal: 16, gap: 10, backgroundColor: '#E6EAF2' }}
+                accessibilityRole="button"
+                accessibilityState={{ disabled: true }}
+                testID="join-video-call"
+            >
+                <Ionicons name="videocam" size={20} color="#9AA4BA" />
+                <Text className="font-outfit-bold text-center" style={{ fontSize: 16, lineHeight: 22, color: '#8C96AE' }}>{t(`${K}.join`)}</Text>
+            </View>
+        );
+    }
     return <GradientButton label={t(rejoin ? `${K}.rejoin` : `${K}.join`)} icon="videocam" tone="success" onPress={onPress} testID="join-video-call" />;
 }
 
@@ -273,6 +304,10 @@ export function OwnerVideoCallStatusCard({ state, mechanicName, busy, onConfirm,
     }
     if (state.status === 'completed' && state.currentStatus === 'not_resolved') {
         return <InfoCard icon="card-outline" tone="gray" title={t(`${k}.notChargedTitle`)} body={t(`${k}.notChargedBody`)} testID="owner-video-not-charged" />;
+    }
+    // Closed and confirmed: the same card the technician sees, in the owner's words.
+    if (state.status === 'completed') {
+        return <InfoCard icon="checkmark-circle-outline" tone="green" title={t(`${k}.completedTitle`)} body={t(`${k}.completedBody`)} testID="owner-video-completed" />;
     }
     return null;
 }

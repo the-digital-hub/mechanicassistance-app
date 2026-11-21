@@ -10,6 +10,7 @@ import { PendingRatings } from '@/components/dashboard/PendingRatings';
 import { useAttentionState } from '@/lib/dashboard/useAttentionState';
 import { useScheduledAttention } from '@/lib/scheduled/useScheduledAttention';
 import { useMarketplaceFeed } from '@/lib/scheduled/useMarketplaceFeed';
+import { hasSentQuote, quotesWaiting } from '@/lib/scheduled/quotes';
 import { connectDAO } from '@/lib/dao/ConnectDAO';
 import { UserRequestCard } from '@/components/ui/UserRequestCard';
 import { MechanicActiveJobCard } from '@/components/ui/MechanicActiveJobCard';
@@ -30,7 +31,7 @@ import { countCompletedToday } from '@/lib/dashboard/mechanicKpis';
 import { useMechanicKpis } from '@/lib/dashboard/useMechanicKpis';
 import { formatMoney } from '@/lib/payments/paymentSource';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { FileText, RotateCcw, Calendar, Video, Zap, MapPin, Wrench, DollarSign, Clock, Car, Lock, Power, CreditCard, AlertTriangle, Star, Briefcase, CheckCircle2, ClipboardList, Inbox, ScanLine } from 'lucide-react-native';
+import { FileText, RotateCcw, Calendar, Video, Zap, MapPin, Wrench, DollarSign, Clock, Car, Lock, Power, CreditCard, AlertTriangle, Star, Briefcase, CheckCircle2, ClipboardList, Inbox, ScanLine, Send } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useScrollPressGuard } from '@/hooks/useScrollPressGuard';
@@ -40,6 +41,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ImmediateOfferPanel } from '@/components/dashboard/ImmediateOfferPanel';
 import { useOfferFromCard } from '@/hooks/useOfferFromCard';
 import { useObdPending } from '@/hooks/useObdPending';
+import { ObdReportSheet, assistanceKind } from '@/components/on-site/ObdReportSheet';
 import { ReviewsSheet } from '@/components/profile/ReviewsSheet';
 import { useProfileReviews } from '@/hooks/useProfileReviews';
 import { splitJobTitle } from '@/lib/ui/jobTitle';
@@ -129,7 +131,10 @@ export default function DashboardScreen() {
     if (!isLoadingAppointments) loadedAppointmentsOnce.current = true;
     const jobsToday = countCompletedToday(appointments);
     const { earnedToday, stats: mechanicStats, week, summary: earningsSummary } = useMechanicKpis(user?.role === 'mechanic', jobsToday);
-    const obdPending = useObdPending(appointments, user?.role === 'mechanic');
+    // The scanner report is uploaded from a sheet over the dashboard; once it changes, the reminder is checked again.
+    const [obdSheetFor, setObdSheetFor] = useState<Appointment[] | null>(null);
+    const [obdReload, setObdReload] = useState(0);
+    const obdPending = useObdPending(appointments, user?.role === 'mechanic', obdReload);
     // Hidden alerts and the collapsed state of "Needs your attention", kept per account and role.
     const attention = useAttentionState(user?.id ? `${user.role}:${user.id}` : undefined);
     const [requestTab, setRequestTab] = useState<'immediate' | 'scheduled' | 'video'>('immediate');
@@ -304,7 +309,9 @@ export default function DashboardScreen() {
 
         const tabOf = (r: AssistanceRequest): 'immediate' | 'scheduled' | 'video' =>
             r.type === 'videocall' ? 'video' : r.type === 'scheduled' ? 'scheduled' : 'immediate';
-        const openRequests = [...requests, ...marketplaceFeed.items].filter((r) => !declinedIds.has(r.id));
+        // A scheduled request already quoted by this technician is no longer "new": it lives under Your quotes.
+        const openRequests = [...requests, ...marketplaceFeed.items].filter((r) => !declinedIds.has(r.id) && !hasSentQuote(r));
+        const waitingQuotes = quotesWaiting(marketplaceFeed.items);
         // Only the types that have requests get a tab.
         const requestTabs = (['immediate', 'scheduled', 'video'] as const)
             .map((id) => ({
@@ -342,10 +349,29 @@ export default function DashboardScreen() {
                 id: 'obd', signature: `obd:${obdPending.map((a) => a.id).join(',')}`, tone: 'amber', icon: ScanLine,
                 title: t('dashboard.mechanic.attention.obd.title', { count: obdPending.length }),
                 count: obdPending.length > 1 ? obdPending.length : undefined,
-                sub: [splitJobTitle(first.title).main, first.car].filter(Boolean).join(' · ') || t('dashboard.mechanic.attention.obd.sub'),
+                // Two lines: the kind of assistance (and what was wrong), and under it the vehicle.
+                sub: [[t(`appointments.detail.types.${assistanceKind(first)}`), splitJobTitle(first.title).main].filter(Boolean).join(' · '), first.car].filter(Boolean).join('\n') || t('dashboard.mechanic.attention.obd.sub'),
                 cta: t('dashboard.mechanic.attention.obd.cta'),
-                // The closed visit reopens on its final screen, where the report is uploaded.
-                onPress: () => router.push({ pathname: '/appointments/check-in/[id]', params: { id: first.id } } as never),
+                // The report is uploaded right here, from below: no trip to the close-out page with the payment and the rest.
+                onPress: () => setObdSheetFor(obdPending),
+            });
+        }
+
+        // Quotes sent on scheduled requests, waiting for the customer: with the time left, so the request does not look untouched.
+        if (waitingQuotes.length > 0) {
+            const nextQuote = waitingQuotes[0];
+            attentionItems.push({
+                id: 'quotes-waiting', signature: `quotes-waiting:${waitingQuotes.map((r) => r.id).join(',')}`, tone: 'blue', icon: Send,
+                title: t('dashboard.mechanic.attention.quotesWaiting.title', { count: waitingQuotes.length }),
+                count: waitingQuotes.length > 1 ? waitingQuotes.length : undefined,
+                // Two lines: the kind and what it is, then the vehicle (+ how many more wait).
+                sub: [
+                    [t('requestAssistance.header.scheduled'), splitJobTitle(nextQuote.title).main].filter(Boolean).join(' · '),
+                    [nextQuote.car, waitingQuotes.length > 1 ? t('dashboard.user.attention.confirm.more', { count: waitingQuotes.length - 1 }) : null].filter(Boolean).join(' · '),
+                ].filter(Boolean).join('\n') || t('dashboard.mechanic.attention.quotesWaiting.sub'),
+                cta: t('dashboard.mechanic.attention.quotesWaiting.cta'),
+                ...(nextQuote.offersCloseAt ? { timer: { deadline: nextQuote.offersCloseAt, urgentUnderMinutes: 120, label: (time: string) => t('scheduledProvider.quoteCard.decides', { time }) } } : {}),
+                onPress: () => router.push({ pathname: '/(tabs)/assist', params: { filter: 'quotes' } } as never),
             });
         }
 
@@ -807,6 +833,7 @@ export default function DashboardScreen() {
 
                 {/* The ratings still owed open from below */}
                 {offerDialog}
+                <ObdReportSheet appointments={obdSheetFor} onClose={() => { setObdSheetFor(null); setObdReload((n) => n + 1); }} onChanged={() => setObdReload((n) => n + 1)} />
                 <ReviewsSheet
                     visible={reviewsOpen}
                     onClose={() => setReviewsOpen(false)}

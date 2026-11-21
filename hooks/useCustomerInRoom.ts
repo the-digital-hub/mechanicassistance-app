@@ -24,6 +24,13 @@ export function useCustomerInRoom(appointmentId: string | undefined, enabled: bo
 
     useFocusEffect(check);
 
+    // While waiting, ask again every few seconds: the event can be missed (a dropped socket, the screen in the background).
+    React.useEffect(() => {
+        if (!enabled || inRoom) return undefined;
+        const id = setInterval(check, 8000);
+        return () => clearInterval(id);
+    }, [enabled, inRoom, check]);
+
     React.useEffect(() => {
         if (lastMessage?.type === 'video_room_ready' && lastMessage.payload?.appointmentId === appointmentId) setInRoom(true);
     }, [lastMessage, appointmentId]);

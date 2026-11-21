@@ -120,6 +120,7 @@ function RateOwner({ visit, onVisit }: { visit: OnSiteVisit; onVisit: (v: OnSite
     const [comment, setComment] = React.useState('');
     const [tags, setTags] = React.useState<string[]>([]);
     const [sending, setSending] = React.useState(false);
+    const [sheet, setSheet] = React.useState(false);
 
     const submit = async () => {
         setSending(true);
@@ -127,6 +128,7 @@ function RateOwner({ visit, onVisit }: { visit: OnSiteVisit; onVisit: (v: OnSite
             await onSiteDAO.reviewClient(visit.appointmentId, rating, comment.trim() || undefined, tags);
             const fresh = await onSiteDAO.get(visit.appointmentId);
             if (fresh) onVisit(fresh);
+            setSheet(false);
         } catch {
             appAlert(t('appointments.onSite.common.error'));
         } finally {
@@ -152,7 +154,29 @@ function RateOwner({ visit, onVisit }: { visit: OnSiteVisit; onVisit: (v: OnSite
                         </Text>
                     </View>
                 ) : (
-                    <>
+                    <TouchableOpacity
+                        onPress={() => setSheet(true)}
+                        activeOpacity={0.85}
+                        accessibilityRole="button"
+                        className="items-center justify-center"
+                        style={{ minHeight: 52, borderRadius: 14, backgroundColor: OS.blue }}
+                        testID="closeout-rate-open"
+                    >
+                        <Text className="text-white font-outfit-bold" style={{ fontSize: 16, lineHeight: 22 }}>{t(`${k}.rateButton`)}</Text>
+                    </TouchableOpacity>
+                )}
+            </View>
+
+            {/* The rating opens from below, over the close-out. */}
+            <SlideModal visible={sheet} onClose={() => setSheet(false)} avoidKeyboard>
+                <View style={{ ...SHEET, maxHeight: '90%', paddingTop: 16 }} testID="closeout-rate-sheet">
+                    <View className="flex-row items-center justify-between px-5 pb-2">
+                        <Text className="font-outfit-bold" style={{ fontSize: 22, letterSpacing: -0.4, color: OS.text }}>{t(`${k}.rateTitle`)}</Text>
+                        <TouchableOpacity onPress={() => setSheet(false)} hitSlop={10} accessibilityRole="button" accessibilityLabel="Close" className="items-center justify-center" style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#EEF1F6' }}>
+                            <Ionicons name="close" size={16} color="#4B5563" />
+                        </TouchableOpacity>
+                    </View>
+                    <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 34 }} showsVerticalScrollIndicator={false}>
                         <RatingFields
                             rating={rating}
                             onRating={setRating}
@@ -169,16 +193,17 @@ function RateOwner({ visit, onVisit }: { visit: OnSiteVisit; onVisit: (v: OnSite
                         <TouchableOpacity
                             onPress={() => void submit()}
                             disabled={!rating || sending}
-                            className="items-center justify-center mt-3"
+                            className="items-center justify-center mt-4"
                             style={{ minHeight: 52, borderRadius: 14, backgroundColor: rating && !sending ? OS.blue : OS.blueIce }}
+                            testID="closeout-rate-submit"
                         >
                             {sending ? <ActivityIndicator color="#FFFFFF" /> : (
                                 <Text className="text-white font-outfit-bold" style={{ fontSize: 16, lineHeight: 22 }}>{t(`${k}.rateSubmit`)}</Text>
                             )}
                         </TouchableOpacity>
-                    </>
-                )}
-            </View>
+                    </ScrollView>
+                </View>
+            </SlideModal>
         </Card>
     );
 }

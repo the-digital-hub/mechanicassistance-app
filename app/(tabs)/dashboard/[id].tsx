@@ -329,7 +329,7 @@ export default function AssistDetailScreen() {
                     ? { label: t('requestDetail.offerHighlight.immediate'), value: String(title ?? ''), icon: 'flash-outline' }
                     : { label: t('requestDetail.offerHighlight.scheduled'), value: selectedDate ?? '', sub: selectedTime ?? undefined, icon: 'calendar-outline' }
                 }
-                confirmText={submitting ? t('requestDetail.sendingOffer') : t('requestDetail.confirmOffer')}
+                confirmText={submitting ? t('requestDetail.sendingOffer') : t('requestDetail.confirmOfferYes')}
                 cancelText={t('requestDetail.cancel')}
             />
         </View>

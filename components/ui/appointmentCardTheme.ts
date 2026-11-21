@@ -92,5 +92,7 @@ export function getTypeBar(appointment: Appointment): { icon: LucideIcon; labelK
  */
 export function stateTextKey(state: CardState, isMechanic: boolean): string {
     if (state === 'awaitingConfirmation') return isMechanic ? 'awaitingConfirmationMechanic' : 'awaitingConfirmationOwner';
+    // Before heading out, the technician's news is that the owner accepted the offer.
+    if (state === 'ready' && isMechanic) return 'readyMechanic';
     return state;
 }

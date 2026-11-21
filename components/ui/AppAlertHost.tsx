@@ -92,6 +92,9 @@ export function AppAlertHost() {
                             <Text className="font-outfit-regular text-center" style={{ fontSize: 16, lineHeight: 23, color: OS.muted }}>{shown.message}</Text>
                         </ScrollView>
                     ) : null}
+                    {shown.options?.highlight?.ref ? (
+                        <Text className="font-outfit-regular text-center" style={{ fontSize: 12, lineHeight: 16, color: '#9CA3AF', marginTop: 10 }} selectable testID="app-alert-ref">{shown.options.highlight.ref}</Text>
+                    ) : null}
 
                     {(okOnly ? [{ text: t('common.ok') } as AppAlertButton] : actions).map((b, i) => (
                         <TouchableOpacity

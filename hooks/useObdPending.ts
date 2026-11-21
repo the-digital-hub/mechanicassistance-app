@@ -15,7 +15,7 @@ const CLOSED = ['completed', 'awaiting_confirmation', 'disputed'];
  * The visit is asked from the server for the newest few closed ones and re-checked each time the screen comes into focus (so an upload
  * made since then clears it).
  */
-export function useObdPending(appointments: readonly Appointment[], enabled: boolean): Appointment[] {
+export function useObdPending(appointments: readonly Appointment[], enabled: boolean, reloadKey = 0): Appointment[] {
     const candidates = useMemo(() => {
         const since = Date.now() - WINDOW_DAYS * 86_400_000;
         return appointments
@@ -48,7 +48,7 @@ export function useObdPending(appointments: readonly Appointment[], enabled: boo
         ).then((ids) => { if (!cancelled) setMissing(ids.filter((id): id is string => !!id)); });
         return () => { cancelled = true; };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [enabled, key, tick]);
+    }, [enabled, key, tick, reloadKey]);
 
     return useMemo(() => candidates.filter((a) => missing.includes(a.id)), [candidates, missing]);
 }

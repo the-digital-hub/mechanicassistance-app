@@ -1,3 +1,4 @@
+import { ValidatingAnimation } from '@/components/on-site/ValidatingAnimation';
 import { PinBoxes } from '@/components/on-site/PinBoxes';
 import { usePinchZoom } from '@/hooks/usePinchZoom';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,7 +12,7 @@ import { ObdPanel } from './ObdPanel';
 import { VinCrossCheck } from './screens-vin';
 import { ExtraCaptures, MediaSlot, useExistingCaptures } from './MediaSlot';
 import {
-    ActionBar, Body, Card, CardTitle, GhostButton, InfoRow, Intro, OS, PrimaryButton, Segmented, Spinner, Tip, cardShadow,
+    ActionBar, Body, Card, CardTitle, GhostButton, InfoRow, Intro, OS, PrimaryButton, Segmented, Tip, cardShadow,
 } from './ui';
 
 // Phase 1 of the on-site flow: check-in, issue review and diagnostic.
@@ -302,11 +303,11 @@ export function ScreenValidating({ run, onDone, onFail }: {
         };
     }, [t]);
     return (
-        <View className="flex-1 items-center justify-center gap-4 px-8">
-            <Spinner />
-            <Text className="font-outfit-bold text-[15px] text-center" style={{ color: OS.text }}>{t('appointments.onSite.validating.title')}</Text>
-            <Text className="font-outfit-regular text-[13px] text-center" style={{ color: OS.muted }}>{t('appointments.onSite.validating.subtitle')}</Text>
-        </View>
+        <ValidatingAnimation
+            title={t('appointments.onSite.validating.title')}
+            subtitle={t('appointments.onSite.validating.subtitle')}
+            steps={[t('appointments.onSite.validating.stepPhotos'), t('appointments.onSite.validating.stepObd'), t('appointments.onSite.validating.stepReady')]}
+        />
     );
 }
 

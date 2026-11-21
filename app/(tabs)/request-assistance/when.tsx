@@ -659,7 +659,7 @@ export default function VideoCallWhenScreen() {
                                                 flexGrow: 0,
                                                 minHeight: tight ? 118 : 108,
                                                 paddingVertical: 16,
-                                                paddingHorizontal: tight ? 12 : 16,
+                                                paddingHorizontal: tight ? 8 : 16,
                                                 borderRadius: 14,
                                                 borderWidth: 2,
                                                 borderColor: selected ? C.blue : '#E3EBFA',
@@ -680,7 +680,7 @@ export default function VideoCallWhenScreen() {
                                                 {d.minutes}
                                                 <Text className="font-outfit-semibold" style={{ fontSize: 17, letterSpacing: 0, color: selected ? C.blue : C.muted }}>{' min'}</Text>
                                             </Text>
-                                            <Text className="font-outfit-bold" style={{ ...TYPE.group, color: C.blue, marginTop: 6 }} testID={`when-duration-price-${d.minutes}`}>
+                                            <Text className="font-outfit-bold" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ ...TYPE.group, color: C.blue, marginTop: 6 }} testID={`when-duration-price-${d.minutes}`}>
                                                 {`$${(optionPrices[d.minutes] ?? d.price).toFixed(2)}`}
                                             </Text>
                                         </TouchableOpacity>

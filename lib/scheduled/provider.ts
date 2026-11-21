@@ -57,6 +57,7 @@ export function toFeedRequest(m: MarketplaceRequest): AssistanceRequest {
     const services = (m.services ?? []).map((s) => s.name).filter(Boolean);
     return {
         id: m.id,
+        refCode: m.refCode ?? undefined,
         type: 'scheduled',
         assistanceType: m.assistanceType ?? 'scheduled',
         title: m.title || services.slice(0, 2).join(', '),
@@ -73,6 +74,7 @@ export function toFeedRequest(m: MarketplaceRequest): AssistanceRequest {
         locationLat: typeof lat === 'number' ? lat : undefined,
         locationLng: typeof lng === 'number' ? lng : undefined,
         offersCloseAt: m.offersCloseAt ?? null,
+        myQuote: m.myOffer ? { price: m.myOffer.price ?? null, status: m.myOffer.status ?? null, validUntil: m.myOffer.validUntil ?? null } : null,
     };
 }
 

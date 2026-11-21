@@ -516,6 +516,12 @@
           "cta": "Set up"
         },
         "hide": "Hide",
+        "quotesWaiting": {
+          "title": "Quote waiting for the customer",
+          "title_other": "Quotes waiting for the customer",
+          "sub": "They're deciding. We'll tell you as soon as they answer.",
+          "cta": "View quotes"
+        },
         "heldOffers": {
           "title": "Offer waiting for the customer",
           "title_other": "Offers waiting for the customer",
@@ -1026,7 +1032,7 @@
   },
   "appointments": {
     "filters": {
-      "searchPlaceholder": "Search by code, vehicle or service",
+      "searchPlaceholder": "Code, vehicle or service",
       "clearSearch": "Clear search",
       "button": "Filters",
       "sheetTitle": "Filters",
@@ -1097,6 +1103,8 @@
           "offeredHint": "Tap to view offer",
           "ready": "Technician hasn't left yet",
           "readyHint": "Waiting for the technician to head out",
+          "readyMechanic": "Accepted by the vehicle owner",
+          "readyMechanicHint": "Head out when you are ready",
           "enRoute": "Technician en route",
           "enRouteHint": "Technician is on the way",
           "scheduled": "Scheduled",
@@ -1128,6 +1136,7 @@
           "pending": "Pending – Pending",
           "offered": "Pending – Offered",
           "ready": "Confirmed – Ready to head out",
+          "readyMechanic": "Confirmed – Accepted by the vehicle owner",
           "enRoute": "Confirmed – En route",
           "scheduled": "Confirmed – Scheduled",
           "completed": "Completed – Resolved",
@@ -1581,6 +1590,9 @@
       "validating": {
         "title": "Validating the reported diagnostic…",
         "subtitle": "Processing the information captured.",
+        "stepPhotos": "Reading the photos",
+        "stepObd": "Checking the OBD codes",
+        "stepReady": "Preparing the diagnostic",
         "missing": "Add the license plate and dashboard photos to continue."
       },
       "feasibility": {
@@ -1865,6 +1877,7 @@
       "rateBody": "Your feedback stays private and helps keep the community reliable for other technicians.",
       "ratePh": "Optional note about the client (e.g. easy to reach, clear access to the vehicle)…",
       "rateSubmit": "Submit rating",
+      "rateButton": "Leave your review",
       "rateDone": "Thanks — your {{rating}}-star rating was submitted",
       "obdTitle": "OBD scan report",
       "checklistTitle": "Assistance closeout",
@@ -2129,6 +2142,8 @@
         "disputedBody": "You reported that the problem wasn't resolved. You won't be charged until support decides.",
         "notChargedTitle": "Not charged",
         "notChargedBody": "Support found the problem wasn't resolved, so you weren't charged.",
+        "completedTitle": "Assistance completed",
+        "completedBody": "You confirmed the assistance.",
         "finishTitle": "Finish the video call?",
         "finishBody": "The call ends for both of you and the assistance is charged. This cannot be undone.",
         "finishConfirm": "Finish",
@@ -2165,7 +2180,9 @@
         },
         "clientLabel": "CLIENT",
         "clientFallback": "Client",
-        "customerInRoomTitle": "The customer is already in the video room"
+        "customerInRoomTitle": "The customer is already in the video room",
+        "waitingForCustomerTitle": "Waiting for the vehicle owner",
+        "waitingForCustomerBody": "You can join as soon as they enter the video room."
       },
       "header": {
         "booked": "Video call booked",
@@ -2489,6 +2506,7 @@
     "confirmOfferImmediate": "You are about to offer immediate assistance for {{title}}. The client still has to accept it.",
     "confirmOfferScheduled": "You are about to offer assistance on {{date}} at {{time}}. The client still has to accept it.",
     "confirmOffer": "Send offer",
+    "confirmOfferYes": "Send now",
     "sendingOffer": "Sending...",
     "cancel": "Cancel",
     "offerAccepted": "Offer Accepted!",
@@ -2906,7 +2924,7 @@
     "state": "State",
     "zip": "Zip Code",
     "back": "Back",
-    "create": "Create",
+    "create": "Add address",
     "save": "Save",
     "selectState": "Select State",
     "done": "Done",
@@ -3317,7 +3335,8 @@
     "title": "Take your next request",
     "subtitle": "Filter incoming requests by status, service type, and distance.",
     "searchPlaceholder": "Search by vehicle, area, or issue",
-    "all": "All"
+    "all": "All",
+    "yourQuotes": "Your quotes"
   },
   "ase": {
     "notFound": "No ASE technician found with that ID. Please verify and try again.",
@@ -4150,6 +4169,11 @@
     }
   },
   "scheduledProvider": {
+    "quoteCard": {
+      "sent": "Quote sent",
+      "decides": "Customer decides in {{time}}",
+      "open": "View or edit quote"
+    },
     "title": "Scheduled request",
     "eyebrow": "SCHEDULED REQUEST",
     "sendQuote": "Send your quote",
@@ -4373,7 +4397,7 @@
   },
   "notificationsPopup": {
     "offerAcceptedTitle": "Offer accepted!",
-    "offerAcceptedBody": "The customer accepted your offer to help.",
+    "offerAcceptedBody": "The customer accepted your offer.",
     "jobCanceledTitle": "Job canceled",
     "jobCanceledBody": "The customer canceled this request.",
     "onSiteConfirmTitle": "Service completed by the mechanic",

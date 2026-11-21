@@ -105,7 +105,7 @@ export function useOfferFromCard() {
             title={t('requestDetail.confirmOfferTitle')}
             message={t('requestDetail.confirmOfferPending')}
             highlight={{ label: t('requestDetail.offerHighlight.immediate'), value: String(pending?.request.title ?? ''), icon: 'flash-outline' }}
-            confirmText={submitting ? t('requestDetail.sendingOffer') : t('requestDetail.confirmOffer')}
+            confirmText={submitting ? t('requestDetail.sendingOffer') : t('requestDetail.confirmOfferYes')}
             cancelText={t('requestDetail.cancel')}
         />
     );

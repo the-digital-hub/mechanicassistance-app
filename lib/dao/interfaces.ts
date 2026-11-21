@@ -135,6 +135,8 @@ export interface AssistanceRequest {
     services?: RequestedService[];
     /** Scheduled requests: when the offer window closes (ISO). The owner can extend it. */
     offersCloseAt?: string | null;
+    /** Provider side of a scheduled request: the quote this technician already sent, if any. */
+    myQuote?: { price?: string | null; status?: string | null; validUntil?: string | null } | null;
     vehicleId?: string;
     zip?: string;
     /** Odometer reading when the request was created. Snapshot: `Vehicle.mileage` gets overwritten, this doesn't. */

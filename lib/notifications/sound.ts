@@ -34,9 +34,10 @@ export function ringBell(): void {
             modeSet = true;
             // Mixed with whatever is playing (music, a call): the bell must not stop it. It rings even with the phone on silent: with the
             // ringer switch on silent (very common) an app that obeys it just seems broken, and Sound is a switch the person chose to turn on.
-            // Setting the mode is a courtesy: if it fails the bell still plays.
+            // `allowsRecording` stays on: a playback-only session stays set for the whole app and then the camera cannot record
+            // video (black screen, crash) when the picker starts its microphone. Setting the mode is a courtesy: if it fails the bell still plays.
             try {
-                void Promise.resolve(setAudioModeAsync({ playsInSilentMode: true, interruptionMode: 'mixWithOthers' })).catch((e) => console.warn('[sound] audio mode failed', e));
+                void Promise.resolve(setAudioModeAsync({ playsInSilentMode: true, allowsRecording: true, interruptionMode: 'mixWithOthers' })).catch((e) => console.warn('[sound] audio mode failed', e));
             } catch (e) {
                 console.warn('[sound] audio mode failed', e);
             }

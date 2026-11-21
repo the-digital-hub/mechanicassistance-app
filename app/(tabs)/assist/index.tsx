@@ -5,16 +5,20 @@ import { useUser } from '@/context/UserContext';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { useMarketplaceFeed } from '@/lib/scheduled/useMarketplaceFeed';
 import { Note } from '@/components/scheduled/ui';
+import { QuoteWaitingCard } from '@/components/scheduled/QuoteWaitingCard';
+import { hasSentQuote, quotesWaiting } from '@/lib/scheduled/quotes';
 import { buildMechanicFeedFilters } from '@/lib/mechanic-feed';
 import { pricingDAO } from '@/lib/dao/PricingDAO';
 import { AssistanceRequest } from '@/lib/dao/interfaces';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Radar, Search, Zap, Video, Calendar, Clock, Car, Wrench, Lock, DollarSign } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TYPE } from '@/lib/ui/type';
 import { RequestIssueText } from '@/components/ui/RequestIssueText';
+import { ImmediateOfferPanel } from '@/components/dashboard/ImmediateOfferPanel';
+import { useOfferFromCard } from '@/hooks/useOfferFromCard';
 import { useScrollPressGuard } from '@/hooks/useScrollPressGuard';
 import { ActivityIndicator, Animated, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -42,6 +46,7 @@ function ListeningChip({ label }: { label: string }) {
 export default function AssistanceRequestsScreen() {
   const router = useRouter();
   const { scrollProps, guard } = useScrollPressGuard();
+  const { startOffer, offerDialog } = useOfferFromCard();
   const { t } = useTranslation();
   const { user, isLoading: userLoading } = useUser();
   const { lastMessage } = useSocket();
@@ -50,7 +55,10 @@ export default function AssistanceRequestsScreen() {
   const marketplaceFeed = useMarketplaceFeed(user?.role === 'mechanic', lastMessage);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState('all');
+  // "Your quotes" is a filter of its own; the dashboard's quotes alert lands on it.
+  const { filter: filterParam } = useLocalSearchParams<{ filter?: string }>();
+  const [selectedFilter, setSelectedFilter] = useState(filterParam === 'quotes' ? 'quotes' : 'all');
+  useEffect(() => { if (filterParam === 'quotes') setSelectedFilter('quotes'); }, [filterParam]);
   // Declining hides the request right away and persists it server-side (the
   // feed stops returning it to this mechanic until the rejection expires). If
   // the call fails the request comes back.
@@ -66,9 +74,12 @@ export default function AssistanceRequestsScreen() {
     });
   }, []);
   const visibleRequests = useMemo(
-    () => [...requests, ...marketplaceFeed.items].filter((req) => !declinedIds.has(req.id)),
+    // A scheduled request this technician already quoted is not new any more: it is under "Your quotes".
+    () => [...requests, ...marketplaceFeed.items].filter((req) => !declinedIds.has(req.id) && !hasSentQuote(req)),
     [requests, marketplaceFeed.items, declinedIds]
   );
+  // The quotes waiting for the customer, the one that closes first on top.
+  const waitingQuotes = useMemo(() => quotesWaiting(marketplaceFeed.items), [marketplaceFeed.items]);
 
   // Same service-type labels used across the app (dashboard, cards, request detail).
   const getServiceTypeLabel = useCallback((type: string) => {
@@ -152,8 +163,9 @@ export default function AssistanceRequestsScreen() {
         label: getServiceTypeLabel(type),
         count: visibleRequests.filter((req) => req.type === type).length,
       })),
+      ...(waitingQuotes.length > 0 ? [{ id: 'quotes', label: t('assist.yourQuotes'), count: waitingQuotes.length }] : []),
     ];
-  }, [visibleRequests, t, getServiceTypeLabel]);
+  }, [visibleRequests, waitingQuotes, t, getServiceTypeLabel]);
 
   const filteredRequests = useMemo(() => {
     return visibleRequests.filter((req) => {
@@ -214,7 +226,7 @@ export default function AssistanceRequestsScreen() {
         ) : null}
 
         {/* Search and filters only make sense when there is something to search through */}
-        {visibleRequests.length > 0 && (
+        {(visibleRequests.length > 0 || waitingQuotes.length > 0) && (
           <>
         <View className="flex-row items-center bg-white rounded-2xl px-4 mb-6 border border-gray-200">
           <Search size={20} color="#9CA3AF" />
@@ -260,7 +272,13 @@ export default function AssistanceRequestsScreen() {
           </>
         )}
 
-        {filteredRequests.length === 0 ? (
+        {selectedFilter === 'quotes' ? (
+          <View className="gap-4" testID="your-quotes">
+            {waitingQuotes.map((r) => (
+              <QuoteWaitingCard key={r.id} request={r} onOpen={(id) => router.push({ pathname: '/assist/scheduled-request' as never, params: { requestId: id } })} />
+            ))}
+          </View>
+        ) : filteredRequests.length === 0 ? (
           <View className="items-center" style={{ paddingTop: 40, paddingBottom: 24, paddingHorizontal: 12 }}>
             <View className="items-center justify-center" style={{ width: 112, height: 112, borderRadius: 56, backgroundColor: '#EAF1FF' }}>
               <View className="items-center justify-center" style={{ width: 76, height: 76, borderRadius: 38, backgroundColor: '#FFFFFF', shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 12, elevation: 4 }}>
@@ -392,7 +410,10 @@ export default function AssistanceRequestsScreen() {
                     </View>
                     )}
 
-                    {/* Buttons Row (inside card) */}
+                    {/* Immediate: the zone, distance, ETA and "Send offer" are on the card itself, as in the dashboard. */}
+                    {request.type === 'immediate' ? (
+                      <ImmediateOfferPanel request={request} onSend={guard(startOffer)} onDecline={guard(handleDecline)} />
+                    ) : (
                     <View className="gap-3 px-5 py-4 border-t border-gray-100">
                       <TouchableOpacity
                         onPress={guard(() => router.push({
@@ -448,6 +469,7 @@ export default function AssistanceRequestsScreen() {
                       </TouchableOpacity>
                       )}
                     </View>
+                    )}
                   </View>
                 </View>
               );
@@ -455,6 +477,7 @@ export default function AssistanceRequestsScreen() {
           </View>
         )}
       </ScrollView>
+      {offerDialog}
     </View>
   );
 }

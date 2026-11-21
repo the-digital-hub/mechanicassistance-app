@@ -49,7 +49,7 @@ describe('sound setting', () => {
         const audio = jest.requireMock('expo-audio') as { setAudioModeAsync: jest.Mock };
         audio.setAudioModeAsync.mockRejectedValueOnce(new Error('no session'));
         await setSoundEnabled(true);
-        expect(audio.setAudioModeAsync).toHaveBeenCalledWith(expect.objectContaining({ playsInSilentMode: true }));
+        expect(audio.setAudioModeAsync).toHaveBeenCalledWith(expect.objectContaining({ playsInSilentMode: true, allowsRecording: true }));
         expect(mockPlay).toHaveBeenCalledTimes(1);
     });
 });

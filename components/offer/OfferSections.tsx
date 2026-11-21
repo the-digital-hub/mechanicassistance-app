@@ -203,16 +203,17 @@ export function OfferBreakdown({ included, lines, total }: {
                         ))}
                     </View>
                     {total !== null && (
-                        <View style={{ marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderStyle: 'dashed', borderTopColor: AO.border, gap: 6 }}>
+                        <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderStyle: 'dashed', borderTopColor: AO.border, gap: 12 }}>
+                            {/* One under the other, not two columns: a long label and its amount no longer fight for the width. */}
                             {lines.map((l) => (
-                                <View key={l.label} className="flex-row justify-between">
-                                    <Text className="font-outfit-regular" style={{ fontSize: 13, color: AO.muted }}>{l.label}</Text>
-                                    <Text className="font-outfit-semibold" style={{ fontSize: 13, color: AO.text }}>{l.amount}</Text>
+                                <View key={l.label}>
+                                    <Text className="font-outfit-regular" style={{ fontSize: 13, lineHeight: 17, color: AO.muted }}>{l.label}</Text>
+                                    <Text className="font-outfit-semibold" style={{ fontSize: 15, lineHeight: 20, marginTop: 1, color: AO.text }}>{l.amount}</Text>
                                 </View>
                             ))}
-                            <View className="flex-row justify-between" style={{ marginTop: 4 }}>
-                                <Text className="font-outfit-bold" style={{ fontSize: 14, color: AO.text }}>{t(`${k}.lineTotal`)}</Text>
-                                <Text className="font-outfit-bold" style={{ fontSize: 14, color: AO.text }}>{total}</Text>
+                            <View style={{ paddingTop: 12, borderTopWidth: 1, borderTopColor: AO.borderSoft }}>
+                                <Text className="font-outfit-bold" style={{ fontSize: 14, lineHeight: 18, color: AO.text }}>{t(`${k}.lineTotal`)}</Text>
+                                <Text className="font-outfit-bold" style={{ fontSize: 18, lineHeight: 24, marginTop: 1, color: AO.text }}>{total}</Text>
                             </View>
                         </View>
                     )}

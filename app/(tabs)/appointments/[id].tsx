@@ -10,7 +10,7 @@ import { HeadOutNextSteps, MechanicArrivalCard, PulseDot } from '@/components/ap
 import { CheckInCodeCard } from '@/components/appointments/CheckInCodeCard';
 import { ClientReviewCard } from '@/components/appointments/ClientReviewCard';
 import { MechanicVideoStatusTab } from '@/components/appointments/MechanicVideoStatusTab';
-import { OwnerReviewInline, OwnerReviewPrompt, useOwnerReviewPending } from '@/components/appointments/OwnerReviewInline';
+import { useOwnerReviewPending } from '@/components/appointments/OwnerReviewInline';
 import { OwnerReviewCard } from '@/components/appointments/OwnerReviewCard';
 import { VideoCallTimerCard } from '@/components/appointments/VideoCallTimerCard';
 import { TranscriptCard } from '@/components/video/TranscriptCard';
@@ -22,6 +22,7 @@ import {
     CustomerInRoomCard,
     SessionTimerNote,
     JoinVideoCallButton,
+    WaitingForCustomerCard,
     MechanicVideoCallStatusCard,
     NoteSheet,
     QuietButton,
@@ -395,9 +396,11 @@ export default function AppointmentDetailScreen() {
     const joinOpenedFor = React.useRef<string | null>(null);
     React.useEffect(() => {
         if (!joinParam || !appointment?.id || joinOpenedFor.current === appointment.id) return;
+        // The technician joins once the customer is in the room: landing here earlier waits, and the sheet opens when they enter.
+        if (!isUserRole && isVideoCall && videoStartedAtMs === null && !customerInRoom) return;
         joinOpenedFor.current = appointment.id;
         setJoinSheetOpen(true);
-    }, [joinParam, appointment?.id]);
+    }, [joinParam, appointment?.id, isUserRole, isVideoCall, videoStartedAtMs, customerInRoom]);
     // Connected: the sheet closes first, then the call opens (presenting a screen while a modal is still leaving can fail).
     const enterVideoCall = (room: { roomUrl: string; token: string; expiry: number }) => {
         if (!appointment) return;
@@ -549,7 +552,12 @@ export default function AppointmentDetailScreen() {
             ? { title: t('appointments.videoCall.status.awaitingConfirmation'), icon: 'help', color: AO.orange }
             : onSiteStatus === 'disputed'
                 ? { title: t('appointments.videoCall.status.disputed'), icon: 'hourglass-outline', color: AO.orange }
-                : {};
+                // Already at the close of the job: "Assistance accepted" is no longer news, say where it is.
+                : onSiteStatus === 'completed'
+                    ? { title: t('appointments.videoCall.mechanic.completedTitle'), icon: 'checkmark', color: AO.green }
+                    : onSiteStatus === 'started' || onSiteStatus === 'in_progress'
+                        ? { title: t('appointments.list.card.status.inProgress'), icon: 'construct-outline', color: AO.blue }
+                        : {};
     const onSiteClosePending = !isVideoCall && (onSiteStatus === 'awaiting_confirmation' || onSiteStatus === 'disputed');
 
     // Mechanic: the help is done; the owner is asked to confirm.
@@ -664,11 +672,6 @@ export default function AppointmentDetailScreen() {
                     const ownerRated = reviewSent || (ratable && ownerReview.loaded && !ownerReview.pending);
                     return (
                         <View style={{ gap: 16 }}>
-                            {/* The rating is the first thing here, where the reminder over the tabs points. */}
-                            {/* Only while the rating is still to do; after "Thanks" the whole block goes away. */}
-                            {ownerReview.pending ? (
-                                <OwnerReviewInline appointmentId={appointment.id} onSent={() => setReviewSent(true)} onDismissed={() => ownerReview.markDone()} />
-                            ) : null}
                             <TranscriptCard appointmentId={appointment.id} role="owner" info={transcriptInfo} />
                             <MechanicVideoStatusTab
                                 role="owner"
@@ -682,7 +685,6 @@ export default function AppointmentDetailScreen() {
                 }
                 return (
                     <View style={{ gap: 16 }}>
-                        <OwnerReviewCard appointmentId={appointment.id} status={appointment.status} />
                         <OwnerEtaCard
                             status={appointment.status}
                             departed={departed}
@@ -1002,9 +1004,14 @@ export default function AppointmentDetailScreen() {
                                     </>
                                 )}
 
-                                {isVideoCall && ownerReview.pending && ownerTab !== 'status' ? (
-                                    <OwnerReviewPrompt onPress={() => setOwnerTab('status')} />
-                                ) : null}
+                                {/* The rating of the technician sits here, over the tabs, in whichever tab you are: a card with one button that opens the form from below. */}
+                                <OwnerReviewCard
+                                    appointmentId={appointment.id}
+                                    status={appointment.status}
+                                    enabled={!isVideoCall || (videoStatus === 'completed' && videoState?.currentStatus !== 'not_resolved')}
+                                    onSent={() => setReviewSent(true)}
+                                    onDismissed={() => ownerReview.markDone()}
+                                />
 
                                 <OwnerTabs
                                     active={ownerTab}
@@ -1170,6 +1177,8 @@ export default function AppointmentDetailScreen() {
                             {/* Video call: join / finish, then the owner's answer */}
                             {isVideoCall ? (
                                 <View className="mx-4 mt-3.5" style={{ gap: 10 }}>
+                                    {/* When, in both roles: the owner has it in the same place, over the status. */}
+                                    <VideoCallWhenCard date={appointment.date} startNow={appointment.startNow} startedAt={appointment.startedAt} completedAt={appointment.completedAt} live={false} />
                                     {videoCallLive ? (
                                         <>
                                             {/* Extra time the owner asked for: answered here too, not only inside the call. */}
@@ -1183,8 +1192,10 @@ export default function AppointmentDetailScreen() {
                                             )}
                                             {videoStartedAtMs === null ? (
                                                 <>
-                                                    {customerInRoom && <CustomerInRoomCard />}
-                                                    <JoinVideoCallButton onPress={openVideoLobby} />
+                                                    {/* Joining waits for the customer: until they open the room the button is grey and the card says so;
+                                                        once they are in, it turns green and "Join" opens the conditions to accept before connecting. */}
+                                                    {customerInRoom ? <CustomerInRoomCard /> : <WaitingForCustomerCard />}
+                                                    <JoinVideoCallButton onPress={openVideoLobby} disabled={!customerInRoom} />
                                                 </>
                                             ) : (
                                                 <JoinVideoCallButton onPress={openVideoLobby} rejoin />

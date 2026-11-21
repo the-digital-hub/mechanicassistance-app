@@ -2,7 +2,9 @@ import { AO, card } from '@/components/offer/OfferSections';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { SlideModal } from '@/components/ui/SlideModal';
+import { SHEET } from '@/lib/ui/sheet';
 import { RatingFields } from '@/components/reviews/RatingFields';
 import { CLIENT_REVIEW_TAGS } from '@/lib/reviews/tags';
 import { TYPE } from '@/lib/ui/type';
@@ -22,9 +24,13 @@ interface ClientReviewCardProps {
     hint?: string;
 }
 
-/** The mechanic's rating of the vehicle owner. */
+/**
+ * The mechanic's rating of the vehicle owner: a card with one button, and the form (stars, what stood out, a comment, Send) opens from below.
+ * Once sent the sheet closes and the card says so for a moment, then goes.
+ */
 export function ClientReviewCard({ rating, setRating, tags, setTags, reviewText, setReviewText, isSubmitted, onSubmit, hint }: ClientReviewCardProps) {
     const { t } = useTranslation();
+    const [sheet, setSheet] = useState(false);
 
     // Once the rating is sent there is nothing left to do here: opened already sent, the card is not shown at
     // all; sent just now, it says so for a moment and then closes (same as the owner's review).
@@ -39,7 +45,7 @@ export function ClientReviewCard({ rating, setRating, tags, setTags, reviewText,
     if (closed) return null;
 
     return (
-        <View style={[card, { padding: 16, gap: 16 }]} testID="client-review-card">
+        <View style={[card, { padding: 16, gap: 14 }]} testID="client-review-card">
             {hint && !isSubmitted && (
                 <View className="flex-row items-center" style={{ gap: 8, padding: 10, borderRadius: 12, backgroundColor: AO.blueSofter }}>
                     <Ionicons name="information-circle-outline" size={16} color={AO.blue} />
@@ -47,21 +53,12 @@ export function ClientReviewCard({ rating, setRating, tags, setTags, reviewText,
                 </View>
             )}
 
-            <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, color: AO.text }}>{t(`${K}.title`)}</Text>
-            <RatingFields
-                rating={rating}
-                onRating={(n) => !isSubmitted && setRating(n)}
-                tags={tags}
-                onTags={(next) => !isSubmitted && setTags(next)}
-                options={CLIENT_REVIEW_TAGS.map((tag) => ({ value: tag, label: t('reviews.clientTags.' + tag) }))}
-                tagsTitle={t(`${K}.experience`)}
-                comment={reviewText}
-                onComment={(v) => !isSubmitted && setReviewText(v)}
-                commentPlaceholder={t(`${K}.placeholder`)}
-                starLabel={(n) => t(`${K}.star`, { count: n })}
-                starSize={32}
-                testIDPrefix="client-review"
-            />
+            <View className="flex-row items-center" style={{ gap: 12 }}>
+                <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: AO.blueSoft }}>
+                    <Ionicons name="star-outline" size={20} color={AO.blue} />
+                </View>
+                <Text className="font-outfit-bold" style={{ flex: 1, ...TYPE.cardTitle, color: AO.text }}>{t(`${K}.title`)}</Text>
+            </View>
 
             {isSubmitted ? (
                 <View className="flex-row items-center justify-center" style={{ gap: 6, paddingVertical: 12, borderRadius: 12, backgroundColor: AO.greenSoft }} testID="client-review-sent">
@@ -69,10 +66,46 @@ export function ClientReviewCard({ rating, setRating, tags, setTags, reviewText,
                     <Text className="font-outfit-bold" style={{ fontSize: 14, color: AO.greenText }}>{t(`${K}.sent`)}</Text>
                 </View>
             ) : (
-                <TouchableOpacity onPress={onSubmit} className="items-center justify-center" style={{ paddingVertical: 14, borderRadius: 14, backgroundColor: AO.blue }} testID="client-review-send">
-                    <Text className="font-outfit-bold" style={{ fontSize: 15, color: '#fff' }}>{t(`${K}.send`)}</Text>
+                <TouchableOpacity onPress={() => setSheet(true)} activeOpacity={0.85} accessibilityRole="button" className="items-center justify-center" style={{ minHeight: 52, borderRadius: 14, backgroundColor: AO.blue }} testID="client-review-open">
+                    <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#fff' }}>{t('appointments.closeout.rateButton')}</Text>
                 </TouchableOpacity>
             )}
+
+            <SlideModal visible={sheet && !isSubmitted} onClose={() => setSheet(false)} avoidKeyboard>
+                <View style={{ ...SHEET, maxHeight: '90%', paddingTop: 16 }} testID="client-review-sheet">
+                    <View className="flex-row items-center justify-between px-5 pb-2">
+                        <Text className="font-outfit-bold flex-1" style={{ fontSize: 22, letterSpacing: -0.4, color: AO.text, paddingRight: 12 }}>{t(`${K}.title`)}</Text>
+                        <TouchableOpacity onPress={() => setSheet(false)} hitSlop={10} accessibilityRole="button" accessibilityLabel="Close" className="items-center justify-center" style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#EEF1F6' }}>
+                            <Ionicons name="close" size={16} color="#4B5563" />
+                        </TouchableOpacity>
+                    </View>
+                    <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 34, gap: 16 }} showsVerticalScrollIndicator={false}>
+                        <RatingFields
+                            rating={rating}
+                            onRating={setRating}
+                            tags={tags}
+                            onTags={setTags}
+                            options={CLIENT_REVIEW_TAGS.map((tag) => ({ value: tag, label: t('reviews.clientTags.' + tag) }))}
+                            tagsTitle={t(`${K}.experience`)}
+                            comment={reviewText}
+                            onComment={setReviewText}
+                            commentPlaceholder={t(`${K}.placeholder`)}
+                            starLabel={(n) => t(`${K}.star`, { count: n })}
+                            starSize={32}
+                            testIDPrefix="client-review"
+                        />
+                        <TouchableOpacity
+                            onPress={onSubmit}
+                            disabled={!rating}
+                            className="items-center justify-center"
+                            style={{ minHeight: 52, borderRadius: 14, backgroundColor: rating ? AO.blue : '#DCE7FA' }}
+                            testID="client-review-send"
+                        >
+                            <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#fff' }}>{t(`${K}.send`)}</Text>
+                        </TouchableOpacity>
+                    </ScrollView>
+                </View>
+            </SlideModal>
         </View>
     );
 }

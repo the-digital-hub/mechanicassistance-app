@@ -1,9 +1,11 @@
+import { KeyboardAwareScrollView } from '@/components/ui/KeyboardAwareScrollView';
+import { useKeyboardOpen } from '@/hooks/useKeyboardOpen';
 import { FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ban, Calendar, Car, Check, Clock, Hourglass, Lock, MessageSquare, Send, ShieldCheck, Wrench, type LucideIcon } from 'lucide-react-native';
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { CARD_STYLE, Note, SC, StepHead, TextField, WizardHeader } from '@/components/scheduled/ui';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
@@ -37,6 +39,8 @@ const BORDER = '#E4EAF5';
 
 /** Provider side of a scheduled request, as in the design: details → quote → review → sent, plus the outcomes. */
 export default function ScheduledRequestScreen() {
+    // The fixed bar (total + Review) steps aside while typing: behind the keyboard it was only a blur.
+    const keyboardOpen = useKeyboardOpen();
     const { t, i18n } = useTranslation();
     const router = useRouter();
     const { requestId } = useLocalSearchParams<{ requestId: string }>();
@@ -284,18 +288,21 @@ export default function ScheduledRequestScreen() {
                         ) : null}
                         {sentSplit.items.length > 0 ? (
                             <View style={{ marginTop: 12, paddingTop: 4, borderTopWidth: 1, borderTopColor: SC.borderSoft }}>
+                                {/* One under the other, not two columns: the name on top and its amount below. */}
                                 {sentSplit.items.map((item) => (
-                                    <View key={item.name} className="flex-row items-center justify-between" style={{ paddingVertical: 8, gap: 12 }}>
+                                    <View key={item.name} className="flex-row items-center" style={{ paddingVertical: 8, gap: 12 }}>
                                         <IconBox icon={item.name === 'Travel fee' ? Car : Wrench} size={30} />
-                                        <Text className="font-outfit-medium flex-1" style={{ fontSize: 14, color: SC.text }}>{item.name === 'Travel fee' ? t('scheduledProvider.sent.travel') : item.name}</Text>
-                                        <Text className="font-outfit-bold" style={{ fontSize: 14, color: item.quoted ? SC.text : SC.muted }}>
-                                            {item.quoted ? money(item.total ?? 0) : t('scheduledProvider.sent.notQuoted')}
-                                        </Text>
+                                        <View className="flex-1" style={{ minWidth: 0 }}>
+                                            <Text className="font-outfit-medium" style={{ fontSize: 14, lineHeight: 19, color: SC.text }}>{item.name === 'Travel fee' ? t('scheduledProvider.sent.travel') : item.name}</Text>
+                                            <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: item.quoted ? SC.text : SC.muted }}>
+                                                {item.quoted ? money(item.total ?? 0) : t('scheduledProvider.sent.notQuoted')}
+                                            </Text>
+                                        </View>
                                     </View>
                                 ))}
-                                <View className="flex-row items-center justify-between" style={{ paddingTop: 10, marginTop: 2, borderTopWidth: 1, borderTopColor: SC.borderSoft }}>
-                                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: SC.text }}>{t('scheduledProvider.sent.total')}</Text>
-                                    <Text className="font-outfit-bold" style={{ fontSize: 16, color: SC.blueDark }}>{money(sentPrice)}</Text>
+                                <View style={{ paddingTop: 10, marginTop: 2, borderTopWidth: 1, borderTopColor: SC.borderSoft }}>
+                                    <Text className="font-outfit-bold" style={{ fontSize: 14, lineHeight: 19, color: SC.text }}>{t('scheduledProvider.sent.total')}</Text>
+                                    <Text className="font-outfit-bold" style={{ fontSize: 20, lineHeight: 26, color: SC.blueDark }}>{money(sentPrice)}</Text>
                                 </View>
                             </View>
                         ) : null}
@@ -368,10 +375,10 @@ export default function ScheduledRequestScreen() {
 
     // ───────────── 2 · Build the quote ─────────────
     if (view === 'quote' || view === 'review') {
-        const inputStyle = { height: 46, borderRadius: 12, borderWidth: 1.5, borderColor: BORDER, paddingLeft: 28, paddingRight: 12, fontSize: 16, color: SC.text, backgroundColor: '#FFFFFF' } as const;
+        // The "$" and the number are one line in one field: same font, same height, nothing floating over the input.
         const money2 = (value: string, onChange: (v: string) => void, label: string) => (
-            <View>
-                <Text style={{ position: 'absolute', left: 12, top: 0, height: 46, lineHeight: 46, zIndex: 1, fontSize: 16, color: SC.muted }}>$</Text>
+            <View className="flex-row items-center" style={{ height: 50, borderRadius: 12, borderWidth: 1.5, borderColor: BORDER, paddingHorizontal: 14, backgroundColor: '#FFFFFF', gap: 6 }}>
+                <Text className="font-outfit-bold" style={{ fontSize: 18, color: SC.muted }}>$</Text>
                 <TextInput
                     accessibilityLabel={label}
                     keyboardType="decimal-pad"
@@ -381,7 +388,7 @@ export default function ScheduledRequestScreen() {
                     onChangeText={(v) => onChange(cleanAmount(v))}
                     onBlur={() => onChange(value === '' || value === '.' ? '' : amountOf(value).toFixed(2))}
                     className="font-outfit-bold"
-                    style={inputStyle}
+                    style={{ flex: 1, height: 50, padding: 0, fontSize: 18, color: SC.text }}
                 />
             </View>
         );
@@ -390,9 +397,10 @@ export default function ScheduledRequestScreen() {
             <View className="flex-1" style={{ backgroundColor: SC.page }}>
                 {header}
                 <Steps step={view === 'quote' ? 1 : 2} labels={[t('scheduledProvider.quote.stepPrice'), t('scheduledProvider.quote.stepReview')]} />
-                <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+                <View className="flex-1">
                     {view === 'quote' ? (
-                        <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingTop: 18, gap: 14 }}>
+                        // Makes room for the keyboard and brings the field being typed in to the top, so what is under it can be reached.
+                        <KeyboardAwareScrollView contentContainerStyle={{ padding: 16, paddingTop: 18, gap: 14 }}>
                             <StepHead eyebrow={t('scheduledProvider.quote.eyebrow1')} title={t('scheduledProvider.quote.title')} sub={t('scheduledProvider.quote.sub')} />
 
                             <View style={{ ...CARD_STYLE, overflow: 'hidden' }}>
@@ -475,7 +483,7 @@ export default function ScheduledRequestScreen() {
                                 <Text className="font-outfit-regular" style={{ fontSize: 13, color: SC.mutedLight, textAlign: 'right', marginTop: 4 }}>{q.message.length}/300</Text>
                             </View>
                             <Note>{t('scheduledProvider.quote.protect')}</Note>
-                        </ScrollView>
+                        </KeyboardAwareScrollView>
                     ) : (
                         <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 18, gap: 14 }}>
                             <StepHead eyebrow={t('scheduledProvider.review.eyebrow')} title={t('scheduledProvider.review.title')} sub={t('scheduledProvider.review.sub')} />
@@ -516,8 +524,8 @@ export default function ScheduledRequestScreen() {
                             {notice ? <Note tone="amber">{notice}</Note> : null}
                         </ScrollView>
                     )}
-                </KeyboardAvoidingView>
-                {view === 'quote' ? (
+                </View>
+                {view === 'quote' ? (keyboardOpen ? null : (
                     <View style={{ ...FLOATING_FOOTER }}>
                         <View className="flex-row items-baseline justify-between" style={{ marginBottom: 10 }}>
                             <Text className="font-outfit-bold" style={{ fontSize: 13, color: SC.muted }}>{t('scheduledProvider.sent.yourQuote')}</Text>
@@ -526,7 +534,7 @@ export default function ScheduledRequestScreen() {
                         {problem ? <Text className="font-outfit-regular" style={{ fontSize: 13, color: SC.amberText, marginBottom: 8 }}>{t(`scheduledProvider.quote.problems.${problem}`)}</Text> : null}
                         <View className="flex-row"><Primary label={t('scheduledProvider.quote.reviewCta')} disabled={!!problem} onPress={() => setView('review')} /></View>
                     </View>
-                ) : (
+                )) : (
                     <ActionBar>
                         <Primary label={busy ? t('scheduledProvider.review.sending') : t('scheduledProvider.review.send')} disabled={!confirmed || busy} onPress={send} />
                     </ActionBar>

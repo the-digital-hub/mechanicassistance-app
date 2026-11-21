@@ -438,5 +438,6 @@ esperar aprobación.
 ## AJ — Gateway: falta rutear `/api/mechanic-certifications` (bloquea "Other certifications")
 Guardar una certificación devuelve `403 "Call this through the API gateway (/api/...)"`. La tabla de ruteo del gateway (`mechanicassistance-gateway/src/main.ts`, ver `servicios/gateway/README.md` §4) no lista el prefijo `/api/mechanic-certifications`, así que la petición no llega a users-service. Pedido: agregarlo junto a `/api/mechanic-documents` → `USERS_SERVICE_URL` y desplegar el gateway. La app ya manda a `/api/mechanic-certifications` (GET/POST/PATCH/DELETE) y muestra el error del servidor en el formulario.
 
-## AK — `refCode` en `POST /api/assistance/summaries`
+## AK — `refCode` en `POST /api/assistance/summaries` y `GET /marketplace/requests`
 La app muestra el código del pedido (`AS-XXXXXX`) al pie de cada pago, cobro y movimiento de wallet. `summaries` devuelve título, dirección y fecha pero no `refCode`, así que hoy se ve el inicio del id (`#a1b2c3d4`). Pedido: agregar `refCode` a la respuesta (opcional en la app: `AssistanceSummary.refCode?`).
+También en `GET /marketplace/requests` (vista del prestador): la tarjeta «Your quotes» muestra el código del pedido.

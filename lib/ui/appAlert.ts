@@ -22,6 +22,8 @@ export interface AppAlertHighlight {
     sub?: string;
     /** An Ionicons name for the tile. */
     icon?: string;
+    /** The request's code (AS-4H8TX2): tiny and grey under the message, for whoever has to quote it. */
+    ref?: string;
 }
 
 export interface AppAlertOptions {

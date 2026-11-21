@@ -73,7 +73,8 @@ export function RadiusSlider({ value, onChange, label, unit }: { value: number; 
                 accessibilityValue={{ min: MIN_RADIUS_MILES, max: MAX_RADIUS_MILES, now: value }}
                 accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
                 onAccessibilityAction={(e) => onChange(Math.min(MAX_RADIUS_MILES, Math.max(MIN_RADIUS_MILES, value + (e.nativeEvent.actionName === 'increment' ? 5 : -5))))}
-                style={{ height: 36, justifyContent: 'center', marginTop: 4 }}
+                // A tall target: the drag starts anywhere in this band, not only on the thin line.
+                style={{ height: 56, justifyContent: 'center', marginTop: 0 }}
                 {...pan.panHandlers}
             >
                 <View pointerEvents="none" style={{ height: 4, borderRadius: 4, backgroundColor: SC.blueSoft }} />
