@@ -40,7 +40,7 @@ export type AttentionQuick = {
     busy?: boolean;
 };
 
-/** "2 d 3 h", "5 h 12 min", "12 min", "3:05" (the last minutes tick by the second). */
+/** "2d 3h", "5h 12m", "12 min", "3:05" (the last minutes tick by the second). */
 export function formatTimeLeft(ms: number, t: (key: string, opts?: Record<string, unknown>) => string): string {
     const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
     const minutes = Math.floor(totalSeconds / 60);
@@ -69,7 +69,7 @@ export function AttentionTimer({ spec }: { spec: AttentionTimerSpec }) {
     return (
         <View className="flex-row items-center self-start" style={{ gap: 6, marginTop: 10, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 100, backgroundColor: urgent ? '#FDECEC' : '#FEF4E2' }} testID="attention-timer">
             <Clock size={14} color={ink} />
-            <Text className="font-outfit-bold" style={{ fontSize: 13, color: ink, fontVariant: ['tabular-nums'] }}>{spec.label(formatTimeLeft(left, t))}</Text>
+            <Text className="font-outfit-bold" style={{ fontSize: 13, color: ink, ...(fast ? { fontVariant: ['tabular-nums' as const] } : null) }}>{spec.label(formatTimeLeft(left, t))}</Text>
         </View>
     );
 }

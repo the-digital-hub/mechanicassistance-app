@@ -695,11 +695,8 @@ export default function AppointmentDetailScreen() {
                 );
             case 'info': {
                 const issues = appointment.vehicleIssues?.map((i) => i.name).join(', ');
-                // `date` is an ISO timestamp and `time` falls back to the literal 'Pending';
-                // a video call has no ETA to show.
-                const postedAt = formatLocalDateTime(appointment.date, i18n.language);
-                const eta = appointment.time && appointment.time !== 'Pending' ? appointment.time : null;
-                const posted = postedAt ? [postedAt, isVideoCall ? null : eta].filter(Boolean).join(' · ') : '';
+                // `date` is an ISO timestamp: the exact moment it was asked for. The ETA ("2 min") is not part of it.
+                const posted = formatLocalDateTime(appointment.date, i18n.language) || '';
                 const rows = [
                     { icon: isVideoCall ? 'videocam-outline' as const : 'flash-outline' as const, label: t('appointments.ownerAccepted.rows.service'), value: t(assistanceTypeKey(appointment)) },
                     isVideoCall && (appointment.durationMinutes ?? videoState?.baseMinutes)

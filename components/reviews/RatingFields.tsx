@@ -11,7 +11,7 @@ export interface RatingTagOption { value: string; label: string }
  * The one rating form: stars first, then the preset options (several can be picked), then the free text. Controlled;
  * the caller owns the state and the Send button.
  */
-export function RatingFields({ rating, onRating, tags, onTags, options, tagsTitle, comment, onComment, commentPlaceholder, starLabel, starSize = 36, testIDPrefix = 'rating' }: {
+export function RatingFields({ rating, onRating, tags, onTags, options, tagsTitle, comment, onComment, commentPlaceholder, starLabel, starSize, testIDPrefix = 'rating', compact }: {
     rating: number;
     onRating: (n: number) => void;
     tags: string[];
@@ -24,19 +24,22 @@ export function RatingFields({ rating, onRating, tags, onTags, options, tagsTitl
     starLabel?: (n: number) => string;
     starSize?: number;
     testIDPrefix?: string;
+    /** Smaller stars and options, for a card that has to stay short. */
+    compact?: boolean;
 }) {
+    const stars = starSize ?? (compact ? 32 : 36);
     const toggle = (v: string) => onTags(tags.includes(v) ? tags.filter((x) => x !== v) : [...tags, v]);
     return (
         <View>
             <View className="flex-row justify-center" style={{ gap: 8 }}>
                 {[1, 2, 3, 4, 5].map((n) => (
                     <TouchableOpacity key={n} onPress={() => onRating(n)} hitSlop={4} accessibilityRole="button" accessibilityLabel={starLabel?.(n)} testID={`${testIDPrefix}-star-${n}`} style={{ padding: 2 }}>
-                        <Ionicons name={n <= rating ? 'star' : 'star-outline'} size={starSize} color={n <= rating ? OS.orange : OS.border} />
+                        <Ionicons name={n <= rating ? 'star' : 'star-outline'} size={stars} color={n <= rating ? OS.orange : OS.border} />
                     </TouchableOpacity>
                 ))}
             </View>
-            <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, color: OS.text, marginTop: 18 }}>{tagsTitle}</Text>
-            <View className="flex-row flex-wrap" style={{ gap: 8, marginTop: 10 }}>
+            <Text className="font-outfit-bold" style={{ ...(compact ? { fontSize: 14, lineHeight: 19 } : TYPE.cardTitle), color: OS.text, marginTop: compact ? 12 : 18 }}>{tagsTitle}</Text>
+            <View className="flex-row flex-wrap" style={{ gap: compact ? 6 : 8, marginTop: compact ? 8 : 10 }}>
                 {options.map((o) => {
                     const active = tags.includes(o.value);
                     return (
@@ -46,14 +49,17 @@ export function RatingFields({ rating, onRating, tags, onTags, options, tagsTitl
                             accessibilityRole="button"
                             accessibilityState={{ selected: active }}
                             testID={`${testIDPrefix}-tag-${o.value}`}
-                            style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, borderWidth: 1.5, borderColor: active ? OS.blue : OS.border, backgroundColor: active ? OS.blueSoft : '#FFFFFF' }}
+                            style={{ paddingHorizontal: compact ? 10 : 12, paddingVertical: compact ? 5 : 8, borderRadius: 999, borderWidth: 1.5, borderColor: active ? OS.blue : OS.border, backgroundColor: active ? OS.blueSoft : '#FFFFFF' }}
                         >
-                            <Text className="font-outfit-bold" style={{ fontSize: 13, color: active ? OS.blue : OS.muted }}>{o.label}</Text>
+                            <Text className="font-outfit-bold" style={{ fontSize: compact ? 12 : 13, color: active ? OS.blue : OS.muted }}>{o.label}</Text>
                         </TouchableOpacity>
                     );
                 })}
             </View>
-            <NoteInput value={comment} onChangeText={onComment} placeholder={commentPlaceholder} rows={2} white />
+            {/* Air between the options and the comment box: they are two different questions. */}
+            <View style={{ marginTop: compact ? 14 : 10 }}>
+                <NoteInput value={comment} onChangeText={onComment} placeholder={commentPlaceholder} rows={compact ? 1 : 2} white />
+            </View>
         </View>
     );
 }

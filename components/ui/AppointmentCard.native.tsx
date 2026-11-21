@@ -226,6 +226,11 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
             if (label) return label;
         }
         if (isVideoCall) return videoCallBookedLabel(appointment, i18n.language) ?? t('requestDetail.videoCallNow');
+        // An immediate request has no booked date and `time` holds the ETA ("2 min"): show the exact moment it was asked for instead.
+        if (appointment.type !== 'scheduled') {
+            const askedAt = formatLocalDateTime(appointment.createdAt ?? appointment.acceptedAt, i18n.language);
+            if (askedAt) return askedAt;
+        }
         if (appointment.date?.includes('T')) return formatLocalDateTime(appointment.date, i18n.language);
         const parts = [appointment.date, appointment.time].filter((v) => v && v !== 'Pending');
         return parts.length ? parts.join(' · ') : t('appointments.list.card.notAvailable');

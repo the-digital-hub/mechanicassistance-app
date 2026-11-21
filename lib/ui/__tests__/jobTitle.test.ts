@@ -9,4 +9,9 @@ describe('splitJobTitle', () => {
     it('a single part is only the title', () => {
         expect(splitJobTitle('Immediate Assistance')).toEqual({ main: 'Immediate Assistance', topic: '' });
     });
+
+    it('does not break on a row without a title', () => {
+        expect(splitJobTitle(null)).toEqual({ main: '', topic: '' });
+        expect(splitJobTitle(undefined)).toEqual({ main: '', topic: '' });
+    });
 });

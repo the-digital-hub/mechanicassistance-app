@@ -245,8 +245,8 @@
   "dashboard": {
     "attention": {
       "timer": {
-        "days": "{{days}} d {{hours}} h",
-        "hours": "{{hours}} h {{minutes}} min",
+        "days": "{{days}}d {{hours}}h",
+        "hours": "{{hours}}h {{minutes}}m",
         "minutes": "{{minutes}} min",
         "seconds": "{{minutes}}:{{seconds}}",
         "confirm": "Se confirma solo en {{time}}",
