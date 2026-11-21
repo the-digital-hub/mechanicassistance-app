@@ -155,7 +155,7 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
 SplashScreen.preventAutoHideAsync();
 
 export const unstable_settings = {
-  initialRouteName: "(tabs)",
+  anchor: "(tabs)",
 };
 
 export default function RootLayout() {
