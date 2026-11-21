@@ -77,6 +77,7 @@ export function RequestObdPanel({ requestId, role, editable, state }: RequestObd
     const anySuggestion = codes.some((c) => c.suggestion);
     const canUpload = role === 'owner' && editable;
     const canType = role === 'mechanic' && editable;
+    // Once the call is over nothing can be added: the notes say what happened, not what could still be done.
 
     const upload = async (file: Picked) => {
         setReport(await requestObdDAO.attach(requestId, file));
@@ -149,7 +150,7 @@ export function RequestObdPanel({ requestId, role, editable, state }: RequestObd
             ) : null}
 
             {status === 'none' && !canUpload && !codes.length ? (
-                <Tip>{role === 'mechanic' ? t(`${kv}.noneMechanic`) : t(`${kv}.noneOwner`)}</Tip>
+                <Tip>{role === 'mechanic' ? t(`${kv}.${editable ? 'noneMechanic' : 'noneMechanicEnded'}`) : t(`${kv}.noneOwner`)}</Tip>
             ) : null}
             {status === 'processing' ? (
                 <View className="mx-4 mt-3 flex-row items-center gap-2.5 px-3.5 py-3 rounded-2xl" style={{ backgroundColor: OS.blueSofter }}>
@@ -158,7 +159,7 @@ export function RequestObdPanel({ requestId, role, editable, state }: RequestObd
                 </View>
             ) : null}
             {status === 'failed' ? (
-                <Tip tone="orange">{role === 'owner' ? t(`${kv}.failedOwner`) : t(`${kv}.failedMechanic`)}</Tip>
+                <Tip tone="orange">{role === 'owner' ? t(`${kv}.${editable ? 'failedOwner' : 'failedOwnerEnded'}`) : t(`${kv}.${editable ? 'failedMechanic' : 'failedMechanicEnded'}`)}</Tip>
             ) : null}
             {report.vinMismatch ? <Tip tone="orange">{t(`${kv}.vinMismatch`, { vin: report.vin ?? '' })}</Tip> : null}
             {fileName && !(canUpload && replacing) ? (
@@ -234,7 +235,7 @@ export function RequestObdPanel({ requestId, role, editable, state }: RequestObd
                         <View className="px-4 pt-1 pb-3.5">
                             <TouchableOpacity
                                 onPress={() => setSuggestionsOpen((v) => !v)}
-                                className="items-center py-3 rounded-xl"
+                                className="items-center py-3 rounded-[14px]"
                                 style={{ backgroundColor: suggestionsOpen ? OS.page : OS.blue }}
                             >
                                 <Text className="font-outfit-bold text-[13px]" style={{ color: suggestionsOpen ? OS.text : '#FFFFFF' }}>

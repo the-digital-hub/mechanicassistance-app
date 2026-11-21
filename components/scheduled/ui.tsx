@@ -1,3 +1,4 @@
+import { FONT } from '@/lib/ui/fonts';
 import { FLOATING_FOOTER, CONFIRM_GRADIENT } from '@/lib/ui/floatingFooter';
 import { ROUNDED_HEADER } from '@/lib/ui/header';
 import { TYPE } from '@/lib/ui/type';
@@ -48,7 +49,7 @@ export function WizardHeader({ title, onBack, right }: { title: string; onBack?:
             style={[ROUNDED_HEADER, { paddingTop: 63 }]}
         >
             {onBack ? <HeaderBackButton onPress={onBack} marginLeft={0} /> : <View style={{ width: 40 }} />}
-            <Text style={{ fontFamily: 'Outfit_500Medium', fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>{title}</Text>
+            <Text style={{ fontFamily: FONT.medium, fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>{title}</Text>
             <View style={{ width: 40, alignItems: 'flex-end' }}>
                 {right ? <Text className="font-outfit-bold" style={{ fontSize: 13, color: SC.muted }}>{right}</Text> : null}
             </View>

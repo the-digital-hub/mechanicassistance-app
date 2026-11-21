@@ -6,13 +6,14 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 
 import { canCancelBeforeStart } from '@/components/appointments/CancelRequestLink';
+import { InfoRows } from '@/components/ui/CardInfoRows';
 import { RequestIdRow } from '@/components/ui/RequestIdRow';
 import type { Appointment } from '@/context/AppointmentsContext';
 import { useHeadOut } from '@/hooks/useHeadOut';
 import { splitJobTitle } from '@/lib/ui/jobTitle';
 import { TYPE } from '@/lib/ui/type';
 import { formatZonedDateTime } from '@/lib/video/videoCallTime';
-import { BANNER_COLORS, getCardState, getTypeBar } from './appointmentCardTheme';
+import { BANNER_COLORS, getCardState, getTypeBar, stateTextKey } from './appointmentCardTheme';
 
 const JOIN_WINDOW_MS = 15 * 60_000;
 
@@ -91,48 +92,52 @@ export function MechanicActiveJobCard({ appointment }: { appointment: Appointmen
                 <View className="justify-center items-center" style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: '#EAF1FF' }}>
                     <TypeIcon size={22} color="#1E56E3" />
                 </View>
-                <Text className="flex-1 font-outfit-bold" style={{ fontSize: 18, lineHeight: 23, letterSpacing: -0.3, color: '#0B1530' }} numberOfLines={2}>
-                    {jobTitle}
-                </Text>
+                <View className="flex-1">
+                    {/* What kind of assistance it is (immediate, scheduled, video call) over the service itself. */}
+                    <Text className="font-outfit-bold" style={{ fontSize: 12, lineHeight: 16, letterSpacing: 0.8, color: '#6B7490' }} testID="active-job-type">
+                        {t(typeBar.labelKey).toUpperCase()}
+                    </Text>
+                    <Text className="font-outfit-bold" style={{ fontSize: 18, lineHeight: 23, letterSpacing: -0.3, color: '#0B1530', marginTop: 1 }} numberOfLines={2}>
+                        {jobTitle}
+                    </Text>
+                </View>
             </View>
 
             <View style={{ marginTop: 12, paddingVertical: 12, paddingHorizontal: 14, borderRadius: 14, backgroundColor: colors.bg, gap: 4 }}>
                 <View className="flex-row items-center" style={{ gap: 8 }}>
                     <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: colors.title }} />
                     <Text className="font-outfit-bold" style={{ fontSize: 15, lineHeight: 20, color: colors.title }}>
-                        {t(`appointments.list.card.title.${state}`)}
+                        {t(`appointments.list.card.title.${stateTextKey(state, true)}`)}
                     </Text>
                 </View>
                 <Text className="font-outfit-regular" style={{ fontSize: 15, lineHeight: 21, color: '#4A5470' }}>
-                    {t(`appointments.list.card.status.${state}Hint`)}
+                    {t(`appointments.list.card.status.${stateTextKey(state, true)}Hint`)}
                 </Text>
             </View>
 
             {rows.length > 0 && (
-                <View style={{ marginTop: 14, gap: 12 }}>
-                    {rows.map(({ key, label, Icon, value, sub }) => (
-                        <View key={key} className="flex-row items-center" style={{ gap: 12 }}>
-                            <View className="justify-center items-center" style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: '#F3F6FC' }}>
-                                <Icon size={16} color="#6B7490" />
-                            </View>
-                            <View className="flex-1">
-                                <Text className="font-outfit-medium" style={{ fontSize: 13, lineHeight: 17, color: '#6B7490' }}>{label}</Text>
-                                <Text className="font-outfit-bold" style={{ fontSize: 15, lineHeight: 20, color: '#0B1530', marginTop: 1 }}>
+                <View style={{ marginTop: 14 }}>
+                    <InfoRows
+                        rows={rows.map(({ label, Icon, value, sub }) => ({
+                            icon: Icon,
+                            label,
+                            value,
+                            node: sub ? (
+                                <Text className="font-outfit-bold" style={{ fontSize: 15, lineHeight: 20, color: '#0B1530' }}>
                                     {value}
-                                    {sub ? <Text className="font-outfit-regular" style={{ fontSize: 14, color: '#6B7490' }}>{`  ·  ${sub}`}</Text> : null}
+                                    <Text className="font-outfit-regular" style={{ fontSize: 14, color: '#6B7490' }}>{`  ·  ${sub}`}</Text>
                                 </Text>
-                            </View>
-                        </View>
-                    ))}
+                            ) : undefined,
+                        }))}
+                    />
                 </View>
             )}
 
             {/* One main action */}
-            <View className="flex-row" style={{ gap: 10, marginTop: 16 }}>
+            <View style={{ gap: 10, marginTop: 16 }}>
                 {canHeadOut && (
                     <TouchableOpacity
-                        style={{ flex: 0.6 }}
-                        onPress={() => headOut(appointment.id)}
+                                                onPress={() => headOut(appointment.id)}
                         disabled={headingOut}
                         activeOpacity={0.85}
                         accessibilityRole="button"
@@ -142,7 +147,7 @@ export function MechanicActiveJobCard({ appointment }: { appointment: Appointmen
                             colors={['#2B66F8', '#081E72']}
                             start={{ x: 0, y: 1 }}
                             end={{ x: 1, y: 0 }}
-                            style={{ borderRadius: 16, minHeight: 54, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center', opacity: headingOut ? 0.6 : 1 }}
+                            style={{ borderRadius: 14, minHeight: 54, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center', opacity: headingOut ? 0.6 : 1 }}
                         >
                             {headingOut ? (
                                 <ActivityIndicator color="#FFFFFF" />
@@ -158,19 +163,19 @@ export function MechanicActiveJobCard({ appointment }: { appointment: Appointmen
                     </TouchableOpacity>
                 )}
                 {joinable && !canHeadOut ? (
-                    <TouchableOpacity style={{ flex: 1 }} onPress={openDetail} activeOpacity={0.85} accessibilityRole="button" testID="active-job-join">
+                    <TouchableOpacity onPress={openDetail} activeOpacity={0.85} accessibilityRole="button" testID="active-job-join">
                         <LinearGradient
                             colors={['#2B66F8', '#081E72']}
                             start={{ x: 0, y: 1 }}
                             end={{ x: 1, y: 0 }}
-                            style={{ borderRadius: 16, minHeight: 54, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center' }}
+                            style={{ borderRadius: 14, minHeight: 54, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center' }}
                         >
                             <Text className="text-white font-outfit-semibold text-center" style={TYPE.button} numberOfLines={1}>{mainLabel}</Text>
                         </LinearGradient>
                     </TouchableOpacity>
                 ) : (
                     <TouchableOpacity
-                        style={{ flex: canHeadOut ? 0.4 : 1, borderRadius: 16, minHeight: 54, paddingHorizontal: 8, backgroundColor: '#EAF1FF', alignItems: 'center', justifyContent: 'center' }}
+                        style={{ borderRadius: 14, minHeight: 54, paddingHorizontal: 8, backgroundColor: '#EAF1FF', alignItems: 'center', justifyContent: 'center' }}
                         onPress={openDetail}
                         activeOpacity={0.85}
                         accessibilityRole="button"

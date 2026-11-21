@@ -1,4 +1,4 @@
-import { AttentionQuickButton, AttentionTimer, type AttentionQuick, type AttentionTimerSpec } from '@/components/dashboard/AttentionExtras';
+import { AttentionQuickButton, AttentionTimer, AttentionHideBadge, attentionCardStyle, type AttentionQuick, type AttentionTimerSpec } from '@/components/dashboard/AttentionExtras';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Award, ChevronDown, ChevronRight, Star, Wallet, Wrench, type LucideIcon } from 'lucide-react-native';
 import { useEffect, useRef, type ReactNode } from 'react';
@@ -416,8 +416,8 @@ export function AttentionList({ items, hideLabel, onDismiss }: { items: Attentio
                         activeOpacity={0.7}
                         accessibilityRole="button"
                         className="flex-row"
-                        // One card per alert with its own shadow and a faint tint of its tone, the same as the owner's.
-                        style={{ ...CARD, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 10, padding: 14, gap: 12, backgroundColor: a.tone === 'amber' ? '#FFFAEF' : '#F5F9FF', borderColor: a.tone === 'amber' ? '#F6E2B5' : '#DCE8FB' }}
+                        // One card per alert, with the tint and the relief of its tone: the same as the owner's.
+                        style={{ ...attentionCardStyle(a.tone), padding: 14, gap: 12 }}
                     >
                         <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: tone.bg }}>
                             <Icon size={20} color={tone.fg} />
@@ -440,11 +440,7 @@ export function AttentionList({ items, hideLabel, onDismiss }: { items: Attentio
                                     <Text className="font-outfit-bold" style={{ fontSize: 14, color: tone.fg }}>{a.cta}</Text>
                                     <ChevronRight size={18} color={tone.fg} />
                                 </View>
-                                {onDismiss && hideLabel ? (
-                                    <TouchableOpacity onPress={() => onDismiss(a)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} accessibilityRole="button">
-                                        <Text className="font-outfit-semibold" style={{ fontSize: 14, color: C.muted }}>{hideLabel}</Text>
-                                    </TouchableOpacity>
-                                ) : null}
+                                {onDismiss && hideLabel ? <AttentionHideBadge label={hideLabel} onPress={() => onDismiss(a)} /> : null}
                             </View>
                         </View>
                     </TouchableOpacity>

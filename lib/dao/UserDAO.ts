@@ -103,6 +103,19 @@ export class UserDAO implements IUserDAO {
     }
 
     /**
+     * Changes the password of the signed-in account, proving the current one first
+     * (`POST /auth/password/change`). Accounts created by phone have no password yet: those use `setPassword`.
+     */
+    async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+        await apiClient.post('/api/auth/password/change', { currentPassword, newPassword });
+    }
+
+    /** First password of an account that never had one (`POST /auth/password/set`); 409 if it already has one. */
+    async setPassword(newPassword: string): Promise<void> {
+        await apiClient.post('/api/auth/password/set', { newPassword });
+    }
+
+    /**
      * Trades a pre-refresh-token session for a current one.
      *
      * Older builds stored a single long-lived access token and nothing else.

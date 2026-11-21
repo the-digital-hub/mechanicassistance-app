@@ -174,7 +174,7 @@ export default function PhoneChangeScreen() {
                 start={{ x: 0, y: 1 }}
                 end={{ x: 1, y: 0 }}
                 style={{
-                    borderRadius: 10,
+                    borderRadius: 14,
                     paddingVertical: 16,
                     paddingHorizontal: 16,
                     flexDirection: 'row',
@@ -346,7 +346,7 @@ export default function PhoneChangeScreen() {
                         </View>
                         <Text className="text-xl font-outfit-bold text-[#0F172A] mb-2 text-center">{modal.title}</Text>
                         <Text className="text-base font-outfit-regular text-slate-500 text-center mb-8">{modal.message}</Text>
-                        <TouchableOpacity className="bg-blue-700 w-full py-4 rounded-xl shadow-sm" onPress={closeModal}>
+                        <TouchableOpacity className="bg-blue-700 w-full py-4 rounded-[14px] shadow-sm" onPress={closeModal}>
                             <Text className="text-white text-center font-outfit-bold text-lg">{t('phoneChange.gotIt')}</Text>
                         </TouchableOpacity>
                     </View>

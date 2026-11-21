@@ -181,20 +181,12 @@ export function ExtendCallSheet({ visible, appointmentId, onClose, onExtended }:
                         </Text>
                     )}
 
-                    <View className="flex-row" style={{ gap: 8, marginTop: 16 }}>
-                        <TouchableOpacity
-                            onPress={onClose}
-                            disabled={busy}
-                            className="flex-1 items-center"
-                            style={{ paddingVertical: 13, borderRadius: 12, backgroundColor: AO.page, borderWidth: 1, borderColor: AO.border }}
-                        >
-                            <Text className="font-outfit-bold" style={{ fontSize: 14, color: AO.muted }}>{t(`${K}.cancel`)}</Text>
-                        </TouchableOpacity>
+                    <View  style={{ gap: 8, marginTop: 16 }}>
                         <TouchableOpacity
                             onPress={() => buy(source)}
                             disabled={!option || busy || atLimit}
-                            className="flex-1 items-center justify-center"
-                            style={{ paddingVertical: 13, borderRadius: 12, backgroundColor: AO.blue, opacity: !option || atLimit ? 0.5 : 1 }}
+                            className="items-center justify-center"
+                            style={{ paddingVertical: 13, borderRadius: 14, backgroundColor: AO.blue, opacity: !option || atLimit ? 0.5 : 1 }}
                             testID="extend-call-confirm"
                             accessibilityRole="button"
                         >
@@ -205,6 +197,14 @@ export function ExtendCallSheet({ visible, appointmentId, onClose, onExtended }:
                                     {option ? t(`${K}.confirm`, { minutes: option.minutes, price: formatMoney(option.price, option.currency) }) : t(`${K}.confirmEmpty`)}
                                 </Text>
                             )}
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={onClose}
+                            disabled={busy}
+                            className="items-center"
+                            style={{ paddingVertical: 13, borderRadius: 14, backgroundColor: '#E6EAF2' }}
+                        >
+                            <Text className="font-outfit-bold" style={{ fontSize: 14, color: '#4A5470' }}>{t(`${K}.cancel`)}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>

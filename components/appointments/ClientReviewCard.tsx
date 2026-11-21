@@ -2,23 +2,18 @@ import { AO, card } from '@/components/offer/OfferSections';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
+import { RatingFields } from '@/components/reviews/RatingFields';
+import { CLIENT_REVIEW_TAGS } from '@/lib/reviews/tags';
 import { TYPE } from '@/lib/ui/type';
 
 const K = 'appointments.clientReview';
 
-/** Stored as `experienceTags` as-is, so the values stay in English; only the labels are translated. */
-const OPTIONS = [
-    { value: 'Issue was fully resolved', key: 'resolved' },
-    { value: 'Saved me time', key: 'savedTime' },
-    { value: 'Client was professional', key: 'professional' },
-] as const;
-
 interface ClientReviewCardProps {
     rating: number;
     setRating: (rating: number) => void;
-    selectedOption: string;
-    setSelectedOption: (option: string) => void;
+    tags: string[];
+    setTags: (tags: string[]) => void;
     reviewText: string;
     setReviewText: (text: string) => void;
     isSubmitted: boolean;
@@ -28,10 +23,8 @@ interface ClientReviewCardProps {
 }
 
 /** The mechanic's rating of the vehicle owner. */
-export function ClientReviewCard({ rating, setRating, selectedOption, setSelectedOption, reviewText, setReviewText, isSubmitted, onSubmit, hint }: ClientReviewCardProps) {
+export function ClientReviewCard({ rating, setRating, tags, setTags, reviewText, setReviewText, isSubmitted, onSubmit, hint }: ClientReviewCardProps) {
     const { t } = useTranslation();
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const selectedLabel = OPTIONS.find((o) => o.value === selectedOption);
 
     // Once the rating is sent there is nothing left to do here: opened already sent, the card is not shown at
     // all; sent just now, it says so for a moment and then closes (same as the owner's review).
@@ -54,69 +47,21 @@ export function ClientReviewCard({ rating, setRating, selectedOption, setSelecte
                 </View>
             )}
 
-            <View style={{ gap: 10 }}>
-                <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, color: AO.text }}>{t(`${K}.title`)}</Text>
-                <View className="flex-row justify-center" style={{ gap: 8 }}>
-                    {[1, 2, 3, 4, 5].map((star) => (
-                        <TouchableOpacity key={star} onPress={() => !isSubmitted && setRating(star)} disabled={isSubmitted} accessibilityLabel={t(`${K}.star`, { count: star })}>
-                            <Ionicons name={star <= rating ? 'star' : 'star-outline'} size={32} color={AO.star} />
-                        </TouchableOpacity>
-                    ))}
-                </View>
-            </View>
-
-            <View style={{ zIndex: 50 }}>
-                <Text className="font-outfit-bold" style={{ fontSize: 13, color: AO.text, marginBottom: 8 }}>{t(`${K}.experience`)}</Text>
-                <TouchableOpacity
-                    onPress={() => !isSubmitted && setIsDropdownOpen(!isDropdownOpen)}
-                    disabled={isSubmitted}
-                    className="flex-row justify-between items-center"
-                    style={{ padding: 14, borderRadius: 12, borderWidth: 1, borderColor: AO.border, backgroundColor: '#fff' }}
-                >
-                    <Text className={selectedLabel ? 'font-outfit-medium' : 'font-outfit-regular'} style={{ fontSize: 14, color: selectedLabel ? AO.text : AO.mutedLight }}>
-                        {selectedLabel ? t(`${K}.options.${selectedLabel.key}`) : selectedOption || t(`${K}.selectOption`)}
-                    </Text>
-                    <Ionicons name={isDropdownOpen ? 'chevron-up' : 'chevron-down'} size={18} color={AO.muted} />
-                </TouchableOpacity>
-                {isDropdownOpen && (
-                    <View style={[card, { position: 'absolute', top: 84, left: 0, right: 0, borderRadius: 12, zIndex: 50 }]}>
-                        {OPTIONS.map((option, index) => {
-                            const on = selectedOption === option.value;
-                            return (
-                                <TouchableOpacity
-                                    key={option.value}
-                                    onPress={() => {
-                                        setSelectedOption(option.value);
-                                        setIsDropdownOpen(false);
-                                    }}
-                                    className="flex-row items-center justify-between"
-                                    style={{ padding: 14, borderBottomWidth: index < OPTIONS.length - 1 ? 1 : 0, borderBottomColor: AO.borderSoft }}
-                                >
-                                    <Text className={on ? 'font-outfit-bold' : 'font-outfit-regular'} style={{ fontSize: 14, color: on ? AO.blue : AO.text }}>
-                                        {t(`${K}.options.${option.key}`)}
-                                    </Text>
-                                    {on && <Ionicons name="checkmark" size={18} color={AO.blue} />}
-                                </TouchableOpacity>
-                            );
-                        })}
-                    </View>
-                )}
-            </View>
-
-            <View>
-                <Text className="font-outfit-bold" style={{ fontSize: 13, color: AO.text, marginBottom: 8 }}>{t(`${K}.review`)}</Text>
-                <TextInput
-                    className="font-outfit-regular"
-                    style={{ minHeight: 96, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: AO.border, backgroundColor: '#fff', fontSize: 14, color: AO.text }}
-                    placeholder={t(`${K}.placeholder`)}
-                    placeholderTextColor={AO.mutedLight}
-                    multiline
-                    textAlignVertical="top"
-                    value={reviewText}
-                    onChangeText={setReviewText}
-                    editable={!isSubmitted}
-                />
-            </View>
+            <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, color: AO.text }}>{t(`${K}.title`)}</Text>
+            <RatingFields
+                rating={rating}
+                onRating={(n) => !isSubmitted && setRating(n)}
+                tags={tags}
+                onTags={(next) => !isSubmitted && setTags(next)}
+                options={CLIENT_REVIEW_TAGS.map((tag) => ({ value: tag, label: t('reviews.clientTags.' + tag) }))}
+                tagsTitle={t(`${K}.experience`)}
+                comment={reviewText}
+                onComment={(v) => !isSubmitted && setReviewText(v)}
+                commentPlaceholder={t(`${K}.placeholder`)}
+                starLabel={(n) => t(`${K}.star`, { count: n })}
+                starSize={32}
+                testIDPrefix="client-review"
+            />
 
             {isSubmitted ? (
                 <View className="flex-row items-center justify-center" style={{ gap: 6, paddingVertical: 12, borderRadius: 12, backgroundColor: AO.greenSoft }} testID="client-review-sent">
@@ -124,7 +69,7 @@ export function ClientReviewCard({ rating, setRating, selectedOption, setSelecte
                     <Text className="font-outfit-bold" style={{ fontSize: 14, color: AO.greenText }}>{t(`${K}.sent`)}</Text>
                 </View>
             ) : (
-                <TouchableOpacity onPress={onSubmit} className="items-center justify-center" style={{ paddingVertical: 14, borderRadius: 12, backgroundColor: AO.blue }} testID="client-review-send">
+                <TouchableOpacity onPress={onSubmit} className="items-center justify-center" style={{ paddingVertical: 14, borderRadius: 14, backgroundColor: AO.blue }} testID="client-review-send">
                     <Text className="font-outfit-bold" style={{ fontSize: 15, color: '#fff' }}>{t(`${K}.send`)}</Text>
                 </TouchableOpacity>
             )}

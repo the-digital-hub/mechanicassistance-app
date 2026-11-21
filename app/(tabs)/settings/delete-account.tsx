@@ -50,29 +50,17 @@ export default function DeleteAccountScreen() {
             </Text>
 
             {/* Buttons Row */}
-            <View className="flex-row gap-3">
-                {/* Back Button - 30% width */}
-                <TouchableOpacity
-                    onPress={() => router.back()}
-                    activeOpacity={0.8}
-                    style={{ flex: 0.3 }}
-                    className="py-4 rounded-lg border border-gray-300 items-center"
-                >
-                    <Text className="text-gray-900 font-outfit-semibold text-lg">{t('deleteAccount.back')}</Text>
-                </TouchableOpacity>
-
-                {/* Delete Account Button - 70% width */}
+            <View className="gap-3">
                 <TouchableOpacity
                     onPress={() => setShowModal(true)}
                     activeOpacity={0.8}
-                    style={{ flex: 0.7 }}
                 >
                     <LinearGradient
                         colors={['#2B66F8', '#081E72']}
                         start={{ x: 0, y: 1 }}
                         end={{ x: 1, y: 0 }}
                         style={{
-                            borderRadius: 8,
+                            borderRadius: 14,
                             paddingVertical: 16,
                             paddingHorizontal: 16,
                             flexDirection: 'row',
@@ -82,6 +70,13 @@ export default function DeleteAccountScreen() {
                     >
                         <Text className="text-white font-outfit-bold text-lg text-center">{t('deleteAccount.title')}</Text>
                     </LinearGradient>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    onPress={() => router.back()}
+                    activeOpacity={0.8}
+                    className="items-center" style={{ paddingVertical: 16, borderRadius: 14, backgroundColor: '#E6EAF2' }}
+                >
+                    <Text className="font-outfit-bold" style={{ fontSize: 17, lineHeight: 23, color: '#4A5470' }}>{t('deleteAccount.back')}</Text>
                 </TouchableOpacity>
             </View>
 

@@ -1,3 +1,4 @@
+import { FONT } from '@/lib/ui/fonts';
 import { Footer } from '@/components/scheduled/ui';
 import { ROUNDED_HEADER } from '@/lib/ui/header';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -107,7 +108,7 @@ export default function DateTimeScreen() {
                         <ChevronLeft size={16} color="#0047AB" />
                     </View>
                 </TouchableOpacity>
-                <Text style={{ fontFamily: 'Outfit_500Medium', fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>
+                <Text style={{ fontFamily: FONT.medium, fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>
                     {t('requestAssistance.dateTime.header')}
                 </Text>
                 <View className="w-6" />

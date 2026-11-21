@@ -1,4 +1,4 @@
-import { CONFIRM_GRADIENT } from '@/lib/ui/floatingFooter';
+import { FONT } from '@/lib/ui/fonts';
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { ROUNDED_HEADER } from '@/lib/ui/header';
 import { Input } from '@/components/ui/Input';
@@ -159,7 +159,7 @@ export default function CreateAddressScreen() {
                         </View>
                     </TouchableOpacity>
                 )}
-                <Text style={{ fontFamily: 'Outfit_500Medium', fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>
+                <Text style={{ fontFamily: FONT.medium, fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>
                     Profile
                 </Text>
                 <TouchableOpacity onPress={() => router.push('/(tabs)/notifications')}>
@@ -248,29 +248,20 @@ export default function CreateAddressScreen() {
                 </View>
 
                 {/* Buttons Row */}
-                <View className="flex-row gap-3 mb-10">
-                    {/* Back Button */}
-                    <TouchableOpacity
-                        onPress={() => router.back()}
-                        activeOpacity={0.8}
-                        className="flex-1 py-4 rounded-lg border border-gray-300 items-center"
-                    >
-                        <Text className="text-gray-900 font-outfit-semibold text-base">Back</Text>
-                    </TouchableOpacity>
-
+                <View className="gap-3 mb-10">
                     {/* Create Button */}
                     <TouchableOpacity
                         onPress={handleCreate}
                         activeOpacity={0.8}
                         disabled={isLoading}
-                        className="flex-1"
+                        
                     >
                         <LinearGradient
-                            colors={[...CONFIRM_GRADIENT]}
+                            colors={['#2B66F8', '#081E72']}
                             start={{ x: 0, y: 1 }}
                             end={{ x: 1, y: 0 }}
                             style={{
-                                borderRadius: 8,
+                                borderRadius: 14,
                                 paddingVertical: 16,
                                 paddingHorizontal: 16,
                                 flexDirection: 'row',
@@ -287,6 +278,14 @@ export default function CreateAddressScreen() {
                                 </>
                             )}
                         </LinearGradient>
+                    </TouchableOpacity>
+                    {/* Back Button */}
+                    <TouchableOpacity
+                        onPress={() => router.back()}
+                        activeOpacity={0.8}
+                        className="items-center" style={{ paddingVertical: 16, borderRadius: 14, backgroundColor: '#E6EAF2' }}
+                    >
+                        <Text className="font-outfit-bold" style={{ fontSize: 17, lineHeight: 23, color: '#4A5470' }}>Back</Text>
                     </TouchableOpacity>
                 </View>
             </KeyboardAwareScrollView>

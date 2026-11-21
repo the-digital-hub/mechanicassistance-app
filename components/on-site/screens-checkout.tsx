@@ -194,7 +194,7 @@ export function ScreenDone({ variant, appointmentId, visit, onVisit, clientName,
                         <TouchableOpacity
                             onPress={() => void submit()}
                             disabled={!rating || sending}
-                            className="items-center py-3 mt-3.5 rounded-xl"
+                            className="items-center py-3 mt-3.5 rounded-[14px]"
                             style={{ backgroundColor: rating && !sending ? OS.blue : OS.blueIce }}
                         >
                             <Text className="text-white font-outfit-bold text-[14px]">{t(`${k}.submit`)}</Text>

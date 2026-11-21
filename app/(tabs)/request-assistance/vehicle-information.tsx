@@ -1,3 +1,4 @@
+import { FONT } from '@/lib/ui/fonts';
 import { RequestSteps, stepEyebrow } from '@/components/ui/RequestSteps';
 import { ROUNDED_HEADER } from '@/lib/ui/header';
 import { HeaderBackButton } from '@/components/ui/HeaderBackButton';
@@ -93,7 +94,7 @@ export default function VehicleInformationScreen() {
             {/* Custom Header */}
             <View className="px-6 pt-20 pb-2 flex-row items-center justify-between" style={[ROUNDED_HEADER, { paddingTop: 63 }]}>
                 <HeaderBackButton marginLeft={0} onPress={() => router.back()} />
-                <Text style={{ fontFamily: 'Outfit_500Medium', fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>
+                <Text style={{ fontFamily: FONT.medium, fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>
                     {getTitle()}
                 </Text>
                 <View className="w-6" />
@@ -142,7 +143,7 @@ export default function VehicleInformationScreen() {
                     placeholder={t('requestAssistance.vehicleInformation.placeholder')}
                     value={details}
                     onChangeText={setDetails}
-                    style={{ minHeight: 128, ...TYPE.body, fontFamily: 'Outfit_400Regular' }}
+                    style={{ minHeight: 128, ...TYPE.body, fontFamily: FONT.regular }}
                 />
 
                 <TouchableOpacity

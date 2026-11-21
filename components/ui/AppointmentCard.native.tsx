@@ -6,15 +6,15 @@ import { refLabel } from '@/lib/refCode';
 import { approximateArea, coarseAddress } from '@/lib/maps/approximateLocation';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
-import { Calendar, Car, Clock, FileText, LucideIcon, MapPin, MessageSquare, Route, Star, Timer, Wallet } from 'lucide-react-native';
-import { ReactNode, useContext, useEffect, useMemo, useState } from 'react';
+import { Calendar, Car, Clock, FileText, MapPin, MessageSquare, Route, Star, Timer, Wallet } from 'lucide-react-native';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, Platform, Text, TouchableOpacity, View } from 'react-native';
 import { shareServiceReportPdf } from '@/components/on-site/FinalReportActions';
 import { appAlert } from '@/lib/ui/appAlert';
 import { LinearGradient } from 'expo-linear-gradient';
 import { formatLocalDateTime, videoCallBookedLabel } from '@/lib/video/videoCallTime';
-import { BANNER_COLORS, getCardState, getTypeBar, isPastState } from './appointmentCardTheme';
+import { BANNER_COLORS, getCardState, getTypeBar, isPastState, stateTextKey } from './appointmentCardTheme';
 import { FixedLocationMap } from './FixedLocationMap';
 import { ScrollPressGuardContext } from '@/hooks/useScrollPressGuard';
 import { AppointmentMechanic, useAppointmentMechanic } from '@/hooks/useAppointmentMechanic';
@@ -22,6 +22,8 @@ import { useCallExtraMinutes } from '@/hooks/useCallExtraMinutes';
 import { TranscriptCard, useHasTranscript } from '@/components/video/TranscriptCard';
 import { Stars } from '@/components/offer/OfferSections';
 import { useCountdown } from '@/hooks/useCountdown';
+import { chatAvailability } from '@/lib/chat/chatAvailability';
+import { InfoRows } from '@/components/ui/CardInfoRows';
 import { RequestIdRow } from '@/components/ui/RequestIdRow';
 
 interface AppointmentCardProps {
@@ -64,44 +66,6 @@ function OfferHeldBanner({ expiresAt }: { expiresAt: string }) {
 }
 
 const MONO = Platform.select({ ios: 'Menlo', default: 'monospace' });
-
-function InfoRows({ rows }: { rows: { icon: LucideIcon; label: string; value?: string; node?: ReactNode }[] }) {
-    return (
-        <View style={{ borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: C.borderSoft }}>
-            {rows.map((r, i) => {
-                const RowIcon = r.icon;
-                return (
-                    <View
-                        key={r.label}
-                        className="flex-row items-center"
-                        style={{
-                            gap: 12,
-                            paddingVertical: 10,
-                            paddingHorizontal: 12,
-                            borderBottomWidth: i < rows.length - 1 ? 1 : 0,
-                            borderBottomColor: C.borderSoft,
-                        }}
-                    >
-                        <View className="items-center justify-center" style={{ width: 30, height: 30, borderRadius: 9, backgroundColor: C.blueSoft }}>
-                            <RowIcon size={16} color={C.blue} />
-                        </View>
-                        {/* One column: the label above and the value (or the stars) under it, full width: nothing squeezes or cuts. */}
-                        <View className="flex-1">
-                            <Text className="font-outfit-medium text-[13px]" style={{ color: C.muted, lineHeight: 17 }}>{r.label}</Text>
-                            {r.node ? (
-                                <View className="flex-row items-center" style={{ marginTop: 2 }}>{r.node}</View>
-                            ) : (
-                                <Text className="font-outfit-bold" style={{ color: C.text, fontSize: 15, lineHeight: 20, marginTop: 1 }}>
-                                    {r.value}
-                                </Text>
-                            )}
-                        </View>
-                    </View>
-                );
-            })}
-        </View>
-    );
-}
 
 function TechnicianRow({ mechanic, label, onMessage, messageLabel, chatClosed = false }: {
     mechanic: AppointmentMechanic;
@@ -351,9 +315,9 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
     const hasPrice = !!appointment.budget && !/^\s*(\$?\s*0(\.0+)?|pending|-+)\s*$/i.test(appointment.budget);
     const amount = notCharged ? '$0' : hasPrice ? appointment.budget : t('appointments.list.card.pricePending');
 
-    // A finished or cancelled job lists what was paid (or charged) with the rest of its data (vehicle, ratings…); the other cards keep the amount in its own box.
-    const amountInRows = isPast;
-    const infoRows = amountInRows ? [...rows, { icon: Wallet, label: amountLabel, value: amount }] : rows;
+    // The amount is one more item of the card's data, with its icon, like the vehicle or the place: the budget of a job in flight, what was paid
+    // (or charged) for a finished or cancelled one.
+    const infoRows = [...rows, { icon: Wallet, label: amountLabel, value: amount }];
 
     const ctaLabel = state === 'offered' && !isMechanic
         ? t('appointments.list.card.viewOffer')
@@ -404,7 +368,7 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
                         {t(typeBar.labelKey)}
                     </Text>
                     <Text className="font-outfit-bold text-[17px]" style={{ color: C.text, letterSpacing: -0.3 }} numberOfLines={1}>
-                        {appointment.title || t(`appointments.list.card.title.${state}`)}
+                        {appointment.title || t(`appointments.list.card.title.${stateTextKey(state, isMechanic)}`)}
                     </Text>
                 </View>
             </View>
@@ -413,7 +377,7 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
             <View className="flex-row items-center mt-3" style={{ gap: 8, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 12, backgroundColor: status.bg }}>
                 <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: status.title }} />
                 <Text className="font-outfit-bold text-[12px] uppercase" style={{ color: status.title, letterSpacing: 0.8 }}>
-                    {t(`appointments.list.card.status.${state}`)}
+                    {t(`appointments.list.card.status.${stateTextKey(state, isMechanic)}`)}
                 </Text>
             </View>
             {isMechanic && state === 'offered' && appointment.offerExpiresAt ? <OfferHeldBanner expiresAt={appointment.offerExpiresAt} /> : null}
@@ -452,7 +416,7 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
                         mechanic={mechanic}
                         label={t(isPast ? 'appointments.list.card.technician' : 'appointments.list.card.assignedTechnician')}
                         onMessage={canMessage ? openChat : undefined}
-                        chatClosed={isPast}
+                        chatClosed={isPast || chatAvailability(appointment.status) === 'closed'}
                         messageLabel={t('appointments.list.card.message')}
                     />
                 </View>
@@ -461,24 +425,6 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
             <View className="mt-3">
                 <InfoRows rows={infoRows} />
             </View>
-
-            {/* The amount in its own card (a finished job lists it with its data above), and the button under it at full width: never two columns. */}
-            {!amountInRows && (
-            <View
-                className="mt-3"
-                style={{
-                    paddingVertical: 10,
-                    paddingHorizontal: 14,
-                    borderRadius: 13,
-                    backgroundColor: isPast ? C.page : C.blueSofter,
-                    borderWidth: 1,
-                    borderColor: isPast ? C.borderSoft : C.blueSoft,
-                }}
-            >
-                <Text className="font-outfit-bold text-[12px] uppercase" style={{ color: C.muted, letterSpacing: 0.4 }}>{amountLabel}</Text>
-                <Text className="font-outfit-bold text-xl" style={{ color: isPast ? C.text : C.blue, letterSpacing: -0.5, lineHeight: 24 }} numberOfLines={1}>{amount}</Text>
-            </View>
-            )}
 
             {/* A cancelled job has nothing to open. */}
             {!isCanceled && (

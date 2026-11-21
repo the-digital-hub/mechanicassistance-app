@@ -1,4 +1,3 @@
-import { CONFIRM_GRADIENT } from '@/lib/ui/floatingFooter';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { ShieldCheck } from 'lucide-react-native';
@@ -155,30 +154,18 @@ export default function LegalDocumentsScreen() {
       </View>
 
       {/* Back / Finish. Finish is never disabled: the step is optional. */}
-      <View className="flex-row items-center">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          activeOpacity={0.8}
-          disabled={uploading !== null}
-          style={{ flex: 0.3 }}
-        >
-          <Text className="text-gray-500 font-outfit-medium text-center">
-            {t('setup.legalDocs.back')}
-          </Text>
-        </TouchableOpacity>
-
+      <View style={{ gap: 12 }}>
         <TouchableOpacity
           onPress={handleSubmit}
           activeOpacity={0.8}
           disabled={uploading !== null}
-          style={{ flex: 0.7 }}
         >
           <LinearGradient
-            colors={[...CONFIRM_GRADIENT]}
+            colors={['#2B66F8', '#081E72']}
             start={{ x: 0, y: 1 }}
             end={{ x: 1, y: 0 }}
             style={{
-              borderRadius: 10,
+              borderRadius: 14,
               paddingVertical: 16,
               paddingHorizontal: 16,
               flexDirection: 'row',
@@ -191,6 +178,16 @@ export default function LegalDocumentsScreen() {
               {t('setup.legalDocs.submit')}
             </Text>
           </LinearGradient>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          activeOpacity={0.8}
+          disabled={uploading !== null}
+          style={{ paddingVertical: 16, borderRadius: 14, backgroundColor: '#E6EAF2' }}
+        >
+          <Text className="font-outfit-bold text-center" style={{ color: '#4A5470' }}>
+            {t('setup.legalDocs.back')}
+          </Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

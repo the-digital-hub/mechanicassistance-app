@@ -125,7 +125,7 @@ export function VideoCallTimerCard({ startedAtMs, limitSeconds = VIDEO_SESSION_S
                         onPress={onExtend}
                         activeOpacity={0.85}
                         className="flex-row items-center justify-center"
-                        style={{ gap: 8, paddingVertical: 12, borderRadius: 12, backgroundColor: AO.blueSoft }}
+                        style={{ gap: 8, paddingVertical: 12, borderRadius: 14, backgroundColor: AO.blueSoft }}
                         testID="video-call-extend"
                         accessibilityRole="button"
                     >

@@ -129,20 +129,12 @@ export function TopUpForm({ cards, initialAmount, onDone, onCancel }: {
                 </Text>
             )}
 
-            <View className="flex-row" style={{ gap: 8, marginTop: 14 }}>
-                <TouchableOpacity
-                    onPress={onCancel}
-                    disabled={busy}
-                    className="flex-1 items-center"
-                    style={{ paddingVertical: 13, borderRadius: 12, backgroundColor: AO.page, borderWidth: 1, borderColor: AO.border }}
-                >
-                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: AO.muted }}>{t(`${K}.cancel`)}</Text>
-                </TouchableOpacity>
+            <View  style={{ gap: 8, marginTop: 14 }}>
                 <TouchableOpacity
                     onPress={submit}
                     disabled={!parsed || !cardId || busy}
-                    className="flex-1 items-center justify-center"
-                    style={{ paddingVertical: 13, borderRadius: 12, backgroundColor: AO.blue, opacity: !parsed || !cardId ? 0.5 : 1 }}
+                    className="items-center justify-center"
+                    style={{ paddingVertical: 13, borderRadius: 14, backgroundColor: AO.blue, opacity: !parsed || !cardId ? 0.5 : 1 }}
                     testID="wallet-topup-submit"
                     accessibilityRole="button"
                 >
@@ -153,6 +145,14 @@ export function TopUpForm({ cards, initialAmount, onDone, onCancel }: {
                             {parsed ? t(`${K}.submitAmount`, { amount: parsed }) : t(`${K}.submit`)}
                         </Text>
                     )}
+                </TouchableOpacity>
+                <TouchableOpacity
+                    onPress={onCancel}
+                    disabled={busy}
+                    className="items-center"
+                    style={{ paddingVertical: 13, borderRadius: 14, backgroundColor: '#E6EAF2' }}
+                >
+                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: '#4A5470' }}>{t(`${K}.cancel`)}</Text>
                 </TouchableOpacity>
             </View>
         </View>

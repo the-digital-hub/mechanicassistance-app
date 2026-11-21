@@ -1,90 +1,90 @@
-import { Heart, MapPin, Star } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BadgePercent, ChevronRight } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, Text, View } from 'react-native';
-import QRCode from 'react-native-qrcode-svg';
+import { Image, ScrollView, Text, View } from 'react-native';
 
+import { InnovaLogo } from '@/components/brand/InnovaLogo';
+import { TYPE } from '@/lib/ui/type';
+
+// Two partner promotions, for now only shown: each partner's own logo in colour, that there is a discount (no figures yet) and a call to
+// action that is only drawn. The cards stay calm (white and light blue): the colour belongs to the logos, not to the card.
+
+const C = { blue: '#1E56E3', soft: '#EAF1FF', text: '#0B1530', muted: '#6B7490', border: '#E4EAF5' };
+
+/**
+ * One partner's offer. The card is not pressable: the button is only drawn, in the soft style of the app's secondary actions.
+ */
+function PromoCard({ logo, eyebrow, title, body, cta, testID }: {
+    logo: React.ReactNode;
+    eyebrow: string;
+    title: string;
+    body: string;
+    cta: string;
+    testID: string;
+}) {
+    const { t } = useTranslation();
+    return (
+        <View
+            style={{ borderRadius: 24, overflow: 'hidden', borderWidth: 1, borderColor: C.border, shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.07, shadowRadius: 14, elevation: 3 }}
+            testID={testID}
+        >
+            <LinearGradient colors={['#FFFFFF', '#F1F7FF']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={{ padding: 20 }}>
+                <View className="flex-row items-center justify-between" style={{ gap: 12 }}>
+                    <View style={{ minHeight: 56, justifyContent: 'center' }}>{logo}</View>
+                    <View className="flex-row items-center" style={{ gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 100, backgroundColor: C.soft }}>
+                        <BadgePercent size={16} color={C.blue} />
+                        <Text className="font-outfit-bold" style={{ fontSize: 13, letterSpacing: 0.6, color: C.blue }}>{t('promotions.discountBadge')}</Text>
+                    </View>
+                </View>
+
+                <Text className="font-outfit-bold" style={{ fontSize: 12, lineHeight: 16, letterSpacing: 1.2, color: C.muted, marginTop: 20 }}>{eyebrow}</Text>
+                <Text className="font-outfit-bold" style={{ fontSize: 22, lineHeight: 28, letterSpacing: -0.4, color: C.text, marginTop: 4 }}>{title}</Text>
+                <Text className="font-outfit-regular" style={{ ...TYPE.body, color: C.muted, marginTop: 8 }}>{body}</Text>
+
+                {/* Drawn like a button, but only drawn. */}
+                <View className="flex-row items-center justify-center" style={{ gap: 4, minHeight: 52, borderRadius: 14, backgroundColor: C.soft, marginTop: 18 }}>
+                    <Text className="font-outfit-bold" style={{ fontSize: 17, color: C.blue }}>{cta}</Text>
+                    <ChevronRight size={20} color={C.blue} />
+                </View>
+            </LinearGradient>
+        </View>
+    );
+}
+
+/** The profile's Promotions: the ASE offer first, the Innova one second. */
 export default function PromotionsScreen() {
     const { t } = useTranslation();
-    const promoCode = 'Code:MA08-124578-28-06062025';
 
     return (
-        <ScrollView style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ padding: 24, paddingBottom: 40 }}>
-            {/* Section Badge */}
-            <View style={{ marginTop: 8 }}>
-              <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
-              <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
-              <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                {t('promotions.badge')}
-              </Text>
-            </View>
-            </View>
-
-            {/* Title */}
-            <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
-              {t('promotions.title')}
-            </Text>
-
-            {/* Subtitle */}
-            <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-              {t('promotions.subtitle')}
-            </Text>
-
-            {/* Promotion Card */}
-            <View className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm mb-6">
-                {/* Header */}
-                <View className="flex-row items-center mb-4">
-                    <View className="w-12 h-12 bg-cyan-50 rounded-full justify-center items-center mr-3 border border-cyan-100">
-                        <Text className="text-cyan-500 text-center font-outfit-bold text-[13px] leading-3">10%{'\n'}Off</Text>
+        <ScrollView style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ padding: 24, paddingBottom: 40, gap: 20 }}>
+            <View>
+                {/* Section Badge */}
+                <View style={{ marginTop: 8 }}>
+                    <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
+                        <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+                        <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">{t('promotions.badge')}</Text>
                     </View>
-                    <View className="flex-1">
-                        <Text className="text-blue-900 font-outfit-bold text-base">{t('promotions.examTitle')}</Text>
-                        <View className="flex-row items-center">
-                            <Text className="text-cyan-500 text-[13px] font-outfit-medium mr-2">{t('promotions.recommended')}</Text>
-                            {[...Array(5)].map((_, i) => (
-                                <Star key={i} size={10} color="#06b6d4" fill="#06b6d4" style={{ marginRight: 1 }} />
-                            ))}
-                        </View>
-                    </View>
-                    <Heart size={20} color="#06b6d4" fill="#06b6d4" />
                 </View>
-
-                {/* Map Placeholder */}
-                <View className="w-full h-24 bg-gray-100 rounded-lg mb-3 justify-center items-center overflow-hidden">
-                    {/* Placeholder for Map Image - Using a simple pattern or icon */}
-                    <MapPin size={24} color="#9CA3AF" />
-                    <Text className="text-gray-400 text-[13px] mt-1">{t('promotions.mapView')}</Text>
-                </View>
-
-                <Text className="text-gray-800 text-[13px] font-outfit-medium">{t('promotions.address')}</Text>
-                <Text className="text-gray-500 text-[13px] font-outfit-regular mb-1">7:00 am - 6:30 pm</Text>
-                <View className="flex-row items-center">
-                    <View className="w-2 h-2 rounded-full bg-gray-300 mr-1" />
-                    <Text className="text-gray-400 text-[13px] font-outfit-regular">{t('promotions.distance')}</Text>
-                </View>
+                <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">{t('promotions.title')}</Text>
+                <Text className="text-gray-500 font-outfit-regular text-base">{t('promotions.subtitle')}</Text>
             </View>
 
-            <Text className="text-lg font-outfit-bold text-gray-900 mb-2">{t('promotions.specialOfferTitle')}</Text>
-            <Text className="text-gray-600 font-outfit-regular mb-4 leading-5">
-                {t('promotions.specialOfferBody1')}{'\n\n'}
-                {t('promotions.specialOfferBody2')}
-            </Text>
-            <Text className="text-gray-900 font-outfit-bold mb-6">{t('promotions.validThrough')}</Text>
-
-            <View className="bg-blue-50/50 p-4 rounded-xl items-center mb-4 border border-blue-100">
-                <Text className="text-blue-900 font-outfit-bold text-lg mb-1">{t('promotions.askForBenefit')}</Text>
-                <Text className="text-cyan-500 font-outfit-medium text-[13px] text-center">{promoCode}</Text>
-            </View>
-
-            <View className="items-center justify-center p-4 bg-blue-900 rounded-2xl mb-10">
-                <View className="bg-white p-2 rounded-xl">
-                    <QRCode
-                        value={promoCode}
-                        size={200}
-                        color="black"
-                        backgroundColor="white"
-                    />
-                </View>
-            </View>
+            <PromoCard
+                testID="promo-ase"
+                logo={<Image source={require('@/assets/brands/ase-logo.png')} style={{ width: 56, height: 56 }} resizeMode="contain" accessibilityLabel="ASE" testID="ase-logo" />}
+                eyebrow={t('promotions.ase.eyebrow')}
+                title={t('promotions.ase.title')}
+                body={t('promotions.ase.body')}
+                cta={t('promotions.ase.cta')}
+            />
+            <PromoCard
+                testID="promo-innova"
+                logo={<InnovaLogo width={132} />}
+                eyebrow={t('promotions.innova.eyebrow')}
+                title={t('promotions.innova.title')}
+                body={t('promotions.innova.body')}
+                cta={t('promotions.innova.cta')}
+            />
         </ScrollView>
     );
 }

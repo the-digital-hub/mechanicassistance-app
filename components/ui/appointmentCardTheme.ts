@@ -82,3 +82,12 @@ export function getTypeBar(appointment: Appointment): { icon: LucideIcon; labelK
             return { icon: Calendar, labelKey: 'appointments.list.card.type.scheduled' };
     }
 }
+
+/**
+ * The text key of a card state for the person reading it. Most states read the same for both; "awaiting confirmation" does not: the
+ * technician is waiting for the customer, the owner is the one who has to confirm.
+ */
+export function stateTextKey(state: CardState, isMechanic: boolean): string {
+    if (state === 'awaitingConfirmation') return isMechanic ? 'awaitingConfirmationMechanic' : 'awaitingConfirmationOwner';
+    return state;
+}

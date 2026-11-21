@@ -1,3 +1,4 @@
+import { FONT } from '@/lib/ui/fonts';
 import { SwitchRoleSheet } from '@/components/profile/SwitchRoleSheet';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { AseStatusBadge } from '@/components/ui/AseStatusBadge';
@@ -20,7 +21,7 @@ import { startAddRoleFromProfile } from '@/lib/setup-add-role';
 import { installedVersionLabel } from '@/lib/appVersion';
 import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { ArrowLeftRight, Award, BadgeCheck, Briefcase, Camera, Car, Check, ChevronDown, ChevronLeft, ChevronRight, Circle, Clock, CreditCard, FileText, Heart, HelpCircle, Lock, LogOut, MapPin, Settings, User, Wallet } from 'lucide-react-native';
+import { ArrowLeftRight, Award, BadgeCheck, BadgePercent, Briefcase, Camera, Car, Check, ChevronDown, ChevronLeft, ChevronRight, Circle, Clock, CreditCard, FileText, HelpCircle, Lock, LogOut, MapPin, Settings, User, Wallet } from 'lucide-react-native';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -207,31 +208,15 @@ export default function ProfileScreen() {
         </View>
       ) : (
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Section Badge */}
-        <View style={{ marginTop: 18 }}>
-          <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
-          <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
-          <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-            {t('profile.badge')}
-          </Text>
-        </View>
-        </View>
-
-        {/* Title */}
-        <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">{t('profile.title')}</Text>
-
-        {/* Subtitle */}
-        <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-          {t('profile.subtitle')}
-        </Text>
-
-        {/* User Info Card */}
-        <View className="bg-white rounded-3xl p-8 mb-8 items-center" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 10, elevation: 5 }}>
-          {/* Language switch, same EN | ES pill as the welcome screen */}
-          <View
-            className="flex-row items-center"
-            style={{ position: 'absolute', top: 14, right: 14, zIndex: 10, gap: 8, paddingHorizontal: 12, height: 30, borderRadius: 15, backgroundColor: '#EEF2FA' }}
-          >
+        {/* Section Badge + language switch (EN | ES, same pill as the welcome screen) */}
+        <View className="flex-row items-center justify-between" style={{ marginTop: 18, marginBottom: 16 }}>
+          <View className="flex-row items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF' }}>
+            <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
+            <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
+              {t('profile.badge')}
+            </Text>
+          </View>
+          <View className="flex-row items-center" style={{ gap: 8, paddingHorizontal: 12, height: 30, borderRadius: 15, backgroundColor: '#EEF2FA' }}>
             {(['en', 'es'] as const).map((code, i) => {
               const on = (i18n.language?.startsWith('es') ? 'es' : 'en') === code;
               return (
@@ -244,72 +229,81 @@ export default function ProfileScreen() {
                     hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
                     testID={`profile-lang-${code}`}
                   >
-                    <Text style={{ fontFamily: on ? 'Outfit_700Bold' : 'Outfit_500Medium', fontSize: 13, letterSpacing: 0.6, color: on ? '#1E56E3' : '#8C96AE' }}>{code.toUpperCase()}</Text>
+                    <Text style={{ fontFamily: on ? FONT.bold : FONT.medium, fontSize: 13, letterSpacing: 0.6, color: on ? '#1E56E3' : '#8C96AE' }}>{code.toUpperCase()}</Text>
                   </TouchableOpacity>
                 </React.Fragment>
               );
             })}
           </View>
+        </View>
 
-          {/* User Info Section */}
-          <View className="relative">
-            {/* Avatar Circle with Initials or Image */}
-            <View className="w-28 h-28 rounded-full justify-center items-center overflow-hidden" style={{ backgroundColor: '#0047AB', shadowColor: '#0047AB', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 8 }}>
-              {localProfileUri ? (
-                <Image source={{ uri: localProfileUri }} className="w-full h-full" />
-              ) : user.profileImage ? (
-                <Image source={{ uri: user.profileImage }} className="w-full h-full" />
-              ) : (
-                <Text className="text-5xl font-outfit-bold text-white">
-                  {user.name && user.surname ? (user.name[0] + user.surname[0]).toUpperCase() : 'U'}
-                </Text>
-              )}
-              {isUploadingPhoto && (
-                <View className="absolute inset-0 bg-black/40 items-center justify-center">
-                  <ActivityIndicator color="#fff" />
-                </View>
-              )}
-            </View>
+        {/* Title */}
+        <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">{t('profile.title')}</Text>
+
+        {/* Subtitle */}
+        <Text className="text-gray-500 font-outfit-regular text-base mb-8">
+          {t('profile.subtitle')}
+        </Text>
+
+        {/* User Info Card: avatar on the left, name, rating and badges on the right */}
+        <View className="bg-white rounded-3xl mb-8 flex-row items-center" style={{ padding: 16, gap: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 10, elevation: 5 }}>
+          {/* Avatar Circle with Initials or Image */}
+          <View className="rounded-full justify-center items-center overflow-hidden" style={{ width: 80, height: 80, backgroundColor: '#0047AB', shadowColor: '#0047AB', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 6 }}>
+            {localProfileUri ? (
+              <Image source={{ uri: localProfileUri }} className="w-full h-full" />
+            ) : user.profileImage ? (
+              <Image source={{ uri: user.profileImage }} className="w-full h-full" />
+            ) : (
+              <Text className="text-3xl font-outfit-bold text-white">
+                {user.name && user.surname ? (user.name[0] + user.surname[0]).toUpperCase() : 'U'}
+              </Text>
+            )}
+            {isUploadingPhoto && (
+              <View className="absolute inset-0 bg-black/40 items-center justify-center">
+                <ActivityIndicator color="#fff" />
+              </View>
+            )}
           </View>
 
-          {/* Name */}
-          <Text className="text-3xl font-outfit-medium mt-4 mb-1" style={{ color: '#0B1530' }}>
-            {user.name} {user.surname}
-          </Text>
+          <View style={{ flex: 1, gap: 6 }}>
+            {/* Name */}
+            <Text className="font-outfit-bold" style={{ fontSize: 22, lineHeight: 28, letterSpacing: -0.3, color: '#0B1530' }} numberOfLines={2}>
+              {user.name} {user.surname}
+            </Text>
 
-          {/* Rating: the technician's own stats, or what technicians gave the owner */}
-          {profileRating && (
-            <TouchableOpacity
-              onPress={() => setReviewsOpen(true)}
-              disabled={!(profileRating.ratingCount > 0)}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              testID="profile-rating"
-              className="flex-row items-center justify-center mb-3" style={{ gap: 6 }}>
-              {profileRating.avgRating != null && Number.isFinite(Number(profileRating.avgRating)) ? (
-                <>
-                  <Stars rating={Number(profileRating.avgRating)} size={16} />
-                  <Text className="font-outfit-semibold text-sm" style={{ color: '#0B1530' }}>
-                    {t('appointments.list.card.ratingValue', { rating: Number(profileRating.avgRating).toFixed(1), count: profileRating.ratingCount })}
-                  </Text>
-                </>
-              ) : (
-                <Text className="font-outfit-medium text-sm" style={{ color: '#6B7490' }}>{t('appointments.list.card.noRatings')}</Text>
-              )}
-              {profileRating.ratingCount > 0 ? <ChevronRight size={16} color="#6B7490" /> : null}
-            </TouchableOpacity>
-          )}
+            {/* Rating: the technician's own stats, or what technicians gave the owner */}
+            {profileRating && (
+              <TouchableOpacity
+                onPress={() => setReviewsOpen(true)}
+                disabled={!(profileRating.ratingCount > 0)}
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                testID="profile-rating"
+                className="flex-row items-center self-start" style={{ gap: 6 }}>
+                {profileRating.avgRating != null && Number.isFinite(Number(profileRating.avgRating)) ? (
+                  <>
+                    <Stars rating={Number(profileRating.avgRating)} size={15} />
+                    <Text className="font-outfit-semibold" style={{ fontSize: 14, color: '#0B1530' }}>
+                      {t('appointments.list.card.ratingValue', { rating: Number(profileRating.avgRating).toFixed(1), count: profileRating.ratingCount })}
+                    </Text>
+                  </>
+                ) : (
+                  <Text className="font-outfit-medium" style={{ fontSize: 14, color: '#6B7490' }}>{t('appointments.list.card.noRatings')}</Text>
+                )}
+                {profileRating.ratingCount > 0 ? <ChevronRight size={16} color="#6B7490" /> : null}
+              </TouchableOpacity>
+            )}
 
-          {/* Role + identity verification badges */}
-          {/* Wraps: a mechanic can show three pills at once (role, identity, ASE). */}
-          <View className="flex-row flex-wrap items-center justify-center gap-2">
-            <View className="px-4 py-2 rounded-full" style={{ backgroundColor: '#E9F1FF' }}>
-              <Text className="text-blue-600 font-outfit-semibold text-sm capitalize">
-                {user.role === 'mechanic' ? t('profile.roleMechanic') : t('profile.roleOwner')}
-              </Text>
+            {/* Role + identity verification badges. Wraps: a mechanic can show three pills (role, identity, ASE). */}
+            <View className="flex-row flex-wrap items-center" style={{ gap: 6 }}>
+              <View className="px-3 py-1.5 rounded-full" style={{ backgroundColor: '#E9F1FF' }}>
+                <Text className="text-blue-600 font-outfit-semibold capitalize" style={{ fontSize: 13 }}>
+                  {user.role === 'mechanic' ? t('profile.roleMechanic') : t('profile.roleOwner')}
+                </Text>
+              </View>
+              <VerificationBadge />
+              <AseStatusBadge />
             </View>
-            <VerificationBadge />
-            <AseStatusBadge />
           </View>
         </View>
 
@@ -323,7 +317,7 @@ export default function ProfileScreen() {
             elevation: 3,
           }}>
             {/* Header with Title */}
-            <Text style={{ fontFamily: 'Outfit_600SemiBold', fontSize: 18, color: '#111827' }} className="mb-4">
+            <Text style={{ fontFamily: FONT.semibold, fontSize: 18, color: '#111827' }} className="mb-4">
               {t('profile.availability.heading')}
             </Text>
 
@@ -348,7 +342,7 @@ export default function ProfileScreen() {
                     key={option.id}
                     onPress={() => changeStatus(option.id)}
                     disabled={isUpdatingStatus}
-                    className="flex-1 py-3 px-4 rounded-2xl flex-row items-center justify-center gap-2"
+                    className="flex-1 py-3 px-4 rounded-[14px] flex-row items-center justify-center gap-2"
                     style={{
                       backgroundColor: mechanicStatus === option.id ? optionStyles.bgColor : '#F9FAFB',
                       borderColor: mechanicStatus === option.id ? optionStyles.borderColor : '#E5E7EB',
@@ -356,7 +350,7 @@ export default function ProfileScreen() {
                     }}
                   >
                     <Circle size={8} color={getStatusColor(option.id)} fill={getStatusColor(option.id)} />
-                    <Text style={{ color: mechanicStatus === option.id ? optionStyles.textColor : '#9CA3AF', fontFamily: 'Outfit_600SemiBold', fontSize: 13 }}>
+                    <Text style={{ color: mechanicStatus === option.id ? optionStyles.textColor : '#9CA3AF', fontFamily: FONT.semibold, fontSize: 13 }}>
                       {option.label}
                     </Text>
                   </TouchableOpacity>
@@ -365,7 +359,7 @@ export default function ProfileScreen() {
             </View>
 
             {/* Description */}
-            <Text style={{ color: '#4B5563', fontFamily: 'Outfit_400Regular', fontSize: 15, lineHeight: 20 }}>
+            <Text style={{ color: '#4B5563', fontFamily: FONT.regular, fontSize: 15, lineHeight: 20 }}>
               {mechanicStatus === 'available'
                 ? t('profile.availability.descAvailable')
                 : mechanicStatus === 'busy'
@@ -421,7 +415,7 @@ export default function ProfileScreen() {
               ],
             },
             { key: 'wallet', icon: CreditCard, label: t('profile.menu.wallet'), route: '/payments' },
-            { key: 'promotions', icon: Heart, label: t('profile.menu.promotions'), route: '/promotions' },
+            { key: 'promotions', icon: BadgePercent, label: t('profile.menu.promotions'), route: '/promotions' },
             { key: 'help', icon: HelpCircle, label: t('profile.menu.help'), route: '/help' },
             { key: 'settings', icon: Settings, label: t('profile.menu.settings'), route: '/settings' },
             switchRole,

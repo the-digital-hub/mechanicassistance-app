@@ -1,3 +1,4 @@
+import { FONT } from '@/lib/ui/fonts';
 import { HeaderBackButton } from "@/components/ui/HeaderBackButton";
 import { Stack, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -22,7 +23,7 @@ export default function SetupLayout() {
         headerShadowVisible: false,
         headerTitle: setupTitle,
         headerTitleStyle: {
-          fontFamily: "Outfit_500Medium",
+          fontFamily: FONT.medium,
           fontSize: 18,
           color: "#1F2937", // text-gray-800
         },

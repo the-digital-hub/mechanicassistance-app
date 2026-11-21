@@ -36,7 +36,7 @@ export default function FilterScreen() {
 
             <View style={FLOATING_FOOTER}>
                 <TouchableOpacity
-                    className="bg-blue-700 w-full py-4 rounded-xl items-center"
+                    className="bg-blue-700 w-full py-4 rounded-[14px] items-center"
                     onPress={() => router.back()}
                 >
                     <Text className="text-white font-outfit-bold text-lg">{t('dashboardFilter.applyFilter')}</Text>

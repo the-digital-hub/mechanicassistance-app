@@ -1,3 +1,4 @@
+import { FONT } from '@/lib/ui/fonts';
 import { RequestDraftProvider } from "@/context/RequestDraftContext";
 import { Stack } from "expo-router";
 
@@ -12,7 +13,7 @@ export default function RequestAssistanceLayout() {
           headerTitleAlign: "center",
           headerTintColor: "#0047AB",
           headerStyle: { backgroundColor: "#FFFFFF" },
-          headerTitleStyle: { fontFamily: "Outfit_700Bold", fontSize: 18 },
+          headerTitleStyle: { fontFamily: FONT.bold, fontSize: 18 },
           headerShadowVisible: true,
         }}
       >

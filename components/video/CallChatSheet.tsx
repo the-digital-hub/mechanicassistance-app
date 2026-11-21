@@ -1,3 +1,4 @@
+import { FONT } from '@/lib/ui/fonts';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -64,7 +65,7 @@ export function CallChatSheet({ visible, lines, onSend, onClose }: {
                             placeholderTextColor={AO.mutedLight}
                             returnKeyType="send"
                             maxLength={500}
-                            style={{ flex: 1, minHeight: 46, borderRadius: 14, borderWidth: 1, borderColor: AO.border, paddingHorizontal: 14, fontFamily: 'Outfit_400Regular', fontSize: 16, color: AO.text, backgroundColor: AO.page }}
+                            style={{ flex: 1, minHeight: 46, borderRadius: 14, borderWidth: 1, borderColor: AO.border, paddingHorizontal: 14, fontFamily: FONT.regular, fontSize: 16, color: AO.text, backgroundColor: AO.page }}
                             testID="call-chat-input"
                         />
                         <TouchableOpacity

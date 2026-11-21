@@ -1,3 +1,4 @@
+import { FONT } from '@/lib/ui/fonts';
 import { useAppointments } from '@/context/AppointmentsContext';
 import { ROUNDED_HEADER } from '@/lib/ui/header';
 import { RequestVinCheckModal } from '@/components/video/RequestVinCheckModal';
@@ -246,7 +247,7 @@ export default function SearchingScreen() {
                         <ChevronLeft size={16} color="#0047AB" />
                     </View>
                 </TouchableOpacity>
-                <Text style={{ fontFamily: 'Outfit_500Medium', fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>
+                <Text style={{ fontFamily: FONT.medium, fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>
                     {getTitle()}
                 </Text>
                 <View className="w-6" />

@@ -4,7 +4,9 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import type { NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
 
-import { NoteInput, OS } from '@/components/on-site/ui';
+import { OS } from '@/components/on-site/ui';
+import { RatingFields } from '@/components/reviews/RatingFields';
+import { CLIENT_REVIEW_TAGS, OWNER_REVIEW_TAGS } from '@/lib/reviews/tags';
 import type { Appointment } from '@/context/AppointmentsContext';
 import { useAppointmentMechanic } from '@/hooks/useAppointmentMechanic';
 import { ApiError } from '@/lib/api/types';
@@ -47,6 +49,11 @@ function RatingCard({ appointment, role, width, position, total, onSent, onSkip 
     const person = useRatedPerson(appointment, role);
     const [rating, setRating] = React.useState(0);
     const [comment, setComment] = React.useState('');
+    const [tags, setTags] = React.useState<string[]>([]);
+    const tagOptions = (role === 'user' ? OWNER_REVIEW_TAGS : CLIENT_REVIEW_TAGS).map((tag) => ({
+        value: tag,
+        label: role === 'user' ? t(`appointments.ownerReview.tags.${tag}`) : t(`reviews.clientTags.${tag}`),
+    }));
     const [sending, setSending] = React.useState(false);
     const [done, setDone] = React.useState(false);
     const when = appointment.completedAt ?? appointment.updatedAt;
@@ -57,8 +64,8 @@ function RatingCard({ appointment, role, width, position, total, onSent, onSkip 
         if (!rating || sending) return;
         setSending(true);
         try {
-            if (role === 'user') await reviewDAO.submit(appointment.id, rating, comment.trim() || undefined, []);
-            else await onSiteDAO.reviewClient(appointment.id, rating, comment.trim() || undefined, []);
+            if (role === 'user') await reviewDAO.submit(appointment.id, rating, comment.trim() || undefined, tags);
+            else await onSiteDAO.reviewClient(appointment.id, rating, comment.trim() || undefined, tags);
             setDone(true);
             // A moment to read "Thanks", then it moves on to the next one.
             setTimeout(() => onSent(appointment.id), 1100);
@@ -98,14 +105,21 @@ function RatingCard({ appointment, role, width, position, total, onSent, onSkip 
                 </View>
             ) : (
                 <>
-                    <View className="flex-row justify-center" style={{ gap: 8, marginTop: 16 }}>
-                        {[1, 2, 3, 4, 5].map((n) => (
-                            <TouchableOpacity key={n} onPress={() => setRating(n)} hitSlop={4} accessibilityRole="button" accessibilityLabel={t(`${K}.stars`, { count: n })} testID={`rating-star-${n}`} style={{ padding: 2 }}>
-                                <Ionicons name={n <= rating ? 'star' : 'star-outline'} size={36} color={n <= rating ? OS.orange : OS.border} />
-                            </TouchableOpacity>
-                        ))}
+                    <View style={{ marginTop: 16 }}>
+                        <RatingFields
+                            rating={rating}
+                            onRating={setRating}
+                            tags={tags}
+                            onTags={setTags}
+                            options={tagOptions}
+                            tagsTitle={t(`${K}.tagsTitle`)}
+                            comment={comment}
+                            onComment={setComment}
+                            commentPlaceholder={t(`${K}.commentPh`)}
+                            starLabel={(n) => t(`${K}.stars`, { count: n })}
+                            testIDPrefix="rating"
+                        />
                     </View>
-                    <NoteInput value={comment} onChangeText={setComment} placeholder={t(`${K}.commentPh`)} rows={2} white />
                     <TouchableOpacity
                         onPress={() => void submit()}
                         disabled={!rating || sending}

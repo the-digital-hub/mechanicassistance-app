@@ -529,7 +529,7 @@ export function AvailabilityStep({
                                 activeOpacity={0.85}
                                 accessibilityRole="button"
                                 accessibilityState={{ selected: on }}
-                                style={{ flex: 1, alignItems: 'center', paddingVertical: 12, borderRadius: 12, backgroundColor: on ? SC.blue : '#FFFFFF', borderWidth: on ? 0 : 1, borderColor: SC.border }}
+                                style={{ flex: 1, alignItems: 'center', paddingVertical: 12, borderRadius: 14, backgroundColor: on ? SC.blue : '#FFFFFF', borderWidth: on ? 0 : 1, borderColor: SC.border }}
                             >
                                 <Text className="font-outfit-bold" style={{ ...TYPE.option, color: on ? '#FFFFFF' : SC.text }}>{t(mode === 'exact' ? 'scheduled.availability.exactDate' : 'scheduled.availability.dateRange')}</Text>
                             </TouchableOpacity>

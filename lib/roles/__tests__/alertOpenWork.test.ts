@@ -19,10 +19,13 @@ describe('alertOpenWork', () => {
         expect(options.highlight.sub).toMatch(/\d{1,2}:\d{2}/);
     });
 
-    it('with no date it keeps the plain sentence and shows no block', () => {
+    it('with no date it still shows a block (what is waiting and in which role) and the sentence about what to do', () => {
         alertOpenWork({ ownerRequestsOpen: 0, upcomingMechanicJobs: [{ appointmentId: 'a', date: null }] } as never, t as never);
         expect(mockAppAlert.mock.calls[0][1]).toBe('profile.switchRole.upcomingMechanicJobNoDate');
-        expect(mockAppAlert.mock.calls[0][3]).toBeUndefined();
+        const options = mockAppAlert.mock.calls[0][3];
+        expect(options.highlight.label).toBe('profile.switchRole.upcomingLabel');
+        expect(options.highlight.value).toBe('profile.switchRole.upcomingNoDateValue');
+        expect(options.highlight.sub).toBeUndefined();
     });
 
     it('says nothing when nothing is open', () => {

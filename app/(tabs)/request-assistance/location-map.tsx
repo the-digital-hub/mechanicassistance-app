@@ -1,3 +1,4 @@
+import { FONT } from '@/lib/ui/fonts';
 import { Footer } from '@/components/scheduled/ui';
 import { ROUNDED_HEADER } from '@/lib/ui/header';
 import { RequestSteps, stepEyebrow } from '@/components/ui/RequestSteps';
@@ -231,7 +232,7 @@ export default function LocationMapScreen() {
                         <ChevronLeft size={16} color="#0047AB" />
                     </View>
                 </TouchableOpacity>
-                <Text style={{ fontFamily: 'Outfit_500Medium', fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>
+                <Text style={{ fontFamily: FONT.medium, fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>
                     {getTitle()}
                 </Text>
                 <View className="w-6" />
@@ -355,7 +356,7 @@ export default function LocationMapScreen() {
                 </View>
             </ScrollView>
 
-            <Footer label={t('requestAssistance.locationMap.confirmLocation')} disabled={!marker} onPress={handleConfirm} tone="confirm" />
+            <Footer label={t('requestAssistance.locationMap.confirmLocation')} disabled={!marker} onPress={handleConfirm} />
         </View>
     );
 }

@@ -1,3 +1,4 @@
+import { FONT } from '@/lib/ui/fonts';
 import { HeaderBackButton } from '@/components/ui/HeaderBackButton';
 import { FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
 import { ROUNDED_HEADER } from '@/lib/ui/header';
@@ -94,7 +95,7 @@ export function FlowHeader({ title, onBack, closeIcon }: { title: string; onBack
                     <HeaderBackButton onPress={onBack ?? (() => undefined)} marginLeft={0} testID="on-site-back" />
                 )}
             </View>
-            <Text className="flex-1 text-center" style={{ fontFamily: 'Outfit_500Medium', fontSize: 18, color: '#1A1A1A' }}>{title}</Text>
+            <Text className="flex-1 text-center" style={{ fontFamily: FONT.medium, fontSize: 18, color: '#1A1A1A' }}>{title}</Text>
             <View style={{ width: 30 }} />
         </View>
     );
@@ -236,13 +237,15 @@ export function InfoRow({ icon, label, value, last }: {
 }
 
 /** Fixed bottom bar for the screen's main actions. */
+const StackedBarContext = React.createContext(false);
+
 export function ActionBar({ children, stacked }: { children: React.ReactNode; stacked?: boolean }) {
     return (
         <View
             className={`gap-3 ${stacked ? '' : 'flex-row items-center'}`}
             style={FLOATING_FOOTER}
         >
-            {children}
+            <StackedBarContext.Provider value={!!stacked}>{children}</StackedBarContext.Provider>
         </View>
     );
 }
@@ -252,12 +255,14 @@ const BUTTON_TONES = { blue: OS.blue, green: OS.green, orange: OS.orange };
 export function PrimaryButton({ label, onPress, disabled, tone = 'blue', testID }: {
     label: string; onPress: () => void; disabled?: boolean; tone?: keyof typeof BUTTON_TONES; testID?: string;
 }) {
+    // In a stacked bar the button takes the full width on its own line; `flex-1` would squash its height there.
+    const stacked = React.useContext(StackedBarContext);
     return (
         <TouchableOpacity
             onPress={onPress}
             disabled={disabled}
             activeOpacity={0.85}
-            className="flex-1 items-center justify-center py-4"
+            className={`${stacked ? '' : 'flex-1 '}items-center justify-center py-4`}
             style={{ borderRadius: 14, backgroundColor: disabled ? OS.blueIce : BUTTON_TONES[tone] }}
             testID={testID}
         >
@@ -272,9 +277,9 @@ export function GhostButton({ label, onPress, flex }: { label: string; onPress: 
             onPress={onPress}
             activeOpacity={0.7}
             className="items-center justify-center py-3.5 px-3"
-            style={{ minHeight: 54, borderRadius: 14, borderWidth: 1.5, borderColor: OS.border, flex: flex ? 1 : undefined }}
+            style={{ minHeight: 54, borderRadius: 14, backgroundColor: '#E6EAF2', flex: flex ? 1 : undefined }}
         >
-            <Text className="font-outfit-bold text-center" style={{ fontSize: 16, lineHeight: 22, color: OS.text }}>{label}</Text>
+            <Text className="font-outfit-bold text-center" style={{ fontSize: 16, lineHeight: 22, color: '#4A5470' }}>{label}</Text>
         </TouchableOpacity>
     );
 }

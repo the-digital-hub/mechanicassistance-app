@@ -103,6 +103,7 @@ Conditional/procedural knowledge lives in skills (loaded on-demand), not here:
 - **Never hardcode endpoints** — always `ConfigService.getApiBaseUrl()` / `getWsUrl()`.
 - **Typography** — use the scale in `lib/ui/type.ts` (nothing under 13px except uppercase eyebrows; no half sizes like 13.5/14.5). Screens ask a question → `TYPE.question`; options → `TYPE.option`; helper text → `TYPE.helper`.
 - **Fixed bottom action bars** — spread `FLOATING_FOOTER` (and `FLOATING_CTA` on the primary gradient button) from `lib/ui/floatingFooter.ts`; no hard `borderTop` lines.
+- **Buttons** — every action button has `borderRadius: 14` (`BUTTON_RADIUS` in `lib/ui/floatingFooter.ts`); secondary buttons are filled soft slate (`#E6EAF2`, text `#4A5470`), never white, outlined or transparent; primary above, secondary below, never side by side.
 - **Styling** — NativeWind (Tailwind on RN); base components in `components/ui/`. Screen-title/card/button conventions live in the `ui-card-styling` skill.
 - **Files to ignore** — `._*` (Apple resource forks), `node_modules/`, `.expo/`, build artifacts.
 

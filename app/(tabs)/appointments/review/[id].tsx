@@ -2,8 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useGlobalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Image, Text, TouchableOpacity, View } from 'react-native';
-import { ActionBar, Body, FlowHeader, NoteInput, OS, PrimaryButton, cardShadow } from '@/components/on-site/ui';
+import { ActivityIndicator, Image, Text, View } from 'react-native';
+import { ActionBar, Body, FlowHeader, OS, PrimaryButton, cardShadow } from '@/components/on-site/ui';
+import { RatingFields } from '@/components/reviews/RatingFields';
+import { OWNER_REVIEW_TAGS } from '@/lib/reviews/tags';
 import { useAppointments } from '@/context/AppointmentsContext';
 import { ApiError } from '@/lib/api/types';
 import { reviewDAO } from '@/lib/dao/ReviewDAO';
@@ -13,8 +15,6 @@ import { appAlert } from '@/lib/ui/appAlert';
 // The vehicle owner rates the mechanic after the job. Reached from the
 // "Rate your mechanic" push the mechanic sends from their close-out screen, or
 // from the card on a completed appointment. One review per appointment.
-
-const TAGS = ['on_time', 'professional', 'fair_price', 'clear_explanation', 'friendly'] as const;
 
 export default function OwnerReviewScreen() {
     const { id: rawId } = useGlobalSearchParams();
@@ -57,8 +57,6 @@ export default function OwnerReviewScreen() {
             .catch(() => { /* keep the placeholder */ });
         return () => { cancelled = true; };
     }, [appointment?.mechanicId, t]);
-
-    const toggleTag = (tag: string) => setTags((list) => (list.includes(tag) ? list.filter((x) => x !== tag) : [...list, tag]));
 
     const submit = async () => {
         setSending(true);
@@ -108,33 +106,21 @@ export default function OwnerReviewScreen() {
                             )}
                             <Text className="font-outfit-bold text-[17px] mt-2.5" style={{ color: OS.text }}>{mechanic?.name ?? t(`${k}.mechanic`)}</Text>
                             <Text className="font-outfit-regular text-[13px] mt-1" style={{ color: OS.muted }}>{t(`${k}.subtitle`)}</Text>
-                            <View className="flex-row justify-center gap-2 mt-4">
-                                {[1, 2, 3, 4, 5].map((n) => (
-                                    <TouchableOpacity key={n} onPress={() => setRating(n)} testID={`owner-review-star-${n}`} className="p-0.5">
-                                        <Ionicons name={n <= rating ? 'star' : 'star-outline'} size={36} color={n <= rating ? OS.orange : OS.border} />
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
                         </View>
 
                         <View className="mx-4 mt-3.5 px-4 py-4" style={cardShadow}>
-                            <Text className="font-outfit-bold text-[13px]" style={{ color: OS.text }}>{t(`${k}.tagsTitle`)}</Text>
-                            <View className="flex-row flex-wrap gap-2 mt-3">
-                                {TAGS.map((tag) => {
-                                    const active = tags.includes(tag);
-                                    return (
-                                        <TouchableOpacity
-                                            key={tag}
-                                            onPress={() => toggleTag(tag)}
-                                            className="px-3 py-2 rounded-full"
-                                            style={{ borderWidth: 1.5, borderColor: active ? OS.blue : OS.border, backgroundColor: active ? OS.blueSoft : '#FFFFFF' }}
-                                        >
-                                            <Text className="font-outfit-bold text-[13px]" style={{ color: active ? OS.blue : OS.muted }}>{t(`${k}.tags.${tag}`)}</Text>
-                                        </TouchableOpacity>
-                                    );
-                                })}
-                            </View>
-                            <NoteInput value={comment} onChangeText={setComment} placeholder={t(`${k}.commentPh`)} rows={3} white />
+                            <RatingFields
+                                rating={rating}
+                                onRating={setRating}
+                                tags={tags}
+                                onTags={setTags}
+                                options={OWNER_REVIEW_TAGS.map((tag) => ({ value: tag, label: t(`${k}.tags.${tag}`) }))}
+                                tagsTitle={t(`${k}.tagsTitle`)}
+                                comment={comment}
+                                onComment={setComment}
+                                commentPlaceholder={t(`${k}.commentPh`)}
+                                testIDPrefix="owner-review"
+                            />
                         </View>
                     </Body>
                     <ActionBar>

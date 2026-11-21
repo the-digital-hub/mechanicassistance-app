@@ -1,6 +1,7 @@
 import { apiClient } from '../api/apiClient';
 import { ApiError } from '../api/types';
 import { ConfigService } from '../config/ConfigService';
+import { SEND_CLIENT_REVIEW_TAGS } from '../reviews/tags';
 import { mediaDAO } from './MediaDAO';
 
 // The on-site visit (appointments-service src/on-site): check-in at the vehicle,
@@ -296,7 +297,7 @@ class OnSiteDAOImpl {
         return apiClient.post(`${base(appointmentId)}/client-review`, {
             rating,
             ...(review ? { review } : {}),
-            ...(experienceTags.length ? { experienceTags } : {}),
+            ...(SEND_CLIENT_REVIEW_TAGS && experienceTags.length ? { experienceTags } : {}),
         });
     }
 

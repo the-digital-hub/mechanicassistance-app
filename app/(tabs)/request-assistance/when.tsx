@@ -1,3 +1,4 @@
+import { FONT } from '@/lib/ui/fonts';
 import { RequestSteps, stepEyebrow } from '@/components/ui/RequestSteps';
 import { ROUNDED_HEADER } from '@/lib/ui/header';
 import { FLOATING_CTA, FLOATING_FOOTER, CONFIRM_CTA, CONFIRM_GRADIENT } from '@/lib/ui/floatingFooter';
@@ -576,7 +577,7 @@ export default function VideoCallWhenScreen() {
                         <ChevronLeft size={16} color="#0047AB" />
                     </View>
                 </TouchableOpacity>
-                <Text style={{ fontFamily: 'Outfit_700Bold', fontSize: 17, color: C.ink, flex: 1, textAlign: 'center' }}>
+                <Text style={{ fontFamily: FONT.bold, fontSize: 17, color: C.ink, flex: 1, textAlign: 'center' }}>
                     {t('requestAssistance.when.headerTitle')}
                 </Text>
                 <View className="w-10" />
@@ -659,7 +660,7 @@ export default function VideoCallWhenScreen() {
                                                 minHeight: tight ? 118 : 108,
                                                 paddingVertical: 16,
                                                 paddingHorizontal: tight ? 12 : 16,
-                                                borderRadius: 18,
+                                                borderRadius: 14,
                                                 borderWidth: 2,
                                                 borderColor: selected ? C.blue : '#E3EBFA',
                                                 backgroundColor: selected ? '#EDF3FF' : '#FAFCFF',

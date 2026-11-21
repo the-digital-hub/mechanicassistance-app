@@ -1,9 +1,4 @@
-import {
-    Outfit_400Regular,
-    Outfit_500Medium,
-    Outfit_600SemiBold,
-    Outfit_700Bold,
-} from "@expo-google-fonts/outfit";
+import { FONT, FONT_ASSETS } from "@/lib/ui/fonts";
 import { LogBox, Text, TouchableOpacity, View } from "react-native";
 
 import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
@@ -135,17 +130,17 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
 
   return (
     <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24, backgroundColor: "#F6F8FC" }}>
-      <Text style={{ fontFamily: "Outfit_500Medium", fontSize: 20, color: "#0B1530", marginBottom: 8 }}>
+      <Text style={{ fontFamily: FONT.medium, fontSize: 20, color: "#0B1530", marginBottom: 8 }}>
         {i18n.t("crash.title")}
       </Text>
-      <Text style={{ fontFamily: "Outfit_400Regular", fontSize: 14, color: "#6B7490", textAlign: "center", marginBottom: 20 }}>
+      <Text style={{ fontFamily: FONT.regular, fontSize: 14, color: "#6B7490", textAlign: "center", marginBottom: 20 }}>
         {i18n.t("crash.message")}
       </Text>
       <TouchableOpacity
         onPress={retry}
-        style={{ backgroundColor: "#1E56E3", paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 }}
+        style={{ backgroundColor: "#1E56E3", paddingHorizontal: 24, paddingVertical: 12, borderRadius: 14 }}
       >
-        <Text style={{ fontFamily: "Outfit_500Medium", fontSize: 15, color: "#FFFFFF" }}>{i18n.t("crash.retry")}</Text>
+        <Text style={{ fontFamily: FONT.medium, fontSize: 15, color: "#FFFFFF" }}>{i18n.t("crash.retry")}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -160,12 +155,7 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const [loaded, error] = useFonts({
-    Outfit_400Regular,
-    Outfit_500Medium,
-    Outfit_600SemiBold,
-    Outfit_700Bold,
-  });
+  const [loaded, error] = useFonts(FONT_ASSETS);
 
   useEffect(() => {
     ConfigService.init();

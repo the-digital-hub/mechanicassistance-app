@@ -1,3 +1,4 @@
+import { FONT } from '@/lib/ui/fonts';
 import { LucideIcon } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
@@ -172,14 +173,14 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontFamily: "Outfit_700Bold",
+    fontFamily: FONT.bold,
     color: "#1F2937",
     textAlign: "center",
     marginBottom: 8,
   },
   message: {
     fontSize: 16,
-    fontFamily: "Outfit_400Regular",
+    fontFamily: FONT.regular,
     color: "#4B5563",
     textAlign: "center",
     marginBottom: 24,
@@ -208,7 +209,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 17,
     letterSpacing: 0.4,
-    fontFamily: "Outfit_600SemiBold",
+    fontFamily: FONT.semibold,
     color: "#6B7490",
     textTransform: "uppercase",
   },
@@ -216,7 +217,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     lineHeight: 26,
     letterSpacing: -0.3,
-    fontFamily: "Outfit_700Bold",
+    fontFamily: FONT.bold,
     color: "#0B1530",
     marginTop: 2,
   },
@@ -244,12 +245,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   cancelButtonText: {
-    fontFamily: "Outfit_700Bold",
+    fontFamily: FONT.bold,
     color: "#4A5470",
     fontSize: 16,
   },
   confirmButtonText: {
-    fontFamily: "Outfit_700Bold",
+    fontFamily: FONT.bold,
     color: "white",
     fontSize: 16,
   },

@@ -1,3 +1,5 @@
+import { RatingFields } from '@/components/reviews/RatingFields';
+import { CLIENT_REVIEW_TAGS } from '@/lib/reviews/tags';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -116,12 +118,13 @@ function RateOwner({ visit, onVisit }: { visit: OnSiteVisit; onVisit: (v: OnSite
     const k = 'appointments.closeout';
     const [rating, setRating] = React.useState(0);
     const [comment, setComment] = React.useState('');
+    const [tags, setTags] = React.useState<string[]>([]);
     const [sending, setSending] = React.useState(false);
 
     const submit = async () => {
         setSending(true);
         try {
-            await onSiteDAO.reviewClient(visit.appointmentId, rating, comment.trim() || undefined);
+            await onSiteDAO.reviewClient(visit.appointmentId, rating, comment.trim() || undefined, tags);
             const fresh = await onSiteDAO.get(visit.appointmentId);
             if (fresh) onVisit(fresh);
         } catch {
@@ -150,14 +153,19 @@ function RateOwner({ visit, onVisit }: { visit: OnSiteVisit; onVisit: (v: OnSite
                     </View>
                 ) : (
                     <>
-                        <View className="flex-row justify-center gap-2" style={{ marginBottom: 14 }}>
-                            {[1, 2, 3, 4, 5].map((n) => (
-                                <TouchableOpacity key={n} onPress={() => setRating(n)} testID={`closeout-rate-${n}`} className="p-0.5">
-                                    <Ionicons name={n <= rating ? 'star' : 'star-outline'} size={30} color={n <= rating ? OS.orange : '#C5CEE3'} />
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-                        <NoteInput value={comment} onChangeText={setComment} placeholder={t(`${k}.ratePh`)} white />
+                        <RatingFields
+                            rating={rating}
+                            onRating={setRating}
+                            tags={tags}
+                            onTags={setTags}
+                            options={CLIENT_REVIEW_TAGS.map((tag) => ({ value: tag, label: t(`reviews.clientTags.${tag}`) }))}
+                            tagsTitle={t('appointments.clientReview.experience')}
+                            comment={comment}
+                            onComment={setComment}
+                            commentPlaceholder={t(`${k}.ratePh`)}
+                            starSize={30}
+                            testIDPrefix="closeout-rate"
+                        />
                         <TouchableOpacity
                             onPress={() => void submit()}
                             disabled={!rating || sending}

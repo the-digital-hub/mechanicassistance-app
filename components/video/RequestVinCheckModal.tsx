@@ -102,7 +102,7 @@ export function RequestVinCheckModal({
                                 onPress={() => setReplacing(true)}
                                 activeOpacity={0.85}
                                 className="items-center justify-center py-3 mt-2"
-                                style={{ borderRadius: 14, borderWidth: 1.5, borderColor: OS.border }}
+                                style={{ borderRadius: 14, backgroundColor: '#E6EAF2' }}
                                 testID="vin-check-replace"
                             >
                                 <Text className="font-outfit-bold text-[14px]" style={{ color: OS.blue }}>{t(`${k}.replace`)}</Text>
@@ -115,10 +115,11 @@ export function RequestVinCheckModal({
                                 disabled={canceling}
                                 activeOpacity={0.85}
                                 className="items-center justify-center py-3 mt-2"
+                                style={{ borderRadius: 14, backgroundColor: '#E6EAF2' }}
                                 testID="vin-check-cancel"
                             >
                                 {canceling ? <ActivityIndicator color={OS.red} /> : (
-                                    <Text className="font-outfit-bold text-[14px]" style={{ color: OS.red }}>{t(`${k}.cancel`)}</Text>
+                                    <Text className="font-outfit-bold text-[14px]" style={{ color: '#4A5470' }}>{t(`${k}.cancel`)}</Text>
                                 )}
                             </TouchableOpacity>
                         ) : null}

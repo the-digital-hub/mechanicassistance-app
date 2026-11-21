@@ -388,40 +388,17 @@ export default function AddressScreen() {
           </View>
         </View>
 
-        <View className="flex-row gap-3 mt-4 mb-10">
-          <TouchableOpacity
-            onPress={handleSkip}
-            activeOpacity={0.8}
-            style={{ flex: 0.3 }}
-          >
-            <View
-              style={{
-                borderRadius: 10,
-                paddingVertical: 16,
-                paddingHorizontal: 16,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#F3F4F6',
-                borderWidth: 1,
-                borderColor: '#E5E7EB',
-              }}
-            >
-              <Text className="text-gray-700 font-outfit-bold text-center">{t('setup.address.skip')}</Text>
-            </View>
-          </TouchableOpacity>
-
+        <View className="gap-3 mt-4 mb-10">
           <TouchableOpacity
             onPress={handleContinue}
             activeOpacity={0.8}
-            style={{ flex: 0.7 }}
           >
             <LinearGradient
               colors={['#2B66F8', '#081E72']}
               start={{ x: 0, y: 1 }}
               end={{ x: 1, y: 0 }}
               style={{
-                borderRadius: 10,
+                borderRadius: 14,
                 paddingVertical: 16,
                 paddingHorizontal: 16,
                 flexDirection: 'row',
@@ -432,6 +409,24 @@ export default function AddressScreen() {
               <Text className="text-white font-outfit-bold text-center mr-2">{t('setup.address.continue')}</Text>
               <ChevronRight size={20} color="white" />
             </LinearGradient>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleSkip}
+            activeOpacity={0.8}
+          >
+            <View
+              style={{
+                borderRadius: 10,
+                paddingVertical: 16,
+                paddingHorizontal: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#E6EAF2',
+              }}
+            >
+              <Text className="font-outfit-bold text-center" style={{ color: '#4A5470' }}>{t('setup.address.skip')}</Text>
+            </View>
           </TouchableOpacity>
         </View>
 

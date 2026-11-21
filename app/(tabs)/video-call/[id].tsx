@@ -1,3 +1,4 @@
+import { FONT } from '@/lib/ui/fonts';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -613,7 +614,7 @@ const styles = StyleSheet.create({
   tool: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(15,23,41,0.72)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center' },
   toolOn: { backgroundColor: 'rgba(30,86,227,0.95)', borderColor: 'rgba(255,255,255,0.4)' },
   toolBadge: { position: 'absolute', top: -4, right: -4, minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 4, backgroundColor: '#EF4444', alignItems: 'center', justifyContent: 'center' },
-  toolBadgeText: { fontFamily: 'Outfit_700Bold', fontSize: 12, color: '#FFFFFF' },
+  toolBadgeText: { fontFamily: FONT.bold, fontSize: 12, color: '#FFFFFF' },
   // Sideways, the top has the tool buttons: the notices go to the bottom instead.
   pillBottom: { top: undefined, bottom: 14 },
   waiting: { position: 'absolute', alignSelf: 'center', top: 14, zIndex: 3, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 9, borderRadius: 100, backgroundColor: 'rgba(30,86,227,0.95)' },
@@ -622,15 +623,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 8, borderRadius: 100, backgroundColor: 'rgba(194,106,10,0.92)',
   },
   networkBad: { backgroundColor: 'rgba(229,62,62,0.92)' },
-  addTimeText: { fontFamily: 'Outfit_700Bold', fontSize: 13, color: '#FFFFFF' },
+  addTimeText: { fontFamily: FONT.bold, fontSize: 13, color: '#FFFFFF' },
   loadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: VC.navy, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
-  loadingText: { fontFamily: 'Outfit_500Medium', fontSize: 14, color: 'rgba(255,255,255,0.7)', marginTop: 12 },
-  waitingText: { fontFamily: 'Outfit_500Medium', fontSize: 14, color: 'rgba(255,255,255,0.7)', textAlign: 'center' },
+  loadingText: { fontFamily: FONT.medium, fontSize: 14, color: 'rgba(255,255,255,0.7)', marginTop: 12 },
+  waitingText: { fontFamily: FONT.medium, fontSize: 14, color: 'rgba(255,255,255,0.7)', textAlign: 'center' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
-  errorTitle: { fontFamily: 'Outfit_700Bold', fontSize: 20, color: '#FFFFFF', marginTop: 16 },
-  errorSubtitle: { fontFamily: 'Outfit_400Regular', fontSize: 14, color: 'rgba(255,255,255,0.7)', textAlign: 'center', marginTop: 8 },
+  errorTitle: { fontFamily: FONT.bold, fontSize: 20, color: '#FFFFFF', marginTop: 16 },
+  errorSubtitle: { fontFamily: FONT.regular, fontSize: 14, color: 'rgba(255,255,255,0.7)', textAlign: 'center', marginTop: 8 },
   goBackButton: { marginTop: 24, backgroundColor: VC.blue, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 },
-  goBackText: { fontFamily: 'Outfit_700Bold', fontSize: 14, color: '#FFFFFF' },
+  goBackText: { fontFamily: FONT.bold, fontSize: 14, color: '#FFFFFF' },
   retryButton: { marginTop: 12, paddingHorizontal: 24, paddingVertical: 12 },
-  retryText: { fontFamily: 'Outfit_500Medium', fontSize: 14, color: VC.cyan },
+  retryText: { fontFamily: FONT.medium, fontSize: 14, color: VC.cyan },
 });

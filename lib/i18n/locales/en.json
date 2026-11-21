@@ -119,7 +119,8 @@
       "personalInfo": "Personal information",
       "addresses": "My Addresses",
       "vehicles": "My Vehicles",
-      "ase": "ASE Certifications",      "otherCertifications": "Other certifications",
+      "ase": "ASE Certifications",
+      "otherCertifications": "Other certifications",
       "payments": "Earnings & payouts",
       "promotions": "Promotions",
       "help": "Help Center",
@@ -185,7 +186,7 @@
       "setUp": "Set up {{role}} profile",
       "toastSwitched": "You're now using the app as {{role}}",
       "activeJobsTitle": "Finish your service first",
-      "activeJobsMessage": "You have a service in progress as a mechanic. Finish it before switching.",
+      "activeJobsMessage": "You have a service in progress as a technician. Finish it before switching.",
       "blockedMessage": "You have a service {{stage}}. Finish it to switch roles.",
       "blockedOpen": "Open service",
       "stage_on_the_way": "on the way",
@@ -196,10 +197,11 @@
       "openWorkTitle": "Heads up",
       "ownerRequestsOpen_one": "You have {{count}} open request as a vehicle owner. Its updates wait in that role; switch back to see them.",
       "ownerRequestsOpen_other": "You have {{count}} open requests as a vehicle owner. Their updates wait in that role; switch back to see them.",
-      "upcomingMechanicJob": "You have a service on {{date}}. Switch back to mechanic before then to attend it.",
-      "upcomingMechanicJobNoDate": "You have a booked service as a mechanic. Switch back to mechanic before it is due to attend it.",
+      "upcomingMechanicJob": "You have a service on {{date}}. Switch back to the technician role before then to attend it.",
+      "upcomingNoDateValue": "As a technician",
+      "upcomingMechanicJobNoDate": "Switch back to the technician role before it starts to attend it.",
       "upcomingLabel": "Booked service",
-      "upcomingMechanicJobSwitch": "Switch back to mechanic before then to attend it.",
+      "upcomingMechanicJobSwitch": "Switch back to the technician role before then to attend it.",
       "notHeldTitle": "Role not available",
       "notHeldMessage": "This account doesn't have the {{role}} role. Set it up from this menu to add it.",
       "failedTitle": "Couldn't switch",
@@ -268,7 +270,8 @@
       "thanks": "Thanks for your rating",
       "errorTitle": "Couldn't send it",
       "errorMessage": "Check your connection and try again.",
-      "close": "Close"
+      "close": "Close",
+      "tagsTitle": "What stood out?"
     },
     "greeting": {
       "morning": "GOOD MORNING",
@@ -1003,9 +1006,55 @@
     }
   },
   "appointments": {
+    "filters": {
+      "searchPlaceholder": "Search by code, vehicle or service",
+      "clearSearch": "Clear search",
+      "button": "Filters",
+      "sheetTitle": "Filters",
+      "statusTitle": "Status",
+      "status": {
+        "all": "All",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      },
+      "dateTitle": "Date",
+      "presets": {
+        "any": "Any date",
+        "today": "Today",
+        "7d": "Last 7 days",
+        "30d": "Last 30 days",
+        "month": "This month",
+        "custom": "Custom range"
+      },
+      "rangeHint": "Tap a first and a last day.",
+      "fromDate": "From {{date}}",
+      "untilDate": "Until {{date}}",
+      "orderTitle": "Order",
+      "order": {
+        "upcoming": {
+          "natural": "Soonest first",
+          "reversed": "Latest first"
+        },
+        "past": {
+          "natural": "Newest first",
+          "reversed": "Oldest first"
+        }
+      },
+      "apply": "Apply filters",
+      "clear": "Clear filters",
+      "clearAll": "Clear all",
+      "remove": "remove",
+      "results_one": "{{count}} result",
+      "results_other": "{{count}} results",
+      "noResults": "No results",
+      "noMatches": "No appointments match your filters.",
+      "offersTitle": "Offers in progress",
+      "offersSubOwner": "Requests looking for a technician and offers waiting for your answer.",
+      "offersSubMechanic": "Offers you sent, waiting for the customer to confirm."
+    },
     "list": {
       "badge": "YOUR REQUESTS",
-      "title": "Your jobs, all in one place.",
+      "title": "Your assistances",
       "subtitle": "Track active requests, view past jobs, and manage your bookings from here.",
       "upcoming": "Upcoming",
       "pendingApproval": "Pending",
@@ -1039,6 +1088,10 @@
           "canceledHint": "Request was cancelled",
           "awaitingConfirmation": "Awaiting confirmation",
           "awaitingConfirmationHint": "Technician finished the service",
+          "awaitingConfirmationMechanic": "Awaiting customer confirmation",
+          "awaitingConfirmationMechanicHint": "You finished the service: the customer has to confirm it",
+          "awaitingConfirmationOwner": "Confirm the finished service",
+          "awaitingConfirmationOwnerHint": "The technician finished the service",
           "disputed": "Under review",
           "disputedHint": "Support is reviewing it",
           "notCharged": "Not charged",
@@ -1059,6 +1112,8 @@
           "completed": "Completed – Resolved",
           "canceled": "Cancelled",
           "awaitingConfirmation": "Finished – Awaiting confirmation",
+          "awaitingConfirmationMechanic": "Finished – Awaiting customer confirmation",
+          "awaitingConfirmationOwner": "Finished – Confirm the service",
           "disputed": "Disputed – Under review",
           "notCharged": "Completed – Not charged"
         },
@@ -1130,7 +1185,7 @@
         "pending_other": "{{count}} PENDING REQUESTS",
         "caughtUp": "ALL CAUGHT UP"
       },
-      "titleOwner": "Your assistances, all in one place."
+      "titleOwner": "Your assistances"
     },
     "cancelReason": {
       "badge": "CANCEL REQUEST",
@@ -1195,6 +1250,8 @@
         "notes": "Notes",
         "calculating": "Calculating...",
         "minAway": "{{minutes}} min away",
+        "arrived": "Arrived",
+        "finished": "Finished",
         "onTheWay": "On the way",
         "pending": "Pending",
         "noNotes": "No notes provided.",
@@ -1398,10 +1455,10 @@
       },
       "obd": {
         "eyebrow": "STEP 3 · OBD SCAN",
-        "title": "Scan the vehicle with the OBD reader",
-        "subtitle": "Plug in the OBD-II scanner and run a full scan.",
-        "tipLater": "You don't need to upload the scanner file right now — you can do it later from the service summary.",
-        "file": "OBD scanner file",
+        "title": "Run the OBD scan",
+        "subtitle": "Plug in the scanner and upload the file.",
+        "tipLater": "You can upload the file later from the service summary.",
+        "file": "Scanner file",
         "upload": "Upload scan file",
         "placeholder": "Upload the scan file or photo",
         "codesFound": "Codes found in this scan",
@@ -1471,7 +1528,10 @@
           "reportVin": "Scanner",
           "noVin": "Not saved",
           "continue": "Got it"
-        }
+        },
+        "moreOptions": "Add a code or VIN by hand",
+        "codeLabel": "Trouble code",
+        "vinLabel": "VIN (optional)"
       },
       "photos": {
         "eyebrow": "STEP 2 · PHOTOS",
@@ -1598,7 +1658,14 @@
         "checklistWarnFix": "Complete checklist",
         "checklistWarnSkip": "Continue anyway",
         "proofSub": "Photograph the work done and the vehicle as you leave it. A short video works too.",
-        "addPhotos": "Add photos"
+        "addPhotos": "Add photos",
+        "stepOf": "Step {{current}} of {{total}}",
+        "stepWorkTitle": "Fix the issue",
+        "done": "I finished the work",
+        "stepProofTitle": "Show the work",
+        "stepProofSub": "Optional: photos or a short video of the result.",
+        "backToWork": "Back",
+        "backToPhotos": "Back"
       },
       "finalCheck": {
         "eyebrow": "FINAL CHECK",
@@ -1821,7 +1888,8 @@
         "title": "What wasn't done?",
         "body": "Tell us what happened. Support will review it and you won't be charged until they decide.",
         "failed": "We couldn't send your report. Please try again."
-      }
+      },
+      "autoConfirmQuiet": "If you don't answer, it's confirmed automatically on {{date}} at {{time}}."
     },
     "receipt": {
       "title": "Receipt",
@@ -1848,7 +1916,12 @@
       },
       "notCharged": "This service has not been charged yet, so there is no payment to show.",
       "owner": {
-        "purposes": {"service": "Service", "serviceVideo": "Video call", "scopeChange": "Additional work", "scopeChangeVideo": "Extended time"},
+        "purposes": {
+          "service": "Service",
+          "serviceVideo": "Video call",
+          "scopeChange": "Additional work",
+          "scopeChangeVideo": "Extended time"
+        },
         "service": "Service",
         "vehicle": "Vehicle",
         "date": "Date",
@@ -1961,6 +2034,7 @@
       "aseCertified": "ASE Certified",
       "years": "{{years}} years",
       "idChecked": "ID checked",
+      "partsOnlyWithCustomerApproval": "Only with the customer's approval",
       "partsOnlyWithApproval": "Only with your approval",
       "cancel": "Cancel request",
       "preparing": "GETTING READY",
@@ -2128,6 +2202,9 @@
         "noneOwner": "You didn't send a scanner report.",
         "noneMechanic": "The vehicle owner didn't send a scanner report. You can type the codes in if you read them together on the call.",
         "failedOwner": "We couldn't read codes from that file. Try a sharper photo of the scanner's screen.",
+        "noneMechanicEnded": "The vehicle owner didn't send a scanner report.",
+        "failedOwnerEnded": "We couldn't read codes from that file.",
+        "failedMechanicEnded": "The scanner report couldn't be read.",
         "failedMechanic": "The report couldn't be read. Ask the owner for the codes and type them in below.",
         "vinMismatch": "The report's VIN ({{vin}}) is not this vehicle's. The scanner may have been plugged into another car.",
         "fileSent": "The owner sent: {{name}}",
@@ -2176,38 +2253,38 @@
         "differsThem": "For the customer: {{time}}"
       },
       "transcript": {
-      "title": "Call transcript",
-      "subtitle": "What was said in the video call.",
-      "close": "Close",
-      "empty": "There is no transcript for this call. It is saved when live captions are turned on during the call.",
-      "localOnly": "Saved on this phone only.",
-      "you": "You",
-      "other": "Other person",
-      "download": "Download PDF",
-      "consentNote": "Created with the consent of both people on the call.",
-      "pdf": {
-        "title": "Video call transcript",
-        "reference": "Reference",
-        "vehicle": "Vehicle",
-        "callDate": "Call date",
-        "duration": "Duration",
-        "generated": "Generated on {{date}}",
-        "consentTitle": "Consent record",
-        "consentNone": "No consent was recorded on this phone.",
-        "consentPrecall": "{{who}} accepted the conditions of the call",
-        "consentRequest": "{{who}} asked to turn on live captions and the transcript",
-        "consentAnswerYes": "{{who}} accepted live captions and the transcript",
-        "consentAnswerNo": "{{who}} declined live captions and the transcript",
-        "owner": "Vehicle owner",
-        "mechanic": "Technician",
-        "conversation": "Conversation",
-        "empty": "Nothing was said.",
-        "notice": "This transcript was generated automatically from the call and may contain errors. It was created only because both people accepted, and it is meant for the people on the call and for support review of a dispute. Keep it confidential.",
-        "failedTitle": "Couldn't create the PDF",
-        "failedBody": "Please try again."
-      },
-      "view": "View"
-    }
+        "title": "Call transcript",
+        "subtitle": "What was said in the video call.",
+        "close": "Close",
+        "empty": "There is no transcript for this call. It is saved when live captions are turned on during the call.",
+        "localOnly": "Saved on this phone only.",
+        "you": "You",
+        "other": "Other person",
+        "download": "Download PDF",
+        "consentNote": "Created with the consent of both people on the call.",
+        "pdf": {
+          "title": "Video call transcript",
+          "reference": "Reference",
+          "vehicle": "Vehicle",
+          "callDate": "Call date",
+          "duration": "Duration",
+          "generated": "Generated on {{date}}",
+          "consentTitle": "Consent record",
+          "consentNone": "No consent was recorded on this phone.",
+          "consentPrecall": "{{who}} accepted the conditions of the call",
+          "consentRequest": "{{who}} asked to turn on live captions and the transcript",
+          "consentAnswerYes": "{{who}} accepted live captions and the transcript",
+          "consentAnswerNo": "{{who}} declined live captions and the transcript",
+          "owner": "Vehicle owner",
+          "mechanic": "Technician",
+          "conversation": "Conversation",
+          "empty": "Nothing was said.",
+          "notice": "This transcript was generated automatically from the call and may contain errors. It was created only because both people accepted, and it is meant for the people on the call and for support review of a dispute. Keep it confidential.",
+          "failedTitle": "Couldn't create the PDF",
+          "failedBody": "Please try again."
+        },
+        "view": "View"
+      }
     },
     "clientReview": {
       "title": "How would you rate the client?",
@@ -2350,7 +2427,11 @@
     "selectTime": "Select Time",
     "acceptRequest": "Accept request",
     "confirmOfferPending": "The client still has to accept it.",
-    "offerHighlight": { "video": "Video call", "immediate": "Immediate assistance", "scheduled": "Scheduled offer" },
+    "offerHighlight": {
+      "video": "Video call",
+      "immediate": "Immediate assistance",
+      "scheduled": "Scheduled offer"
+    },
     "confirmOfferTitle": "Send this offer?",
     "waitingClientConfirmation": "Waiting for the client to confirm",
     "confirmOfferImmediate": "You are about to offer immediate assistance for {{title}}. The client still has to accept it.",
@@ -2401,7 +2482,9 @@
     "videoDurationValue_other": "{{count}} minutes",
     "videoDurationNote": "The client can add more time during the call.",
     "videoConditions": "CALL CONDITIONS",
-    "videoConditionsNote": "Before the call, you and the customer both accept its conditions. Live captions and a written transcript are created only if both agree during the call; they are saved with the appointment.",    "subtitleVideo": "Check the vehicle, the issue and what you earn.",    "goodToKnow": {
+    "videoConditionsNote": "Before the call, you and the customer both accept its conditions. Live captions and a written transcript are created only if both agree during the call; they are saved with the appointment.",
+    "subtitleVideo": "Check the vehicle, the issue and what you earn.",
+    "goodToKnow": {
       "title": "Good to know",
       "price": "Fixed price, set when the customer asked for the call.",
       "time": "The customer can add more time during the call.",
@@ -2704,7 +2787,14 @@
     "ruleMinLength": "At least 8 characters.",
     "ruleSymbolOrNumber": "Contains a symbol or a number",
     "back": "Back",
-    "changePassword": "Change Password"
+    "changePassword": "Change Password",
+    "currentHint": "Leave it empty if you signed up with your phone and never set a password.",
+    "mismatch": "The passwords don't match.",
+    "wrongCurrent": "The current password is not correct.",
+    "needCurrent": "This account already has a password. Enter your current password.",
+    "failed": "We couldn't change your password. Try again in a moment.",
+    "doneTitle": "Password updated",
+    "doneBody": "Your new password is ready to use."
   },
   "deleteAccount": {
     "badge": "ACCOUNT SETTINGS",
@@ -3127,7 +3217,8 @@
       "subtitle": "We need to validate your permits and your liability insurance.",
       "insurance": "Liability insurance",
       "businessLicense": "Business licence",
-      "dropzone": "Tap to upload a document (PDF/JPG)",
+      "uploadButton": "Upload file",
+      "dropzone": "A PDF or JPG of the document",
       "replace": "Tap to replace",
       "uploading": "Uploading…",
       "remove": "Remove",
@@ -3142,7 +3233,7 @@
       "errorType": "Only PDF or image files are accepted.",
       "errorUpload": "The document could not be uploaded. Please try again.",
       "profileTitle": "Legal documentation",
-      "profileSubtitle": "Your liability insurance and business licence.",
+      "profileSubtitle": "Upload your liability insurance and business licence as a PDF or photo. We review them, and you can replace them anytime.",
       "profileEmpty": "You haven't uploaded any documents yet.",
       "removeConfirmTitle": "Remove document",
       "removeConfirmBody": "This removes the file from your profile. You can upload it again whenever you want.",
@@ -3171,7 +3262,7 @@
   },
   "assist": {
     "badge": "PENDING ASSISTANCE REQUESTS",
-    "title": "Find your next job",
+    "title": "Take your next request",
     "subtitle": "Filter incoming requests by status, service type, and distance.",
     "searchPlaceholder": "Search by vehicle, area, or issue",
     "all": "All"
@@ -3199,17 +3290,20 @@
   "promotions": {
     "badge": "PROMOTIONS",
     "title": "Promotions",
-    "subtitle": "Get access to exclusive discounts and special offers",
-    "examTitle": "ASE Certification exam",
-    "recommended": "recommended",
-    "mapView": "Map View",
-    "address": "Address: 778 Locust View Drive Oakland, CA",
-    "distance": "Distance: 2.5 mi",
-    "specialOfferTitle": "Special Offer for ASE Members",
-    "specialOfferBody1": "Enjoy a 10% discount on all our services exclusively for ASE-certified professionals.",
-    "specialOfferBody2": "Boost your visibility, grow your business, and access premium features at a reduced rate.",
-    "validThrough": "Promo valid through: 06/06/2026",
-    "askForBenefit": "Ask for your benefit"
+    "subtitle": "Discounts from our partners.",
+    "discountBadge": "DISCOUNT",
+    "ase": {
+      "eyebrow": "FOR ASE-CERTIFIED TECHNICIANS",
+      "title": "ASE member discount",
+      "body": "Certified technicians get a special discount. Link your ASE ID to unlock it.",
+      "cta": "Get your ASE discount"
+    },
+    "innova": {
+      "eyebrow": "OBD2 SCANNERS",
+      "title": "Innova scanner discount",
+      "body": "A special discount on Innova OBD2 scanners for Mechanic Assistance users.",
+      "cta": "Get your Innova discount"
+    }
   },
   "onboarding": {
     "slide1": "Get Paid Providing Your Professional Services",
@@ -4241,5 +4335,13 @@
     "scanner": "Scanner",
     "when": "When",
     "eyebrow": "Step {{n}} · {{name}}"
+  },
+  "reviews": {
+    "clientTags": {
+      "punctual": "Punctual",
+      "clear_description": "Clear description",
+      "respectful": "Respectful",
+      "easy_access": "Easy access"
+    }
   }
 }

@@ -314,7 +314,7 @@ export default function AppointmentDetailScreen() {
 
     // Consistent state for ClientTab (Mechanic View)
     const [rating, setRating] = React.useState(appointment?.clientReview?.rating || 0);
-    const [selectedOption, setSelectedOption] = React.useState<string>(appointment?.clientReview?.experienceTags?.[0] || '');
+    const [selectedTags, setSelectedTags] = React.useState<string[]>(appointment?.clientReview?.experienceTags ?? []);
     const [reviewText, setReviewText] = React.useState(appointment?.clientReview?.review || '');
     const [isReviewSubmitted, setIsReviewSubmitted] = React.useState(appointment?.isReviewSubmitted || false);
 
@@ -326,7 +326,7 @@ export default function AppointmentDetailScreen() {
         if (appointment && !hasHydratedReview.current) {
             hasHydratedReview.current = true;
             setRating(appointment.clientReview?.rating || 0);
-            setSelectedOption(appointment.clientReview?.experienceTags?.[0] || '');
+            setSelectedTags(appointment.clientReview?.experienceTags ?? []);
             setReviewText(appointment.clientReview?.review || '');
             setIsReviewSubmitted(appointment.isReviewSubmitted || false);
         }
@@ -636,6 +636,9 @@ export default function AppointmentDetailScreen() {
     const clientFallbackName = [client?.name, client?.surname].filter(Boolean).join(' ') || null;
     const panelClient = clientSummary?.client ?? (client ? { displayName: clientFallbackName, profileImage: client.profileImage ?? null } : null);
 
+    // Over for the budget's rules: the technician finished it (awaiting the owner), or it was completed, disputed or cancelled.
+    const assistanceOver = ['awaiting_confirmation', 'completed', 'disputed', 'cancelled', 'canceled'].includes(appointment.status);
+
     const renderOwnerPanel = () => {
         switch (ownerTab) {
             case 'status':
@@ -729,6 +732,7 @@ export default function AppointmentDetailScreen() {
                         total={(offer?.breakdown?.total ?? offer?.price ?? appointment.budget ?? '').replace(/^\$/, '') || null}
                         payment={<PaymentCardValue paymentMethodId={paymentMethodId} card={resolvePaymentCard(paymentMethodId)} />}
                         video={isVideoCall}
+                        partsNote={assistanceOver ? null : undefined}
                         extendedMinutes={isVideoCall ? videoAddedMinutes : 0}
                         extendedAmount={isVideoCall && ownerExtensionsAmount !== null ? ownerExtensionsAmount.toFixed(2) : null}
                         grandTotal={isVideoCall && ownerExtensionsAmount !== null && ownerServiceTotal !== null ? (ownerServiceTotal + ownerExtensionsAmount).toFixed(2) : null}
@@ -752,7 +756,7 @@ export default function AppointmentDetailScreen() {
         }
         reviewSending.current = true;
         onSiteDAO
-            .reviewClient(appointment.id, rating, reviewText.trim() || undefined, selectedOption ? [selectedOption] : [])
+            .reviewClient(appointment.id, rating, reviewText.trim() || undefined, selectedTags)
             .then(() => {
                 setIsReviewSubmitted(true);
                 refreshAppointments();
@@ -838,7 +842,7 @@ export default function AppointmentDetailScreen() {
                 );
             case 'budget':
                 // `budget` already comes back as what the mechanic earns, never the customer's price.
-                return <OwnerBudgetPanel total={(appointment.budget ?? '').replace(/^\$/, '') || null} totalLabel={t('appointments.receipt.youEarn')} />;
+                return <OwnerBudgetPanel total={(appointment.budget ?? '').replace(/^\$/, '') || null} totalLabel={t('appointments.receipt.youEarn')} partsNote={assistanceOver ? null : t('appointments.ownerAccepted.partsOnlyWithCustomerApproval')} />;
             case 'mechanic':
                 return (
                     <View style={{ gap: 12 }}>
@@ -848,8 +852,8 @@ export default function AppointmentDetailScreen() {
                             <ClientReviewCard
                                 rating={rating}
                                 setRating={setRating}
-                                selectedOption={selectedOption}
-                                setSelectedOption={setSelectedOption}
+                                tags={selectedTags}
+                                setTags={setSelectedTags}
                                 reviewText={reviewText}
                                 setReviewText={setReviewText}
                                 isSubmitted={isReviewSubmitted}
@@ -1182,8 +1186,8 @@ export default function AppointmentDetailScreen() {
                                                     <ClientReviewCard
                                                         rating={rating}
                                                         setRating={setRating}
-                                                        selectedOption={selectedOption}
-                                                        setSelectedOption={setSelectedOption}
+                                                        tags={selectedTags}
+                                                        setTags={setSelectedTags}
                                                         reviewText={reviewText}
                                                         setReviewText={setReviewText}
                                                         isSubmitted={isReviewSubmitted}
@@ -1385,7 +1389,7 @@ function InfoTab({ appointment, onScanComplete }: { appointment: any, onScanComp
             <View className="mt-4">
                 <TouchableOpacity
                     onPress={onScanComplete}
-                    className="bg-blue-600 w-full py-4 rounded-xl flex-row items-center justify-center gap-2 shadow-sm"
+                    className="bg-blue-600 w-full py-4 rounded-[14px] flex-row items-center justify-center gap-2 shadow-sm"
                 >
                     <Ionicons name="qr-code-outline" size={24} color="white" />
                     <Text className="text-white font-outfit-bold text-lg">Scan to Start</Text>

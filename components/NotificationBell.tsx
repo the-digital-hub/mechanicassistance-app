@@ -1,3 +1,4 @@
+import { FONT } from '@/lib/ui/fonts';
 import { useNotifications } from '@/context/NotificationsContext';
 import { Bell } from 'lucide-react-native';
 import React from 'react';
@@ -40,7 +41,7 @@ export function NotificationBell({ size = 24, color = '#0047AB' }: { size?: numb
                 >
                     {/* Fixed width per digit count and no numberOfLines: the number is never cut ("3.."). */}
                     <Text
-                        style={{ color: '#FFFFFF', fontSize: 13, lineHeight: 16, fontFamily: 'Outfit_700Bold', textAlign: 'center', includeFontPadding: false }}
+                        style={{ color: '#FFFFFF', fontSize: 13, lineHeight: 16, fontFamily: FONT.bold, textAlign: 'center', includeFontPadding: false }}
                     >
                         {label}
                     </Text>

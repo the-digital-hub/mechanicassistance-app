@@ -1,4 +1,4 @@
-import { AttentionQuickButton, AttentionTimer, type AttentionQuick, type AttentionTimerSpec } from '@/components/dashboard/AttentionExtras';
+import { AttentionQuickButton, AttentionTimer, AttentionHideBadge, attentionCardStyle, type AttentionQuick, type AttentionTimerSpec } from '@/components/dashboard/AttentionExtras';
 import { VehicleIdsRow } from '@/components/scheduled/ui';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Calendar, Check, ChevronDown, ChevronRight, FileText, Pencil, Wrench, X, type LucideIcon } from 'lucide-react-native';
@@ -185,8 +185,8 @@ export function OwnerAttentionList({ items, hideLabel, onDismiss }: { items: Own
                         activeOpacity={0.8}
                         accessibilityRole="button"
                         className="flex-row"
-                        // A faint tint of its tone (blue or amber), so the alerts do not look like every other white card.
-                        style={{ ...CARD, padding: 14, gap: 12, backgroundColor: amber ? '#FFFAEF' : '#F5F9FF', borderColor: amber ? '#F6E2B5' : '#DCE8FB' }}
+                        // A tint of its tone (blue or amber) with relief of its own, so the alerts stand out from the white cards.
+                        style={{ ...attentionCardStyle(a.tone), padding: 14, gap: 12 }}
                     >
                         <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: amber ? C.amberSoft : C.blueSoft }}>
                             <Icon size={20} color={amber ? C.amberText : C.blue} />
@@ -208,11 +208,7 @@ export function OwnerAttentionList({ items, hideLabel, onDismiss }: { items: Own
                                     <Text className="font-outfit-bold" style={{ fontSize: 14, color: amber ? C.amberText : C.blue }}>{a.cta}</Text>
                                     <ChevronRight size={18} color={amber ? C.amberText : C.blue} />
                                 </View>
-                                {onDismiss && hideLabel ? (
-                                    <TouchableOpacity onPress={() => onDismiss(a)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} accessibilityRole="button">
-                                        <Text className="font-outfit-semibold" style={{ fontSize: 14, color: C.muted }}>{hideLabel}</Text>
-                                    </TouchableOpacity>
-                                ) : null}
+                                {onDismiss && hideLabel ? <AttentionHideBadge label={hideLabel} onPress={() => onDismiss(a)} /> : null}
                             </View>
                         </View>
                     </TouchableOpacity>
@@ -372,9 +368,9 @@ export function SheetOption({ icon: Icon, title, subtitle, detail, selected, gra
                 accessibilityRole="button"
                 style={{ borderRadius: 18, backgroundColor: C.blue, shadowColor: C.blue, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 5 }}
             >
-                <LinearGradient colors={['#2F6BFF', '#1E56E3', '#0B2A8E', '#061A66']} locations={[0, 0.38, 0.82, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 18, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                    <View className="items-center justify-center" style={{ width: 44, height: 44, borderRadius: 13, backgroundColor: 'rgba(255,255,255,0.18)' }}>
-                        <Icon size={22} color="#FFFFFF" />
+                <LinearGradient colors={['#2F6BFF', '#1E56E3', '#0B2A8E', '#061A66']} locations={[0, 0.38, 0.82, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 18, paddingVertical: 22, paddingHorizontal: 16, minHeight: 92, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+                    <View className="items-center justify-center" style={{ width: 50, height: 50, borderRadius: 15, backgroundColor: 'rgba(255,255,255,0.18)' }}>
+                        <Icon size={24} color="#FFFFFF" />
                     </View>
                     <View className="flex-1">
                         <Text className="font-outfit-bold" style={{ fontSize: 18, letterSpacing: -0.2, color: '#FFFFFF' }} numberOfLines={1}>{title}</Text>

@@ -1,3 +1,4 @@
+import { FONT } from '@/lib/ui/fonts';
 import { Check, ChevronRight, Search, X, type LucideIcon } from 'lucide-react-native';
 import React from 'react';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -94,7 +95,7 @@ export function SearchField({ value, onChangeText, placeholder, testID }: { valu
                 autoCapitalize="none"
                 returnKeyType="search"
                 accessibilityLabel={placeholder}
-                style={{ flex: 1, ...TYPE.body, color: SC.text, fontFamily: 'Outfit_400Regular', paddingVertical: 0 }}
+                style={{ flex: 1, ...TYPE.body, color: SC.text, fontFamily: FONT.regular, paddingVertical: 0 }}
                 testID={testID}
             />
             {value.length > 0 ? (

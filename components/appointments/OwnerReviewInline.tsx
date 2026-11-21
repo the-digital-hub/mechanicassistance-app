@@ -3,14 +3,15 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 
-import { NoteInput, OS, PrimaryButton, cardShadow } from '@/components/on-site/ui';
+import { OS, PrimaryButton, cardShadow } from '@/components/on-site/ui';
 import { useMessageDialog } from '@/components/ui/useMessageDialog';
 import { ApiError } from '@/lib/api/types';
+import { RatingFields } from '@/components/reviews/RatingFields';
 import { reviewDAO } from '@/lib/dao/ReviewDAO';
+import { OWNER_REVIEW_TAGS } from '@/lib/reviews/tags';
 import { TYPE } from '@/lib/ui/type';
 
 const K = 'appointments.ownerReview';
-const TAGS = ['on_time', 'professional', 'fair_price', 'clear_explanation', 'friendly'] as const;
 
 /**
  * Whether the owner still has to rate the technician of this appointment. Off (`enabled` false)
@@ -89,8 +90,6 @@ export function OwnerReviewInline({ appointmentId, onSent, onDismissed }: {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [done]);
 
-    const toggleTag = (tag: string) => setTags((list) => (list.includes(tag) ? list.filter((x) => x !== tag) : [...list, tag]));
-
     const submit = async () => {
         setSending(true);
         try {
@@ -124,32 +123,21 @@ export function OwnerReviewInline({ appointmentId, onSent, onDismissed }: {
             <View style={[cardShadow, { padding: 18, alignItems: 'center' }]}>
                 <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, color: OS.text }}>{t(`${K}.title`)}</Text>
                 <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: OS.muted, marginTop: 2 }}>{t(`${K}.subtitle`)}</Text>
-                <View className="flex-row justify-center" style={{ gap: 8, marginTop: 14 }}>
-                    {[1, 2, 3, 4, 5].map((n) => (
-                        <TouchableOpacity key={n} onPress={() => setRating(n)} testID={`owner-review-star-${n}`} style={{ padding: 2 }}>
-                            <Ionicons name={n <= rating ? 'star' : 'star-outline'} size={36} color={n <= rating ? OS.orange : OS.border} />
-                        </TouchableOpacity>
-                    ))}
-                </View>
             </View>
 
             <View style={[cardShadow, { padding: 16 }]}>
-                <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, color: OS.text }}>{t(`${K}.tagsTitle`)}</Text>
-                <View className="flex-row flex-wrap" style={{ gap: 8, marginTop: 12 }}>
-                    {TAGS.map((tag) => {
-                        const active = tags.includes(tag);
-                        return (
-                            <TouchableOpacity
-                                key={tag}
-                                onPress={() => toggleTag(tag)}
-                                style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, borderWidth: 1.5, borderColor: active ? OS.blue : OS.border, backgroundColor: active ? OS.blueSoft : '#FFFFFF' }}
-                            >
-                                <Text className="font-outfit-bold" style={{ fontSize: 13, color: active ? OS.blue : OS.muted }}>{t(`${K}.tags.${tag}`)}</Text>
-                            </TouchableOpacity>
-                        );
-                    })}
-                </View>
-                <NoteInput value={comment} onChangeText={setComment} placeholder={t(`${K}.commentPh`)} rows={3} white />
+                <RatingFields
+                    rating={rating}
+                    onRating={setRating}
+                    tags={tags}
+                    onTags={setTags}
+                    options={OWNER_REVIEW_TAGS.map((tag) => ({ value: tag, label: t(`${K}.tags.${tag}`) }))}
+                    tagsTitle={t(`${K}.tagsTitle`)}
+                    comment={comment}
+                    onComment={setComment}
+                    commentPlaceholder={t(`${K}.commentPh`)}
+                    testIDPrefix="owner-review"
+                />
             </View>
 
             <View className="flex-row">

@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import React from 'react';
+import { ApiError } from '@/lib/api/types';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
@@ -21,7 +22,10 @@ function Title({ children }: { children: React.ReactNode }) {
 }
 
 /** Three example badges and a line saying the technician can type whatever they want. */
-function Picks({ items, onPick, hint }: { items: string[]; onPick: (v: string) => void; hint: string }) {
+function Picks({ items, value, onPick, hint }: { items: string[]; value: string; onPick: (v: string) => void; hint: string }) {
+    // Once one of the badges is picked the row closes, the same in every field; typing something else brings it back.
+    const v = value.trim().toLowerCase();
+    if (v && items.some((m) => m.toLowerCase() === v)) return null;
     return (
         <View style={{ marginTop: 10, gap: 8 }}>
             {items.length > 0 ? (
@@ -131,8 +135,11 @@ export function CertificationForm({ initial, onSaved }: { initial: Certification
         try {
             const stored = initial ? await certificationsDAO.update(initial.id, body) : await certificationsDAO.create(body);
             onSaved(stored);
-        } catch {
-            setError(t(`${K}.saveFailed`));
+        } catch (e) {
+            // The reason from the server (validation, permission...) goes next to the generic text: "could not save" alone hides what to fix.
+            console.warn('[certifications] save failed', e);
+            const detail = e instanceof ApiError ? ` (${e.statusCode}: ${e.apiMessage})` : '';
+            setError(`${t(`${K}.saveFailed`)}${detail}`);
         } finally {
             setSaving(false);
         }
@@ -167,13 +174,13 @@ export function CertificationForm({ initial, onSaved }: { initial: Certification
                 <View>
                     <Title>{t(`${K}.issuerLabel.${type}`)}</Title>
                     <TextField value={issuer} onChangeText={setIssuer} placeholder={t(`${K}.issuerPlaceholder.${type}`)} maxLength={60} testID="cert-issuer" />
-                    <Picks items={issuerPicks} onPick={setIssuer} hint={t(`${K}.orTypeYourOwn`)} />
+                    <Picks items={issuerPicks} value={issuer} onPick={setIssuer} hint={t(`${K}.orTypeYourOwn`)} />
                 </View>
 
                 <View>
                     <Title>{t(`${K}.kind`)}</Title>
                     <TextField value={name} onChangeText={setName} placeholder={t(`${K}.namePlaceholder.${type}`)} maxLength={80} testID="cert-name" />
-                    <Picks items={kindPicks} onPick={setName} hint={t(`${K}.orTypeYourOwn`)} />
+                    <Picks items={kindPicks} value={name} onPick={setName} hint={t(`${K}.orTypeYourOwn`)} />
                 </View>
 
                 <View>
@@ -260,7 +267,7 @@ export function CertificationForm({ initial, onSaved }: { initial: Certification
                 {error ? <Text className="font-outfit-medium" style={{ fontSize: 15, color: SC.red }}>{error}</Text> : null}
             </ScrollView>
 
-            <Footer label={saving ? t(`${K}.saving`) : t(`${K}.save`)} onPress={() => void save()} disabled={!canSave} loading={saving} tone="confirm" />
+            <Footer label={saving ? t(`${K}.saving`) : t(`${K}.save`)} onPress={() => void save()} disabled={!canSave} loading={saving} />
         </KeyboardAvoidingView>
     );
 }

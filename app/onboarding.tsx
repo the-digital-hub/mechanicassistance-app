@@ -1,3 +1,4 @@
+import { FONT } from '@/lib/ui/fonts';
 import { MeshBackground } from "@/components/brand/MeshBackground";
 import { setAppLanguage, type SupportedLanguage } from "@/lib/i18n";
 import { TYPE } from "@/lib/ui/type";
@@ -319,10 +320,10 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     backgroundColor: "rgba(7,19,38,0.32)",
   },
-  langText: { color: "rgba(255,255,255,0.65)", fontFamily: "Outfit_500Medium", fontSize: 13, letterSpacing: 0.6 },
-  langTextOn: { color: "#FFFFFF", fontFamily: "Outfit_700Bold" },
+  langText: { color: "rgba(255,255,255,0.65)", fontFamily: FONT.medium, fontSize: 13, letterSpacing: 0.6 },
+  langTextOn: { color: "#FFFFFF", fontFamily: FONT.bold },
   langSep: { color: "rgba(255,255,255,0.35)", fontSize: 13 },
-  loginPillText: { color: "#1E56E3", fontFamily: "Outfit_700Bold", fontSize: 15 },
+  loginPillText: { color: "#1E56E3", fontFamily: FONT.bold, fontSize: 15 },
 
   sheetWrap: { position: "absolute", left: 0, right: 0, bottom: -40 },
   sheet: {
@@ -339,21 +340,21 @@ const styles = StyleSheet.create({
   eyebrow: {
     flex: 1,
     color: "#DDE8FF",
-    fontFamily: "Outfit_600SemiBold",
+    fontFamily: FONT.semibold,
     fontSize: 12,
     letterSpacing: 1.4,
     textTransform: "uppercase",
   },
   title: {
     color: "#FFFFFF",
-    fontFamily: "Outfit_700Bold",
+    fontFamily: FONT.bold,
     fontSize: 42,
     lineHeight: 46,
     letterSpacing: -1,
   },
   sub: {
     color: "#C9D6EE",
-    fontFamily: "Outfit_400Regular",
+    fontFamily: FONT.regular,
     fontSize: 17,
     lineHeight: 24,
     marginTop: 12,
@@ -370,7 +371,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.2)",
   },
-  chipText: { color: "#FFFFFF", fontFamily: "Outfit_500Medium", fontSize: 13 },
+  chipText: { color: "#FFFFFF", fontFamily: FONT.medium, fontSize: 13 },
 
   cta: {
     height: 56,
@@ -386,7 +387,7 @@ const styles = StyleSheet.create({
     shadowRadius: 14,
     elevation: 8,
   },
-  ctaText: { ...TYPE.button, color: "#1E56E3", fontFamily: "Outfit_700Bold" },
+  ctaText: { ...TYPE.button, color: "#1E56E3", fontFamily: FONT.bold },
   secondary: {
     height: 56,
     borderRadius: 16,
@@ -396,7 +397,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: "rgba(255,255,255,0.45)",
   },
-  secondaryText: { ...TYPE.button, color: "#FFFFFF", fontFamily: "Outfit_700Bold" },
+  secondaryText: { ...TYPE.button, color: "#FFFFFF", fontFamily: FONT.bold },
 });
 
 export default Onboarding;

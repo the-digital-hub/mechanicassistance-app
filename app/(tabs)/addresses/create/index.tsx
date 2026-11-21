@@ -1,4 +1,3 @@
-import { CONFIRM_GRADIENT } from '@/lib/ui/floatingFooter';
 import { AddressNameField, addressNamePayload, type AddressNameValue } from '@/components/addresses/AddressNameField';
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { Input } from '@/components/ui/Input';
@@ -242,11 +241,11 @@ export default function CreateAddressScreen() {
                         style={{ flex: 1 }}
                     >
                         <LinearGradient
-                            colors={[...CONFIRM_GRADIENT]}
+                            colors={['#2B66F8', '#081E72']}
                             start={{ x: 0, y: 1 }}
                             end={{ x: 1, y: 0 }}
                             style={{
-                                borderRadius: 8,
+                                borderRadius: 14,
                                 paddingVertical: 16,
                                 paddingHorizontal: 16,
                                 flexDirection: 'row',

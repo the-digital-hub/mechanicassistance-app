@@ -162,7 +162,7 @@ export default function PhoneNumberScreen() {
               start={{ x: 0, y: 1 }}
               end={{ x: 1, y: 0 }}
               style={{
-                borderRadius: 10,
+                borderRadius: 14,
                 paddingVertical: 16,
                 paddingHorizontal: 16,
                 flexDirection: 'row',
@@ -204,7 +204,7 @@ export default function PhoneNumberScreen() {
               </Text>
 
               <TouchableOpacity
-                className="bg-blue-700 w-full py-4 rounded-xl shadow-sm"
+                className="bg-blue-700 w-full py-4 rounded-[14px] shadow-sm"
                 onPress={hideError}
               >
                 <Text className="text-white text-center font-outfit-bold text-lg">

@@ -1,11 +1,14 @@
+import { AppointmentsFilterBar } from '@/components/appointments/AppointmentsFilters';
+import { OffersSection } from '@/components/appointments/OffersSection';
 import { RequestTypeTabs } from '@/components/dashboard/MechanicHomeBlocks';
+import { applyFilters, DEFAULT_FILTERS, isFiltering, matchesQuery, type AppointmentFilters } from '@/lib/appointments/filters';
 import { AppointmentCard } from '@/components/ui/AppointmentCard';
-import { Appointment, isCancelledStatus, useAppointments } from '@/context/AppointmentsContext';
+import { isCancelledStatus, useAppointments } from '@/context/AppointmentsContext';
 import { useUser } from '@/context/UserContext';
 import { useHiddenAppointments } from '@/hooks/useHiddenAppointments';
 import { ScrollPressGuardContext, useScrollPressGuard } from '@/hooks/useScrollPressGuard';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowDown, ArrowUp, Trash2, X } from 'lucide-react-native';
+import { Trash2, X } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, Modal, Text, TouchableOpacity, View } from 'react-native';
@@ -13,16 +16,15 @@ import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 export default function AppointmentsScreen() {
     const { t } = useTranslation();
-    const { getUpcoming, getPendingApproval, getPast, refresh, appointments: allAppointments } = useAppointments();
+    const { getUpcoming, getPendingApproval, getPast, refresh } = useAppointments();
     const router = useRouter();
     const { user } = useUser();
     const { tab: tabParam } = useLocalSearchParams<{ tab?: string }>();
     const { scrollProps, guard } = useScrollPressGuard();
 
-    const [selectedTab, setSelectedTab] = useState<'upcoming' | 'pending' | 'past'>('upcoming');
-    const [pastFilter, setPastFilter] = useState<'completed' | 'cancelled'>('completed');
-    // Per filter: newest first (desc, the default) or oldest first (asc).
-    const [pastOrder, setPastOrder] = useState<Record<'completed' | 'cancelled', 'desc' | 'asc'>>({ completed: 'desc', cancelled: 'desc' });
+    // Offers are not a tab: they are pinned on top of Upcoming. The tabs are what is coming and what is over.
+    const [selectedTab, setSelectedTab] = useState<'upcoming' | 'past'>('upcoming');
+    const [filters, setFilters] = useState<AppointmentFilters>(DEFAULT_FILTERS);
     const [cancelModalVisible, setCancelModalVisible] = useState(false);
     const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
     const { hidden, hide } = useHiddenAppointments(user?.id);
@@ -31,7 +33,8 @@ export default function AppointmentsScreen() {
     // Arriving with ?tab=pending (e.g. right after a mechanic sends an offer) opens that tab once.
     useEffect(() => {
         if (tabParam === 'pending' || tabParam === 'upcoming' || tabParam === 'past') {
-            setSelectedTab(tabParam);
+            // "pending" (right after a technician sends an offer) is the offers block on top of Upcoming.
+            setSelectedTab(tabParam === 'past' ? 'past' : 'upcoming');
             router.setParams({ tab: undefined });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -43,30 +46,23 @@ export default function AppointmentsScreen() {
         }, [])
     );
 
-    const upcomingCount = getUpcoming().length;
-    const pendingCount = getPendingApproval().length;
+    const upcomingAll = getUpcoming();
+    const offersAll = getPendingApproval();
+    const upcomingCount = upcomingAll.length;
+    const pendingCount = offersAll.length;
     // A cancelled appointment the person removed is not shown (see useHiddenAppointments).
     const pastAll = getPast().filter((a) => !(hidden.has(a.id) && isCancelledStatus(a.status)));
     const pastCount = pastAll.length;
-    const completedCount = pastAll.filter((a) => !isCancelledStatus(a.status)).length;
-    const cancelledCount = pastAll.length - completedCount;
-    // Default newest first: a finished job by when it ended, a cancelled one by when it was cancelled.
-    const pastTime = (a: Appointment) => Date.parse((isCancelledStatus(a.status) ? a.cancelledAt : a.completedAt) ?? a.updatedAt ?? '') || 0;
-    const pastShown = pastAll
-        .filter((a) => (pastFilter === 'cancelled') === isCancelledStatus(a.status))
-        .sort((a, b) => (pastOrder[pastFilter] === 'desc' ? pastTime(b) - pastTime(a) : pastTime(a) - pastTime(b)));
     // Only tabs that hold something are shown; if the selected one empties out, fall back to the first that has items.
     const tabs = ([
-        { id: 'upcoming', label: t('appointments.list.upcoming'), count: upcomingCount },
-        { id: 'pending', label: t('appointments.list.pendingApproval'), count: pendingCount, alert: true },
+        { id: 'upcoming', label: t('appointments.list.upcoming'), count: upcomingCount + pendingCount },
         { id: 'past', label: t('appointments.list.past'), count: pastCount },
     ] as const).filter((tab) => tab.count > 0);
     const activeTab = tabs.some((tab) => tab.id === selectedTab) ? selectedTab : tabs[0]?.id ?? 'upcoming';
-    const appointments = activeTab === 'upcoming'
-        ? getUpcoming()
-        : activeTab === 'pending'
-            ? getPendingApproval()
-            : pastShown;
+    const appointments = applyFilters(activeTab === 'past' ? pastAll : upcomingAll, filters, activeTab);
+    // The offers on top answer to the search only: they are the most urgent, so a date or status filter never hides them.
+    const offersShown = activeTab === 'upcoming' ? offersAll.filter((a) => matchesQuery(a, filters.query)) : [];
+    const filtering = isFiltering(filters, activeTab);
 
     // The badge is a live summary, so it never repeats the title below it.
     const badgeLabel = upcomingCount > 0
@@ -98,6 +94,7 @@ export default function AppointmentsScreen() {
                 data={appointments}
                 keyExtractor={(item) => item.id}
                 ListHeaderComponent={
+                    <>
                     <View style={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 12 }}>
                         {/* Section Badge */}
                         <View style={{ marginTop: 14 }}>
@@ -120,59 +117,12 @@ export default function AppointmentsScreen() {
                             </View>
                         )}
 
-                        {/* Past has its own Completed / Cancelled selector, which says the same thing. */}
-                        {activeTab !== 'past' && (
-                            <Text className="font-outfit-regular text-[13px] mt-2.5" style={{ color: '#6B7490' }}>
-                                {t(`appointments.list.hint.${activeTab}`)}
-                            </Text>
-                        )}
-
-                        {activeTab === 'past' && (
-                            <View className="flex-row" style={{ marginTop: 16, padding: 4, borderRadius: 16, backgroundColor: '#EAEFF9' }}>
-                                {([
-                                    { key: 'completed', label: t('appointments.list.pastFilter.completed'), count: completedCount },
-                                    { key: 'cancelled', label: t('appointments.list.pastFilter.cancelled'), count: cancelledCount },
-                                ] as const).map((f) => {
-                                    const on = pastFilter === f.key;
-                                    const asc = pastOrder[f.key] === 'asc';
-                                    const Arrow = asc ? ArrowUp : ArrowDown;
-                                    const color = on ? '#1E56E3' : '#6B7490';
-                                    return (
-                                        // The whole pill is the button: a first tap selects it, tapping the
-                                        // selected one flips its order (the arrow only shows which way it goes).
-                                        <TouchableOpacity
-                                            key={f.key}
-                                            onPress={() => {
-                                                if (on) {
-                                                    setPastOrder((prev) => ({ ...prev, [f.key]: prev[f.key] === 'desc' ? 'asc' : 'desc' }));
-                                                } else {
-                                                    setPastFilter(f.key);
-                                                }
-                                            }}
-                                            activeOpacity={0.7}
-                                            className="flex-row items-center justify-center"
-                                            style={{
-                                                flex: 1,
-                                                gap: 6,
-                                                paddingVertical: 10,
-                                                borderRadius: 12,
-                                                backgroundColor: on ? '#FFFFFF' : 'transparent',
-                                                ...(on ? { shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 6, elevation: 2 } : null),
-                                            }}
-                                            accessibilityRole="button"
-                                            accessibilityState={{ selected: on }}
-                                            accessibilityLabel={`${f.label}, ${asc ? t('appointments.list.sort.oldestFirst') : t('appointments.list.sort.newestFirst')}`}
-                                        >
-                                            <Text className="font-outfit-semibold text-[13px]" style={{ color }} numberOfLines={1}>
-                                                {f.label} · {f.count}
-                                            </Text>
-                                            {on ? <Arrow size={14} color={color} /> : null}
-                                        </TouchableOpacity>
-                                    );
-                                })}
-                            </View>
-                        )}
+                        <View style={{ marginTop: 16 }}>
+                            <AppointmentsFilterBar filters={filters} onChange={setFilters} scope={activeTab} resultCount={appointments.length + offersShown.length} />
+                        </View>
                     </View>
+                    <OffersSection appointments={offersShown} isMechanic={user?.role === 'mechanic'} onCancel={handleCancelRequest} />
+                    </>
                 }
                 renderItem={({ item }) => (
                     <View
@@ -206,17 +156,20 @@ export default function AppointmentsScreen() {
                     </View>
                 )}
                 contentContainerStyle={{ paddingBottom: 20 }}
-                ListEmptyComponent={
-                    <View className="items-center justify-center py-10">
-                        <Text className="font-outfit-medium text-[15px]" style={{ color: '#0B1530' }}>{activeTab === 'upcoming'
-                            ? t('appointments.list.noUpcoming')
-                            : activeTab === 'pending'
-                                ? t('appointments.list.noPendingApproval')
-                                : pastFilter === 'cancelled'
-                                    ? t('appointments.list.noCancelled')
-                                    : t('appointments.list.noCompleted')}</Text>
+                ListEmptyComponent={offersShown.length > 0 && !filtering ? null : (
+                    <View className="items-center justify-center py-10" style={{ gap: 12 }}>
+                        <Text className="font-outfit-medium text-[15px] text-center" style={{ color: '#0B1530' }}>{filtering
+                            ? t('appointments.filters.noMatches')
+                            : activeTab === 'upcoming'
+                                ? t('appointments.list.noUpcoming')
+                                : t('appointments.list.noCompleted')}</Text>
+                        {filtering ? (
+                            <TouchableOpacity onPress={() => setFilters(DEFAULT_FILTERS)} accessibilityRole="button" className="items-center justify-center" style={{ minHeight: 44, paddingHorizontal: 18, borderRadius: 14, backgroundColor: '#EAF1FF' }} testID="appointments-empty-clear">
+                                <Text className="font-outfit-bold" style={{ fontSize: 15, color: '#1E56E3' }}>{t('appointments.filters.clear')}</Text>
+                            </TouchableOpacity>
+                        ) : null}
                     </View>
-                }
+                )}
             />
 
             {/* Remove a cancelled appointment from the list */}

@@ -265,9 +265,9 @@ export default function ScheduledRequestScreen() {
                     title={t('scheduledProvider.sent.title')}
                     sub={t('scheduledProvider.sent.sub')}
                     footer={
-                        <View className="flex-row" style={{ gap: 10 }}>
-                            <Ghost label={t('scheduledProvider.sent.edit')} onPress={editSent} flex={1} outlined />
-                            <Primary label={t('scheduledProvider.back')} onPress={toRequests} flex={1.25} />
+                        <View style={{ gap: 10 }}>
+                            <Primary label={t('scheduledProvider.back')} onPress={toRequests} />
+                            <Ghost label={t('scheduledProvider.sent.edit')} onPress={editSent} outlined />
                         </View>
                     }
                 >
@@ -359,8 +359,8 @@ export default function ScheduledRequestScreen() {
                     </View>
                 </ScrollView>
                 <ActionBar>
-                    <Ghost label={t('scheduledProvider.decline.cancel')} onPress={() => setView('details')} />
                     <Primary label={t('scheduledProvider.decline.action')} disabled={!reason} onPress={async () => { await declineRequest(request.id); setView('declined'); }} />
+                    <Ghost label={t('scheduledProvider.decline.cancel')} onPress={() => setView('details')} />
                 </ActionBar>
             </View>
         );
@@ -712,21 +712,21 @@ function Switch({ on, onChange, label }: { on: boolean; onChange: (v: boolean) =
 }
 
 function ActionBar({ children }: { children: ReactNode }) {
-    return <View className="flex-row items-center" style={{ ...FLOATING_FOOTER, gap: 12 }}>{children}</View>;
+    return <View style={{ ...FLOATING_FOOTER, gap: 10 }}>{children}</View>;
 }
 
-function Primary({ label, onPress, disabled, tone, flex = 1 }: { label: string; onPress: () => void; disabled?: boolean; tone?: 'green'; flex?: number }) {
+function Primary({ label, onPress, disabled, tone }: { label: string; onPress: () => void; disabled?: boolean; tone?: 'green' }) {
     return (
-        <TouchableOpacity onPress={onPress} disabled={disabled} activeOpacity={0.85} accessibilityRole="button" accessibilityState={{ disabled: !!disabled }} style={{ flex, alignItems: 'center', paddingVertical: 15, paddingHorizontal: 16, borderRadius: 14, backgroundColor: disabled ? '#DCE7FA' : tone === 'green' ? SC.green : SC.blue }}>
+        <TouchableOpacity onPress={onPress} disabled={disabled} activeOpacity={0.85} accessibilityRole="button" accessibilityState={{ disabled: !!disabled }} style={{ alignItems: 'center', paddingVertical: 15, paddingHorizontal: 16, borderRadius: 14, backgroundColor: disabled ? '#DCE7FA' : tone === 'green' ? SC.green : SC.blue }}>
             <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#FFFFFF' }}>{label}</Text>
         </TouchableOpacity>
     );
 }
 
-function Ghost({ label, onPress, flex, outlined }: { label: string; onPress: () => void; flex?: number; outlined?: boolean }) {
+function Ghost({ label, onPress, outlined }: { label: string; onPress: () => void; outlined?: boolean }) {
     return (
-        <TouchableOpacity onPress={onPress} activeOpacity={0.8} accessibilityRole="button" style={{ ...(flex ? { flex } : {}), alignItems: 'center', paddingVertical: 15, paddingHorizontal: 18, borderRadius: 14, backgroundColor: outlined ? '#FFFFFF' : '#F1F3F7', borderWidth: outlined ? 1.5 : 0, borderColor: BORDER }}>
-            <Text className="font-outfit-bold" style={{ fontSize: outlined ? 14.5 : 13.5, color: outlined ? SC.text : SC.muted }}>{label}</Text>
+        <TouchableOpacity onPress={onPress} activeOpacity={0.8} accessibilityRole="button" style={{ alignItems: 'center', paddingVertical: 15, paddingHorizontal: 18, borderRadius: 14, backgroundColor: '#E6EAF2' }}>
+            <Text className="font-outfit-bold" style={{ fontSize: 15, color: '#4A5470' }}>{label}</Text>
         </TouchableOpacity>
     );
 }

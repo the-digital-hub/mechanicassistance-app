@@ -1,4 +1,3 @@
-import { CONFIRM_GRADIENT } from '@/lib/ui/floatingFooter';
 import { AddressNameField, addressNamePayload, type AddressNameValue } from '@/components/addresses/AddressNameField';
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { Input } from '@/components/ui/Input';
@@ -275,30 +274,18 @@ export default function EditAddressScreen() {
                 </View>
 
                 {/* Buttons Row */}
-                <View className="flex-row gap-3 mb-10">
-                    {/* Back Button - 30% width */}
-                    <TouchableOpacity
-                        onPress={() => { Keyboard.dismiss(); goBackOr(router, '/(tabs)/addresses'); }}
-                        activeOpacity={0.8}
-                        style={{ flex: 0.3 }}
-                        className="py-4 rounded-lg border border-gray-300 items-center"
-                    >
-                        <Text className="text-gray-900 font-outfit-semibold text-base">{t('addressForm.back')}</Text>
-                    </TouchableOpacity>
-
-                    {/* Save Button - 70% width */}
+                <View className="gap-3 mb-10">
                     <TouchableOpacity
                         onPress={handleUpdate}
                         activeOpacity={0.8}
                         disabled={isLoading || isDeleting}
-                        style={{ flex: 0.7 }}
                     >
                         <LinearGradient
-                            colors={[...CONFIRM_GRADIENT]}
+                            colors={['#2B66F8', '#081E72']}
                             start={{ x: 0, y: 1 }}
                             end={{ x: 1, y: 0 }}
                             style={{
-                                borderRadius: 8,
+                                borderRadius: 14,
                                 paddingVertical: 16,
                                 paddingHorizontal: 16,
                                 flexDirection: 'row',
@@ -313,6 +300,13 @@ export default function EditAddressScreen() {
                             )}
                         </LinearGradient>
                     </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={() => { Keyboard.dismiss(); goBackOr(router, '/(tabs)/addresses'); }}
+                        activeOpacity={0.8}
+                        className="items-center" style={{ paddingVertical: 16, borderRadius: 14, backgroundColor: '#E6EAF2' }}
+                    >
+                        <Text className="font-outfit-bold" style={{ fontSize: 17, lineHeight: 23, color: '#4A5470' }}>{t('addressForm.back')}</Text>
+                    </TouchableOpacity>
                 </View>
 
                 {/* Delete */}
@@ -320,7 +314,7 @@ export default function EditAddressScreen() {
                     onPress={confirmDelete}
                     activeOpacity={0.8}
                     disabled={isLoading || isDeleting}
-                    className="py-4 rounded-lg border items-center"
+                    className="py-4 rounded-[14px] border items-center"
                     style={{ borderColor: '#FCA5A5', backgroundColor: '#FEF2F2' }}
                 >
                     {isDeleting ? (

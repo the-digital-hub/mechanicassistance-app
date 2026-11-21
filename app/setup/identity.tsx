@@ -227,7 +227,7 @@ export default function IdentityScreen() {
             start={{ x: 0, y: 1 }}
             end={{ x: 1, y: 0 }}
             style={{
-              borderRadius: 10,
+              borderRadius: 14,
               paddingVertical: 16,
               paddingHorizontal: 16,
               flexDirection: "row",
@@ -252,7 +252,7 @@ export default function IdentityScreen() {
             start={{ x: 0, y: 1 }}
             end={{ x: 1, y: 0 }}
             style={{
-              borderRadius: 10,
+              borderRadius: 14,
               paddingVertical: 16,
               paddingHorizontal: 16,
               flexDirection: "row",

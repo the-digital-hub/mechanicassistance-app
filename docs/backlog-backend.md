@@ -21,7 +21,7 @@ Leyenda: ✅ hecho según el repo de análisis (a confirmar en producción) · �
 |---|---|---|
 | **1. Videollamada: precio, duración y reserva** | AA sin impuestos · B cotización con duración · N agendar 24/7 · O zona horaria | **X** descuento de agendadas (pantalla del Hub y valor) · **T** confirmar 60 min |
 | **2. Videollamada: durante y después** | Q consentimientos · P/U transcripción · J presencia · K ganancia por extensión · M push de tiempo extra | **L** transcripción en la cuenta de Daily · **V** traducción de subtítulos |
-| **3. Solicitudes y feed del técnico** | — | **S** solicitud tomada por otro · **E** `offerExpiresAt` en el listado · **AE** `refCode` en la vista del prestador · **AF** `new_request` fuera de la bandeja · **AG** identidad del técnico solo al aceptar · **R** entrada "Other" en el catálogo |
+| **3. Solicitudes y feed del técnico** | — | **S** solicitud tomada por otro · **E** `offerExpiresAt` en el listado · **AE** `refCode` en la vista del prestador · **AF** `new_request` fuera de la bandeja · **AG** identidad del técnico solo al aceptar · **AH** chat cerrado al finalizar · **R** entrada "Other" en el catálogo |
 | **4. Perfil y reputación** | Y reseñas del perfil · Z otras certificaciones | Pantalla de revisión de certificaciones en el Hub, permisos del admin y push de vencimiento |
 | **5. Cuidado del vehículo** | — | **W** agente de recomendaciones |
 | **6. Notificaciones** | — | **AB** textos más completos |
@@ -105,6 +105,11 @@ Leyenda: ✅ hecho según el repo de análisis (a confirmar en producción) · �
 - **Hacer:** que `new_request` siga saliendo como **push** pero **no se guarde en la bandeja** (ni cuente en `total` / `unread` ni en el número del ícono).
 - **Mientras tanto:** la app ya no las lista y descuenta las que alcanza a ver de `total` y `unread`; con el cambio del backend ese ajuste queda sin efecto y se puede quitar.
 - **Cómo lo verificamos:** crear dos solicitudes con un técnico disponible: llegan los dos push, y la bandeja del técnico no suma ninguna.
+
+### [ ] AH — Cerrar el chat cuando el técnico termina (`awaiting_confirmation`), no solo al completarse
+- **Problema:** la app ya deja el chat en solo lectura apenas el técnico marca el servicio como finalizado (aunque falte la confirmación del dueño y las calificaciones), pero `GET /chat/conversations/:id` sigue devolviendo `canWrite: true` hasta que la cita se completa o se cancela. Quien use otro cliente (o una versión vieja de la app) todavía puede escribir.
+- **Hacer:** que chat-service trate `awaiting_confirmation` como cerrado: `canWrite: false` y rechazar `POST …/messages` con el mismo error que ya devuelve para `completed`/`cancelled`.
+- **Cómo lo verificamos:** finalizar un servicio como técnico y comprobar que, sin que el dueño confirme, ambos reciben `canWrite: false` y no pueden enviar.
 
 ### [ ] AG — No enviar identidad del técnico mientras la oferta no está aceptada
 - **Problema:** la app oculta nombre y foto del técnico (foto borrosa, candado) hasta que el dueño confirma la oferta, pero la respuesta de `GET /api/assistance/:id/offer` (`mechanic.displayName`, `profileImage`, `initials`) los trae completos. Quien mire el tráfico de red los ve antes de confirmar.
@@ -424,3 +429,11 @@ esperar aprobación.
 - **Backend (repo de análisis `the-digital-hub/mechanicassistance-analisis`):** `servicios/appointments/README.md` (Videollamada, Tiempo extra,
   Consentimientos y transcripción), `servicios/price/README.md`, `servicios/billing/01-logica-de-pagos.md`, `servicios/users/README.md` (certificaciones,
   dirección base), `servicios/notifications/README.md`.
+
+## AI — Calificaciones: `experienceTags` en `client-review` y formato unificado
+- `POST /appointments/:id/client-review` hoy documenta solo `{rating, review?}`. La app ya muestra opciones prearmadas al técnico (puntual, descripción clara, trato respetuoso, fácil acceso) pero **no las envía** (`SEND_CLIENT_REVIEW_TAGS=false` en `lib/reviews/tags.ts`) porque el DTO con `forbidNonWhitelisted` podría devolver 400. Pedido: aceptar `experienceTags: string[]` (claves) y devolverlas en `clientReview`. Luego se activa el flag.
+- `POST /appointments/:id/review` (dueño) recibe `experienceTags` como string separado por comas, mientras `GET /reviews/me` lo devuelve como array. Pedido: aceptar array en ambos y normalizar; la app pasará a array.
+- `isReviewSubmitted` lo prenden ambas calificaciones; la app ya no lo usa para decidir si el dueño debe calificar (solo `reviewRating == null`).
+
+## AJ — Gateway: falta rutear `/api/mechanic-certifications` (bloquea "Other certifications")
+Guardar una certificación devuelve `403 "Call this through the API gateway (/api/...)"`. La tabla de ruteo del gateway (`mechanicassistance-gateway/src/main.ts`, ver `servicios/gateway/README.md` §4) no lista el prefijo `/api/mechanic-certifications`, así que la petición no llega a users-service. Pedido: agregarlo junto a `/api/mechanic-documents` → `USERS_SERVICE_URL` y desplegar el gateway. La app ya manda a `/api/mechanic-certifications` (GET/POST/PATCH/DELETE) y muestra el error del servidor en el formulario.

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { ObdCode, onSiteDAO, OnSiteVisit } from '@/lib/dao/OnSiteDAO';
 import { MediaSlot, Picked } from './MediaSlot';
@@ -36,6 +37,8 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true }: 
     const lang: 'en' | 'es' = i18n.language?.startsWith('en') ? 'en' : 'es';
 
     const [suggestionsOpen, setSuggestionsOpen] = React.useState(false);
+    // Typing a code or the VIN by hand is the exception, so it stays folded unless something is already typed in.
+    const [manualOpen, setManualOpen] = React.useState(() => !!visit?.obdVin || (visit?.obdStatus === 'manual'));
     const [input, setInput] = React.useState('');
     const [inputError, setInputError] = React.useState<string | null>(null);
     const [saving, setSaving] = React.useState(false);
@@ -95,20 +98,21 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true }: 
         <>
             {visit && askVin ? <VinMismatchModal appointmentId={appointmentId} visit={visit} onVisit={onVisit} /> : null}
             {allowUpload ? (
-                <Card>
-                    <CardTitle title={t(`${k}.file`)} optional />
+                <View className="mx-4 flex-row">
                     <MediaSlot
                         key={visit?.obdDocumentKey ?? 'none'}
                         kind="file"
-                        compact
-                        actionLabel={t(`${k}.upload`)}
-                        actionIcon="cloud-upload-outline"
-                        height={150}
+                        tile
+                        padded={false}
+                        height={140}
+                        title={t(`${k}.file`)}
+                        tileIcon="cloud-upload-outline"
+                        tileHint={t(`${k}.upload`)}
                         placeholder={t(`${k}.placeholder`)}
                         customUpload={upload}
                         existingFileName={fileName}
                     />
-                </Card>
+                </View>
             ) : null}
 
             {status === 'processing' ? (
@@ -164,7 +168,7 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true }: 
                         <View className="px-4 pt-1 pb-3.5">
                             <TouchableOpacity
                                 onPress={() => setSuggestionsOpen((v) => !v)}
-                                className="items-center py-3 rounded-xl"
+                                className="items-center py-3 rounded-[14px]"
                                 style={{ backgroundColor: suggestionsOpen ? OS.page : OS.blue }}
                             >
                                 <Text className="font-outfit-bold" style={{ ...TYPE.body, color: suggestionsOpen ? OS.text : '#FFFFFF' }}>
@@ -177,7 +181,21 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true }: 
             ) : null}
 
             <Card>
-                <Text className="font-outfit-bold px-4 pt-3.5" style={{ ...TYPE.question, color: OS.text }}>{t(`${k}.manualHint`)}</Text>
+                <TouchableOpacity
+                    onPress={() => setManualOpen((v) => !v)}
+                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityState={{ expanded: manualOpen }}
+                    className="flex-row items-center justify-between px-4"
+                    style={{ minHeight: 56 }}
+                    testID="obd-manual-toggle"
+                >
+                    <Text className="font-outfit-bold" style={{ ...TYPE.question, color: OS.text }}>{t(`${k}.moreOptions`)}</Text>
+                    <Ionicons name={manualOpen ? 'chevron-up' : 'chevron-down'} size={20} color={OS.muted} />
+                </TouchableOpacity>
+                {manualOpen ? (
+                    <View>
+                <Text className="font-outfit-bold px-4 pt-3.5" style={{ ...TYPE.helper, color: OS.text }}>{t(`${k}.codeLabel`)}</Text>
                 <View className="flex-row gap-2 px-4 pt-2 pb-3">
                     <TextInput
                         value={input}
@@ -208,7 +226,7 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true }: 
                 {inputError ? (
                     <Text className="font-outfit-medium px-4 pb-3 -mt-1" style={{ ...TYPE.caption, color: OS.red }}>{inputError}</Text>
                 ) : null}
-                <Text className="font-outfit-bold px-4 pt-1" style={{ ...TYPE.question, color: OS.text }}>{t(`${k}.vinHint`)}</Text>
+                <Text className="font-outfit-bold px-4 pt-1" style={{ ...TYPE.helper, color: OS.text }}>{t(`${k}.vinLabel`)}</Text>
                 <View className="flex-row gap-2 px-4 pt-2 pb-3">
                     <TextInput
                         value={vin}
@@ -234,6 +252,8 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true }: 
                 </View>
                 {vinError ? (
                     <Text className="font-outfit-medium px-4 pb-3 -mt-1" style={{ ...TYPE.caption, color: OS.red }}>{vinError}</Text>
+                ) : null}
+                    </View>
                 ) : null}
             </Card>
         </>

@@ -19,7 +19,13 @@ const K = 'appointments.onSiteConfirm';
  * How long is left before the service confirms by itself, in a block of its own: the time left big, ticking every minute, and the
  * date it happens on. Nothing once past or without a deadline.
  */
-function AutoConfirmLine({ deadline, who }: { deadline: string | null | undefined; who: 'owner' | 'mechanic' }) {
+const URGENT_MS = 3 * 3_600_000;
+
+/**
+ * `mode`: the owner can confirm right there, so the automatic confirmation is only a quiet footnote under the buttons until the last 3 hours;
+ * then it becomes the orange block above them. The technician, who can only wait, always sees the block.
+ */
+function AutoConfirmLine({ deadline, who, mode = 'block' }: { deadline: string | null | undefined; who: 'owner' | 'mechanic'; mode?: 'block' | 'quiet' | 'urgent' }) {
     const { t, i18n } = useTranslation();
     const [now, setNow] = React.useState(() => Date.now());
     React.useEffect(() => {
@@ -30,6 +36,9 @@ function AutoConfirmLine({ deadline, who }: { deadline: string | null | undefine
     const end = deadline ? new Date(deadline).getTime() : NaN;
     const ms = end - now;
     if (!Number.isFinite(ms) || ms <= 0) return null;
+    // A footnote while there is time, the block once it is close: each mode shows in only one of the two moments.
+    if (mode === 'quiet' && ms <= URGENT_MS) return null;
+    if (mode === 'urgent' && ms > URGENT_MS) return null;
     const totalMinutes = Math.ceil(ms / 60_000);
     const days = Math.floor(totalMinutes / 1440);
     const hours = Math.floor((totalMinutes % 1440) / 60);
@@ -42,6 +51,13 @@ function AutoConfirmLine({ deadline, who }: { deadline: string | null | undefine
     const when = new Date(end);
     const date = when.toLocaleDateString(i18n.language, { weekday: 'short', month: 'short', day: 'numeric' });
     const time = when.toLocaleTimeString(i18n.language, { hour: 'numeric', minute: '2-digit' });
+    if (mode === 'quiet') {
+        return (
+            <Text className="font-outfit-regular text-center" style={{ fontSize: 13, lineHeight: 18, color: AO.mutedLight, marginTop: 12 }} testID="on-site-auto-confirm-note">
+                {t(`${K}.autoConfirmQuiet`, { date, time })}
+            </Text>
+        );
+    }
     return (
         <View className="flex-row items-start" style={{ gap: 12, marginTop: 14, padding: 14, borderRadius: 16, backgroundColor: AO.orangeSoft }} testID="on-site-auto-confirm">
             <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#FFFFFF' }}>
@@ -74,7 +90,7 @@ export function OwnerOnSiteConfirmCard({ status, visit, busy, onConfirm, onDispu
     if (status === 'awaiting_confirmation') {
         return (
             <InfoCard icon="help-circle-outline" tone="blue" title={t(`${k}.awaitingTitle`)} body={t(`${k}.awaitingBody`)} testID="owner-on-site-confirm-card">
-                <AutoConfirmLine deadline={visit?.confirmDeadline} who="owner" />
+                <AutoConfirmLine deadline={visit?.confirmDeadline} who="owner" mode="urgent" />
                 <ConfirmOrDisputeRow
                     busy={busy}
                     confirmLabel={t(`${k}.confirm`)}
@@ -83,6 +99,7 @@ export function OwnerOnSiteConfirmCard({ status, visit, busy, onConfirm, onDispu
                     onDispute={onDispute}
                     testIDPrefix="owner-on-site"
                 />
+                <AutoConfirmLine deadline={visit?.confirmDeadline} who="owner" mode="quiet" />
             </InfoCard>
         );
     }

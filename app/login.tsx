@@ -839,7 +839,7 @@ export default function LoginScreen() {
 
             {errorModal.onAction && (
               <TouchableOpacity
-                className="bg-blue-700 w-full py-4 rounded-xl shadow-sm active:opacity-90 mb-3"
+                className="bg-blue-700 w-full py-4 rounded-[14px] shadow-sm active:opacity-90 mb-3"
                 onPress={() => {
                   hideError();
                   errorModal.onAction?.();
@@ -852,7 +852,7 @@ export default function LoginScreen() {
             )}
 
             <TouchableOpacity
-              className="bg-slate-100 w-full py-4 rounded-xl active:opacity-90"
+              className="bg-slate-100 w-full py-4 rounded-[14px] active:opacity-90"
               onPress={hideError}
             >
               <Text className="text-slate-700 text-center font-outfit-bold text-lg">
@@ -934,7 +934,7 @@ export default function LoginScreen() {
 
                 {forgotMsg?.type === "success" ? (
                   <TouchableOpacity
-                    className="bg-blue-700 w-full py-4 rounded-xl shadow-sm active:opacity-90"
+                    className="bg-blue-700 w-full py-4 rounded-[14px] shadow-sm active:opacity-90"
                     onPress={closeForgot}
                   >
                     <Text className="text-white text-center font-outfit-bold text-lg">
@@ -951,7 +951,7 @@ export default function LoginScreen() {
                       {t("login.sendResetButton")}
                     </Button>
                     <TouchableOpacity
-                      className="bg-slate-100 w-full py-4 rounded-xl active:opacity-90"
+                      className="bg-slate-100 w-full py-4 rounded-[14px] active:opacity-90"
                       onPress={closeForgot}
                       disabled={forgotLoading}
                     >

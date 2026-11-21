@@ -8,7 +8,7 @@ import { MAP_PROVIDER } from '@/lib/maps/provider';
 import { TYPE } from '@/lib/ui/type';
 import { ExtraCaptures, MediaSlot, useExistingCaptures } from './MediaSlot';
 import {
-    ActionBar, Body, Card, CardTitle, Checkbox, Eyebrow, Intro, MaintenanceChecklist, NoteInput, OS,
+    ActionBar, Body, Card, CardTitle, Checkbox, Eyebrow, GhostButton, Intro, MaintenanceChecklist, NoteInput, OS,
     OnSiteDialog, PrimaryButton, Tip, useMaintenanceItems,
 } from './ui';
 
@@ -305,6 +305,8 @@ export function ScreenResolveIncident({
     const { t } = useTranslation();
     const k = 'appointments.onSite.resolve';
     const [outcome, setOutcome] = React.useState<'resolved' | 'not' | null>(null);
+    // One thing at a time, for someone standing next to the vehicle: the work, then the proof, then how it went.
+    const [part, setPart] = React.useState<'work' | 'proof' | 'outcome'>('work');
     const startedAt = React.useMemo(() => (workStartedAt ? new Date(workStartedAt).getTime() : Date.now()), [workStartedAt]);
     const [seconds, setSeconds] = React.useState(() => Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
     const [notes, setNotes] = React.useState(workNotes);
@@ -325,40 +327,44 @@ export function ScreenResolveIncident({
     const mm = String(Math.floor(seconds / 60)).padStart(2, '0');
     const ss = String(seconds % 60).padStart(2, '0');
 
+    const stepNo = part === 'work' ? 1 : part === 'proof' ? 2 : 3;
+    const progress = (
+        <View className="flex-row items-center mx-5 mt-3" style={{ gap: 6 }} accessibilityLabel={t(`${k}.stepOf`, { current: stepNo, total: 3 })}>
+            {[1, 2, 3].map((n) => (
+                <View key={n} style={{ flex: 1, height: 5, borderRadius: 3, backgroundColor: n <= stepNo ? OS.blue : OS.borderSoft }} />
+            ))}
+        </View>
+    );
+
     return (
         <>
             <Body>
-                <Intro eyebrow={t(`${k}.eyebrow`)} title={t(`${k}.title`)} subtitle={t(`${k}.subtitle`)} />
-                <LinearGradient
-                    colors={['#2F6BFF', '#1E56E3', '#0B2A8E']}
-                    locations={[0, 0.5, 1]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 0.9, y: 1 }}
-                    style={{ marginHorizontal: 16, marginTop: 14, borderRadius: 20, padding: 16 }}
-                    testID="job-in-progress"
-                >
-                    <View className="flex-row items-start justify-between">
-                        <View className="flex-row items-center" style={{ gap: 10 }}>
-                            <IconTile name="time-outline" light />
-                            <View>
-                                <Text className="font-outfit-semibold" style={{ ...TYPE.helper, color: 'rgba(255,255,255,0.85)' }}>{t(`${k}.timerLabel`)}</Text>
-                                <Text className="font-outfit-bold" style={{ fontSize: 44, lineHeight: 50, letterSpacing: -1, color: '#FFFFFF', marginTop: 2, fontVariant: ['tabular-nums'] }}>{mm}:{ss}</Text>
+                {progress}
+                {part === 'work' ? (
+                    <>
+                        <Intro eyebrow={t(`${k}.eyebrow`)} title={t(`${k}.stepWorkTitle`)} subtitle={issue} />
+                        <LinearGradient
+                            colors={['#2F6BFF', '#1E56E3', '#0B2A8E']}
+                            locations={[0, 0.5, 1]}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 0.9, y: 1 }}
+                            style={{ marginHorizontal: 16, marginTop: 14, borderRadius: 20, padding: 16 }}
+                            testID="job-in-progress"
+                        >
+                            <View className="flex-row items-center justify-between">
+                                <View className="flex-row items-center" style={{ gap: 10 }}>
+                                    <IconTile name="time-outline" light />
+                                    <View>
+                                        <Text className="font-outfit-semibold" style={{ ...TYPE.helper, color: 'rgba(255,255,255,0.85)' }}>{t(`${k}.timerLabel`)}</Text>
+                                        <Text className="font-outfit-bold" style={{ fontSize: 44, lineHeight: 50, letterSpacing: -1, color: '#FFFFFF', marginTop: 2, fontVariant: ['tabular-nums'] }}>{mm}:{ss}</Text>
+                                    </View>
+                                </View>
+                                <View className="flex-row items-center" style={{ gap: 6, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.18)' }}>
+                                    <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: '#4ADE80' }} />
+                                    <Text className="font-outfit-bold" style={{ ...TYPE.caption, color: '#FFFFFF' }}>{t(`${k}.inProgress`)}</Text>
+                                </View>
                             </View>
-                        </View>
-                        <View className="flex-row items-center" style={{ gap: 6, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.18)' }}>
-                            <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: '#4ADE80' }} />
-                            <Text className="font-outfit-bold" style={{ ...TYPE.caption, color: '#FFFFFF' }}>{t(`${k}.inProgress`)}</Text>
-                        </View>
-                    </View>
-                    <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.22)', marginVertical: 14 }} />
-                    <View className="flex-row items-center" style={{ gap: 10 }}>
-                        <IconTile name="alert-circle-outline" light />
-                        <View className="flex-1">
-                            <Text className="font-outfit-semibold" style={{ ...TYPE.caption, color: 'rgba(255,255,255,0.8)' }}>{t(`${k}.issueLabel`)}</Text>
-                            <Text className="font-outfit-bold" style={{ ...TYPE.body, color: '#FFFFFF' }}>{issue}</Text>
-                        </View>
-                    </View>
-                </LinearGradient>
+                        </LinearGradient>
 
                 {partsOrder ? (
                     <>
@@ -413,66 +419,75 @@ export function ScreenResolveIncident({
                     </>
                 ) : null}
 
-                {/* Final photos: the same capture as the check-in's extra photos (video or photos). */}
-                <View className="px-5 mt-6">
-                    <Text className="font-outfit-bold" style={{ fontSize: 17, lineHeight: 23, color: OS.text }}>
-                        {t(`${k}.proof`)}
-                        <Text className="font-outfit-medium" style={{ fontSize: 13, color: OS.mutedLight }}>  {t('appointments.onSite.common.optional')}</Text>
-                    </Text>
-                    <Text className="font-outfit-regular mt-1" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>{t(`${k}.proofSub`)}</Text>
-                </View>
-                <ExtraCaptures videoKind="walkaround_out" photoKind="proof" existingVideo={walkaroundOut[0]} videoPlaceholder={t('appointments.onSite.photos.videoPh')} photoPlaceholder={t(`${k}.proofPh`)} />
+                    </>
+                ) : null}
 
-                <Card>
-                    <CardTitle title={t(`${k}.workTitle`)} optional />
-                    <View className="px-4 pb-4 pt-1">
-                        <NoteInput value={notes} onChangeText={setNotes} placeholder={t(`${k}.workPh`)} rows={4} white />
-                    </View>
-                </Card>
+                {part === 'proof' ? (
+                    <>
+                        <Intro eyebrow={t(`${k}.eyebrow`)} title={t(`${k}.stepProofTitle`)} subtitle={t(`${k}.stepProofSub`)} />
+                        <ExtraCaptures videoKind="walkaround_out" photoKind="proof" existingVideo={walkaroundOut[0]} videoPlaceholder={t('appointments.onSite.photos.videoPh')} photoPlaceholder={t(`${k}.proofPh`)} />
+                        <View className="mx-4 mt-3">
+                            <NoteInput value={notes} onChangeText={setNotes} placeholder={t(`${k}.workPh`)} rows={3} white />
+                        </View>
+                    </>
+                ) : null}
 
-                {/* How it ended is a choice made in the page; the bar below only moves on with it. */}
-                <View className="px-5 mt-6">
-                    <Text className="font-outfit-bold" style={{ ...TYPE.question, color: OS.text }}>{t(`${k}.outcomeTitle`)}</Text>
-                </View>
-                <View className="mx-4 mt-3" style={{ gap: 10 }}>
-                    {([
-                        { id: 'resolved' as const, icon: 'checkmark-circle-outline' as const, title: t(`${k}.resolvedTitle`), sub: t(`${k}.resolvedSub`), ink: OS.greenDark, soft: OS.greenSoft },
-                        { id: 'not' as const, icon: 'close-circle-outline' as const, title: t(`${k}.notResolvedTitle`), sub: t(`${k}.notResolvedSub`), ink: OS.red, soft: OS.redSoft },
-                    ]).map((o) => {
-                        const on = outcome === o.id;
-                        return (
-                            <TouchableOpacity
-                                key={o.id}
-                                onPress={() => setOutcome(o.id)}
-                                activeOpacity={0.8}
-                                accessibilityRole="radio"
-                                accessibilityState={{ selected: on }}
-                                className="flex-row items-center"
-                                style={{ gap: 12, padding: 14, borderRadius: 18, backgroundColor: on ? o.soft : '#FFFFFF', borderWidth: 1.5, borderColor: on ? o.ink : OS.border }}
-                                testID={`resolve-${o.id}`}
-                            >
-                                <View className="items-center justify-center" style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: on ? '#FFFFFF' : o.soft }}>
-                                    <Ionicons name={o.icon} size={24} color={o.ink} />
-                                </View>
-                                <View className="flex-1">
-                                    <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: OS.text }}>{o.title}</Text>
-                                    <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: OS.muted, marginTop: 1 }}>{o.sub}</Text>
-                                </View>
-                                <View className="items-center justify-center" style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: on ? o.ink : OS.border, backgroundColor: on ? o.ink : '#FFFFFF' }}>
-                                    {on ? <Ionicons name="checkmark" size={15} color="#FFFFFF" /> : null}
-                                </View>
-                            </TouchableOpacity>
-                        );
-                    })}
-                </View>
+                {part === 'outcome' ? (
+                    <>
+                        <Intro eyebrow={t(`${k}.eyebrow`)} title={t(`${k}.outcomeTitle`)} />
+                        <View className="mx-4 mt-3" style={{ gap: 10 }}>
+                            {([
+                                { id: 'resolved' as const, icon: 'checkmark-circle-outline' as const, title: t(`${k}.resolvedTitle`), sub: t(`${k}.resolvedSub`), ink: OS.greenDark, soft: OS.greenSoft },
+                                { id: 'not' as const, icon: 'close-circle-outline' as const, title: t(`${k}.notResolvedTitle`), sub: t(`${k}.notResolvedSub`), ink: OS.red, soft: OS.redSoft },
+                            ]).map((o) => {
+                                const on = outcome === o.id;
+                                return (
+                                    <TouchableOpacity
+                                        key={o.id}
+                                        onPress={() => setOutcome(o.id)}
+                                        activeOpacity={0.8}
+                                        accessibilityRole="radio"
+                                        accessibilityState={{ selected: on }}
+                                        className="flex-row items-center"
+                                        style={{ gap: 12, padding: 14, borderRadius: 18, backgroundColor: on ? o.soft : '#FFFFFF', borderWidth: 1.5, borderColor: on ? o.ink : OS.border }}
+                                        testID={`resolve-${o.id}`}
+                                    >
+                                        <View className="items-center justify-center" style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: on ? '#FFFFFF' : o.soft }}>
+                                            <Ionicons name={o.icon} size={24} color={o.ink} />
+                                        </View>
+                                        <View className="flex-1">
+                                            <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: OS.text }}>{o.title}</Text>
+                                            <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: OS.muted, marginTop: 1 }}>{o.sub}</Text>
+                                        </View>
+                                        <View className="items-center justify-center" style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: on ? o.ink : OS.border, backgroundColor: on ? o.ink : '#FFFFFF' }}>
+                                            {on ? <Ionicons name="checkmark" size={15} color="#FFFFFF" /> : null}
+                                        </View>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </View>
+                    </>
+                ) : null}
             </Body>
-            <ActionBar>
-                <PrimaryButton
-                    label={t('appointments.onSite.common.continue')}
-                    onPress={() => (outcome === 'resolved' ? onResolved() : outcome === 'not' ? onNotResolved() : undefined)}
-                    disabled={!outcome}
-                    testID="resolve-continue"
-                />
+            <ActionBar stacked>
+                {part === 'work' ? (
+                    <PrimaryButton label={t(`${k}.done`)} onPress={() => setPart('proof')} testID="resolve-work-done" />
+                ) : part === 'proof' ? (
+                    <>
+                        <PrimaryButton label={t('appointments.onSite.common.continue')} onPress={() => setPart('outcome')} testID="resolve-proof-next" />
+                        <GhostButton label={t(`${k}.backToWork`)} onPress={() => setPart('work')} />
+                    </>
+                ) : (
+                    <>
+                        <PrimaryButton
+                            label={t('appointments.onSite.common.continue')}
+                            onPress={() => (outcome === 'resolved' ? onResolved() : outcome === 'not' ? onNotResolved() : undefined)}
+                            disabled={!outcome}
+                            testID="resolve-continue"
+                        />
+                        <GhostButton label={t(`${k}.backToPhotos`)} onPress={() => setPart('proof')} />
+                    </>
+                )}
             </ActionBar>
         </>
     );
@@ -509,7 +524,7 @@ export function ScreenFinalCheck({ checklist: initialChecklist, onChecklistChang
                 <MaintenanceChecklist state={checklist} highlight={warned && !checklist.allChecked} />
             </Body>
             <ActionBar>
-                <PrimaryButton label={t(`${k}.finish`)} onPress={finish} tone="green" testID="final-check-finish" />
+                <PrimaryButton label={t(`${k}.finish`)} onPress={finish} testID="final-check-finish" />
             </ActionBar>
             <OnSiteDialog
                 visible={warnOpen}

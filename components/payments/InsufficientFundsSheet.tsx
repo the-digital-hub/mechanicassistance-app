@@ -105,7 +105,7 @@ export function InsufficientFundsSheet({ visible, amount, wallet, cards, busy, o
                         <TouchableOpacity
                             onPress={() => setStep('topUp')}
                             className="flex-row items-center justify-center"
-                            style={{ gap: 8, marginTop: 18, paddingVertical: 14, borderRadius: 12, backgroundColor: AO.blue }}
+                            style={{ gap: 8, marginTop: 18, paddingVertical: 14, borderRadius: 14, backgroundColor: AO.blue }}
                             testID="insufficient-funds-topup"
                             accessibilityRole="button"
                         >
@@ -116,7 +116,7 @@ export function InsufficientFundsSheet({ visible, amount, wallet, cards, busy, o
                             <TouchableOpacity
                                 onPress={() => setStep('card')}
                                 className="flex-row items-center justify-center"
-                                style={{ gap: 8, marginTop: 10, paddingVertical: 14, borderRadius: 12, backgroundColor: AO.blueSoft }}
+                                style={{ gap: 8, marginTop: 10, paddingVertical: 14, borderRadius: 14, backgroundColor: AO.blueSoft }}
                                 testID="insufficient-funds-card"
                                 accessibilityRole="button"
                             >

@@ -1,3 +1,4 @@
+import { FONT } from '@/lib/ui/fonts';
 import { Stack, useRouter } from "expo-router";
 import { HeaderBackButton } from "@/components/ui/HeaderBackButton";
 
@@ -14,7 +15,7 @@ export default function DashboardLayout() {
         headerTitleAlign: "center",
         headerTintColor: "#0047AB",
         headerStyle: { backgroundColor: "#FFFFFF" },
-        headerTitleStyle: { fontFamily: "Outfit_700Bold", fontSize: 18 },
+        headerTitleStyle: { fontFamily: FONT.bold, fontSize: 18 },
         headerShadowVisible: true,
       }}
     >

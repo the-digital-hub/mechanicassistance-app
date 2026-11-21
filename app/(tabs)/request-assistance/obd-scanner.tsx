@@ -1,3 +1,4 @@
+import { FONT } from '@/lib/ui/fonts';
 import { RequestSteps, stepEyebrow } from '@/components/ui/RequestSteps';
 import { ROUNDED_HEADER } from '@/lib/ui/header';
 import { FLOATING_CTA, FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
@@ -121,7 +122,7 @@ export default function ObdScannerScreen() {
                         <ChevronLeft size={16} color="#0047AB" />
                     </View>
                 </TouchableOpacity>
-                <Text style={{ fontFamily: 'Outfit_700Bold', fontSize: 17, color: C.ink, flex: 1, textAlign: 'center' }}>
+                <Text style={{ fontFamily: FONT.bold, fontSize: 17, color: C.ink, flex: 1, textAlign: 'center' }}>
                     {t(`${k}.headerTitle`)}
                 </Text>
                 <TouchableOpacity onPress={skip} testID="obd-scanner-skip" className="w-10 items-end">

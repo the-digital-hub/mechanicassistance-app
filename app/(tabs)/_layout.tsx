@@ -1,3 +1,4 @@
+import { FONT } from '@/lib/ui/fonts';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useUser } from "@/context/UserContext";
 import { useMechanicStatus } from "@/context/MechanicStatusContext";
@@ -254,7 +255,7 @@ export default function TabLayout() {
         sceneStyle: sceneUnderHeader,
         headerBackground: () => <RoundedHeaderBackground onHeight={setHeaderHeight} />,
         headerTitleStyle: {
-          fontFamily: "Outfit_500Medium",
+          fontFamily: FONT.medium,
           fontSize: 18,
           color: "#1A1A1A",
         },
@@ -316,7 +317,7 @@ export default function TabLayout() {
           sceneStyle: hasOwnHeader ? sceneNoHeader : sceneUnderHeader,
           tabBarIcon: ({ color }) => <Calendar size={24} color={color} />,
           headerTitleStyle: {
-            fontFamily: "Outfit_500Medium",
+            fontFamily: FONT.medium,
             fontSize: 18,
             color: "#1A1A1A",
           },

@@ -175,15 +175,18 @@ export function InfoCard({ icon, tone, title, body, children, testID }: {
     }[tone];
     return (
         <View style={[card, { padding: 16 }]} testID={testID}>
-            <View className="flex-row items-center" style={{ gap: 10 }}>
-                <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: palette.bg, alignItems: 'center', justifyContent: 'center' }}>
-                    <Ionicons name={icon} size={19} color={palette.fg} />
+            {/* The text sits in its own column, under the title and not under the icon; what the card carries (buttons, a clock) goes full width below. */}
+            <View className="flex-row" style={{ gap: 12, alignItems: body ? 'flex-start' : 'center' }}>
+                <View style={{ width: 40, height: 40, borderRadius: 13, backgroundColor: palette.bg, alignItems: 'center', justifyContent: 'center' }}>
+                    <Ionicons name={icon} size={20} color={palette.fg} />
                 </View>
-                <Text className="font-outfit-bold" style={{ flex: 1, fontSize: 15, color: AO.text, letterSpacing: -0.2 }}>{title}</Text>
+                <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, color: AO.text, letterSpacing: -0.3, marginTop: body ? 8 : 0 }}>{title}</Text>
+                    {!!body && (
+                        <Text className="font-outfit-regular" style={{ fontSize: 15, lineHeight: 21, color: AO.muted, marginTop: 3 }}>{body}</Text>
+                    )}
+                </View>
             </View>
-            {!!body && (
-                <Text className="font-outfit-regular" style={{ fontSize: 13, color: AO.muted, lineHeight: 19, marginTop: 10 }}>{body}</Text>
-            )}
             {children}
         </View>
     );
@@ -353,18 +356,18 @@ export function NoteSheet({ visible, title, body, placeholder, confirmLabel, min
                             {t(`${K}.minChars`, { count: minLength, current: trimmed.length })}
                         </Text>
                     )}
-                    <View className="flex-row gap-3 w-full mt-5">
-                        <TouchableOpacity onPress={onClose} disabled={submitting} className="flex-1 bg-white border border-gray-200 py-3 rounded-lg items-center" testID="note-sheet-cancel">
-                            <Text className="font-outfit-bold text-gray-700">{t(`${K}.cancel`)}</Text>
-                        </TouchableOpacity>
+                    <View className="gap-3 w-full mt-5">
                         <TouchableOpacity
                             onPress={() => onSubmit(trimmed)}
                             disabled={submitting || tooShort}
-                            className="flex-1 py-3 rounded-lg items-center"
+                            className="py-3 rounded-[14px] items-center"
                             style={{ backgroundColor: danger ? AO.red : AO.blue, opacity: submitting || tooShort ? 0.6 : 1 }}
                             testID="note-sheet-submit"
                         >
                             {submitting ? <ActivityIndicator color="#fff" /> : <Text className="font-outfit-bold text-white">{confirmLabel}</Text>}
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={onClose} disabled={submitting} className="py-3 rounded-lg items-center" style={{ backgroundColor: '#E6EAF2' }} testID="note-sheet-cancel">
+                            <Text className="font-outfit-bold" style={{ color: '#4A5470' }}>{t(`${K}.cancel`)}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>

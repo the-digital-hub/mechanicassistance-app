@@ -1,11 +1,14 @@
-import { CONFIRM_GRADIENT } from '@/lib/ui/floatingFooter';
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "expo-router";
 import { ChevronLeft, ChevronRight, Eye, EyeOff } from "lucide-react-native";
 import { useState } from "react";
+import { ApiError } from "@/lib/api/types";
+import { userDAO } from "@/lib/dao/UserDAO";
+import { appAlert } from "@/lib/ui/appAlert";
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
+    ActivityIndicator,
     ScrollView,
     Text,
     TextInput,
@@ -28,6 +31,9 @@ export default function PasswordScreen() {
     confirm: true,
   });
 
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const toggleSecureResponse = (key: keyof typeof secureTextEntry) => {
     setSecureTextEntry((prev) => ({ ...prev, [key]: !prev[key] }));
   };
@@ -35,6 +41,28 @@ export default function PasswordScreen() {
   // Validation logic
   const hasMinLength = passwords.new.length >= 8;
   const hasSymbolOrNumber = /[0-9!@#$%^&*]/.test(passwords.new);
+
+  const matches = passwords.new.length > 0 && passwords.new === passwords.confirm;
+  const canSubmit = hasMinLength && hasSymbolOrNumber && matches && !saving;
+
+  const submit = async () => {
+    if (!canSubmit) return;
+    setSaving(true);
+    setError(null);
+    try {
+      // No current password typed: an account made by phone has none yet, so this sets the first one.
+      if (passwords.current) await userDAO.changePassword(passwords.current, passwords.new);
+      else await userDAO.setPassword(passwords.new);
+      setPasswords({ current: "", new: "", confirm: "" });
+      appAlert(t('password.doneTitle'), t('password.doneBody'), [{ text: t('password.back'), onPress: () => router.back() }], { tone: 'success' });
+    } catch (e) {
+      if (e instanceof ApiError && e.statusCode === 409) setError(t('password.needCurrent'));
+      else if (e instanceof ApiError && (e.statusCode === 401 || e.statusCode === 403)) setError(t('password.wrongCurrent'));
+      else setError(t('password.failed'));
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <KeyboardAwareScrollView style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 24, paddingBottom: 40 }}>
@@ -61,7 +89,7 @@ export default function PasswordScreen() {
       <View className="gap-6 mb-8">
         {/* Current Password */}
         <View>
-          <Text className="font-outfit-medium text-gray-900 text-base mb-2">
+          <Text className="font-outfit-bold text-gray-900 mb-2" style={{ fontSize: 17, lineHeight: 23 }}>
             {t('password.currentPassword')}
           </Text>
           <View className="flex-row items-center bg-white border border-gray-300 rounded-2xl px-4 h-14">
@@ -80,16 +108,14 @@ export default function PasswordScreen() {
               )}
             </TouchableOpacity>
           </View>
-          <TouchableOpacity className="self-end mt-2">
-            <Text className="text-blue-600 font-outfit-medium text-[15px]">
-              {t('password.forgotPassword')}
-            </Text>
-          </TouchableOpacity>
+          <Text className="font-outfit-regular mt-2" style={{ fontSize: 14, lineHeight: 19, color: '#6B7490' }}>
+            {t('password.currentHint')}
+          </Text>
         </View>
 
         {/* New Password */}
         <View>
-          <Text className="font-outfit-medium text-gray-900 text-base mb-2">
+          <Text className="font-outfit-bold text-gray-900 mb-2" style={{ fontSize: 17, lineHeight: 23 }}>
             {t('password.newPassword')}
           </Text>
           <View className="flex-row items-center bg-white border border-gray-300 rounded-2xl px-4 h-14">
@@ -112,7 +138,7 @@ export default function PasswordScreen() {
 
         {/* Confirm Password */}
         <View>
-          <Text className="font-outfit-medium text-gray-900 text-base mb-2">
+          <Text className="font-outfit-bold text-gray-900 mb-2" style={{ fontSize: 17, lineHeight: 23 }}>
             {t('password.confirmPassword')}
           </Text>
           <View className="flex-row items-center bg-white border border-gray-300 rounded-2xl px-4 h-14">
@@ -148,38 +174,43 @@ export default function PasswordScreen() {
         </Text>
       </View>
 
-      {/* Buttons Row */}
-      <View className="flex-row gap-3">
-        {/* Back Button - 30% width */}
-        <TouchableOpacity
-          onPress={() => router.back()}
-          activeOpacity={0.8}
-          style={{ flex: 0.3 }}
-          className="py-4 rounded-lg border border-gray-300 items-center"
-        >
-          <Text className="text-gray-900 font-outfit-semibold text-lg">{t('password.back')}</Text>
-        </TouchableOpacity>
+      {passwords.confirm.length > 0 && !matches ? (
+        <Text className="font-outfit-regular text-red-500 mb-3" style={{ fontSize: 15 }}>{t('password.mismatch')}</Text>
+      ) : null}
+      {error ? <Text className="font-outfit-medium text-red-500 mb-3" style={{ fontSize: 15 }}>{error}</Text> : null}
 
-        {/* Change Password Button - 70% width */}
+      {/* Buttons Row */}
+      <View className="gap-3">
         <TouchableOpacity
+          onPress={() => void submit()}
+          disabled={!canSubmit}
           activeOpacity={0.8}
-          style={{ flex: 0.7 }}
+          accessibilityRole="button"
+          testID="password-submit"
         >
           <LinearGradient
-            colors={[...CONFIRM_GRADIENT]}
+            colors={['#2B66F8', '#081E72']}
             start={{ x: 0, y: 1 }}
             end={{ x: 1, y: 0 }}
             style={{
-              borderRadius: 8,
+              borderRadius: 14,
               paddingVertical: 16,
               paddingHorizontal: 16,
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'center',
+              opacity: canSubmit ? 1 : 0.6,
             }}
           >
-            <Text className="text-white font-outfit-bold text-lg text-center">{t('password.changePassword')}</Text>
+            {saving ? <ActivityIndicator color="white" /> : <Text className="text-white font-outfit-bold text-lg text-center">{t('password.changePassword')}</Text>}
           </LinearGradient>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          activeOpacity={0.8}
+          className="items-center" style={{ paddingVertical: 16, borderRadius: 14, backgroundColor: '#E6EAF2' }}
+        >
+          <Text className="font-outfit-bold" style={{ fontSize: 17, lineHeight: 23, color: '#4A5470' }}>{t('password.back')}</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAwareScrollView>

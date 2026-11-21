@@ -103,7 +103,7 @@ export function WalletSection({ cards }: { cards: PaymentCard[] }) {
                         setTopUpOpen(true);
                     }}
                     className="flex-row items-center justify-center"
-                    style={{ gap: 6, marginTop: 16, paddingVertical: 12, borderRadius: 12, backgroundColor: '#fff' }}
+                    style={{ gap: 6, marginTop: 16, paddingVertical: 12, borderRadius: 14, backgroundColor: '#fff' }}
                     testID="wallet-add-funds"
                     accessibilityRole="button"
                 >

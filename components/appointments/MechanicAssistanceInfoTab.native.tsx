@@ -21,6 +21,10 @@ export function MechanicAssistanceInfoTab({ appointment, section, videoSection }
     const { t, i18n } = useTranslation();
     // A video call is remote: no GPS, map, route or ETA.
     const isVideoCall = (appointment?.assistanceType ?? appointment?.type) === 'videocall';
+    // Once the technician is on site, or the job is over, there is no trip left to follow: the arrival and the route are history.
+    const onSite = appointment?.status === 'started' || appointment?.status === 'in_progress';
+    const jobOver = ['awaiting_confirmation', 'completed', 'disputed', 'cancelled', 'canceled'].includes(appointment?.status ?? '');
+    const tripLive = !onSite && !jobOver;
     const [mechanicCoords, setMechanicCoords] = React.useState<{ latitude: number; longitude: number } | null>(null);
 
     // Request location coords are the client's chosen point (default address or
@@ -39,7 +43,7 @@ export function MechanicAssistanceInfoTab({ appointment, section, videoSection }
     // Track mechanic's live position — watch continuously so the marker moves as they drive.
     // Local marker only: sharing it with the owner is MechanicLocationBroadcaster's job.
     React.useEffect(() => {
-        if (isVideoCall) return;
+        if (isVideoCall || !tripLive) return;
         let sub: Location.LocationSubscription | null = null;
         let cancelled = false;
         (async () => {
@@ -63,7 +67,7 @@ export function MechanicAssistanceInfoTab({ appointment, section, videoSection }
             cancelled = true;
             sub?.remove();
         };
-    }, [isVideoCall]);
+    }, [isVideoCall, tripLive]);
 
     const arrivalValue = etaLoading
         ? t('appointments.detail.info.calculating')
@@ -126,6 +130,7 @@ export function MechanicAssistanceInfoTab({ appointment, section, videoSection }
         );
     }
 
+    const whenLabel = (iso: string) => new Date(iso).toLocaleString(i18n.language, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
     const showTrip = section !== 'vehicle';
     const showVehicle = section !== 'trip';
 
@@ -133,16 +138,25 @@ export function MechanicAssistanceInfoTab({ appointment, section, videoSection }
         <View className="gap-3.5">
             {showTrip && (
                 <>
-                    {/* Trip logistics — grouped with the map right below */}
+                    {/* Trip logistics — grouped with the map right below. Once the technician is there (or the job is over): when they arrived and finished. */}
                     <DetailCard>
-                        <DetailRow icon="time-outline" label={t('appointments.detail.info.arrivalTime')} value={arrivalValue} />
-                        <DetailRow icon="calendar-outline" label={t('appointments.detail.info.estimatedArrival')} value={etaValue} />
+                        {tripLive ? (
+                            <>
+                                <DetailRow icon="time-outline" label={t('appointments.detail.info.arrivalTime')} value={arrivalValue} />
+                                <DetailRow icon="calendar-outline" label={t('appointments.detail.info.estimatedArrival')} value={etaValue} />
+                            </>
+                        ) : (
+                            <>
+                                {appointment.startedAt ? <DetailRow icon="log-in-outline" label={t('appointments.detail.info.arrived')} value={whenLabel(appointment.startedAt)} /> : null}
+                                {jobOver && appointment.completedAt ? <DetailRow icon="checkmark-done-outline" label={t('appointments.detail.info.finished')} value={whenLabel(appointment.completedAt)} /> : null}
+                            </>
+                        )}
                         <DetailRow
                             icon="location-outline"
                             label={t('appointments.detail.info.address')}
                             value={appointment.address}
                             last
-                            action={{
+                            action={jobOver ? undefined : {
                                 label: t('appointments.detail.info.viewInMaps'),
                                 icon: 'navigate-outline',
                                 onPress: () => void openDirections(
@@ -153,8 +167,8 @@ export function MechanicAssistanceInfoTab({ appointment, section, videoSection }
                         />
                     </DetailCard>
 
-                    {/* Route map — client pin, own GPS dot, road route; tap for full screen */}
-                    <OwnerRouteMap destination={requestCoords} mechanic={mechanicCoords} polyline={polyline} height={220} showOpenInMaps={false} />
+                    {/* Route map — client pin, own GPS dot, road route; tap for full screen. Only while the trip is live. */}
+                    {tripLive ? <OwnerRouteMap destination={requestCoords} mechanic={mechanicCoords} polyline={polyline} height={220} showOpenInMaps={false} /> : null}
                 </>
             )}
 

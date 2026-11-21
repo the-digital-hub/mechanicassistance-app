@@ -90,6 +90,12 @@ export function alertOpenWork(openWork: OpenWork | undefined, t: TFunction, loca
             };
             lines.push(t('profile.switchRole.upcomingMechanicJobSwitch'));
         } else {
+            // No date to show: the block still says what is waiting and in which role, and the sentence says what to do about it.
+            highlight = {
+                label: t('profile.switchRole.upcomingLabel'),
+                value: t('profile.switchRole.upcomingNoDateValue'),
+                icon: 'construct-outline',
+            };
             lines.push(t('profile.switchRole.upcomingMechanicJobNoDate'));
         }
     }

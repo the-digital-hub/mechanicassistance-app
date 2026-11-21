@@ -455,7 +455,7 @@ export default function MechanicFoundScreen() {
                         colors={[...CONFIRM_GRADIENT]}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
-                        style={{ borderRadius: 16, paddingVertical: 16, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                        style={{ borderRadius: 14, paddingVertical: 16, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                     >
                         {confirmState === 'done' && <Ionicons name="checkmark" size={16} color="#fff" />}
                         {confirmState === 'loading' && <ActivityIndicator size="small" color="#fff" />}

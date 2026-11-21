@@ -1,3 +1,4 @@
+import { FONT } from '@/lib/ui/fonts';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, StyleSheet, Text, View } from 'react-native';
@@ -68,14 +69,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18, paddingBottom: 12, backgroundColor: VC.navy,
   },
   left: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 7 },
-  label: { fontFamily: 'Outfit_700Bold', fontSize: 14, color: '#FFFFFF', flexShrink: 1 },
+  label: { fontFamily: FONT.bold, fontSize: 14, color: '#FFFFFF', flexShrink: 1 },
   brand: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   logoCircle: {
     width: 28, height: 28, borderRadius: 14, backgroundColor: '#FFFFFF',
     alignItems: 'center', justifyContent: 'center',
   },
   logo: { width: 24, height: 24 },
-  wordmark: { fontFamily: 'Outfit_700Bold', fontSize: 12, letterSpacing: 0.63, color: '#FFFFFF' },
+  wordmark: { fontFamily: FONT.bold, fontSize: 12, letterSpacing: 0.63, color: '#FFFFFF' },
   right: { flex: 1, alignItems: 'flex-end' },
-  timer: { fontFamily: 'Outfit_700Bold', fontSize: 17, fontVariant: ['tabular-nums'] },
+  timer: { fontFamily: FONT.bold, fontSize: 17, fontVariant: ['tabular-nums'] },
 });

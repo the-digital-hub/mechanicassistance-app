@@ -112,10 +112,10 @@ export function AppAlertHost() {
                             activeOpacity={0.7}
                             accessibilityRole="button"
                             className="items-center justify-center"
-                            style={{ minHeight: 48, marginTop: actions.length ? 6 : 20 }}
+                            style={{ minHeight: 52, borderRadius: 14, backgroundColor: '#E6EAF2', marginTop: actions.length ? 8 : 20 }}
                             testID="app-alert-cancel"
                         >
-                            <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: OS.muted }}>{cancel.text ?? t('common.cancel')}</Text>
+                            <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: '#4A5470' }}>{cancel.text ?? t('common.cancel')}</Text>
                         </TouchableOpacity>
                     ) : null}
                 </View>

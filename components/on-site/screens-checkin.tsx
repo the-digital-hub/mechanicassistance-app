@@ -1,7 +1,8 @@
+import { PinBoxes } from '@/components/on-site/PinBoxes';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import type { ObdCode, OnSiteVisit } from '@/lib/dao/OnSiteDAO';
 import { ObdPanel } from './ObdPanel';
@@ -127,18 +128,8 @@ export function ScreenCheckIn({ onSubmit, onMismatch }: {
                 </Card>
             ) : (
                 <Card style={{ padding: 24 }}>
-                    <TextInput
-                        value={pin}
-                        onChangeText={(v) => setPin(v.replace(/\D/g, '').slice(0, 4))}
-                        keyboardType="number-pad"
-                        maxLength={4}
-                        placeholder="••••"
-                        placeholderTextColor={OS.mutedLight}
-                        className="font-outfit-bold text-center"
-                        style={{ fontSize: 32, letterSpacing: 14, color: OS.text, borderWidth: 1.5, borderColor: OS.border, borderRadius: 14, paddingVertical: 14, backgroundColor: OS.page }}
-                        testID="check-in-pin"
-                    />
-                    <View className="flex-row mt-4">
+                    <PinBoxes value={pin} onChange={setPin} testID="check-in-pin" />
+                    <View className="flex-row mt-6">
                         <PrimaryButton
                             label={submitting ? t('appointments.checkIn.checking') : t('appointments.checkIn.verifyPin')}
                             onPress={() => void submit('pin', pin)}
@@ -193,10 +184,9 @@ export function ScreenDiagnosticsObd({ appointmentId, visit, onVisit, onNext, en
         <>
             <Body>
                 <Intro eyebrow={t(`${k}.eyebrow`)} title={t(`${k}.title`)} subtitle={t(`${k}.subtitle`)} />
-                <Tip>{t(`${k}.tipLater`)}</Tip>
                 <ObdPanel appointmentId={appointmentId} visit={visit} onVisit={onVisit} />
                 <VinCrossCheck entered={enteredVin} visit={visit} />
-                {status === 'none' ? <Tip tone="orange">{t(`${k}.reminderTip`)}</Tip> : null}
+                <Tip>{t(`${k}.tipLater`)}</Tip>
             </Body>
             <ActionBar>
                 <PrimaryButton label={t('appointments.onSite.common.continue')} onPress={onNext} />
@@ -222,14 +212,10 @@ export function ScreenDiagnosticsPhotos({ onNext }: { onNext: () => void }) {
         <>
             <Body>
                 <Intro eyebrow={t(`${k}.eyebrow`)} title={t(`${k}.title`)} subtitle={t(`${k}.subtitle`)} />
-                <Card>
-                    <CardTitle title={t(`${k}.plate`)} right={<RequiredPill done={plateFilled} />} />
-                    <MediaSlot compact actionLabel={t('appointments.onSite.common.addPhoto')} actionIcon="camera-outline" height={150} placeholder={t(`${k}.platePh`)} captureKind="plate" existing={plate[0]} onChange={setPlateFilled} />
-                </Card>
-                <Card>
-                    <CardTitle title={t(`${k}.dash`)} right={<RequiredPill done={dashFilled} />} />
-                    <MediaSlot compact actionLabel={t('appointments.onSite.common.addPhoto')} actionIcon="camera-outline" height={150} placeholder={t(`${k}.dashPh`)} captureKind="dashboard" existing={dashboard[0]} onChange={setDashFilled} />
-                </Card>
+                <View className="mx-4 flex-row" style={{ gap: 12 }}>
+                    <MediaSlot tile padded={false} height={170} title={t(`${k}.plate`)} tileHint={t('appointments.onSite.common.addPhoto')} badge={<RequiredPill done={plateFilled} />} placeholder={t(`${k}.platePh`)} captureKind="plate" existing={plate[0]} onChange={setPlateFilled} />
+                    <MediaSlot tile padded={false} height={170} title={t(`${k}.dash`)} tileHint={t('appointments.onSite.common.addPhoto')} badge={<RequiredPill done={dashFilled} />} placeholder={t(`${k}.dashPh`)} captureKind="dashboard" existing={dashboard[0]} onChange={setDashFilled} />
+                </View>
 
                 <View className="px-5 mt-6">
                     <Text className="font-outfit-bold" style={{ fontSize: 17, lineHeight: 23, color: OS.text }}>
@@ -293,14 +279,15 @@ export function ScreenValidating({ run, onDone, onFail }: {
 }
 
 // ─────────── Feasibility ───────────
-export function ScreenFeasibility({ appointment, obdCodes, onYes, onNeedParts, onNo }: {
-    appointment: OnSiteAppointment;
-    obdCodes: ObdCode[];
+export function ScreenFeasibility({ onYes, onNeedParts, onNo }: {
+    // The issue, notes and OBD findings were already on the earlier steps: this one only asks the question.
+    appointment?: OnSiteAppointment;
+    obdCodes?: ObdCode[];
     onYes: () => void;
     onNeedParts: () => void;
     onNo: () => void;
 }) {
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
     const k = 'appointments.onSite.feasibility';
     const [choice, setChoice] = React.useState<'yes' | 'parts' | 'no' | null>(null);
     const options: { id: 'yes' | 'parts' | 'no'; icon: React.ComponentProps<typeof Ionicons>['name']; title: string; sub: string; tone: 'green' | 'blue' | 'red' }[] = [
@@ -309,25 +296,10 @@ export function ScreenFeasibility({ appointment, obdCodes, onYes, onNeedParts, o
         { id: 'no', icon: 'close-circle-outline', title: t(`${k}.no`), sub: t(`${k}.noSub`), tone: 'red' },
     ];
     const go = () => (choice === 'yes' ? onYes() : choice === 'parts' ? onNeedParts() : choice === 'no' ? onNo() : undefined);
-    const lang: 'en' | 'es' = i18n.language?.startsWith('en') ? 'en' : 'es';
-    const findings = obdCodes.length
-        ? obdCodes.map((c) => (c.description ? `${c.code} — ${c.description[lang]}` : c.code)).join('\n')
-        : t(`${k}.noCodes`);
     return (
         <>
             <Body>
                 <Intro eyebrow={t(`${k}.eyebrow`)} tone="green" title={t(`${k}.title`)} />
-                <View className="mx-4 mt-3.5" style={cardShadow}>
-                    <InfoRow icon="alert-circle-outline" label={t(`${k}.issue`)} value={reportedIssue(appointment)} />
-                    <InfoRow icon="document-text-outline" label={t(`${k}.notes`)} value={appointment.notes || t('appointments.detail.info.noNotes')} />
-                    <InfoRow
-                        icon="construct-outline"
-                        label={t(`${k}.findings`)}
-                        value={<Text className="font-outfit-bold mt-0.5" style={{ fontSize: 16, lineHeight: 24, color: OS.text }}>{findings}</Text>}
-                        last
-                    />
-                </View>
-
                 {/* The ways out are options to choose from, in the page; the bar below only confirms the choice. */}
                 <View className="mx-4 mt-3.5" style={{ gap: 10 }}>
                     {options.map((o) => {

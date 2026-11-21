@@ -5,7 +5,7 @@ export const RATING_WINDOW_DAYS = 30;
 
 /**
  * Finished jobs this person has not rated yet, newest first: the vehicle owner owes the technician's rating (`reviewRating`),
- * the technician the customer's (`clientRating`). A job nobody took (no technician) or not completed owes nothing.
+ * the technician the customer's (`clientRating`). `isReviewSubmitted` is not used: the technician's own rating turns it on too. A job nobody took (no technician) or not completed owes nothing.
  */
 export function pendingRatings(appointments: readonly Appointment[], role: 'user' | 'mechanic', now: number = Date.now()): Appointment[] {
     const since = now - RATING_WINDOW_DAYS * 86_400_000;
@@ -14,7 +14,7 @@ export function pendingRatings(appointments: readonly Appointment[], role: 'user
             if (a.status !== 'completed' || a.source !== 'appointment' || !a.mechanicId) return false;
             const done = Date.parse(a.completedAt ?? a.updatedAt ?? '');
             if (!Number.isFinite(done) || done < since) return false;
-            return role === 'user' ? a.reviewRating == null && !a.isReviewSubmitted : a.clientRating == null;
+            return role === 'user' ? a.reviewRating == null : a.clientRating == null;
         })
         .sort((a, b) => Date.parse(b.completedAt ?? b.updatedAt ?? '') - Date.parse(a.completedAt ?? a.updatedAt ?? ''));
 }

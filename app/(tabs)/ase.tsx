@@ -1,3 +1,4 @@
+import { TYPE } from '@/lib/ui/type';
 import { Input } from '@/components/ui/Input';
 import { AseDAO, AseVerifyResult, UserCertificationsData } from '@/lib/dao/AseDAO';
 import { useUser } from '@/context/UserContext';
@@ -158,7 +159,7 @@ export default function ASEScreen() {
                                     start={{ x: 0, y: 1 }}
                                     end={{ x: 1, y: 0 }}
                                     style={{
-                                        borderRadius: 10,
+                                        borderRadius: 14,
                                         paddingVertical: 16,
                                         paddingHorizontal: 16,
                                         flexDirection: 'row',
@@ -171,7 +172,7 @@ export default function ASEScreen() {
                                         <ActivityIndicator color="white" />
                                     ) : (
                                         <>
-                                            <Text className="text-white font-outfit-bold text-center mr-2">{t('ase.searchButton')}</Text>
+                                            <Text className="text-white font-outfit-bold text-center mr-2" style={TYPE.button}>{t('ase.searchButton')}</Text>
                                             <ChevronRight size={20} color="white" />
                                         </>
                                     )}
@@ -222,7 +223,7 @@ export default function ASEScreen() {
                                     start={{ x: 0, y: 1 }}
                                     end={{ x: 1, y: 0 }}
                                     style={{
-                                        borderRadius: 10,
+                                        borderRadius: 14,
                                         paddingVertical: 16,
                                         paddingHorizontal: 16,
                                         flexDirection: 'row',
@@ -235,7 +236,7 @@ export default function ASEScreen() {
                                         <ActivityIndicator color="white" />
                                     ) : (
                                         <>
-                                            <Text className="text-white font-outfit-bold text-center mr-2">{t('ase.linkButton')}</Text>
+                                            <Text className="text-white font-outfit-bold text-center mr-2" style={TYPE.button}>{t('ase.linkButton')}</Text>
                                             <ChevronRight size={20} color="white" />
                                         </>
                                     )}

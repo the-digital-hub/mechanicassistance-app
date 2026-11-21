@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Text, TouchableOpacity, View } from 'react-native';
 
 import type { AddableRole } from '@/lib/dao/interfaces';
+import { TYPE } from '@/lib/ui/type';
 import { OwnerSheet } from '@/components/dashboard/OwnerHomeBlocks';
 
 const C = {
@@ -76,7 +77,7 @@ export function SwitchRoleSheet({ visible, current, held, onClose, onPick }: {
                                 activeOpacity={0.8}
                                 className="flex-row items-center"
                                 style={{
-                                    gap: 12, paddingVertical: 12, paddingHorizontal: 14, borderRadius: 16,
+                                    gap: 14, paddingVertical: 14, paddingHorizontal: 14, borderRadius: 18,
                                     backgroundColor: on ? C.blueSofter : '#fff',
                                     borderWidth: on ? 1.5 : 1, borderColor: on ? C.blue : C.border,
                                     opacity: disabled ? 0.6 : 1,
@@ -85,17 +86,17 @@ export function SwitchRoleSheet({ visible, current, held, onClose, onPick }: {
                                 accessibilityRole="radio"
                                 accessibilityState={{ selected: on, disabled }}
                             >
-                                <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: on ? C.blue : C.blueSoft, alignItems: 'center', justifyContent: 'center' }}>
-                                    <Icon size={20} color={on ? '#fff' : C.blue} />
+                                <View style={{ width: 48, height: 48, borderRadius: 14, backgroundColor: on ? C.blue : C.blueSoft, alignItems: 'center', justifyContent: 'center' }}>
+                                    <Icon size={24} color={on ? '#fff' : C.blue} />
                                 </View>
                                 <View style={{ flex: 1 }}>
                                     <View className="flex-row flex-wrap items-center" style={{ gap: 6 }}>
-                                        <Text className="font-outfit-bold" style={{ fontSize: 15, color: C.text }}>{label(id)}</Text>
+                                        <Text className="font-outfit-bold" style={{ fontSize: 18, lineHeight: 24, color: C.text }}>{label(id)}</Text>
                                         {id === current && <Pill text={t('profile.switchRole.current')} bg="#ECFBF3" color="#0E8A5F" />}
                                         {!isHeld(id) && <Pill text={t('profile.switchRole.notSetUp')} bg={C.page} color={C.muted} border />}
                                         {disabled && <Pill text={t('profile.switchRole.comingSoon')} bg="#FFF4E6" color="#C2620A" />}
                                     </View>
-                                    <Text className="font-outfit-regular" style={{ fontSize: 13, color: C.muted, marginTop: 2 }}>
+                                    <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: C.muted, marginTop: 2 }}>
                                         {t(`profile.switchRole.roles.${id}.desc`)}
                                     </Text>
                                 </View>
@@ -119,9 +120,9 @@ export function SwitchRoleSheet({ visible, current, held, onClose, onPick }: {
                         colors={canConfirm ? [C.blue, C.blueDark] : [C.disabled, C.disabled]}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
-                        style={{ borderRadius: 14, paddingVertical: 15, alignItems: 'center' }}
+                        style={{ borderRadius: 14, minHeight: 56, alignItems: 'center', justifyContent: 'center' }}
                     >
-                        <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#fff' }}>{buttonText}</Text>
+                        <Text className="font-outfit-bold" style={{ ...TYPE.button, color: '#fff' }}>{buttonText}</Text>
                     </LinearGradient>
                 </TouchableOpacity>
             </View>

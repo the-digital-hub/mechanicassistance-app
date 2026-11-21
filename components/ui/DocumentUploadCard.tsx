@@ -1,4 +1,4 @@
-import { FileText, Info, Upload } from 'lucide-react-native';
+import { FileText, Info, Trash2, Upload } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 
@@ -73,7 +73,7 @@ export function DocumentUploadCard({
         <View className="flex-row items-center flex-1 mr-2">
           <FileText size={18} color="#0047AB" />
           <Text
-            className="font-outfit-medium text-[#0F172A] text-base ml-2"
+            className="font-outfit-bold text-[#0F172A] ml-2" style={{ fontSize: 17, lineHeight: 23 }}
             numberOfLines={1}
           >
             {label}
@@ -107,12 +107,12 @@ export function DocumentUploadCard({
             <FileText size={20} color="#0047AB" />
             <View className="flex-1 ml-3">
               <Text
-                className="font-outfit-medium text-[#0F172A] text-sm"
+                className="font-outfit-bold text-[#0F172A]" style={{ fontSize: 15, lineHeight: 20 }}
                 numberOfLines={1}
               >
                 {document.originalName || document.fileKey}
               </Text>
-              <Text className="font-outfit-regular text-gray-400 text-[13px] mt-0.5">
+              <Text className="font-outfit-regular mt-0.5" style={{ fontSize: 14, lineHeight: 19, color: '#6B7490' }}>
                 {uploading
                   ? t('setup.legalDocs.uploading')
                   : t('setup.legalDocs.replace')}
@@ -140,38 +140,52 @@ export function DocumentUploadCard({
             onPress={onRemove}
             disabled={uploading}
             activeOpacity={0.8}
-            className="mt-3"
+            accessibilityRole="button"
+            className="mt-3 flex-row items-center self-start"
+            style={{ gap: 6, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: '#FEE2E2' }}
           >
-            <Text className="font-outfit-medium text-red-500 text-sm">
+            <Trash2 size={14} color="#DC2626" />
+            <Text className="font-outfit-bold" style={{ fontSize: 14, color: '#DC2626' }}>
               {t('setup.legalDocs.remove')}
             </Text>
           </TouchableOpacity>
         </View>
       ) : (
-        <TouchableOpacity
-          onPress={onPick}
-          disabled={uploading}
-          activeOpacity={0.8}
-          className="border-2 border-dashed border-gray-200 rounded-xl p-8 items-center justify-center bg-gray-50/30"
-        >
-          {uploading ? (
-            <>
-              <ActivityIndicator color="#0047AB" />
-              <Text className="text-gray-500 font-outfit-medium text-[13px] text-center mt-2">
-                {t('setup.legalDocs.uploading')}
-              </Text>
-            </>
-          ) : (
-            <>
-              <View className="w-12 h-12 bg-blue-100 rounded-full justify-center items-center mb-2">
-                <Upload size={24} color="#0047AB" />
-              </View>
-              <Text className="text-gray-500 font-outfit-medium text-[13px] text-center">
-                {t('setup.legalDocs.dropzone')}
-              </Text>
-            </>
-          )}
-        </TouchableOpacity>
+        // No dashed grey box: the hint and a real button, as in the rest of the app's upload slots.
+        <View style={{ gap: 14 }}>
+          <View className="flex-row items-center" style={{ gap: 12 }}>
+            <View
+              className="items-center justify-center"
+              style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: '#EAF1FF' }}
+            >
+              <Upload size={22} color="#1E56E3" />
+            </View>
+            <Text
+              className="flex-1 font-outfit-regular"
+              style={{ fontSize: 14, lineHeight: 20, color: '#6B7490' }}
+            >
+              {t('setup.legalDocs.dropzone')}
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={onPick}
+            disabled={uploading}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            className="flex-row items-center justify-center"
+            style={{ gap: 8, height: 52, borderRadius: 14, backgroundColor: '#1E56E3', opacity: uploading ? 0.7 : 1 }}
+            testID="legal-doc-upload"
+          >
+            {uploading ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Upload size={20} color="#FFFFFF" />
+            )}
+            <Text className="font-outfit-bold" style={{ fontSize: 17, color: '#FFFFFF' }}>
+              {uploading ? t('setup.legalDocs.uploading') : t('setup.legalDocs.uploadButton')}
+            </Text>
+          </TouchableOpacity>
+        </View>
       )}
 
       {error && (

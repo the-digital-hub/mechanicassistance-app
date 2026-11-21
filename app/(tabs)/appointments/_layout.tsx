@@ -1,3 +1,4 @@
+import { FONT } from '@/lib/ui/fonts';
 import { Stack } from 'expo-router';
 
 // Keeps the list under a detail entered from another tab or a notification, so
@@ -13,7 +14,7 @@ export default function AppointmentsLayout() {
                 headerTitleAlign: 'center',
                 headerTintColor: '#0047AB',
                 headerStyle: { backgroundColor: '#FFFFFF' },
-                headerTitleStyle: { fontFamily: 'Outfit_700Bold', fontSize: 18 },
+                headerTitleStyle: { fontFamily: FONT.bold, fontSize: 18 },
                 headerShadowVisible: true,
             }}
         >

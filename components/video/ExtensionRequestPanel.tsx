@@ -101,27 +101,27 @@ export function ExtensionRequestPanel({ appointmentId, isOwner, top = 12, refres
                                 </View>
                                 <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#1E56E3' }} testID="extension-countdown">{clock(secondsLeft)}</Text>
                             </View>
-                            <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
-                                <TouchableOpacity
-                                    onPress={() => answer('decline')}
-                                    disabled={!!acting}
-                                    style={{ flex: 1, minHeight: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F4F6FB', opacity: acting ? 0.6 : 1 }}
-                                    accessibilityRole="button"
-                                    testID="extension-decline"
-                                >
-                                    {acting === 'decline' ? <ActivityIndicator color="#6B7490" /> : (
-                                        <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#6B7490' }}>{t(`${K}.decline`)}</Text>
-                                    )}
-                                </TouchableOpacity>
+                            <View style={{ flexDirection: 'column', gap: 10, marginTop: 14 }}>
                                 <TouchableOpacity
                                     onPress={() => answer('accept')}
                                     disabled={!!acting}
-                                    style={{ flex: 1, minHeight: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: '#1E56E3', opacity: acting ? 0.6 : 1 }}
+                                    style={{ minHeight: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: '#1E56E3', opacity: acting ? 0.6 : 1 }}
                                     accessibilityRole="button"
                                     testID="extension-accept"
                                 >
                                     {acting === 'accept' ? <ActivityIndicator color="#FFFFFF" /> : (
                                         <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#FFFFFF' }}>{t(`${K}.accept`)}</Text>
+                                    )}
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    onPress={() => answer('decline')}
+                                    disabled={!!acting}
+                                    style={{ minHeight: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: '#E6EAF2', opacity: acting ? 0.6 : 1 }}
+                                    accessibilityRole="button"
+                                    testID="extension-decline"
+                                >
+                                    {acting === 'decline' ? <ActivityIndicator color="#4A5470" /> : (
+                                        <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#4A5470' }}>{t(`${K}.decline`)}</Text>
                                     )}
                                 </TouchableOpacity>
                             </View>

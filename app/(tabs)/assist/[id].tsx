@@ -681,7 +681,7 @@ export default function RequestDetailScreen() {
                                 start={{ x: 0, y: 1 }}
                                 end={{ x: 1, y: 0 }}
                                 style={{
-                                    borderRadius: 12,
+                                    borderRadius: 14,
                                     paddingVertical: 16,
                                     paddingHorizontal: 16,
                                     alignItems: 'center',

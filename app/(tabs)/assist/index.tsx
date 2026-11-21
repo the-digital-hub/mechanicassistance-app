@@ -393,9 +393,8 @@ export default function AssistanceRequestsScreen() {
                     )}
 
                     {/* Buttons Row (inside card) */}
-                    <View className="flex-row gap-3 px-5 py-4 border-t border-gray-100">
+                    <View className="gap-3 px-5 py-4 border-t border-gray-100">
                       <TouchableOpacity
-                        style={{ flex: request.type === 'scheduled' ? 1 : 0.65 }}
                         onPress={guard(() => router.push({
                           pathname: (request.type === 'scheduled' ? '/assist/scheduled-request' : `/assist/${request.id}`) as any,
                           params: {
@@ -438,12 +437,12 @@ export default function AssistanceRequestsScreen() {
                       </TouchableOpacity>
                       {request.type !== 'scheduled' && (
                       <TouchableOpacity
-                        className="py-3 rounded-2xl items-center justify-center"
-                        style={{ flex: 0.35, backgroundColor: '#F3F4F6' }}
+                        className="py-4 rounded-[14px] items-center justify-center"
+                        style={{ backgroundColor: '#E6EAF2' }}
                         activeOpacity={0.8}
                         onPress={guard(() => handleDecline(request.id))}
                       >
-                        <Text className="text-gray-600 font-outfit-semibold text-lg">
+                        <Text className="font-outfit-bold text-lg" style={{ color: '#4A5470' }}>
                           {t('dashboard.mechanic.decline')}
                         </Text>
                       </TouchableOpacity>

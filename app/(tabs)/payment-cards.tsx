@@ -1,4 +1,3 @@
-import { CONFIRM_GRADIENT } from '@/lib/ui/floatingFooter';
 import { CardField, StripeProvider, useStripe } from '@stripe/stripe-react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -254,8 +253,8 @@ function PaymentCardsContent() {
             <Text className="text-gray-500 font-outfit-regular text-base mb-4">
               {t('paymentCards.loadError')}
             </Text>
-            <TouchableOpacity onPress={load} className="px-5 py-3 rounded-lg border border-gray-300">
-              <Text className="text-gray-900 font-outfit-semibold">{t('paymentCards.retry')}</Text>
+            <TouchableOpacity onPress={load} className="px-5 py-3 rounded-lg" style={{ backgroundColor: '#E6EAF2' }}>
+              <Text className="font-outfit-bold" style={{ color: '#4A5470' }}>{t('paymentCards.retry')}</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -366,28 +365,19 @@ function PaymentCardsContent() {
                   </Text>
                 )}
 
-                <View className="flex-row gap-3 mt-4">
-                  <TouchableOpacity
-                    onPress={closeForm}
-                    disabled={saving}
-                    activeOpacity={0.8}
-                    style={{ flex: 0.3 }}
-                    className="py-4 rounded-lg border border-gray-300 items-center"
-                  >
-                    <Text className="text-gray-900 font-outfit-semibold text-base">{t('paymentCards.cancel')}</Text>
-                  </TouchableOpacity>
+                <View className="gap-3 mt-4">
                   <TouchableOpacity
                     onPress={handleSave}
                     disabled={!cardComplete || saving}
                     activeOpacity={0.8}
-                    style={{ flex: 0.7, opacity: !cardComplete || saving ? 0.6 : 1 }}
+                    style={{ opacity: !cardComplete || saving ? 0.6 : 1 }}
                   >
                     <LinearGradient
-                      colors={[...CONFIRM_GRADIENT]}
+                      colors={['#2B66F8', '#081E72']}
                       start={{ x: 0, y: 1 }}
                       end={{ x: 1, y: 0 }}
                       style={{
-                        borderRadius: 10,
+                        borderRadius: 14,
                         paddingVertical: 16,
                         paddingHorizontal: 16,
                         flexDirection: 'row',
@@ -402,6 +392,14 @@ function PaymentCardsContent() {
                       )}
                     </LinearGradient>
                   </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={closeForm}
+                    disabled={saving}
+                    activeOpacity={0.8}
+                    className="items-center" style={{ paddingVertical: 16, borderRadius: 14, backgroundColor: '#E6EAF2' }}
+                  >
+                    <Text className="font-outfit-bold" style={{ fontSize: 17, lineHeight: 23, color: '#4A5470' }}>{t('paymentCards.cancel')}</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
             ) : (
@@ -411,7 +409,7 @@ function PaymentCardsContent() {
                   start={{ x: 0, y: 1 }}
                   end={{ x: 1, y: 0 }}
                   style={{
-                    borderRadius: 10,
+                    borderRadius: 14,
                     paddingVertical: 16,
                     paddingHorizontal: 16,
                     flexDirection: 'row',

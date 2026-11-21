@@ -119,7 +119,8 @@
       "personalInfo": "Información personal",
       "addresses": "Mis Direcciones",
       "vehicles": "Mis Vehículos",
-      "ase": "Certificaciones ASE",      "otherCertifications": "Otras certificaciones",
+      "ase": "Certificaciones ASE",
+      "otherCertifications": "Otras certificaciones",
       "payments": "Ganancias y pagos",
       "promotions": "Promociones",
       "help": "Centro de ayuda",
@@ -197,9 +198,10 @@
       "ownerRequestsOpen_one": "Tenés {{count}} solicitud abierta como dueño. Sus avisos te esperan en ese rol; volvé para verlos.",
       "ownerRequestsOpen_other": "Tenés {{count}} solicitudes abiertas como dueño. Sus avisos te esperan en ese rol; volvé para verlos.",
       "upcomingMechanicJob": "Tenés un servicio el {{date}}. Volvé a técnico antes para atenderlo.",
-      "upcomingMechanicJobNoDate": "Tenés un servicio agendado como técnico. Volvé a técnico antes de la hora para atenderlo.",
+      "upcomingNoDateValue": "Como técnico",
+      "upcomingMechanicJobNoDate": "Volvé al rol de técnico antes de que empiece para atenderlo.",
       "upcomingLabel": "Servicio agendado",
-      "upcomingMechanicJobSwitch": "Volvé a técnico antes de esa hora para atenderlo.",
+      "upcomingMechanicJobSwitch": "Volvé al rol de técnico antes de esa hora para atenderlo.",
       "notHeldTitle": "Rol no disponible",
       "notHeldMessage": "Esta cuenta no tiene el rol {{role}}. Configuralo desde este menú para agregarlo.",
       "failedTitle": "No se pudo cambiar",
@@ -268,7 +270,8 @@
       "thanks": "Gracias por tu calificación",
       "errorTitle": "No se pudo enviar",
       "errorMessage": "Revisa tu conexión y vuelve a intentar.",
-      "close": "Cerrar"
+      "close": "Cerrar",
+      "tagsTitle": "¿Qué se destacó?"
     },
     "greeting": {
       "morning": "BUENOS DÍAS",
@@ -1004,9 +1007,55 @@
     }
   },
   "appointments": {
+    "filters": {
+      "searchPlaceholder": "Buscá por código, vehículo o servicio",
+      "clearSearch": "Borrar búsqueda",
+      "button": "Filtros",
+      "sheetTitle": "Filtros",
+      "statusTitle": "Estado",
+      "status": {
+        "all": "Todas",
+        "completed": "Completadas",
+        "cancelled": "Canceladas"
+      },
+      "dateTitle": "Fecha",
+      "presets": {
+        "any": "Cualquier fecha",
+        "today": "Hoy",
+        "7d": "Últimos 7 días",
+        "30d": "Últimos 30 días",
+        "month": "Este mes",
+        "custom": "Rango propio"
+      },
+      "rangeHint": "Tocá un primer y un último día.",
+      "fromDate": "Desde {{date}}",
+      "untilDate": "Hasta {{date}}",
+      "orderTitle": "Orden",
+      "order": {
+        "upcoming": {
+          "natural": "Más próximas primero",
+          "reversed": "Más lejanas primero"
+        },
+        "past": {
+          "natural": "Más nuevas primero",
+          "reversed": "Más viejas primero"
+        }
+      },
+      "apply": "Aplicar filtros",
+      "clear": "Borrar filtros",
+      "clearAll": "Borrar todo",
+      "remove": "quitar",
+      "results_one": "{{count}} resultado",
+      "results_other": "{{count}} resultados",
+      "noResults": "Sin resultados",
+      "noMatches": "Ninguna asistencia coincide con los filtros.",
+      "offersTitle": "Ofertas en curso",
+      "offersSubOwner": "Solicitudes buscando técnico y ofertas esperando tu respuesta.",
+      "offersSubMechanic": "Ofertas que enviaste, esperando que el cliente confirme."
+    },
     "list": {
       "badge": "TUS SOLICITUDES",
-      "title": "Tus trabajos, todo en un solo lugar.",
+      "title": "Tus asistencias",
       "subtitle": "Seguí tus solicitudes activas, mirá trabajos pasados y gestioná tus reservas desde acá.",
       "upcoming": "Próximas",
       "pendingApproval": "Pendientes",
@@ -1040,6 +1089,10 @@
           "canceledHint": "La solicitud fue cancelada",
           "awaitingConfirmation": "Esperando confirmación",
           "awaitingConfirmationHint": "El mecánico finalizó el servicio",
+          "awaitingConfirmationMechanic": "Esperando confirmación del cliente",
+          "awaitingConfirmationMechanicHint": "Terminaste el servicio: el cliente tiene que confirmarlo",
+          "awaitingConfirmationOwner": "Confirmá el servicio finalizado",
+          "awaitingConfirmationOwnerHint": "El técnico finalizó el servicio",
           "disputed": "En revisión",
           "disputedHint": "Soporte lo está revisando",
           "notCharged": "Sin cargo",
@@ -1060,6 +1113,8 @@
           "completed": "Completada – Resuelta",
           "canceled": "Cancelada",
           "awaitingConfirmation": "Finalizada – Esperando confirmación",
+          "awaitingConfirmationMechanic": "Finalizada – Esperando confirmación del cliente",
+          "awaitingConfirmationOwner": "Finalizada – Confirmá el servicio",
           "disputed": "En disputa – En revisión",
           "notCharged": "Completada – Sin cargo"
         },
@@ -1131,7 +1186,7 @@
         "pending_other": "{{count}} SOLICITUDES PENDIENTES",
         "caughtUp": "TODO AL DÍA"
       },
-      "titleOwner": "Tus asistencias, todo en un solo lugar."
+      "titleOwner": "Tus asistencias"
     },
     "cancelReason": {
       "badge": "CANCELAR SOLICITUD",
@@ -1196,6 +1251,8 @@
         "notes": "Notas",
         "calculating": "Calculando...",
         "minAway": "a {{minutes}} min",
+        "arrived": "Llegó",
+        "finished": "Finalizó",
         "onTheWay": "En camino",
         "pending": "Pendiente",
         "noNotes": "Sin notas.",
@@ -1399,10 +1456,10 @@
       },
       "obd": {
         "eyebrow": "PASO 3 · ESCANEO OBD",
-        "title": "Escaneá el vehículo con el lector OBD",
-        "subtitle": "Conectá el escáner OBD-II y hacé un escaneo completo.",
-        "tipLater": "No hace falta subir el archivo del escáner ahora — podés hacerlo después desde el resumen del servicio.",
-        "file": "Archivo del escáner OBD",
+        "title": "Hacé el escaneo OBD",
+        "subtitle": "Conectá el escáner y subí el archivo.",
+        "tipLater": "Podés subir el archivo después desde el resumen del servicio.",
+        "file": "Archivo del escáner",
         "upload": "Subir archivo del escáner",
         "placeholder": "Subí el archivo o una foto del escaneo",
         "codesFound": "Códigos encontrados en este escaneo",
@@ -1472,7 +1529,10 @@
           "reportVin": "Escáner",
           "noVin": "Sin guardar",
           "continue": "Entendido"
-        }
+        },
+        "moreOptions": "Agregá un código o VIN a mano",
+        "codeLabel": "Código de falla",
+        "vinLabel": "VIN (opcional)"
       },
       "photos": {
         "eyebrow": "PASO 2 · FOTOS",
@@ -1599,7 +1659,14 @@
         "checklistWarnFix": "Completar checklist",
         "checklistWarnSkip": "Continuar igual",
         "proofSub": "Fotografiá el trabajo hecho y el vehículo como lo dejás. Un video corto también sirve.",
-        "addPhotos": "Agregar fotos"
+        "addPhotos": "Agregar fotos",
+        "stepOf": "Paso {{current}} de {{total}}",
+        "stepWorkTitle": "Resolvé el problema",
+        "done": "Terminé el trabajo",
+        "stepProofTitle": "Mostrá el trabajo",
+        "stepProofSub": "Opcional: fotos o un video corto del resultado.",
+        "backToWork": "Volver",
+        "backToPhotos": "Volver"
       },
       "finalCheck": {
         "eyebrow": "REVISIÓN FINAL",
@@ -1822,7 +1889,8 @@
         "title": "¿Qué no se hizo?",
         "body": "Contanos qué pasó. Soporte lo va a revisar y no se te cobrará hasta que decida.",
         "failed": "No pudimos enviar tu reporte. Intentá de nuevo."
-      }
+      },
+      "autoConfirmQuiet": "Si no respondés, se confirma automáticamente el {{date}} a las {{time}}."
     },
     "receipt": {
       "title": "Recibo",
@@ -1849,7 +1917,12 @@
       },
       "notCharged": "Este servicio aún no se cobró, así que no hay un pago para mostrar.",
       "owner": {
-        "purposes": {"service": "Servicio", "serviceVideo": "Videollamada", "scopeChange": "Trabajo adicional", "scopeChangeVideo": "Tiempo extra"},
+        "purposes": {
+          "service": "Servicio",
+          "serviceVideo": "Videollamada",
+          "scopeChange": "Trabajo adicional",
+          "scopeChangeVideo": "Tiempo extra"
+        },
         "service": "Servicio",
         "vehicle": "Vehículo",
         "date": "Fecha",
@@ -1962,6 +2035,7 @@
       "aseCertified": "Certificado ASE",
       "years": "{{years}} años",
       "idChecked": "Identidad verificada",
+      "partsOnlyWithCustomerApproval": "Solo con aprobación del cliente",
       "partsOnlyWithApproval": "Solo con tu aprobación",
       "cancel": "Cancelar solicitud",
       "preparing": "PREPARÁNDOSE",
@@ -2129,6 +2203,9 @@
         "noneOwner": "No mandaste un reporte del scanner.",
         "noneMechanic": "El dueño del vehículo no mandó un reporte del scanner. Si leen los códigos juntos en la llamada, podés cargarlos acá.",
         "failedOwner": "No pudimos leer códigos de ese archivo. Probá con una foto más nítida de la pantalla del scanner.",
+        "noneMechanicEnded": "El dueño del vehículo no mandó un reporte del scanner.",
+        "failedOwnerEnded": "No pudimos leer códigos de ese archivo.",
+        "failedMechanicEnded": "No se pudo leer el reporte del scanner.",
         "failedMechanic": "No se pudo leer el reporte. Pedile los códigos al dueño y cargalos abajo.",
         "vinMismatch": "El VIN del reporte ({{vin}}) no es el de este vehículo. Puede que el scanner se haya conectado a otro auto.",
         "fileSent": "El dueño mandó: {{name}}",
@@ -2177,38 +2254,38 @@
         "differsThem": "Para el cliente: {{time}}"
       },
       "transcript": {
-      "title": "Transcripción de la llamada",
-      "subtitle": "Lo que se dijo en la videollamada.",
-      "close": "Cerrar",
-      "empty": "Esta llamada no tiene transcripción. Se guarda cuando se activan los subtítulos en vivo durante la llamada.",
-      "localOnly": "Guardada solo en este teléfono.",
-      "you": "Vos",
-      "other": "La otra persona",
-      "download": "Descargar PDF",
-      "consentNote": "Creada con el consentimiento de las dos personas de la llamada.",
-      "pdf": {
-        "title": "Transcripción de la videollamada",
-        "reference": "Referencia",
-        "vehicle": "Vehículo",
-        "callDate": "Fecha de la llamada",
-        "duration": "Duración",
-        "generated": "Generado el {{date}}",
-        "consentTitle": "Registro de consentimiento",
-        "consentNone": "No se registró consentimiento en este teléfono.",
-        "consentPrecall": "{{who}} aceptó las condiciones de la llamada",
-        "consentRequest": "{{who}} pidió activar los subtítulos en vivo y la transcripción",
-        "consentAnswerYes": "{{who}} aceptó los subtítulos en vivo y la transcripción",
-        "consentAnswerNo": "{{who}} rechazó los subtítulos en vivo y la transcripción",
-        "owner": "Dueño del vehículo",
-        "mechanic": "Técnico",
-        "conversation": "Conversación",
-        "empty": "No se dijo nada.",
-        "notice": "Esta transcripción se generó automáticamente a partir de la llamada y puede contener errores. Se creó solo porque las dos personas aceptaron, y es para quienes participaron en la llamada y para que soporte revise un reclamo. Mantenela confidencial.",
-        "failedTitle": "No se pudo crear el PDF",
-        "failedBody": "Probá de nuevo."
-      },
-      "view": "Ver"
-    }
+        "title": "Transcripción de la llamada",
+        "subtitle": "Lo que se dijo en la videollamada.",
+        "close": "Cerrar",
+        "empty": "Esta llamada no tiene transcripción. Se guarda cuando se activan los subtítulos en vivo durante la llamada.",
+        "localOnly": "Guardada solo en este teléfono.",
+        "you": "Vos",
+        "other": "La otra persona",
+        "download": "Descargar PDF",
+        "consentNote": "Creada con el consentimiento de las dos personas de la llamada.",
+        "pdf": {
+          "title": "Transcripción de la videollamada",
+          "reference": "Referencia",
+          "vehicle": "Vehículo",
+          "callDate": "Fecha de la llamada",
+          "duration": "Duración",
+          "generated": "Generado el {{date}}",
+          "consentTitle": "Registro de consentimiento",
+          "consentNone": "No se registró consentimiento en este teléfono.",
+          "consentPrecall": "{{who}} aceptó las condiciones de la llamada",
+          "consentRequest": "{{who}} pidió activar los subtítulos en vivo y la transcripción",
+          "consentAnswerYes": "{{who}} aceptó los subtítulos en vivo y la transcripción",
+          "consentAnswerNo": "{{who}} rechazó los subtítulos en vivo y la transcripción",
+          "owner": "Dueño del vehículo",
+          "mechanic": "Técnico",
+          "conversation": "Conversación",
+          "empty": "No se dijo nada.",
+          "notice": "Esta transcripción se generó automáticamente a partir de la llamada y puede contener errores. Se creó solo porque las dos personas aceptaron, y es para quienes participaron en la llamada y para que soporte revise un reclamo. Mantenela confidencial.",
+          "failedTitle": "No se pudo crear el PDF",
+          "failedBody": "Probá de nuevo."
+        },
+        "view": "Ver"
+      }
     },
     "clientReview": {
       "title": "¿Cómo calificarías al cliente?",
@@ -2351,7 +2428,11 @@
     "selectTime": "Seleccioná la hora",
     "acceptRequest": "Aceptar solicitud",
     "confirmOfferPending": "El cliente todavía tiene que aceptarla.",
-    "offerHighlight": { "video": "Videollamada", "immediate": "Asistencia inmediata", "scheduled": "Oferta agendada" },
+    "offerHighlight": {
+      "video": "Videollamada",
+      "immediate": "Asistencia inmediata",
+      "scheduled": "Oferta agendada"
+    },
     "confirmOfferTitle": "¿Enviar esta oferta?",
     "waitingClientConfirmation": "Esperando la confirmación del cliente",
     "confirmOfferImmediate": "Vas a ofrecer asistencia inmediata para {{title}}. El cliente todavía tiene que aceptarla.",
@@ -2402,7 +2483,9 @@
     "videoDurationValue_other": "{{count}} minutos",
     "videoDurationNote": "El cliente puede sumar más tiempo durante la llamada.",
     "videoConditions": "CONDICIONES DE LA LLAMADA",
-    "videoConditionsNote": "Antes de la llamada, vos y el cliente aceptan sus condiciones. Los subtítulos en vivo y una transcripción escrita se crean solo si los dos están de acuerdo durante la llamada; se guardan con la cita.",    "subtitleVideo": "Revisá el vehículo, el problema y lo que ganás.",    "goodToKnow": {
+    "videoConditionsNote": "Antes de la llamada, vos y el cliente aceptan sus condiciones. Los subtítulos en vivo y una transcripción escrita se crean solo si los dos están de acuerdo durante la llamada; se guardan con la cita.",
+    "subtitleVideo": "Revisá el vehículo, el problema y lo que ganás.",
+    "goodToKnow": {
       "title": "Para tener en cuenta",
       "price": "Precio fijo, definido cuando el cliente pidió la llamada.",
       "time": "El cliente puede sumar más tiempo durante la llamada.",
@@ -2705,7 +2788,14 @@
     "ruleMinLength": "Al menos 8 caracteres.",
     "ruleSymbolOrNumber": "Contiene un símbolo o un número",
     "back": "Volver",
-    "changePassword": "Cambiar contraseña"
+    "changePassword": "Cambiar contraseña",
+    "currentHint": "Dejala vacía si te registraste con tu teléfono y nunca definiste una contraseña.",
+    "mismatch": "Las contraseñas no coinciden.",
+    "wrongCurrent": "La contraseña actual no es correcta.",
+    "needCurrent": "Esta cuenta ya tiene contraseña. Ingresá tu contraseña actual.",
+    "failed": "No pudimos cambiar tu contraseña. Probá de nuevo en un momento.",
+    "doneTitle": "Contraseña actualizada",
+    "doneBody": "Tu nueva contraseña ya está lista para usar."
   },
   "deleteAccount": {
     "badge": "CONFIGURACIÓN DE LA CUENTA",
@@ -3128,7 +3218,8 @@
       "subtitle": "Necesitamos validar tus permisos y tu seguro de responsabilidad (liability insurance).",
       "insurance": "Seguro liability",
       "businessLicense": "Licencia comercial / local",
-      "dropzone": "Tocá para subir el documento (PDF/JPG)",
+      "uploadButton": "Subir archivo",
+      "dropzone": "Un PDF o JPG del documento",
       "replace": "Tocá para reemplazar",
       "uploading": "Subiendo…",
       "remove": "Quitar",
@@ -3143,7 +3234,7 @@
       "errorType": "Solo se aceptan archivos PDF o imágenes.",
       "errorUpload": "No se pudo subir el documento. Intentá de nuevo.",
       "profileTitle": "Documentación legal",
-      "profileSubtitle": "Tu seguro de responsabilidad y tu licencia comercial.",
+      "profileSubtitle": "Subí tu seguro de responsabilidad y tu licencia comercial en PDF o foto. Los revisamos, y podés reemplazarlos cuando quieras.",
       "profileEmpty": "Todavía no subiste ningún documento.",
       "removeConfirmTitle": "Quitar documento",
       "removeConfirmBody": "Esto quita el archivo de tu perfil. Podés volver a subirlo cuando quieras.",
@@ -3172,7 +3263,7 @@
   },
   "assist": {
     "badge": "SOLICITUDES DE ASISTENCIA PENDIENTES",
-    "title": "Encontrá tu próximo trabajo",
+    "title": "Tomá tu próximo pedido",
     "subtitle": "Filtrá las solicitudes entrantes por estado, tipo de servicio y distancia.",
     "searchPlaceholder": "Buscar por vehículo, zona o problema",
     "all": "Todas"
@@ -3200,17 +3291,20 @@
   "promotions": {
     "badge": "PROMOCIONES",
     "title": "Promociones",
-    "subtitle": "Accedé a descuentos exclusivos y ofertas especiales",
-    "examTitle": "Examen de certificación ASE",
-    "recommended": "recomendado",
-    "mapView": "Vista de mapa",
-    "address": "Dirección: 778 Locust View Drive Oakland, CA",
-    "distance": "Distancia: 2.5 mi",
-    "specialOfferTitle": "Oferta especial para miembros ASE",
-    "specialOfferBody1": "Disfrutá un 10% de descuento en todos nuestros servicios, exclusivo para profesionales certificados ASE.",
-    "specialOfferBody2": "Aumentá tu visibilidad, hacé crecer tu negocio y accedé a funciones premium a un precio reducido.",
-    "validThrough": "Promoción válida hasta: 06/06/2026",
-    "askForBenefit": "Pedí tu beneficio"
+    "subtitle": "Descuentos de nuestros aliados.",
+    "discountBadge": "DESCUENTO",
+    "ase": {
+      "eyebrow": "PARA TÉCNICOS CERTIFICADOS ASE",
+      "title": "Descuento para miembros ASE",
+      "body": "Los técnicos certificados tienen un descuento especial. Vinculá tu ID de ASE para activarlo.",
+      "cta": "Conseguí tu descuento ASE"
+    },
+    "innova": {
+      "eyebrow": "SCANNERS OBD2",
+      "title": "Descuento en scanners Innova",
+      "body": "Un descuento especial en scanners OBD2 Innova para los usuarios de Mechanic Assistance.",
+      "cta": "Conseguí tu descuento Innova"
+    }
   },
   "onboarding": {
     "slide1": "Cobrá por brindar tus servicios profesionales",
@@ -4242,5 +4336,13 @@
     "scanner": "Escáner",
     "when": "Cuándo",
     "eyebrow": "Paso {{n}} · {{name}}"
+  },
+  "reviews": {
+    "clientTags": {
+      "punctual": "Puntual",
+      "clear_description": "Descripción clara",
+      "respectful": "Trato respetuoso",
+      "easy_access": "Fácil acceso"
+    }
   }
 }

@@ -181,7 +181,7 @@ function TypeCard({
                     start={{ x: 0, y: 1 }}
                     end={{ x: 1, y: 0 }}
                     style={{
-                        borderRadius: 16,
+                        borderRadius: 14,
                         paddingHorizontal: 16,
                         paddingVertical: 14,
                         flexDirection: 'row',

@@ -41,3 +41,6 @@ export const CONFIRM_GRADIENT = ['#10B981', '#047857'] as const;
 
 /** FLOATING_CTA with the glow in green, for a confirm button inside a floating footer. */
 export const CONFIRM_CTA: ViewStyle = { ...FLOATING_CTA, shadowColor: '#10B981' };
+
+/** The one corner radius of every action button (primary, secondary, sheets, forms). Pills and chips stay fully round. */
+export const BUTTON_RADIUS = 14;

@@ -223,7 +223,7 @@ export default function OTPScreen() {
                                     start={{ x: 0, y: 1 }}
                                     end={{ x: 1, y: 0 }}
                                     style={{
-                                        borderRadius: 10,
+                                        borderRadius: 14,
                                         paddingVertical: 16,
                                         paddingHorizontal: 16,
                                         flexDirection: 'row',
@@ -334,7 +334,7 @@ export default function OTPScreen() {
 
                         {errorModal.onAction && (
                             <TouchableOpacity
-                                className="bg-blue-700 w-full py-4 rounded-xl shadow-sm active:opacity-90 mb-3"
+                                className="bg-blue-700 w-full py-4 rounded-[14px] shadow-sm active:opacity-90 mb-3"
                                 onPress={() => {
                                     hideError();
                                     errorModal.onAction?.();
@@ -347,7 +347,7 @@ export default function OTPScreen() {
                         )}
 
                         <TouchableOpacity
-                            className="bg-slate-100 w-full py-4 rounded-xl active:opacity-90"
+                            className="bg-slate-100 w-full py-4 rounded-[14px] active:opacity-90"
                             onPress={hideError}
                         >
                             <Text className="text-slate-700 text-center font-outfit-bold text-lg">

@@ -1,3 +1,4 @@
+import { FONT } from '@/lib/ui/fonts';
 import { Footer } from '@/components/scheduled/ui';
 import { ROUNDED_HEADER } from '@/lib/ui/header';
 import { RequestSteps, stepEyebrow } from '@/components/ui/RequestSteps';
@@ -176,7 +177,7 @@ export default function VehicleDocumentationScreen() {
     const Tab = ({ id, label }: { id: 'video' | 'photos'; label: string }) => (
         <TouchableOpacity
             onPress={() => setTab(id)}
-            className="flex-1 items-center py-3 rounded-xl"
+            className="flex-1 items-center py-3 rounded-[14px]"
             style={tab === id
                 ? { backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 }
                 : undefined}
@@ -218,7 +219,7 @@ export default function VehicleDocumentationScreen() {
                         <ChevronLeft size={16} color="#0047AB" />
                     </View>
                 </TouchableOpacity>
-                <Text style={{ fontFamily: 'Outfit_500Medium', fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>
+                <Text style={{ fontFamily: FONT.medium, fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>
                     {getTitle()}
                 </Text>
                 <View className="w-6" />

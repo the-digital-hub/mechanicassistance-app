@@ -9,8 +9,8 @@ jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) =>
 const props = {
     rating: 5,
     setRating: jest.fn(),
-    selectedOption: '',
-    setSelectedOption: jest.fn(),
+    tags: [] as string[],
+    setTags: jest.fn(),
     reviewText: '',
     setReviewText: jest.fn(),
     onSubmit: jest.fn(),

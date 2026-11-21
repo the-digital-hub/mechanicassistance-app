@@ -1,5 +1,7 @@
 import { ChatMessage, toChatMessage, useSocket } from '@/context/SocketContext';
+import { useAppointments } from '@/context/AppointmentsContext';
 import { useUser } from '@/context/UserContext';
+import { chatAvailability } from '@/lib/chat/chatAvailability';
 import { ApiError } from '@/lib/api/types';
 import { chatDAO, newClientMessageId } from '@/lib/dao/ChatDAO';
 import type { ChatConversation, SendChatMessagePayload } from '@/lib/dao/interfaces';
@@ -31,6 +33,7 @@ export default function ChatScreen() {
     const router = useRouter();
     const { t } = useTranslation();
     const { user } = useUser();
+    const { getAppointmentById } = useAppointments();
     const { chatHistory, mergeChatMessages } = useSocket();
     const [messageText, setMessageText] = useState('');
     const [recipient, setRecipient] = useState<any>(null);
@@ -46,7 +49,9 @@ export default function ChatScreen() {
     const stickToBottom = useRef(true);
 
     const messages = chatHistory[conversationId] || [];
-    const canWrite = conversation?.canWrite ?? false;
+    // Once the assistance is finished (even before the owner confirms it) the chat is history only, whatever the server still says.
+    const status = getAppointmentById(conversationId)?.status;
+    const canWrite = (conversation?.canWrite ?? false) && chatAvailability(status) !== 'closed';
 
     // The conversation (who is on the other side, whether it is still open)
     // and the newest page of history. The id is the appointment id.

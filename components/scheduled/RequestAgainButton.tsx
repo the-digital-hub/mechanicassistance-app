@@ -40,7 +40,7 @@ export function RequestAgainButton({ requestId }: { requestId: string }) {
             activeOpacity={0.85}
             accessibilityRole="button"
             className="flex-row items-center justify-center"
-            style={{ gap: 8, paddingVertical: 14, borderRadius: 14, borderWidth: 1.5, borderColor: SC.blue, backgroundColor: '#FFFFFF' }}
+            style={{ gap: 8, paddingVertical: 14, borderRadius: 14, backgroundColor: SC.blueSoft }}
         >
             {busy ? <ActivityIndicator color={SC.blue} /> : <RotateCcw size={18} color={SC.blue} />}
             <Text className="font-outfit-bold" style={{ fontSize: 15, color: SC.blue }}>{t('scheduled.requestAgain.action')}</Text>

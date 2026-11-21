@@ -323,7 +323,7 @@ export function OwnerTechnicianPanel({ mechanic }: { mechanic: Mechanic | null }
 }
 
 /** `payment` is the card row's value (`PaymentCardValue`), resolved by the screen; omitted (the mechanic) hides the row. */
-export function OwnerBudgetPanel({ total, payment, totalLabel, video, extendedMinutes = 0, extendedAmount, grandTotal }: {
+export function OwnerBudgetPanel({ total, payment, totalLabel, video, extendedMinutes = 0, extendedAmount, grandTotal, partsNote }: {
     total: string | null;
     payment?: React.ReactNode;
     totalLabel?: string;
@@ -334,6 +334,8 @@ export function OwnerBudgetPanel({ total, payment, totalLabel, video, extendedMi
     extendedAmount?: string | null;
     /** The owner's whole bill: the call plus the extra time. Shown last, only when there is extra time to add up. */
     grandTotal?: string | null;
+    /** The "Additional parts" row, a rule and not a fact: its text (omitted = the owner's wording) or `null` to leave it out, e.g. once the assistance is over. */
+    partsNote?: string | null;
 }) {
     const { t } = useTranslation();
     // What adds up (service, extra time) comes first; the total closes it under a line; how it is paid is last.
@@ -349,7 +351,9 @@ export function OwnerBudgetPanel({ total, payment, totalLabel, video, extendedMi
                       value: extendedAmount ? `+$${extendedAmount}` : t(`${K}.extendedTimeValue`, { minutes: extendedMinutes }),
                   }
                 : null
-            : { icon: 'document-text-outline', label: t(`${K}.rows.additionalParts`), value: t(`${K}.partsOnlyWithApproval`) },
+            : partsNote === null
+                ? null
+                : { icon: 'document-text-outline', label: t(`${K}.rows.additionalParts`), value: partsNote ?? t(`${K}.partsOnlyWithApproval`) },
     ];
     const paymentRow: SummaryRow | null = payment !== undefined ? { icon: 'card-outline', label: t(`${K}.rows.payment`), value: payment } : null;
     const shown = lines.filter((r): r is SummaryRow => r !== null);

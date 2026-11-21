@@ -35,7 +35,7 @@ export function UpdateRequiredGate({ children }: { children: ReactNode }) {
             {storeUrl ? (
                 <TouchableOpacity
                     onPress={() => void Linking.openURL(storeUrl)}
-                    className="bg-blue-700 rounded-xl px-8 py-4"
+                    className="bg-blue-700 rounded-[14px] px-8 py-4"
                 >
                     <Text className="text-white font-outfit-bold">
                         {t("common.updateRequired.action")}

@@ -1,4 +1,3 @@
-import { CONFIRM_GRADIENT } from '@/lib/ui/floatingFooter';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useUser } from '@/context/UserContext';
@@ -271,7 +270,7 @@ export default function PersonalInfoScreen() {
                             <TouchableOpacity
                                 onPress={() => router.push('/email-change' as any)}
                                 activeOpacity={0.8}
-                                className="px-4 py-3 rounded-2xl"
+                                className="px-4 py-3 rounded-[14px]"
                                 style={{ backgroundColor: '#E9F1FF' }}
                                 testID="personal-info-email-action"
                             >
@@ -301,7 +300,7 @@ export default function PersonalInfoScreen() {
                             <TouchableOpacity
                                 onPress={() => router.push('/phone-change' as any)}
                                 activeOpacity={0.8}
-                                className="px-4 py-3 rounded-2xl"
+                                className="px-4 py-3 rounded-[14px]"
                                 style={{ backgroundColor: '#E9F1FF' }}
                                 testID="personal-info-phone-action"
                             >
@@ -330,11 +329,11 @@ export default function PersonalInfoScreen() {
                     className="mb-10"
                 >
                     <LinearGradient
-                        colors={[...CONFIRM_GRADIENT]}
+                        colors={['#2B66F8', '#081E72']}
                         start={{ x: 0, y: 1 }}
                         end={{ x: 1, y: 0 }}
                         style={{
-                            borderRadius: 10,
+                            borderRadius: 14,
                             paddingVertical: 16,
                             paddingHorizontal: 16,
                             alignItems: 'center',
@@ -404,7 +403,7 @@ export default function PersonalInfoScreen() {
                                     start={{ x: 0, y: 1 }}
                                     end={{ x: 1, y: 0 }}
                                     style={{
-                                        borderRadius: 10,
+                                        borderRadius: 14,
                                         paddingVertical: 16,
                                         paddingHorizontal: 16,
                                         alignItems: 'center',

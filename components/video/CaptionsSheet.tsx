@@ -86,26 +86,26 @@ export function CaptionsSheet({ visible, active, language, onLanguage, onStart, 
                     </View>
                 ) : null}
 
-                <View className="flex-row" style={{ gap: 10, marginTop: 20 }}>
-                    <TouchableOpacity
-                        onPress={active ? onStop : onClose}
-                        activeOpacity={0.8}
-                        accessibilityRole="button"
-                        className="flex-1 items-center justify-center"
-                        style={{ minHeight: 52, borderRadius: 14, backgroundColor: '#E6EAF2' }}
-                        testID="captions-secondary"
-                    >
-                        <Text className="font-outfit-bold" style={{ fontSize: 16, color: active ? AO.red : '#4A5470' }}>{t(active ? `${K}.captionsTurnOff` : `${K}.captionsCancel`)}</Text>
-                    </TouchableOpacity>
+                <View  style={{ gap: 10, marginTop: 20 }}>
                     <TouchableOpacity
                         onPress={onStart}
                         activeOpacity={0.85}
                         accessibilityRole="button"
-                        className="flex-1 items-center justify-center"
+                        className="items-center justify-center"
                         style={{ minHeight: 52, borderRadius: 14, backgroundColor: AO.blue }}
                         testID="captions-primary"
                     >
                         <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#FFFFFF' }}>{t(active ? `${K}.captionsApply` : `${K}.captionsStart`)}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={active ? onStop : onClose}
+                        activeOpacity={0.8}
+                        accessibilityRole="button"
+                        className="items-center justify-center"
+                        style={{ minHeight: 52, borderRadius: 14, backgroundColor: '#E6EAF2' }}
+                        testID="captions-secondary"
+                    >
+                        <Text className="font-outfit-bold" style={{ fontSize: 16, color: active ? AO.red : '#4A5470' }}>{t(active ? `${K}.captionsTurnOff` : `${K}.captionsCancel`)}</Text>
                     </TouchableOpacity>
                 </View>
             </View>

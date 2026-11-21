@@ -5,7 +5,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, Text, TouchableOpacity, View } from 'react-native';
 import { absoluteMediaUrl, MediaKind, onSiteDAO, OnSiteMedia } from '@/lib/dao/OnSiteDAO';
-import { Card, CardTitle, NoteInput, OS } from './ui';
+import { NoteInput, OS } from './ui';
 import { appAlert } from '@/lib/ui/appAlert';
 
 // Capture slot for the on-site flow. Inside an OnSiteCaptureProvider, a slot with
@@ -55,6 +55,13 @@ interface MediaSlotProps {
     title?: string;
     actionLabel?: string;
     actionIcon?: React.ComponentProps<typeof Ionicons>['name'];
+    /** A square capture tile (the whole tile is the button) instead of a card with a big button; sits in a row or grid. */
+    tile?: boolean;
+    /** Tile: a small pill on its top-left corner, e.g. "Required". */
+    badge?: React.ReactNode;
+    /** Tile: the empty state's icon and hint line. */
+    tileIcon?: React.ComponentProps<typeof Ionicons>['name'];
+    tileHint?: string;
 }
 
 export interface Picked {
@@ -82,6 +89,10 @@ export function MediaSlot({
     title,
     actionLabel,
     actionIcon,
+    tile,
+    badge,
+    tileIcon,
+    tileHint,
 }: MediaSlotProps) {
     const { t } = useTranslation();
     const ctx = React.useContext(OnSiteCaptureContext);
@@ -190,6 +201,75 @@ export function MediaSlot({
                     : t('appointments.onSite.common.pending');
     const statusColor = state === 'error' ? OS.red : filled ? OS.greenDark : OS.mutedLight;
 
+    if (tile) {
+        const icon = tileIcon ?? (kind === 'video' ? 'videocam-outline' : 'camera-outline');
+        return (
+            <View style={{ flex: 1, minWidth: 140 }}>
+                <TouchableOpacity
+                    onPress={picked ? (state === 'error' ? () => void upload(picked) : undefined) : pick}
+                    activeOpacity={picked && state !== 'error' ? 1 : 0.8}
+                    accessibilityRole="button"
+                    accessibilityLabel={title ?? placeholder}
+                    className="items-center justify-center overflow-hidden"
+                    style={{
+                        height,
+                        borderRadius: 18,
+                        backgroundColor: picked ? OS.text : '#EEF4FF',
+                        borderWidth: picked ? 0 : 1.5,
+                        borderColor: '#CFDDFB',
+                    }}
+                >
+                    {!picked ? (
+                        <View className="items-center px-3" style={{ gap: 8 }}>
+                            <View className="items-center justify-center" style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: '#FFFFFF' }}>
+                                <Ionicons name={icon} size={26} color={OS.blue} />
+                            </View>
+                            {title ? <Text className="font-outfit-bold text-center" style={{ fontSize: 16, lineHeight: 21, color: OS.text }} numberOfLines={2}>{title}</Text> : null}
+                            <Text className="font-outfit-medium text-center" style={{ fontSize: 13, lineHeight: 17, color: OS.blue }}>{tileHint ?? t('appointments.onSite.common.tapToAdd')}</Text>
+                        </View>
+                    ) : isImagePreview ? (
+                        <Image source={{ uri: picked.uri }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+                    ) : (
+                        <View className="items-center px-3" style={{ gap: 6 }}>
+                            <Ionicons name={picked.isVideo ? 'play-circle-outline' : 'document-text-outline'} size={44} color="rgba(255,255,255,0.85)" />
+                            <Text className="font-outfit-medium text-center" style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)' }} numberOfLines={1}>
+                                {picked.name ?? (picked.isVideo ? t('appointments.onSite.common.video') : '')}
+                            </Text>
+                        </View>
+                    )}
+
+                    {picked ? (
+                        <View className="absolute flex-row items-center" style={{ left: 8, bottom: 8, gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 100, backgroundColor: state === 'error' ? OS.red : 'rgba(11,21,48,0.72)' }}>
+                            <Ionicons name={state === 'error' ? 'refresh' : filled ? 'checkmark-circle' : 'cloud-upload-outline'} size={15} color="#FFFFFF" />
+                            <Text className="font-outfit-bold" style={{ fontSize: 13, color: '#FFFFFF' }}>
+                                {state === 'error' ? t('appointments.onSite.common.retry') : state === 'uploading' ? t('appointments.onSite.common.uploading') : title ?? t('appointments.onSite.common.captured')}
+                            </Text>
+                        </View>
+                    ) : null}
+                    {state === 'uploading' ? (
+                        <View className="absolute inset-0 items-center justify-center" style={{ backgroundColor: 'rgba(11,21,48,0.35)' }}>
+                            <ActivityIndicator color="#FFFFFF" />
+                        </View>
+                    ) : null}
+                </TouchableOpacity>
+
+                {badge && !picked ? <View className="absolute" style={{ left: 8, top: 8 }} pointerEvents="none">{badge}</View> : null}
+                {picked && state !== 'uploading' ? (
+                    <TouchableOpacity
+                        onPress={() => void (onDeleteSlot ? (mediaId ? remove().then(onDeleteSlot) : onDeleteSlot()) : remove())}
+                        hitSlop={8}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('appointments.onSite.common.remove')}
+                        className="absolute items-center justify-center"
+                        style={{ right: 8, top: 8, width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(11,21,48,0.72)' }}
+                    >
+                        <Ionicons name="close" size={18} color="#FFFFFF" />
+                    </TouchableOpacity>
+                ) : null}
+            </View>
+        );
+    }
+
     if (compact && !picked) {
         return (
             <View className={padded ? 'p-4' : ''}>
@@ -291,25 +371,35 @@ export function MediaSlot({
     );
 }
 
-/** A growing list of optional photo slots ("+ Add another photo"). */
+/**
+ * Optional photos as a grid of tiles: the ones already taken, then one empty tile to add the next. No "add another"
+ * button and no per-photo note: taking a photo opens the next tile on its own.
+ */
 export function PhotoList({
     placeholder,
     captureKind,
-    height = 120,
+    height = 150,
     onAnyFilled,
+    title,
+    leading,
+    tileHint,
 }: {
     placeholder: string;
     captureKind?: MediaKind;
     height?: number;
     onAnyFilled?: (v: boolean) => void;
+    title?: string;
+    /** A first cell of the grid that is not a photo (e.g. the video tile). */
+    leading?: React.ReactNode;
+    tileHint?: string;
 }) {
-    const { t } = useTranslation();
     const existing = useExistingCaptures(captureKind);
     const nextId = React.useRef(existing.length + 1);
-    // Slots: one per capture already on the visit, else a single empty slot.
-    const [slots, setSlots] = React.useState<{ id: number; existing?: OnSiteMedia }[]>(() =>
-        existing.length ? existing.map((m, i) => ({ id: i, existing: m })) : [{ id: 0 }],
-    );
+    // One tile per capture already on the visit, plus an empty one at the end.
+    const [slots, setSlots] = React.useState<{ id: number; existing?: OnSiteMedia }[]>(() => [
+        ...existing.map((m, i) => ({ id: i, existing: m })),
+        { id: existing.length },
+    ]);
     const [fills, setFills] = React.useState<Record<number, boolean>>({});
 
     const onAnyFilledRef = React.useRef(onAnyFilled);
@@ -318,44 +408,49 @@ export function PhotoList({
         onAnyFilledRef.current?.(slots.some((s) => fills[s.id]));
     }, [slots, fills]);
 
+    // When the last tile gets a photo, a new empty one opens after it.
+    const lastId = slots[slots.length - 1]?.id;
+    React.useEffect(() => {
+        if (lastId !== undefined && fills[lastId]) setSlots((list) => [...list, { id: nextId.current++ }]);
+    }, [lastId, fills]);
+
+    // Two cells per row; an odd one out keeps its half instead of stretching.
+    const cells: React.ReactNode[] = [
+        ...(leading ? [leading] : []),
+        ...slots.map((slot) => (
+            <MediaSlot
+                key={slot.id}
+                tile
+                padded={false}
+                title={title}
+                tileHint={tileHint}
+                height={height}
+                placeholder={placeholder}
+                captureKind={captureKind}
+                existing={slot.existing}
+                onChange={(v) => setFills((f) => ({ ...f, [slot.id]: v }))}
+                onDeleteSlot={slots.length > 1 ? () => setSlots((list) => (list.length > 1 ? list.filter((x) => x.id !== slot.id) : list)) : undefined}
+            />
+        )),
+    ];
+    const rows: React.ReactNode[][] = [];
+    for (let i = 0; i < cells.length; i += 2) rows.push(cells.slice(i, i + 2));
+
     return (
-        <View>
-            {slots.map((slot, i) => (
-                <View key={slot.id}>
-                    <MediaSlot
-                        compact
-                        actionLabel={t('appointments.onSite.common.addPhoto')}
-                        actionIcon="camera-outline"
-                        height={height}
-                        placeholder={placeholder}
-                        captureKind={captureKind}
-                        existing={slot.existing}
-                        onChange={(v) => setFills((f) => ({ ...f, [slot.id]: v }))}
-                        onDeleteSlot={i > 0 ? () => setSlots((list) => list.filter((x) => x.id !== slot.id)) : undefined}
-                    />
-                    <View className="px-4 -mt-2 pb-2">
-                        <NoteInput placeholder={t('appointments.onSite.common.photoNote')} />
-                    </View>
+        <View style={{ gap: 12 }}>
+            {rows.map((row, r) => (
+                <View key={r} className="flex-row" style={{ gap: 12 }}>
+                    {row}
+                    {row.length === 1 ? <View style={{ flex: 1, minWidth: 140 }} /> : null}
                 </View>
             ))}
-            <View className="px-4 pb-4">
-                <TouchableOpacity
-                    onPress={() => setSlots((list) => [...list, { id: nextId.current++ }])}
-                    accessibilityRole="button"
-                    className="flex-row items-center justify-center"
-                    style={{ gap: 6, minHeight: 48, borderRadius: 14, backgroundColor: OS.blueSoft }}
-                >
-                    <Ionicons name="add" size={20} color={OS.blue} />
-                    <Text className="font-outfit-bold" style={{ fontSize: 16, color: OS.blue }}>{t('appointments.onSite.common.addAnotherPhoto')}</Text>
-                </TouchableOpacity>
-            </View>
         </View>
     );
 }
 
 /**
- * The optional evidence of a visit, both options on screen at once (no tabs to choose between): a walk-around video and extra photos,
- * each in its own card with its button.
+ * The optional evidence of a visit, on screen at once: the walk-around video as one tile and the extra photos as tiles
+ * next to it, all in the same grid.
  */
 export function ExtraCaptures({ videoKind, photoKind, existingVideo, videoPlaceholder, photoPlaceholder }: {
     videoKind: MediaKind;
@@ -366,15 +461,16 @@ export function ExtraCaptures({ videoKind, photoKind, existingVideo, videoPlaceh
 }) {
     const { t } = useTranslation();
     return (
-        <>
-            <Card>
-                <CardTitle title={t('appointments.onSite.photos.videoTitle')} optional />
-                <MediaSlot kind="video" compact actionLabel={t('appointments.onSite.common.recordVideo')} actionIcon="videocam-outline" placeholder={videoPlaceholder} captureKind={videoKind} existing={existingVideo} />
-            </Card>
-            <Card>
-                <CardTitle title={t('appointments.onSite.photos.extraTitle')} optional />
-                <PhotoList placeholder={photoPlaceholder} captureKind={photoKind} />
-            </Card>
-        </>
+        <View className="mx-4">
+            <PhotoList
+                placeholder={photoPlaceholder}
+                captureKind={photoKind}
+                title={t('appointments.onSite.photos.extraTitle')}
+                tileHint={t('appointments.onSite.common.addPhoto')}
+                leading={
+                    <MediaSlot kind="video" tile padded={false} height={150} title={t('appointments.onSite.photos.videoTitle')} tileIcon="videocam-outline" tileHint={t('appointments.onSite.common.recordVideo')} placeholder={videoPlaceholder} captureKind={videoKind} existing={existingVideo} />
+                }
+            />
+        </View>
     );
 }

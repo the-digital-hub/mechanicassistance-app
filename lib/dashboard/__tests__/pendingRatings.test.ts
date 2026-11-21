@@ -6,8 +6,13 @@ const job = (over: Record<string, unknown>) => ({ id: 'x', status: 'completed', 
 
 describe('pendingRatings', () => {
     it('the owner owes the technician rating of a recent finished job', () => {
-        const list = [job({ id: 'a' }), job({ id: 'b', reviewRating: 4 }), job({ id: 'c', isReviewSubmitted: true })];
+        const list = [job({ id: 'a' }), job({ id: 'b', reviewRating: 4 })];
         expect(pendingRatings(list, 'user', NOW).map((a) => a.id)).toEqual(['a']);
+    });
+
+    it('the technician having rated the customer (isReviewSubmitted) does not clear the owner\'s pending rating', () => {
+        const list = [job({ id: 'c', isReviewSubmitted: true, clientRating: 5 })];
+        expect(pendingRatings(list, 'user', NOW).map((a) => a.id)).toEqual(['c']);
     });
 
     it('the technician owes the customer rating', () => {

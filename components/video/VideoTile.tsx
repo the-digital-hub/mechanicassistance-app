@@ -1,3 +1,4 @@
+import { FONT } from '@/lib/ui/fonts';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { RTCView, MediaStream } from '@daily-co/react-native-webrtc';
@@ -45,6 +46,6 @@ const styles = StyleSheet.create({
     width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(255,255,255,0.12)',
     alignItems: 'center', justifyContent: 'center',
   },
-  avatarText: { fontFamily: 'Outfit_700Bold', fontSize: 32, color: '#FFFFFF' },
-  name: { fontFamily: 'Outfit_500Medium', fontSize: 14, color: '#9CA3AF' },
+  avatarText: { fontFamily: FONT.bold, fontSize: 32, color: '#FFFFFF' },
+  name: { fontFamily: FONT.medium, fontSize: 14, color: '#9CA3AF' },
 });
