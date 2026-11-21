@@ -4224,7 +4224,11 @@
     "offerAcceptedTitle": "Offer accepted!",
     "offerAcceptedBody": "The customer accepted your offer to help.",
     "jobCanceledTitle": "Job canceled",
-    "jobCanceledBody": "The customer canceled this request."
+    "jobCanceledBody": "The customer canceled this request.",
+    "onSiteConfirmTitle": "Service completed by the mechanic",
+    "onSiteConfirmBody": "Confirm the work was done, or let us know if it wasn't.",
+    "onSiteConfirmReview": "Review",
+    "onSiteConfirmLater": "Later"
   },
   "requestSteps": {
     "label": "Step {{n}} of {{total}} · {{name}}",

@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import { useUser } from '@/context/UserContext';
 import { routeIsCurrent, showInAppBanner } from '@/lib/notifications/inAppAlerts';
+import { showOnSiteConfirmAlert } from '@/lib/notifications/onSiteConfirmAlert';
 import i18n from '@/lib/i18n';
 import {
     isForActiveRole,
@@ -117,6 +118,12 @@ export function PushNotificationRouter() {
             // The system shows nothing while the app is open: every push meant for this person, in the role they are using,
             // gets a small alert on screen instead (unless they turned it off in Settings → Notifications).
             if (!data?.kind) return;
+            // The mechanic closed an on-site job: the owner confirms or disputes it.
+            // Same alert (and dedupe) as the socket `appointment_update`, instead of the generic banner.
+            if (data?.kind === 'service_awaiting_confirmation') {
+                showOnSiteConfirmAlert(data.appointmentId ?? data.requestId);
+                return;
+            }
             // The technician already gets a dialog for these two from the live connection: a second notice would repeat it.
             if (role === 'mechanic' && (data.kind === 'offer_accepted' || data.kind === 'request_canceled')) return;
             const route = routeForPush(data, { id: userId, role });

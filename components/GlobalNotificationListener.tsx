@@ -6,6 +6,7 @@ import { useRouter, useSegments } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { appAlert } from '@/lib/ui/appAlert';
+import { showOnSiteConfirmAlert } from '@/lib/notifications/onSiteConfirmAlert';
 
 /** How long the backend takes, roughly, to record a notification after the socket event. */
 const INBOX_LAG_MS = 3000;
@@ -42,6 +43,16 @@ export function GlobalNotificationListener() {
 
     useEffect(() => {
         if (!lastMessage) return;
+
+        // Owner: the mechanic closed an on-site job as resolved — confirm or dispute it.
+        // Only the owner (active role 'user', not the job's mechanic) is asked.
+        if (lastMessage.type === 'appointment_update') {
+            const p = lastMessage.payload ?? {};
+            if (p.onSiteStage === 'awaiting_confirmation' && user?.role === 'user' && !!user?.id && user.id !== p.mechanicId) {
+                showOnSiteConfirmAlert(p.id);
+            }
+            return;
+        }
 
         if (lastMessage.type !== 'assistance_update') return;
 

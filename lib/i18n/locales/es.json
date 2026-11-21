@@ -4225,7 +4225,11 @@
     "offerAcceptedTitle": "¡Oferta aceptada!",
     "offerAcceptedBody": "El cliente aceptó tu oferta para ayudar.",
     "jobCanceledTitle": "Trabajo cancelado",
-    "jobCanceledBody": "El cliente canceló esta solicitud."
+    "jobCanceledBody": "El cliente canceló esta solicitud.",
+    "onSiteConfirmTitle": "Servicio finalizado por el mecánico",
+    "onSiteConfirmBody": "Confirmá que el trabajo se hizo o avisanos si no se realizó.",
+    "onSiteConfirmReview": "Revisar",
+    "onSiteConfirmLater": "Después"
   },
   "requestSteps": {
     "label": "Paso {{n}} de {{total}} · {{name}}",

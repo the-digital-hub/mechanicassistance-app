@@ -165,7 +165,15 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
         }
     }, [user?.id]);
 
+    // Several reloads can overlap (socket events, focus, pull-to-refresh) and their
+    // responses can come back out of order: an older, slower one landing last would
+    // overwrite the list with a stale (or partial) snapshot — an appointment would
+    // "disappear". Only the latest call is allowed to write.
+    const loadSeq = useRef(0);
+
     const loadAppointments = async () => {
+        const seq = ++loadSeq.current;
+        const isLatest = () => seq === loadSeq.current;
         if (!user?.id) {
             setIsLoading(false);
             return;
@@ -265,6 +273,7 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                 };
             });
 
+            if (!isLatest()) return;
             setAppointments([...mappedAssistance, ...mappedData]);
 
             // GLOBAL NOTIFICATION LOGIC REMOVED
@@ -272,7 +281,7 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
         } catch (error) {
             console.error('Failed to load appointments', error);
         } finally {
-            setIsLoading(false);
+            if (isLatest()) setIsLoading(false);
         }
     };
 

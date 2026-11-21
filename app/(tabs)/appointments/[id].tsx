@@ -61,7 +61,8 @@ import type { AssistanceClientSummary, AssistanceOfferSummary, CancellationDispu
 import { userDAO } from '@/lib/dao/UserDAO';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useGlobalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useGlobalSearchParams, useRouter } from 'expo-router';
+import { clearViewingAppointment, setViewingAppointment } from '@/lib/notifications/onSiteConfirmAlert';
 import { goBackOr } from '@/lib/navigation/goBackOr';
 import React from 'react';
 import { AttachmentCard, AttachmentStrip } from '@/components/appointments/AttachmentStrip';
@@ -461,6 +462,32 @@ export default function AppointmentDetailScreen() {
             cancelled = true;
         };
     }, [onSiteVisitRelevant, appointment?.id, appointment?.updatedAt, onSiteStatus]);
+
+    // Coming back to this screen (from a push, another tab, the alert) shows the
+    // fresh state: the job may have moved on (e.g. the mechanic closed it) meanwhile.
+    // While focused, the on-site confirmation alert is not shown for this appointment.
+    const appointmentIdForFocus = appointment?.id ?? id;
+    const onSiteVisitRelevantRef = React.useRef(onSiteVisitRelevant);
+    onSiteVisitRelevantRef.current = onSiteVisitRelevant;
+    useFocusEffect(
+        React.useCallback(() => {
+            if (!appointmentIdForFocus) return;
+            const focusedId = appointmentIdForFocus;
+            setViewingAppointment(focusedId);
+            let cancelled = false;
+            void refreshAppointmentsRef.current();
+            if (onSiteVisitRelevantRef.current) {
+                onSiteDAO
+                    .get(focusedId)
+                    .then((v) => !cancelled && setOnSiteVisit(v))
+                    .catch((error) => console.error('Error fetching on-site visit:', error));
+            }
+            return () => {
+                cancelled = true;
+                clearViewingAppointment(focusedId);
+            };
+        }, [appointmentIdForFocus]),
+    );
 
     // 409: it is no longer awaiting confirmation (auto-confirmed, or already answered) — show the fresh state.
     const onSiteError = (error: unknown, fallbackKey: string) => {
