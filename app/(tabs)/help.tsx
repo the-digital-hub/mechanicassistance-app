@@ -27,9 +27,10 @@ export default function HelpScreen() {
     const { user } = useUser();
     const [query, setQuery] = useState('');
     const [searchFocused, setSearchFocused] = useState(false);
-    const [collapsedSections, setCollapsedSections] = useState<string[]>([]);
-    const [expandedIds, setExpandedIds] = useState<string[]>([]);
     const lang = i18n.language?.startsWith('es') ? 'es' : 'en';
+    // Everything starts closed: the sections (and the questions inside them) open when the user taps them.
+    const [collapsedSections, setCollapsedSections] = useState<string[]>(() => HELP_SECTIONS[lang].map((s) => s.id));
+    const [expandedIds, setExpandedIds] = useState<string[]>([]);
 
     // General help + the section for the user's role (technicians vs drivers).
     const sections = useMemo(() => {

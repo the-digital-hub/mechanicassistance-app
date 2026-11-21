@@ -42,6 +42,8 @@ export function ScreenCheckIn({ onSubmit, onMismatch }: {
     const { t } = useTranslation();
     const [mode, setMode] = React.useState<'qr' | 'pin'>('qr');
     const [cameraOpen, setCameraOpen] = React.useState(false);
+    // Tapping the tab that is already open closes it: the camera for Scan QR, the code boxes for Enter PIN.
+    const [pinFolded, setPinFolded] = React.useState(false);
     const [submitting, setSubmitting] = React.useState(false);
     const [pin, setPin] = React.useState('');
     const [permission, requestPermission] = useCameraPermissions();
@@ -73,13 +75,23 @@ export function ScreenCheckIn({ onSubmit, onMismatch }: {
     };
 
     return (
-        <Body>
+        // The PIN boxes are already in view: with the keyboard up nothing needs to scroll.
+        <Body focusScroll={false}>
             <Intro eyebrow={t('appointments.checkIn.step')} title={t('appointments.checkIn.heading')} subtitle={t('appointments.checkIn.subtitle')} />
 
             <View className="mt-4">
                 <Segmented
                     value={mode}
-                    onChange={setMode}
+                    onChange={(next) => {
+                        if (next === mode) {
+                            if (mode === 'qr') setCameraOpen(false);
+                            else setPinFolded((v) => !v);
+                            return;
+                        }
+                        setMode(next);
+                        setCameraOpen(false);
+                        setPinFolded(false);
+                    }}
                     options={[
                         { key: 'qr', label: t('appointments.checkIn.scanQr'), icon: 'qr-code-outline' },
                         { key: 'pin', label: t('appointments.checkIn.enterPin'), icon: 'lock-closed-outline' },
@@ -126,7 +138,7 @@ export function ScreenCheckIn({ onSubmit, onMismatch }: {
                         </View>
                     )}
                 </Card>
-            ) : (
+            ) : pinFolded ? null : (
                 <Card style={{ padding: 24 }}>
                     <PinBoxes value={pin} onChange={setPin} testID="check-in-pin" />
                     <View className="flex-row mt-6">

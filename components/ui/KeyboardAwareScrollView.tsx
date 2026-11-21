@@ -12,7 +12,9 @@ import { Keyboard, Platform, ScrollView, TextInput, type ScrollViewProps } from 
 export const KeyboardAwareScrollView = React.forwardRef<ScrollView, ScrollViewProps & {
     /** Room kept between the top of the visible area and the field. */
     topGap?: number;
-}>(function KeyboardAwareScrollView({ topGap = 24, contentContainerStyle, children, onLayout, ...rest }, forwardedRef) {
+    /** Scroll the focused field up when the keyboard opens (default). Off for a short screen whose field is already in view: nothing should move. */
+    focusScroll?: boolean;
+}>(function KeyboardAwareScrollView({ topGap = 24, focusScroll = true, contentContainerStyle, children, onLayout, ...rest }, forwardedRef) {
     const ref = React.useRef<ScrollView>(null);
     const [keyboard, setKeyboard] = React.useState(0);
     const handled = React.useRef<unknown>(null);
@@ -38,7 +40,7 @@ export const KeyboardAwareScrollView = React.forwardRef<ScrollView, ScrollViewPr
     // While the keyboard is up: bring the focused field to the top, once per field (checked a few times a second, so moving to the
     // next field is followed too).
     React.useEffect(() => {
-        if (keyboard <= 0) return;
+        if (keyboard <= 0 || !focusScroll) return;
         const bring = () => {
             const field = TextInput.State.currentlyFocusedInput?.();
             // The inner content view: where the field's position is measured from (not in the TypeScript types yet).
@@ -57,7 +59,7 @@ export const KeyboardAwareScrollView = React.forwardRef<ScrollView, ScrollViewPr
             clearTimeout(first);
             clearInterval(id);
         };
-    }, [keyboard, topGap]);
+    }, [keyboard, topGap, focusScroll]);
 
     return (
         <ScrollView
@@ -67,7 +69,7 @@ export const KeyboardAwareScrollView = React.forwardRef<ScrollView, ScrollViewPr
             {...rest}
             onLayout={onLayout}
             // The room for the keyboard is what lets the content scroll high enough, even when it is short.
-            contentContainerStyle={[contentContainerStyle, keyboard > 0 ? { paddingBottom: ((contentContainerStyle as { paddingBottom?: number } | undefined)?.paddingBottom ?? 0) + keyboard } : null]}
+            contentContainerStyle={[contentContainerStyle, keyboard > 0 && focusScroll ? { paddingBottom: ((contentContainerStyle as { paddingBottom?: number } | undefined)?.paddingBottom ?? 0) + keyboard } : null]}
         >
             {children}
         </ScrollView>

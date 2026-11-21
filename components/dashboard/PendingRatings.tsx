@@ -65,7 +65,11 @@ function RatingCard({ appointment, role, width, position, total, onSent, onSkip 
     const [done, setDone] = React.useState(false);
     const when = appointment.completedAt ?? appointment.updatedAt;
     const date = when ? new Date(when).toLocaleDateString(i18n.language, { day: 'numeric', month: 'long' }) : '';
-    const { main } = splitJobTitle(appointment.title);
+    const { main, topic } = splitJobTitle(appointment.title);
+    // The issue: the service in the title, else the issues the owner ticked; and which kind of assistance it was.
+    const issue = [main || appointment.vehicleIssues?.map((v) => v.name).filter(Boolean).join(', '), topic].filter(Boolean).join(' · ');
+    const kind = appointment.assistanceType ?? appointment.type;
+    const kindKey = kind === 'immediate' ? 'immediate' : kind === 'videocall' ? 'videocall' : kind === 'scheduled' ? 'scheduled' : null;
 
     const submit = async () => {
         if (!rating || sending) return;
@@ -129,18 +133,24 @@ function RatingCard({ appointment, role, width, position, total, onSent, onSkip 
                     </View>
                 ) : null}
             </View>
-            {/* What it was about: the vehicle, then the issue. */}
+            {/* What it was about: the kind of assistance, the vehicle and the issue. */}
             <View className="flex-row flex-wrap" style={{ gap: 6, marginTop: 10 }}>
+                {kindKey ? (
+                    <View style={{ ...pill, backgroundColor: OS.blueSoft }}>
+                        <Ionicons name={kindKey === 'videocall' ? 'videocam-outline' : kindKey === 'scheduled' ? 'calendar-outline' : 'flash-outline'} size={13} color={OS.blue} />
+                        <Text className="font-outfit-semibold" style={{ fontSize: 12, color: OS.blue, flexShrink: 1 }} numberOfLines={1}>{t(`appointments.detail.types.${kindKey}`)}</Text>
+                    </View>
+                ) : null}
                 {appointment.car ? (
                     <View style={{ ...pill, backgroundColor: '#E9EEF8' }}>
                         <Ionicons name="car-outline" size={13} color={OS.muted} />
                         <Text className="font-outfit-semibold" style={{ fontSize: 12, color: OS.text, flexShrink: 1 }} numberOfLines={1}>{appointment.car}</Text>
                     </View>
                 ) : null}
-                {main ? (
+                {issue ? (
                     <View style={{ ...pill, backgroundColor: OS.orangeSoft }}>
                         <Ionicons name="construct-outline" size={13} color={OS.orangeText} />
-                        <Text className="font-outfit-semibold" style={{ fontSize: 12, color: OS.orangeText, flexShrink: 1 }} numberOfLines={1}>{main}</Text>
+                        <Text className="font-outfit-semibold" style={{ fontSize: 12, color: OS.orangeText, flexShrink: 1 }} numberOfLines={1}>{issue}</Text>
                     </View>
                 ) : null}
             </View>

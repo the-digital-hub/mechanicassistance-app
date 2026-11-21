@@ -191,6 +191,9 @@ export function MediaSlot({
     const isImagePreview =
         picked && picked.uri && !picked.isVideo && (kind !== 'file' || /\.(jpe?g|png|heic|webp)$/i.test(picked.name ?? picked.uri));
 
+    // A picked file that is not a picture or a video: shown as a file card, not as a dark box with a name in it.
+    const isDocumentTile = !!picked && !picked.isVideo && !isImagePreview;
+
     const statusText =
         state === 'uploading'
             ? t('appointments.onSite.common.uploading')
@@ -214,8 +217,9 @@ export function MediaSlot({
                     style={{
                         height,
                         borderRadius: 18,
-                        backgroundColor: picked ? OS.text : '#EEF4FF',
-                        borderWidth: picked ? 0 : 1.5,
+                        // A photo or a video sits on dark; a document (a PDF has nothing to show but its name) gets a light file card instead.
+                        backgroundColor: picked ? (isDocumentTile ? '#F4F8FF' : OS.text) : '#EEF4FF',
+                        borderWidth: picked && !isDocumentTile ? 0 : 1.5,
                         borderColor: '#CFDDFB',
                     }}
                 >
@@ -229,6 +233,15 @@ export function MediaSlot({
                         </View>
                     ) : isImagePreview ? (
                         <Image source={{ uri: picked.uri }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+                    ) : isDocumentTile ? (
+                        <View className="items-center px-4" style={{ gap: 8 }}>
+                            <View className="items-center justify-center" style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: '#E6EEFF' }}>
+                                <Ionicons name="document-text" size={28} color={OS.blue} />
+                            </View>
+                            <Text className="font-outfit-bold text-center" style={{ fontSize: 15, lineHeight: 20, color: OS.text }} numberOfLines={2}>
+                                {picked.name ?? title}
+                            </Text>
+                        </View>
                     ) : (
                         <View className="items-center px-3" style={{ gap: 6 }}>
                             <Ionicons name={picked.isVideo ? 'play-circle-outline' : 'document-text-outline'} size={44} color="rgba(255,255,255,0.85)" />

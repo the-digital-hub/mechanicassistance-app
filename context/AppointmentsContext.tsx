@@ -108,6 +108,8 @@ export interface Appointment {
     isStatusUpdated?: boolean;
     currentStatus?: string;
     userId?: string;
+    /** The saved vehicle the request was made for (the owner's cards look up its plate and VIN). */
+    vehicleId?: string;
     mechanicId?: string;
     /** Legacy rows hold plain URL strings; current ones hold attachment objects. */
     photos?: string[] | Attachment[];
@@ -226,6 +228,7 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                     startNow: req.startNow,
                     timezone: req.timezone,
                     userId: req.userId,
+                    vehicleId: req.vehicleId,
                     zip: req.zip,
                     mechanicId: req.mechanicId,
                     updatedAt: (req as any).updatedAt,
@@ -253,6 +256,10 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                 return {
                     ...appt,
                     refCode: appt.refCode ?? ar?.refCode,
+                    // The appointment row can come without its title: the request has it.
+                    title: appt.title || ar?.title || appt.title,
+                    vehicleId: appt.vehicleId ?? ar?.vehicleId,
+                    assistanceType: appt.assistanceType ?? ar?.assistanceType,
                     updatedAt: appt.updatedAt,
                     locationLat: appt.locationLat ?? ar?.locationLat,
                     locationLng: appt.locationLng ?? ar?.locationLng,

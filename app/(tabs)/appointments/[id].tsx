@@ -44,6 +44,7 @@ import { AO, IconName, RequestSummaryRows } from '@/components/offer/OfferSectio
 import { PaymentCardValue } from '@/components/payments/PaymentCardValue';
 import { isCancelledStatus, useAppointments } from '@/context/AppointmentsContext';
 import { useUser } from '@/context/UserContext';
+import { vehicleDAO } from '@/lib/dao/VehicleDAO';
 import { formatEtaTime, useAppointmentEta } from '@/hooks/useAppointmentEta';
 import { useHeadOut } from '@/hooks/useHeadOut';
 import { useCustomerInRoom } from '@/hooks/useCustomerInRoom';
@@ -299,6 +300,8 @@ export default function AppointmentDetailScreen() {
     })();
     // Owner: the card the request is charged to (null = made before the app sent one → default card).
     const [paymentMethodId, setPaymentMethodId] = React.useState<string | null>(null);
+    // The vehicle's plate and VIN for the Details tab (the request has the VIN; the plate comes from the saved vehicle).
+    const [vehicleIds, setVehicleIds] = React.useState<{ plate: string | null; vin: string | null }>({ plate: null, vin: null });
 
     const [ownerTab, setOwnerTab] = React.useState<OwnerTab>('status');
     // Mechanic: the owner's sub-navbar, with "mechanic" standing for the client.
@@ -357,7 +360,18 @@ export default function AppointmentDetailScreen() {
         assistanceDAO
             .getById(appointment.id)
             .then((req) => {
-                if (!cancelled) setPaymentMethodId(req?.paymentMethodId ?? null);
+                if (cancelled) return;
+                setPaymentMethodId(req?.paymentMethodId ?? null);
+                setVehicleIds((prev) => ({ ...prev, vin: req?.vehicle?.vin ?? prev.vin }));
+                if (req?.vehicleId && user?.id) {
+                    vehicleDAO
+                        .getByUser(user.id)
+                        .then((list) => {
+                            const v = list.find((x) => x.id === req.vehicleId);
+                            if (!cancelled && v) setVehicleIds({ plate: v.plate || null, vin: v.vin || req.vehicle?.vin || null });
+                        })
+                        .catch(() => undefined);
+                }
             })
             .catch((error) => console.error('Error fetching request payment method:', error));
         return () => {
@@ -703,6 +717,8 @@ export default function AppointmentDetailScreen() {
                         ? { icon: 'timer-outline' as const, label: t('appointments.ownerAccepted.rows.duration'), value: t('requestAssistance.when.durationValue', { count: (appointment.durationMinutes ?? videoState?.baseMinutes) as number }) }
                         : null,
                     appointment.car ? { icon: 'car-outline' as const, label: t('appointments.ownerAccepted.rows.vehicle'), value: appointment.car } : null,
+                    vehicleIds.plate ? { icon: 'id-card-outline' as const, label: t('requestAssistance.selectVehicle.plate'), value: vehicleIds.plate } : null,
+                    vehicleIds.vin ? { icon: 'barcode-outline' as const, label: 'VIN', value: vehicleIds.vin } : null,
                     issues ? { icon: 'construct-outline' as const, label: t('appointments.ownerAccepted.rows.issue'), value: issues } : null,
                     appointment.notes ? { icon: 'document-text-outline' as const, label: t('appointments.ownerAccepted.rows.notes'), value: appointment.notes } : null,
                     appointment.address ? { icon: 'location-outline' as const, label: t('appointments.ownerAccepted.rows.location'), value: appointment.address } : null,

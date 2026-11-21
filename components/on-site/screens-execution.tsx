@@ -7,6 +7,7 @@ import MapView, { Marker } from 'react-native-maps';
 import { MAP_PROVIDER } from '@/lib/maps/provider';
 import { TYPE } from '@/lib/ui/type';
 import { ExtraCaptures, MediaSlot, useExistingCaptures } from './MediaSlot';
+import { WorkingAnimation } from './WorkingAnimation';
 import {
     ActionBar, Body, Card, CardTitle, Checkbox, Eyebrow, GhostButton, Intro, MaintenanceChecklist, NoteInput, OS,
     OnSiteDialog, PrimaryButton, Tip, useMaintenanceItems,
@@ -366,6 +367,8 @@ export function ScreenResolveIncident({
                             </View>
                         </LinearGradient>
 
+                        <WorkingAnimation label={t(`${k}.working`)} />
+
                 {partsOrder ? (
                     <>
                         <View className="px-5 pt-4"><Eyebrow>{t(`${k}.pickupEyebrow`)}</Eyebrow></View>
@@ -425,8 +428,14 @@ export function ScreenResolveIncident({
                 {part === 'proof' ? (
                     <>
                         <Intro eyebrow={t(`${k}.eyebrow`)} title={t(`${k}.stepProofTitle`)} subtitle={t(`${k}.stepProofSub`)} />
-                        <ExtraCaptures videoKind="walkaround_out" photoKind="proof" existingVideo={walkaroundOut[0]} videoPlaceholder={t('appointments.onSite.photos.videoPh')} photoPlaceholder={t(`${k}.proofPh`)} />
-                        <View className="mx-4 mt-3">
+                        <View style={{ marginTop: 18 }}>
+                            <ExtraCaptures videoKind="walkaround_out" photoKind="proof" existingVideo={walkaroundOut[0]} videoPlaceholder={t('appointments.onSite.photos.videoPh')} photoPlaceholder={t(`${k}.proofPh`)} />
+                        </View>
+                        <View className="mx-4" style={{ marginTop: 26 }}>
+                            <Text className="font-outfit-bold" style={{ fontSize: 17, lineHeight: 23, color: OS.text }}>
+                                {t(`${k}.workTitle`)}
+                                <Text className="font-outfit-medium" style={{ fontSize: 13, color: OS.mutedLight }}>  {t('appointments.onSite.common.optional')}</Text>
+                            </Text>
                             <NoteInput value={notes} onChangeText={setNotes} placeholder={t(`${k}.workPh`)} rows={3} white />
                         </View>
                     </>

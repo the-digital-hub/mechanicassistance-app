@@ -4,6 +4,7 @@ const mockPlay = jest.fn();
 const mockSeekTo = jest.fn().mockResolvedValue(undefined);
 jest.mock('expo-audio', () => ({
     createAudioPlayer: jest.fn(() => ({ play: mockPlay, seekTo: mockSeekTo })),
+    setAudioModeAsync: jest.fn().mockResolvedValue(undefined),
 }));
 jest.mock('@react-native-async-storage/async-storage', () => ({
     __esModule: true,
@@ -42,5 +43,13 @@ describe('sound setting', () => {
         (AsyncStorage.getItem as jest.Mock).mockResolvedValue('0');
         await ringIfEnabled();
         expect(mockPlay).not.toHaveBeenCalled();
+    });
+
+    it('plays even when setting the audio mode fails, and asks to ring with the phone on silent', async () => {
+        const audio = jest.requireMock('expo-audio') as { setAudioModeAsync: jest.Mock };
+        audio.setAudioModeAsync.mockRejectedValueOnce(new Error('no session'));
+        await setSoundEnabled(true);
+        expect(audio.setAudioModeAsync).toHaveBeenCalledWith(expect.objectContaining({ playsInSilentMode: true }));
+        expect(mockPlay).toHaveBeenCalledTimes(1);
     });
 });

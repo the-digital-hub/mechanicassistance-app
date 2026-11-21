@@ -14,6 +14,9 @@ import { useTranslation } from 'react-i18next';
 import { FlatList, Modal, Text, TouchableOpacity, View } from 'react-native';
 import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
+/** How many appointments a page of the list holds. */
+const PAGE_SIZE = 15;
+
 export default function AppointmentsScreen() {
     const { t } = useTranslation();
     const { getUpcoming, getPendingApproval, getPast, refresh } = useAppointments();
@@ -64,6 +67,14 @@ export default function AppointmentsScreen() {
     const offersShown = activeTab === 'upcoming' ? offersAll.filter((a) => matchesQuery(a, filters.query)) : [];
     const filtering = isFiltering(filters, activeTab);
 
+    // Long lists (a technician's whole history) come in pages: the first screens are light and "Show more" brings the next ones.
+    const [pageCount, setPageCount] = useState(1);
+    useEffect(() => {
+        setPageCount(1);
+    }, [activeTab, filters]);
+    const visibleAppointments = appointments.slice(0, pageCount * PAGE_SIZE);
+    const remaining = appointments.length - visibleAppointments.length;
+
     // The badge is a live summary, so it never repeats the title below it.
     const badgeLabel = upcomingCount > 0
         ? t('appointments.list.badgeStatus.active', { count: upcomingCount })
@@ -91,7 +102,7 @@ export default function AppointmentsScreen() {
         <View className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
             <FlatList
                 {...scrollProps}
-                data={appointments}
+                data={visibleAppointments}
                 keyExtractor={(item) => item.id}
                 ListHeaderComponent={
                     <>
@@ -156,6 +167,20 @@ export default function AppointmentsScreen() {
                     </View>
                 )}
                 contentContainerStyle={{ paddingBottom: 20 }}
+                ListFooterComponent={remaining > 0 ? (
+                    <View style={{ paddingHorizontal: 20, paddingTop: 2 }}>
+                        <TouchableOpacity
+                            onPress={() => setPageCount((n) => n + 1)}
+                            activeOpacity={0.8}
+                            accessibilityRole="button"
+                            className="items-center justify-center"
+                            style={{ minHeight: 52, borderRadius: 14, backgroundColor: '#E6EAF2' }}
+                            testID="appointments-show-more"
+                        >
+                            <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#4A5470' }}>{t('appointments.list.showMore', { count: Math.min(PAGE_SIZE, remaining), left: remaining })}</Text>
+                        </TouchableOpacity>
+                    </View>
+                ) : null}
                 ListEmptyComponent={offersShown.length > 0 && !filtering ? null : (
                     <View className="items-center justify-center py-10" style={{ gap: 12 }}>
                         <Text className="font-outfit-medium text-[15px] text-center" style={{ color: '#0B1530' }}>{filtering

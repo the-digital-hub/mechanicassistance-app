@@ -103,16 +103,17 @@ export function MechanicActiveJobCard({ appointment }: { appointment: Appointmen
                 </View>
             </View>
 
-            <View style={{ marginTop: 12, paddingVertical: 12, paddingHorizontal: 14, borderRadius: 14, backgroundColor: colors.bg, gap: 4 }}>
-                <View className="flex-row items-center" style={{ gap: 8 }}>
-                    <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: colors.title }} />
+            {/* The dot sits at the first line; the title and its explanation share one column, so they line up. */}
+            <View className="flex-row items-start" style={{ marginTop: 12, paddingVertical: 12, paddingHorizontal: 14, borderRadius: 14, backgroundColor: colors.bg, gap: 10 }}>
+                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: colors.title, marginTop: 6 }} />
+                <View className="flex-1" style={{ gap: 3 }}>
                     <Text className="font-outfit-bold" style={{ fontSize: 15, lineHeight: 20, color: colors.title }}>
                         {t(`appointments.list.card.title.${stateTextKey(state, true)}`)}
                     </Text>
+                    <Text className="font-outfit-regular" style={{ fontSize: 15, lineHeight: 21, color: '#4A5470' }}>
+                        {t(`appointments.list.card.status.${stateTextKey(state, true)}Hint`)}
+                    </Text>
                 </View>
-                <Text className="font-outfit-regular" style={{ fontSize: 15, lineHeight: 21, color: '#4A5470' }}>
-                    {t(`appointments.list.card.status.${stateTextKey(state, true)}Hint`)}
-                </Text>
             </View>
 
             {rows.length > 0 && (

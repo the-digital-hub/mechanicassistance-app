@@ -38,6 +38,10 @@ import { useScrollPressGuard } from '@/hooks/useScrollPressGuard';
 import { ApiError } from '@/lib/api/types';
 import { ActivityIndicator, Platform, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { ReviewsSheet } from '@/components/profile/ReviewsSheet';
+import { useProfileReviews } from '@/hooks/useProfileReviews';
+import { splitJobTitle } from '@/lib/ui/jobTitle';
+import { formatLocalDateTime } from '@/lib/video/videoCallTime';
 import { appAlert } from '@/lib/ui/appAlert';
 import { TYPE } from '@/lib/ui/type';
 import { VehicleTitle } from '@/components/ui/VehicleTitle';
@@ -98,7 +102,14 @@ export default function DashboardScreen() {
     const [showStatusModal, setShowStatusModal] = useState(false);
     // The pending ratings open here, in the dashboard, one card per job to swipe through.
     const [ratingOpen, setRatingOpen] = useState(false);
+    // The ratings behind the technician's average, opened from the Rating tile.
+    const [reviewsOpen, setReviewsOpen] = useState(false);
+    const profileReviews = useProfileReviews(reviewsOpen);
     const { appointments, getActiveRequests, refresh: refreshAppointments, isLoading: isLoadingAppointments } = useAppointments();
+    // The full-page spinner is only for the first load: a later refresh (e.g. after sending a rating) must not blank the dashboard
+    // and take the open sheet with it.
+    const loadedAppointmentsOnce = useRef(false);
+    if (!isLoadingAppointments) loadedAppointmentsOnce.current = true;
     const jobsToday = countCompletedToday(appointments);
     const { earnedToday, stats: mechanicStats, week, summary: earningsSummary } = useMechanicKpis(user?.role === 'mechanic', jobsToday);
     const { totals } = useNotifications();
@@ -315,6 +326,28 @@ export default function DashboardScreen() {
                 sub: t('dashboard.mechanic.attention.notifications.sub'),
                 cta: t('dashboard.mechanic.attention.notifications.cta'),
                 onPress: () => router.push('/notifications'),
+            });
+        }
+
+        // Offers this technician sent that the customer has not answered yet: the hold ticks here, so it does not have to be found in Appointments.
+        const heldOffers = appointments.filter((a) => a.status === 'offered' && !!a.offerExpiresAt && Date.parse(a.offerExpiresAt) > Date.now());
+        if (heldOffers.length > 0) {
+            // The one that runs out first is the one the card talks about.
+            const heldFirst = [...heldOffers].sort((x, y) => Date.parse(x.offerExpiresAt as string) - Date.parse(y.offerExpiresAt as string))[0];
+            const heldDeadline = heldFirst.offerExpiresAt as string;
+            attentionItems.push({
+                id: 'held-offers', signature: `held-offers:${heldOffers.map((a) => a.id).join(',')}`, tone: 'amber', icon: Clock,
+                title: t('dashboard.mechanic.attention.heldOffers.title', { count: heldOffers.length }),
+                count: heldOffers.length > 1 ? heldOffers.length : undefined,
+                // Which offer it is, in a line: the service and when it was asked for (+ how many more wait).
+                sub: [
+                    splitJobTitle(heldFirst.title).main || t('dashboard.mechanic.attention.heldOffers.sub'),
+                    formatLocalDateTime(heldFirst.date, i18n.language),
+                    heldOffers.length > 1 ? t('dashboard.user.attention.confirm.more', { count: heldOffers.length - 1 }) : null,
+                ].filter(Boolean).join(' · '),
+                cta: t('dashboard.mechanic.attention.heldOffers.cta'),
+                timer: { deadline: heldDeadline, urgentUnderMinutes: 1, label: (time) => t('dashboard.attention.timer.offer', { time }) },
+                onPress: () => router.push({ pathname: '/(tabs)/appointments', params: { tab: 'pending' } } as never),
             });
         }
 
@@ -715,6 +748,7 @@ export default function DashboardScreen() {
                                       : t('dashboard.mechanic.noRating')
                             }
                             ratingSub={mechanicStats && mechanicStats.ratingCount > 0 ? `${mechanicStats.ratingCount}` : undefined}
+                            onRatingPress={mechanicStats && mechanicStats.ratingCount > 0 ? () => setReviewsOpen(true) : undefined}
                         />
                     </View>
 
@@ -747,6 +781,19 @@ export default function DashboardScreen() {
                 </KeyboardAwareScrollView>
 
                 {/* The ratings still owed open from below */}
+                <ReviewsSheet
+                    visible={reviewsOpen}
+                    onClose={() => setReviewsOpen(false)}
+                    isTechnician
+                    average={profileReviews.average ?? (mechanicStats?.avgRating != null && Number.isFinite(Number(mechanicStats.avgRating)) ? Number(mechanicStats.avgRating) : null)}
+                    count={profileReviews.count ?? mechanicStats?.ratingCount ?? 0}
+                    items={profileReviews.items}
+                    loading={profileReviews.loading}
+                    failed={profileReviews.failed}
+                    failedStatus={profileReviews.failedStatus}
+                    hasMore={profileReviews.hasMore}
+                    onLoadMore={profileReviews.loadMore}
+                />
                 <OwnerSheet visible={ratingOpen && toRate.length > 0} title={t('dashboard.rating.heading.mechanic')} onClose={() => setRatingOpen(false)}>
                     <PendingRatings appointments={toRate} role="mechanic" onSent={() => void refreshAppointments()} onClose={() => setRatingOpen(false)} />
                 </OwnerSheet>
@@ -766,7 +813,7 @@ export default function DashboardScreen() {
 
     const activeRequests = getActiveRequests();
 
-    if (isLoadingAppointments && activeRequests.length === 0) {
+    if (isLoadingAppointments && !loadedAppointmentsOnce.current && activeRequests.length === 0) {
         return (
             <View className="flex-1 bg-white justify-center items-center">
                 <ActivityIndicator size="large" color="#0047AB" />
@@ -927,7 +974,12 @@ export default function DashboardScreen() {
         attentionItems.push({
             id: 'confirm', signature: `confirm:${toConfirm.map((r) => r.id).join(',')}`, tone: 'amber', icon: AlertTriangle,
             title: t('dashboard.user.attention.confirm.title'),
-            sub: t('dashboard.user.attention.confirm.sub'),
+            // Which service it is, in a line: its title and when it was, plus how many more wait (the full explanation is in the confirm dialog).
+            sub: [
+                splitJobTitle(confirmFirst.title).main || t('dashboard.user.attention.confirm.sub'),
+                formatLocalDateTime(confirmFirst.date, i18n.language),
+                toConfirm.length > 1 ? t('dashboard.user.attention.confirm.more', { count: toConfirm.length - 1 }) : null,
+            ].filter(Boolean).join(' · '),
             cta: t('dashboard.user.attention.confirm.cta'),
             timer: confirmDeadline ? { deadline: confirmDeadline, urgentUnderMinutes: 120, label: (time) => t('dashboard.attention.timer.confirm', { time }) } : undefined,
             // The simple case is done right here; the work not being done goes through the detail ("Review").

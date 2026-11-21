@@ -4,12 +4,12 @@ import { ROUNDED_HEADER } from '@/lib/ui/header';
 import { RequestSteps, stepEyebrow } from '@/components/ui/RequestSteps';
 import { TYPE } from '@/lib/ui/type';
 import * as ImagePicker from 'expo-image-picker';
-import { useVideoPlayer, VideoView } from 'expo-video';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Camera, Check, ChevronLeft, Image as ImageIcon, Video as VideoIcon } from 'lucide-react-native';
+import { ChevronLeft } from 'lucide-react-native';
+import { CaptureTile } from '@/components/ui/CaptureTile';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import type { PendingAttachment } from '@/lib/media/attachments';
 import { appAlert } from '@/lib/ui/appAlert';
 import { KeyboardAwareScrollView } from '@/components/ui/KeyboardAwareScrollView';
@@ -21,61 +21,17 @@ const MAX_VIDEO_MB = 250;
 type PhotoSlot = { uri: string; note: string };
 type VideoSlot = { uri: string; note: string };
 
-/**
- * The empty state of a media slot: an icon tile, a title, one short line and a real button, instead of a tall dashed
- * box with small text. The same structure as the OBD report upload.
- */
-function PickCard({ icon, title, hint, actionLabel, actionIcon, onPress, testID }: {
-    icon: React.ReactNode;
-    title: string;
-    hint: string;
-    actionLabel: string;
-    actionIcon: React.ReactNode;
-    onPress: () => void;
-    testID?: string;
-}) {
-    return (
-        <View style={{ gap: 14 }}>
-            <View className="flex-row items-center" style={{ gap: 12 }}>
-                <View className="items-center justify-center" style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: '#E9F1FF' }}>
-                    {icon}
-                </View>
-                <View style={{ flex: 1 }}>
-                    <Text className="font-outfit-bold" style={{ ...TYPE.question, color: '#0B1530' }}>{title}</Text>
-                    <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: '#6B7490' }}>{hint}</Text>
-                </View>
-            </View>
-            <TouchableOpacity
-                onPress={onPress}
-                activeOpacity={0.85}
-                accessibilityRole="button"
-                className="flex-row items-center justify-center"
-                style={{ height: 52, borderRadius: 14, backgroundColor: '#1E56E3', gap: 8 }}
-                testID={testID}
-            >
-                {actionIcon}
-                <Text className="font-outfit-bold" style={{ ...TYPE.button, color: '#FFFFFF' }}>{actionLabel}</Text>
-            </TouchableOpacity>
-        </View>
-    );
-}
-
 export default function VehicleDocumentationScreen() {
     const router = useRouter();
     const { t } = useTranslation();
     const params = useLocalSearchParams();
     const { type } = params;
 
-    const [tab, setTab] = useState<'video' | 'photos'>('photos');
     const [video, setVideo] = useState<VideoSlot | null>(null);
     const [photos, setPhotos] = useState<PhotoSlot[]>([]);
 
-    // One player for the single video slot: it is re-pointed when the user picks
-    // another clip and released with the screen. Paused on load — the user asked
-    // for a preview, not for playback to start on its own.
-    const player = useVideoPlayer(video?.uri ?? null, (instance) => {
-        instance.loop = false;
-    });
+    // Which item's note is open under the grid: the video, a photo by index, or none.
+    const [noteFor, setNoteFor] = useState<'video' | number | null>(null);
 
     const getTitle = () => {
         switch (type) {
@@ -174,42 +130,6 @@ export default function VehicleDocumentationScreen() {
         });
     };
 
-    const Tab = ({ id, label }: { id: 'video' | 'photos'; label: string }) => (
-        <TouchableOpacity
-            onPress={() => setTab(id)}
-            className="flex-1 items-center py-3 rounded-[14px]"
-            style={tab === id
-                ? { backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 }
-                : undefined}
-        >
-            <Text className="font-outfit-bold" style={{ ...TYPE.option, color: tab === id ? '#0047AB' : '#8C96AE' }}>
-                {label}
-            </Text>
-        </TouchableOpacity>
-    );
-
-    const StatusRow = ({ filled, onRemove }: { filled: boolean; onRemove?: () => void }) => (
-        <View className="flex-row items-center justify-between mt-2.5">
-            <View className="flex-row items-center">
-                {filled
-                    ? <Check size={16} color="#10B981" />
-                    : <ImageIcon size={16} color="#8C96AE" />}
-                <Text className="font-outfit-bold ml-2" style={{ ...TYPE.helper, color: filled ? '#0F8A55' : '#8C96AE' }}>
-                    {filled
-                        ? t('requestAssistance.vehicleDocumentation.captured')
-                        : t('requestAssistance.vehicleDocumentation.pending')}
-                </Text>
-            </View>
-            {filled && onRemove && (
-                <TouchableOpacity onPress={onRemove}>
-                    <Text className="font-outfit-bold" style={{ ...TYPE.helper, color: '#E53E3E' }}>
-                        {t('requestAssistance.vehicleDocumentation.remove')}
-                    </Text>
-                </TouchableOpacity>
-            )}
-        </View>
-    );
-
     return (
         <View className="flex-1" style={{ backgroundColor: '#F4F6FC' }}>
             {/* Custom Header */}
@@ -242,81 +162,79 @@ export default function VehicleDocumentationScreen() {
                     {t('requestAssistance.vehicleDocumentation.subtitle')}
                 </Text>
 
-                <View className="flex-row p-1 rounded-2xl mb-4" style={{ backgroundColor: '#EEF2FA' }}>
-                    <Tab id="photos" label={t('requestAssistance.vehicleDocumentation.tabPhotos')} />
-                    <Tab id="video" label={t('requestAssistance.vehicleDocumentation.tabVideo')} />
-                </View>
-
-                {tab === 'video' ? (
-                    <View className="bg-white rounded-2xl p-4 mb-8" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 8, elevation: 6 }}>
-                        {video ? (
-                            <View className="rounded-2xl items-center justify-center" style={{ width: '100%', aspectRatio: 4 / 3, backgroundColor: '#0B1530', overflow: 'hidden' }}>
-                                <VideoView
-                                    player={player}
-                                    style={{ width: '100%', height: '100%' }}
-                                    contentFit="cover"
-                                    nativeControls
-                                    fullscreenOptions={{ enable: true }}
-                                />
-                            </View>
-                        ) : (
-                            <PickCard
-                                icon={<VideoIcon size={24} color="#1E56E3" />}
-                                title={t('requestAssistance.vehicleDocumentation.recordIssue')}
-                                hint={t('requestAssistance.vehicleDocumentation.videoHint')}
-                                actionLabel={t('requestAssistance.vehicleDocumentation.addVideo')}
-                                actionIcon={<VideoIcon size={22} color="#FFFFFF" />}
-                                onPress={() => askSource(pickVideo)}
-                                testID="doc-add-video"
+                {/* One grid, no tabs: the video and the photos together, each tile is the button. */}
+                {(() => {
+                    const cells: React.ReactNode[] = [
+                        <CaptureTile
+                            key="video"
+                            title={t('requestAssistance.vehicleDocumentation.tileVideo')}
+                            hint={t('requestAssistance.vehicleDocumentation.addVideo')}
+                            icon="videocam-outline"
+                            uri={video?.uri}
+                            isVideo
+                            onPress={() => askSource(pickVideo)}
+                            onRemove={() => { setVideo(null); if (noteFor === 'video') setNoteFor(null); }}
+                            onPressFilled={() => setNoteFor(noteFor === 'video' ? null : 'video')}
+                            hasNote={!!video?.note.trim()}
+                            selected={noteFor === 'video'}
+                            testID="doc-add-video"
+                        />,
+                        ...photos.map((photo, index) => (
+                            <CaptureTile
+                                key={`${photo.uri}-${index}`}
+                                title={t('requestAssistance.vehicleDocumentation.tilePhoto')}
+                                hint=""
+                                icon="camera-outline"
+                                uri={photo.uri}
+                                onRemove={() => { setPhotos(photos.filter((_, i) => i !== index)); setNoteFor(null); }}
+                                onPressFilled={() => setNoteFor(noteFor === index ? null : index)}
+                                hasNote={!!photo.note.trim()}
+                                selected={noteFor === index}
                             />
-                        )}
-
-                        {video ? <StatusRow filled onRemove={() => setVideo(null)} /> : null}
-
-                        {/* The note appears with the video, not before. */}
-                        {video ? (
-                            <TextInput
-                                multiline
-                                placeholder={t('requestAssistance.vehicleDocumentation.videoNotePlaceholder')}
-                                placeholderTextColor="#D1D5DB"
-                                value={video.note}
-                                onChangeText={(note) => setVideo({ ...video, note })}
-                                className="rounded-xl p-3 mt-3 font-outfit-regular text-[#0F172A]"
-                                style={{ borderWidth: 1.5, borderColor: '#E4EAF5', backgroundColor: '#F4F6FC', height: 72, textAlignVertical: 'top', ...TYPE.body }}
-                            />
-                        ) : null}
-                    </View>
-                ) : (
-                    <View className="bg-white rounded-2xl p-4 mb-8" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 8, elevation: 6 }}>
-                        {photos.map((photo, index) => (
-                            <View key={`${photo.uri}-${index}`} className={index < photos.length - 1 ? 'pb-4 mb-4' : 'mb-4'} style={index < photos.length - 1 ? { borderBottomWidth: 1, borderBottomColor: '#EEF2FA' } : undefined}>
-                                <Image source={{ uri: photo.uri }} resizeMode="cover" style={{ width: '100%', aspectRatio: 4 / 3, borderRadius: 16 }} />
-                                <StatusRow filled onRemove={() => setPhotos(photos.filter((_, i) => i !== index))} />
-                                <TextInput
-                                    multiline
-                                    placeholder={t('requestAssistance.vehicleDocumentation.photoNotePlaceholder')}
-                                    placeholderTextColor="#D1D5DB"
-                                    value={photo.note}
-                                    onChangeText={(note) => setPhotoNote(index, note)}
-                                    className="rounded-xl p-3 mt-3 font-outfit-regular text-[#0F172A]"
-                                    style={{ borderWidth: 1.5, borderColor: '#E4EAF5', backgroundColor: '#F4F6FC', height: 72, textAlignVertical: 'top', ...TYPE.body }}
-                                />
-                            </View>
-                        ))}
-
-                        {photos.length < MAX_PHOTOS && (
-                            <PickCard
-                                icon={<Camera size={24} color="#1E56E3" />}
-                                title={t('requestAssistance.vehicleDocumentation.photoOfIssue')}
-                                hint={t('requestAssistance.vehicleDocumentation.photoHint', { max: MAX_PHOTOS })}
-                                actionLabel={photos.length === 0 ? t('requestAssistance.vehicleDocumentation.addPhoto') : t('requestAssistance.vehicleDocumentation.addAnotherPhotoShort')}
-                                actionIcon={<Camera size={22} color="#FFFFFF" />}
+                        )),
+                        ...(photos.length < MAX_PHOTOS ? [
+                            <CaptureTile
+                                key="add-photo"
+                                title={t('requestAssistance.vehicleDocumentation.tilePhoto')}
+                                hint={t('requestAssistance.vehicleDocumentation.addPhoto')}
+                                icon="camera-outline"
                                 onPress={() => askSource(pickPhoto)}
                                 testID="doc-add-photo"
-                            />
-                        )}
-                    </View>
-                )}
+                            />,
+                        ] : []),
+                    ];
+                    const rows: React.ReactNode[][] = [];
+                    for (let i = 0; i < cells.length; i += 2) rows.push(cells.slice(i, i + 2));
+                    return (
+                        <View style={{ gap: 12 }}>
+                            {rows.map((row, r) => (
+                                <View key={r} className="flex-row" style={{ gap: 12 }}>
+                                    {row}
+                                    {row.length === 1 ? <View style={{ flex: 1, minWidth: 140 }} /> : null}
+                                </View>
+                            ))}
+                        </View>
+                    );
+                })()}
+
+                <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: '#6B7490', marginTop: 10 }}>
+                    {t('requestAssistance.vehicleDocumentation.photoHint', { max: MAX_PHOTOS })}
+                </Text>
+
+                {/* The note of the tile that was tapped: it opens under the grid, not under every photo. */}
+                {noteFor !== null ? (
+                    <TextInput
+                        multiline
+                        autoFocus
+                        placeholder={t(noteFor === 'video' ? 'requestAssistance.vehicleDocumentation.videoNotePlaceholder' : 'requestAssistance.vehicleDocumentation.photoNotePlaceholder')}
+                        placeholderTextColor="#9AA4BC"
+                        value={noteFor === 'video' ? video?.note ?? '' : photos[noteFor]?.note ?? ''}
+                        onChangeText={(note) => (noteFor === 'video' ? setVideo((v) => (v ? { ...v, note } : v)) : setPhotoNote(noteFor, note))}
+                        className="rounded-xl p-3 mt-3 font-outfit-regular text-[#0F172A]"
+                        style={{ borderWidth: 1.5, borderColor: '#BFD2FA', backgroundColor: '#FFFFFF', height: 84, textAlignVertical: 'top', ...TYPE.body }}
+                        testID="doc-note"
+                    />
+                ) : null}
             </KeyboardAwareScrollView>
 
             <Footer

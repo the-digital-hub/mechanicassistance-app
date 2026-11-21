@@ -132,7 +132,7 @@
       "paymentCards": "Wallet y pagos",
       "savedAddresses": "Direcciones guardadas",
       "wallet": "Billetera",
-      "schedule": "Horario y zona de servicio",
+      "schedule": "Horario y zona",
       "addressesOne": "Mi Dirección",
       "vehiclesOne": "Mi Vehículo",
       "savedAddressesOne": "Dirección guardada"
@@ -346,7 +346,8 @@
           "alertTitle": "¿Confirmar el servicio?",
           "alertBody": "El trabajo se hizo y se le pagará al técnico.",
           "alertNo": "Todavía no",
-          "alertYes": "Sí, confirmar"
+          "alertYes": "Sí, confirmar",
+          "more": "+{{count}} más"
         },
         "hide": "Ocultar",
         "finalQuote": {
@@ -514,7 +515,13 @@
           "sub": "Agregá tus datos bancarios para cobrar tus trabajos.",
           "cta": "Configurar"
         },
-        "hide": "Ocultar"
+        "hide": "Ocultar",
+        "heldOffers": {
+          "title": "Oferta esperando al cliente",
+          "title_other": "Ofertas esperando al cliente",
+          "sub": "Está decidiendo. Te avisamos apenas responda.",
+          "cta": "Ver oferta"
+        }
       },
       "summaryJobs_one": "{{count}} trabajo activo",
       "summaryJobs_other": "{{count}} trabajos activos",
@@ -664,9 +671,9 @@
       "photoOfIssue": "Foto del problema",
       "browsePhoto": "Sacá una foto o elegí un archivo",
       "videoHint": "Mostrá el problema mientras ocurre.",
-      "addVideo": "Agregar un video",
-      "photoHint": "Hasta {{max}} fotos.",
-      "addPhoto": "Agregar una foto",
+      "addVideo": "Agregar video",
+      "photoHint": "Hasta {{max}} fotos. Tocá una para agregar una nota.",
+      "addPhoto": "Agregar foto",
       "addAnotherPhotoShort": "Agregar otra foto",
       "addAnotherPhoto": "+ Agregar otra foto",
       "remove": "Quitar",
@@ -683,7 +690,9 @@
       "sourceLibrary": "Elegir de la galería",
       "cancel": "Cancelar",
       "submit": "Solicitar asistencia",
-      "skip": "Omitir por ahora"
+      "skip": "Omitir por ahora",
+      "tileVideo": "Video",
+      "tilePhoto": "Foto"
     },
     "locationMap": {
       "myCurrentLocation": "Mi ubicación actual",
@@ -1186,7 +1195,8 @@
         "pending_other": "{{count}} SOLICITUDES PENDIENTES",
         "caughtUp": "TODO AL DÍA"
       },
-      "titleOwner": "Tus asistencias"
+      "titleOwner": "Tus asistencias",
+      "showMore": "Ver {{count}} más ({{left}} restantes)"
     },
     "cancelReason": {
       "badge": "CANCELAR SOLICITUD",
@@ -1663,10 +1673,11 @@
         "stepOf": "Paso {{current}} de {{total}}",
         "stepWorkTitle": "Resolvé el problema",
         "done": "Terminé el trabajo",
-        "stepProofTitle": "Mostrá el trabajo",
-        "stepProofSub": "Opcional: fotos o un video corto del resultado.",
+        "stepProofTitle": "Documentá el trabajo terminado",
+        "stepProofSub": "Es opcional, pero unas fotos o un video corto del resultado te ayudan si el cliente hace un reclamo.",
         "backToWork": "Volver",
-        "backToPhotos": "Volver"
+        "backToPhotos": "Volver",
+        "working": "Trabajando en el vehículo…"
       },
       "finalCheck": {
         "eyebrow": "REVISIÓN FINAL",

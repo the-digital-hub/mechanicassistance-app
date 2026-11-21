@@ -132,7 +132,7 @@
       "paymentCards": "Wallet & payments",
       "savedAddresses": "Saved addresses",
       "wallet": "Wallet",
-      "schedule": "Schedule & service area",
+      "schedule": "Hours & area",
       "addressesOne": "My Address",
       "vehiclesOne": "My Vehicle",
       "savedAddressesOne": "Saved address"
@@ -346,7 +346,8 @@
           "alertTitle": "Confirm the service?",
           "alertBody": "The work was done and the technician will be paid.",
           "alertNo": "Not yet",
-          "alertYes": "Yes, confirm"
+          "alertYes": "Yes, confirm",
+          "more": "+{{count}} more"
         },
         "hide": "Hide",
         "finalQuote": {
@@ -514,7 +515,13 @@
           "sub": "Add your bank details to get paid for your jobs.",
           "cta": "Set up"
         },
-        "hide": "Hide"
+        "hide": "Hide",
+        "heldOffers": {
+          "title": "Offer waiting for the customer",
+          "title_other": "Offers waiting for the customer",
+          "sub": "They're deciding. We'll tell you as soon as they answer.",
+          "cta": "View offer"
+        }
       },
       "summaryJobs_one": "{{count}} active job",
       "summaryJobs_other": "{{count}} active jobs",
@@ -663,9 +670,9 @@
       "photoOfIssue": "Photo of the issue",
       "browsePhoto": "Take a photo or browse files",
       "videoHint": "Show the problem as it happens.",
-      "addVideo": "Add a video",
-      "photoHint": "Up to {{max}} photos.",
-      "addPhoto": "Add a photo",
+      "addVideo": "Add video",
+      "photoHint": "Up to {{max}} photos. Tap one to add a note.",
+      "addPhoto": "Add photo",
       "addAnotherPhotoShort": "Add another photo",
       "addAnotherPhoto": "+ Add another photo",
       "remove": "Remove",
@@ -682,7 +689,9 @@
       "sourceLibrary": "Choose from library",
       "cancel": "Cancel",
       "submit": "Request Assistance",
-      "skip": "Skip for now"
+      "skip": "Skip for now",
+      "tileVideo": "Video",
+      "tilePhoto": "Photo"
     },
     "locationMap": {
       "myCurrentLocation": "My Current Location",
@@ -1185,7 +1194,8 @@
         "pending_other": "{{count}} PENDING REQUESTS",
         "caughtUp": "ALL CAUGHT UP"
       },
-      "titleOwner": "Your assistances"
+      "titleOwner": "Your assistances",
+      "showMore": "Show {{count}} more ({{left}} left)"
     },
     "cancelReason": {
       "badge": "CANCEL REQUEST",
@@ -1662,10 +1672,11 @@
         "stepOf": "Step {{current}} of {{total}}",
         "stepWorkTitle": "Fix the issue",
         "done": "I finished the work",
-        "stepProofTitle": "Show the work",
-        "stepProofSub": "Optional: photos or a short video of the result.",
+        "stepProofTitle": "Document the finished work",
+        "stepProofSub": "Optional, but a few photos or a short video of the result help if the customer ever raises a claim.",
         "backToWork": "Back",
-        "backToPhotos": "Back"
+        "backToPhotos": "Back",
+        "working": "Working on the vehicle…"
       },
       "finalCheck": {
         "eyebrow": "FINAL CHECK",

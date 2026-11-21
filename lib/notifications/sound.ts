@@ -1,9 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createAudioPlayer, type AudioPlayer } from 'expo-audio';
+import { createAudioPlayer, setAudioModeAsync, type AudioPlayer } from 'expo-audio';
 import { useEffect, useState } from 'react';
 
 // The Sound switch of Settings → Notifications: with it on, an alert that arrives while the app is open rings a small bell. (A push that
-// arrives with the app closed is sounded by the system's own notification settings.) It follows the phone's silent switch.
+// arrives with the app closed is sounded by the system's own notification settings.) The person turned Sound on in the app, so the bell also
+// rings with the phone's silent switch on (the switch here is the way to silence it).
 
 const KEY = 'settings:notifySound';
 
@@ -24,14 +25,32 @@ async function load(): Promise<boolean> {
     return enabled;
 }
 
+let modeSet = false;
+
 /** The bell itself, from the start every time. Never throws. */
 export function ringBell(): void {
     try {
-        if (!player) player = createAudioPlayer(require('@/assets/sounds/bell.wav'));
-        void player.seekTo(0);
+        if (!modeSet) {
+            modeSet = true;
+            // Mixed with whatever is playing (music, a call): the bell must not stop it. It rings even with the phone on silent: with the
+            // ringer switch on silent (very common) an app that obeys it just seems broken, and Sound is a switch the person chose to turn on.
+            // Setting the mode is a courtesy: if it fails the bell still plays.
+            try {
+                void Promise.resolve(setAudioModeAsync({ playsInSilentMode: true, interruptionMode: 'mixWithOthers' })).catch((e) => console.warn('[sound] audio mode failed', e));
+            } catch (e) {
+                console.warn('[sound] audio mode failed', e);
+            }
+        }
+        if (!player) {
+            player = createAudioPlayer(require('@/assets/sounds/bell.wav'));
+            player.volume = 1;
+        }
+        // Back to the start (a bell still ringing restarts), then play; neither may break the alert.
+        void Promise.resolve(player.seekTo(0)).catch(() => undefined);
         player.play();
-    } catch {
+    } catch (e) {
         // No audio (a simulator without output, a player that could not start): the alert is still on screen.
+        console.warn('[sound] bell failed', e);
     }
 }
 
@@ -73,4 +92,5 @@ export function __resetSound(): void {
     enabled = true;
     loaded = false;
     player = null;
+    modeSet = false;
 }

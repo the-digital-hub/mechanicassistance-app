@@ -206,10 +206,10 @@ export function CheckRow({ checked, onToggle, label, sub, last, compact }: {
 }
 
 /** Scrollable screen content; pair with an ActionBar below it. */
-export function Body({ children }: { children: React.ReactNode }) {
+export function Body({ children, focusScroll = true }: { children: React.ReactNode; focusScroll?: boolean }) {
     const phase = React.useContext(PhaseContext);
     return (
-        <KeyboardAwareScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 24 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <KeyboardAwareScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 24 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} focusScroll={focusScroll}>
             {/* Always the same room under the rounded header: the phase bar carries it, a screen without one gets the same. */}
             {phase ? <PhaseBar phase={phase} /> : <View style={{ height: 16 }} />}
             {children}

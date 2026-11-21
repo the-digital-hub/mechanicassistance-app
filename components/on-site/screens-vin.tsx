@@ -579,20 +579,19 @@ export function ScreenDiagnosticsVin({ initial, requestVin, onNext }: {
 
                 <Tip>{t(`${k}.tip`)}</Tip>
 
-                {/* The way out is there but quiet: the goal is that every visit has its VIN. Not tied to the camera. */}
+                {/* The way out is there, but as a plain option and not the main road: every visit should have its VIN. Not tied to the camera. */}
                 {!valid || noVin ? (
                     <TouchableOpacity
                         onPress={() => setNoVin((v) => !v)}
-                        activeOpacity={0.7}
-                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        activeOpacity={0.8}
                         accessibilityRole="checkbox"
                         accessibilityState={{ checked: noVin }}
-                        className="flex-row items-center self-start mx-5 mt-6"
-                        style={{ gap: 10 }}
+                        className="flex-row items-center mx-4 mt-5"
+                        style={{ gap: 12, minHeight: 56, paddingHorizontal: 16, borderRadius: 14, backgroundColor: noVin ? OS.blueSoft : '#E6EAF2', borderWidth: noVin ? 1.5 : 0, borderColor: OS.blue }}
                         testID="vin-skip"
                     >
-                        <Checkbox checked={noVin} size={20} />
-                        <Text className="font-outfit-medium" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>{t(`${k}.skip`)}</Text>
+                        <Checkbox checked={noVin} size={24} />
+                        <Text className="flex-1 font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: noVin ? OS.blue : '#4A5470' }}>{t(`${k}.skip`)}</Text>
                     </TouchableOpacity>
                 ) : null}
                 {noVin ? <Tip tone="orange">{t(`${k}.skipWarn`)}</Tip> : null}

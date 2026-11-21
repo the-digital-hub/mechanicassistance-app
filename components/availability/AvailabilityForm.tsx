@@ -351,8 +351,8 @@ export function AvailabilityForm({
         {/* ── Weekly schedule ── */}
         <View className="mb-4">
           <View className="flex-row items-center mb-1">
-            <Ionicons name="calendar-outline" size={18} color="#0047AB" />
-            <Text className="text-[#0F172A] font-outfit-bold text-lg ml-2">
+            <Ionicons name="calendar-outline" size={20} color="#0047AB" />
+            <Text className="text-[#0F172A] font-outfit-bold text-xl ml-2">
               {t('setup.availability.weeklySchedule')}
             </Text>
           </View>
@@ -389,7 +389,7 @@ export function AvailabilityForm({
             {applySameTime && (
               <View className="flex-row gap-3 mb-4">
                 <View className="flex-1">
-                  <Text className="text-[#64748B] font-outfit-bold text-[13px] mb-1 tracking-widest uppercase">
+                  <Text className="text-[#64748B] font-outfit-bold text-[14px] mb-1 tracking-widest uppercase">
                     {t('setup.availability.from')}
                   </Text>
                   <TouchableOpacity
@@ -398,7 +398,7 @@ export function AvailabilityForm({
                   >
                     <View className="flex-row items-center gap-2">
                       <Ionicons name="time-outline" size={18} color="#0047AB" />
-                      <Text className="text-[#0F172A] font-outfit-medium text-base">
+                      <Text className="text-[#0F172A] font-outfit-medium text-[17px]">
                         {formatTime12h(startTime)}
                       </Text>
                     </View>
@@ -407,7 +407,7 @@ export function AvailabilityForm({
                 </View>
 
                 <View className="flex-1">
-                  <Text className="text-[#64748B] font-outfit-bold text-[13px] mb-1 tracking-widest uppercase">
+                  <Text className="text-[#64748B] font-outfit-bold text-[14px] mb-1 tracking-widest uppercase">
                     {t('setup.availability.to')}
                   </Text>
                   <TouchableOpacity
@@ -416,7 +416,7 @@ export function AvailabilityForm({
                   >
                     <View className="flex-row items-center gap-2">
                       <Ionicons name="time-outline" size={18} color="#0047AB" />
-                      <Text className="text-[#0F172A] font-outfit-medium text-base">
+                      <Text className="text-[#0F172A] font-outfit-medium text-[17px]">
                         {formatTime12h(endTime)}
                       </Text>
                     </View>
@@ -437,7 +437,7 @@ export function AvailabilityForm({
                   const hours = hoursFor(day);
                   return (
                     <View key={day} className="mb-3">
-                      <Text className="text-[#0F172A] font-outfit-bold text-base mb-1">
+                      <Text className="text-[#0F172A] font-outfit-bold text-[17px] mb-1">
                         {t(`setup.availability.dayNames.${day}`)}
                       </Text>
                       <View className="flex-row gap-3">
@@ -451,7 +451,7 @@ export function AvailabilityForm({
                               size={16}
                               color="#0047AB"
                             />
-                            <Text className="text-[#0F172A] font-outfit-medium text-base">
+                            <Text className="text-[#0F172A] font-outfit-medium text-[17px]">
                               {formatTime12h(hours.startTime)}
                             </Text>
                           </View>
@@ -472,7 +472,7 @@ export function AvailabilityForm({
                               size={16}
                               color="#0047AB"
                             />
-                            <Text className="text-[#0F172A] font-outfit-medium text-base">
+                            <Text className="text-[#0F172A] font-outfit-medium text-[17px]">
                               {formatTime12h(hours.endTime)}
                             </Text>
                           </View>
@@ -518,8 +518,8 @@ export function AvailabilityForm({
         {/* ── Service area ── */}
         <View className="mb-6">
           <View className="flex-row items-center mb-1">
-            <Ionicons name="location-outline" size={18} color="#0047AB" />
-            <Text className="text-[#0F172A] font-outfit-bold text-lg ml-2">
+            <Ionicons name="location-outline" size={20} color="#0047AB" />
+            <Text className="text-[#0F172A] font-outfit-bold text-xl ml-2">
               {t('setup.availability.serviceArea')}
             </Text>
           </View>
@@ -606,48 +606,54 @@ export function AvailabilityForm({
 
               {/* Tick labels */}
               <View className="flex-row justify-between mt-1 mb-4">
-                <Text className="text-[#94A3B8] font-outfit-regular text-sm">
+                <Text className="text-[#94A3B8] font-outfit-medium text-[15px]">
                   {t('setup.availability.milesAbbr', { count: 1 })}
                 </Text>
-                <Text className="text-[#94A3B8] font-outfit-regular text-sm">
+                <Text className="text-[#94A3B8] font-outfit-medium text-[15px]">
                   {t('setup.availability.milesAbbr', { count: Math.round(RADIUS_MAX / 2) })}
                 </Text>
-                <Text className="text-[#94A3B8] font-outfit-regular text-sm">
+                <Text className="text-[#94A3B8] font-outfit-medium text-[15px]">
                   {t('setup.availability.milesAbbr', { count: RADIUS_MAX })}
                 </Text>
               </View>
 
-              {/* Base location: the whole row is the button */}
-              <TouchableOpacity
-                onPress={onEditLocation}
-                activeOpacity={0.85}
-                accessibilityRole="button"
-                accessibilityLabel={`${t('setup.availability.baseLocation')}: ${baseLocation.address}. ${t('setup.availability.edit')}`}
-                className="bg-[#F8FAFF] rounded-2xl px-3 py-3 flex-row items-center border border-[#D5DEF0]"
-                style={{ gap: 12, minHeight: 68 }}
-                testID="base-location-row"
+              {/* Base location: the address in full, and its own button under it (a long address no longer squeezes "Edit") */}
+              <View
+                className="bg-[#F8FAFF] rounded-2xl border border-[#D5DEF0] p-3"
+                style={{ gap: 12 }}
               >
-                <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: "#E6EEFF" }}>
-                  <Ionicons name="location" size={22} color="#0047AB" />
+                <View className="flex-row items-start" style={{ gap: 12 }}>
+                  <View className="items-center justify-center" style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: "#E6EEFF" }}>
+                    <Ionicons name="location" size={24} color="#0047AB" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-[#64748B] font-outfit-bold text-[14px] uppercase tracking-widest mb-0.5">
+                      {t('setup.availability.baseLocation')}
+                    </Text>
+                    <Text
+                      className="text-[#0F172A] font-outfit-bold"
+                      style={{ fontSize: 17, lineHeight: 23 }}
+                      numberOfLines={3}
+                    >
+                      {baseLocation.address}
+                    </Text>
+                  </View>
                 </View>
-                <View className="flex-1">
-                  <Text className="text-[#64748B] font-outfit-bold text-[13px] uppercase tracking-widest mb-0.5">
-                    {t('setup.availability.baseLocation')}
-                  </Text>
-                  <Text
-                    className="text-[#0F172A] font-outfit-bold text-base"
-                    numberOfLines={1}
-                  >
-                    {baseLocation.address}
-                  </Text>
-                </View>
-                <View className="flex-row items-center" style={{ gap: 2 }}>
-                  <Text className="text-[#0047AB] font-outfit-bold text-base">
+                <TouchableOpacity
+                  onPress={onEditLocation}
+                  activeOpacity={0.85}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${t('setup.availability.baseLocation')}: ${baseLocation.address}. ${t('setup.availability.edit')}`}
+                  className="flex-row items-center justify-center"
+                  style={{ gap: 8, minHeight: 50, borderRadius: 14, backgroundColor: '#E6EAF2' }}
+                  testID="base-location-row"
+                >
+                  <Ionicons name="create-outline" size={20} color="#4A5470" />
+                  <Text className="font-outfit-bold" style={{ fontSize: 17, color: '#4A5470' }}>
                     {t('setup.availability.edit')}
                   </Text>
-                  <Ionicons name="chevron-up" size={18} color="#0047AB" />
-                </View>
-              </TouchableOpacity>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
@@ -665,7 +671,8 @@ export function AvailabilityForm({
         <Button
           onPress={handleSave}
           size="lg"
-          className="bg-[#0047AB] rounded-xl"
+          className="bg-[#0047AB] rounded-[14px]"
+          style={{ minHeight: 56 }}
           isLoading={submitting}
         >
           {submitLabel}

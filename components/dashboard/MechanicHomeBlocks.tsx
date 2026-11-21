@@ -151,9 +151,14 @@ export function AvailabilityCard({
 }
 
 /** A stat tile: icon chip, big number, label; `children` sits under the number (the rating stars). */
-function MiniStat({ icon, accent, label, value, sub, children }: { icon: ReactNode; accent: string; label: string; value: string; sub?: string; children?: ReactNode }) {
+function MiniStat({ icon, accent, label, value, sub, children, onPress }: { icon: ReactNode; accent: string; label: string; value: string; sub?: string; children?: ReactNode; onPress?: () => void }) {
+    const Wrapper = onPress ? TouchableOpacity : View;
     return (
-        <View className="flex-1 flex-row" style={{ ...CARD, padding: 14, gap: 10, minWidth: 0 }}>
+        <Wrapper
+            {...(onPress ? { onPress, activeOpacity: 0.8, accessibilityRole: 'button' as const } : {})}
+            className="flex-1 flex-row"
+            style={{ ...CARD, padding: 14, gap: 10, minWidth: 0 }}
+        >
             <View className="items-center justify-center" style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: `${accent}1F` }}>{icon}</View>
             {/* Label and number share one column, so the number lines up with the label, not with the icon. */}
             <View className="flex-1" style={{ minWidth: 0 }}>
@@ -164,7 +169,8 @@ function MiniStat({ icon, accent, label, value, sub, children }: { icon: ReactNo
                 </View>
                 {children}
             </View>
-        </View>
+            {onPress ? <ChevronRight size={18} color={C.mutedLight} style={{ alignSelf: 'center' }} /> : null}
+        </Wrapper>
     );
 }
 
@@ -224,6 +230,7 @@ export function TodayBlock({
     ratingLabel,
     rating,
     ratingSub,
+    onRatingPress,
     nudge,
 }: {
     earnedLabel: string;
@@ -234,6 +241,8 @@ export function TodayBlock({
     ratingLabel: string;
     rating: string;
     ratingSub?: string;
+    /** Tapping the rating tile: open the ratings behind it. */
+    onRatingPress?: () => void;
     /** Shown under the amount while it is still zero. */
     nudge?: EarnNudge;
 }) {
@@ -267,7 +276,7 @@ export function TodayBlock({
             </LinearGradient>
             <View className="flex-row" style={{ gap: 12 }}>
                 <MiniStat icon={<Wrench size={18} color={C.blue} />} accent={C.blue} label={jobsLabel} value={jobs} />
-                <MiniStat icon={<Star size={18} color={C.orange} fill={C.orange} />} accent={C.orange} label={ratingLabel} value={rating} sub={ratingSub}>
+                <MiniStat icon={<Star size={18} color={C.orange} fill={C.orange} />} accent={C.orange} label={ratingLabel} value={rating} sub={ratingSub} onPress={onRatingPress}>
                     {hasStars ? (
                         <View className="flex-row" style={{ gap: 2, marginTop: 8 }}>
                             {[1, 2, 3, 4, 5].map((n) => (

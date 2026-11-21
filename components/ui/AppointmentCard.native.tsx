@@ -1,12 +1,13 @@
 import { useAcceptedSlot } from '@/lib/scheduled/slot';
 import { Appointment } from '@/context/AppointmentsContext';
 import { useUser } from '@/context/UserContext';
+import { useOwnerVehicleIds } from '@/hooks/useOwnerVehicle';
 import { haversineDistanceKm, kmToMiles } from '@/lib/utils';
 import { refLabel } from '@/lib/refCode';
 import { approximateArea, coarseAddress } from '@/lib/maps/approximateLocation';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
-import { Calendar, Car, Clock, FileText, MapPin, MessageSquare, Route, Star, Timer, Wallet } from 'lucide-react-native';
+import { Calendar, Car, Clock, FileText, IdCard, MapPin, MessageSquare, Route, ScanBarcode, Star, Timer, Wallet } from 'lucide-react-native';
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, Platform, Text, TouchableOpacity, View } from 'react-native';
@@ -54,13 +55,11 @@ function OfferHeldBanner({ expiresAt }: { expiresAt: string }) {
     const left = useCountdown(deadline);
     if (deadline === null || left <= 0) return null;
     const time = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`;
+    // One line: the clock and "Offer held for 3:58". What it means is said once, in the heading of the offers block.
     return (
-        <View className="flex-row items-center mt-2" style={{ gap: 10, paddingVertical: 10, paddingHorizontal: 12, borderRadius: 12, backgroundColor: '#FEF4E2' }} testID="offer-held-banner">
+        <View className="flex-row items-center mt-3" style={{ gap: 8, paddingVertical: 9, paddingHorizontal: 12, borderRadius: 12, backgroundColor: '#FEF4E2' }} testID="offer-held-banner">
             <Clock size={18} color="#F08A1C" />
-            <View className="flex-1">
-                <Text className="font-outfit-bold text-[15px]" style={{ color: '#8A5A12' }}>{t('requestAssistance.mechanicFound.heldFor', { time })}</Text>
-                <Text className="font-outfit-regular text-[13px]" style={{ color: '#8A5A12', lineHeight: 18 }}>{t('appointments.list.card.offerHeldHint')}</Text>
-            </View>
+            <Text className="font-outfit-bold text-[15px]" style={{ color: '#8A5A12' }}>{t('requestAssistance.mechanicFound.heldFor', { time })}</Text>
         </View>
     );
 }
@@ -246,6 +245,10 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
     // A finished call that had time added: say how much, right after its duration.
     const extraMinutes = useCallExtraMinutes(appointment.id, isVideoCall && state === 'completed' && appointment.source === 'appointment', appointment.extendedMinutes);
     const hasTranscript = useHasTranscript(appointment.id, isMechanic ? 'mechanic' : 'owner', isVideoCall && state === 'completed' && appointment.source === 'appointment', appointment.hasTranscript);
+    const vehicleIds = useOwnerVehicleIds(user?.id, appointment.vehicleId, !isMechanic);
+    // The technician's offer on hold: only what matters while waiting (vehicle, distance, price) and the clock.
+    const compactOffer = isMechanic && state === 'offered' && !!appointment.offerExpiresAt;
+
     const rows = [
         ...(isPast ? [dateRow] : []),
         // A video call: how long it lasts, before the vehicle.
@@ -277,6 +280,9 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
             }]
             : []),
         { icon: Car, label: t('appointments.list.card.rows.vehicle'), value: appointment.car },
+        // The owner knows which vehicle it was by its plate and VIN, not only by its name.
+        ...(vehicleIds.plate ? [{ icon: IdCard, label: t('requestAssistance.selectVehicle.plate'), value: vehicleIds.plate }] : []),
+        ...(vehicleIds.vin ? [{ icon: ScanBarcode, label: 'VIN', value: vehicleIds.vin }] : []),
         ...(isVideoCall
             ? []
             : [
@@ -322,7 +328,8 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
 
     // The amount is one more item of the card's data, with its icon, like the vehicle or the place: the budget of a job in flight, what was paid
     // (or charged) for a finished or cancelled one.
-    const infoRows = [...rows, { icon: Wallet, label: amountLabel, value: amount }];
+    const allRows = [...rows, { icon: Wallet, label: amountLabel, value: amount }];
+    const infoRows = compactOffer ? allRows.filter((r) => r.icon === Car || r.icon === Route || r.icon === Wallet) : allRows;
 
     const ctaLabel = state === 'offered' && !isMechanic
         ? t('appointments.list.card.viewOffer')
@@ -378,17 +385,20 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
                 </View>
             </View>
 
-            {/* Status pill */}
+            {!compactOffer ? (
+                <>
             <View className="flex-row items-center mt-3" style={{ gap: 8, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 12, backgroundColor: status.bg }}>
                 <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: status.title }} />
                 <Text className="font-outfit-bold text-[12px] uppercase" style={{ color: status.title, letterSpacing: 0.8 }}>
                     {t(`appointments.list.card.status.${stateTextKey(state, isMechanic)}`)}
                 </Text>
             </View>
+                </>
+            ) : null}
             {isMechanic && state === 'offered' && appointment.offerExpiresAt ? <OfferHeldBanner expiresAt={appointment.offerExpiresAt} /> : null}
 
             {/* Fixed map: the owner sees their own pin, a mechanic only the zone */}
-            {!isPast && !isVideoCall && (
+            {!isPast && !isVideoCall && !compactOffer && (
                 <View className="mt-3">
                     {hasLocation ? (
                         <>
