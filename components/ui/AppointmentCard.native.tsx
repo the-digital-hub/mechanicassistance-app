@@ -7,7 +7,7 @@ import { refLabel } from '@/lib/refCode';
 import { approximateArea, coarseAddress } from '@/lib/maps/approximateLocation';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
-import { Calendar, Car, Clock, FileText, MapPin, MessageSquare, Route, Star, Timer, Wallet } from 'lucide-react-native';
+import { Calendar, Car, Clock, FileText, Gauge, MapPin, MessageSquare, Route, Star, Timer, Wallet } from 'lucide-react-native';
 import { VehicleIdsRow } from '@/components/scheduled/ui';
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -247,6 +247,7 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
     const extraMinutes = useCallExtraMinutes(appointment.id, isVideoCall && state === 'completed' && appointment.source === 'appointment', appointment.extendedMinutes);
     const hasTranscript = useHasTranscript(appointment.id, isMechanic ? 'mechanic' : 'owner', isVideoCall && state === 'completed' && appointment.source === 'appointment', appointment.hasTranscript);
     const vehicleIds = useOwnerVehicleIds(user?.id, appointment.vehicleId, !isMechanic);
+    const conditionLabel = appointment.vehicleCondition ? t(`requestAssistance.vehicleInformation.condition.${appointment.vehicleCondition}`, { defaultValue: '' }) : '';
     // The technician's offer on hold: only what matters while waiting (vehicle, distance, price) and the clock.
     const compactOffer = isMechanic && state === 'offered' && !!appointment.offerExpiresAt;
 
@@ -294,6 +295,7 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
                 ),
             }
             : { icon: Car, label: t('appointments.list.card.rows.vehicle'), value: appointment.car },
+        ...(isVideoCall || !conditionLabel ? [] : [{ icon: Gauge, label: t('appointments.list.card.rows.condition'), value: conditionLabel }]),
         ...(isVideoCall
             ? []
             : [

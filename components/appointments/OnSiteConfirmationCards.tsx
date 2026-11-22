@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import { AO } from '@/components/offer/OfferSections';
 import { ConfirmOrDisputeRow, InfoCard } from '@/components/appointments/VideoCallSections';
+import { ConfirmCountdown, SubtleCountdown } from '@/components/ui/ConfirmCountdown';
 import type { OnSiteVisit } from '@/lib/dao/OnSiteDAO';
 
 /*
@@ -39,15 +40,6 @@ function AutoConfirmLine({ deadline, who, mode = 'block' }: { deadline: string |
     // A footnote while there is time, the block once it is close: each mode shows in only one of the two moments.
     if (mode === 'quiet' && ms <= URGENT_MS) return null;
     if (mode === 'urgent' && ms > URGENT_MS) return null;
-    const totalMinutes = Math.ceil(ms / 60_000);
-    const days = Math.floor(totalMinutes / 1440);
-    const hours = Math.floor((totalMinutes % 1440) / 60);
-    const minutes = totalMinutes % 60;
-    const left = days > 0
-        ? t(`${K}.autoConfirmDays`, { days, hours })
-        : hours > 0
-            ? t(`${K}.autoConfirmHours`, { hours, minutes })
-            : t(`${K}.autoConfirmMinutes`, { minutes });
     const when = new Date(end);
     const date = when.toLocaleDateString(i18n.language, { weekday: 'short', month: 'short', day: 'numeric' });
     const time = when.toLocaleTimeString(i18n.language, { hour: 'numeric', minute: '2-digit' });
@@ -58,17 +50,19 @@ function AutoConfirmLine({ deadline, who, mode = 'block' }: { deadline: string |
             </Text>
         );
     }
+    // The technician only waits: a quiet line (what it is, the time left, the date). The owner's last hours keep the panel with blocks.
+    if (who === 'mechanic') {
+        return <SubtleCountdown deadline={deadline} label={t(`${K}.autoConfirmIn`)} note={(d, tm) => t(`${K}.autoConfirmShort`, { date: d, time: tm })} testID="on-site-auto-confirm" />;
+    }
+    // The same block as the close-out screen: small blocks for days, hours and minutes.
     return (
-        <View className="flex-row items-start" style={{ gap: 12, marginTop: 14, padding: 14, borderRadius: 16, backgroundColor: AO.orangeSoft }} testID="on-site-auto-confirm">
-            <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#FFFFFF' }}>
-                <Ionicons name="hourglass-outline" size={22} color={AO.orange} />
-            </View>
-            <View style={{ flex: 1 }}>
-                <Text className="font-outfit-semibold uppercase" style={{ fontSize: 13, lineHeight: 17, letterSpacing: 0.5, color: AO.orange }}>{t(`${K}.autoConfirmTitle`)}</Text>
-                <Text className="font-outfit-bold" style={{ fontSize: 22, lineHeight: 28, letterSpacing: -0.4, color: AO.text, marginTop: 2 }}>{t(`${K}.autoConfirmLeft`, { time: left })}</Text>
-                <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: AO.muted, marginTop: 3 }}>{t(`${K}.autoConfirmNote.${who}`, { date, time })}</Text>
-            </View>
-        </View>
+        <ConfirmCountdown
+            deadline={deadline}
+            title={t(`${K}.autoConfirmTitle`)}
+            note={(d, tm) => t(`${K}.autoConfirmNote.owner`, { date: d, time: tm })}
+            style={{ marginTop: 14 }}
+            testID="on-site-auto-confirm"
+        />
     );
 }
 

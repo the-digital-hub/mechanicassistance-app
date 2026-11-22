@@ -9,7 +9,7 @@ import { TYPE } from '@/lib/ui/type';
 import { ExtraCaptures, MediaSlot, useExistingCaptures } from './MediaSlot';
 import { WorkingAnimation } from './WorkingAnimation';
 import {
-    ActionBar, Body, Card, CardTitle, Checkbox, Eyebrow, Intro, MaintenanceChecklist, NoteInput, OS,
+    ActionBar, Body, Card, CardTitle, Checkbox, Eyebrow, InfoRow, Intro, MaintenanceChecklist, NoteInput, OS,
     OnSiteDialog, PrimaryButton, Tip, useMaintenanceItems,
 } from './ui';
 
@@ -290,11 +290,66 @@ export function ScreenEvaluateOptions({ context, onSelect, checklist: initialChe
     );
 }
 
-/** The one icon style of this screen: a rounded tile with a 20px outline icon. */
-function IconTile({ name, light }: { name: React.ComponentProps<typeof Ionicons>['name']; light?: boolean }) {
+/**
+ * The work notes as a list: one line for each thing that was done, added one by one while the technician remembers them (and removed if
+ * it was a slip). Stored in the visit's single `workNotes` text, one entry per line, so older paragraph notes show as one entry.
+ */
+function WorkNotesList({ value, onChange }: { value: string; onChange: (next: string) => void }) {
+    const { t } = useTranslation();
+    const k = 'appointments.onSite.resolve';
+    const entries = value.split('\n').map((l) => l.trim()).filter(Boolean);
+    const [draft, setDraft] = React.useState('');
+    const add = () => {
+        const text = draft.replace(/\s+/g, ' ').trim();
+        if (!text) return;
+        onChange([...entries, text].join('\n'));
+        setDraft('');
+    };
+    const remove = (i: number) => onChange(entries.filter((_, j) => j !== i).join('\n'));
     return (
-        <View className="items-center justify-center" style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: light ? 'rgba(255,255,255,0.18)' : OS.blueSoft }}>
-            <Ionicons name={name} size={20} color={light ? '#FFFFFF' : OS.blue} />
+        <View testID="work-notes">
+            <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: OS.muted, marginTop: 2 }}>{t(`${k}.notesHint`)}</Text>
+            {entries.length > 0 ? (
+                <View style={{ marginTop: 10, borderRadius: 16, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: OS.borderSoft, overflow: 'hidden' }}>
+                    {entries.map((e, i) => (
+                        <View key={`${i}-${e}`} className="flex-row items-center" style={{ gap: 10, paddingHorizontal: 12, paddingVertical: 10, borderBottomWidth: i < entries.length - 1 ? 1 : 0, borderBottomColor: OS.borderSoft }} testID={`work-note-${i}`}>
+                            <View className="items-center justify-center" style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: OS.greenSoft }}>
+                                <Ionicons name="checkmark" size={16} color={OS.greenDark} />
+                            </View>
+                            <Text className="flex-1 font-outfit-semibold" style={{ fontSize: 15, lineHeight: 21, color: OS.text }}>{e}</Text>
+                            <TouchableOpacity onPress={() => remove(i)} hitSlop={8} accessibilityRole="button" accessibilityLabel={t('appointments.onSite.common.remove')} className="items-center justify-center" style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#EEF1F6' }}>
+                                <Ionicons name="close" size={16} color="#4B5563" />
+                            </TouchableOpacity>
+                        </View>
+                    ))}
+                </View>
+            ) : null}
+            <View className="flex-row items-center" style={{ gap: 8, marginTop: 10 }}>
+                <TextInput
+                    value={draft}
+                    onChangeText={setDraft}
+                    onSubmitEditing={add}
+                    returnKeyType="done"
+                    blurOnSubmit={false}
+                    placeholder={t(`${k}.notesPh`)}
+                    placeholderTextColor={OS.mutedLight}
+                    className="flex-1 font-outfit-regular"
+                    style={{ height: 50, borderRadius: 14, paddingHorizontal: 14, backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: OS.border, fontSize: 16, color: OS.text }}
+                    testID="work-note-input"
+                />
+                <TouchableOpacity
+                    onPress={add}
+                    disabled={!draft.trim()}
+                    activeOpacity={0.85}
+                    accessibilityRole="button"
+                    className="flex-row items-center justify-center"
+                    style={{ height: 50, paddingHorizontal: 16, borderRadius: 14, gap: 4, backgroundColor: draft.trim() ? OS.blue : OS.blueIce }}
+                    testID="work-note-add"
+                >
+                    <Ionicons name="add" size={20} color="#FFFFFF" />
+                    <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#FFFFFF' }}>{t(`${k}.notesAdd`)}</Text>
+                </TouchableOpacity>
+            </View>
         </View>
     );
 }
@@ -302,7 +357,7 @@ function IconTile({ name, light }: { name: React.ComponentProps<typeof Ionicons>
 // ─────────── Resolve the issue ───────────
 export function ScreenResolveIncident({
     issue, partsOrder, workStartedAt, workNotes, onWorkNotesChange,
-    onResolved, onNotResolved, part: controlledPart, onPartChange,
+    onResolved, onNotResolved, part, onWorkDone, onProofDone,
 }: {
     issue: string;
     partsOrder: PartsOrder | null;
@@ -312,17 +367,17 @@ export function ScreenResolveIncident({
     onWorkNotesChange: (notes: string) => void;
     onResolved: () => void;
     onNotResolved: () => void;
-    /** Which of the three steps is open. Held by the screen when it has to move it itself (the header's back arrow goes one step back). */
-    part?: 'work' | 'proof' | 'outcome';
-    onPartChange?: (part: 'work' | 'proof' | 'outcome') => void;
+    /**
+     * Which of the three screens this is. They are separate stops of the visit: the work (assistance), how it went (assistance, after the
+     * maintenance check) and the photos of the result (check-out).
+     */
+    part: 'work' | 'proof' | 'outcome';
+    onWorkDone: () => void;
+    onProofDone: () => void;
 }) {
     const { t } = useTranslation();
     const k = 'appointments.onSite.resolve';
     const [outcome, setOutcome] = React.useState<'resolved' | 'not' | null>(null);
-    // One thing at a time, for someone standing next to the vehicle: the work, then the proof, then how it went.
-    const [ownPart, setOwnPart] = React.useState<'work' | 'proof' | 'outcome'>('work');
-    const part = controlledPart ?? ownPart;
-    const setPart = onPartChange ?? setOwnPart;
     const startedAt = React.useMemo(() => (workStartedAt ? new Date(workStartedAt).getTime() : Date.now()), [workStartedAt]);
     const [seconds, setSeconds] = React.useState(() => Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
     const [notes, setNotes] = React.useState(workNotes);
@@ -343,22 +398,16 @@ export function ScreenResolveIncident({
     const mm = String(Math.floor(seconds / 60)).padStart(2, '0');
     const ss = String(seconds % 60).padStart(2, '0');
 
-    const stepNo = part === 'work' ? 1 : part === 'proof' ? 2 : 3;
-    const progress = (
-        <View className="flex-row items-center mx-5 mt-3" style={{ gap: 6 }} accessibilityLabel={t(`${k}.stepOf`, { current: stepNo, total: 3 })}>
-            {[1, 2, 3].map((n) => (
-                <View key={n} style={{ flex: 1, height: 5, borderRadius: 3, backgroundColor: n <= stepNo ? OS.blue : OS.borderSoft }} />
-            ))}
-        </View>
-    );
-
     return (
         <>
             <Body>
-                {progress}
                 {part === 'work' ? (
                     <>
-                        <Intro eyebrow={t(`${k}.eyebrow`)} title={t(`${k}.stepWorkTitle`)} subtitle={issue} />
+                        <Intro eyebrow={t(`${k}.eyebrow`)} title={t(`${k}.stepWorkTitle`)} subtitle={t(`${k}.stepWorkSub`)} />
+                        {/* What the customer reported, as a row of its own instead of a loose line under the title. */}
+                        <Card>
+                            <InfoRow icon="construct-outline" label={t(`${k}.issueLabel`)} value={issue} last />
+                        </Card>
                         <LinearGradient
                             colors={['#2F6BFF', '#1E56E3', '#0B2A8E']}
                             locations={[0, 0.5, 1]}
@@ -367,22 +416,20 @@ export function ScreenResolveIncident({
                             style={{ marginHorizontal: 16, marginTop: 14, borderRadius: 20, padding: 16 }}
                             testID="job-in-progress"
                         >
-                            <View className="flex-row items-center justify-between">
-                                <View className="flex-row items-center" style={{ gap: 10 }}>
-                                    <IconTile name="time-outline" light />
-                                    <View>
-                                        <Text className="font-outfit-semibold" style={{ ...TYPE.helper, color: 'rgba(255,255,255,0.85)' }}>{t(`${k}.timerLabel`)}</Text>
-                                        <Text className="font-outfit-bold" style={{ fontSize: 44, lineHeight: 50, letterSpacing: -1, color: '#FFFFFF', marginTop: 2, fontVariant: ['tabular-nums'] }}>{mm}:{ss}</Text>
-                                    </View>
-                                </View>
-                                <View className="flex-row items-center" style={{ gap: 6, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.18)' }}>
+                            {/* What is going on, as a badge on top, and under it the timer: all centred. */}
+                            <View className="items-center" style={{ gap: 12 }}>
+                                <View className="flex-row items-center" style={{ gap: 6, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.18)' }}>
                                     <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: '#4ADE80' }} />
-                                    <Text className="font-outfit-bold" style={{ ...TYPE.caption, color: '#FFFFFF' }}>{t(`${k}.inProgress`)}</Text>
+                                    <Text className="font-outfit-bold" style={{ ...TYPE.caption, color: '#FFFFFF' }}>{t(`${k}.working`)}</Text>
+                                </View>
+                                <View className="items-center">
+                                    <Text className="font-outfit-bold" style={{ fontSize: 48, lineHeight: 54, letterSpacing: -1, color: '#FFFFFF', fontVariant: ['tabular-nums'] }}>{mm}:{ss}</Text>
+                                    <Text className="font-outfit-semibold" style={{ ...TYPE.helper, color: 'rgba(255,255,255,0.85)', marginTop: 2 }}>{t(`${k}.timerLabel`)}</Text>
                                 </View>
                             </View>
                         </LinearGradient>
 
-                        <WorkingAnimation label={t(`${k}.working`)} hint={t(`${k}.workingHint`)} />
+                        <WorkingAnimation label={t(`${k}.working`)} />
 
                 {partsOrder ? (
                     <>
@@ -442,7 +489,7 @@ export function ScreenResolveIncident({
 
                 {part === 'proof' ? (
                     <>
-                        <Intro eyebrow={t(`${k}.eyebrow`)} title={t(`${k}.stepProofTitle`)} subtitle={t(`${k}.stepProofSub`)} />
+                        <Intro eyebrow={t(`${k}.proofEyebrow`)} title={t(`${k}.stepProofTitle`)} subtitle={t(`${k}.stepProofSub`)} />
                         <View style={{ marginTop: 18 }}>
                             <ExtraCaptures videoKind="walkaround_out" photoKind="proof" existingVideo={walkaroundOut[0]} videoPlaceholder={t('appointments.onSite.photos.videoPh')} photoPlaceholder={t(`${k}.proofPh`)} />
                         </View>
@@ -451,14 +498,14 @@ export function ScreenResolveIncident({
                                 {t(`${k}.workTitle`)}
                                 <Text className="font-outfit-medium" style={{ fontSize: 13, color: OS.mutedLight }}>  {t('appointments.onSite.common.optional')}</Text>
                             </Text>
-                            <NoteInput value={notes} onChangeText={setNotes} placeholder={t(`${k}.workPh`)} rows={3} white />
+                            <WorkNotesList value={notes} onChange={setNotes} />
                         </View>
                     </>
                 ) : null}
 
                 {part === 'outcome' ? (
                     <>
-                        <Intro eyebrow={t(`${k}.eyebrow`)} title={t(`${k}.outcomeTitle`)} />
+                        <Intro eyebrow={t(`${k}.outcomeEyebrow`)} title={t(`${k}.outcomeTitle`)} />
                         <View className="mx-4 mt-3" style={{ gap: 10 }}>
                             {([
                                 { id: 'resolved' as const, icon: 'checkmark-circle-outline' as const, title: t(`${k}.resolvedTitle`), sub: t(`${k}.resolvedSub`), ink: OS.greenDark, soft: OS.greenSoft },
@@ -495,10 +542,17 @@ export function ScreenResolveIncident({
             </Body>
             <ActionBar stacked>
                 {part === 'work' ? (
-                    <PrimaryButton label={t(`${k}.done`)} onPress={() => setPart('proof')} testID="resolve-work-done" />
+                    <>
+                        {/* What finishing leads to: the maintenance checklist, which has to be filled in before the job can close. */}
+                        <View className="flex-row items-center justify-center" style={{ gap: 6 }} testID="resolve-work-next">
+                            <Ionicons name="arrow-forward-circle-outline" size={18} color={OS.muted} />
+                            <Text className="font-outfit-semibold" style={{ ...TYPE.helper, color: OS.muted }}>{t(`${k}.doneNext`)}</Text>
+                        </View>
+                        <PrimaryButton label={t(`${k}.done`)} onPress={onWorkDone} testID="resolve-work-done" />
+                    </>
                 ) : part === 'proof' ? (
                     <>
-                        <PrimaryButton label={t('appointments.onSite.common.continue')} onPress={() => setPart('outcome')} testID="resolve-proof-next" />
+                        <PrimaryButton label={t('appointments.onSite.common.continue')} onPress={onProofDone} testID="resolve-proof-next" />
                     </>
                 ) : (
                     <>
@@ -542,7 +596,7 @@ export function ScreenFinalCheck({ checklist: initialChecklist, onChecklistChang
     return (
         <>
             <Body>
-                <Intro eyebrow={t(`${k}.eyebrow`)} tone="green" title={t(`${k}.title`)} subtitle={t(`${k}.subtitle`)} />
+                <Intro eyebrow={t(`${k}.eyebrow`)} title={t(`${k}.title`)} subtitle={t(`${k}.subtitle`)} />
                 <MaintenanceChecklist state={checklist} highlight={warned && !checklist.allChecked} />
             </Body>
             <ActionBar>

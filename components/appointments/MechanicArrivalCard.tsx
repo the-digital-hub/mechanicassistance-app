@@ -86,21 +86,7 @@ export function MechanicArrivalCard({ onStartCheckIn, inProgress }: MechanicArri
                 elevation: 5,
             }}
         >
-            <View className="flex-row px-4 pt-4" style={{ gap: 12 }}>
-                <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#EAF1FF' }}>
-                    <Ionicons name="location-outline" size={20} color={BLUE} />
-                </View>
-                <View className="flex-1">
-                    <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, color: '#0B1530' }}>
-                        {t('appointments.detail.arrival.title')}
-                    </Text>
-                    <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: '#6B7490' }}>
-                        {t('appointments.detail.arrival.subtitle')}
-                    </Text>
-                </View>
-            </View>
-
-            <View className="p-4">
+            <View className="px-4 pt-4">
                 <TouchableOpacity onPress={onStartCheckIn} activeOpacity={0.85} testID="start-check-in" accessibilityRole="button">
                     <LinearGradient
                         colors={['#1E56E3', '#0B2A8E']}
@@ -123,6 +109,21 @@ export function MechanicArrivalCard({ onStartCheckIn, inProgress }: MechanicArri
                     </LinearGradient>
                 </TouchableOpacity>
             </View>
+
+            <View className="flex-row px-4 pt-4 pb-4" style={{ gap: 12 }}>
+                <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#EAF1FF' }}>
+                    <Ionicons name="location-outline" size={20} color={BLUE} />
+                </View>
+                <View className="flex-1">
+                    <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, color: '#0B1530' }}>
+                        {t('appointments.detail.arrival.title')}
+                    </Text>
+                    <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: '#6B7490' }}>
+                        {t('appointments.detail.arrival.subtitle')}
+                    </Text>
+                </View>
+            </View>
+
         </View>
     );
 }

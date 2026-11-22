@@ -5,13 +5,14 @@ import { onSiteDAO, OnSiteStep, OnSiteVisit, RedirectReasonId } from '@/lib/dao/
 import { OnSiteCaptureProvider } from '@/components/on-site/MediaSlot';
 import { ScreenDiagnosticsVin } from '@/components/on-site/screens-vin';
 import { getVinCapture, saveVinCapture, type VinCapture } from '@/lib/onsite/vin';
-import { reportedIssue, ScreenCheckIn, ScreenDiagnosticsObd, ScreenDiagnosticsPhotos, ScreenFeasibility, ScreenRetry, ScreenValidating } from '@/components/on-site/screens-checkin';
+import { reportedIssue, ScreenArrived, ScreenCheckIn, ScreenCheckinDone, ScreenCheckoutStart, ScreenDiagnosticsObd, ScreenDiagnosticsPhotos, ScreenFeasibility, ScreenRetry } from '@/components/on-site/screens-checkin';
 import { DoneVariant, ScreenCloseService } from '@/components/on-site/screens-checkout';
 import { ScreenCloseout } from '@/components/on-site/screens-closeout';
 import { PartsOrder, RedirectReason, ScreenBuyParts, ScreenEvaluateOptions, ScreenFinalCheck, ScreenResolveIncident } from '@/components/on-site/screens-execution';
 import { FlowHeader, OS, Phase, PhaseContext, Spinner } from '@/components/on-site/ui';
 import { useGlobalSearchParams, useRouter } from 'expo-router';
 import { goBackOr } from '@/lib/navigation/goBackOr';
+import { refLabel } from '@/lib/refCode';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, Text, View } from 'react-native';
@@ -24,20 +25,24 @@ import { appAlert } from '@/lib/ui/appAlert';
 // OBD codes are read off the uploaded scanner report by the document service
 // (an `obd_update` socket event says when). Still simulated: the "buy parts" branch.
 
-// 'diagnostics-vin' and 'final-check' are app-only for now: the visit does not store them, so they are never saved as `step`.
-type Screen = 'checkin' | 'retry' | 'diagnostics-vin' | 'final-check' | OnSiteStep;
+// 'arrived', 'checkin-done', 'resolve-outcome', 'checkout-start', 'proof', 'diagnostics-vin' and 'final-check' are app-only for now: the visit does not store them, so they are never saved as `step`.
+type Screen = 'checkin' | 'arrived' | 'resolve-outcome' | 'checkout-start' | 'proof' | 'retry' | 'diagnostics-vin' | 'final-check' | 'checkin-done' | OnSiteStep;
 
 const TITLE_KEY: Record<Screen, string> = {
-    checkin: 'checkin', retry: 'retry', incident: 'incident', 'diagnostics-vin': 'diagnosticsVin', 'diagnostics-obd': 'diagnosticsObd',
+    checkin: 'checkin', arrived: 'checkin', 'checkin-done': 'checkin', retry: 'retry', incident: 'incident', 'diagnostics-vin': 'diagnosticsVin', 'diagnostics-obd': 'diagnosticsObd', 'resolve-outcome': 'resolve', 'checkout-start': 'videoOut', proof: 'videoOut',
     'diagnostics-photos': 'diagnosticsPhotos', validating: 'validating', feasibility: 'feasibility',
     'options-checkin': 'options', 'buy-parts': 'buyParts', resolve: 'resolve', 'final-check': 'maintenance', 'options-execution': 'options',
     'video-out': 'videoOut', close: 'close', done: 'done',
 };
 
 const PHASE_OF: Record<Screen, Phase> = {
-    checkin: 'checkin', retry: 'checkin', incident: 'checkin', 'diagnostics-vin': 'checkin', 'diagnostics-obd': 'checkin', 'diagnostics-photos': 'checkin',
-    validating: 'checkin', feasibility: 'checkin', 'options-checkin': 'checkin', 'buy-parts': 'checkin',
-    resolve: 'execution', 'final-check': 'execution', 'options-execution': 'execution',
+    checkin: 'checkin', arrived: 'checkin', 'checkin-done': 'checkin', retry: 'checkin', incident: 'checkin', 'diagnostics-vin': 'checkin', 'diagnostics-obd': 'checkin', 'diagnostics-photos': 'checkin',
+    validating: 'checkin',
+    // "Can you resolve it on site?" (and what follows from the answer: parts, or handing the job on) still belongs to the check-in:
+    // the assistance, the work itself, starts after it.
+    feasibility: 'checkin', 'options-checkin': 'checkin', 'buy-parts': 'checkin',
+    resolve: 'execution', 'final-check': 'execution', 'resolve-outcome': 'execution', 'options-execution': 'execution',
+    'checkout-start': 'checkout', proof: 'checkout',
     'video-out': 'checkout', close: 'checkout', done: 'checkout',
 };
 
@@ -45,8 +50,8 @@ const PHASE_OF: Record<Screen, Phase> = {
 // (check-in leaves the flow; the rest are one-way, as in the design).
 const BACK_OF: Partial<Record<Screen, Screen>> = {
     retry: 'checkin', 'diagnostics-photos': 'diagnostics-vin', 'diagnostics-obd': 'diagnostics-photos',
-    feasibility: 'diagnostics-obd', 'options-checkin': 'feasibility', 'buy-parts': 'feasibility', resolve: 'feasibility',
-    'options-execution': 'resolve', 'final-check': 'resolve',
+    feasibility: 'diagnostics-obd', 'options-checkin': 'feasibility', 'buy-parts': 'feasibility', resolve: 'checkin-done',
+    'options-execution': 'resolve', 'final-check': 'resolve', 'resolve-outcome': 'final-check', 'checkout-start': 'resolve-outcome', proof: 'checkout-start',
 };
 
 /** Screen to reopen a saved visit on. */
@@ -138,6 +143,24 @@ export default function OnSiteFlowScreen() {
 
     const captureContext = React.useMemo(() => ({ appointmentId: id, media: visit?.media ?? [] }), [id, visit?.media]);
 
+    // Every hook goes above the "not found" return below: a render that returns early after one that did not breaks the hook order
+    // (the appointment can drop out of the list for a moment while it refreshes).
+    // The validating screen turns into the check-in complete one once the diagnostic is in.
+    // Can't resolve: two steps (why, then the maintenance check).
+    const [optionsStep, setOptionsStep] = React.useState<'why' | 'checklist'>('why');
+    // The answer to "can you resolve it on site?", kept here too: the visit it is saved to comes back a moment later.
+    const [feasibilityChoice, setFeasibilityChoice] = React.useState<'yes' | 'parts' | 'no' | null>(null);
+    // True while the diagnostic is being sent (a second tap on "next" does nothing).
+    const submittingDiagnostic = React.useRef(false);
+    // The close-out summary lists what was captured, scanned and checked: ask the server for the visit as it is now (captures upload
+    // while the technician moves through the steps, and the copy held here is from before them).
+    React.useEffect(() => {
+        if (screen !== 'close' || !id) return;
+        let cancelled = false;
+        onSiteDAO.get(id).then((fresh) => { if (!cancelled && fresh) setVisit(fresh); }).catch(() => undefined);
+        return () => { cancelled = true; };
+    }, [screen, id]);
+
     if (!appointment) {
         return (
             <View className="flex-1" style={{ backgroundColor: OS.page }}>
@@ -160,7 +183,7 @@ export default function OnSiteFlowScreen() {
 
     const go = (s: Screen) => {
         setScreen(s);
-        if (s !== 'checkin' && s !== 'retry' && s !== 'done' && s !== 'diagnostics-vin' && s !== 'final-check') save({ step: s });
+        if (s !== 'checkin' && s !== 'arrived' && s !== 'resolve-outcome' && s !== 'checkout-start' && s !== 'proof' && s !== 'retry' && s !== 'done' && s !== 'diagnostics-vin' && s !== 'final-check' && s !== 'checkin-done') save({ step: s });
     };
 
     const checkIn = async (method: 'pin' | 'qr', code: string) => {
@@ -168,7 +191,7 @@ export default function OnSiteFlowScreen() {
             const result = await onSiteDAO.checkIn(id, method, code);
             if (result.ok) {
                 setVisit(result.visit);
-                setScreen('diagnostics-vin');
+                setScreen('arrived');
                 // Checking in moves the appointment to in progress: the dashboard and the lists must say so now, not "en route".
                 void refreshAppointments();
             } else if (result.reason === 'mismatch') {
@@ -181,9 +204,26 @@ export default function OnSiteFlowScreen() {
         }
     };
 
+    // The diagnostic is validated on the server (it names the photos still missing); there is no screen for it: on success the flow moves
+    // on to step 4, on failure it goes back to the photos with what is missing.
+    const submitDiagnostic = () => {
+        if (submittingDiagnostic.current) return;
+        submittingDiagnostic.current = true;
+        onSiteDAO
+            .submitDiagnostic(id)
+            .then(() => go('feasibility'))
+            .catch(() => {
+                appAlert(t('appointments.onSite.validating.missing'));
+                go('diagnostics-photos');
+            })
+            .finally(() => { submittingDiagnostic.current = false; });
+    };
+
     const chooseFeasibility = (feasibility: 'yes' | 'parts' | 'no', next: Screen) => {
         setScreen(next);
-        save({ feasibility, step: next as OnSiteStep });
+        setFeasibilityChoice(feasibility);
+        // The check-in complete is app-only: only the answer is stored, the visit stays on this step until the assistance starts.
+        save(next === 'checkin-done' ? { feasibility } : { feasibility, step: next as OnSiteStep });
     };
 
     const redirect = (r: RedirectReason) => {
@@ -208,37 +248,24 @@ export default function OnSiteFlowScreen() {
         }
     };
 
-    // The resolve screen has three steps (the work, the proof, how it went): its back arrow goes one step back before it leaves.
-    const [resolvePart, setResolvePart] = React.useState<'work' | 'proof' | 'outcome'>('work');
-    // Can't resolve: two steps (why, then the maintenance check), the same way.
-    const [optionsStep, setOptionsStep] = React.useState<'why' | 'checklist'>('why');
     const inOptions = screen === 'options-checkin' || screen === 'options-execution';
     const back = inOptions && optionsStep === 'checklist'
         ? () => setOptionsStep('why')
-        : screen === 'resolve' && resolvePart !== 'work'
-        ? () => setResolvePart(resolvePart === 'outcome' ? 'proof' : 'work')
         : screen === 'checkin'
         ? () => goBackOr(router, { pathname: '/appointments/[id]', params: { id } })
         : screen === 'done'
             ? () => router.replace('/(tabs)/appointments')
             : screen === 'close'
                 // A resolved repair came through the final check; a redirected one, from the resolve screen.
-                ? () => go(doneVariant === 'completed' ? 'final-check' : 'resolve')
+                ? () => go(doneVariant === 'completed' ? 'proof' : 'resolve')
                 : BACK_OF[screen] ? () => go(BACK_OF[screen]!) : undefined;
-    // The close-out summary lists what was captured, scanned and checked: ask the server for the visit as it is now (captures upload
-    // while the technician moves through the steps, and the copy held here is from before them).
-    React.useEffect(() => {
-        if (screen !== 'close' || !id) return;
-        let cancelled = false;
-        onSiteDAO.get(id).then((fresh) => { if (!cancelled && fresh) setVisit(fresh); }).catch(() => undefined);
-        return () => { cancelled = true; };
-    }, [screen, id]);
     const checklist = visit?.maintenanceChecklist ?? {};
     const saveChecklist = (c: Record<string, boolean>) => save({ maintenanceChecklist: c });
 
     let body: React.ReactNode = null;
     switch (screen) {
         case 'checkin': body = <ScreenCheckIn onSubmit={checkIn} onMismatch={() => setScreen('retry')} />; break;
+        case 'arrived': body = <ScreenArrived appointment={appointment} onStart={() => setScreen('diagnostics-vin')} />; break;
         case 'retry': body = <ScreenRetry onRetry={() => setScreen('checkin')} vehicle={appointment.car ?? null} refCode={appointment.refCode ?? null} />; break;
         case 'diagnostics-vin':
             body = (
@@ -255,32 +282,24 @@ export default function OnSiteFlowScreen() {
             break;
         case 'diagnostics-photos': body = <ScreenDiagnosticsPhotos onNext={() => go('diagnostics-obd')} />; break;
         case 'diagnostics-obd':
-            body = <ScreenDiagnosticsObd appointmentId={id} visit={visit} onVisit={setVisit} enteredVin={vinCapture?.vin} onNext={() => go('validating')} />;
+            body = <ScreenDiagnosticsObd appointmentId={id} visit={visit} onVisit={setVisit} enteredVin={vinCapture?.vin} onNext={submitDiagnostic} />;
             break;
-        case 'validating':
-            body = (
-                <ScreenValidating
-                    run={async () => { await onSiteDAO.submitDiagnostic(id); }}
-                    onDone={() => go('feasibility')}
-                    onFail={(message) => {
-                        appAlert(message);
-                        go('diagnostics-photos');
-                    }}
-                />
-            );
+        case 'checkin-done':
+            // The close of the check-in: what it covered, and the way into the assistance.
+            body = <ScreenCheckinDone visit={visit} vin={vinCapture?.vin ?? null} feasibility={feasibilityChoice ?? visit?.feasibility ?? null} onStart={() => go('resolve')} />;
             break;
         case 'feasibility':
             body = (
                 <ScreenFeasibility
                     appointment={appointment}
                     obdCodes={visit?.obdCodes ?? []}
-                    onYes={() => chooseFeasibility('yes', 'resolve')}
+                    onYes={() => chooseFeasibility('yes', 'checkin-done')}
                     onNeedParts={() => chooseFeasibility('parts', 'buy-parts')}
                     onNo={() => chooseFeasibility('no', 'options-checkin')}
                 />
             );
             break;
-        case 'buy-parts': body = <ScreenBuyParts obdFilled={obdFilled} onDone={(order) => { setPartsOrder(order); go('resolve'); }} />; break;
+        case 'buy-parts': body = <ScreenBuyParts obdFilled={obdFilled} onDone={(order) => { setPartsOrder(order); go('checkin-done'); }} />; break;
         case 'options-checkin':
             body = <ScreenEvaluateOptions context="checkin" onSelect={redirect} checklist={checklist} onChecklistChange={saveChecklist} step={optionsStep} onStepChange={setOptionsStep} />;
             break;
@@ -292,15 +311,37 @@ export default function OnSiteFlowScreen() {
                     workStartedAt={visit?.workStartedAt ?? null}
                     workNotes={visit?.workNotes ?? ''}
                     onWorkNotesChange={(workNotes) => save({ workNotes })}
-                    onResolved={() => go('final-check')}
-                    onNotResolved={() => go('options-execution')}
-                    part={resolvePart}
-                    onPartChange={setResolvePart}
+                    part="work"
+                    onWorkDone={() => go('final-check')}
+                    onProofDone={() => undefined}
+                    onResolved={() => undefined}
+                    onNotResolved={() => undefined}
                 />
             );
             break;
         case 'final-check':
-            body = <ScreenFinalCheck checklist={checklist} onChecklistChange={saveChecklist} onDone={() => go('close')} />;
+            body = <ScreenFinalCheck checklist={checklist} onChecklistChange={saveChecklist} onDone={() => setScreen('resolve-outcome')} />;
+            break;
+        case 'checkout-start':
+            body = <ScreenCheckoutStart issue={reportedIssue(appointment)} workStartedAt={visit?.workStartedAt ?? null} checklist={checklist} onStart={() => setScreen('proof')} />;
+            break;
+        case 'resolve-outcome':
+        case 'proof':
+            // How it went (still the assistance), then the photos of the result (check-out): each its own stop, both from the same component.
+            body = (
+                <ScreenResolveIncident
+                    issue={reportedIssue(appointment)}
+                    partsOrder={partsOrder}
+                    workStartedAt={visit?.workStartedAt ?? null}
+                    workNotes={visit?.workNotes ?? ''}
+                    onWorkNotesChange={(workNotes) => save({ workNotes })}
+                    part={screen === 'proof' ? 'proof' : 'outcome'}
+                    onWorkDone={() => undefined}
+                    onProofDone={() => go('close')}
+                    onResolved={() => setScreen('checkout-start')}
+                    onNotResolved={() => go('options-execution')}
+                />
+            );
             break;
         case 'options-execution':
             body = <ScreenEvaluateOptions context="execution" onSelect={redirect} checklist={checklist} onChecklistChange={saveChecklist} step={optionsStep} onStepChange={setOptionsStep} />;
@@ -316,6 +357,7 @@ export default function OnSiteFlowScreen() {
                     visit={visit}
                     vehicle={appointment.car ?? null}
                     vin={vinCapture?.vin ?? null}
+                    requestCode={refLabel(appointment.refCode, appointment.id)}
                     onClose={close}
                 />
             );
@@ -324,6 +366,7 @@ export default function OnSiteFlowScreen() {
             body = visit ? (
                 <ScreenCloseout
                     visit={visit}
+                    requestCode={refLabel(appointment.refCode, appointment.id)}
                     onVisit={setVisit}
                     onBackToDashboard={() => {
                         // Flow finished: empty the appointments stack so the tab doesn't reopen check-in.

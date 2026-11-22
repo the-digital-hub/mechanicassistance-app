@@ -157,9 +157,9 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true, de
                             <TouchableOpacity
                                 onPress={() => setSuggestionsOpen((v) => !v)}
                                 className="items-center py-3 rounded-[14px]"
-                                style={{ backgroundColor: suggestionsOpen ? OS.page : OS.blue }}
+                                style={{ backgroundColor: '#E6EAF2' }}
                             >
-                                <Text className="font-outfit-bold" style={{ ...TYPE.body, color: suggestionsOpen ? OS.text : '#FFFFFF' }}>
+                                <Text className="font-outfit-bold" style={{ ...TYPE.body, color: '#4A5470' }}>
                                     {suggestionsOpen ? t(`${k}.hideSuggestions`) : t(`${k}.showSuggestions`)}
                                 </Text>
                             </TouchableOpacity>
@@ -168,10 +168,10 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true, de
                 </Card>
             ) : null}
 
-            {/* One card for the two ways to give the report: the file (the card with its button) and, under a hairline, typing it in. */}
-            <Card>
-                {allowUpload ? (
-                    <View className="p-4" style={{ borderBottomWidth: 1, borderBottomColor: OS.borderSoft }}>
+            {/* Two cards, each with its own air: the file with its button, and typing it in (folded). */}
+            {allowUpload ? (
+                <Card>
+                    <View className="p-4">
                         <MediaSlot
                             key={visit?.obdDocumentKey ?? 'none'}
                             kind="file"
@@ -188,7 +188,9 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true, de
                             existingFileName={fileName}
                         />
                     </View>
-                ) : null}
+                </Card>
+            ) : null}
+            <Card>
                 <TouchableOpacity
                     onPress={() => { LayoutAnimation.configureNext(LayoutAnimation.create(220, 'easeInEaseOut', 'opacity')); setManualOpen((v) => !v); }}
                     activeOpacity={0.7}

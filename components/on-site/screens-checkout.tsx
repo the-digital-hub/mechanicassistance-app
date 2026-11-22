@@ -22,7 +22,7 @@ function formatAmount(amount: string | null): string {
     return Number.isFinite(n) && n > 0 ? `$${n.toFixed(2)}` : amount;
 }
 
-export function ScreenCloseService({ variant, partsCost, redirectReason, serviceAmount, checkedInAt, onClose, visit, vehicle, vin }: {
+export function ScreenCloseService({ variant, partsCost, redirectReason, serviceAmount, checkedInAt, onClose, visit, vehicle, vin, requestCode }: {
     variant: DoneVariant;
     partsCost: number;
     redirectReason: RedirectReason | null;
@@ -35,6 +35,8 @@ export function ScreenCloseService({ variant, partsCost, redirectReason, service
     vehicle?: string | null;
     /** The VIN the technician entered at check-in. */
     vin?: string | null;
+    /** The assistance's short code (`AS-4H8TX2`), for support and for the technician's own records. */
+    requestCode?: string | null;
 }) {
     const { t } = useTranslation();
     const k = 'appointments.onSite.close';
@@ -93,6 +95,7 @@ export function ScreenCloseService({ variant, partsCost, redirectReason, service
                     <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: OS.muted, marginTop: 4 }}>{t(`${k}.payoutHint`)}</Text>
                 </View>
                 <Card>
+                    {requestCode ? <InfoRow icon="pricetag-outline" label={t(`${k}.requestId`)} value={requestCode} /> : null}
                     {completed ? (
                         <>
                             <InfoRow icon="checkmark" label={t(`${k}.issue`)} value={t(`${k}.resolved`)} />

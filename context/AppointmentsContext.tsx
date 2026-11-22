@@ -122,6 +122,8 @@ export interface Appointment {
     etaTime?: string;
     /** Vehicle issues selected for this request (from GET /api/pricing/requests/:id/issues) */
     vehicleIssues?: VehicleIssueSnapshot[];
+    /** How drivable the vehicle is: 'drivable' | 'unsafe_to_drive' | 'pushable_only'. */
+    vehicleCondition?: string | null;
     /**
      * Which table the row came from. An appointment row is only created once the
      * request is accepted, so `'assistance'` means "still only a request"
@@ -243,6 +245,7 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                     locationLat: req.locationLat,
                     locationLng: req.locationLng,
                     vehicleIssues: issuesById.get(req.id) || [],
+                    vehicleCondition: req.vehicleCondition ?? null,
                     source: 'assistance' as const
                 }));
 
@@ -276,6 +279,7 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                     // The photos and clips the owner attached to the request belong to the job: the appointment row does not carry them.
                     photos: parseAttachments(appt.photos ?? ar?.photos),
                     vehicleIssues: issuesById.get(appt.id) || [],
+                    vehicleCondition: appt.vehicleCondition ?? ar?.vehicleCondition ?? null,
                     source: 'appointment' as const,
                 };
             });

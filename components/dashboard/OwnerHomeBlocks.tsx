@@ -5,6 +5,9 @@ import { Calendar, Check, ChevronDown, ChevronRight, FileText, Pencil, Wrench, X
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Animated, Easing, KeyboardAvoidingView, Modal, Platform, Pressable, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { TYPE } from '@/lib/ui/type';
+import { KeyboardSheetScroll } from '@/components/ui/KeyboardSheetScroll';
+import { useKeyboardHeight } from '@/hooks/useKeyboardHeight';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 /** Building blocks of the vehicle owner home, following the Vehicle Owner Dashboard V2 design. */
@@ -309,7 +312,12 @@ export function RecentActivityList({ items }: { items: ActivityItem[] }) {
 }
 
 /** Bottom sheet used by the service picker, the vehicle switcher and the mileage editor. */
-export function OwnerSheet({ visible, title, subtitle, onClose, children }: { visible: boolean; title: string; subtitle?: string; onClose: () => void; children: ReactNode }) {
+export function OwnerSheet({ visible, title, subtitle, onClose, children, scrollBody }: { visible: boolean; title: string; subtitle?: string; onClose: () => void; children: ReactNode; /** A sheet with a text field: it fits above the keyboard and its body scrolls. */ scrollBody?: boolean }) {
+    const { height: windowHeight } = useWindowDimensions();
+    const insets = useSafeAreaInsets();
+    const keyboard = useKeyboardHeight();
+    // iOS lifts the sheet with padding; what is left above the keyboard (and under the status bar) is all the sheet can have.
+    const maxHeight = scrollBody ? windowHeight - (Platform.OS === 'ios' ? keyboard : 0) - insets.top - 12 : undefined;
     // The backdrop fades in and the sheet slides up on their own: with the Modal's own "slide" the dark
     // backdrop rides up with the sheet, which looks abrupt.
     const [mounted, setMounted] = useState(visible);
@@ -339,6 +347,7 @@ export function OwnerSheet({ visible, title, subtitle, onClose, children }: { vi
                         paddingHorizontal: 20,
                         paddingTop: 10,
                         paddingBottom: 34,
+                        maxHeight,
                         opacity: progress.interpolate({ inputRange: [0, 0.4, 1], outputRange: [0, 1, 1] }),
                         transform: [{ translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [360, 0] }) }],
                     }}
@@ -351,7 +360,7 @@ export function OwnerSheet({ visible, title, subtitle, onClose, children }: { vi
                         </TouchableOpacity>
                     </View>
                     {subtitle ? <Text className="font-outfit-regular" style={{ fontSize: 15, color: C.muted, marginBottom: 14 }}>{subtitle}</Text> : null}
-                    {children}
+                    {scrollBody ? <KeyboardSheetScroll style={{ flexShrink: 1 }}>{children}</KeyboardSheetScroll> : children}
                 </Animated.View>
             </KeyboardAvoidingView>
         </Modal>

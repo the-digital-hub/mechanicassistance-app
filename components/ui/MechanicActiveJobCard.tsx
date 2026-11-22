@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Car, CalendarClock, MapPin, Navigation, Wrench, Zap } from 'lucide-react-native';
+import { Car, CalendarClock, Gauge, MapPin, Navigation, Wrench, Zap } from 'lucide-react-native';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
@@ -10,9 +10,10 @@ import { InfoRows } from '@/components/ui/CardInfoRows';
 import { RequestIdRow } from '@/components/ui/RequestIdRow';
 import type { Appointment } from '@/context/AppointmentsContext';
 import { useHeadOut } from '@/hooks/useHeadOut';
+import { useConfirmDeadlines } from '@/lib/dashboard/useConfirmDeadlines';
 import { splitJobTitle } from '@/lib/ui/jobTitle';
 import { TYPE } from '@/lib/ui/type';
-import { formatZonedDateTime } from '@/lib/video/videoCallTime';
+import { formatLocalDateTime, formatZonedDateTime } from '@/lib/video/videoCallTime';
 import { BANNER_COLORS, getCardState, getTypeBar, stateTextKey } from './appointmentCardTheme';
 
 const JOIN_WINDOW_MS = 15 * 60_000;
@@ -25,6 +26,14 @@ function relativeFromNow(at: Date, t: TFunction): string {
     return t('dashboard.mechanic.activeJob.inDays', { count: Math.round(mins / 60 / 24) });
 }
 
+/** Like `relativeFromNow` but rounding down, for a deadline: 23 h 58 min away reads "in 23 hours", never "in 24". */
+function timeLeftFromNow(at: Date, t: TFunction): string {
+    const mins = Math.max(1, Math.floor((at.getTime() - Date.now()) / 60_000));
+    if (mins < 60) return t('dashboard.mechanic.activeJob.inMinutes', { count: mins });
+    if (mins < 60 * 24) return t('dashboard.mechanic.activeJob.inHours', { count: Math.floor(mins / 60) });
+    return t('dashboard.mechanic.activeJob.inDays', { count: Math.floor(mins / 60 / 24) });
+}
+
 /**
  * The mechanic's job in flight, on their dashboard. One status pill, when it happens, the vehicle as a
  * plain row and a single main button; "Cancel request" lives in the "..." menu. While the job is accepted
@@ -34,6 +43,9 @@ export function MechanicActiveJobCard({ appointment }: { appointment: Appointmen
     const { t, i18n } = useTranslation();
     const router = useRouter();
     const { headOut, headingOut, departedNow } = useHeadOut();
+    // Waiting for the customer to confirm: when it confirms by itself, so the date and time are on the card.
+    const awaiting = appointment.status === 'awaiting_confirmation';
+    const confirmDeadline = useConfirmDeadlines(awaiting ? [appointment] : [])[appointment.id];
 
     const isVideoCall = (appointment.assistanceType ?? appointment.type) === 'videocall';
     const departed = !!(appointment.departedAt ?? departedNow);
@@ -58,10 +70,13 @@ export function MechanicActiveJobCard({ appointment }: { appointment: Appointmen
     const joinable = isVideoCall && callOpen && (inRoom || appointment.startNow || (hasTime && at!.getTime() - Date.now() <= JOIN_WINDOW_MS));
 
     const { main: jobTitle, topic } = splitJobTitle(appointment.title);
-    const rows: { key: string; label: string; Icon: typeof Car; value: string; sub?: string }[] = [
+    const conditionLabel = appointment.vehicleCondition ? t(`requestAssistance.vehicleInformation.condition.${appointment.vehicleCondition}`, { defaultValue: '' }) : '';
+    const rows: { key: string; label: string; Icon: typeof Car; value: string; sub?: string; stacked?: boolean }[] = [
         topic ? { key: 'issue', label: t('appointments.list.card.rows.issue'), Icon: Wrench, value: topic } : null,
         hasTime ? { key: 'when', label: t('appointments.list.card.rows.when'), Icon: CalendarClock, value: whenLabel, sub: future ? relativeFromNow(at!, t) : undefined } : null,
+        awaiting && confirmDeadline ? { key: 'confirmBy', label: t('appointments.list.card.rows.confirmBy'), Icon: CalendarClock, value: formatLocalDateTime(confirmDeadline, i18n.language), sub: new Date(confirmDeadline).getTime() > Date.now() ? timeLeftFromNow(new Date(confirmDeadline), t) : undefined, stacked: true } : null,
         appointment.car ? { key: 'vehicle', label: t('appointments.list.card.rows.vehicle'), Icon: Car, value: appointment.car } : null,
+        conditionLabel && !isVideoCall ? { key: 'condition', label: t('appointments.list.card.rows.condition'), Icon: Gauge, value: conditionLabel } : null,
         appointment.address && !isVideoCall ? { key: 'location', label: t('appointments.list.card.rows.location'), Icon: MapPin, value: appointment.address } : null,
     ].filter((row): row is NonNullable<typeof row> => row !== null);
 
@@ -119,15 +134,22 @@ export function MechanicActiveJobCard({ appointment }: { appointment: Appointmen
             {rows.length > 0 && (
                 <View style={{ marginTop: 14 }}>
                     <InfoRows
-                        rows={rows.map(({ label, Icon, value, sub }) => ({
+                        rows={rows.map(({ label, Icon, value, sub, stacked }) => ({
                             icon: Icon,
                             label,
                             value,
                             node: sub ? (
-                                <Text className="font-outfit-bold" style={{ fontSize: 15, lineHeight: 20, color: '#0B1530' }}>
-                                    {value}
-                                    <Text className="font-outfit-regular" style={{ fontSize: 14, color: '#6B7490' }}>{`  ·  ${sub}`}</Text>
-                                </Text>
+                                stacked ? (
+                                    <View>
+                                        <Text className="font-outfit-bold" style={{ fontSize: 15, lineHeight: 20, color: '#0B1530' }}>{value}</Text>
+                                        <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 19, color: '#6B7490' }}>{sub}</Text>
+                                    </View>
+                                ) : (
+                                    <Text className="font-outfit-bold" style={{ fontSize: 15, lineHeight: 20, color: '#0B1530' }}>
+                                        {value}
+                                        <Text className="font-outfit-regular" style={{ fontSize: 14, color: '#6B7490' }}>{`  ·  ${sub}`}</Text>
+                                    </Text>
+                                )
                             ) : undefined,
                         }))}
                     />

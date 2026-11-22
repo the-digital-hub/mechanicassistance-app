@@ -1,9 +1,13 @@
+import { CountdownBlocks } from '@/components/ui/ConfirmCountdown';
 import { RatingFields } from '@/components/reviews/RatingFields';
 import { CLIENT_REVIEW_TAGS } from '@/lib/reviews/tags';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Animated, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Animated, Platform, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { KeyboardSheetScroll } from '@/components/ui/KeyboardSheetScroll';
+import { useKeyboardHeight } from '@/hooks/useKeyboardHeight';
 import { onSiteConfirmationStage, onSiteDAO, OnSiteConfirmationStage, OnSiteVisit } from '@/lib/dao/OnSiteDAO';
 import { FinalReportCard } from './FinalReportActions';
 import { ObdPanel } from './ObdPanel';
@@ -41,8 +45,8 @@ function useFormatters() {
 // ─────────── Hero ───────────
 const PENDING_STAGES: ReadonlySet<OnSiteConfirmationStage> = new Set(['awaiting', 'disputed', 'released']);
 
-function Hero({ redirected, stage }: { redirected: boolean; stage: OnSiteConfirmationStage | null }) {
-    const { t } = useTranslation();
+function Hero({ redirected, stage, deadline, requestCode }: { redirected: boolean; stage: OnSiteConfirmationStage | null; /** While waiting for the owner: when the service confirms by itself. */ deadline?: string | null; /** The assistance this result is about (`AS-4H8TX2`). */ requestCode?: string | null }) {
+    const { t, i18n } = useTranslation();
     const k = 'appointments.closeout';
     // Waiting for the owner / in review / released: not a "charge requested" hero.
     const pending = !redirected && stage !== null && PENDING_STAGES.has(stage);
@@ -71,6 +75,23 @@ function Hero({ redirected, stage }: { redirected: boolean; stage: OnSiteConfirm
             <Text className="font-outfit-bold text-xl text-center leading-7" style={{ color: OS.text }}>
                 {redirected ? t(`${k}.heroTitleRedirected`) : pending ? t(`${k}.heroTitle${stageKey}`) : t(`${k}.heroTitle`)}
             </Text>
+            {requestCode ? (
+                <Text className="font-outfit-semibold text-center" style={{ fontSize: 13, lineHeight: 18, color: OS.muted, marginTop: 6 }} selectable testID="closeout-request-code">
+                    {t(`${k}.assistanceCode`, { code: requestCode })}
+                </Text>
+            ) : null}
+            {/* Waiting for the owner: the time left lives in this same card, not in a block of its own. */}
+            {!redirected && stage === 'awaiting' && deadline && Date.parse(deadline) > Date.now() ? (
+                <View className="items-center" style={{ marginTop: 14, gap: 8 }} testID="confirm-window">
+                    <CountdownBlocks deadline={deadline} tone="amber" />
+                    <Text className="font-outfit-regular text-center" style={{ fontSize: 13, lineHeight: 18, color: OS.muted }}>
+                        {t('appointments.onSiteConfirm.autoConfirmShort', {
+                            date: new Date(deadline).toLocaleDateString(i18n.language, { weekday: 'short', month: 'short', day: 'numeric' }),
+                            time: new Date(deadline).toLocaleTimeString(i18n.language, { hour: 'numeric', minute: '2-digit' }),
+                        })}
+                    </Text>
+                </View>
+            ) : null}
         </View>
     );
 }
@@ -99,13 +120,12 @@ function Payout({ visit }: { visit: OnSiteVisit }) {
             <Text className="font-outfit-bold mt-0.5" style={{ fontSize: 30, lineHeight: 36, color: OS.blueDark }}>
                 {formatAmount(visit.payoutAmount ?? visit.serviceAmount, t(`${k}.unknownAmount`))}
             </Text>
-            <View className="flex-row items-start mt-3" style={{ gap: 12, padding: 12, borderRadius: 14, backgroundColor: status.bg }} testID="payout-status">
+            <View className="flex-row items-center mt-3" style={{ gap: 12, padding: 12, borderRadius: 14, backgroundColor: status.bg }} testID="payout-status">
                 <View className="items-center justify-center" style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: '#FFFFFF' }}>
                     <Ionicons name={status.icon} size={19} color={status.fg} />
                 </View>
                 <View className="flex-1">
                     <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: status.fg }}>{status.title}</Text>
-                    <Text className="font-outfit-regular mt-0.5" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>{t(`${k}.walletNote`)}</Text>
                 </View>
             </View>
         </Card>
@@ -121,6 +141,11 @@ function RateOwner({ visit, onVisit }: { visit: OnSiteVisit; onVisit: (v: OnSite
     const [tags, setTags] = React.useState<string[]>([]);
     const [sending, setSending] = React.useState(false);
     const [sheet, setSheet] = React.useState(false);
+    const { height: windowHeight } = useWindowDimensions();
+    const insets = useSafeAreaInsets();
+    const keyboard = useKeyboardHeight();
+    // The sheet fits in what is left above the keyboard: its body scrolls and the send button stays in view under it.
+    const sheetMax = windowHeight - (Platform.OS === 'ios' ? keyboard : 0) - insets.top - 12;
 
     const submit = async () => {
         setSending(true);
@@ -144,7 +169,7 @@ function RateOwner({ visit, onVisit }: { visit: OnSiteVisit; onVisit: (v: OnSite
                 </View>
                 <Text className="flex-1 font-outfit-bold" style={{ ...TYPE.cardTitle, color: OS.text }}>{t(`${k}.rateTitle`)}</Text>
             </View>
-            <Text className="font-outfit-regular px-4 pt-1.5 pb-4" style={{ fontSize: 14, lineHeight: 20, color: OS.muted }}>{t(`${k}.rateBody`)}</Text>
+            <View style={{ height: 12 }} />
             <View className="px-4 pb-4">
                 {visit.clientRating ? (
                     <View className="flex-row items-center gap-2.5 px-3.5 py-3 rounded-xl" style={{ backgroundColor: OS.greenSoft }}>
@@ -169,14 +194,14 @@ function RateOwner({ visit, onVisit }: { visit: OnSiteVisit; onVisit: (v: OnSite
 
             {/* The rating opens from below, over the close-out. */}
             <SlideModal visible={sheet} onClose={() => setSheet(false)} avoidKeyboard>
-                <View style={{ ...SHEET, maxHeight: '90%', paddingTop: 16 }} testID="closeout-rate-sheet">
+                <View style={{ ...SHEET, maxHeight: sheetMax, paddingTop: 16 }} testID="closeout-rate-sheet">
                     <View className="flex-row items-center justify-between px-5 pb-2">
                         <Text className="font-outfit-bold" style={{ fontSize: 22, letterSpacing: -0.4, color: OS.text }}>{t(`${k}.rateTitle`)}</Text>
                         <TouchableOpacity onPress={() => setSheet(false)} hitSlop={10} accessibilityRole="button" accessibilityLabel="Close" className="items-center justify-center" style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#EEF1F6' }}>
                             <Ionicons name="close" size={16} color="#4B5563" />
                         </TouchableOpacity>
                     </View>
-                    <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 34 }} showsVerticalScrollIndicator={false}>
+                    <KeyboardSheetScroll style={{ flexShrink: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 12 }}>
                         <RatingFields
                             rating={rating}
                             onRating={setRating}
@@ -190,10 +215,12 @@ function RateOwner({ visit, onVisit }: { visit: OnSiteVisit; onVisit: (v: OnSite
                             starSize={30}
                             testIDPrefix="closeout-rate"
                         />
+                    </KeyboardSheetScroll>
+                    <View style={{ paddingHorizontal: 20, paddingBottom: 34, paddingTop: 4 }}>
                         <TouchableOpacity
                             onPress={() => void submit()}
                             disabled={!rating || sending}
-                            className="items-center justify-center mt-4"
+                            className="items-center justify-center"
                             style={{ minHeight: 52, borderRadius: 14, backgroundColor: rating && !sending ? OS.blue : OS.blueIce }}
                             testID="closeout-rate-submit"
                         >
@@ -201,107 +228,18 @@ function RateOwner({ visit, onVisit }: { visit: OnSiteVisit; onVisit: (v: OnSite
                                 <Text className="text-white font-outfit-bold" style={{ fontSize: 16, lineHeight: 22 }}>{t(`${k}.rateSubmit`)}</Text>
                             )}
                         </TouchableOpacity>
-                    </ScrollView>
+                    </View>
                 </View>
             </SlideModal>
         </Card>
     );
 }
 
-// ─────────── Close-out checklist ───────────
-function Checklist({ visit }: { visit: OnSiteVisit }) {
-    const { t } = useTranslation();
-    const k = 'appointments.closeout';
-    const items = [
-        { label: t(`${k}.itemDiagnosis`), done: visit.obdStatus === 'ready' || visit.obdStatus === 'manual' },
-        // Resolved visits are charged on the owner's confirmation, not on close.
-        ...(() => {
-            const stage = onSiteConfirmationStage(visit);
-            if (stage === null) return [{ label: t(`${k}.itemPayment`), done: !!visit.closedAt }];
-            return [{ label: t(`${k}.itemOwnerConfirmation`), done: stage === 'confirmed' || stage === 'captured' }];
-        })(),
-        ...(visit.ownerReviewSubmitted ? [{ label: t(`${k}.itemReviewReceived`), done: true }] : []),
-    ];
-    const doneCount = items.filter((i) => i.done).length;
-    return (
-        <Card>
-            <View className="flex-row items-center justify-between px-4 py-3.5" style={{ borderBottomWidth: 1, borderBottomColor: OS.borderSoft }}>
-                <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, lineHeight: 22, color: OS.text }}>{t(`${k}.checklistTitle`)}</Text>
-                <Text className="font-outfit-bold" style={{ fontSize: 14, color: OS.muted }}>{doneCount}/{items.length}</Text>
-            </View>
-            {items.map((it, i) => (
-                <View
-                    key={it.label}
-                    className="flex-row items-center gap-3 px-4 py-3.5"
-                    style={i < items.length - 1 ? { borderBottomWidth: 1, borderBottomColor: OS.borderSoft } : undefined}
-                >
-                    <View className="items-center justify-center" style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: it.done ? OS.greenSoft : OS.borderSoft }}>
-                        {it.done ? <Ionicons name="checkmark" size={14} color={OS.green} /> : <Ionicons name="time-outline" size={14} color={OS.mutedLight} />}
-                    </View>
-                    <Text className="flex-1 font-outfit-medium" style={{ fontSize: 16, lineHeight: 22, color: it.done ? OS.text : OS.muted }}>{it.label}</Text>
-                </View>
-            ))}
-        </Card>
-    );
-}
-
-// ─────────── How long the customer has to confirm ───────────
-/** The customer's time to confirm, live, so the technician knows when the service confirms by itself. */
-function ConfirmWindow({ deadline }: { deadline: string }) {
-    const { t } = useTranslation();
-    const k = 'appointments.closeout';
-    const fmt = useFormatters();
-    const [now, setNow] = React.useState(() => Date.now());
-    React.useEffect(() => {
-        const id = setInterval(() => setNow(Date.now()), 30000);
-        return () => clearInterval(id);
-    }, []);
-    const end = Date.parse(deadline);
-    if (!Number.isFinite(end)) return null;
-    const minutesLeft = Math.max(0, Math.ceil((end - now) / 60000));
-    const days = Math.floor(minutesLeft / 1440);
-    const hours = Math.floor((minutesLeft % 1440) / 60);
-    const minutes = minutesLeft % 60;
-    // The time as blocks, one number per unit with its name under it, instead of a sentence of loose characters ("1 d 0 h left").
-    const units: { value: number; label: string }[] = minutesLeft <= 0
-        ? []
-        : [
-            ...(days > 0 ? [{ value: days, label: t(`${k}.confirmUnitDays`) }] : []),
-            ...(days > 0 || hours > 0 ? [{ value: hours, label: t(`${k}.confirmUnitHours`) }] : []),
-            { value: minutes, label: t(`${k}.confirmUnitMinutes`) },
-        ];
-    return (
-        <View className="mx-4 mt-3.5" style={[cardShadow, { gap: 14, padding: 16, backgroundColor: OS.orangeSoft }]} testID="confirm-window">
-            <View className="flex-row items-center" style={{ gap: 12 }}>
-                <View className="items-center justify-center" style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: '#FFFFFF' }}>
-                    <Ionicons name="hourglass-outline" size={24} color={OS.orange} />
-                </View>
-                <Text className="flex-1 font-outfit-semibold uppercase" style={{ fontSize: 13, lineHeight: 17, letterSpacing: 0.6, color: OS.orangeText }}>{t(`${k}.confirmWindowTitle`)}</Text>
-            </View>
-            {units.length > 0 ? (
-                <View className="flex-row" style={{ gap: 10 }} accessibilityLabel={units.map((u) => `${u.value} ${u.label}`).join(' ')}>
-                    {units.map((u) => (
-                        <View key={u.label} className="flex-1 items-center" style={{ paddingVertical: 12, borderRadius: 16, backgroundColor: '#FFFFFF' }}>
-                            <Text className="font-outfit-bold" style={{ fontSize: 32, lineHeight: 38, letterSpacing: -0.5, color: OS.text, fontVariant: ['tabular-nums'] }}>{String(u.value).padStart(2, '0')}</Text>
-                            <Text className="font-outfit-semibold uppercase" style={{ fontSize: 12, lineHeight: 16, letterSpacing: 0.8, color: OS.orangeText }}>{u.label}</Text>
-                        </View>
-                    ))}
-                </View>
-            ) : (
-                <Text className="font-outfit-bold" style={{ fontSize: 22, lineHeight: 28, color: OS.text }}>{t(`${k}.confirmWindowDue`)}</Text>
-            )}
-            {units.length > 0 ? (
-                <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: OS.orangeText }}>
-                    {t(`${k}.confirmWindowNote`, { date: fmt.date(deadline), time: fmt.time(deadline) })}
-                </Text>
-            ) : null}
-        </View>
-    );
-}
-
 // ─────────── Screen ───────────
-export function ScreenCloseout({ visit, onVisit, onBackToDashboard }: {
+export function ScreenCloseout({ visit, onVisit, onBackToDashboard, requestCode }: {
     visit: OnSiteVisit;
+    /** The assistance's short code, shown with the result so it is clear what it refers to. */
+    requestCode?: string | null;
     onVisit: (v: OnSiteVisit) => void;
     onBackToDashboard: () => void;
 }) {
@@ -320,12 +258,10 @@ export function ScreenCloseout({ visit, onVisit, onBackToDashboard }: {
     return (
         <>
             <Body>
-                <Hero redirected={visit.outcome === 'redirected'} stage={stage} />
-                {/* The rating of the customer is part of closing the job: right under the result, not buried below the payout and the checklist. */}
+                {/* Result on top (with the time left while the owner has not confirmed), then rating the owner, then the payout. */}
+                <Hero redirected={visit.outcome === 'redirected'} stage={stage} deadline={visit.confirmDeadline} requestCode={requestCode} />
                 <RateOwner visit={visit} onVisit={onVisit} />
-                {stage === 'awaiting' && visit.confirmDeadline ? <ConfirmWindow deadline={visit.confirmDeadline} /> : null}
                 <Payout visit={visit} />
-                <Checklist visit={visit} />
                 <FinalReportCard appointmentId={visit.appointmentId} />
                 {stillNoReport && !obdAlert ? (
                     <TouchableOpacity
@@ -343,9 +279,9 @@ export function ScreenCloseout({ visit, onVisit, onBackToDashboard }: {
                         <Text className="font-outfit-bold" style={{ fontSize: 15, color: OS.blue }}>{t(`${k}.obdPendingAction`)}</Text>
                     </TouchableOpacity>
                 ) : null}
-                <Text className="font-outfit-regular text-center mx-5 mt-5" style={{ fontSize: 14, lineHeight: 20, color: visit.closeoutCompletedAt ? OS.greenDark : OS.muted }}>
-                    {visit.closeoutCompletedAt ? t(`${k}.footerClosed`) : t(`${k}.footer`)}
-                </Text>
+                {visit.closeoutCompletedAt ? (
+                    <Text className="font-outfit-regular text-center mx-5 mt-5" style={{ fontSize: 14, lineHeight: 20, color: OS.greenDark }}>{t(`${k}.footerClosed`)}</Text>
+                ) : null}
                 {/* Part of the page, not a fixed bar: nothing here is required to leave. */}
                 <View className="flex-row mx-4 mt-4 mb-6">
                     <PrimaryButton label={t(`${k}.back`)} onPress={onBackToDashboard} testID="closeout-back" />

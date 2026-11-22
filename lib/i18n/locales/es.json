@@ -1181,7 +1181,9 @@
           "ratingFromMechanic": "Calificación del técnico al cliente",
           "duration": "Duración de la videollamada",
           "extendedTime": "Tiempo extendido",
-          "transcript": "Transcripción"
+          "transcript": "Transcripción",
+          "confirmBy": "El cliente confirma hasta",
+          "condition": "Estado del vehículo"
         },
         "extendedTimeValue": "+{{count}} min agregados",
         "notRated": "Sin calificar",
@@ -1265,6 +1267,9 @@
       "startVideoChat": "Iniciar videollamada",
       "joinVideoCall": "Unirse a la videollamada",
       "onTheWayBadge": "EN CAMINO",
+      "completedBadge": "COMPLETADO",
+      "completedTitle": "Trabajo completado.",
+      "completedAt": "Finalizado a las {{time}}",
       "onTheWayTitle": "Vas en camino.",
       "idLabel": "ID: {{id}}",
       "types": {
@@ -1393,7 +1398,7 @@
     },
     "checkIn": {
       "title": "Check-in",
-      "step": "PASO 1 · CHECK-IN",
+      "step": "LLEGADA · VERIFICÁ EL CÓDIGO",
       "heading": "Llegaste al lugar del servicio",
       "subtitle": "Pedile al dueño del vehículo su código QR o PIN y escanealo o ingresalo para verificar el vehículo.",
       "scanQr": "Escanear QR",
@@ -1414,7 +1419,43 @@
       "checking": "Verificando…",
       "mismatchVehicle": "Vehículo de esta solicitud",
       "mismatchRef": "Referencia",
-      "scanHintZoom": "Apuntá la cámara al código QR del cliente. Pellizcá para hacer zoom."
+      "scanHintZoom": "Apuntá la cámara al código QR del cliente. Pellizcá para hacer zoom.",
+      "arrived": {
+        "title": "Estás en el lugar del servicio",
+        "subtitle": "Ahora: revisar el vehículo, sacar unas fotos y leer su scanner.",
+        "subtitleNoCar": "El código coincide. Ahora vas a revisar el vehículo, sacar unas fotos y leer su scanner.",
+        "start": "Comenzar check-in",
+        "verified": "Código verificado",
+        "location": "Ubicación",
+        "vehicle": "Vehículo",
+        "job": "Trabajo"
+      },
+      "done": {
+        "title": "Check-in realizado",
+        "subtitle": "Todo está listo. Comienza la asistencia.",
+        "start": "Comenzar asistencia",
+        "items": {
+          "code": "Código del cliente verificado",
+          "codeQr": "Escaneaste el QR",
+          "codePin": "Ingresaste el PIN",
+          "vin": "Vehículo identificado",
+          "vinSkipped": "Omitido",
+          "photos": "Fotos del vehículo",
+          "photosCount_one": "{{count}} foto sacada",
+          "photosCount_other": "{{count}} fotos sacadas",
+          "photosMissing": "Faltan",
+          "scanner": "Reporte del scanner",
+          "scannerManual": "Códigos cargados a mano",
+          "scannerCodes_one": "{{count}} código de falla encontrado",
+          "scannerCodes_other": "{{count}} códigos de falla encontrados",
+          "scannerClean": "Sin códigos de falla",
+          "scannerReading": "Leyéndose",
+          "scannerLater": "Sin subir todavía · agregalo después",
+          "feasibility": "¿Se resuelve acá?",
+          "feasibilityYes": "Sí, se puede arreglar ahí mismo",
+          "feasibilityParts": "Sí, una vez compradas las partes"
+        }
+      }
     },
     "onSite": {
       "titles": {
@@ -1430,8 +1471,8 @@
         "resolve": "Resolver el problema",
         "maintenance": "Mantenimiento",
         "videoOut": "Check-out",
-        "close": "Cerrar servicio",
-        "done": "Servicio cerrado",
+        "close": "Cerrar asistencia",
+        "done": "Asistencia cerrada",
         "diagnosticsVin": "VIN del vehículo"
       },
       "phases": {
@@ -1610,7 +1651,7 @@
         "missing": "Agregá las fotos de la patente y del tablero para continuar."
       },
       "feasibility": {
-        "eyebrow": "DIAGNÓSTICO LISTO",
+        "eyebrow": "PASO 4 · ¿SE RESUELVE ACÁ?",
         "title": "¿Podés resolver el problema en el lugar?",
         "issue": "Problema reportado",
         "notes": "Notas",
@@ -1675,7 +1716,8 @@
         "checklistTitle": "Antes de cerrar la visita"
       },
       "resolve": {
-        "eyebrow": "REPARACIÓN EN CURSO",
+        "eyebrow": "PASO 1 · REPARACIÓN EN CURSO",
+        "outcomeEyebrow": "PASO 3 · RESULTADO",
         "title": "Resolvé el problema",
         "subtitle": "Trabajá el problema reportado y, al terminar, fotografiá el trabajo y el vehículo como lo dejás.",
         "timer": "Cronómetro de trabajo iniciado",
@@ -1714,19 +1756,33 @@
         "addPhotos": "Agregar fotos",
         "stepOf": "Paso {{current}} de {{total}}",
         "stepWorkTitle": "Resolvé el problema",
-        "done": "Terminé el trabajo",
+        "stepWorkSub": "Trabajá el problema reportado. El cronómetro ya está corriendo.",
+        "done": "Trabajo terminado",
+        "doneNext": "Sigue: el checklist de mantenimiento",
         "stepProofTitle": "Documentá el trabajo terminado",
         "stepProofSub": "Es opcional, pero unas fotos o un video corto del resultado te ayudan si el cliente hace un reclamo.",
         "backToWork": "Volver",
         "backToPhotos": "Volver",
         "working": "Trabajando en el vehículo…",
-        "workingHint": "El cronómetro sigue corriendo. Cuando termines, tocá \"Terminé el trabajo\"."
+        "workingHint": "El cronómetro sigue corriendo. Cuando termines, tocá \"Terminé el trabajo\".",
+        "proofEyebrow": "PASO 1 · FOTOS",
+        "tipLabel": "Consejo",
+        "tips": {
+          "photos": "Fotografiá las piezas antes y después de cambiarlas.",
+          "talk": "Contale al cliente lo que encontrás mientras trabajás.",
+          "fluids": "Revisá niveles y torque antes de cerrar.",
+          "test": "Probalo: confirmá que el problema se fue antes de terminar.",
+          "clean": "Dejá el lugar limpio y llevate las piezas viejas."
+        },
+        "notesHint": "Sumá una línea por cada cosa que hiciste, cuando quieras.",
+        "notesPh": "p. ej. Cambié el filtro de aceite",
+        "notesAdd": "Sumar"
       },
       "finalCheck": {
-        "eyebrow": "REVISIÓN FINAL",
+        "eyebrow": "PASO 2 · CHECKLIST DE MANTENIMIENTO",
         "title": "Hacé la revisión final",
         "subtitle": "Repasá estos puntos antes de cerrar el servicio.",
-        "finish": "Terminar la reparación"
+        "finish": "Confirmar la revisión final"
       },
       "videoOut": {
         "eyebrow": "ANTES DE IRTE · OPCIONAL",
@@ -1743,9 +1799,10 @@
         "skip": "Saltear por ahora"
       },
       "close": {
-        "eyebrow": "RESUMEN",
-        "title": "Confirmá el cierre del servicio",
-        "redirected": "Este servicio se derivó — cerralo para terminar tu visita.",
+        "eyebrow": "PASO 2 · RESUMEN",
+        "requestId": "ID de la asistencia",
+        "title": "Confirmá el cierre de la asistencia",
+        "redirected": "Esta asistencia se derivó — cerrala para terminar tu visita.",
         "issue": "Problema",
         "resolved": "Resuelto ✓",
         "cannotResolve": "No se puede resolver en el lugar",
@@ -1761,7 +1818,7 @@
         "chargesEyebrow": "LO QUE VAS A RECIBIR",
         "serviceValue": "Valor del servicio",
         "total": "Total",
-        "finish": "Terminar servicio",
+        "finish": "Terminar asistencia",
         "minutes": "{{minutes}} min",
         "closing": "Cerrando…",
         "payoutHint": "El pago se libera cuando el cliente confirma el trabajo.",
@@ -1791,10 +1848,10 @@
         "notes": "Notas del trabajo"
       },
       "done": {
-        "completed": "Servicio completado",
-        "finished": "Servicio terminado",
-        "completedBody": "El check-out se registró correctamente. Gracias por completar el servicio.",
-        "finishedBody": "El servicio terminó y se le avisó al cliente.",
+        "completed": "Asistencia completada",
+        "finished": "Asistencia terminada",
+        "completedBody": "El check-out se registró correctamente. Gracias por completar la asistencia.",
+        "finishedBody": "La asistencia terminó y se le avisó al cliente.",
         "owner": "Dueño del vehículo",
         "rateTitle": "Calificá al dueño del vehículo",
         "rateSub": "¿Cómo fue tu experiencia con esta persona en este servicio?",
@@ -1823,7 +1880,7 @@
         "odometerPlaceholder": "Lectura actual",
         "miles": "millas",
         "tip": "Comparamos este VIN con el del pedido y con el del escaneo OBD.",
-        "skip": "Continuar sin el VIN",
+        "skip": "Continuar sin escanear el VIN",
         "scanTitle": "Escaneá el VIN",
         "scanHint": "Mantenelo firme hasta que lo lea.",
         "notVin": "Ese código no es un VIN. Probá con el de la puerta o el del parabrisas.",
@@ -1859,7 +1916,28 @@
         "differTitle": "El VIN no coincide",
         "differBody": "Revisá que sea el vehículo correcto y que el VIN esté bien escrito.",
         "recheck": "Revisar de nuevo",
-        "differContinue": "Continuar igual"
+        "differContinue": "Continuar igual",
+        "skipNote": "(no recomendado)"
+      },
+      "checkoutStart": {
+        "badge": "Trabajo terminado",
+        "title": "Asistencia completa",
+        "subtitle": "Buen trabajo. Te quedan dos cosas rápidas y listo.",
+        "minutes": "{{count}} min",
+        "start": "Comenzar check-out",
+        "items": {
+          "fixed": "Problema resuelto",
+          "time": "Tiempo en el trabajo",
+          "check": "Revisión final",
+          "checkCount": "{{done}} de {{total}} puntos revisados"
+        },
+        "next": {
+          "title": "Lo que sigue",
+          "photos": "Fotos del resultado",
+          "photosSub": "Unas fotos o un video corto, opcional",
+          "close": "Cerrar la asistencia",
+          "closeSub": "Revisá el resumen y terminá"
+        }
       }
     },
     "customerCheckIn": {
@@ -1911,7 +1989,8 @@
       "walletPending": "Va a tu wallet cuando el cliente confirme",
       "walletNote": "Vos elegís cuándo pasarlo a tu cuenta bancaria.",
       "heroBadgeAwaiting": "ESPERANDO CONFIRMACIÓN",
-      "heroTitleAwaiting": "Esperando confirmación del cliente. Se cobra cuando confirme el trabajo.",
+      "assistanceCode": "Asistencia {{code}}",
+      "heroTitleAwaiting": "Esperando que el cliente confirme el trabajo",
       "heroBadgeDisputed": "EN REVISIÓN",
       "heroTitleDisputed": "El cliente indicó que el trabajo no se realizó. Soporte lo está revisando.",
       "heroBadgeReleased": "SIN CARGO",
@@ -1934,7 +2013,8 @@
       "obdAlertLater": "Más tarde, ir al dashboard",
       "obdPendingRow": "Reporte del escáner OBD pendiente",
       "obdPendingAction": "Subir",
-      "itemOwnerConfirmation": "Confirmación del cliente"
+      "itemOwnerConfirmation": "Confirmación del cliente",
+      "confirmUnitSeconds": "SEG"
     },
     "onSiteConfirm": {
       "autoConfirmTitle": "Confirmación automática",
@@ -1971,7 +2051,9 @@
         "body": "Contanos qué pasó. Soporte lo va a revisar y no se te cobrará hasta que decida.",
         "failed": "No pudimos enviar tu reporte. Intentá de nuevo."
       },
-      "autoConfirmQuiet": "Si no respondés, se confirma automáticamente el {{date}} a las {{time}}."
+      "autoConfirmQuiet": "Si no respondés, se confirma automáticamente el {{date}} a las {{time}}.",
+      "autoConfirmIn": "Se confirma solo en",
+      "autoConfirmShort": "Se confirma el {{date}} a las {{time}}"
     },
     "receipt": {
       "title": "Recibo",
@@ -2131,7 +2213,32 @@
       "highlyRated": "Muy bien calificado por técnicos",
       "firstRequest": "Primer pedido",
       "extendedTimeValueAmount": "+{{minutes}} min · ${{amount}}",
-      "extendedTimeValue": "+{{minutes}} min sumados"
+      "extendedTimeValue": "+{{minutes}} min sumados",
+      "timeline": {
+        "accepted": "Asistencia aceptada",
+        "acceptedSub": "Tu técnico está asignado",
+        "route": "En camino",
+        "routeDone": "El técnico llegó hasta vos",
+        "routeMinAway": "A {{count}} min",
+        "routeOn": "Viene hacia vos",
+        "routeReady": "Se está preparando para salir",
+        "arrived": "Check-in en el vehículo",
+        "arrivedSub": "Mostrá tu QR o PIN cuando llegue",
+        "inspecting": "Revisando el vehículo",
+        "inspectingNow": "Escaneando y fotografiando el vehículo",
+        "inspectingDone": "Vehículo revisado",
+        "inspectingLater": "Viene después del check-in",
+        "fixing": "Resolviendo el problema",
+        "fixingNow": "Trabajando en esto ahora",
+        "fixingDone": "Trabajo terminado",
+        "fixingLater": "Viene después de la revisión",
+        "closing": "Servicio cerrado",
+        "closingNow": "Cerrando el servicio",
+        "closingWaiting": "Esperando tu confirmación",
+        "closingDisputed": "En revisión",
+        "closingDone": "Listo y confirmado",
+        "closingLater": "El último paso"
+      }
     },
     "videoCall": {
       "badge": "VIDEOLLAMADA",
@@ -3364,12 +3471,19 @@
     "typeTitle": "Tipo de pedido",
     "searchQuotesPlaceholder": "Buscá tus presupuestos",
     "sortTitle": "Orden",
-    "sort": { "closing": "Respuesta · la más próxima", "closingLate": "Respuesta · la más lejana", "sentNew": "Enviado · el más reciente", "sentOld": "Enviado · el más antiguo", "highest": "Mayor presupuesto", "lowest": "Menor presupuesto" },
+    "sort": {
+      "closing": "Respuesta · la más próxima",
+      "closingLate": "Respuesta · la más lejana",
+      "sentNew": "Enviado · el más reciente",
+      "sentOld": "Enviado · el más antiguo",
+      "highest": "Mayor presupuesto",
+      "lowest": "Menor presupuesto"
+    },
     "newRequests": "Pedidos nuevos",
     "quotesBadge_one": "{{count}} PRESUPUESTO EN ESPERA",
     "quotesBadge_other": "{{count}} PRESUPUESTOS EN ESPERA",
     "quotesTitle": "Tus presupuestos",
-    "quotesSubtitle": "Presupuestos que enviaste, esperando que el cliente decida."
+    "quotesSubtitle": "Presupuestos que enviaste, esperando la respuesta del cliente."
   },
   "ase": {
     "notFound": "No se encontró ningún mecánico ASE con ese ID. Verificá y volvé a intentar.",
@@ -4204,8 +4318,11 @@
   "scheduledProvider": {
     "quoteCard": {
       "sent": "Presupuesto enviado",
-      "decides": "El cliente decide en {{time}}",
-      "open": "Ver o editar presupuesto"
+      "sentOn": "Enviado el",
+      "decides": "Presupuesto a responder en {{time}}",
+      "open": "Ver o editar presupuesto",
+      "deadline": "Fecha límite de respuesta",
+      "decidesLabel": "Tiempo que le queda al cliente para responder"
     },
     "title": "Solicitud programada",
     "eyebrow": "SOLICITUD PROGRAMADA",
@@ -4321,7 +4438,7 @@
       "yourQuote": "Tu cotización",
       "waiting": "EN ESPERA",
       "servicesCount": "{{quoted}} de {{total}} servicios",
-      "decidesBy": "EL CLIENTE DECIDE ANTES DE",
+      "decidesBy": "FECHA LÍMITE DE RESPUESTA",
       "requestDetails": "Detalle del pedido",
       "note": "Todavía no estás confirmado. El trabajo es tuyo solo cuando el cliente acepta y el pago queda asegurado, y recién ahí se libera la dirección exacta."
     },

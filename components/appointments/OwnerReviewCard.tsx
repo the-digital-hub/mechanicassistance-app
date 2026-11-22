@@ -4,7 +4,10 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { OwnerReviewInline } from '@/components/appointments/OwnerReviewInline';
+import { PendingRatings } from '@/components/dashboard/PendingRatings';
+import { OwnerSheet } from '@/components/dashboard/OwnerHomeBlocks';
 import { SlideModal } from '@/components/ui/SlideModal';
+import type { Appointment } from '@/context/AppointmentsContext';
 import { reviewDAO } from '@/lib/dao/ReviewDAO';
 import { SHEET } from '@/lib/ui/sheet';
 
@@ -13,8 +16,10 @@ import { SHEET } from '@/lib/ui/sheet';
  * yet. Opens the review screen; renders nothing otherwise. Re-checks when the
  * screen regains focus, so it disappears right after the review is sent.
  */
-export function OwnerReviewCard({ appointmentId, status, enabled = true, onSent, onDismissed }: {
+export function OwnerReviewCard({ appointmentId, appointment, status, enabled = true, onSent, onDismissed }: {
     appointmentId: string;
+    /** The appointment itself: with it the sheet is the same one the dashboard opens (the technician's avatar, rating and count, then the form). */
+    appointment?: Appointment;
     status?: string;
     /** False while there is nothing to rate (a call that was not resolved was not charged). */
     enabled?: boolean;
@@ -80,18 +85,29 @@ export function OwnerReviewCard({ appointmentId, status, enabled = true, onSent,
                 <Text className="text-white font-outfit-bold text-sm">{t(`${k}.cardButton`)}</Text>
             </TouchableOpacity>
 
-            {/* The review opens from below, over the appointment, and the card goes away once it is sent. */}
-            <SlideModal visible={sheet} onClose={() => setSheet(false)} avoidKeyboard>
-                <View style={{ ...SHEET, maxHeight: '90%', paddingTop: 16 }} testID="owner-review-sheet">
-                    <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 34 }} showsVerticalScrollIndicator={false}>
-                        <OwnerReviewInline
-                            appointmentId={appointmentId}
-                            onSent={() => onSent?.()}
-                            onDismissed={() => { setSheet(false); setShow(false); onDismissed?.(); }}
-                        />
-                    </ScrollView>
-                </View>
-            </SlideModal>
+            {/* The review opens from below, over the appointment, the same sheet the dashboard opens: who the technician is, then the stars, what stood out and the comment. */}
+            {appointment ? (
+                <OwnerSheet visible={sheet} title={t('dashboard.rating.heading.user')} onClose={() => setSheet(false)} scrollBody>
+                    <PendingRatings
+                        appointments={[appointment]}
+                        role="user"
+                        onSent={() => onSent?.()}
+                        onClose={() => { setSheet(false); setShow(false); onDismissed?.(); }}
+                    />
+                </OwnerSheet>
+            ) : (
+                <SlideModal visible={sheet} onClose={() => setSheet(false)} avoidKeyboard>
+                    <View style={{ ...SHEET, maxHeight: '90%', paddingTop: 16 }} testID="owner-review-sheet">
+                        <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 34 }} showsVerticalScrollIndicator={false}>
+                            <OwnerReviewInline
+                                appointmentId={appointmentId}
+                                onSent={() => onSent?.()}
+                                onDismissed={() => { setSheet(false); setShow(false); onDismissed?.(); }}
+                            />
+                        </ScrollView>
+                    </View>
+                </SlideModal>
+            )}
         </View>
     );
 }

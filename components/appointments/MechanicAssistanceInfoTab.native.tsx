@@ -78,6 +78,10 @@ export function MechanicAssistanceInfoTab({ appointment, section, videoSection }
     const issueValue = appointment.vehicleIssues?.length
         ? appointment.vehicleIssues.map((i: { name: string }) => i.name).join(', ')
         : '—';
+    // How drivable the vehicle is (nothing when the request does not carry it).
+    const conditionValue = appointment.vehicleCondition
+        ? t(`requestAssistance.vehicleInformation.condition.${appointment.vehicleCondition}`, { defaultValue: '' })
+        : '';
 
     if (isVideoCall) {
         // A call asked for "now" (or with no date on the row) reads "Now".
@@ -175,6 +179,7 @@ export function MechanicAssistanceInfoTab({ appointment, section, videoSection }
             {showVehicle && (
                 <DetailCard>
                     <DetailRow icon="car-outline" label={t('appointments.detail.info.car')} value={appointment.car} />
+                    {!!conditionValue && <DetailRow icon="speedometer-outline" label={t('appointments.list.card.rows.condition')} value={conditionValue} />}
                     <DetailRow icon="construct-outline" label={t('appointments.detail.info.carIssue')} value={issueValue} />
                     <DetailRow
                         icon="document-text-outline"

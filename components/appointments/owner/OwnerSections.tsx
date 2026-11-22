@@ -1,6 +1,7 @@
 import { PulseDot } from '@/components/appointments/MechanicArrivalCard';
 import { AO, card, IconName, RequestSummaryRows, Stars, SummaryRow } from '@/components/offer/OfferSections';
 import { formatEtaTime } from '@/hooks/useAppointmentEta';
+import { type VisitStage } from '@/hooks/useOnSiteProgress';
 import { formatLocalDateTime } from '@/lib/video/videoCallTime';
 import type { AssistanceClientSummary, AssistanceOfferSummary } from '@/lib/dao/interfaces';
 import type { LatLng } from '@/lib/maps/polyline';
@@ -253,6 +254,87 @@ export function OwnerEtaCard({ status, departed, scheduledFor, minutesAway, etaT
                     <Text className="font-outfit-regular" style={{ fontSize: 13, color: AO.muted }}>{t(`${K}.yourLocation`)}</Text>
                 </View>
             </View>
+        </View>
+    );
+}
+
+
+type TimelineState = 'done' | 'current' | 'pending';
+
+/**
+ * The Status tab of an on-site assistance, as a vertical timeline (the same one a video call has): accepted, on the way, check-in,
+ * the vehicle being checked, the fix, the close-out. Says what is happening now and what comes next.
+ * The server announces head-out, check-in and close; the steps between check-in and close are read from the visit.
+ */
+export function OwnerVisitTimeline({ status, departed, stage, minutesAway, arrivedAt }: {
+    status: string;
+    departed: boolean;
+    stage: VisitStage;
+    minutesAway: number | null;
+    arrivedAt?: string | null;
+}) {
+    const { t, i18n } = useTranslation();
+    const P = `${K}.timeline`;
+    const onSite = status === 'in_progress' || status === 'started';
+    const closing = status === 'awaiting_confirmation' || status === 'disputed';
+    const completed = status === 'completed';
+    // Index of the step in progress; everything before it is done, everything after is pending. All done once completed.
+    const current = completed
+        ? 6
+        : closing
+        ? 5
+        : onSite
+        ? stage === 'wrapping' ? 5 : stage === 'fixing' ? 4 : 3
+        : 1;
+    const arrivedSub = arrivedAt ? formatLocalDateTime(arrivedAt, i18n.language) : t(`${P}.arrivedSub`);
+
+    const steps: { key: string; title: string; sub: string }[] = [
+        { key: 'accepted', title: t(`${P}.accepted`), sub: t(`${P}.acceptedSub`) },
+        {
+            key: 'route',
+            title: t(`${P}.route`),
+            sub: current > 1
+                ? t(`${P}.routeDone`)
+                : departed
+                ? minutesAway !== null ? t(`${P}.routeMinAway`, { count: minutesAway }) : t(`${P}.routeOn`)
+                : t(`${P}.routeReady`),
+        },
+        { key: 'arrived', title: t(`${P}.arrived`), sub: current > 2 ? arrivedSub : t(`${P}.arrivedSub`) },
+        { key: 'inspecting', title: t(`${P}.inspecting`), sub: current === 3 ? t(`${P}.inspectingNow`) : current > 3 ? t(`${P}.inspectingDone`) : t(`${P}.inspectingLater`) },
+        { key: 'fixing', title: t(`${P}.fixing`), sub: current === 4 ? t(`${P}.fixingNow`) : current > 4 ? t(`${P}.fixingDone`) : t(`${P}.fixingLater`) },
+        {
+            key: 'closing',
+            title: t(`${P}.closing`),
+            sub: completed ? t(`${P}.closingDone`) : status === 'disputed' ? t(`${P}.closingDisputed`) : closing ? t(`${P}.closingWaiting`) : current === 5 ? t(`${P}.closingNow`) : t(`${P}.closingLater`),
+        },
+    ];
+
+    return (
+        <View style={[card, { padding: 18 }]} testID="owner-visit-timeline">
+            {steps.map((step, i) => {
+                const last = i === steps.length - 1;
+                const state: TimelineState = i < current ? 'done' : i === current ? 'current' : 'pending';
+                const done = state === 'done';
+                const now = state === 'current';
+                return (
+                    <View key={step.key} style={{ flexDirection: 'row', gap: 14 }}>
+                        <View style={{ alignItems: 'center' }}>
+                            <View style={{ width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: done ? '#DDF1E7' : now ? '#DCE6FB' : '#F1F3F8' }}>
+                                {done ? (
+                                    <Ionicons name="checkmark" size={17} color="#2E9468" />
+                                ) : (
+                                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: now ? AO.blue : AO.mutedLight }}>{i + 1}</Text>
+                                )}
+                            </View>
+                            {!last ? <View style={{ flex: 1, width: 2, marginVertical: 4, backgroundColor: done ? '#BFE3D0' : '#E6EAF3', minHeight: 20 }} /> : null}
+                        </View>
+                        <View style={{ flex: 1, paddingBottom: last ? 0 : 18 }}>
+                            <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: state === 'pending' ? AO.mutedLight : AO.text }}>{step.title}</Text>
+                            <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: now ? AO.blue : AO.muted }}>{step.sub}</Text>
+                        </View>
+                    </View>
+                );
+            })}
         </View>
     );
 }

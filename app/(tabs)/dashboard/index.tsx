@@ -32,7 +32,7 @@ import { countCompletedToday } from '@/lib/dashboard/mechanicKpis';
 import { useMechanicKpis } from '@/lib/dashboard/useMechanicKpis';
 import { formatMoney } from '@/lib/payments/paymentSource';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { FileText, RotateCcw, Calendar, Video, Zap, MapPin, Wrench, DollarSign, Clock, Car, Lock, Power, CreditCard, AlertTriangle, Star, Briefcase, CheckCircle2, ClipboardList, Inbox, ScanLine, Send } from 'lucide-react-native';
+import { FileText, RotateCcw, Calendar, Video, Zap, MapPin, Wrench, DollarSign, Clock, Car, Gauge, Lock, Power, CreditCard, AlertTriangle, Star, Briefcase, CheckCircle2, ClipboardList, Inbox, ScanLine, Send } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useScrollPressGuard } from '@/hooks/useScrollPressGuard';
@@ -647,6 +647,19 @@ export default function DashboardScreen() {
                                                 </View>
                                             </View>
 
+                                            {/* How drivable the vehicle is */}
+                                            {request.vehicleCondition && iconType !== 'video' ? (
+                                                <View className="flex-row items-center px-5 py-4 border-b border-gray-100">
+                                                    <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
+                                                        <Gauge size={20} color="#0047AB" />
+                                                    </View>
+                                                    <View className="flex-1">
+                                                        <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">{t('appointments.list.card.rows.condition').toUpperCase()}</Text>
+                                                        <Text className="font-outfit-bold text-base text-gray-900">{t(`requestAssistance.vehicleInformation.condition.${request.vehicleCondition}`, { defaultValue: request.vehicleCondition })}</Text>
+                                                    </View>
+                                                </View>
+                                            ) : null}
+
                                             {/* Assistance needed */}
                                             <View className={`flex-row items-center px-5 py-4 ${iconType === 'video' ? '' : 'border-b border-gray-100'}`}>
                                                 <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
@@ -891,7 +904,7 @@ export default function DashboardScreen() {
                     hasMore={profileReviews.hasMore}
                     onLoadMore={profileReviews.loadMore}
                 />
-                <OwnerSheet visible={ratingOpen && toRate.length > 0} title={t('dashboard.rating.heading.mechanic')} onClose={() => setRatingOpen(false)}>
+                <OwnerSheet visible={ratingOpen && toRate.length > 0} title={t('dashboard.rating.heading.mechanic')} onClose={() => setRatingOpen(false)} scrollBody>
                     <PendingRatings appointments={toRate} role="mechanic" onSent={() => void refreshAppointments()} onClose={() => setRatingOpen(false)} />
                 </OwnerSheet>
 
@@ -1289,7 +1302,7 @@ export default function DashboardScreen() {
             </KeyboardAwareScrollView>
 
             {/* Request assistance: the three ways to ask for help */}
-            <OwnerSheet visible={ratingOpen && toRate.length > 0} title={t('dashboard.rating.heading.user')} onClose={() => setRatingOpen(false)}>
+            <OwnerSheet visible={ratingOpen && toRate.length > 0} title={t('dashboard.rating.heading.user')} onClose={() => setRatingOpen(false)} scrollBody>
                 <PendingRatings appointments={toRate} role="user" onSent={() => void refreshAppointments()} onClose={() => setRatingOpen(false)} />
             </OwnerSheet>
             <OwnerSheet visible={sheet === 'request'} title={t('dashboard.user.sheet.title')} subtitle={t('dashboard.user.sheet.subtitle')} onClose={() => setSheet(null)}>

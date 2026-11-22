@@ -1,12 +1,13 @@
-import { Calendar, Car, DollarSign, MapPin } from 'lucide-react-native';
+import { Calendar, CalendarClock, Car, DollarSign, MapPin, Send } from 'lucide-react-native';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, TouchableOpacity, View } from 'react-native';
 
-import { AttentionTimer } from '@/components/dashboard/AttentionExtras';
+import { CountdownBlocks } from '@/components/ui/ConfirmCountdown';
 import type { AssistanceRequest } from '@/lib/dao/interfaces';
 import { refLabel } from '@/lib/refCode';
 import { parseRequestNotes } from '@/lib/scheduled/provider';
+import { formatLocalDateTime } from '@/lib/video/videoCallTime';
 import { TYPE } from '@/lib/ui/type';
 import { splitJobTitle } from '@/lib/ui/jobTitle';
 
@@ -34,32 +35,38 @@ function Row({ icon: Icon, children }: { icon: typeof Car; children: React.React
  * sent in its own block and how long the customer still has to decide. One button: it opens the sent quote, where it can also be edited.
  */
 export function QuoteWaitingCard({ request, onOpen, onDecline }: { request: AssistanceRequest; onOpen: (id: string) => void; onDecline?: (id: string) => void }) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const issue = splitJobTitle(request.title).main || request.title;
     const price = request.myQuote?.price ? `$${Number(request.myQuote.price).toFixed(2)}` : null;
     const when = parseRequestNotes(request.notes, request.date);
     const area = [request.zip, request.distance].filter(Boolean).join(' · ');
+    // The day and hour the customer has to answer by: the same moment the countdown in the header runs to.
+    const deadline = formatLocalDateTime(request.offersCloseAt, i18n.language);
+    // When the quote was sent (nothing until the backend returns it).
+    const sentAt = request.myQuote?.createdAt ? formatLocalDateTime(request.myQuote.createdAt, i18n.language) : null;
     return (
         <View
             className="bg-white"
             style={{ borderRadius: 20, padding: 16, gap: 14, borderWidth: 1, borderColor: INK.line, shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.06, shadowRadius: 14, elevation: 2 }}
             testID={`quote-card-${request.id}`}
         >
-            <View className="flex-row items-center" style={{ gap: 12 }}>
+            <View className="flex-row items-start" style={{ gap: 12 }}>
                 <View className="items-center justify-center" style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: '#EDE9FE' }}>
                     <Calendar size={22} color="#7C3AED" />
                 </View>
                 <View className="flex-1" style={{ minWidth: 0 }}>
                     <Text className="font-outfit-bold" style={{ fontSize: 12, lineHeight: 16, letterSpacing: 0.8, color: INK.muted }}>{t('requestAssistance.header.scheduled').toUpperCase()}</Text>
                     <Text className="font-outfit-bold" style={{ fontSize: 17, lineHeight: 22, color: INK.text }} numberOfLines={2}>{issue}</Text>
-                    {/* The time left is a status badge, right under what the request is (the pill brings its own clock and top margin). */}
-                    {request.offersCloseAt ? (
-                        <View style={{ marginTop: -4 }}>
-                            <AttentionTimer spec={{ deadline: request.offersCloseAt, urgentUnderMinutes: 120, label: (time) => t('scheduledProvider.quoteCard.decides', { time }) }} />
-                        </View>
-                    ) : null}
                 </View>
             </View>
+
+            {/* The time left for the customer to decide, in a soft panel of its own: the label and the ticking blocks (days, hours, minutes). */}
+            {request.offersCloseAt ? (
+                <View style={{ gap: 8, padding: 12, borderRadius: 14, backgroundColor: '#FFF7EC' }}>
+                    <Text className="font-outfit-semibold uppercase" style={{ fontSize: 12, lineHeight: 16, letterSpacing: 0.6, color: '#8A5A12' }}>{t('scheduledProvider.quoteCard.decidesLabel')}</Text>
+                    <CountdownBlocks deadline={request.offersCloseAt} tone="white" urgentUnderMinutes={120} />
+                </View>
+            ) : null}
 
             <Divider />
 
@@ -83,7 +90,21 @@ export function QuoteWaitingCard({ request, onOpen, onDecline }: { request: Assi
                     </Row>
                 ) : null}
                 {/* The amount sent is one more line of the card, not a box inside it. */}
-                {price && (request.car || when.days || when.window || area) ? <Divider /> : null}
+                {deadline && (request.car || when.days || when.window || area) ? <Divider /> : null}
+                {deadline ? (
+                    <Row icon={CalendarClock}>
+                        <Text className="font-outfit-semibold" style={{ fontSize: 13, lineHeight: 17, color: INK.muted }}>{t('scheduledProvider.quoteCard.deadline')}</Text>
+                        <Text className="font-outfit-semibold" style={{ fontSize: 15, lineHeight: 21, color: INK.text }}>{deadline}</Text>
+                    </Row>
+                ) : null}
+                {sentAt && (request.car || when.days || when.window || area || deadline) ? <Divider /> : null}
+                {sentAt ? (
+                    <Row icon={Send}>
+                        <Text className="font-outfit-semibold" style={{ fontSize: 13, lineHeight: 17, color: INK.muted }}>{t('scheduledProvider.quoteCard.sentOn')}</Text>
+                        <Text className="font-outfit-semibold" style={{ fontSize: 15, lineHeight: 21, color: INK.text }}>{sentAt}</Text>
+                    </Row>
+                ) : null}
+                {price && (request.car || when.days || when.window || area || deadline || sentAt) ? <Divider /> : null}
                 {price ? (
                     <Row icon={DollarSign}>
                         <Text className="font-outfit-semibold" style={{ fontSize: 13, lineHeight: 17, color: INK.muted }}>{t('scheduledProvider.quoteCard.sent')}</Text>

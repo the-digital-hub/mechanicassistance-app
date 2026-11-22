@@ -468,13 +468,14 @@ export function ScreenDiagnosticsVin({ initial, requestVin, onNext }: {
 
                 {/* The blue VIN card of "Add vehicle", so the same field looks the same wherever it is asked for. */}
                 <View className="mx-4 mt-3.5">
+                    {/* Without the VIN the card is not painted: it goes plain grey, so it reads as set aside and not as something still to fill. */}
                     <LinearGradient
-                        colors={[AV.blue, AV.blueDark]}
+                        colors={noVin ? ['#E9EDF4', '#E1E6EF'] : [AV.blue, AV.blueDark]}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
-                        style={{ borderRadius: 20, paddingHorizontal: 20, paddingVertical: 22, shadowColor: AV.blue, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.35, shadowRadius: 12, elevation: 6 }}
+                        style={{ borderRadius: 20, paddingHorizontal: 20, paddingVertical: 22, shadowColor: AV.blue, shadowOffset: { width: 0, height: 10 }, shadowOpacity: noVin ? 0 : 0.35, shadowRadius: 12, elevation: noVin ? 0 : 6 }}
                     >
-                        <Text className="font-outfit-bold" style={{ ...TYPE.question, color: '#fff' }}>{t(`${k}.label`)}</Text>
+                        <Text className="font-outfit-bold" style={{ ...TYPE.question, color: noVin ? '#8C96AE' : '#fff' }}>{t(`${k}.label`)}</Text>
 
                         <View style={{ gap: 12, marginTop: 16 }}>
                             <TouchableOpacity
@@ -483,20 +484,20 @@ export function ScreenDiagnosticsVin({ initial, requestVin, onNext }: {
                                 activeOpacity={0.85}
                                 accessibilityRole="button"
                                 className="flex-row items-center justify-center"
-                                style={{ gap: 10, height: 52, borderRadius: 14, backgroundColor: '#10B981', opacity: noVin ? 0.4 : 1 }}
+                                style={{ gap: 10, height: 52, borderRadius: 14, backgroundColor: noVin ? '#CBD2E1' : '#10B981' }}
                                 testID="vin-scan"
                             >
-                                <Ionicons name="barcode-outline" size={22} color="#FFFFFF" />
-                                <Text className="font-outfit-bold" style={{ ...TYPE.body, color: '#FFFFFF' }}>
+                                <Ionicons name="barcode-outline" size={22} color={noVin ? '#8C96AE' : '#FFFFFF'} />
+                                <Text className="font-outfit-bold" style={{ ...TYPE.body, color: noVin ? '#8C96AE' : '#FFFFFF' }}>
                                     {blocked ? t(`${k}.allowCamera`) : t(`${k}.scan`)}
                                 </Text>
                             </TouchableOpacity>
-                            {blocked ? <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: 'rgba(255,255,255,0.88)' }}>{t(`${k}.cameraBlocked`)}</Text> : null}
+                            {blocked ? <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: noVin ? '#8C96AE' : 'rgba(255,255,255,0.88)' }}>{t(`${k}.cameraBlocked`)}</Text> : null}
 
                             <View className="flex-row items-center" style={{ gap: 12 }}>
-                                <View style={{ flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.3)' }} />
-                                <Text className="font-outfit-bold" style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)' }}>{t(`${k}.or`)}</Text>
-                                <View style={{ flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.3)' }} />
+                                <View style={{ flex: 1, height: 1, backgroundColor: noVin ? '#CBD2E1' : 'rgba(255,255,255,0.3)' }} />
+                                <Text className="font-outfit-bold" style={{ fontSize: 13, color: noVin ? '#8C96AE' : 'rgba(255,255,255,0.85)' }}>{t(`${k}.or`)}</Text>
+                                <View style={{ flex: 1, height: 1, backgroundColor: noVin ? '#CBD2E1' : 'rgba(255,255,255,0.3)' }} />
                             </View>
 
                             <TextInput
@@ -512,21 +513,21 @@ export function ScreenDiagnosticsVin({ initial, requestVin, onNext }: {
                                 maxLength={20}
                                 editable={!noVin}
                                 style={{
-                                    height: 52, borderRadius: 14, paddingHorizontal: 16, backgroundColor: '#fff',
+                                    height: 52, borderRadius: 14, paddingHorizontal: 16, backgroundColor: noVin ? '#F4F6FA' : '#fff',
                                     borderWidth: 1, borderColor: typedSomething && !valid && clean.length >= 17 && !noVin ? '#FCA5A5' : 'transparent',
-                                    fontFamily: MONO_FONT, fontSize: 16, letterSpacing: 0.5, color: AV.text, opacity: noVin ? 0.4 : 1,
+                                    fontFamily: MONO_FONT, fontSize: 16, letterSpacing: 0.5, color: AV.text, opacity: noVin ? 0.6 : 1,
                                 }}
                                 testID="vin-input"
                             />
                         </View>
 
                         <View className="flex-row items-start justify-between" style={{ gap: 12, marginTop: 14 }}>
-                            <Text className="font-outfit-regular" style={{ flex: 1, ...TYPE.helper, color: typedSomething && !valid && clean.length >= 17 ? '#FECACA' : 'rgba(255,255,255,0.85)' }}>
+                            <Text className="font-outfit-regular" style={{ flex: 1, ...TYPE.helper, color: noVin ? '#8C96AE' : typedSomething && !valid && clean.length >= 17 ? '#FECACA' : 'rgba(255,255,255,0.85)' }}>
                                 {valid
                                     ? (justScanned ? t(`${k}.scanned`) : t(`${k}.valid`))
                                     : typedSomething && clean.length >= 17 ? t(`${k}.invalid`) : t(`${k}.charCount`, { count: clean.length })}
                             </Text>
-                            {valid ? <Ionicons name="checkmark-circle" size={20} color="#86EFAC" /> : null}
+                            {valid && !noVin ? <Ionicons name="checkmark-circle" size={20} color="#86EFAC" /> : null}
                         </View>
                     </LinearGradient>
                 </View>
@@ -577,8 +578,6 @@ export function ScreenDiagnosticsVin({ initial, requestVin, onNext }: {
                     </View>
                 </Card>
 
-                <Tip>{t(`${k}.tip`)}</Tip>
-
                 {/* The way out is there, but as a plain option and not the main road: every visit should have its VIN. Not tied to the camera. */}
                 {!valid || noVin ? (
                     <TouchableOpacity
@@ -587,14 +586,20 @@ export function ScreenDiagnosticsVin({ initial, requestVin, onNext }: {
                         accessibilityRole="checkbox"
                         accessibilityState={{ checked: noVin }}
                         className="flex-row items-center mx-4 mt-5"
-                        style={{ gap: 12, minHeight: 56, paddingHorizontal: 16, borderRadius: 14, backgroundColor: noVin ? OS.blueSoft : '#E6EAF2', borderWidth: noVin ? 1.5 : 0, borderColor: OS.blue }}
+                        style={{ gap: 12, minHeight: 56, paddingHorizontal: 16, borderRadius: 14, backgroundColor: noVin ? OS.blueSoft : '#F1F3F8', borderWidth: noVin ? 1.5 : 0, borderColor: OS.blue }}
                         testID="vin-skip"
                     >
                         <Checkbox checked={noVin} size={24} />
-                        <Text className="flex-1 font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: noVin ? OS.blue : '#4A5470' }}>{t(`${k}.skip`)}</Text>
+                        <View className="flex-1" style={{ paddingVertical: 8 }}>
+                            {/* Quiet on purpose: the way out must not compete with scanning the VIN. Same grey for both lines, no accent colour. */}
+                            <Text className="font-outfit-medium" style={{ fontSize: 15, lineHeight: 21, color: noVin ? OS.blue : OS.mutedLight }}>{t(`${k}.skip`)}</Text>
+                            <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 19, color: noVin ? OS.blue : OS.mutedLight }}>{t(`${k}.skipNote`)}</Text>
+                        </View>
                     </TouchableOpacity>
                 ) : null}
                 {noVin ? <Tip tone="orange">{t(`${k}.skipWarn`)}</Tip> : null}
+
+                <Tip>{t(`${k}.tip`)}</Tip>
             </Body>
             <ActionBar>
                 <PrimaryButton

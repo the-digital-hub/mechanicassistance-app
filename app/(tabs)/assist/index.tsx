@@ -15,7 +15,7 @@ import { buildMechanicFeedFilters } from '@/lib/mechanic-feed';
 import { pricingDAO } from '@/lib/dao/PricingDAO';
 import { AssistanceRequest } from '@/lib/dao/interfaces';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { Radar, Search, SlidersHorizontal, X, Zap, Video, Calendar, Clock, Car, Wrench, Lock, DollarSign } from 'lucide-react-native';
+import { Radar, Search, SlidersHorizontal, X, Zap, Video, Calendar, Clock, Car, Gauge, Wrench, Lock, DollarSign } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -432,6 +432,19 @@ export default function AssistanceRequestsScreen() {
                         <Text className="font-outfit-bold text-base text-gray-900">{request.car}</Text>
                       </View>
                     </View>
+
+                    {/* How drivable the vehicle is */}
+                    {request.vehicleCondition && iconType !== 'video' ? (
+                        <View className="flex-row items-center px-5 py-4 border-b border-gray-100">
+                            <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
+                                <Gauge size={20} color="#0047AB" />
+                            </View>
+                            <View className="flex-1">
+                                <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">{t('appointments.list.card.rows.condition').toUpperCase()}</Text>
+                                <Text className="font-outfit-bold text-base text-gray-900">{t(`requestAssistance.vehicleInformation.condition.${request.vehicleCondition}`, { defaultValue: request.vehicleCondition })}</Text>
+                            </View>
+                        </View>
+                    ) : null}
 
                     {/* Assistance needed */}
                     <View className={`flex-row items-center px-5 py-4 ${iconType === 'video' ? '' : 'border-b border-gray-100'}`}>

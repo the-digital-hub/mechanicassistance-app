@@ -40,6 +40,7 @@ import {
     OwnerTab,
     OwnerTabs,
     OwnerTechnicianPanel,
+    OwnerVisitTimeline,
 } from '@/components/appointments/owner/OwnerSections';
 import { AO, IconName, RequestSummaryRows } from '@/components/offer/OfferSections';
 import { PaymentCardValue } from '@/components/payments/PaymentCardValue';
@@ -48,6 +49,7 @@ import { useUser } from '@/context/UserContext';
 import { VehicleIdsRow } from '@/components/scheduled/ui';
 import { vehicleDAO } from '@/lib/dao/VehicleDAO';
 import { formatEtaTime, useAppointmentEta } from '@/hooks/useAppointmentEta';
+import { useOnSiteProgress, visitStage } from '@/hooks/useOnSiteProgress';
 import { useHeadOut } from '@/hooks/useHeadOut';
 import { useCustomerInRoom } from '@/hooks/useCustomerInRoom';
 import { useVideoCallState } from '@/hooks/useVideoCallState';
@@ -80,6 +82,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Dimensions, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { chatAvailability } from '@/lib/chat/chatAvailability';
 import { RequestIdRow } from '@/components/ui/RequestIdRow';
+import { refLabel } from '@/lib/refCode';
 import { KeyboardAwareScrollView } from '@/components/ui/KeyboardAwareScrollView';
 
 const { width } = Dimensions.get('window');
@@ -181,6 +184,12 @@ export default function AppointmentDetailScreen() {
     const { minutesAway, etaTime, loading: etaLoading, mechanicCoords, polyline } = useAppointmentEta(
         ownerTracks ? appointment?.id : undefined,
         ownerTracks ? appointment?.status : undefined,
+    );
+
+    const ownerVisit = useOnSiteProgress(
+        appointment?.id,
+        isUserRole && !isVideoCall && (appointment?.status === 'in_progress' || appointment?.status === 'started'),
+        `${appointment?.status ?? ''}-${appointment?.updatedAt ?? ''}`,
     );
 
     const headOut = () => {
@@ -709,6 +718,16 @@ export default function AppointmentDetailScreen() {
                             mechanicCoords={mechanicCoords}
                             polyline={polyline}
                         />
+                        {/* Step by step, as on a video call. The server announces head-out, check-in and close; the steps between are asked for. */}
+                        {['accepted', 'started', 'in_progress', 'awaiting_confirmation', 'disputed', 'completed'].includes(appointment.status) && (
+                            <OwnerVisitTimeline
+                                status={appointment.status}
+                                departed={departed}
+                                stage={visitStage(ownerVisit)}
+                                minutesAway={minutesAway}
+                                arrivedAt={ownerVisit?.checkedInAt ?? appointment.startedAt ?? null}
+                            />
+                        )}
                         {/* The technician is on the way: show the code here too, so the owner is
                             already holding the QR / PIN when they arrive (it is also in Check-in). */}
                         {appointment.status === 'accepted' && departed && (
@@ -742,6 +761,9 @@ export default function AppointmentDetailScreen() {
                             </View>
                         ) : appointment.car,
                     } : null,
+                    !isVideoCall && appointment.vehicleCondition
+                        ? { icon: 'speedometer-outline' as const, label: t('appointments.list.card.rows.condition'), value: t(`requestAssistance.vehicleInformation.condition.${appointment.vehicleCondition}`, { defaultValue: appointment.vehicleCondition }) }
+                        : null,
                     issues ? { icon: 'construct-outline' as const, label: t('appointments.ownerAccepted.rows.issue'), value: issues } : null,
                     appointment.notes ? { icon: 'document-text-outline' as const, label: t('appointments.ownerAccepted.rows.notes'), value: appointment.notes } : null,
                     appointment.address ? { icon: 'location-outline' as const, label: t('appointments.ownerAccepted.rows.location'), value: appointment.address } : null,
@@ -1019,6 +1041,7 @@ export default function AppointmentDetailScreen() {
                                 {/* The rating of the technician sits here, over the tabs, in whichever tab you are: a card with one button that opens the form from below. */}
                                 <OwnerReviewCard
                                     appointmentId={appointment.id}
+                                    appointment={appointment}
                                     status={appointment.status}
                                     enabled={!isVideoCall || (videoStatus === 'completed' && videoState?.currentStatus !== 'not_resolved')}
                                     onSent={() => setReviewSent(true)}
@@ -1070,6 +1093,7 @@ export default function AppointmentDetailScreen() {
                                             <Text className="font-outfit-bold text-[22px] leading-6" style={{ color: MECH.text, letterSpacing: -0.6 }}>
                                                 {t('appointments.videoCall.mechanic.title')}
                                             </Text>
+                                            <Text className="font-outfit-semibold" style={{ fontSize: 13, lineHeight: 18, color: MECH.muted, marginTop: 1 }} selectable testID="detail-ref-code">{refLabel(appointment.refCode, appointment.id)}</Text>
                                         </View>
                                     </View>
                                 ) : (
@@ -1087,6 +1111,7 @@ export default function AppointmentDetailScreen() {
                                         <Text className="font-outfit-bold" style={{ fontSize: 22, lineHeight: 28, letterSpacing: -0.6, color: MECH.text }}>
                                             {t(assistanceTypeKey(appointment))}
                                         </Text>
+                                        <Text className="font-outfit-semibold" style={{ fontSize: 13, lineHeight: 18, color: MECH.muted, marginTop: 1 }} selectable testID="detail-ref-code">{refLabel(appointment.refCode, appointment.id)}</Text>
                                     </View>
                                 </View>
                                 </>
@@ -1109,6 +1134,22 @@ export default function AppointmentDetailScreen() {
                                 </View>
                             )}
 
+                            {/* While the customer has not confirmed, the rating of the customer is already here to give: it closes by itself once sent. */}
+                            {!isVideoCall && onSiteClosePending && onSiteVisit && onSiteVisit.clientRating == null && !isReviewSubmitted ? (
+                                <View className="mx-4 mt-3.5">
+                                    <ClientReviewCard
+                                        rating={rating}
+                                        setRating={setRating}
+                                        tags={selectedTags}
+                                        setTags={setSelectedTags}
+                                        reviewText={reviewText}
+                                        setReviewText={setReviewText}
+                                        isSubmitted={isReviewSubmitted}
+                                        onSubmit={submitClientReview}
+                                    />
+                                </View>
+                            ) : null}
+
                             {/* On-site closed as resolved: waiting for the owner, disputed, or released by support */}
                             {!isVideoCall && (onSiteClosePending || isCancelled) && onSiteVisit ? (
                                 <View className="mx-4 mt-3.5">
@@ -1117,7 +1158,7 @@ export default function AppointmentDetailScreen() {
                             ) : null}
 
                             {/* Status card — a finished video call shows its close-out card instead */}
-                            {!isVideoCall && !isCancelled && !onSiteClosePending && (
+                            {!isVideoCall && !isCancelled && !onSiteClosePending && appointment.status === 'accepted' && (
                             // Always the calm light blue (before heading out and once on the way): what has to pull the eye is the next action
                             // ("Head out", then "Start check-in"), not this status.
                             <LinearGradient
@@ -1145,6 +1186,41 @@ export default function AppointmentDetailScreen() {
                                 </Text>
                             </LinearGradient>
                             )}
+
+                            {/* Closed job: the same card, in green, saying it is completed */}
+                            {!isVideoCall && appointment.status === 'completed' ? (
+                                <View
+                                    style={{ marginHorizontal: 16, marginTop: 14, borderRadius: 22, padding: 18, borderWidth: 1, borderColor: '#CDEFD9', backgroundColor: '#EAF8EF' }}
+                                    testID="status-completed"
+                                >
+                                    <View className="flex-row items-center self-start" style={{ gap: 6, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 100, backgroundColor: 'rgba(16,185,129,0.14)' }}>
+                                        <Ionicons name="checkmark-circle" size={14} color="#0F8A5F" />
+                                        <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1.2, color: '#0F8A5F' }}>{t('appointments.detail.completedBadge')}</Text>
+                                    </View>
+                                    <Text className="font-outfit-bold" style={{ fontSize: 26, lineHeight: 31, letterSpacing: -0.7, color: '#0B5A3E', marginTop: 12 }}>{t('appointments.detail.completedTitle')}</Text>
+                                    {(appointment.completedAt ?? onSiteVisit?.closedAt) ? (
+                                        <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: '#4B6B5C', marginTop: 6 }}>
+                                            {t('appointments.detail.completedAt', { time: formatEtaTime((appointment.completedAt ?? onSiteVisit?.closedAt) as string) })}
+                                        </Text>
+                                    ) : null}
+                                </View>
+                            ) : null}
+
+                            {/* Completed and the customer not rated yet: the review is right under the card */}
+                            {!isVideoCall && appointment.status === 'completed' && !isReviewSubmitted && (onSiteVisit ? onSiteVisit.clientRating == null : true) ? (
+                                <View className="mx-4 mt-3.5">
+                                    <ClientReviewCard
+                                        rating={rating}
+                                        setRating={setRating}
+                                        tags={selectedTags}
+                                        setTags={setSelectedTags}
+                                        reviewText={reviewText}
+                                        setReviewText={setReviewText}
+                                        isSubmitted={isReviewSubmitted}
+                                        onSubmit={submitClientReview}
+                                    />
+                                </View>
+                            ) : null}
 
                             {/* Head out — starts the owner's live map and ETA */}
                             {!isVideoCall && appointment.status === 'accepted' ? (

@@ -1180,7 +1180,9 @@
           "ratingFromMechanic": "Technician's rating of the customer",
           "duration": "Video call duration",
           "extendedTime": "Extended time",
-          "transcript": "Call transcript"
+          "transcript": "Call transcript",
+          "confirmBy": "Customer confirms by",
+          "condition": "Vehicle condition"
         },
         "extendedTimeValue": "+{{count}} min added",
         "notRated": "Not rated yet",
@@ -1264,6 +1266,9 @@
       "startVideoChat": "Start Video Chat",
       "joinVideoCall": "Join Video Call",
       "onTheWayBadge": "ON THE WAY",
+      "completedBadge": "COMPLETED",
+      "completedTitle": "Job completed.",
+      "completedAt": "Finished at {{time}}",
       "onTheWayTitle": "You're on the way.",
       "idLabel": "ID: {{id}}",
       "types": {
@@ -1392,7 +1397,7 @@
     },
     "checkIn": {
       "title": "Check-in",
-      "step": "STEP 1 · CHECK-IN",
+      "step": "ARRIVAL · VERIFY THE CODE",
       "heading": "You've arrived at the service site",
       "subtitle": "Ask the vehicle owner for their QR code or PIN, then scan or enter it to verify the vehicle.",
       "scanQr": "Scan QR",
@@ -1413,7 +1418,43 @@
       "checking": "Checking…",
       "mismatchVehicle": "Vehicle on this request",
       "mismatchRef": "Reference",
-      "scanHintZoom": "Point the camera at the customer's QR code. Pinch to zoom."
+      "scanHintZoom": "Point the camera at the customer's QR code. Pinch to zoom.",
+      "arrived": {
+        "title": "You're at the service location",
+        "subtitle": "Next: check the vehicle, take a few photos and read its scanner.",
+        "subtitleNoCar": "The code matched. Next you'll check the vehicle, take a few photos and read its scanner.",
+        "start": "Start check-in",
+        "verified": "Code verified",
+        "location": "Location",
+        "vehicle": "Vehicle",
+        "job": "Job"
+      },
+      "done": {
+        "title": "Check-in complete",
+        "subtitle": "Everything is in place. The assistance starts now.",
+        "start": "Start assistance",
+        "items": {
+          "code": "Customer's code verified",
+          "codeQr": "Scanned the QR",
+          "codePin": "Entered the PIN",
+          "vin": "Vehicle identified",
+          "vinSkipped": "Skipped",
+          "photos": "Photos of the vehicle",
+          "photosCount_one": "{{count}} photo taken",
+          "photosCount_other": "{{count}} photos taken",
+          "photosMissing": "Still missing",
+          "scanner": "Scanner report",
+          "scannerManual": "Codes entered by hand",
+          "scannerCodes_one": "{{count}} trouble code found",
+          "scannerCodes_other": "{{count}} trouble codes found",
+          "scannerClean": "No trouble codes",
+          "scannerReading": "Being read",
+          "scannerLater": "Not uploaded yet · add it later",
+          "feasibility": "Resolve on site?",
+          "feasibilityYes": "Yes, it can be fixed right here",
+          "feasibilityParts": "Yes, once the parts are bought"
+        }
+      }
     },
     "onSite": {
       "titles": {
@@ -1429,8 +1470,8 @@
         "resolve": "Resolve the issue",
         "maintenance": "Maintenance",
         "videoOut": "Check-out",
-        "close": "Close service",
-        "done": "Service closed",
+        "close": "Close assistance",
+        "done": "Assistance closed",
         "diagnosticsVin": "Vehicle VIN"
       },
       "phases": {
@@ -1609,7 +1650,7 @@
         "missing": "Add the license plate and dashboard photos to continue."
       },
       "feasibility": {
-        "eyebrow": "DIAGNOSTIC READY",
+        "eyebrow": "STEP 4 · RESOLVE ON SITE?",
         "title": "Can you resolve the issue on-site?",
         "issue": "Reported issue",
         "notes": "Notes",
@@ -1674,7 +1715,8 @@
         "checklistTitle": "Before closing the visit"
       },
       "resolve": {
-        "eyebrow": "REPAIR IN PROGRESS",
+        "eyebrow": "STEP 1 · REPAIR IN PROGRESS",
+        "outcomeEyebrow": "STEP 3 · OUTCOME",
         "title": "Resolve the issue",
         "subtitle": "Work the reported problem, then photograph the work and the vehicle as you leave it.",
         "timer": "Work timer started",
@@ -1713,19 +1755,33 @@
         "addPhotos": "Add photos",
         "stepOf": "Step {{current}} of {{total}}",
         "stepWorkTitle": "Fix the issue",
-        "done": "I finished the work",
+        "stepWorkSub": "Work on the reported problem. The timer is already running.",
+        "done": "Work finished",
+        "doneNext": "Next: the maintenance checklist",
         "stepProofTitle": "Document the finished work",
         "stepProofSub": "Optional, but a few photos or a short video of the result help if the customer ever raises a claim.",
         "backToWork": "Back",
         "backToPhotos": "Back",
         "working": "Working on the vehicle…",
-        "workingHint": "The timer keeps running. When you are done, tap \"I finished the work\"."
+        "workingHint": "The timer keeps running. When you are done, tap \"I finished the work\".",
+        "proofEyebrow": "STEP 1 · PHOTOS",
+        "tipLabel": "Tip",
+        "tips": {
+          "photos": "Photograph parts before and after you replace them.",
+          "talk": "Tell the customer what you find as you go.",
+          "fluids": "Check fluid levels and torque before you close up.",
+          "test": "Test it: confirm the problem is gone before you finish.",
+          "clean": "Leave the area clean and take your old parts with you."
+        },
+        "notesHint": "Add a line for each thing you did, whenever you want.",
+        "notesPh": "e.g. Replaced the oil filter",
+        "notesAdd": "Add"
       },
       "finalCheck": {
-        "eyebrow": "FINAL CHECK",
+        "eyebrow": "STEP 2 · MAINTENANCE CHECKLIST",
         "title": "Run the final check",
         "subtitle": "Go through these points before closing the service.",
-        "finish": "Finish the repair"
+        "finish": "Confirm the final check"
       },
       "videoOut": {
         "eyebrow": "BEFORE YOU GO · OPTIONAL",
@@ -1742,9 +1798,10 @@
         "skip": "Skip for now"
       },
       "close": {
-        "eyebrow": "SUMMARY",
-        "title": "Confirm the service close-out",
-        "redirected": "This service was redirected — close it out to wrap up your visit.",
+        "eyebrow": "STEP 2 · SUMMARY",
+        "requestId": "Assistance ID",
+        "title": "Confirm the assistance close-out",
+        "redirected": "This assistance was redirected — close it out to wrap up your visit.",
         "issue": "Issue",
         "resolved": "Resolved ✓",
         "cannotResolve": "Cannot resolve on-site",
@@ -1760,7 +1817,7 @@
         "chargesEyebrow": "WHAT YOU'LL RECEIVE",
         "serviceValue": "Service value",
         "total": "Total",
-        "finish": "Finish Service",
+        "finish": "Finish assistance",
         "minutes": "{{minutes}} min",
         "closing": "Closing…",
         "payoutHint": "Payment is released once the client confirms the work.",
@@ -1790,10 +1847,10 @@
         "notes": "Work notes"
       },
       "done": {
-        "completed": "Service completed",
-        "finished": "Service finished",
-        "completedBody": "Check-out was logged successfully. Thanks for completing the service.",
-        "finishedBody": "The service was finished and the client was notified.",
+        "completed": "Assistance completed",
+        "finished": "Assistance finished",
+        "completedBody": "Check-out was logged successfully. Thanks for completing the assistance.",
+        "finishedBody": "The assistance was finished and the client was notified.",
         "owner": "Vehicle owner",
         "rateTitle": "Rate the vehicle owner",
         "rateSub": "How was your experience with them on this service?",
@@ -1822,7 +1879,7 @@
         "odometerPlaceholder": "Current reading",
         "miles": "miles",
         "tip": "We compare this VIN with the one on the request and the one from the OBD scan.",
-        "skip": "Continue without the VIN",
+        "skip": "Continue without scanning the VIN",
         "scanTitle": "Scan the VIN",
         "scanHint": "Hold steady until it's read.",
         "notVin": "That code isn't a VIN. Try the label on the door jamb or the windshield.",
@@ -1858,7 +1915,28 @@
         "differTitle": "VIN doesn't match",
         "differBody": "Check you are working on the right vehicle and that the VIN is typed correctly.",
         "recheck": "Check again",
-        "differContinue": "Continue anyway"
+        "differContinue": "Continue anyway",
+        "skipNote": "(not recommended)"
+      },
+      "checkoutStart": {
+        "badge": "Work done",
+        "title": "Assistance complete",
+        "subtitle": "Nice work. Two quick things left and you're done.",
+        "minutes": "{{count}} min",
+        "start": "Start check-out",
+        "items": {
+          "fixed": "Issue fixed",
+          "time": "Time on the job",
+          "check": "Final check",
+          "checkCount": "{{done}} of {{total}} points checked"
+        },
+        "next": {
+          "title": "What's next",
+          "photos": "Photos of the result",
+          "photosSub": "A few photos or a short video, optional",
+          "close": "Close the assistance",
+          "closeSub": "Review the summary and finish"
+        }
       }
     },
     "customerCheckIn": {
@@ -1910,7 +1988,8 @@
       "walletPending": "Goes to your wallet once the client confirms",
       "walletNote": "You choose when to pay it out to your bank account.",
       "heroBadgeAwaiting": "AWAITING CONFIRMATION",
-      "heroTitleAwaiting": "Waiting for the customer to confirm. It is charged once they confirm the work.",
+      "assistanceCode": "Assistance {{code}}",
+      "heroTitleAwaiting": "Waiting for the customer to confirm the work",
       "heroBadgeDisputed": "UNDER REVIEW",
       "heroTitleDisputed": "The customer said the work was not done. Support is reviewing it.",
       "heroBadgeReleased": "NO CHARGE",
@@ -1933,7 +2012,8 @@
       "obdAlertLater": "Later, go to the dashboard",
       "obdPendingRow": "OBD scan report pending",
       "obdPendingAction": "Upload",
-      "itemOwnerConfirmation": "Customer confirmation"
+      "itemOwnerConfirmation": "Customer confirmation",
+      "confirmUnitSeconds": "SEC"
     },
     "onSiteConfirm": {
       "autoConfirmTitle": "Automatic confirmation",
@@ -1970,7 +2050,9 @@
         "body": "Tell us what happened. Support will review it and you won't be charged until they decide.",
         "failed": "We couldn't send your report. Please try again."
       },
-      "autoConfirmQuiet": "If you don't answer, it's confirmed automatically on {{date}} at {{time}}."
+      "autoConfirmQuiet": "If you don't answer, it's confirmed automatically on {{date}} at {{time}}.",
+      "autoConfirmIn": "Confirms automatically in",
+      "autoConfirmShort": "Confirms on {{date}} at {{time}}"
     },
     "receipt": {
       "title": "Receipt",
@@ -2130,7 +2212,32 @@
       "highlyRated": "Highly rated by technicians",
       "firstRequest": "First request",
       "extendedTimeValueAmount": "+{{minutes}} min · ${{amount}}",
-      "extendedTimeValue": "+{{minutes}} min added"
+      "extendedTimeValue": "+{{minutes}} min added",
+      "timeline": {
+        "accepted": "Assistance accepted",
+        "acceptedSub": "Your technician is assigned",
+        "route": "On the way",
+        "routeDone": "The technician reached you",
+        "routeMinAway": "{{count}} min away",
+        "routeOn": "Heading to you",
+        "routeReady": "Getting ready to head out",
+        "arrived": "Check-in at the vehicle",
+        "arrivedSub": "Share your QR or PIN when they arrive",
+        "inspecting": "Checking the vehicle",
+        "inspectingNow": "Scanning and photographing the vehicle",
+        "inspectingDone": "Vehicle checked",
+        "inspectingLater": "Comes after check-in",
+        "fixing": "Fixing the issue",
+        "fixingNow": "Working on it now",
+        "fixingDone": "Work done",
+        "fixingLater": "Comes after the check",
+        "closing": "Service closed",
+        "closingNow": "Wrapping up",
+        "closingWaiting": "Waiting for your confirmation",
+        "closingDisputed": "In review",
+        "closingDone": "Done and confirmed",
+        "closingLater": "The last step"
+      }
     },
     "videoCall": {
       "badge": "VIDEO CALL",
@@ -3363,12 +3470,19 @@
     "typeTitle": "Type of request",
     "searchQuotesPlaceholder": "Search your quotes",
     "sortTitle": "Order",
-    "sort": { "closing": "Response date · soonest", "closingLate": "Response date · latest", "sentNew": "Sent · newest", "sentOld": "Sent · oldest", "highest": "Highest quote", "lowest": "Lowest quote" },
+    "sort": {
+      "closing": "Response date · soonest",
+      "closingLate": "Response date · latest",
+      "sentNew": "Sent · newest",
+      "sentOld": "Sent · oldest",
+      "highest": "Highest quote",
+      "lowest": "Lowest quote"
+    },
     "newRequests": "New requests",
     "quotesBadge_one": "{{count}} QUOTE WAITING",
     "quotesBadge_other": "{{count}} QUOTES WAITING",
     "quotesTitle": "Your quotes",
-    "quotesSubtitle": "Quotes you sent, waiting for the customer to decide."
+    "quotesSubtitle": "Quotes you sent, waiting for the customer's answer."
   },
   "ase": {
     "notFound": "No ASE technician found with that ID. Please verify and try again.",
@@ -4203,8 +4317,11 @@
   "scheduledProvider": {
     "quoteCard": {
       "sent": "Quote sent",
-      "decides": "Customer decides in {{time}}",
-      "open": "View or edit quote"
+      "sentOn": "Sent on",
+      "decides": "Quote to be answered in {{time}}",
+      "open": "View or edit quote",
+      "deadline": "Response deadline",
+      "decidesLabel": "Time left for the client to respond"
     },
     "title": "Scheduled request",
     "eyebrow": "SCHEDULED REQUEST",
@@ -4238,6 +4355,7 @@
       "quote": "Your quote",
       "review": "Review quote",
       "sent": "Quote sent",
+      "sentOn": "Sent on",
       "decline": "Decline",
       "declined": "Declined",
       "awarded": "Job confirmed",
@@ -4320,7 +4438,7 @@
       "yourQuote": "Your quote",
       "waiting": "WAITING",
       "servicesCount": "{{quoted}} of {{total}} services",
-      "decidesBy": "CUSTOMER DECIDES BY",
+      "decidesBy": "RESPONSE DEADLINE",
       "requestDetails": "Request details",
       "note": "You're not confirmed yet. The job is yours only after the customer accepts and payment is secured, and the exact address is released then."
     },
