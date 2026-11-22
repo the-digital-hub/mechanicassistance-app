@@ -1,6 +1,6 @@
-import { AttentionQuickButton, AttentionTimer, AttentionHideBadge, attentionCardStyle, type AttentionQuick, type AttentionTimerSpec } from '@/components/dashboard/AttentionExtras';
+import { AttentionCards, type AttentionCardData } from '@/components/dashboard/AttentionCard';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Award, Car, ChevronDown, ChevronRight, Star, Wallet, Wrench, type LucideIcon } from 'lucide-react-native';
+import { Award, ChevronDown, ChevronRight, Star, Wallet, Wrench, type LucideIcon } from 'lucide-react-native';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { Animated, Easing, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 
@@ -391,112 +391,16 @@ export function RequestTypeTabs<T extends string>({
     );
 }
 
-/** Which job an alert is about, laid out in rows instead of one grey sentence: a badge with the kind, what it is in bold, the vehicle with its icon. */
-export type AttentionMeta = {
-    kind: { label: string; icon: LucideIcon; bg: string; fg: string };
-    /** What the job is (the issue), bold. */
-    title?: string;
-    vehicle?: string;
-    /** "+2 more", small, beside the badge. */
-    more?: string;
-};
-
-export type AttentionItem = {
-    id: string;
-    tone: 'amber' | 'blue';
-    icon: LucideIcon;
-    title: string;
-    /** A number shown as a badge next to the title (how many there are). */
-    count?: number;
-    sub: string;
-    /** The job it is about, as rows (replaces `sub` when present). */
-    meta?: AttentionMeta;
-    cta: string;
+export type AttentionItem = AttentionCardData & {
     /** A setting to take care of (payouts), not something about the jobs: shown only while nothing about the jobs is waiting. */
     setup?: boolean;
     /** Changes when the alert is a new one (e.g. another count), so a hidden alert can return. */
     signature?: string;
-    /** The time left to deal with it, ticking. */
-    timer?: AttentionTimerSpec;
-    /** A simple action to do right on the card. */
-    quick?: AttentionQuick;
-    onPress: () => void;
 };
 
-/** Every small label inside an alert (kind, time left) shares one look: a light chip with the alert's own colour, so the card reads as one family. */
-const CHIP_BG = 'rgba(255,255,255,0.78)';
-const TONES = { amber: { bg: '#FCE8BD', fg: '#8A5200' }, blue: { bg: '#DCE7FA', fg: C.blue } } as const;
-
-/** "Needs your attention": one tappable row per thing the technician should act on. */
-export function AttentionList({ items, hideLabel, onDismiss }: { items: AttentionItem[]; hideLabel?: string; onDismiss?: (item: AttentionItem) => void }) {
-    return (
-        <View style={{ gap: 10 }}>
-            {items.map((a) => {
-                const tone = TONES[a.tone];
-                const Icon = a.icon;
-                return (
-                    <TouchableOpacity
-                        key={a.id}
-                        onPress={a.onPress}
-                        activeOpacity={0.7}
-                        accessibilityRole="button"
-                        className="flex-row"
-                        // One card per alert, with the tint and the relief of its tone: the same as the owner's.
-                        style={{ ...attentionCardStyle(a.tone), padding: 14, gap: 12 }}
-                    >
-                        <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: tone.bg }}>
-                            <Icon size={20} color={tone.fg} />
-                        </View>
-                        {/* Text first, then the actions under it: nothing is squeezed into a right-hand column. */}
-                        <View className="flex-1" style={{ minWidth: 0 }}>
-                            <View className="flex-row items-center" style={{ gap: 8 }}>
-                                <Text className="font-outfit-bold flex-shrink" style={{ fontSize: 16, lineHeight: 22, color: C.text }}>{a.title}</Text>
-                                {a.count !== undefined ? (
-                                    <View className="items-center justify-center" style={{ minWidth: 24, height: 24, paddingHorizontal: 7, borderRadius: 12, backgroundColor: tone.fg }} testID="attention-count">
-                                        <Text className="font-outfit-bold" style={{ fontSize: 13, lineHeight: 16, color: '#FFFFFF' }}>{a.count}</Text>
-                                    </View>
-                                ) : null}
-                            </View>
-                            {a.meta ? (
-                                <View style={{ marginTop: 8, gap: 6 }} testID="attention-meta">
-                                    <View className="flex-row items-center" style={{ gap: 8 }}>
-                                        <View className="flex-row items-center self-start" style={{ gap: 5, paddingLeft: 8, paddingRight: 10, paddingVertical: 4, borderRadius: 100, backgroundColor: CHIP_BG }}>
-                                            <a.meta.kind.icon size={13} color={tone.fg} />
-                                            <Text className="font-outfit-bold" style={{ fontSize: 12, lineHeight: 16, letterSpacing: 0.4, color: tone.fg }}>{a.meta.kind.label}</Text>
-                                        </View>
-                                        {a.meta.more ? <Text className="font-outfit-semibold" style={{ fontSize: 13, lineHeight: 17, color: C.muted }}>{a.meta.more}</Text> : null}
-                                    </View>
-                                    {a.meta.title ? (
-                                        <View className="flex-row items-center" style={{ gap: 6 }}>
-                                            <Wrench size={15} color={C.muted} />
-                                            <Text className="font-outfit-bold flex-1" style={{ fontSize: 15, lineHeight: 21, color: C.text }} numberOfLines={2}>{a.meta.title}</Text>
-                                        </View>
-                                    ) : null}
-                                    {a.meta.vehicle ? (
-                                        <View className="flex-row items-center" style={{ gap: 6 }}>
-                                            <Car size={15} color={C.muted} />
-                                            <Text className="font-outfit-semibold flex-1" style={{ fontSize: 14, lineHeight: 20, color: C.text }} numberOfLines={1}>{a.meta.vehicle}</Text>
-                                        </View>
-                                    ) : null}
-                                </View>
-                            ) : (
-                                <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: C.muted, marginTop: 2 }}>{a.sub}</Text>
-                            )}
-                            {a.timer ? <AttentionTimer spec={a.timer} chip={{ bg: CHIP_BG, ink: tone.fg }} /> : null}
-                            {a.quick ? <AttentionQuickButton quick={a.quick} /> : null}
-                            <View className="flex-row items-center" style={{ gap: 16, marginTop: 10 }}>
-                                <View className="flex-row items-center" style={{ gap: 2, minHeight: 36, paddingLeft: 14, paddingRight: 8, borderRadius: 100, backgroundColor: tone.bg }}>
-                                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: tone.fg }}>{a.cta}</Text>
-                                    <ChevronRight size={18} color={tone.fg} />
-                                </View>
-                                {onDismiss && hideLabel ? <AttentionHideBadge label={hideLabel} onPress={() => onDismiss(a)} /> : null}
-                            </View>
-                        </View>
-                    </TouchableOpacity>
-                );
-            })}
-        </View>
-    );
+/** "Needs your attention": one card per thing the technician should act on; several jobs slide inside their card. */
+export function AttentionList({ items, hideLabel, onDismiss, restore }: { items: AttentionItem[]; hideLabel?: string; onDismiss?: (item: AttentionItem) => void; restore?: boolean }) {
+    return <AttentionCards items={items} hideLabel={hideLabel} onDismiss={onDismiss ? (a) => onDismiss(a as AttentionItem) : undefined} restore={restore} />;
 }
 
 /** Blue card inviting the technician to add an ASE certification. */

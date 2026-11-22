@@ -145,6 +145,7 @@
       "loading": "Cargando comentario…",
       "failed": "No pudimos cargar las calificaciones. Probá más tarde.",
       "failedCode": "Error {{status}}",
+      "partial": "Calificaciones de tus trabajos recientes. No se pudo cargar la lista completa, con comentarios.",
       "more": "Ver más"
     },
     "language": {
@@ -244,6 +245,11 @@
   },
   "dashboard": {
     "attention": {
+      "hiddenCount": "Ocultas {{count}}",
+      "hiddenClose": "Cerrar lista",
+      "showAgain": "Mostrar de nuevo",
+      "hiddenToast": "Alerta oculta",
+      "undo": "Deshacer",
       "timer": {
         "days": "{{days}}d {{hours}}h",
         "hours": "{{hours}}h {{minutes}}m",
@@ -2039,8 +2045,8 @@
         "releasedBody": "Soporte confirmó que el trabajo no se realizó."
       },
       "mechanic": {
-        "awaitingTitle": "Esperando confirmación del cliente",
-        "awaitingBody": "El servicio se cobra cuando el cliente confirme que se hizo el trabajo, o automáticamente al vencer el plazo.",
+        "awaitingTitle": "Esperando al cliente",
+        "awaitingBody": "Cobrás cuando el cliente confirme el trabajo.",
         "disputedTitle": "El cliente indicó que el trabajo no se realizó",
         "disputedBody": "Soporte lo está revisando.",
         "releasedTitle": "Sin cargo",
@@ -2053,6 +2059,7 @@
       },
       "autoConfirmQuiet": "Si no respondés, se confirma automáticamente el {{date}} a las {{time}}.",
       "autoConfirmIn": "Se confirma solo en",
+      "autoConfirmDate": "{{date}} a las {{time}}",
       "autoConfirmShort": "Se confirma el {{date}} a las {{time}}"
     },
     "receipt": {
@@ -4317,10 +4324,15 @@
   },
   "scheduledProvider": {
     "quoteCard": {
+      "zip": "Código postal {{zip}}",
+      "away": "A {{distance}}",
+      "vehicle": "Vehículo",
+      "area": "Zona de servicio",
+      "when": "Cuándo hacerlo",
       "sent": "Presupuesto enviado",
       "sentOn": "Enviado el",
       "decides": "Presupuesto a responder en {{time}}",
-      "open": "Ver o editar presupuesto",
+      "open": "Ver presupuesto",
       "deadline": "Fecha límite de respuesta",
       "decidesLabel": "Tiempo que le queda al cliente para responder"
     },
@@ -4428,6 +4440,7 @@
       "send": "Enviar cotización"
     },
     "sent": {
+      "cancelQuote": "Cancelar presupuesto",
       "travel": "Cargo por traslado",
       "notQuoted": "Sin cotizar",
       "total": "Total",
@@ -4451,8 +4464,11 @@
       "notIncluded": "No incluido"
     },
     "decline": {
-      "eyebrow": "RECHAZAR",
-      "title": "¿Omitir esta solicitud?",
+      "quoteEyebrow": "CANCELAR PRESUPUESTO",
+      "quoteTitle": "¿Cancelar tu presupuesto?",
+      "quoteAction": "Cancelar presupuesto",
+      "eyebrow": "NO COTIZAR",
+      "title": "¿No cotizar esta solicitud?",
       "sub": "Se quita de tu lista en este teléfono. Contanos por qué para mandarte mejores coincidencias.",
       "reasons": {
         "far": "Muy lejos de tu zona",
@@ -4461,8 +4477,8 @@
         "other": "Otro"
       },
       "cancel": "Cancelar",
-      "action": "Rechazar solicitud",
-      "cta": "Rechazar"
+      "action": "No cotizar",
+      "cta": "No cotizar"
     },
     "declined": {
       "title": "Solicitud rechazada",

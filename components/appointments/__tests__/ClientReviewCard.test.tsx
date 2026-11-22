@@ -5,6 +5,9 @@ import { ClientReviewCard } from '../ClientReviewCard';
 
 jest.mock('@expo/vector-icons', () => ({ Ionicons: 'Ionicons' }));
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
+// The dashboard's rating sheet (used when the card gets the appointment) pulls in the API layer; these tests do not open it.
+jest.mock('@/components/dashboard/PendingRatings', () => ({ PendingRatings: () => null }));
+jest.mock('@/components/dashboard/OwnerHomeBlocks', () => ({ OwnerSheet: () => null }));
 
 const props = {
     rating: 5,

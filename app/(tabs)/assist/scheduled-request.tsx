@@ -3,7 +3,7 @@ import { KeyboardAwareScrollView } from '@/components/ui/KeyboardAwareScrollView
 import { useKeyboardOpen } from '@/hooks/useKeyboardOpen';
 import { FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { Ban, Calendar, Car, Check, Clock, Hourglass, Lock, MessageSquare, Send, ShieldCheck, Wrench, type LucideIcon } from 'lucide-react-native';
+import { Ban, Calendar, Car, Check, Clock, DollarSign, Hourglass, Lock, MessageSquare, Send, ShieldCheck, Wrench, X, type LucideIcon } from 'lucide-react-native';
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -264,20 +264,6 @@ export default function ScheduledRequestScreen() {
         </>
     );
 
-    /** Editing a sent quote starts from what was sent. */
-    const editSent = () => {
-        if (mine && request) {
-            const base = blankQuote(request);
-            const lines = base.lines.map((l) => {
-                const item = sentSplit.items.find((i) => i.name === l.name);
-                return item ? { ...l, on: item.quoted, price: item.quoted && item.total ? item.total.toFixed(2) : '' } : l;
-            });
-            const travel = sentSplit.items.find((i) => i.name === 'Travel fee');
-            setQ({ ...base, lines, travelFee: travel?.total ? travel.total.toFixed(2) : '', warrantyId: WARRANTIES.find((w) => w.days === mine.warrantyDays)?.id ?? base.warrantyId });
-        }
-        setView('quote');
-    };
-
     // ───────────── Outcomes ─────────────
     if (view === 'declined') {
         return (
@@ -345,15 +331,16 @@ export default function ScheduledRequestScreen() {
                     </View>
 
                     {/* The quote: each line with its icon, name over amount, then the total in its own block. */}
-                    <View style={{ ...CARD_STYLE, overflow: 'hidden' }}>
-                        <View className="flex-row items-center" style={{ gap: 8, paddingHorizontal: 16, paddingTop: 16, paddingBottom: 6 }}>
-                            <Text className="font-outfit-bold flex-1" style={{ fontSize: 12, letterSpacing: 1.2, color: SC.muted }}>{t('scheduledProvider.sent.yourQuote').toUpperCase()}</Text>
-                            {sentItems.length > 0 ? (
-                                <Text className="font-outfit-semibold" style={{ fontSize: 13, color: SC.muted }}>
-                                    {t('scheduledProvider.sent.servicesCount', { quoted: sentItems.filter((i) => i.quoted && i.name !== 'Travel fee').length, total: sentItems.filter((i) => i.name !== 'Travel fee').length })}
-                                </Text>
-                            ) : null}
-                        </View>
+                    {/* The title sits above the card, like "Request details" below. */}
+                    <View className="flex-row items-center" style={{ gap: 8, marginTop: 6 }}>
+                        <Text className="font-outfit-bold flex-1" style={{ fontSize: 12, letterSpacing: 1.2, color: SC.muted }}>{t('scheduledProvider.sent.yourQuote').toUpperCase()}</Text>
+                        {sentItems.length > 0 ? (
+                            <Text className="font-outfit-semibold" style={{ fontSize: 13, color: SC.muted }}>
+                                {t('scheduledProvider.sent.servicesCount', { quoted: sentItems.filter((i) => i.quoted && i.name !== 'Travel fee').length, total: sentItems.filter((i) => i.name !== 'Travel fee').length })}
+                            </Text>
+                        ) : null}
+                    </View>
+                    <View style={{ ...CARD_STYLE, overflow: 'hidden', marginTop: -6 }}>
                         {sentItems.map((item, i) => (
                             <View key={item.name} className="flex-row items-center" style={{ gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: SC.borderSoft }}>
                                 <IconBox icon={item.name === 'Travel fee' ? Car : Wrench} size={36} />
@@ -365,10 +352,20 @@ export default function ScheduledRequestScreen() {
                                 </View>
                             </View>
                         ))}
-                        <View style={{ margin: 12, marginTop: 6, padding: 14, borderRadius: 16, backgroundColor: SC.blueSoft }}>
-                            <Text className="font-outfit-bold" style={{ fontSize: 12, lineHeight: 16, letterSpacing: 1, color: SC.blue }}>{t('scheduledProvider.sent.total').toUpperCase()}</Text>
-                            <Text className="font-outfit-bold" style={{ fontSize: 32, lineHeight: 38, letterSpacing: -0.8, color: SC.blueDark }}>{money(sentPrice)}</Text>
+                        {/* The total: a firmer rule above it, like the sum line of a receipt, then the same row as the others with a dark label. */}
+                        <View style={{ marginHorizontal: 16, height: 2, borderRadius: 1, backgroundColor: '#C9D2E3' }} />
+                        <View className="flex-row items-center" style={{ gap: 12, paddingHorizontal: 16, paddingTop: 14, paddingBottom: 16 }}>
+                            <IconBox icon={DollarSign} size={36} />
+                            <View className="flex-1" style={{ minWidth: 0 }}>
+                                <Text className="font-outfit-bold" style={{ fontSize: 14, lineHeight: 19, color: SC.text }}>{t('scheduledProvider.sent.total')}</Text>
+                                <Text className="font-outfit-bold" style={{ fontSize: 18, lineHeight: 24, color: SC.text }}>{money(sentPrice)}</Text>
+                            </View>
                         </View>
+                    </View>
+
+                    {/* The rest of what was sent, in its own card: arrival, warranty and the message. */}
+                    {mine?.proposedStart || warrantyId || sent.message ? (
+                    <View style={{ ...CARD_STYLE, overflow: 'hidden' }}>
                         {mine?.proposedStart ? <SummaryRow icon={Calendar} label={t('scheduledProvider.sentRows.arrival')} value={slotOf(mine.proposedStart)} /> : null}
                         {warrantyId ? <SummaryRow icon={ShieldCheck} label={t('scheduledProvider.sentRows.warranty')} value={t(`scheduledProvider.warranties.${warrantyId}`)} last={!sent.message} /> : null}
                         {sent.message ? (
@@ -381,25 +378,28 @@ export default function ScheduledRequestScreen() {
                             </View>
                         ) : null}
                     </View>
+                    ) : null}
 
                     {/* All of the request, as it was in the details: this is what the quote is for. */}
                     <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 1.2, color: SC.muted, marginTop: 6 }}>{t('scheduledProvider.sent.requestDetails').toUpperCase()}</Text>
                     {requestDetails}
+                    {/* A small red link, not a button, above the ID. */}
+                    <TouchableOpacity onPress={() => setView('decline')} accessibilityRole="button" hitSlop={{ top: 10, bottom: 10, left: 16, right: 16 }} className="self-center flex-row items-center" style={{ gap: 6, paddingVertical: 8, marginBottom: 8 }} testID="sent-cancel-quote">
+                        <X size={14} color="#DC2626" />
+                        <Text className="font-outfit-semibold" style={{ fontSize: 14, color: '#DC2626' }}>{t('scheduledProvider.sent.cancelQuote')}</Text>
+                    </TouchableOpacity>
                     <Text className="font-outfit-regular text-center" style={{ fontSize: 13, lineHeight: 19, color: SC.mutedLight }}>{t('scheduledProvider.id', { id: refLabel(request.refCode, request.id) })}</Text>
                 </ScrollView>
-                {/* One action in the fixed bar: the way back is the arrow in the header. */}
-                <View style={FLOATING_FOOTER}>
-                    <Primary label={t('scheduledProvider.sent.edit')} onPress={editSent} />
-                </View>
             </View>
         );
     }
     if (view === 'decline') {
+        const quoted = mine?.status === 'submitted';
         return (
             <View className="flex-1" style={{ backgroundColor: SC.page }}>
                 {header}
                 <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 32, gap: 14 }}>
-                    <StepHead eyebrow={t('scheduledProvider.decline.eyebrow')} title={t('scheduledProvider.decline.title')} sub={t('scheduledProvider.decline.sub')} />
+                    <StepHead eyebrow={t(quoted ? 'scheduledProvider.decline.quoteEyebrow' : 'scheduledProvider.decline.eyebrow')} title={t(quoted ? 'scheduledProvider.decline.quoteTitle' : 'scheduledProvider.decline.title')} sub={t('scheduledProvider.decline.sub')} />
                     <View style={{ ...CARD_STYLE, overflow: 'hidden' }} accessibilityRole="radiogroup">
                         {DECLINE_REASONS.map((r, i) => (
                             <TouchableOpacity key={r} onPress={() => setReason(r)} accessibilityRole="radio" accessibilityState={{ selected: reason === r }} className="flex-row items-center" style={{ padding: 16, gap: 12, borderBottomWidth: i < DECLINE_REASONS.length - 1 ? 1 : 0, borderBottomColor: SC.borderSoft, backgroundColor: reason === r ? SC.blueSofter : '#FFFFFF' }}>
@@ -410,8 +410,9 @@ export default function ScheduledRequestScreen() {
                     </View>
                 </ScrollView>
                 <ActionBar>
-                    <Primary label={t('scheduledProvider.decline.action')} disabled={!reason} onPress={async () => { await declineRequest(request.id); setView('declined'); }} />
-                    <Ghost label={t('scheduledProvider.decline.cancel')} onPress={() => setView(mine?.status === 'submitted' ? 'sent' : 'details')} />
+                    <Primary label={t(quoted ? 'scheduledProvider.decline.quoteAction' : 'scheduledProvider.decline.action')} disabled={!reason} onPress={async () => { await declineRequest(request.id); setView('declined'); }} />
+                    {/* Cancelling a sent quote has one button; the way back is the arrow in the header. */}
+                    {quoted ? null : <Ghost label={t('scheduledProvider.decline.cancel')} onPress={() => setView('details')} />}
                 </ActionBar>
             </View>
         );
@@ -539,10 +540,15 @@ export default function ScheduledRequestScreen() {
                                 {q.lines.map((l) => (
                                     <ReviewLine key={l.name} label={l.name} value={l.on ? money(amountOf(l.price)) : t('scheduledProvider.review.notIncluded')} dim={!l.on} />
                                 ))}
-                                {totals.travel > 0 ? <ReviewLine label={t('scheduledProvider.quote.travel')} value={money(totals.travel)} /> : null}
-                                <View className="flex-row items-baseline justify-between" style={{ paddingHorizontal: 16, paddingVertical: 13, backgroundColor: SC.blueSofter }}>
-                                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: SC.text }}>{t('scheduledProvider.sent.yourQuote')}</Text>
-                                    <Text className="font-outfit-bold" style={{ fontSize: 22, letterSpacing: -0.5, color: SC.blueDark }}>{money(totals.total)}</Text>
+                                {totals.travel > 0 ? <ReviewLine icon={Car} label={t('scheduledProvider.quote.travel')} value={money(totals.travel)} /> : null}
+                                {/* Same total as in the sent quote: a firm rule, then the row with its icon. */}
+                                <View style={{ marginHorizontal: 16, height: 2, borderRadius: 1, backgroundColor: '#C9D2E3' }} />
+                                <View className="flex-row items-center" style={{ gap: 12, paddingHorizontal: 16, paddingTop: 14, paddingBottom: 16 }}>
+                                    <IconBox icon={DollarSign} size={36} />
+                                    <View className="flex-1" style={{ minWidth: 0 }}>
+                                        <Text className="font-outfit-bold" style={{ fontSize: 14, lineHeight: 19, color: SC.text }}>{t('scheduledProvider.sent.total')}</Text>
+                                        <Text className="font-outfit-bold" style={{ fontSize: 18, lineHeight: 24, color: SC.text }}>{money(totals.total)}</Text>
+                                    </View>
                                 </View>
                             </View>
                             <Text className="font-outfit-regular" style={{ fontSize: 13, lineHeight: 17, color: SC.muted, paddingHorizontal: 4, marginTop: -6 }}>{t('scheduledProvider.review.feesNote')}</Text>
@@ -663,11 +669,15 @@ function SummaryRow({ icon, label, value, sub, last }: { icon: LucideIcon; label
     );
 }
 
-function ReviewLine({ label, value, dim }: { label: string; value: string; dim?: boolean }) {
+function ReviewLine({ label, value, dim, icon = Wrench }: { label: string; value: string; dim?: boolean; icon?: LucideIcon }) {
+    // One column, like the sent quote: the service's name over its amount.
     return (
-        <View className="flex-row justify-between" style={{ paddingHorizontal: 16, paddingVertical: 11, gap: 12, borderBottomWidth: 1, borderBottomColor: SC.borderSoft }}>
-            <Text className="font-outfit-bold flex-1" style={{ fontSize: 14, color: dim ? SC.muted : SC.text }}>{label}</Text>
-            <Text className="font-outfit-bold" style={{ fontSize: 14, color: dim ? SC.muted : SC.text }}>{value}</Text>
+        <View className="flex-row items-center" style={{ paddingHorizontal: 16, paddingVertical: 12, gap: 12, borderBottomWidth: 1, borderBottomColor: SC.borderSoft }}>
+            <IconBox icon={icon} size={36} />
+            <View className="flex-1" style={{ minWidth: 0 }}>
+                <Text className="font-outfit-medium" style={{ fontSize: 14, lineHeight: 19, color: SC.muted }}>{label}</Text>
+                <Text className="font-outfit-bold" style={{ fontSize: 18, lineHeight: 24, color: dim ? SC.muted : SC.text }}>{value}</Text>
+            </View>
         </View>
     );
 }

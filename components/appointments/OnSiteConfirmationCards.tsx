@@ -52,7 +52,7 @@ function AutoConfirmLine({ deadline, who, mode = 'block' }: { deadline: string |
     }
     // The technician only waits: a quiet line (what it is, the time left, the date). The owner's last hours keep the panel with blocks.
     if (who === 'mechanic') {
-        return <SubtleCountdown deadline={deadline} label={t(`${K}.autoConfirmIn`)} note={(d, tm) => t(`${K}.autoConfirmShort`, { date: d, time: tm })} testID="on-site-auto-confirm" />;
+        return <SubtleCountdown deadline={deadline} label={t(`${K}.autoConfirmIn`)} note={(d, tm) => t(`${K}.autoConfirmDate`, { date: d, time: tm })} testID="on-site-auto-confirm" bare />;
     }
     // The same block as the close-out screen: small blocks for days, hours and minutes.
     return (

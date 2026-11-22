@@ -29,8 +29,11 @@ const toReview = (r: MyReview): ProfileReview => ({
  * The ratings behind the stars of a profile, newest first, each with its date and comment: read from the server
  * (`GET /reviews/me`, a page at a time) the first time `enabled` turns true. A technician sees what their customers
  * wrote, anyone else what technicians wrote about them.
+ *
+ * If the list cannot be loaded (the gateway not routing `/api/reviews` answers 403), the `fallback` ratings (the stars read off the
+ * appointments, no comments) are shown instead of an error, and `partial` says so.
  */
-export function useProfileReviews(enabled: boolean) {
+export function useProfileReviews(enabled: boolean, fallback: ProfileReview[] = []) {
     const [items, setItems] = useState<ProfileReview[]>([]);
     const [total, setTotal] = useState(0);
     const [average, setAverage] = useState<number | null>(null);
@@ -70,5 +73,17 @@ export function useProfileReviews(enabled: boolean) {
         if (!loading) load(page + 1);
     }, [loading, load, page]);
 
-    return { items, total, average, count, loading, failed, failedStatus, hasMore: items.length < total, loadMore };
+    const showFallback = failed && items.length === 0 && fallback.length > 0;
+    return {
+        items: showFallback ? fallback : items,
+        total: showFallback ? fallback.length : total,
+        average,
+        count,
+        loading,
+        failed: failed && !showFallback,
+        failedStatus,
+        partial: showFallback,
+        hasMore: showFallback ? false : items.length < total,
+        loadMore,
+    };
 }

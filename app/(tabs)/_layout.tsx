@@ -8,7 +8,7 @@ import {
   Calendar,
   Circle,
   FileText,
-  LifeBuoy,
+  CircleGauge,
   User as UserIcon,
   Wrench,
 } from "lucide-react-native";
@@ -267,7 +267,7 @@ export default function TabLayout() {
         name="dashboard"
         options={{
           title: t('tabs.dashboard'),
-          tabBarIcon: ({ color }) => <LifeBuoy size={24} color={color} />,
+          tabBarIcon: ({ color }) => <CircleGauge size={24} color={color} />,
           headerLeft: () => <MechanicStatusHeaderLeft />,
           headerRight: () => <NotificationHeaderRight />,
         }}

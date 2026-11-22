@@ -801,6 +801,12 @@ export default function AppointmentDetailScreen() {
 
     // POST /appointments/:id/client-review for every kind of job. The screen only
     // says "rated" once the server has it, so a failed send never looks saved.
+    // The rating went through the dashboard's sheet (it sends itself): this screen only has to know it is done.
+    const markReviewSent = () => {
+        setIsReviewSubmitted(true);
+        refreshAppointments();
+    };
+
     const submitClientReview = () => {
         if (reviewSending.current || isReviewSubmitted) return;
         if (rating < 1) {
@@ -916,6 +922,8 @@ export default function AppointmentDetailScreen() {
                                 setReviewText={setReviewText}
                                 isSubmitted={isReviewSubmitted}
                                 onSubmit={submitClientReview}
+                                appointment={appointment}
+                                onSent={markReviewSent}
                             />
                         ) : null}
                     </View>
@@ -1146,6 +1154,8 @@ export default function AppointmentDetailScreen() {
                                         setReviewText={setReviewText}
                                         isSubmitted={isReviewSubmitted}
                                         onSubmit={submitClientReview}
+                                appointment={appointment}
+                                onSent={markReviewSent}
                                     />
                                 </View>
                             ) : null}
@@ -1218,6 +1228,8 @@ export default function AppointmentDetailScreen() {
                                         setReviewText={setReviewText}
                                         isSubmitted={isReviewSubmitted}
                                         onSubmit={submitClientReview}
+                                appointment={appointment}
+                                onSent={markReviewSent}
                                     />
                                 </View>
                             ) : null}
@@ -1314,6 +1326,8 @@ export default function AppointmentDetailScreen() {
                                                         setReviewText={setReviewText}
                                                         isSubmitted={isReviewSubmitted}
                                                         onSubmit={submitClientReview}
+                                appointment={appointment}
+                                onSent={markReviewSent}
                                                     />
                                                 </View>
                                             ) : null}

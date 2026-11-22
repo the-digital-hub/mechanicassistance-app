@@ -1,4 +1,4 @@
-import { Calendar, CalendarClock, Car, DollarSign, MapPin, Send } from 'lucide-react-native';
+import { Calendar, CalendarClock, Car, DollarSign, MapPin, Send, X } from 'lucide-react-native';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, TouchableOpacity, View } from 'react-native';
@@ -39,7 +39,7 @@ export function QuoteWaitingCard({ request, onOpen, onDecline }: { request: Assi
     const issue = splitJobTitle(request.title).main || request.title;
     const price = request.myQuote?.price ? `$${Number(request.myQuote.price).toFixed(2)}` : null;
     const when = parseRequestNotes(request.notes, request.date);
-    const area = [request.zip, request.distance].filter(Boolean).join(' · ');
+    const area = request.zip || request.distance;
     // The day and hour the customer has to answer by: the same moment the countdown in the header runs to.
     const deadline = formatLocalDateTime(request.offersCloseAt, i18n.language);
     // When the quote was sent (nothing until the backend returns it).
@@ -73,12 +73,14 @@ export function QuoteWaitingCard({ request, onOpen, onDecline }: { request: Assi
             <View style={{ gap: 12 }}>
                 {request.car ? (
                     <Row icon={Car}>
+                        <Text className="font-outfit-semibold" style={{ fontSize: 13, lineHeight: 17, color: INK.muted }}>{t('scheduledProvider.quoteCard.vehicle')}</Text>
                         <Text className="font-outfit-semibold" style={{ fontSize: 15, lineHeight: 21, color: INK.text }} numberOfLines={1}>{request.car}</Text>
                     </Row>
                 ) : null}
                 {request.car && (when.days || when.window) ? <Divider /> : null}
                 {when.days || when.window ? (
                     <Row icon={Calendar}>
+                        <Text className="font-outfit-semibold" style={{ fontSize: 13, lineHeight: 17, color: INK.muted }}>{t('scheduledProvider.quoteCard.when')}</Text>
                         {when.days ? <Text className="font-outfit-semibold" style={{ fontSize: 15, lineHeight: 21, color: INK.text }}>{when.days}</Text> : null}
                         {when.window ? <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: INK.muted }}>{when.window}</Text> : null}
                     </Row>
@@ -86,7 +88,9 @@ export function QuoteWaitingCard({ request, onOpen, onDecline }: { request: Assi
                 {area && (request.car || when.days || when.window) ? <Divider /> : null}
                 {area ? (
                     <Row icon={MapPin}>
-                        <Text className="font-outfit-semibold" style={{ fontSize: 15, lineHeight: 21, color: INK.text }} numberOfLines={1}>{area}</Text>
+                        <Text className="font-outfit-semibold" style={{ fontSize: 13, lineHeight: 17, color: INK.muted }}>{t('scheduledProvider.quoteCard.area')}</Text>
+                        {request.zip ? <Text className="font-outfit-semibold" style={{ fontSize: 15, lineHeight: 21, color: INK.text }} numberOfLines={1}>{t('scheduledProvider.quoteCard.zip', { zip: request.zip })}</Text> : null}
+                        {request.distance ? <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: INK.muted }} numberOfLines={1}>{t('scheduledProvider.quoteCard.away', { distance: request.distance })}</Text> : null}
                     </Row>
                 ) : null}
                 {/* The amount sent is one more line of the card, not a box inside it. */}
@@ -127,15 +131,17 @@ export function QuoteWaitingCard({ request, onOpen, onDecline }: { request: Assi
             </TouchableOpacity>
 
             {onDecline ? (
+                // Quiet: a small red link, not a button (same as in the sent quote).
                 <TouchableOpacity
                     onPress={() => onDecline(request.id)}
-                    activeOpacity={0.85}
                     accessibilityRole="button"
-                    className="items-center justify-center"
-                    style={{ minHeight: 56, borderRadius: 14, backgroundColor: '#E6EAF2' }}
+                    hitSlop={{ top: 10, bottom: 10, left: 16, right: 16 }}
+                    className="self-center flex-row items-center"
+                    style={{ gap: 6, paddingVertical: 6 }}
                     testID={`quote-decline-${request.id}`}
                 >
-                    <Text className="font-outfit-bold" style={{ ...TYPE.button, color: '#4A5470' }}>{t('scheduledProvider.decline.cta')}</Text>
+                    <X size={14} color="#DC2626" />
+                    <Text className="font-outfit-semibold" style={{ fontSize: 14, color: '#DC2626' }}>{t('scheduledProvider.sent.cancelQuote')}</Text>
                 </TouchableOpacity>
             ) : null}
 

@@ -114,11 +114,13 @@ export function ConfirmCountdown({ deadline, title, note, style, testID }: {
  * The same countdown as one quiet line, for where it is only information (the technician waiting for the customer): a small hourglass,
  * what it is, the time left in plain text and the date it happens on underneath. No panel, no blocks.
  */
-export function SubtleCountdown({ deadline, label, note, testID }: {
+export function SubtleCountdown({ deadline, label, note, testID, bare }: {
     deadline: string | null | undefined;
     label: string;
     note: (date: string, time: string) => string;
     testID?: string;
+    /** Inside a card that already says what it is: no grey box and no icon, just the two lines, in the column of the card's text (under its icon tile, 40 + 12). */
+    bare?: boolean;
 }) {
     const { i18n } = useTranslation();
     const [now, setNow] = React.useState(() => Date.now());
@@ -142,8 +144,8 @@ export function SubtleCountdown({ deadline, label, note, testID }: {
     const date = when.toLocaleDateString(i18n.language, { weekday: 'short', month: 'short', day: 'numeric' });
     const time = when.toLocaleTimeString(i18n.language, { hour: 'numeric', minute: '2-digit' });
     return (
-        <View className="flex-row items-start" style={{ gap: 10, marginTop: 12, paddingVertical: 10, paddingHorizontal: 12, borderRadius: 12, backgroundColor: '#F6F8FC' }} testID={testID ?? 'subtle-countdown'}>
-            <Ionicons name="hourglass-outline" size={18} color={INK.orange} style={{ marginTop: 2 }} />
+        <View className="flex-row items-start" style={bare ? { marginTop: 6, marginLeft: 52 } : { gap: 10, marginTop: 12, paddingVertical: 10, paddingHorizontal: 12, borderRadius: 12, backgroundColor: '#F6F8FC' }} testID={testID ?? 'subtle-countdown'}>
+            {bare ? null : <Ionicons name="hourglass-outline" size={18} color={INK.orange} style={{ marginTop: 2 }} />}
             <View className="flex-1" style={{ minWidth: 0 }}>
                 <Text className="font-outfit-semibold" style={{ fontSize: 14, lineHeight: 20, color: INK.text }}>
                     {label} <Text className="font-outfit-bold" style={{ color: INK.orangeText, fontVariant: ['tabular-nums'] }}>{remaining}</Text>

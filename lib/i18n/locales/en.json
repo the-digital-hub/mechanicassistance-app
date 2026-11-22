@@ -145,6 +145,7 @@
       "loading": "Loading comment…",
       "failed": "We couldn't load the ratings. Try again later.",
       "failedCode": "Error {{status}}",
+      "partial": "Ratings from your recent jobs. The full list, with comments, could not be loaded.",
       "more": "Show more"
     },
     "language": {
@@ -244,6 +245,11 @@
   },
   "dashboard": {
     "attention": {
+      "hiddenCount": "Hidden {{count}}",
+      "hiddenClose": "Hide list",
+      "showAgain": "Show again",
+      "hiddenToast": "Alert hidden",
+      "undo": "Undo",
       "timer": {
         "days": "{{days}}d {{hours}}h",
         "hours": "{{hours}}h {{minutes}}m",
@@ -2038,8 +2044,8 @@
         "releasedBody": "Support confirmed the work was not done."
       },
       "mechanic": {
-        "awaitingTitle": "Waiting for customer confirmation",
-        "awaitingBody": "The service is charged once the customer confirms the work was done, or automatically when the deadline passes.",
+        "awaitingTitle": "Waiting for the customer",
+        "awaitingBody": "You're paid once they confirm the work.",
         "disputedTitle": "The customer said the work was not done",
         "disputedBody": "Support is reviewing it.",
         "releasedTitle": "No charge",
@@ -2051,7 +2057,8 @@
         "failed": "We couldn't send your report. Please try again."
       },
       "autoConfirmQuiet": "If you don't answer, it's confirmed automatically on {{date}} at {{time}}.",
-      "autoConfirmIn": "Confirms automatically in",
+      "autoConfirmIn": "Auto-confirms in",
+      "autoConfirmDate": "{{date}} at {{time}}",
       "autoConfirmShort": "Confirms on {{date}} at {{time}}"
     },
     "receipt": {
@@ -4316,10 +4323,15 @@
   },
   "scheduledProvider": {
     "quoteCard": {
+      "zip": "ZIP code {{zip}}",
+      "away": "{{distance}} away",
+      "vehicle": "Vehicle",
+      "area": "Service area",
+      "when": "When to do it",
       "sent": "Quote sent",
       "sentOn": "Sent on",
       "decides": "Quote to be answered in {{time}}",
-      "open": "View or edit quote",
+      "open": "View quote",
       "deadline": "Response deadline",
       "decidesLabel": "Time left for the client to respond"
     },
@@ -4428,6 +4440,7 @@
       "send": "Send quote"
     },
     "sent": {
+      "cancelQuote": "Cancel quote",
       "travel": "Travel fee",
       "notQuoted": "Not quoted",
       "total": "Total",
@@ -4451,8 +4464,11 @@
       "notIncluded": "Not included"
     },
     "decline": {
-      "eyebrow": "DECLINE",
-      "title": "Skip this request?",
+      "quoteEyebrow": "CANCEL QUOTE",
+      "quoteTitle": "Cancel your quote?",
+      "quoteAction": "Cancel quote",
+      "eyebrow": "DON'T QUOTE",
+      "title": "Don't quote this request?",
       "sub": "It's removed from your list on this phone. Tell us why so we send you better matches.",
       "reasons": {
         "far": "Too far from your area",
@@ -4461,8 +4477,8 @@
         "other": "Other"
       },
       "cancel": "Cancel",
-      "action": "Decline request",
-      "cta": "Decline"
+      "action": "Don't quote",
+      "cta": "Don't quote"
     },
     "declined": {
       "title": "Request declined",

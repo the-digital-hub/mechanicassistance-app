@@ -1,4 +1,4 @@
-import { AttentionQuickButton, AttentionTimer, AttentionHideBadge, attentionCardStyle, type AttentionQuick, type AttentionTimerSpec } from '@/components/dashboard/AttentionExtras';
+import { AttentionCards, type AttentionCardData } from '@/components/dashboard/AttentionCard';
 import { VehicleIdsRow } from '@/components/scheduled/ui';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Calendar, Check, ChevronDown, ChevronRight, FileText, Pencil, Wrench, X, type LucideIcon } from 'lucide-react-native';
@@ -156,69 +156,14 @@ export function EmergencyRow({ label, items, horizontalInset = 40 }: { label: st
     );
 }
 
-export type OwnerAttentionItem = {
-    id: string;
-    tone: 'amber' | 'blue';
-    icon: LucideIcon;
-    title: string;
-    /** A number shown as a badge next to the title (how many there are). */
-    count?: number;
-    sub: string;
-    cta: string;
+export type OwnerAttentionItem = AttentionCardData & {
     /** Changes when the alert is a new one (e.g. another count), so a hidden alert can return. */
     signature?: string;
-    /** The time left to deal with it, ticking. */
-    timer?: AttentionTimerSpec;
-    /** A simple action to do right on the card. */
-    quick?: AttentionQuick;
-    onPress: () => void;
 };
 
-/** What needs the owner's action: one tappable card per alert, each one can be hidden. */
-export function OwnerAttentionList({ items, hideLabel, onDismiss }: { items: OwnerAttentionItem[]; hideLabel?: string; onDismiss?: (item: OwnerAttentionItem) => void }) {
-    return (
-        <View style={{ gap: 10 }}>
-            {items.map((a) => {
-                const Icon = a.icon;
-                const amber = a.tone === 'amber';
-                return (
-                    <TouchableOpacity
-                        key={a.id}
-                        onPress={a.onPress}
-                        activeOpacity={0.8}
-                        accessibilityRole="button"
-                        className="flex-row"
-                        // A tint of its tone (blue or amber) with relief of its own, so the alerts stand out from the white cards.
-                        style={{ ...attentionCardStyle(a.tone), padding: 14, gap: 12 }}
-                    >
-                        <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: amber ? C.amberSoft : C.blueSoft }}>
-                            <Icon size={20} color={amber ? C.amberText : C.blue} />
-                        </View>
-                        <View className="flex-1" style={{ minWidth: 0 }}>
-                            <View className="flex-row items-center" style={{ gap: 8 }}>
-                                <Text className="font-outfit-bold flex-shrink" style={{ fontSize: 16, lineHeight: 22, color: C.text }}>{a.title}</Text>
-                                {a.count !== undefined ? (
-                                    <View className="items-center justify-center" style={{ minWidth: 24, height: 24, paddingHorizontal: 7, borderRadius: 12, backgroundColor: amber ? C.amberText : C.blue }} testID="attention-count">
-                                        <Text className="font-outfit-bold" style={{ fontSize: 13, lineHeight: 16, color: '#FFFFFF' }}>{a.count}</Text>
-                                    </View>
-                                ) : null}
-                            </View>
-                            <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: C.muted, marginTop: 2 }}>{a.sub}</Text>
-                            {a.timer ? <AttentionTimer spec={a.timer} /> : null}
-                            {a.quick ? <AttentionQuickButton quick={a.quick} /> : null}
-                            <View className="flex-row items-center" style={{ gap: 16, marginTop: 10 }}>
-                                <View className="flex-row items-center" style={{ gap: 2, minHeight: 36, paddingLeft: 14, paddingRight: 8, borderRadius: 100, backgroundColor: amber ? C.amberSoft : C.blueSoft }}>
-                                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: amber ? C.amberText : C.blue }}>{a.cta}</Text>
-                                    <ChevronRight size={18} color={amber ? C.amberText : C.blue} />
-                                </View>
-                                {onDismiss && hideLabel ? <AttentionHideBadge label={hideLabel} onPress={() => onDismiss(a)} /> : null}
-                            </View>
-                        </View>
-                    </TouchableOpacity>
-                );
-            })}
-        </View>
-    );
+/** What needs the owner's action: one card per alert, each one can be hidden. */
+export function OwnerAttentionList({ items, hideLabel, onDismiss, restore }: { items: OwnerAttentionItem[]; hideLabel?: string; onDismiss?: (item: OwnerAttentionItem) => void; restore?: boolean }) {
+    return <AttentionCards items={items} hideLabel={hideLabel} onDismiss={onDismiss ? (a) => onDismiss(a as OwnerAttentionItem) : undefined} restore={restore} />;
 }
 
 export function UpcomingCard({ title, sub, statusLabel, onPress }: { title: string; sub: string; statusLabel: string; onPress: () => void }) {
@@ -312,12 +257,13 @@ export function RecentActivityList({ items }: { items: ActivityItem[] }) {
 }
 
 /** Bottom sheet used by the service picker, the vehicle switcher and the mileage editor. */
-export function OwnerSheet({ visible, title, subtitle, onClose, children, scrollBody }: { visible: boolean; title: string; subtitle?: string; onClose: () => void; children: ReactNode; /** A sheet with a text field: it fits above the keyboard and its body scrolls. */ scrollBody?: boolean }) {
+export function OwnerSheet({ visible, title, subtitle, onClose, children, scrollBody, maxHeightFraction, fixedHeight, fixed }: { visible: boolean; title: string; subtitle?: string; onClose: () => void; children: ReactNode; /** A sheet with a text field or a long list: it fits above the keyboard and its body scrolls. */ scrollBody?: boolean; /** With `scrollBody`: the sheet is never taller than this share of the screen (0.5 = half), instead of nearly all of it. */ maxHeightFraction?: number; /** With `maxHeightFraction`: the sheet is exactly that tall from the first frame, instead of growing as its content arrives (a list that loads would otherwise slide up twice). */ fixedHeight?: boolean; /** With `scrollBody`: what stays pinned under the title while the rest scrolls (e.g. the average and the number of ratings). */ fixed?: ReactNode }) {
     const { height: windowHeight } = useWindowDimensions();
     const insets = useSafeAreaInsets();
     const keyboard = useKeyboardHeight();
     // iOS lifts the sheet with padding; what is left above the keyboard (and under the status bar) is all the sheet can have.
-    const maxHeight = scrollBody ? windowHeight - (Platform.OS === 'ios' ? keyboard : 0) - insets.top - 12 : undefined;
+    const room = windowHeight - (Platform.OS === 'ios' ? keyboard : 0) - insets.top - 12;
+    const maxHeight = scrollBody ? (maxHeightFraction ? Math.min(room, windowHeight * maxHeightFraction) : room) : undefined;
     // The backdrop fades in and the sheet slides up on their own: with the Modal's own "slide" the dark
     // backdrop rides up with the sheet, which looks abrupt.
     const [mounted, setMounted] = useState(visible);
@@ -347,9 +293,9 @@ export function OwnerSheet({ visible, title, subtitle, onClose, children, scroll
                         paddingHorizontal: 20,
                         paddingTop: 10,
                         paddingBottom: 34,
-                        maxHeight,
+                        ...(fixedHeight && maxHeight ? { height: maxHeight } : { maxHeight }),
                         opacity: progress.interpolate({ inputRange: [0, 0.4, 1], outputRange: [0, 1, 1] }),
-                        transform: [{ translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [360, 0] }) }],
+                        transform: [{ translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [scrollBody ? windowHeight : 360, 0] }) }],
                     }}
                 >
                     <View className="self-center" style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: '#DCE3F0', marginBottom: 14 }} />
@@ -360,7 +306,8 @@ export function OwnerSheet({ visible, title, subtitle, onClose, children, scroll
                         </TouchableOpacity>
                     </View>
                     {subtitle ? <Text className="font-outfit-regular" style={{ fontSize: 15, color: C.muted, marginBottom: 14 }}>{subtitle}</Text> : null}
-                    {scrollBody ? <KeyboardSheetScroll style={{ flexShrink: 1 }}>{children}</KeyboardSheetScroll> : children}
+                    {scrollBody ? fixed : null}
+                    {scrollBody ? <KeyboardSheetScroll style={{ flexShrink: 1 }} resetKey={visible}>{children}</KeyboardSheetScroll> : children}
                 </Animated.View>
             </KeyboardAvoidingView>
         </Modal>

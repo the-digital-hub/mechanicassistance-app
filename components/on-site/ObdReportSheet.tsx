@@ -2,7 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { AlertTriangle, Calendar, Car, Video, Wrench, Zap } from 'lucide-react-native';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Animated, Easing, NativeScrollEvent, NativeSyntheticEvent, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, Animated, Easing, NativeScrollEvent, NativeSyntheticEvent, Platform, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { KeyboardSheetScroll } from '@/components/ui/KeyboardSheetScroll';
+import { useKeyboardHeight } from '@/hooks/useKeyboardHeight';
 
 import { ObdPanel } from '@/components/on-site/ObdPanel';
 import { VehicleIdsRow } from '@/components/scheduled/ui';
@@ -139,6 +142,11 @@ export function ObdReportSheet({ appointments, onClose, onChanged }: {
     React.useEffect(() => { if (open) setList(appointments as Appointment[]); }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
     const [measured, setMeasured] = React.useState(0);
     const { width: screen, height } = useWindowDimensions();
+    const insets = useSafeAreaInsets();
+    const keyboard = useKeyboardHeight();
+    // The sheet is this tall from the first frame (it used to take the height of its content, which is only known once the pages have loaded, so it
+    // slid up and then jumped to its size): one smooth sweep in, one out. What does not fit scrolls inside, above the keyboard when it is up.
+    const panelHeight = Math.min(height - (Platform.OS === 'ios' ? keyboard : 0) - insets.top - 12, height * 0.62);
     const pageWidth = measured || screen - SIDE * 2;
     const scroller = React.useRef<ScrollView>(null);
     const [done, setDone] = React.useState<Set<string>>(new Set());
@@ -183,14 +191,14 @@ export function ObdReportSheet({ appointments, onClose, onChanged }: {
 
     return (
         <SlideModal visible={open} onClose={onClose} avoidKeyboard>
-            <View style={{ ...SHEET, paddingTop: 16 }} testID="obd-report-sheet">
+            <View style={{ ...SHEET, paddingTop: 16, height: panelHeight }} testID="obd-report-sheet">
                 <View className="flex-row items-center justify-between px-5 pb-3">
                     <Text className="font-outfit-bold" style={{ fontSize: 22, letterSpacing: -0.4, color: OS.text }}>{t('appointments.closeout.obdTitle')}</Text>
                     <TouchableOpacity onPress={onClose} hitSlop={10} accessibilityRole="button" accessibilityLabel="Close" className="items-center justify-center" style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#EEF1F6' }}>
                         <Ionicons name="close" size={16} color="#4B5563" />
                     </TouchableOpacity>
                 </View>
-                <ScrollView style={{ flexGrow: 0, maxHeight: height * 0.72 }} bounces={false} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: SIDE, paddingBottom: 12 }}>
+                <KeyboardSheetScroll style={{ flex: 1, flexGrow: 1 }} resetKey={open} bounces={false} contentContainerStyle={{ paddingHorizontal: SIDE, paddingBottom: 12 }}>
                     {/* Measured without the side padding: a page is exactly as wide as the room it has. */}
                     <View onLayout={(e) => setMeasured(Math.floor(e.nativeEvent.layout.width))}>
                         <Animated.ScrollView
@@ -212,7 +220,7 @@ export function ObdReportSheet({ appointments, onClose, onChanged }: {
                             ))}
                         </Animated.ScrollView>
                     </View>
-                </ScrollView>
+                </KeyboardSheetScroll>
                 {list.length > 1 ? (
                     <View className="flex-row items-center justify-center" style={{ gap: 6, marginTop: 4, paddingBottom: 30 }}>
                         <Text className="font-outfit-semibold" style={{ ...TYPE.caption, color: OS.muted, marginRight: 4 }}>{t('dashboard.rating.counter', { current: page + 1, total: list.length })}</Text>

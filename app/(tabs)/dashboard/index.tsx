@@ -1,12 +1,14 @@
 import { VehicleIdsRow } from '@/components/scheduled/ui';
 import { EmergencyRow, MileageField, OwnerAttentionList, OwnerSectionTitle, OwnerSheet, RecentActivityList, RequestAssistanceCta, SheetOption, UpcomingCard, VehicleCareCard, type OwnerAttentionItem } from '@/components/dashboard/OwnerHomeBlocks';
-import { AseCta, AttentionList, AvailabilityCard, RequestTypeTabs, SectionTitle, TodayBlock, WeeklyEarnings, type AttentionItem, type AttentionMeta } from '@/components/dashboard/MechanicHomeBlocks';
+import { AseCta, AttentionList, AvailabilityCard, RequestTypeTabs, SectionTitle, TodayBlock, WeeklyEarnings, type AttentionItem } from '@/components/dashboard/MechanicHomeBlocks';
 import { attentionKey, visibleAttention } from '@/lib/dashboard/attention';
 import { pendingRatings, RATING_WINDOW_DAYS } from '@/lib/dashboard/pendingRatings';
 import { useConfirmDeadlines } from '@/lib/dashboard/useConfirmDeadlines';
 import { onSiteDAO } from '@/lib/dao/OnSiteDAO';
 import { videoCallDAO } from '@/lib/dao/VideoCallDAO';
 import { PendingRatings } from '@/components/dashboard/PendingRatings';
+import { UndoToast } from '@/components/dashboard/UndoToast';
+import type { AttentionSlide } from '@/components/dashboard/AttentionCard';
 import { useAttentionState } from '@/lib/dashboard/useAttentionState';
 import { useScheduledAttention } from '@/lib/scheduled/useScheduledAttention';
 import { useMarketplaceFeed } from '@/lib/scheduled/useMarketplaceFeed';
@@ -42,9 +44,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ImmediateOfferPanel } from '@/components/dashboard/ImmediateOfferPanel';
 import { useOfferFromCard } from '@/hooks/useOfferFromCard';
 import { useObdPending } from '@/hooks/useObdPending';
-import { ObdReportSheet, assistanceKind } from '@/components/on-site/ObdReportSheet';
+import { ObdReportSheet } from '@/components/on-site/ObdReportSheet';
 import { ReviewsSheet } from '@/components/profile/ReviewsSheet';
 import { useProfileReviews } from '@/hooks/useProfileReviews';
+import { ratingsFromAppointments } from '@/lib/reviews/fromAppointments';
 import { splitJobTitle } from '@/lib/ui/jobTitle';
 import { formatLocalDateTime } from '@/lib/video/videoCallTime';
 import { appAlert } from '@/lib/ui/appAlert';
@@ -111,8 +114,8 @@ export default function DashboardScreen() {
     const [ratingOpen, setRatingOpen] = useState(false);
     // The ratings behind the technician's average, opened from the Rating tile.
     const [reviewsOpen, setReviewsOpen] = useState(false);
-    const profileReviews = useProfileReviews(reviewsOpen);
     const { appointments, getActiveRequests, refresh: refreshAppointments, isLoading: isLoadingAppointments } = useAppointments();
+    const profileReviews = useProfileReviews(reviewsOpen, ratingsFromAppointments(appointments, user?.role === 'mechanic'));
     // Confirming a finished service closes it: the rating of the technician is asked right then (the card stays in "Needs your attention"
     // if it is skipped). Armed by the confirm, it opens the ratings once the refreshed list has the service as completed.
     const [rateAfterConfirm, setRateAfterConfirm] = useState(false);
@@ -138,6 +141,12 @@ export default function DashboardScreen() {
     const obdPending = useObdPending(appointments, user?.role === 'mechanic', obdReload);
     // Hidden alerts and the collapsed state of "Needs your attention", kept per account and role.
     const attention = useAttentionState(user?.id ? `${user.role}:${user.id}` : undefined);
+    // The notice with "Undo" right after hiding an alert.
+    const [undo, setUndo] = useState<{ id: string; key: string } | null>(null);
+    const hideAlert = (key: string) => {
+        attention.dismiss(key);
+        setUndo({ id: `${key}:${Date.now()}`, key });
+    };
     const [requestTab, setRequestTab] = useState<'immediate' | 'scheduled' | 'video'>('immediate');
     const [requestPage, setRequestPage] = useState(0);
     // null until the Stripe payout account has been read; only a confirmed "cannot be paid yet" raises the alert.
@@ -343,26 +352,21 @@ export default function DashboardScreen() {
                 onPress: () => router.push('/payments'),
             });
         }
-            // The job an alert is about, as rows: a badge with its kind, the issue in bold and the vehicle with its icon.
-        const jobMeta = (job: { assistanceType?: string; type?: string; title?: string; car?: string }, more?: string): AttentionMeta => {
-            const kind = assistanceKind(job as Parameters<typeof assistanceKind>[0]);
-            const look = {
-                immediate: { label: t('dashboard.mechanic.tabs.immediate'), icon: Zap, bg: '#FECACA', fg: '#B91C1C' },
-                scheduled: { label: t('dashboard.mechanic.tabs.scheduled'), icon: Calendar, bg: '#DDD6FE', fg: '#6D28D9' },
-                videocall: { label: t('dashboard.mechanic.tabs.video'), icon: Video, bg: '#BFDBFE', fg: '#1D4ED8' },
-                accident: { label: t('appointments.detail.types.accident'), icon: AlertTriangle, bg: '#FDE68A', fg: '#92400E' },
-            }[kind];
-            return { kind: look, title: splitJobTitle(job.title ?? '').main || undefined, vehicle: job.car || undefined, more };
-        };
+        // One job inside an alert (a page of its slider): the issue in bold and the vehicle under it.
+        const jobSlide = (job: { id: string; title?: string; car?: string }, extra?: Partial<AttentionSlide>): AttentionSlide => ({
+            id: job.id,
+            title: splitJobTitle(job.title ?? '').main || job.title || '',
+            sub: job.car || undefined,
+            ...extra,
+        });
     // A closed visit without its scanner report: the one thing worth reminding about here (the unread count is already on the bell).
         if (obdPending.length > 0) {
-            const first = obdPending[0];
             attentionItems.push({
                 id: 'obd', signature: `obd:${obdPending.map((a) => a.id).join(',')}`, tone: 'amber', icon: ScanLine,
                 title: t('dashboard.mechanic.attention.obd.title', { count: obdPending.length }),
                 count: obdPending.length > 1 ? obdPending.length : undefined,
                 sub: t('dashboard.mechanic.attention.obd.sub'),
-                meta: jobMeta(first, obdPending.length > 1 ? t('dashboard.user.attention.confirm.more', { count: obdPending.length - 1 }) : undefined),
+                slides: obdPending.map((a) => jobSlide(a)),
                 cta: t('dashboard.mechanic.attention.obd.cta'),
                 // The report is uploaded right here, from below: no trip to the close-out page with the payment and the rest.
                 onPress: () => setObdSheetFor(obdPending),
@@ -371,15 +375,14 @@ export default function DashboardScreen() {
 
         // Quotes sent on scheduled requests, waiting for the customer: with the time left, so the request does not look untouched.
         if (waitingQuotes.length > 0) {
-            const nextQuote = waitingQuotes[0];
             attentionItems.push({
                 id: 'quotes-waiting', signature: `quotes-waiting:${waitingQuotes.map((r) => r.id).join(',')}`, tone: 'blue', icon: Send,
                 title: t('dashboard.mechanic.attention.quotesWaiting.title', { count: waitingQuotes.length }),
                 count: waitingQuotes.length > 1 ? waitingQuotes.length : undefined,
                 sub: t('dashboard.mechanic.attention.quotesWaiting.sub'),
-                meta: jobMeta({ ...nextQuote, type: 'scheduled' }, waitingQuotes.length > 1 ? t('dashboard.user.attention.confirm.more', { count: waitingQuotes.length - 1 }) : undefined),
+                // One page per quote, each with the time that customer has left.
+                slides: waitingQuotes.map((q) => jobSlide(q, q.offersCloseAt ? { timer: { deadline: q.offersCloseAt, urgentUnderMinutes: 120, label: (time: string) => t('scheduledProvider.quoteCard.decides', { time }) } } : undefined)),
                 cta: t('dashboard.mechanic.attention.quotesWaiting.cta'),
-                ...(nextQuote.offersCloseAt ? { timer: { deadline: nextQuote.offersCloseAt, urgentUnderMinutes: 120, label: (time: string) => t('scheduledProvider.quoteCard.decides', { time }) } } : {}),
                 onPress: () => router.push({ pathname: '/(tabs)/assist', params: { filter: 'quotes' } } as never),
             });
         }
@@ -387,17 +390,15 @@ export default function DashboardScreen() {
         // Offers this technician sent that the customer has not answered yet: the hold ticks here, so it does not have to be found in Appointments.
         const heldOffers = appointments.filter((a) => a.status === 'offered' && !!a.offerExpiresAt && Date.parse(a.offerExpiresAt) > Date.now());
         if (heldOffers.length > 0) {
-            // The one that runs out first is the one the card talks about.
-            const heldFirst = [...heldOffers].sort((x, y) => Date.parse(x.offerExpiresAt as string) - Date.parse(y.offerExpiresAt as string))[0];
-            const heldDeadline = heldFirst.offerExpiresAt as string;
+            // The one that runs out first comes first.
+            const heldSorted = [...heldOffers].sort((x, y) => Date.parse(x.offerExpiresAt as string) - Date.parse(y.offerExpiresAt as string));
             attentionItems.push({
                 id: 'held-offers', signature: `held-offers:${heldOffers.map((a) => a.id).join(',')}`, tone: 'amber', icon: Clock,
                 title: t('dashboard.mechanic.attention.heldOffers.title', { count: heldOffers.length }),
                 count: heldOffers.length > 1 ? heldOffers.length : undefined,
                 sub: t('dashboard.mechanic.attention.heldOffers.sub'),
-                meta: jobMeta(heldFirst, heldOffers.length > 1 ? t('dashboard.user.attention.confirm.more', { count: heldOffers.length - 1 }) : undefined),
+                slides: heldSorted.map((a) => jobSlide(a, { timer: { deadline: a.offerExpiresAt as string, urgentUnderMinutes: 1, label: (time: string) => t('dashboard.attention.timer.offer', { time }) } })),
                 cta: t('dashboard.mechanic.attention.heldOffers.cta'),
-                timer: { deadline: heldDeadline, urgentUnderMinutes: 1, label: (time) => t('dashboard.attention.timer.offer', { time }) },
                 onPress: () => router.push({ pathname: '/(tabs)/appointments', params: { tab: 'pending' } } as never),
             });
         }
@@ -421,6 +422,8 @@ export default function DashboardScreen() {
         // while any of those is showing, and comes back when nothing about the jobs is waiting, so the area stays small.
         const shownAll = visibleAttention(attentionItems, attention.dismissed);
         const shownAttention = shownAll.some((i) => !i.setup) ? shownAll.filter((i) => !i.setup) : shownAll;
+        // What was hidden (alerts that still apply), to bring back.
+        const hiddenAttention = attentionItems.filter((i) => attention.dismissed.has(attentionKey(i)));
 
         return (
             <View className="flex-1">
@@ -811,19 +814,34 @@ export default function DashboardScreen() {
                     )}
 
                     {/* Needs your attention */}
-                    {shownAttention.length > 0 && (
+                    {(shownAttention.length > 0 || hiddenAttention.length > 0) && (
                         <View className="mt-4 mb-2">
                             <SectionTitle
                                 title={t('dashboard.mechanic.attention.title')}
                                 collapsed={attention.collapsed}
                                 onToggle={attention.toggleCollapsed}
+                                actionLabel={hiddenAttention.length > 0 ? t(attention.showHidden ? 'dashboard.attention.hiddenClose' : 'dashboard.attention.hiddenCount', { count: hiddenAttention.length }) : undefined}
+                                onAction={attention.toggleShowHidden}
                             />
                             {!attention.collapsed && (
-                                <AttentionList
-                                    items={shownAttention}
-                                    hideLabel={t('dashboard.mechanic.attention.hide')}
-                                    onDismiss={(item) => attention.dismiss(attentionKey(item))}
-                                />
+                                <>
+                                    <AttentionList
+                                        items={shownAttention}
+                                        hideLabel={t('dashboard.mechanic.attention.hide')}
+                                        onDismiss={(item) => hideAlert(attentionKey(item))}
+                                    />
+                                    {/* What was hidden, dimmed, with a way back. */}
+                                    {attention.showHidden && hiddenAttention.length > 0 ? (
+                                        <View style={{ opacity: 0.6, marginTop: shownAttention.length > 0 ? 10 : 0 }} testID="attention-hidden-list">
+                                            <AttentionList
+                                                items={hiddenAttention}
+                                                hideLabel={t('dashboard.attention.showAgain')}
+                                                onDismiss={(item) => attention.restore(attentionKey(item))}
+                                                restore
+                                            />
+                                        </View>
+                                    ) : null}
+                                </>
                             )}
                         </View>
                     )}
@@ -888,6 +906,14 @@ export default function DashboardScreen() {
                     </View>
                 </KeyboardAwareScrollView>
 
+                <UndoToast
+                    id={undo?.id ?? null}
+                    label={t('dashboard.attention.hiddenToast')}
+                    actionLabel={t('dashboard.attention.undo')}
+                    onAction={() => { if (undo) attention.restore(undo.key); setUndo(null); }}
+                    onDone={() => setUndo(null)}
+                />
+
                 {/* The ratings still owed open from below */}
                 {offerDialog}
                 <ObdReportSheet appointments={obdSheetFor} onClose={() => { setObdSheetFor(null); setObdReload((n) => n + 1); }} onChanged={() => setObdReload((n) => n + 1)} />
@@ -901,6 +927,7 @@ export default function DashboardScreen() {
                     loading={profileReviews.loading}
                     failed={profileReviews.failed}
                     failedStatus={profileReviews.failedStatus}
+                    partial={profileReviews.partial}
                     hasMore={profileReviews.hasMore}
                     onLoadMore={profileReviews.loadMore}
                 />
@@ -1115,6 +1142,7 @@ export default function DashboardScreen() {
     }
 
     const shownAttention = visibleAttention(attentionItems, attention.dismissed);
+    const hiddenAttention = attentionItems.filter((i) => attention.dismissed.has(attentionKey(i)));
 
     // Rows that carry no title of their own (older ones) fall back to their service type.
     const serviceName = (a: Appointment) =>
@@ -1238,19 +1266,33 @@ export default function DashboardScreen() {
                 )}
 
                 {/* Needs your attention: only while there is something to act on (and not hidden) */}
-                {shownAttention.length > 0 && (
+                {(shownAttention.length > 0 || hiddenAttention.length > 0) && (
                     <View style={{ marginTop: 24 }}>
                         <OwnerSectionTitle
                             title={t('dashboard.user.attention.title')}
                             collapsed={attention.collapsed}
                             onToggle={attention.toggleCollapsed}
+                            actionLabel={hiddenAttention.length > 0 ? t(attention.showHidden ? 'dashboard.attention.hiddenClose' : 'dashboard.attention.hiddenCount', { count: hiddenAttention.length }) : undefined}
+                            onAction={attention.toggleShowHidden}
                         />
                         {!attention.collapsed && (
-                            <OwnerAttentionList
-                                items={shownAttention}
-                                hideLabel={t('dashboard.user.attention.hide')}
-                                onDismiss={(item) => attention.dismiss(attentionKey(item))}
-                            />
+                            <>
+                                <OwnerAttentionList
+                                    items={shownAttention}
+                                    hideLabel={t('dashboard.user.attention.hide')}
+                                    onDismiss={(item) => hideAlert(attentionKey(item))}
+                                />
+                                {attention.showHidden && hiddenAttention.length > 0 ? (
+                                    <View style={{ opacity: 0.6, marginTop: shownAttention.length > 0 ? 10 : 0 }} testID="attention-hidden-list">
+                                        <OwnerAttentionList
+                                            items={hiddenAttention}
+                                            hideLabel={t('dashboard.attention.showAgain')}
+                                            onDismiss={(item) => attention.restore(attentionKey(item))}
+                                            restore
+                                        />
+                                    </View>
+                                ) : null}
+                            </>
                         )}
                     </View>
                 )}
@@ -1300,6 +1342,14 @@ export default function DashboardScreen() {
                     </View>
                 )}
             </KeyboardAwareScrollView>
+
+            <UndoToast
+                id={undo?.id ?? null}
+                label={t('dashboard.attention.hiddenToast')}
+                actionLabel={t('dashboard.attention.undo')}
+                onAction={() => { if (undo) attention.restore(undo.key); setUndo(null); }}
+                onDone={() => setUndo(null)}
+            />
 
             {/* Request assistance: the three ways to ask for help */}
             <OwnerSheet visible={ratingOpen && toRate.length > 0} title={t('dashboard.rating.heading.user')} onClose={() => setRatingOpen(false)} scrollBody>

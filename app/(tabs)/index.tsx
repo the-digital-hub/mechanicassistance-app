@@ -9,6 +9,7 @@ import { useMechanicStatus } from '@/context/MechanicStatusContext';
 import { Stars } from '@/components/offer/OfferSections';
 import { ReviewsSheet } from '@/components/profile/ReviewsSheet';
 import { useProfileReviews } from '@/hooks/useProfileReviews';
+import { ratingsFromAppointments } from '@/lib/reviews/fromAppointments';
 import { ApiError } from '@/lib/api/types';
 import { appointmentDAO } from '@/lib/dao/AppointmentDAO';
 import type { MechanicStats } from '@/lib/dao/interfaces';
@@ -21,13 +22,18 @@ import { startAddRoleFromProfile } from '@/lib/setup-add-role';
 import { installedVersionLabel } from '@/lib/appVersion';
 import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { ArrowLeftRight, Award, BadgeCheck, BadgePercent, Briefcase, Camera, Car, Check, ChevronDown, ChevronLeft, ChevronRight, Circle, Clock, CreditCard, FileText, HelpCircle, Lock, LogOut, MapPin, Settings, User, Wallet } from 'lucide-react-native';
+import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
+import { RotatingChevron } from '@/components/ui/RotatingChevron';
+import { ArrowLeftRight, Award, BadgeCheck, BadgePercent, Briefcase, Camera, Car, Check, ChevronLeft, ChevronRight, Circle, Clock, CreditCard, FileText, HelpCircle, Lock, LogOut, MapPin, Settings, User, Wallet } from 'lucide-react-native';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { appAlert } from '@/lib/ui/appAlert';
 import { alertOpenWork, alertRoleSwitchBlocked } from '@/lib/roles/roleSwitchMessages';
 import { MechanicStatusSheet } from '@/components/profile/MechanicStatusSheet';
+
+/** The dropdowns' motion, the same as the issue pickers: soft and short. */
+const MENU_GLIDE = LinearTransition.duration(220);
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -80,7 +86,7 @@ export default function ProfileScreen() {
   const profileRating = isTechnician ? ratingStats : ownerRating;
   // Tapping the stars opens the ratings behind them, with dates and comments.
   const [reviewsOpen, setReviewsOpen] = useState(false);
-  const profileReviews = useProfileReviews(reviewsOpen);
+  const profileReviews = useProfileReviews(reviewsOpen, ratingsFromAppointments(appointments, isTechnician));
 
   const currentRole: AppRole = user?.role === 'mechanic' ? 'mechanic' : 'user';
   const roleName = (role: AddableRole) => t(`profile.switchRole.roles.${role}.label`);
@@ -477,36 +483,41 @@ export default function ProfileScreen() {
                   <ActivityIndicator color="#0047AB" />
                 ) : isGroup ? (
                   // Groups point right (closed) and turn down while open; direct links show no arrow.
-                  open ? <ChevronDown size={24} color="#0047AB" /> : <ChevronRight size={24} color="#0047AB" />
+                  <RotatingChevron open={open} />
                 ) : null}
               </TouchableOpacity>
             );
           };
 
           return (
-        <View className="mb-6" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 10, elevation: 5 }}>
-          <View className="bg-white rounded-3xl overflow-hidden">
+        <Animated.View layout={MENU_GLIDE} className="mb-6" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 10, elevation: 5 }}>
+          <Animated.View layout={MENU_GLIDE} className="bg-white rounded-3xl overflow-hidden">
             {menuItems.map((item, index) => {
               const last = index === menuItems.length - 1;
-              if (!item.children) return renderRow(item, { last });
+              if (!item.children) return <Animated.View key={item.key} layout={MENU_GLIDE}>{renderRow(item, { last })}</Animated.View>;
               const open = !!openGroups[item.key];
               return (
-                <React.Fragment key={item.key}>
+                <Animated.View key={item.key} layout={MENU_GLIDE}>
                   {renderRow(item, { last })}
-                  {open && item.children.map((child, ci) =>
-                    renderRow(child, { last: last && ci === item.children!.length - 1, nested: true }))}
-                </React.Fragment>
+                  {/* What a group holds fades in as it opens while the rows below glide down (and the other way round on closing). */}
+                  {open ? (
+                    <Animated.View entering={FadeIn.duration(220)} exiting={FadeOut.duration(120)} layout={MENU_GLIDE}>
+                      {item.children.map((child, ci) =>
+                        renderRow(child, { last: last && ci === item.children!.length - 1, nested: true }))}
+                    </Animated.View>
+                  ) : null}
+                </Animated.View>
               );
             })}
-          </View>
-        </View>
+          </Animated.View>
+        </Animated.View>
           );
         })()}
 
         {/* Installed version, small, at the very bottom */}
-        <Text className="font-outfit-regular" style={{ fontSize: 12, color: '#B4BBC9', marginTop: -12, marginBottom: 12, textAlign: 'center', letterSpacing: 0.3 }} testID="profile-app-version">
+        <Animated.Text layout={MENU_GLIDE} className="font-outfit-regular" style={{ fontSize: 12, color: '#B4BBC9', marginTop: -12, marginBottom: 12, textAlign: 'center', letterSpacing: 0.3 }} testID="profile-app-version">
           {installedVersionLabel()}
-        </Text>
+        </Animated.Text>
 
       <ReviewsSheet
         visible={reviewsOpen}
@@ -519,6 +530,7 @@ export default function ProfileScreen() {
         loading={profileReviews.loading}
         failed={profileReviews.failed}
         failedStatus={profileReviews.failedStatus}
+        partial={profileReviews.partial}
         hasMore={profileReviews.hasMore}
         onLoadMore={profileReviews.loadMore}
       />
