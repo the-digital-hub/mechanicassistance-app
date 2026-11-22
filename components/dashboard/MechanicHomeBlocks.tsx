@@ -1,6 +1,6 @@
 import { AttentionQuickButton, AttentionTimer, AttentionHideBadge, attentionCardStyle, type AttentionQuick, type AttentionTimerSpec } from '@/components/dashboard/AttentionExtras';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Award, ChevronDown, ChevronRight, Star, Wallet, Wrench, type LucideIcon } from 'lucide-react-native';
+import { Award, Car, ChevronDown, ChevronRight, Star, Wallet, Wrench, type LucideIcon } from 'lucide-react-native';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { Animated, Easing, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 
@@ -391,6 +391,16 @@ export function RequestTypeTabs<T extends string>({
     );
 }
 
+/** Which job an alert is about, laid out in rows instead of one grey sentence: a badge with the kind, what it is in bold, the vehicle with its icon. */
+export type AttentionMeta = {
+    kind: { label: string; icon: LucideIcon; bg: string; fg: string };
+    /** What the job is (the issue), bold. */
+    title?: string;
+    vehicle?: string;
+    /** "+2 more", small, beside the badge. */
+    more?: string;
+};
+
 export type AttentionItem = {
     id: string;
     tone: 'amber' | 'blue';
@@ -399,6 +409,8 @@ export type AttentionItem = {
     /** A number shown as a badge next to the title (how many there are). */
     count?: number;
     sub: string;
+    /** The job it is about, as rows (replaces `sub` when present). */
+    meta?: AttentionMeta;
     cta: string;
     /** Changes when the alert is a new one (e.g. another count), so a hidden alert can return. */
     signature?: string;
@@ -441,7 +453,31 @@ export function AttentionList({ items, hideLabel, onDismiss }: { items: Attentio
                                     </View>
                                 ) : null}
                             </View>
-                            <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: C.muted, marginTop: 2 }}>{a.sub}</Text>
+                            {a.meta ? (
+                                <View style={{ marginTop: 8, gap: 6 }} testID="attention-meta">
+                                    <View className="flex-row items-center" style={{ gap: 8 }}>
+                                        <View className="flex-row items-center self-start" style={{ gap: 5, paddingLeft: 8, paddingRight: 10, paddingVertical: 4, borderRadius: 100, backgroundColor: a.meta.kind.bg }}>
+                                            <a.meta.kind.icon size={13} color={a.meta.kind.fg} />
+                                            <Text className="font-outfit-bold" style={{ fontSize: 12, lineHeight: 16, letterSpacing: 0.4, color: a.meta.kind.fg }}>{a.meta.kind.label}</Text>
+                                        </View>
+                                        {a.meta.more ? <Text className="font-outfit-semibold" style={{ fontSize: 13, lineHeight: 17, color: C.muted }}>{a.meta.more}</Text> : null}
+                                    </View>
+                                    {a.meta.title ? (
+                                        <View className="flex-row items-center" style={{ gap: 6 }}>
+                                            <Wrench size={15} color={C.muted} />
+                                            <Text className="font-outfit-bold flex-1" style={{ fontSize: 15, lineHeight: 21, color: C.text }} numberOfLines={2}>{a.meta.title}</Text>
+                                        </View>
+                                    ) : null}
+                                    {a.meta.vehicle ? (
+                                        <View className="flex-row items-center" style={{ gap: 6 }}>
+                                            <Car size={15} color={C.muted} />
+                                            <Text className="font-outfit-semibold flex-1" style={{ fontSize: 14, lineHeight: 20, color: C.text }} numberOfLines={1}>{a.meta.vehicle}</Text>
+                                        </View>
+                                    ) : null}
+                                </View>
+                            ) : (
+                                <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: C.muted, marginTop: 2 }}>{a.sub}</Text>
+                            )}
                             {a.timer ? <AttentionTimer spec={a.timer} /> : null}
                             {a.quick ? <AttentionQuickButton quick={a.quick} /> : null}
                             <View className="flex-row items-center" style={{ gap: 16, marginTop: 10 }}>

@@ -103,10 +103,10 @@ export function AppAlertHost() {
                             activeOpacity={0.85}
                             accessibilityRole="button"
                             className="items-center justify-center"
-                            style={{ minHeight: 52, borderRadius: 14, marginTop: i === 0 ? 20 : 8, backgroundColor: b.style === 'destructive' ? OS.red : OS.blue }}
+                            style={{ minHeight: 56, borderRadius: 14, marginTop: i === 0 ? 20 : 8, backgroundColor: b.style === 'destructive' ? OS.red : OS.blue }}
                             testID={i === 0 ? 'app-alert-primary' : undefined}
                         >
-                            <Text className="font-outfit-bold text-white" style={{ fontSize: 17, lineHeight: 23 }}>{b.text}</Text>
+                            <Text className="font-outfit-bold text-white" style={{ fontSize: 18, lineHeight: 24 }}>{b.text}</Text>
                         </TouchableOpacity>
                     ))}
                     {cancel ? (
@@ -115,10 +115,10 @@ export function AppAlertHost() {
                             activeOpacity={0.7}
                             accessibilityRole="button"
                             className="items-center justify-center"
-                            style={{ minHeight: 52, borderRadius: 14, backgroundColor: '#E6EAF2', marginTop: actions.length ? 8 : 20 }}
+                            style={{ minHeight: 56, borderRadius: 14, backgroundColor: '#E6EAF2', marginTop: actions.length ? 8 : 20 }}
                             testID="app-alert-cancel"
                         >
-                            <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: '#4A5470' }}>{cancel.text ?? t('common.cancel')}</Text>
+                            <Text className="font-outfit-bold" style={{ fontSize: 18, lineHeight: 24, color: '#4A5470' }}>{cancel.text ?? t('common.cancel')}</Text>
                         </TouchableOpacity>
                     ) : null}
                 </View>

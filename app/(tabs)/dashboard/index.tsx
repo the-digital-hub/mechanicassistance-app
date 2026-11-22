@@ -1,6 +1,6 @@
 import { VehicleIdsRow } from '@/components/scheduled/ui';
 import { EmergencyRow, MileageField, OwnerAttentionList, OwnerSectionTitle, OwnerSheet, RecentActivityList, RequestAssistanceCta, SheetOption, UpcomingCard, VehicleCareCard, type OwnerAttentionItem } from '@/components/dashboard/OwnerHomeBlocks';
-import { AseCta, AttentionList, AvailabilityCard, RequestTypeTabs, SectionTitle, TodayBlock, WeeklyEarnings, type AttentionItem } from '@/components/dashboard/MechanicHomeBlocks';
+import { AseCta, AttentionList, AvailabilityCard, RequestTypeTabs, SectionTitle, TodayBlock, WeeklyEarnings, type AttentionItem, type AttentionMeta } from '@/components/dashboard/MechanicHomeBlocks';
 import { attentionKey, visibleAttention } from '@/lib/dashboard/attention';
 import { pendingRatings, RATING_WINDOW_DAYS } from '@/lib/dashboard/pendingRatings';
 import { useConfirmDeadlines } from '@/lib/dashboard/useConfirmDeadlines';
@@ -11,6 +11,7 @@ import { useAttentionState } from '@/lib/dashboard/useAttentionState';
 import { useScheduledAttention } from '@/lib/scheduled/useScheduledAttention';
 import { useMarketplaceFeed } from '@/lib/scheduled/useMarketplaceFeed';
 import { hasSentQuote, quotesWaiting } from '@/lib/scheduled/quotes';
+import { parseRequestNotes } from '@/lib/scheduled/provider';
 import { connectDAO } from '@/lib/dao/ConnectDAO';
 import { UserRequestCard } from '@/components/ui/UserRequestCard';
 import { MechanicActiveJobCard } from '@/components/ui/MechanicActiveJobCard';
@@ -342,15 +343,26 @@ export default function DashboardScreen() {
                 onPress: () => router.push('/payments'),
             });
         }
-        // A closed visit without its scanner report: the one thing worth reminding about here (the unread count is already on the bell).
+            // The job an alert is about, as rows: a badge with its kind, the issue in bold and the vehicle with its icon.
+        const jobMeta = (job: { assistanceType?: string; type?: string; title?: string; car?: string }, more?: string): AttentionMeta => {
+            const kind = assistanceKind(job as Parameters<typeof assistanceKind>[0]);
+            const look = {
+                immediate: { label: t('dashboard.mechanic.tabs.immediate'), icon: Zap, bg: '#FEE2E2', fg: '#B91C1C' },
+                scheduled: { label: t('dashboard.mechanic.tabs.scheduled'), icon: Calendar, bg: '#EDE9FE', fg: '#6D28D9' },
+                videocall: { label: t('dashboard.mechanic.tabs.video'), icon: Video, bg: '#DBEAFE', fg: '#1D4ED8' },
+                accident: { label: t('appointments.detail.types.accident'), icon: AlertTriangle, bg: '#FEF3C7', fg: '#92400E' },
+            }[kind];
+            return { kind: look, title: splitJobTitle(job.title ?? '').main || undefined, vehicle: job.car || undefined, more };
+        };
+    // A closed visit without its scanner report: the one thing worth reminding about here (the unread count is already on the bell).
         if (obdPending.length > 0) {
             const first = obdPending[0];
             attentionItems.push({
                 id: 'obd', signature: `obd:${obdPending.map((a) => a.id).join(',')}`, tone: 'amber', icon: ScanLine,
                 title: t('dashboard.mechanic.attention.obd.title', { count: obdPending.length }),
                 count: obdPending.length > 1 ? obdPending.length : undefined,
-                // Two lines: the kind of assistance (and what was wrong), and under it the vehicle.
-                sub: [[t(`appointments.detail.types.${assistanceKind(first)}`), splitJobTitle(first.title).main].filter(Boolean).join(' · '), first.car].filter(Boolean).join('\n') || t('dashboard.mechanic.attention.obd.sub'),
+                sub: t('dashboard.mechanic.attention.obd.sub'),
+                meta: jobMeta(first, obdPending.length > 1 ? t('dashboard.user.attention.confirm.more', { count: obdPending.length - 1 }) : undefined),
                 cta: t('dashboard.mechanic.attention.obd.cta'),
                 // The report is uploaded right here, from below: no trip to the close-out page with the payment and the rest.
                 onPress: () => setObdSheetFor(obdPending),
@@ -364,11 +376,8 @@ export default function DashboardScreen() {
                 id: 'quotes-waiting', signature: `quotes-waiting:${waitingQuotes.map((r) => r.id).join(',')}`, tone: 'blue', icon: Send,
                 title: t('dashboard.mechanic.attention.quotesWaiting.title', { count: waitingQuotes.length }),
                 count: waitingQuotes.length > 1 ? waitingQuotes.length : undefined,
-                // Two lines: the kind and what it is, then the vehicle (+ how many more wait).
-                sub: [
-                    [t('requestAssistance.header.scheduled'), splitJobTitle(nextQuote.title).main].filter(Boolean).join(' · '),
-                    [nextQuote.car, waitingQuotes.length > 1 ? t('dashboard.user.attention.confirm.more', { count: waitingQuotes.length - 1 }) : null].filter(Boolean).join(' · '),
-                ].filter(Boolean).join('\n') || t('dashboard.mechanic.attention.quotesWaiting.sub'),
+                sub: t('dashboard.mechanic.attention.quotesWaiting.sub'),
+                meta: jobMeta({ ...nextQuote, type: 'scheduled' }, waitingQuotes.length > 1 ? t('dashboard.user.attention.confirm.more', { count: waitingQuotes.length - 1 }) : undefined),
                 cta: t('dashboard.mechanic.attention.quotesWaiting.cta'),
                 ...(nextQuote.offersCloseAt ? { timer: { deadline: nextQuote.offersCloseAt, urgentUnderMinutes: 120, label: (time: string) => t('scheduledProvider.quoteCard.decides', { time }) } } : {}),
                 onPress: () => router.push({ pathname: '/(tabs)/assist', params: { filter: 'quotes' } } as never),
@@ -385,13 +394,8 @@ export default function DashboardScreen() {
                 id: 'held-offers', signature: `held-offers:${heldOffers.map((a) => a.id).join(',')}`, tone: 'amber', icon: Clock,
                 title: t('dashboard.mechanic.attention.heldOffers.title', { count: heldOffers.length }),
                 count: heldOffers.length > 1 ? heldOffers.length : undefined,
-                // Which offer it is, in a line: the kind of assistance, what is wrong and the vehicle (+ how many more wait).
-                sub: [
-                    t(`appointments.detail.types.${heldFirst.assistanceType === 'witness' ? 'accident' : heldFirst.type === 'videocall' ? 'videocall' : heldFirst.type === 'scheduled' ? 'scheduled' : 'immediate'}`),
-                    splitJobTitle(heldFirst.title).main,
-                    heldFirst.car,
-                    heldOffers.length > 1 ? t('dashboard.user.attention.confirm.more', { count: heldOffers.length - 1 }) : null,
-                ].filter(Boolean).join(' · ') || t('dashboard.mechanic.attention.heldOffers.sub'),
+                sub: t('dashboard.mechanic.attention.heldOffers.sub'),
+                meta: jobMeta(heldFirst, heldOffers.length > 1 ? t('dashboard.user.attention.confirm.more', { count: heldOffers.length - 1 }) : undefined),
                 cta: t('dashboard.mechanic.attention.heldOffers.cta'),
                 timer: { deadline: heldDeadline, urgentUnderMinutes: 1, label: (time) => t('dashboard.attention.timer.offer', { time }) },
                 onPress: () => router.push({ pathname: '/(tabs)/appointments', params: { tab: 'pending' } } as never),
@@ -521,27 +525,35 @@ export default function DashboardScreen() {
 
                     {showRequests && (
                         <View className="mb-2">
-                            {/* New Requests: one tab per service type. The header is one unit (icon, title, what the tabs do). */}
+                            {/* New requests: the title with how many there are; the caption says what the tabs do, or, with a single kind, what is waiting. */}
                             <View className="flex-row items-center mb-3.5" style={{ gap: 12 }}>
                                 <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#EAF1FF' }}>
                                     <ClipboardList size={20} color="#1E56E3" />
                                 </View>
-                                <View className="flex-1">
-                                    <Text className="font-outfit-bold" style={{ ...TYPE.section, color: '#0B1530' }}>
-                                        {t('dashboard.mechanic.newRequestsTitle')}
-                                    </Text>
+                                <View className="flex-1" style={{ minWidth: 0 }}>
+                                    <View className="flex-row items-center" style={{ gap: 8 }}>
+                                        <Text className="font-outfit-bold flex-shrink" style={{ ...TYPE.section, color: '#0B1530' }} numberOfLines={1}>
+                                            {t('dashboard.mechanic.newRequestsTitle')}
+                                        </Text>
+                                        <View className="items-center justify-center" style={{ minWidth: 24, height: 24, paddingHorizontal: 7, borderRadius: 12, backgroundColor: '#1E56E3' }} testID="requests-count">
+                                            <Text className="font-outfit-bold" style={{ fontSize: 13, lineHeight: 16, color: '#FFFFFF' }}>{openRequests.length}</Text>
+                                        </View>
+                                    </View>
                                     <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: '#6B7490' }}>
-                                        {t('dashboard.mechanic.typeCaption')}
+                                        {requestTabs.length > 1 ? t('dashboard.mechanic.typeCaption') : t('dashboard.mechanic.waitingCaption', { count: openRequests.length })}
                                     </Text>
                                 </View>
                             </View>
-                            <View className="mb-4">
-                                <RequestTypeTabs
-                                    tabs={requestTabs}
-                                    selected={activeTab}
-                                    onSelect={(id) => { setRequestTab(id); setRequestPage(0); }}
-                                />
-                            </View>
+                            {/* The tabs only separate kinds: with one kind there is nothing to choose, so no lone tab. */}
+                            {requestTabs.length > 1 ? (
+                                <View className="mb-4">
+                                    <RequestTypeTabs
+                                        tabs={requestTabs}
+                                        selected={activeTab}
+                                        onSelect={(id) => { setRequestTab(id); setRequestPage(0); }}
+                                    />
+                                </View>
+                            ) : null}
 
                             {/* Requests List */}
                         {(() => {
@@ -554,6 +566,8 @@ export default function DashboardScreen() {
 
                                 // Hide the street; show only city/state (+ zip) once.
                                 const addressParts = String(request.address || '').split(',').map((p) => p.trim()).filter(Boolean);
+                                // Scheduled: the wanted days and hours, read from the request's notes.
+                                const whenParts = request.type === 'scheduled' ? (() => { const n = parseRequestNotes(request.notes, request.date); return n.days || n.window ? n : null; })() : null;
                                 const cityLine = addressParts.length > 1
                                     ? `${addressParts.slice(1).join(', ')}${request.zip ? ` · ${request.zip}` : ''}`
                                     : String(request.address || '');
@@ -637,9 +651,36 @@ export default function DashboardScreen() {
                                                 </View>
                                                 <View className="flex-1">
                                                     <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">{t('dashboard.mechanic.assistanceNeeded')}</Text>
-                                                    <RequestIssueText requestId={request.id} fallback={request.notes || request.title} className="font-outfit-bold text-base text-gray-900" />
+                                                    <RequestIssueText requestId={request.id} fallback={request.type === 'scheduled' ? (request.title || request.notes) : (request.notes || request.title)} className="font-outfit-bold text-base text-gray-900" />
                                                 </View>
                                             </View>
+
+                                            {/* Scheduled: when it is wanted, the days on one line and the hours on the next, apart from the service. */}
+
+                                            {whenParts && (
+
+                                            <View className="flex-row items-center px-5 py-4 border-b border-gray-100">
+
+                                                <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
+
+                                                    <Calendar size={20} color="#0047AB" />
+
+                                                </View>
+
+                                                <View className="flex-1">
+
+                                                    <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">{t('appointments.list.card.rows.when')}</Text>
+
+                                                    {whenParts.days ? <Text className="font-outfit-bold text-base text-gray-900">{whenParts.days}</Text> : null}
+
+                                                    {whenParts.window ? <Text className="font-outfit-bold text-base text-gray-900">{whenParts.window}</Text> : null}
+
+                                                </View>
+
+                                            </View>
+
+                                            )}
+
 
                                             {/* Address (blurred street, city/state shown) — none for a remote video call */}
                                             {iconType !== 'video' && (
@@ -689,13 +730,13 @@ export default function DashboardScreen() {
                                                         end={{ x: 1, y: 0 }}
                                                         style={{
                                                             borderRadius: 14,
-                                                            minHeight: 52,
+                                                            minHeight: 56,
                                                             paddingHorizontal: 16,
                                                             alignItems: 'center',
                                                             justifyContent: 'center',
                                                         }}
                                                     >
-                                                        <Text className="text-white font-outfit-semibold text-lg">
+                                                        <Text className="text-white font-outfit-bold" style={TYPE.button}>
                                                             {t('dashboard.mechanic.viewRequest')}
                                                         </Text>
                                                     </LinearGradient>
@@ -703,11 +744,11 @@ export default function DashboardScreen() {
                                                 {request.type !== 'scheduled' && (
                                                 <TouchableOpacity
                                                     className="items-center justify-center"
-                                                    style={{ minHeight: 52, borderRadius: 14, backgroundColor: '#E6EAF2' }}
+                                                    style={{ minHeight: 56, borderRadius: 14, backgroundColor: '#E6EAF2' }}
                                                     activeOpacity={0.8}
                                                     onPress={guard(() => handleDecline(request.id))}
                                                 >
-                                                    <Text className="font-outfit-semibold text-lg" style={{ color: '#4A5470' }}>
+                                                    <Text className="font-outfit-bold" style={{ ...TYPE.button, color: '#4A5470' }}>
                                                         {t('dashboard.mechanic.decline')}
                                                     </Text>
                                                 </TouchableOpacity>

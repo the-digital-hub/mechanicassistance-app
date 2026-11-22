@@ -440,7 +440,9 @@
       "earnedToday": "Ganado hoy",
       "rating": "Calificación",
       "noRating": "Nuevo",
-      "newRequestsTitle": "Solicitudes de asistencia cerca tuyo",
+      "newRequestsTitle": "Pedidos cerca tuyo",
+      "waitingCaption_one": "{{count}} pedido esperando un técnico",
+      "waitingCaption_other": "{{count}} pedidos esperando un técnico",
       "noPendingRequests": "No hay solicitudes pendientes en tu zona",
       "emptyFeedTitle": "Sin solicitudes por ahora",
       "emptyFeedHint": "Los trabajos nuevos cerca tuyo aparecen acá apenas entran. Mantené tu estado en Disponible.",
@@ -1077,6 +1079,16 @@
       "offersTitle": "Ofertas en curso",
       "offersSubOwner": "Solicitudes buscando técnico y ofertas esperando tu respuesta.",
       "offersSubMechanic": "Ofertas que enviaste, esperando que el cliente confirme."
+    },
+    "home": {
+      "title": "Nada por delante",
+      "bodyMechanic": "Cuando un cliente acepte una de tus ofertas, aparece acá.",
+      "bodyOwner": "Pedí una asistencia y aparecerá acá cuando un técnico la acepte.",
+      "summary": "Lo que ya pasó",
+      "completed": "Completadas",
+      "cancelled": "Canceladas",
+      "quotes": "Presupuestos en espera",
+      "viewPast": "Ver asistencias pasadas"
     },
     "list": {
       "badge": "TUS SOLICITUDES",
@@ -1912,6 +1924,9 @@
       "confirmWindowMinutes": "{{minutes}} min",
       "confirmWindowNote": "Si no responde, se confirma solo el {{date}} a las {{time}} y se libera tu pago.",
       "confirmWindowDue": "Confirmándose automáticamente ahora",
+      "confirmUnitDays": "días",
+      "confirmUnitHours": "horas",
+      "confirmUnitMinutes": "min",
       "obdAlertTitle": "Subí el reporte del escáner OBD",
       "obdAlertBody": "Completa el diagnóstico en tu reporte del servicio. Subilo ahora o más tarde: te lo vamos a recordar.",
       "obdAlertNow": "Subir ahora",
@@ -2124,6 +2139,13 @@
       "remoteHint": "Asistencia remota por videollamada",
       "join": "Unirse a la videollamada",
       "confirmsAutomatically": "Se confirma automáticamente el {{date}}",
+      "stale": {
+        "title": "Esta llamada ya cambió",
+        "completed": "Ya estaba finalizada. Actualizamos la pantalla con su estado más reciente.",
+        "awaiting_confirmation": "Ya estaba finalizada y espera la confirmación del cliente.",
+        "disputed": "Soporte ya la está revisando.",
+        "other": "Su estado cambió. Actualizamos la pantalla."
+      },
       "errorTitle": "Algo salió mal",
       "cancel": "Cancelar",
       "minChars": "{{current}}/{{count}} caracteres mínimo",
@@ -3334,10 +3356,14 @@
   "assist": {
     "badge": "SOLICITUDES DE ASISTENCIA PENDIENTES",
     "title": "Tomá tu próximo pedido",
-    "subtitle": "Filtrá las solicitudes entrantes por estado, tipo de servicio y distancia.",
+    "subtitle": "Pedidos abiertos cerca tuyo, esperando un técnico.",
     "searchPlaceholder": "Buscar por vehículo, zona o problema",
     "all": "Todas",
-    "yourQuotes": "Tus presupuestos"
+    "yourQuotes": "Tus presupuestos",
+    "newRequests": "Pedidos nuevos",
+    "quotesBadge": "{{count}} PRESUPUESTOS EN ESPERA",
+    "quotesTitle": "Tus presupuestos",
+    "quotesSubtitle": "Presupuestos que enviaste, esperando que el cliente decida."
   },
   "ase": {
     "notFound": "No se encontró ningún mecánico ASE con ese ID. Verificá y volvé a intentar.",
@@ -4290,6 +4316,7 @@
       "waiting": "EN ESPERA",
       "servicesCount": "{{quoted}} de {{total}} servicios",
       "decidesBy": "EL CLIENTE DECIDE ANTES DE",
+      "requestDetails": "Detalle del pedido",
       "note": "Todavía no estás confirmado. El trabajo es tuyo solo cuando el cliente acepta y el pago queda asegurado, y recién ahí se libera la dirección exacta."
     },
     "sentRows": {

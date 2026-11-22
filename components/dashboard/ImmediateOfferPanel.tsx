@@ -7,6 +7,7 @@ import { Text, TouchableOpacity, View } from 'react-native';
 import { FixedLocationMap } from '@/components/ui/FixedLocationMap';
 import { useRequestRoute } from '@/hooks/useRequestRoute';
 import type { AssistanceRequest } from '@/lib/dao/interfaces';
+import { TYPE } from '@/lib/ui/type';
 
 /**
  * The bottom of an immediate request's card: the zone on a small map, how far it is and how long it would take, and then the one
@@ -59,19 +60,19 @@ export function ImmediateOfferPanel({ request, onSend, onDecline }: {
                         colors={['#10B981', '#047857']}
                         start={{ x: 0, y: 1 }}
                         end={{ x: 1, y: 0 }}
-                        style={{ borderRadius: 14, minHeight: 52, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}
+                        style={{ borderRadius: 14, minHeight: 56, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' }}
                     >
-                        <Text className="text-white font-outfit-semibold text-lg">{t('requestDetail.confirmOffer')}</Text>
+                        <Text className="text-white font-outfit-bold" style={TYPE.button}>{t('requestDetail.confirmOffer')}</Text>
                     </LinearGradient>
                 </TouchableOpacity>
                 <TouchableOpacity
                     className="items-center justify-center"
-                    style={{ minHeight: 52, borderRadius: 14, backgroundColor: '#E6EAF2' }}
+                    style={{ minHeight: 56, borderRadius: 14, backgroundColor: '#E6EAF2' }}
                     activeOpacity={0.8}
                     onPress={() => onDecline(request.id)}
                     accessibilityRole="button"
                 >
-                    <Text className="font-outfit-semibold text-lg" style={{ color: '#4A5470' }}>{t('dashboard.mechanic.decline')}</Text>
+                    <Text className="font-outfit-bold" style={{ ...TYPE.button, color: '#4A5470' }}>{t('dashboard.mechanic.decline')}</Text>
                 </TouchableOpacity>
             </View>
         </View>

@@ -440,7 +440,9 @@
       "earnedToday": "Earned today",
       "rating": "Rating",
       "noRating": "New",
-      "newRequestsTitle": "Assistance requests near you",
+      "newRequestsTitle": "Requests near you",
+      "waitingCaption_one": "{{count}} request waiting for a technician",
+      "waitingCaption_other": "{{count}} requests waiting for a technician",
       "noPendingRequests": "No pending requests in your area",
       "emptyFeedTitle": "No requests right now",
       "emptyFeedHint": "New jobs near you appear here the moment they come in. Keep your status on Available.",
@@ -1076,6 +1078,16 @@
       "offersTitle": "Offers in progress",
       "offersSubOwner": "Requests looking for a technician and offers waiting for your answer.",
       "offersSubMechanic": "Offers you sent, waiting for the customer to confirm."
+    },
+    "home": {
+      "title": "Nothing coming up",
+      "bodyMechanic": "When a customer accepts one of your offers, it shows up here.",
+      "bodyOwner": "Request an assistance and it will show up here once a technician accepts.",
+      "summary": "What already happened",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "quotes": "Quotes waiting",
+      "viewPast": "View past assistances"
     },
     "list": {
       "badge": "YOUR REQUESTS",
@@ -1911,6 +1923,9 @@
       "confirmWindowMinutes": "{{minutes}} min",
       "confirmWindowNote": "If they don't answer, it confirms automatically on {{date}} at {{time}} and your payout is released.",
       "confirmWindowDue": "Confirming automatically now",
+      "confirmUnitDays": "days",
+      "confirmUnitHours": "hours",
+      "confirmUnitMinutes": "min",
       "obdAlertTitle": "Upload the OBD scan report",
       "obdAlertBody": "It completes the diagnosis in your service report. Upload it now, or later: we'll remind you.",
       "obdAlertNow": "Upload now",
@@ -2123,6 +2138,13 @@
       "remoteHint": "Remote assistance by video call",
       "join": "Join video call",
       "confirmsAutomatically": "Confirms automatically on {{date}}",
+      "stale": {
+        "title": "This call already changed",
+        "completed": "It was already finished. We updated the screen with its latest status.",
+        "awaiting_confirmation": "It was already finished and is waiting for the customer to confirm.",
+        "disputed": "Support is already reviewing it.",
+        "other": "Its status changed. We updated the screen."
+      },
       "errorTitle": "Something went wrong",
       "cancel": "Cancel",
       "minChars": "{{current}}/{{count}} characters minimum",
@@ -3333,10 +3355,14 @@
   "assist": {
     "badge": "PENDING ASSISTANCE REQUESTS",
     "title": "Take your next request",
-    "subtitle": "Filter incoming requests by status, service type, and distance.",
+    "subtitle": "Open requests near you, waiting for a technician.",
     "searchPlaceholder": "Search by vehicle, area, or issue",
     "all": "All",
-    "yourQuotes": "Your quotes"
+    "yourQuotes": "Your quotes",
+    "newRequests": "New requests",
+    "quotesBadge": "{{count}} QUOTES WAITING",
+    "quotesTitle": "Your quotes",
+    "quotesSubtitle": "Quotes you sent, waiting for the customer to decide."
   },
   "ase": {
     "notFound": "No ASE technician found with that ID. Please verify and try again.",
@@ -4289,6 +4315,7 @@
       "waiting": "WAITING",
       "servicesCount": "{{quoted}} of {{total}} services",
       "decidesBy": "CUSTOMER DECIDES BY",
+      "requestDetails": "Request details",
       "note": "You're not confirmed yet. The job is yours only after the customer accepts and payment is secured, and the exact address is released then."
     },
     "sentRows": {

@@ -262,29 +262,39 @@ function ConfirmWindow({ deadline }: { deadline: string }) {
     const days = Math.floor(minutesLeft / 1440);
     const hours = Math.floor((minutesLeft % 1440) / 60);
     const minutes = minutesLeft % 60;
-    const left = minutesLeft <= 0
-        ? null
-        : days > 0
-            ? t(`${k}.confirmWindowDays`, { days, hours })
-            : hours > 0
-                ? t(`${k}.confirmWindowHours`, { hours, minutes })
-                : t(`${k}.confirmWindowMinutes`, { minutes });
+    // The time as blocks, one number per unit with its name under it, instead of a sentence of loose characters ("1 d 0 h left").
+    const units: { value: number; label: string }[] = minutesLeft <= 0
+        ? []
+        : [
+            ...(days > 0 ? [{ value: days, label: t(`${k}.confirmUnitDays`) }] : []),
+            ...(days > 0 || hours > 0 ? [{ value: hours, label: t(`${k}.confirmUnitHours`) }] : []),
+            { value: minutes, label: t(`${k}.confirmUnitMinutes`) },
+        ];
     return (
-        <View className="mx-4 mt-3.5 flex-row items-start" style={[cardShadow, { gap: 12, padding: 16, backgroundColor: OS.orangeSoft }]} testID="confirm-window">
-            <View className="items-center justify-center" style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: '#FFFFFF' }}>
-                <Ionicons name="hourglass-outline" size={24} color={OS.orange} />
+        <View className="mx-4 mt-3.5" style={[cardShadow, { gap: 14, padding: 16, backgroundColor: OS.orangeSoft }]} testID="confirm-window">
+            <View className="flex-row items-center" style={{ gap: 12 }}>
+                <View className="items-center justify-center" style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: '#FFFFFF' }}>
+                    <Ionicons name="hourglass-outline" size={24} color={OS.orange} />
+                </View>
+                <Text className="flex-1 font-outfit-semibold uppercase" style={{ fontSize: 13, lineHeight: 17, letterSpacing: 0.6, color: OS.orangeText }}>{t(`${k}.confirmWindowTitle`)}</Text>
             </View>
-            <View className="flex-1">
-                <Text className="font-outfit-semibold uppercase" style={{ fontSize: 13, lineHeight: 17, letterSpacing: 0.6, color: OS.orangeText }}>{t(`${k}.confirmWindowTitle`)}</Text>
-                <Text className="font-outfit-bold" style={{ fontSize: 26, lineHeight: 32, letterSpacing: -0.5, color: OS.text, marginTop: 2 }}>
-                    {left ? t(`${k}.confirmWindowLeft`, { time: left }) : t(`${k}.confirmWindowDue`)}
+            {units.length > 0 ? (
+                <View className="flex-row" style={{ gap: 10 }} accessibilityLabel={units.map((u) => `${u.value} ${u.label}`).join(' ')}>
+                    {units.map((u) => (
+                        <View key={u.label} className="flex-1 items-center" style={{ paddingVertical: 12, borderRadius: 16, backgroundColor: '#FFFFFF' }}>
+                            <Text className="font-outfit-bold" style={{ fontSize: 32, lineHeight: 38, letterSpacing: -0.5, color: OS.text, fontVariant: ['tabular-nums'] }}>{String(u.value).padStart(2, '0')}</Text>
+                            <Text className="font-outfit-semibold uppercase" style={{ fontSize: 12, lineHeight: 16, letterSpacing: 0.8, color: OS.orangeText }}>{u.label}</Text>
+                        </View>
+                    ))}
+                </View>
+            ) : (
+                <Text className="font-outfit-bold" style={{ fontSize: 22, lineHeight: 28, color: OS.text }}>{t(`${k}.confirmWindowDue`)}</Text>
+            )}
+            {units.length > 0 ? (
+                <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: OS.orangeText }}>
+                    {t(`${k}.confirmWindowNote`, { date: fmt.date(deadline), time: fmt.time(deadline) })}
                 </Text>
-                {left ? (
-                    <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: OS.orangeText, marginTop: 4 }}>
-                        {t(`${k}.confirmWindowNote`, { date: fmt.date(deadline), time: fmt.time(deadline) })}
-                    </Text>
-                ) : null}
-            </View>
+            ) : null}
         </View>
     );
 }

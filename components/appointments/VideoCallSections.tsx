@@ -73,7 +73,7 @@ export function QuietButton({ label, icon, onPress, disabled, loading, testID }:
             {loading ? <ActivityIndicator color={QUIET.fg} /> : (
                 <>
                     {icon ? <Ionicons name={icon} size={20} color={QUIET.fg} /> : null}
-                    <Text className="font-outfit-bold text-center" style={{ fontSize: 16, lineHeight: 22, color: QUIET.fg }}>{label}</Text>
+                    <Text className="font-outfit-bold text-center" style={{ ...TYPE.button, color: QUIET.fg }}>{label}</Text>
                 </>
             )}
         </TouchableOpacity>
@@ -91,7 +91,7 @@ export function QuietButton({ label, icon, onPress, disabled, loading, testID }:
  */
 /** The quiet button: a soft slate fill, no white and no border, so it never competes with the main action. */
 const QUIET = { bg: '#E6EAF2', fg: '#4A5470' } as const;
-const BUTTON_HEIGHT = 52;
+const BUTTON_HEIGHT = 56;
 const BUTTON_RADIUS = 14;
 const TONES = { primary: ['#2B66F8', '#081E72'], success: ['#10B981', '#047857'] } as const;
 
@@ -115,7 +115,7 @@ export function GradientButton({ label, icon, onPress, disabled, loading, tone =
                 style={{ minHeight: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 }}
             >
                 {loading ? <ActivityIndicator color="#fff" /> : icon ? <Ionicons name={icon} size={20} color="#fff" /> : null}
-                <Text className="text-white font-outfit-bold text-center" style={large ? TYPE.button : { fontSize: 16, lineHeight: 22 }}>{label}</Text>
+                <Text className="text-white font-outfit-bold text-center" style={TYPE.button}>{label}</Text>
             </LinearGradient>
         </TouchableOpacity>
     );
@@ -183,7 +183,7 @@ export function JoinVideoCallButton({ onPress, rejoin = false, disabled = false 
                 testID="join-video-call"
             >
                 <Ionicons name="videocam" size={20} color="#9AA4BA" />
-                <Text className="font-outfit-bold text-center" style={{ fontSize: 16, lineHeight: 22, color: '#8C96AE' }}>{t(`${K}.join`)}</Text>
+                <Text className="font-outfit-bold text-center" style={{ ...TYPE.button, color: '#8C96AE' }}>{t(`${K}.join`)}</Text>
             </View>
         );
     }
@@ -395,14 +395,14 @@ export function NoteSheet({ visible, title, body, placeholder, confirmLabel, min
                         <TouchableOpacity
                             onPress={() => onSubmit(trimmed)}
                             disabled={submitting || tooShort}
-                            className="py-3 rounded-[14px] items-center"
-                            style={{ backgroundColor: danger ? AO.red : AO.blue, opacity: submitting || tooShort ? 0.6 : 1 }}
+                            className="items-center justify-center"
+                            style={{ minHeight: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: danger ? AO.red : AO.blue, opacity: submitting || tooShort ? 0.6 : 1 }}
                             testID="note-sheet-submit"
                         >
-                            {submitting ? <ActivityIndicator color="#fff" /> : <Text className="font-outfit-bold text-white">{confirmLabel}</Text>}
+                            {submitting ? <ActivityIndicator color="#fff" /> : <Text className="font-outfit-bold text-white" style={TYPE.button}>{confirmLabel}</Text>}
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={onClose} disabled={submitting} className="py-3 rounded-lg items-center" style={{ backgroundColor: '#E6EAF2' }} testID="note-sheet-cancel">
-                            <Text className="font-outfit-bold" style={{ color: '#4A5470' }}>{t(`${K}.cancel`)}</Text>
+                        <TouchableOpacity onPress={onClose} disabled={submitting} className="items-center justify-center" style={{ minHeight: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: '#E6EAF2' }} testID="note-sheet-cancel">
+                            <Text className="font-outfit-bold" style={{ ...TYPE.button, color: '#4A5470' }}>{t(`${K}.cancel`)}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>

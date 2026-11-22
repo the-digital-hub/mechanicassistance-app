@@ -262,11 +262,12 @@ export function PrimaryButton({ label, onPress, disabled, tone = 'blue', testID 
             onPress={onPress}
             disabled={disabled}
             activeOpacity={0.85}
-            className={`${stacked ? '' : 'flex-1 '}items-center justify-center py-4`}
-            style={{ borderRadius: 14, backgroundColor: disabled ? OS.blueIce : BUTTON_TONES[tone] }}
+            className={`${stacked ? '' : 'flex-1 '}items-center justify-center`}
+            // The app's button size: 56 tall, 18 px label (TYPE.button).
+            style={{ minHeight: 56, paddingHorizontal: 16, borderRadius: 14, backgroundColor: disabled ? OS.blueIce : BUTTON_TONES[tone] }}
             testID={testID}
         >
-            <Text className="text-white font-outfit-bold text-center" style={{ fontSize: 17, lineHeight: 23 }}>{label}</Text>
+            <Text className="text-white font-outfit-bold text-center" style={TYPE.button}>{label}</Text>
         </TouchableOpacity>
     );
 }
@@ -276,10 +277,10 @@ export function GhostButton({ label, onPress, flex }: { label: string; onPress: 
         <TouchableOpacity
             onPress={onPress}
             activeOpacity={0.7}
-            className="items-center justify-center py-3.5 px-3"
-            style={{ minHeight: 54, borderRadius: 14, backgroundColor: '#E6EAF2', flex: flex ? 1 : undefined }}
+            className="items-center justify-center px-3"
+            style={{ minHeight: 56, borderRadius: 14, backgroundColor: '#E6EAF2', flex: flex ? 1 : undefined }}
         >
-            <Text className="font-outfit-bold text-center" style={{ fontSize: 16, lineHeight: 22, color: '#4A5470' }}>{label}</Text>
+            <Text className="font-outfit-bold text-center" style={{ ...TYPE.button, color: '#4A5470' }}>{label}</Text>
         </TouchableOpacity>
     );
 }

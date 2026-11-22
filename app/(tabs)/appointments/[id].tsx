@@ -275,7 +275,7 @@ export default function AppointmentDetailScreen() {
     const [videoBusy, setVideoBusy] = React.useState(false);
     const { notify, dialog: messageDialog } = useMessageDialog();
     const [finishAskOpen, setFinishAskOpen] = React.useState(false);
-    const [videoErrorMsg, setVideoErrorMsg] = React.useState<string | null>(null);
+    const [videoErrorMsg, setVideoErrorMsg] = React.useState<{ title: string; body: string } | null>(null);
     const [showDisputeSheet, setShowDisputeSheet] = React.useState(false);
     const [showFinishSheet, setShowFinishSheet] = React.useState(false);
     const [offer, setOffer] = React.useState<AssistanceOfferSummary | null>(null);
@@ -384,7 +384,19 @@ export default function AppointmentDetailScreen() {
     const videoError = (error: unknown, fallbackKey: string) => {
         // The server's message says why (e.g. 409: the call was never started).
         const message = error instanceof ApiError && error.apiMessage ? error.apiMessage : t(fallbackKey);
-        setVideoErrorMsg(message);
+        // "This video call cannot be finished in its current state. It is "completed". Reload…": the screen was behind the server. Say it
+        // short, in the person's words, and bring the screen up to date instead of asking them to reload it.
+        const stale = message.match(/cannot be .*? in its current state\. It is "([a-z_]+)"/i);
+        if (stale) {
+            reloadVideoState();
+            refreshAppointments();
+            setVideoErrorMsg({
+                title: t('appointments.videoCall.stale.title'),
+                body: t(`appointments.videoCall.stale.${stale[1].toLowerCase()}`, { defaultValue: t('appointments.videoCall.stale.other') }),
+            });
+            return;
+        }
+        setVideoErrorMsg({ title: t('appointments.videoCall.errorTitle'), body: message });
     };
 
     // "Join video call" opens the sheet with the conditions of the call and "Connect" (it replaces the old lobby screen).
@@ -511,7 +523,7 @@ export default function AppointmentDetailScreen() {
     const onSiteError = (error: unknown, fallbackKey: string) => {
         if (error instanceof ApiError && error.statusCode === 409) {
             refreshAppointments();
-            setVideoErrorMsg(t('appointments.onSiteConfirm.owner.alreadyAnswered'));
+            setVideoErrorMsg({ title: t('appointments.videoCall.errorTitle'), body: t('appointments.onSiteConfirm.owner.alreadyAnswered') });
             return;
         }
         videoError(error, fallbackKey);
@@ -918,8 +930,8 @@ export default function AppointmentDetailScreen() {
             <OnSiteDialog
                 visible={videoErrorMsg !== null}
                 icon="alert-circle-outline"
-                title={t('appointments.videoCall.errorTitle')}
-                body={videoErrorMsg ?? ''}
+                title={videoErrorMsg?.title ?? ''}
+                body={videoErrorMsg?.body ?? ''}
                 primaryLabel={t('vehicles.ok')}
                 onPrimary={() => setVideoErrorMsg(null)}
                 testID="video-error-dialog"

@@ -27,7 +27,6 @@ const reported = (v: OnSiteVisit | null) => !!v && v.obdStatus !== 'none' && v.o
 /** One assistance of the pager: which one it is (kind, what was wrong, vehicle, code) and its own OBD panel. */
 function ObdPage({ appointment, width, onVisit }: { appointment: Appointment; width: number; onVisit: (visit: OnSiteVisit) => void }) {
     const { t } = useTranslation();
-    const { height } = useWindowDimensions();
     const [visit, setVisit] = React.useState<OnSiteVisit | null>(null);
     const [failed, setFailed] = React.useState(false);
     const id = appointment.id;
@@ -43,20 +42,21 @@ function ObdPage({ appointment, width, onVisit }: { appointment: Appointment; wi
     const issue = splitJobTitle(appointment.title).main;
     return (
         <View style={{ width }}>
-            <ScrollView style={{ maxHeight: height * 0.62 }} keyboardShouldPersistTaps="handled" nestedScrollEnabled showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 12 }}>
-                {/* Which assistance this report is for, so it is never uploaded to the wrong one. */}
-                <View className="flex-row items-center mb-3" style={{ gap: 12, padding: 14, borderRadius: 16, backgroundColor: OS.blueSofter, borderWidth: 1, borderColor: OS.blueSoft }} testID="obd-report-identity">
-                    <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#FFFFFF' }}>
-                        <Ionicons name="car-sport-outline" size={22} color={OS.blue} />
-                    </View>
-                    <View className="flex-1" style={{ minWidth: 0 }}>
-                        <Text className="font-outfit-bold" style={{ fontSize: 15, lineHeight: 20, color: OS.text }} numberOfLines={2}>
-                            {[t(`appointments.detail.types.${assistanceKind(appointment)}`), issue].filter(Boolean).join(' · ')}
-                        </Text>
-                        {appointment.car ? <Text className="font-outfit-semibold" style={{ fontSize: 14, lineHeight: 20, color: OS.text }} numberOfLines={1}>{appointment.car}</Text> : null}
-                        <Text className="font-outfit-regular" style={{ fontSize: 12, lineHeight: 16, color: '#9CA3AF', marginTop: 2 }} selectable>{refLabel(appointment.refCode, appointment.id)}</Text>
-                    </View>
+            {/* Which assistance this report is for, so it is never uploaded to the wrong one. */}
+            <View className="flex-row items-center" style={{ gap: 12, padding: 14, borderRadius: 16, backgroundColor: OS.blueSofter, borderWidth: 1, borderColor: OS.blueSoft }} testID="obd-report-identity">
+                <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#FFFFFF' }}>
+                    <Ionicons name="car-sport-outline" size={22} color={OS.blue} />
                 </View>
+                <View className="flex-1" style={{ minWidth: 0 }}>
+                    <Text className="font-outfit-bold" style={{ fontSize: 15, lineHeight: 20, color: OS.text }} numberOfLines={2}>
+                        {[t(`appointments.detail.types.${assistanceKind(appointment)}`), issue].filter(Boolean).join(' · ')}
+                    </Text>
+                    {appointment.car ? <Text className="font-outfit-semibold" style={{ fontSize: 14, lineHeight: 20, color: OS.text }} numberOfLines={1}>{appointment.car}</Text> : null}
+                    <Text className="font-outfit-regular" style={{ fontSize: 12, lineHeight: 16, color: '#9CA3AF', marginTop: 2 }} selectable>{refLabel(appointment.refCode, appointment.id)}</Text>
+                </View>
+            </View>
+            {/* The panel carries its own 16 px side margins (it was made for a full-width screen): the page already has its own, so they are taken back. */}
+            <View style={{ marginHorizontal: -16, marginTop: -4 }}>
                 {visit ? (
                     <ObdPanel appointmentId={id} visit={visit} onVisit={(v) => { setVisit(v); onVisit(v); }} />
                 ) : failed ? (
@@ -64,7 +64,7 @@ function ObdPage({ appointment, width, onVisit }: { appointment: Appointment; wi
                 ) : (
                     <View className="items-center py-8"><ActivityIndicator color={OS.blue} /></View>
                 )}
-            </ScrollView>
+            </View>
         </View>
     );
 }
@@ -87,7 +87,7 @@ export function ObdReportSheet({ appointments, onClose, onChanged }: {
     const [list, setList] = React.useState<Appointment[]>([]);
     React.useEffect(() => { if (open) setList(appointments as Appointment[]); }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
     const [measured, setMeasured] = React.useState(0);
-    const { width: screen } = useWindowDimensions();
+    const { width: screen, height } = useWindowDimensions();
     const pageWidth = measured || screen - SIDE * 2;
     const scroller = React.useRef<ScrollView>(null);
     const [done, setDone] = React.useState<Set<string>>(new Set());
@@ -121,24 +121,27 @@ export function ObdReportSheet({ appointments, onClose, onChanged }: {
                         <Ionicons name="close" size={16} color="#4B5563" />
                     </TouchableOpacity>
                 </View>
-                <View style={{ paddingHorizontal: SIDE }} onLayout={(e) => setMeasured(Math.floor(e.nativeEvent.layout.width))}>
-                    <ScrollView
-                        ref={scroller}
-                        horizontal
-                        snapToInterval={pageWidth + GAP}
-                        snapToAlignment="start"
-                        disableIntervalMomentum
-                        decelerationRate="fast"
-                        showsHorizontalScrollIndicator={false}
-                        keyboardShouldPersistTaps="handled"
-                        onMomentumScrollEnd={onScroll}
-                        contentContainerStyle={{ gap: GAP }}
-                    >
-                        {list.map((a, i) => (
-                            <ObdPage key={a.id} appointment={a} width={pageWidth} onVisit={(v) => handIn(a.id, i, v)} />
-                        ))}
-                    </ScrollView>
-                </View>
+                <ScrollView style={{ maxHeight: height * 0.72 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: SIDE, paddingBottom: 12 }}>
+                    {/* Measured without the side padding: a page is exactly as wide as the room it has. */}
+                    <View onLayout={(e) => setMeasured(Math.floor(e.nativeEvent.layout.width))}>
+                        <ScrollView
+                            ref={scroller}
+                            horizontal
+                            snapToInterval={pageWidth + GAP}
+                            snapToAlignment="start"
+                            disableIntervalMomentum
+                            decelerationRate="fast"
+                            showsHorizontalScrollIndicator={false}
+                            keyboardShouldPersistTaps="handled"
+                            onMomentumScrollEnd={onScroll}
+                            contentContainerStyle={{ gap: GAP }}
+                        >
+                            {list.map((a, i) => (
+                                <ObdPage key={a.id} appointment={a} width={pageWidth} onVisit={(v) => handIn(a.id, i, v)} />
+                            ))}
+                        </ScrollView>
+                    </View>
+                </ScrollView>
                 {list.length > 1 ? (
                     <View className="flex-row items-center justify-center" style={{ gap: 6, marginTop: 4, paddingBottom: 30 }}>
                         <Text className="font-outfit-semibold" style={{ ...TYPE.caption, color: OS.muted, marginRight: 4 }}>{t('dashboard.rating.counter', { current: page + 1, total: list.length })}</Text>

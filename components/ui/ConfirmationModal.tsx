@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   cancelButton: {
-    minHeight: 52,
+    minHeight: 56,
     borderRadius: 14,
     backgroundColor: "#E6EAF2",
     alignItems: "center",
@@ -239,19 +239,19 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   confirmButton: {
-    minHeight: 52,
-    borderRadius: 12,
+    minHeight: 56,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
   },
   cancelButtonText: {
     fontFamily: FONT.bold,
     color: "#4A5470",
-    fontSize: 16,
+    fontSize: 18,
   },
   confirmButtonText: {
     fontFamily: FONT.bold,
     color: "white",
-    fontSize: 16,
+    fontSize: 18,
   },
 });

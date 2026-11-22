@@ -229,7 +229,15 @@ export function MediaSlot({
                                 <Ionicons name={icon} size={26} color={OS.blue} />
                             </View>
                             {title ? <Text className="font-outfit-bold text-center" style={{ fontSize: 16, lineHeight: 21, color: OS.text }} numberOfLines={2}>{title}</Text> : null}
-                            <Text className="font-outfit-medium text-center" style={{ fontSize: 13, lineHeight: 17, color: OS.blue }}>{tileHint ?? t('appointments.onSite.common.tapToAdd')}</Text>
+                            {kind === 'file' ? (
+                                // A document has no preview to tap: the action is a button, so it reads as one.
+                                <View className="flex-row items-center justify-center" style={{ gap: 6, minHeight: 40, paddingHorizontal: 18, borderRadius: 12, backgroundColor: OS.blue }}>
+                                    <Ionicons name="cloud-upload-outline" size={18} color="#FFFFFF" />
+                                    <Text className="font-outfit-bold text-center" style={{ fontSize: 15, lineHeight: 20, color: '#FFFFFF' }}>{tileHint ?? t('appointments.onSite.common.tapToAdd')}</Text>
+                                </View>
+                            ) : (
+                                <Text className="font-outfit-medium text-center" style={{ fontSize: 13, lineHeight: 17, color: OS.blue }}>{tileHint ?? t('appointments.onSite.common.tapToAdd')}</Text>
+                            )}
                         </View>
                     ) : isImagePreview ? (
                         <Image source={{ uri: picked.uri }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />

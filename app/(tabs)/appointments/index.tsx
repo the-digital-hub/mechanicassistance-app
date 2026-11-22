@@ -1,11 +1,15 @@
 import { AppointmentsFilterBar } from '@/components/appointments/AppointmentsFilters';
+import { AppointmentsHome } from '@/components/appointments/AppointmentsHome';
 import { OffersSection } from '@/components/appointments/OffersSection';
 import { RequestTypeTabs } from '@/components/dashboard/MechanicHomeBlocks';
 import { applyFilters, DEFAULT_FILTERS, isFiltering, matchesQuery, type AppointmentFilters } from '@/lib/appointments/filters';
 import { AppointmentCard } from '@/components/ui/AppointmentCard';
 import { isCancelledStatus, useAppointments } from '@/context/AppointmentsContext';
 import { useUser } from '@/context/UserContext';
+import { useSocket } from '@/context/SocketContext';
 import { useHiddenAppointments } from '@/hooks/useHiddenAppointments';
+import { quotesWaiting } from '@/lib/scheduled/quotes';
+import { useMarketplaceFeed } from '@/lib/scheduled/useMarketplaceFeed';
 import { ScrollPressGuardContext, useScrollPressGuard } from '@/hooks/useScrollPressGuard';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Trash2, X } from 'lucide-react-native';
@@ -24,6 +28,9 @@ export default function AppointmentsScreen() {
     const { user } = useUser();
     const { tab: tabParam } = useLocalSearchParams<{ tab?: string }>();
     const { scrollProps, guard } = useScrollPressGuard();
+    const { lastMessage } = useSocket();
+    // A technician's quotes waiting for the customer: counted in the summary shown when nothing is coming up.
+    const quotesFeed = useMarketplaceFeed(user?.role === 'mechanic', lastMessage);
 
     // Offers are not a tab: they are pinned on top of Upcoming. The tabs are what is coming and what is over.
     const [selectedTab, setSelectedTab] = useState<'upcoming' | 'past'>('upcoming');
@@ -56,16 +63,20 @@ export default function AppointmentsScreen() {
     // A cancelled appointment the person removed is not shown (see useHiddenAppointments).
     const pastAll = getPast().filter((a) => !(hidden.has(a.id) && isCancelledStatus(a.status)));
     const pastCount = pastAll.length;
-    // Only tabs that hold something are shown; if the selected one empties out, fall back to the first that has items.
-    const tabs = ([
+    // Both tabs are always there: with nothing coming up the person lands on Upcoming's summary, not on the history.
+    const tabs: { id: 'upcoming' | 'past'; label: string; count: number }[] = [
         { id: 'upcoming', label: t('appointments.list.upcoming'), count: upcomingCount + pendingCount },
         { id: 'past', label: t('appointments.list.past'), count: pastCount },
-    ] as const).filter((tab) => tab.count > 0);
-    const activeTab = tabs.some((tab) => tab.id === selectedTab) ? selectedTab : tabs[0]?.id ?? 'upcoming';
+    ];
+    const activeTab = selectedTab;
     const appointments = applyFilters(activeTab === 'past' ? pastAll : upcomingAll, filters, activeTab);
     // The offers on top answer to the search only: they are the most urgent, so a date or status filter never hides them.
     const offersShown = activeTab === 'upcoming' ? offersAll.filter((a) => matchesQuery(a, filters.query)) : [];
     const filtering = isFiltering(filters, activeTab);
+    // Nothing coming up and nothing filtered: the summary is what is shown, so there is nothing to search or filter yet.
+    const showHome = activeTab === 'upcoming' && upcomingCount + pendingCount === 0 && !filtering;
+    const showFilters = !showHome;
+    const cancelledCount = pastAll.filter((a) => isCancelledStatus(a.status)).length;
 
     // Long lists (a technician's whole history) come in pages: the first screens are light and "Show more" brings the next ones.
     const [pageCount, setPageCount] = useState(1);
@@ -120,17 +131,16 @@ export default function AppointmentsScreen() {
                         {/* Title */}
                         <Text className="text-gray-900 font-outfit-medium text-3xl">{t(user?.role === 'mechanic' ? 'appointments.list.title' : 'appointments.list.titleOwner')}</Text>
 
-                        {/* Tab Switcher: only tabs with items, each at its natural width */}
-                        {/* A lone tab says nothing: Past alone is already named by its Completed / Cancelled selector. */}
-                        {tabs.length > 1 && (
+                        {/* Tab switcher: Upcoming and Past, always, so the history is one tap away and never the first thing shown */}
                             <View style={{ marginTop: 16 }}>
                                 <RequestTypeTabs tabs={tabs} selected={activeTab} onSelect={setSelectedTab} horizontalInset={40} />
                             </View>
-                        )}
 
+                        {showFilters ? (
                         <View style={{ marginTop: 16 }}>
                             <AppointmentsFilterBar filters={filters} onChange={setFilters} scope={activeTab} resultCount={appointments.length + offersShown.length} />
                         </View>
+                        ) : null}
                     </View>
                     <OffersSection appointments={offersShown} isMechanic={user?.role === 'mechanic'} onCancel={handleCancelRequest} />
                     </>
@@ -181,7 +191,16 @@ export default function AppointmentsScreen() {
                         </TouchableOpacity>
                     </View>
                 ) : null}
-                ListEmptyComponent={offersShown.length > 0 && !filtering ? null : (
+                ListEmptyComponent={showHome ? (
+                    <AppointmentsHome
+                        isMechanic={user?.role === 'mechanic'}
+                        completed={pastCount - cancelledCount}
+                        cancelled={cancelledCount}
+                        quotes={quotesWaiting(quotesFeed.items).length}
+                        onOpenPast={() => setSelectedTab('past')}
+                        onOpenQuotes={() => router.push({ pathname: '/(tabs)/assist', params: { filter: 'quotes' } } as never)}
+                    />
+                ) : offersShown.length > 0 && !filtering ? null : (
                     <View className="items-center justify-center py-10" style={{ gap: 12 }}>
                         <Text className="font-outfit-medium text-[15px] text-center" style={{ color: '#0B1530' }}>{filtering
                             ? t('appointments.filters.noMatches')

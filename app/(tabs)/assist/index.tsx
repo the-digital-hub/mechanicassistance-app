@@ -7,6 +7,7 @@ import { useMarketplaceFeed } from '@/lib/scheduled/useMarketplaceFeed';
 import { Note } from '@/components/scheduled/ui';
 import { QuoteWaitingCard } from '@/components/scheduled/QuoteWaitingCard';
 import { hasSentQuote, quotesWaiting } from '@/lib/scheduled/quotes';
+import { parseRequestNotes } from '@/lib/scheduled/provider';
 import { buildMechanicFeedFilters } from '@/lib/mechanic-feed';
 import { pricingDAO } from '@/lib/dao/PricingDAO';
 import { AssistanceRequest } from '@/lib/dao/interfaces';
@@ -154,6 +155,12 @@ export default function AssistanceRequestsScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mechanicStatus]);
 
+  // Two sections: new requests and the quotes already sent. The section switch only exists once there is a quote to show.
+  const hasQuotes = waitingQuotes.length > 0;
+  const section: 'new' | 'quotes' = hasQuotes && selectedFilter === 'quotes' ? 'quotes' : 'new';
+  // Inside "new", the kind of request ("quotes" is a section, not a kind).
+  const typeFilter = selectedFilter === 'quotes' ? 'all' : selectedFilter;
+
   const filterTabs = useMemo(() => {
     const uniqueTypes = [...new Set(visibleRequests.map((req) => req.type))];
     return [
@@ -163,9 +170,8 @@ export default function AssistanceRequestsScreen() {
         label: getServiceTypeLabel(type),
         count: visibleRequests.filter((req) => req.type === type).length,
       })),
-      ...(waitingQuotes.length > 0 ? [{ id: 'quotes', label: t('assist.yourQuotes'), count: waitingQuotes.length }] : []),
     ];
-  }, [visibleRequests, waitingQuotes, t, getServiceTypeLabel]);
+  }, [visibleRequests, t, getServiceTypeLabel]);
 
   const filteredRequests = useMemo(() => {
     return visibleRequests.filter((req) => {
@@ -177,12 +183,12 @@ export default function AssistanceRequestsScreen() {
         (req.notes ?? '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         (req.title ?? '').toLowerCase().includes(searchQuery.toLowerCase());
 
-      if (selectedFilter !== 'all') {
-        return matchesSearch && req.type === selectedFilter;
+      if (typeFilter !== 'all') {
+        return matchesSearch && req.type === typeFilter;
       }
       return matchesSearch;
     });
-  }, [visibleRequests, searchQuery, selectedFilter, getServiceTypeLabel]);
+  }, [visibleRequests, searchQuery, typeFilter, getServiceTypeLabel]);
 
   if (userLoading || isLoading) {
     return (
@@ -200,20 +206,48 @@ export default function AssistanceRequestsScreen() {
           <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
           <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
           <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-            {t('assist.badge')}
+            {section === 'quotes' ? t('assist.quotesBadge', { count: waitingQuotes.length }) : t('assist.badge')}
           </Text>
         </View>
         </View>
 
-        {/* Title */}
+        {/* Title: it says which of the two sections this is */}
         <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
-          {t('assist.title')}
+          {section === 'quotes' ? t('assist.quotesTitle') : t('assist.title')}
         </Text>
 
-        {/* Subtitle */}
         <Text className="text-gray-500 font-outfit-regular text-base mb-6">
-          {t('assist.subtitle')}
+          {section === 'quotes' ? t('assist.quotesSubtitle') : t('assist.subtitle')}
         </Text>
+
+        {/* New requests | Your quotes: two halves of the width, nothing to scroll sideways. Only once there is a quote. */}
+        {hasQuotes ? (
+          <View className="flex-row mb-6" style={{ padding: 4, borderRadius: 16, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#EEF2FA', gap: 4 }} accessibilityRole="tablist" testID="assist-sections">
+            {([
+              { id: 'new', label: t('assist.newRequests'), count: visibleRequests.length },
+              { id: 'quotes', label: t('assist.yourQuotes'), count: waitingQuotes.length },
+            ] as const).map((item) => {
+              const on = section === item.id;
+              return (
+                <TouchableOpacity
+                  key={item.id}
+                  onPress={() => setSelectedFilter(item.id === 'quotes' ? 'quotes' : 'all')}
+                  activeOpacity={0.85}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: on }}
+                  className="flex-1 flex-row items-center justify-center"
+                  style={{ gap: 8, minHeight: 48, borderRadius: 12, backgroundColor: on ? '#1E56E3' : 'transparent' }}
+                  testID={`assist-section-${item.id}`}
+                >
+                  <Text className="font-outfit-bold" style={{ fontSize: 15, color: on ? '#FFFFFF' : '#6B7490' }} numberOfLines={1}>{item.label}</Text>
+                  <View className="items-center justify-center" style={{ minWidth: 24, height: 24, paddingHorizontal: 7, borderRadius: 12, backgroundColor: on ? 'rgba(255,255,255,0.22)' : '#EAF1FF' }}>
+                    <Text className="font-outfit-bold" style={{ fontSize: 13, color: on ? '#FFFFFF' : '#1E56E3' }}>{item.count}</Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        ) : null}
 
         <MechanicFeedStatusBanner />
 
@@ -226,9 +260,9 @@ export default function AssistanceRequestsScreen() {
         ) : null}
 
         {/* Search and filters only make sense when there is something to search through */}
-        {(visibleRequests.length > 0 || waitingQuotes.length > 0) && (
+        {section === 'new' && visibleRequests.length > 0 && (
           <>
-        <View className="flex-row items-center bg-white rounded-2xl px-4 mb-6 border border-gray-200">
+        <View className="flex-row items-center bg-white rounded-2xl px-4 mb-4 border border-gray-200">
           <Search size={20} color="#9CA3AF" />
           <TextInput
             placeholder={t('assist.searchPlaceholder')}
@@ -240,39 +274,26 @@ export default function AssistanceRequestsScreen() {
           />
         </View>
 
-        {/* Filter Tabs */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6">
-          <View className="flex-row gap-3">
-            {filterTabs.map((tab) => (
-              <TouchableOpacity
-                key={tab.id}
-                onPress={() => setSelectedFilter(tab.id)}
-                activeOpacity={0.8}
-              >
-                <View
-                  className="px-4 py-2 rounded-full border"
-                  style={{
-                    backgroundColor: selectedFilter === tab.id ? '#2B66F8' : '#FFFFFF',
-                    borderColor: selectedFilter === tab.id ? '#2B66F8' : '#E5E7EB',
-                  }}
-                >
-                  <Text
-                    className="font-outfit-semibold text-sm"
-                    style={{
-                      color: selectedFilter === tab.id ? '#FFFFFF' : '#6B7280',
-                    }}
-                  >
-                    {tab.label} · {tab.count}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
+        {/* Kind of request: only when there is more than one kind, and wrapping onto the next line instead of scrolling sideways */}
+        {filterTabs.length > 2 ? (
+          <View className="flex-row flex-wrap mb-6" style={{ gap: 8 }}>
+            {filterTabs.map((tab) => {
+              const on = typeFilter === tab.id;
+              return (
+                <TouchableOpacity key={tab.id} onPress={() => setSelectedFilter(tab.id)} activeOpacity={0.8} accessibilityRole="button" accessibilityState={{ selected: on }}>
+                  <View className="flex-row items-center border" style={{ gap: 6, minHeight: 40, paddingHorizontal: 14, borderRadius: 100, backgroundColor: on ? '#2B66F8' : '#FFFFFF', borderColor: on ? '#2B66F8' : '#E5E7EB' }}>
+                    <Text className="font-outfit-semibold" style={{ fontSize: 14, color: on ? '#FFFFFF' : '#6B7280' }}>{tab.label}</Text>
+                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: on ? '#FFFFFF' : '#1E56E3' }}>{tab.count}</Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
           </View>
-        </ScrollView>
+        ) : <View style={{ height: 8 }} />}
           </>
         )}
 
-        {selectedFilter === 'quotes' ? (
+        {section === 'quotes' ? (
           <View className="gap-4" testID="your-quotes">
             {waitingQuotes.map((r) => (
               <QuoteWaitingCard key={r.id} request={r} onOpen={(id) => router.push({ pathname: '/assist/scheduled-request' as never, params: { requestId: id } })} />
@@ -310,6 +331,8 @@ export default function AssistanceRequestsScreen() {
 
               // Hide the street; show only city/state (+ zip) once — same as the dashboard feed.
               const addressParts = String(request.address || '').split(',').map((p) => p.trim()).filter(Boolean);
+              // Scheduled: the wanted days and hours, read from the request's notes.
+              const whenParts = request.type === 'scheduled' ? (() => { const n = parseRequestNotes(request.notes, request.date); return n.days || n.window ? n : null; })() : null;
               const cityLine = addressParts.length > 1
                 ? `${addressParts.slice(1).join(', ')}${request.zip ? ` · ${request.zip}` : ''}`
                 : String(request.address || '');
@@ -391,9 +414,36 @@ export default function AssistanceRequestsScreen() {
                       </View>
                       <View className="flex-1">
                         <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">{t('dashboard.mechanic.assistanceNeeded')}</Text>
-                        <RequestIssueText requestId={request.id} fallback={request.notes || request.title} className="font-outfit-bold text-base text-gray-900" />
+                        <RequestIssueText requestId={request.id} fallback={request.type === 'scheduled' ? (request.title || request.notes) : (request.notes || request.title)} className="font-outfit-bold text-base text-gray-900" />
                       </View>
                     </View>
+
+                    {/* Scheduled: when it is wanted, the days on one line and the hours on the next, apart from the service. */}
+
+                    {whenParts && (
+
+                    <View className="flex-row items-center px-5 py-4 border-b border-gray-100">
+
+                        <View className="w-11 h-11 rounded-xl justify-center items-center mr-4" style={{ backgroundColor: '#E9F1FF' }}>
+
+                            <Calendar size={20} color="#0047AB" />
+
+                        </View>
+
+                        <View className="flex-1">
+
+                            <Text className="font-outfit-semibold text-xs tracking-widest text-gray-400 mb-0.5">{t('appointments.list.card.rows.when')}</Text>
+
+                            {whenParts.days ? <Text className="font-outfit-bold text-base text-gray-900">{whenParts.days}</Text> : null}
+
+                            {whenParts.window ? <Text className="font-outfit-bold text-base text-gray-900">{whenParts.window}</Text> : null}
+
+                        </View>
+
+                    </View>
+
+                    )}
+
 
                     {/* Address (blurred street, city/state shown) — none for a remote video call */}
                     {iconType !== 'video' && (
@@ -444,26 +494,26 @@ export default function AssistanceRequestsScreen() {
                           start={{ x: 0, y: 1 }}
                           end={{ x: 1, y: 0 }}
                           style={{
-                            borderRadius: 16,
-                            paddingVertical: 14,
+                            borderRadius: 14,
+                            minHeight: 56,
                             paddingHorizontal: 16,
                             alignItems: 'center',
                             justifyContent: 'center',
                           }}
                         >
-                          <Text className="text-white font-outfit-semibold text-lg">
+                          <Text className="text-white font-outfit-bold" style={TYPE.button}>
                             {t('dashboard.mechanic.viewRequest')}
                           </Text>
                         </LinearGradient>
                       </TouchableOpacity>
                       {request.type !== 'scheduled' && (
                       <TouchableOpacity
-                        className="py-4 rounded-[14px] items-center justify-center"
-                        style={{ backgroundColor: '#E6EAF2' }}
+                        className="rounded-[14px] items-center justify-center"
+                        style={{ minHeight: 56, backgroundColor: '#E6EAF2' }}
                         activeOpacity={0.8}
                         onPress={guard(() => handleDecline(request.id))}
                       >
-                        <Text className="font-outfit-bold text-lg" style={{ color: '#4A5470' }}>
+                        <Text className="font-outfit-bold" style={{ ...TYPE.button, color: '#4A5470' }}>
                           {t('dashboard.mechanic.decline')}
                         </Text>
                       </TouchableOpacity>
