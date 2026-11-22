@@ -136,7 +136,7 @@ export interface AssistanceRequest {
     /** Scheduled requests: when the offer window closes (ISO). The owner can extend it. */
     offersCloseAt?: string | null;
     /** Provider side of a scheduled request: the quote this technician already sent, if any. */
-    myQuote?: { price?: string | null; status?: string | null; validUntil?: string | null } | null;
+    myQuote?: { price?: string | null; status?: string | null; validUntil?: string | null; /** When the quote was sent (ISO). */ createdAt?: string | null } | null;
     vehicleId?: string;
     zip?: string;
     /** Odometer reading when the request was created. Snapshot: `Vehicle.mileage` gets overwritten, this doesn't. */
@@ -160,7 +160,7 @@ export interface AssistanceRequest {
     /** While `offered`: when the offer stops being held (ISO). Then the request goes back to `pending`. */
     offerExpiresAt?: string | null;
     /** The saved vehicle, included by GET /api/assistance/:id. */
-    vehicle?: { make?: string | null; model?: string | null; vin?: string | null } | null;
+    vehicle?: { make?: string | null; model?: string | null; vin?: string | null; plate?: string | null } | null;
     /** ISO date string of when the request was made; the searching timer counts from it */
     createdAt?: string;
     /** ISO date string of the last update (used e.g. as cancellation date) */
@@ -929,6 +929,8 @@ export interface MarketplaceRequest {
     notes?: string | null;
     /** The service day / start the owner asked for (ISO). */
     date?: string | null;
+    /** When the owner posted the request (ISO). Not in the documented provider view yet: without it the card shows no "time ago". */
+    createdAt?: string | null;
     zip?: string | null;
     /** Coordinates rounded to ~1 km. */
     approximateLocation?: { lat?: number; lng?: number; latitude?: number; longitude?: number } | null;

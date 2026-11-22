@@ -1,14 +1,18 @@
 import { Ionicons } from '@expo/vector-icons';
+import { AlertTriangle, Calendar, Car, Video, Wrench, Zap } from 'lucide-react-native';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, NativeScrollEvent, NativeSyntheticEvent, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, Animated, Easing, NativeScrollEvent, NativeSyntheticEvent, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 
 import { ObdPanel } from '@/components/on-site/ObdPanel';
+import { VehicleIdsRow } from '@/components/scheduled/ui';
+import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { OS } from '@/components/on-site/ui';
 import { SlideModal } from '@/components/ui/SlideModal';
 import type { Appointment } from '@/context/AppointmentsContext';
 import { type OnSiteVisit, onSiteDAO } from '@/lib/dao/OnSiteDAO';
 import { refLabel } from '@/lib/refCode';
+import { formatLocalDateTime } from '@/lib/video/videoCallTime';
 import { SHEET } from '@/lib/ui/sheet';
 import { TYPE } from '@/lib/ui/type';
 import { splitJobTitle } from '@/lib/ui/jobTitle';
@@ -19,17 +23,42 @@ export function assistanceKind(a: Pick<Appointment, 'assistanceType' | 'type'>):
 }
 
 const SIDE = 20;
+const EDGE = 6;
 const GAP = 12;
 
 /** A report counts as handed in once it is no longer missing (uploaded and being read, ready, or typed in). */
 const reported = (v: OnSiteVisit | null) => !!v && v.obdStatus !== 'none' && v.obdStatus !== 'failed';
 
+/** The one type of the card's three lines (when, what, which vehicle). */
+const IDENT = { fontSize: 15, lineHeight: 21, color: OS.text } as const;
+
+/** A line of the pedido card: its icon in a small rounded square (as everywhere else in the app) and the text next to it. */
+function IdRow({ icon: Icon, children }: { icon: typeof Car; children: React.ReactNode }) {
+    return (
+        <View className="flex-row items-center" style={{ gap: 12 }}>
+            <View className="items-center justify-center" style={{ width: 34, height: 34, borderRadius: 11, backgroundColor: '#FFFFFF' }}>
+                <Icon size={17} color={OS.blue} />
+            </View>
+            <View className="flex-1" style={{ minWidth: 0 }}>{children}</View>
+        </View>
+    );
+}
+
 /** One assistance of the pager: which one it is (kind, what was wrong, vehicle, code) and its own OBD panel. */
-function ObdPage({ appointment, width, onVisit }: { appointment: Appointment; width: number; onVisit: (visit: OnSiteVisit) => void }) {
-    const { t } = useTranslation();
+function ObdPage({ appointment, width, onVisit, onHeight }: { appointment: Appointment; width: number; onVisit: (visit: OnSiteVisit) => void; onHeight: (height: number) => void }) {
+    const { t, i18n } = useTranslation();
     const [visit, setVisit] = React.useState<OnSiteVisit | null>(null);
     const [failed, setFailed] = React.useState(false);
     const id = appointment.id;
+    // The vehicle's VIN (and plate, when the request carries it): which car this report is for, beyond its name.
+    const [ids, setIds] = React.useState<{ vin: string | null; plate: string | null }>({ vin: null, plate: null });
+    React.useEffect(() => {
+        let cancelled = false;
+        assistanceDAO.getById(id)
+            .then((r) => { if (!cancelled && r?.vehicle) setIds({ vin: r.vehicle.vin ?? null, plate: r.vehicle.plate ?? null }); })
+            .catch(() => undefined);
+        return () => { cancelled = true; };
+    }, [id]);
 
     React.useEffect(() => {
         let cancelled = false;
@@ -40,25 +69,47 @@ function ObdPage({ appointment, width, onVisit }: { appointment: Appointment; wi
     }, [id]);
 
     const issue = splitJobTitle(appointment.title).main;
+    const kind = assistanceKind(appointment);
+    const look = {
+        immediate: { label: t('dashboard.mechanic.tabs.immediate'), icon: Zap, bg: '#FEE2E2', fg: '#B91C1C' },
+        scheduled: { label: t('dashboard.mechanic.tabs.scheduled'), icon: Calendar, bg: '#EDE9FE', fg: '#6D28D9' },
+        videocall: { label: t('dashboard.mechanic.tabs.video'), icon: Video, bg: '#DBEAFE', fg: '#1D4ED8' },
+        accident: { label: t('appointments.detail.types.accident'), icon: AlertTriangle, bg: '#FEF3C7', fg: '#92400E' },
+    }[kind];
+    const KindIcon = look.icon;
+    // When the service was (the day it was closed, else the day it was asked for).
+    const when = formatLocalDateTime(appointment.completedAt || appointment.date, i18n.language);
     return (
-        <View style={{ width }}>
+        <View style={{ width, paddingBottom: 10 }} onLayout={(e) => onHeight(e.nativeEvent.layout.height)}>
             {/* Which assistance this report is for, so it is never uploaded to the wrong one. */}
-            <View className="flex-row items-center" style={{ gap: 12, padding: 14, borderRadius: 16, backgroundColor: OS.blueSofter, borderWidth: 1, borderColor: OS.blueSoft }} testID="obd-report-identity">
-                <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#FFFFFF' }}>
-                    <Ionicons name="car-sport-outline" size={22} color={OS.blue} />
+            <View style={{ gap: 10, padding: 14, borderRadius: 16, backgroundColor: OS.blueSofter, borderWidth: 1, borderColor: OS.blueSoft }} testID="obd-report-identity">
+                {/* The kind as a badge with its icon, then when it was, what it is, the vehicle with its model, VIN and plate, and the code last. */}
+                <View className="flex-row items-center self-start" style={{ gap: 5, paddingLeft: 8, paddingRight: 10, paddingVertical: 4, borderRadius: 100, backgroundColor: look.bg }}>
+                    <KindIcon size={13} color={look.fg} />
+                    <Text className="font-outfit-bold" style={{ fontSize: 12, lineHeight: 16, letterSpacing: 0.4, color: look.fg }}>{look.label}</Text>
                 </View>
-                <View className="flex-1" style={{ minWidth: 0 }}>
-                    <Text className="font-outfit-bold" style={{ fontSize: 15, lineHeight: 20, color: OS.text }} numberOfLines={2}>
-                        {[t(`appointments.detail.types.${assistanceKind(appointment)}`), issue].filter(Boolean).join(' · ')}
-                    </Text>
-                    {appointment.car ? <Text className="font-outfit-semibold" style={{ fontSize: 14, lineHeight: 20, color: OS.text }} numberOfLines={1}>{appointment.car}</Text> : null}
-                    <Text className="font-outfit-regular" style={{ fontSize: 12, lineHeight: 16, color: '#9CA3AF', marginTop: 2 }} selectable>{refLabel(appointment.refCode, appointment.id)}</Text>
-                </View>
+                {when ? (
+                    <IdRow icon={Calendar}>
+                        <Text className="font-outfit-semibold" style={IDENT} numberOfLines={1}>{when}</Text>
+                    </IdRow>
+                ) : null}
+                {issue ? (
+                    <IdRow icon={Wrench}>
+                        <Text className="font-outfit-semibold" style={IDENT} numberOfLines={2}>{issue}</Text>
+                    </IdRow>
+                ) : null}
+                {appointment.car ? (
+                    <IdRow icon={Car}>
+                        <Text className="font-outfit-semibold" style={IDENT} numberOfLines={1}>{appointment.car}</Text>
+                        <VehicleIdsRow plate={ids.plate} vin={ids.vin} plateLabel={t('requestAssistance.selectVehicle.plate')} />
+                    </IdRow>
+                ) : null}
+                <Text className="font-outfit-regular" style={{ fontSize: 12, lineHeight: 16, color: '#9CA3AF' }} selectable>{refLabel(appointment.refCode, appointment.id)}</Text>
             </View>
             {/* The panel carries its own 16 px side margins (it was made for a full-width screen): the page already has its own, so they are taken back. */}
-            <View style={{ marginHorizontal: -16, marginTop: -4 }}>
+            <View style={{ marginHorizontal: -16, marginTop: 12 }}>
                 {visit ? (
-                    <ObdPanel appointmentId={id} visit={visit} onVisit={(v) => { setVisit(v); onVisit(v); }} />
+                    <ObdPanel dense appointmentId={id} visit={visit} onVisit={(v) => { setVisit(v); onVisit(v); }} />
                 ) : failed ? (
                     <Text className="font-outfit-regular text-center px-8 py-6" style={{ fontSize: 15, color: OS.muted }}>{t('appointments.onSite.common.error')}</Text>
                 ) : (
@@ -92,8 +143,24 @@ export function ObdReportSheet({ appointments, onClose, onChanged }: {
     const scroller = React.useRef<ScrollView>(null);
     const [done, setDone] = React.useState<Set<string>>(new Set());
     const [page, setPage] = React.useState(0);
+    // Each page is as tall as its own content: the pager takes the height of the one in view, not of the tallest.
+    const [heights, setHeights] = React.useState<Record<string, number>>({});
+    // The sheet follows its content with a sweep: whenever the page in view gets taller or shorter (the codes list, the manual entry opening, the file
+    // that arrived) the pager's height glides to the new size instead of jumping, and the sheet, anchored to the bottom, rises or sinks with it.
+    const heightAnim = React.useRef(new Animated.Value(0)).current;
+    const sized = React.useRef(false);
+    const currentHeight = heights[list[page]?.id ?? ''];
+    React.useEffect(() => {
+        if (!currentHeight) return;
+        if (!sized.current) {
+            sized.current = true;
+            heightAnim.setValue(currentHeight);
+            return;
+        }
+        Animated.timing(heightAnim, { toValue: currentHeight, duration: 280, easing: Easing.inOut(Easing.cubic), useNativeDriver: false }).start();
+    }, [currentHeight, heightAnim]);
 
-    React.useEffect(() => { if (open) { setDone(new Set()); setPage(0); } }, [open]);
+    React.useEffect(() => { if (open) { setDone(new Set()); setPage(0); setHeights({}); sized.current = false; } }, [open]);
 
     const goTo = (i: number) => {
         const next = Math.min(Math.max(0, i), Math.max(0, list.length - 1));
@@ -107,6 +174,8 @@ export function ObdReportSheet({ appointments, onClose, onChanged }: {
         if (!reported(v)) return;
         const next = new Set(done).add(id);
         setDone(next);
+        // Typing codes in is done one by one: the sheet stays where it is (it is closed by hand). Only a file that was uploaded moves on.
+        if (v.obdStatus === 'manual') return;
         const another = [...list.keys()].find((n) => n > index && !next.has(list[n].id)) ?? [...list.keys()].find((n) => !next.has(list[n].id));
         if (another === undefined) setTimeout(onClose, 900);
         else setTimeout(() => goTo(another), 700);
@@ -121,12 +190,15 @@ export function ObdReportSheet({ appointments, onClose, onChanged }: {
                         <Ionicons name="close" size={16} color="#4B5563" />
                     </TouchableOpacity>
                 </View>
-                <ScrollView style={{ maxHeight: height * 0.72 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: SIDE, paddingBottom: 12 }}>
+                <ScrollView style={{ flexGrow: 0, maxHeight: height * 0.72 }} bounces={false} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: SIDE, paddingBottom: 12 }}>
                     {/* Measured without the side padding: a page is exactly as wide as the room it has. */}
                     <View onLayout={(e) => setMeasured(Math.floor(e.nativeEvent.layout.width))}>
-                        <ScrollView
+                        <Animated.ScrollView
                             ref={scroller}
                             horizontal
+                            // A few px of room on each side, so the borders and shadows of the cards at the edges are not cut by the scroller.
+                            style={{ flexGrow: 0, marginHorizontal: -EDGE, ...(currentHeight ? { height: heightAnim } : null) }}
+                            contentContainerStyle={{ gap: GAP, alignItems: 'flex-start', paddingHorizontal: EDGE }}
                             snapToInterval={pageWidth + GAP}
                             snapToAlignment="start"
                             disableIntervalMomentum
@@ -134,12 +206,11 @@ export function ObdReportSheet({ appointments, onClose, onChanged }: {
                             showsHorizontalScrollIndicator={false}
                             keyboardShouldPersistTaps="handled"
                             onMomentumScrollEnd={onScroll}
-                            contentContainerStyle={{ gap: GAP }}
                         >
                             {list.map((a, i) => (
-                                <ObdPage key={a.id} appointment={a} width={pageWidth} onVisit={(v) => handIn(a.id, i, v)} />
+                                <ObdPage key={a.id} appointment={a} width={pageWidth} onVisit={(v) => handIn(a.id, i, v)} onHeight={(h) => setHeights((prev) => (Math.abs((prev[a.id] ?? 0) - h) < 1 ? prev : { ...prev, [a.id]: h }))} />
                             ))}
-                        </ScrollView>
+                        </Animated.ScrollView>
                     </View>
                 </ScrollView>
                 {list.length > 1 ? (

@@ -6,7 +6,10 @@
 export interface AppAlertButton {
     text?: string;
     onPress?: (value?: string) => void;
-    style?: 'default' | 'cancel' | 'destructive';
+    /** `secondary`: a soft slate button (a choice among equals, not the one action to take). */
+    style?: 'default' | 'cancel' | 'destructive' | 'secondary';
+    /** An Ionicons name shown before the label. */
+    icon?: string;
 }
 
 /** The look of the icon on top: blue for information, green for good news, orange for a warning, red for a problem. */

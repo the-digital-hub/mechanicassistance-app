@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, LayoutAnimation, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { ObdCode, onSiteDAO, OnSiteVisit } from '@/lib/dao/OnSiteDAO';
 import { MediaSlot, Picked } from './MediaSlot';
 import { TYPE } from '@/lib/ui/type';
@@ -29,12 +29,18 @@ interface ObdPanelProps {
     onVisit: (visit: OnSiteVisit) => void;
     /** Hide the file slot (codes and manual entry only). */
     allowUpload?: boolean;
+    /** Smaller type and fields in the manual entry (the sheet over the dashboard); the on-site flow keeps its own size. */
+    dense?: boolean;
 }
 
-export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true }: ObdPanelProps) {
+export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true, dense = false }: ObdPanelProps) {
     const { t, i18n } = useTranslation();
     const k = 'appointments.onSite.obd';
     const lang: 'en' | 'es' = i18n.language?.startsWith('en') ? 'en' : 'es';
+    // Sizes of the manual entry: the same as always, or a size down when `dense`.
+    const manual = dense
+        ? { title: { fontSize: 16, lineHeight: 22 }, label: { fontSize: 13, lineHeight: 17 }, field: { fontSize: 14, lineHeight: 19, height: 42 }, action: { fontSize: 14, lineHeight: 19 }, actionWidth: 64, toggleHeight: 52 }
+        : { title: TYPE.question, label: TYPE.helper, field: { ...TYPE.body, height: 48 }, action: TYPE.body, actionWidth: 76, toggleHeight: 56 };
 
     const [suggestionsOpen, setSuggestionsOpen] = React.useState(false);
     // Typing a code or the VIN by hand is the exception, so it stays folded unless something is already typed in.
@@ -97,24 +103,6 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true }: 
     return (
         <>
             {visit && askVin ? <VinMismatchModal appointmentId={appointmentId} visit={visit} onVisit={onVisit} /> : null}
-            {allowUpload ? (
-                <View className="mx-4 flex-row">
-                    <MediaSlot
-                        key={visit?.obdDocumentKey ?? 'none'}
-                        kind="file"
-                        tile
-                        padded={false}
-                        height={140}
-                        title={t(`${k}.file`)}
-                        tileIcon="cloud-upload-outline"
-                        tileHint={t(`${k}.upload`)}
-                        placeholder={t(`${k}.placeholder`)}
-                        customUpload={upload}
-                        existingFileName={fileName}
-                    />
-                </View>
-            ) : null}
-
             {status === 'processing' ? (
                 <View className="mx-4 mt-3 flex-row items-center gap-2.5 px-3.5 py-3 rounded-2xl" style={{ backgroundColor: OS.blueSofter }}>
                     <ActivityIndicator size="small" color={OS.blue} />
@@ -180,22 +168,42 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true }: 
                 </Card>
             ) : null}
 
+            {/* One card for the two ways to give the report: the file (the card with its button) and, under a hairline, typing it in. */}
             <Card>
+                {allowUpload ? (
+                    <View className="p-4" style={{ borderBottomWidth: 1, borderBottomColor: OS.borderSoft }}>
+                        <MediaSlot
+                            key={visit?.obdDocumentKey ?? 'none'}
+                            kind="file"
+                            tile
+                            compact
+                            padded={false}
+                            height={130}
+                            title={t(`${k}.file`)}
+                            tileIcon="cloud-upload-outline"
+                            actionIcon="cloud-upload-outline"
+                            actionLabel={t(`${k}.upload`)}
+                            placeholder={t(`${k}.placeholder`)}
+                            customUpload={upload}
+                            existingFileName={fileName}
+                        />
+                    </View>
+                ) : null}
                 <TouchableOpacity
-                    onPress={() => setManualOpen((v) => !v)}
+                    onPress={() => { LayoutAnimation.configureNext(LayoutAnimation.create(220, 'easeInEaseOut', 'opacity')); setManualOpen((v) => !v); }}
                     activeOpacity={0.7}
                     accessibilityRole="button"
                     accessibilityState={{ expanded: manualOpen }}
                     className="flex-row items-center justify-between px-4"
-                    style={{ minHeight: 56 }}
+                    style={{ minHeight: manual.toggleHeight }}
                     testID="obd-manual-toggle"
                 >
-                    <Text className="font-outfit-bold" style={{ ...TYPE.question, color: OS.text }}>{t(`${k}.moreOptions`)}</Text>
+                    <Text className="font-outfit-bold" style={{ ...manual.title, color: OS.text }}>{t(`${k}.moreOptions`)}</Text>
                     <Ionicons name={manualOpen ? 'chevron-up' : 'chevron-down'} size={20} color={OS.muted} />
                 </TouchableOpacity>
                 {manualOpen ? (
                     <View>
-                <Text className="font-outfit-bold px-4 pt-3.5" style={{ ...TYPE.helper, color: OS.text }}>{t(`${k}.codeLabel`)}</Text>
+                <Text className="font-outfit-bold px-4 pt-3.5" style={{ ...manual.label, color: OS.text }}>{t(`${k}.codeLabel`)}</Text>
                 <View className="flex-row gap-2 px-4 pt-2 pb-3">
                     <TextInput
                         value={input}
@@ -209,24 +217,24 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true }: 
                         autoCorrect={false}
                         returnKeyType="done"
                         className="flex-1 font-outfit-bold px-3"
-                        style={{ ...TYPE.body, height: 48, borderRadius: 12, borderWidth: 1.5, borderColor: inputError ? OS.red : OS.border, backgroundColor: OS.page, color: OS.text, textAlign: 'left', letterSpacing: 0 }}
+                        style={{ ...manual.field, borderRadius: 12, borderWidth: 1.5, borderColor: inputError ? OS.red : OS.border, backgroundColor: OS.page, color: OS.text, textAlign: 'left', letterSpacing: 0 }}
                         testID="obd-code-input"
                     />
                     <TouchableOpacity
                         onPress={addCode}
                         disabled={saving || !input.trim()}
                         className="justify-center items-center px-3.5 rounded-xl"
-                        style={{ minWidth: 76, backgroundColor: OS.blueSoft, opacity: saving || !input.trim() ? 0.6 : 1 }}
+                        style={{ minWidth: manual.actionWidth, backgroundColor: OS.blueSoft, opacity: saving || !input.trim() ? 0.6 : 1 }}
                     >
                         {saving ? <ActivityIndicator size="small" color={OS.blue} /> : (
-                            <Text className="font-outfit-bold" style={{ ...TYPE.body, color: OS.blue }}>{t(`${k}.add`)}</Text>
+                            <Text className="font-outfit-bold" style={{ ...manual.action, color: OS.blue }}>{t(`${k}.add`)}</Text>
                         )}
                     </TouchableOpacity>
                 </View>
                 {inputError ? (
                     <Text className="font-outfit-medium px-4 pb-3 -mt-1" style={{ ...TYPE.caption, color: OS.red }}>{inputError}</Text>
                 ) : null}
-                <Text className="font-outfit-bold px-4 pt-1" style={{ ...TYPE.helper, color: OS.text }}>{t(`${k}.vinLabel`)}</Text>
+                <Text className="font-outfit-bold px-4 pt-1" style={{ ...manual.label, color: OS.text }}>{t(`${k}.vinLabel`)}</Text>
                 <View className="flex-row gap-2 px-4 pt-2 pb-3">
                     <TextInput
                         value={vin}
@@ -238,16 +246,16 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true }: 
                         autoCorrect={false}
                         returnKeyType="done"
                         className="flex-1 font-outfit-bold px-3"
-                        style={{ ...TYPE.body, height: 48, borderRadius: 12, borderWidth: 1.5, borderColor: vinError ? OS.red : OS.border, backgroundColor: OS.page, color: OS.text, textAlign: 'left', letterSpacing: 0 }}
+                        style={{ ...manual.field, borderRadius: 12, borderWidth: 1.5, borderColor: vinError ? OS.red : OS.border, backgroundColor: OS.page, color: OS.text, textAlign: 'left', letterSpacing: 0 }}
                         testID="obd-vin-input"
                     />
                     <TouchableOpacity
                         onPress={saveVin}
                         disabled={saving || !vin.trim()}
                         className="justify-center items-center px-3.5 rounded-xl"
-                        style={{ minWidth: 76, backgroundColor: OS.blueSoft, opacity: saving || !vin.trim() ? 0.6 : 1 }}
+                        style={{ minWidth: manual.actionWidth, backgroundColor: OS.blueSoft, opacity: saving || !vin.trim() ? 0.6 : 1 }}
                     >
-                        <Text className="font-outfit-bold" style={{ ...TYPE.body, color: OS.blue }}>{t(`${k}.vinSave`)}</Text>
+                        <Text className="font-outfit-bold" style={{ ...manual.action, color: OS.blue }}>{t(`${k}.vinSave`)}</Text>
                     </TouchableOpacity>
                 </View>
                 {vinError ? (

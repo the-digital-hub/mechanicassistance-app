@@ -367,7 +367,7 @@ export function RequestTypeTabs<T extends string>({
     const tabWidth = Math.floor((full - PAD * 2 - GAP * (slots - 1)) / slots);
     const containerWidth = tabs.length * tabWidth + (tabs.length - 1) * GAP + PAD * 2;
     return (
-        <View className="flex-row" style={{ ...CARD, borderRadius: 16, padding: PAD, gap: GAP, width: containerWidth, maxWidth: '100%' }} accessibilityRole="tablist">
+        <View className="flex-row" style={{ padding: PAD, borderRadius: 16, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: C.borderSoft, gap: GAP, width: containerWidth, maxWidth: '100%' }} accessibilityRole="tablist">
             {tabs.map((tab) => {
                 const on = tab.id === selected;
                 return (
@@ -378,10 +378,10 @@ export function RequestTypeTabs<T extends string>({
                         accessibilityRole="tab"
                         accessibilityState={{ selected: on }}
                         className="flex-row items-center justify-center"
-                        style={{ width: tabWidth, paddingVertical: 9, borderRadius: 12, backgroundColor: on ? C.blue : 'transparent', gap: 6 }}
+                        style={{ width: tabWidth, minHeight: 48, borderRadius: 12, backgroundColor: on ? C.blue : 'transparent', gap: 8 }}
                     >
-                        <Text className="font-outfit-bold" style={{ fontSize: 13, color: on ? '#FFFFFF' : C.muted }} numberOfLines={1}>{tab.label}</Text>
-                        <View className="items-center justify-center rounded-full" style={{ minWidth: 18, height: 18, paddingHorizontal: 5, backgroundColor: on ? 'rgba(255,255,255,0.24)' : tab.alert ? '#E53E3E' : C.blueSoft }}>
+                        <Text className="font-outfit-bold" style={{ fontSize: 15, color: on ? '#FFFFFF' : C.muted }} numberOfLines={1}>{tab.label}</Text>
+                        <View className="items-center justify-center rounded-full" style={{ minWidth: 24, height: 24, paddingHorizontal: 7, backgroundColor: on ? 'rgba(255,255,255,0.24)' : tab.alert ? '#E53E3E' : C.blueSoft }}>
                             <Text className="font-outfit-bold" style={{ fontSize: 13, color: on || tab.alert ? '#FFFFFF' : C.blue }}>{tab.count}</Text>
                         </View>
                     </TouchableOpacity>
@@ -412,6 +412,8 @@ export type AttentionItem = {
     /** The job it is about, as rows (replaces `sub` when present). */
     meta?: AttentionMeta;
     cta: string;
+    /** A setting to take care of (payouts), not something about the jobs: shown only while nothing about the jobs is waiting. */
+    setup?: boolean;
     /** Changes when the alert is a new one (e.g. another count), so a hidden alert can return. */
     signature?: string;
     /** The time left to deal with it, ticking. */
@@ -421,7 +423,9 @@ export type AttentionItem = {
     onPress: () => void;
 };
 
-const TONES = { amber: { bg: '#FFF4E0', fg: '#8A5200' }, blue: { bg: C.blueSoft, fg: C.blue } } as const;
+/** Every small label inside an alert (kind, time left) shares one look: a light chip with the alert's own colour, so the card reads as one family. */
+const CHIP_BG = 'rgba(255,255,255,0.78)';
+const TONES = { amber: { bg: '#FCE8BD', fg: '#8A5200' }, blue: { bg: '#DCE7FA', fg: C.blue } } as const;
 
 /** "Needs your attention": one tappable row per thing the technician should act on. */
 export function AttentionList({ items, hideLabel, onDismiss }: { items: AttentionItem[]; hideLabel?: string; onDismiss?: (item: AttentionItem) => void }) {
@@ -456,9 +460,9 @@ export function AttentionList({ items, hideLabel, onDismiss }: { items: Attentio
                             {a.meta ? (
                                 <View style={{ marginTop: 8, gap: 6 }} testID="attention-meta">
                                     <View className="flex-row items-center" style={{ gap: 8 }}>
-                                        <View className="flex-row items-center self-start" style={{ gap: 5, paddingLeft: 8, paddingRight: 10, paddingVertical: 4, borderRadius: 100, backgroundColor: a.meta.kind.bg }}>
-                                            <a.meta.kind.icon size={13} color={a.meta.kind.fg} />
-                                            <Text className="font-outfit-bold" style={{ fontSize: 12, lineHeight: 16, letterSpacing: 0.4, color: a.meta.kind.fg }}>{a.meta.kind.label}</Text>
+                                        <View className="flex-row items-center self-start" style={{ gap: 5, paddingLeft: 8, paddingRight: 10, paddingVertical: 4, borderRadius: 100, backgroundColor: CHIP_BG }}>
+                                            <a.meta.kind.icon size={13} color={tone.fg} />
+                                            <Text className="font-outfit-bold" style={{ fontSize: 12, lineHeight: 16, letterSpacing: 0.4, color: tone.fg }}>{a.meta.kind.label}</Text>
                                         </View>
                                         {a.meta.more ? <Text className="font-outfit-semibold" style={{ fontSize: 13, lineHeight: 17, color: C.muted }}>{a.meta.more}</Text> : null}
                                     </View>
@@ -478,7 +482,7 @@ export function AttentionList({ items, hideLabel, onDismiss }: { items: Attentio
                             ) : (
                                 <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: C.muted, marginTop: 2 }}>{a.sub}</Text>
                             )}
-                            {a.timer ? <AttentionTimer spec={a.timer} /> : null}
+                            {a.timer ? <AttentionTimer spec={a.timer} chip={{ bg: CHIP_BG, ink: tone.fg }} /> : null}
                             {a.quick ? <AttentionQuickButton quick={a.quick} /> : null}
                             <View className="flex-row items-center" style={{ gap: 16, marginTop: 10 }}>
                                 <View className="flex-row items-center" style={{ gap: 2, minHeight: 36, paddingLeft: 14, paddingRight: 8, borderRadius: 100, backgroundColor: tone.bg }}>

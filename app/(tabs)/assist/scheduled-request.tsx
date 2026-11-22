@@ -44,7 +44,7 @@ export default function ScheduledRequestScreen() {
     const keyboardOpen = useKeyboardOpen();
     const { t, i18n } = useTranslation();
     const router = useRouter();
-    const { requestId } = useLocalSearchParams<{ requestId: string }>();
+    const { requestId, decline } = useLocalSearchParams<{ requestId: string; decline?: string }>();
 
     const [request, setRequest] = useState<MarketplaceRequest | null>(null);
     const [loading, setLoading] = useState(true);
@@ -101,7 +101,7 @@ export default function ScheduledRequestScreen() {
                 if (status === 'accepted') return 'awarded';
                 if (status === 'not_selected') return 'notselected';
                 if (status === 'expired' || status === 'withdrawn') return 'closed';
-                if (status === 'submitted') return 'sent';
+                if (status === 'submitted') return decline ? 'decline' : 'sent';
                 return cur;
             });
         } catch (error) {
@@ -235,7 +235,8 @@ export default function ScheduledRequestScreen() {
                         </View>
                     </View>
                     <SummaryRow icon={Calendar} label={t('scheduledProvider.when')} value={whenLabel || '—'} sub={notes.window ? t('scheduledProvider.between', { window: notes.window }) : undefined} />
-                    <SummaryRow icon={Lock} label={notes.mode === 'workshop' ? t('scheduledProvider.locationShop') : t('scheduledProvider.locationClient')} value={[request.zip, dist && t('scheduledProvider.away', { distance: dist })].filter(Boolean).join(' · ') || '—'} sub={t('scheduledProvider.areaHint')} last />
+                    <SummaryRow icon={Lock} label={notes.mode === 'workshop' ? t('scheduledProvider.locationShop') : t('scheduledProvider.locationClient')} value={request.zip || '—'} sub={t('scheduledProvider.areaHint')} last={!dist} />
+                    {dist ? <SummaryRow icon={Clock} label={t('scheduledProvider.distance')} value={dist} last /> : null}
                 </View>
 
                 {notes.symptoms || photos.length > 0 ? (
@@ -258,16 +259,6 @@ export default function ScheduledRequestScreen() {
                                 </View>
                             </>
                         ) : null}
-                    </View>
-                ) : null}
-
-                {dist ? (
-                    <View className="flex-row" style={{ borderRadius: 16, backgroundColor: SC.blueSoft, padding: 14, gap: 10 }}>
-                        <IconBox icon={Clock} size={32} white />
-                        <View>
-                            <Text className="font-outfit-bold" style={{ fontSize: 12, letterSpacing: 0.8, color: SC.blue }}>{t('scheduledProvider.distance')}</Text>
-                            <Text className="font-outfit-bold" style={{ fontSize: 15, color: SC.blueDark, marginTop: 1 }}>{dist}</Text>
-                        </View>
                     </View>
                 ) : null}
         </>
@@ -378,22 +369,8 @@ export default function ScheduledRequestScreen() {
                             <Text className="font-outfit-bold" style={{ fontSize: 12, lineHeight: 16, letterSpacing: 1, color: SC.blue }}>{t('scheduledProvider.sent.total').toUpperCase()}</Text>
                             <Text className="font-outfit-bold" style={{ fontSize: 32, lineHeight: 38, letterSpacing: -0.8, color: SC.blueDark }}>{money(sentPrice)}</Text>
                         </View>
-                        {mine?.proposedStart || warrantyId ? (
-                            <View style={{ paddingHorizontal: 16, paddingBottom: 14, gap: 10 }}>
-                                {mine?.proposedStart ? (
-                                    <View className="flex-row items-center" style={{ gap: 10 }}>
-                                        <Calendar size={16} color={SC.muted} />
-                                        <Text className="font-outfit-semibold flex-1" style={{ fontSize: 14, lineHeight: 20, color: SC.text }}>{t('scheduledProvider.sentRows.arrival')}: {slotOf(mine.proposedStart)}</Text>
-                                    </View>
-                                ) : null}
-                                {warrantyId ? (
-                                    <View className="flex-row items-center" style={{ gap: 10 }}>
-                                        <ShieldCheck size={16} color={SC.muted} />
-                                        <Text className="font-outfit-semibold flex-1" style={{ fontSize: 14, lineHeight: 20, color: SC.text }}>{t('scheduledProvider.review.warranty')}: {t(`scheduledProvider.warranties.${warrantyId}`)}</Text>
-                                    </View>
-                                ) : null}
-                            </View>
-                        ) : null}
+                        {mine?.proposedStart ? <SummaryRow icon={Calendar} label={t('scheduledProvider.sentRows.arrival')} value={slotOf(mine.proposedStart)} /> : null}
+                        {warrantyId ? <SummaryRow icon={ShieldCheck} label={t('scheduledProvider.sentRows.warranty')} value={t(`scheduledProvider.warranties.${warrantyId}`)} last={!sent.message} /> : null}
                         {sent.message ? (
                             <View className="flex-row" style={{ margin: 12, marginTop: 0, padding: 12, borderRadius: 12, backgroundColor: SC.blueSofter, gap: 10 }}>
                                 <IconBox icon={MessageSquare} size={30} />
@@ -434,7 +411,7 @@ export default function ScheduledRequestScreen() {
                 </ScrollView>
                 <ActionBar>
                     <Primary label={t('scheduledProvider.decline.action')} disabled={!reason} onPress={async () => { await declineRequest(request.id); setView('declined'); }} />
-                    <Ghost label={t('scheduledProvider.decline.cancel')} onPress={() => setView('details')} />
+                    <Ghost label={t('scheduledProvider.decline.cancel')} onPress={() => setView(mine?.status === 'submitted' ? 'sent' : 'details')} />
                 </ActionBar>
             </View>
         );
@@ -629,11 +606,11 @@ export default function ScheduledRequestScreen() {
                 </View>
 
                 {requestDetails}
+                <Ghost label={t('scheduledProvider.decline.cta')} onPress={() => setView('decline')} />
                 <Text className="font-outfit-regular text-center" style={{ fontSize: 13, lineHeight: 19, color: SC.mutedLight }}>{t('scheduledProvider.id', { id: refLabel(request.refCode, request.id) })}</Text>
             </ScrollView>
             <ActionBar>
                 <Primary label={t('scheduledProvider.sendQuoteCta')} onPress={() => setView('quote')} />
-                <Ghost label={t('scheduledProvider.decline.cta')} onPress={() => setView('decline')} />
             </ActionBar>
         </View>
     );

@@ -441,3 +441,7 @@ Guardar una certificación devuelve `403 "Call this through the API gateway (/ap
 ## AK — `refCode` en `POST /api/assistance/summaries` y `GET /marketplace/requests`
 La app muestra el código del pedido (`AS-XXXXXX`) al pie de cada pago, cobro y movimiento de wallet. `summaries` devuelve título, dirección y fecha pero no `refCode`, así que hoy se ve el inicio del id (`#a1b2c3d4`). Pedido: agregar `refCode` a la respuesta (opcional en la app: `AssistanceSummary.refCode?`).
 También en `GET /marketplace/requests` (vista del prestador): la tarjeta «Your quotes» muestra el código del pedido.
+
+## AL — `createdAt` en `GET /marketplace/requests` (y `myOffer.createdAt`)
+La tarjeta de «New requests» del técnico muestra cuánto hace que el cliente publicó el pedido («5 min ago», «2 h ago», «1 d ago»), como el feed inmediato. `GET /marketplace/requests` no devuelve la fecha de publicación (`date` es el día del servicio pedido, futuro), así que hoy la app no puede mostrar esa línea. Pedido: agregar `createdAt` (ISO) a cada request de la vista del prestador. La app ya lo lee (`MarketplaceRequest.createdAt` → `AssistanceRequest.createdAt`) y mostrará el tiempo apenas llegue.
+Además `myOffer.createdAt` (cuándo se envió el quote): la app lo usa para ordenar «Your quotes» por fecha de envío; si falta, esos quotes quedan al final.

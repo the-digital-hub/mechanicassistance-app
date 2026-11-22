@@ -40,7 +40,7 @@ describe('toFeedRequest', () => {
 
     it('maps to a scheduled pending card without a street', () => {
         const r = toFeedRequest(m);
-        expect(r).toMatchObject({ id: 'r1', type: 'scheduled', status: 'pending', car: '2021 Toyota Corolla', address: '33101', distance: '3.2 mi', locationLat: 25.77, locationLng: -80.19 });
+        expect(r).toMatchObject({ id: 'r1', type: 'scheduled', status: 'pending', car: 'Toyota Corolla (2021)', address: '33101', distance: '3.2 mi', locationLat: 25.77, locationLng: -80.19 });
     });
 
     it('falls back to the first service names as title', () => {

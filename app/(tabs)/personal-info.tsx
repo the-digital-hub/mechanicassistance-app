@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Image, KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TouchableOpacity, View, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { appAlert } from '@/lib/ui/appAlert';
+import { TYPE } from '@/lib/ui/type';
 import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 import { SlideModal } from '@/components/ui/SlideModal';
 
@@ -404,13 +405,13 @@ export default function PersonalInfoScreen() {
                                     end={{ x: 1, y: 0 }}
                                     style={{
                                         borderRadius: 14,
-                                        paddingVertical: 16,
+                                        minHeight: 56,
                                         paddingHorizontal: 16,
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                     }}
                                 >
-                                    <Text className="text-white font-outfit-bold text-center">{t('personalInfo.close')}</Text>
+                                    <Text className="text-white font-outfit-bold text-center" style={TYPE.button}>{t('personalInfo.close')}</Text>
                                 </LinearGradient>
                             </TouchableOpacity>
                         </View>

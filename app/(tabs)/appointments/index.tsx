@@ -129,11 +129,12 @@ export default function AppointmentsScreen() {
                         </View>
 
                         {/* Title */}
-                        <Text className="text-gray-900 font-outfit-medium text-3xl">{t(user?.role === 'mechanic' ? 'appointments.list.title' : 'appointments.list.titleOwner')}</Text>
+                        <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">{t(user?.role === 'mechanic' ? 'appointments.list.title' : 'appointments.list.titleOwner')}</Text>
+                        <Text className="text-gray-500 font-outfit-regular text-base" style={{ marginBottom: 8 }}>{t('appointments.list.subtitle')}</Text>
 
                         {/* Tab switcher: Upcoming and Past, always, so the history is one tap away and never the first thing shown */}
                             <View style={{ marginTop: 16 }}>
-                                <RequestTypeTabs tabs={tabs} selected={activeTab} onSelect={setSelectedTab} horizontalInset={40} />
+                                <RequestTypeTabs tabs={tabs} selected={activeTab} onSelect={setSelectedTab} slots={2} horizontalInset={40} />
                             </View>
 
                         {showFilters ? (

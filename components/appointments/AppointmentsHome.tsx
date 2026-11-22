@@ -3,6 +3,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, TouchableOpacity, View } from 'react-native';
 
+import { EmptyStateIcon } from '@/components/ui/EmptyStateIcon';
 import { TYPE } from '@/lib/ui/type';
 
 const INK = { text: '#0B1530', muted: '#6B7490', border: '#EEF2FA' };
@@ -43,11 +44,7 @@ export function AppointmentsHome({ isMechanic, completed, cancelled, quotes, onO
     return (
         <View style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 12, gap: 16 }} testID="appointments-home">
             <View className="items-center" style={{ gap: 10, paddingVertical: 18 }}>
-                <View className="items-center justify-center" style={{ width: 88, height: 88, borderRadius: 44, backgroundColor: '#EAF1FF' }}>
-                    <View className="items-center justify-center" style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: '#FFFFFF', shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 12, elevation: 4 }}>
-                        <CalendarCheck size={28} color="#1E56E3" />
-                    </View>
-                </View>
+                <EmptyStateIcon icon={CalendarCheck} />
                 <Text className="font-outfit-bold text-center" style={{ fontSize: 20, lineHeight: 26, color: INK.text }}>{t(`${k}.title`)}</Text>
                 <Text className="font-outfit-regular text-center" style={{ ...TYPE.helper, color: INK.muted, maxWidth: 300 }}>{t(isMechanic ? `${k}.bodyMechanic` : `${k}.bodyOwner`)}</Text>
             </View>

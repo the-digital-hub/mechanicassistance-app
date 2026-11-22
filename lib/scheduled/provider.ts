@@ -26,10 +26,12 @@ export function feedProblem(code: string | undefined): FeedProblem {
     }
 }
 
-/** "2021 Toyota Corolla", skipping whatever is missing. */
+/** "Toyota Corolla (2021)": make, model and the year in parentheses, skipping whatever is missing. */
 export function vehicleLabel(m: MarketplaceRequest): string {
     const v = m.vehicle;
-    return [v?.year, v?.make, v?.model].filter((x) => x !== undefined && x !== null && x !== '').join(' ');
+    const has = (x: unknown) => x !== undefined && x !== null && x !== '';
+    const name = [v?.make, v?.model].filter(has).join(' ');
+    return has(v?.year) ? (name ? `${name} (${v?.year})` : String(v?.year)) : name;
 }
 
 /** "3.2 mi away", or empty when the distance is unknown. */
@@ -70,11 +72,12 @@ export function toFeedRequest(m: MarketplaceRequest): AssistanceRequest {
         price: m.myOffer?.price ?? undefined,
         distance: distanceLabel(m.distanceMiles) || undefined,
         date: m.date ?? undefined,
+        createdAt: m.createdAt ?? undefined,
         status: 'pending',
         locationLat: typeof lat === 'number' ? lat : undefined,
         locationLng: typeof lng === 'number' ? lng : undefined,
         offersCloseAt: m.offersCloseAt ?? null,
-        myQuote: m.myOffer ? { price: m.myOffer.price ?? null, status: m.myOffer.status ?? null, validUntil: m.myOffer.validUntil ?? null } : null,
+        myQuote: m.myOffer ? { price: m.myOffer.price ?? null, status: m.myOffer.status ?? null, validUntil: m.myOffer.validUntil ?? null, createdAt: m.myOffer.createdAt ?? null } : null,
     };
 }
 

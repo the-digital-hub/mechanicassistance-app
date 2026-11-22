@@ -336,7 +336,7 @@ export default function DashboardScreen() {
         const attentionItems: AttentionItem[] = [];
         if (payoutsReady === false) {
             attentionItems.push({
-                id: 'payouts', tone: 'amber', icon: CreditCard,
+                id: 'payouts', setup: true, tone: 'amber', icon: CreditCard,
                 title: t('dashboard.mechanic.attention.payouts.title'),
                 sub: t('dashboard.mechanic.attention.payouts.sub'),
                 cta: t('dashboard.mechanic.attention.payouts.cta'),
@@ -347,10 +347,10 @@ export default function DashboardScreen() {
         const jobMeta = (job: { assistanceType?: string; type?: string; title?: string; car?: string }, more?: string): AttentionMeta => {
             const kind = assistanceKind(job as Parameters<typeof assistanceKind>[0]);
             const look = {
-                immediate: { label: t('dashboard.mechanic.tabs.immediate'), icon: Zap, bg: '#FEE2E2', fg: '#B91C1C' },
-                scheduled: { label: t('dashboard.mechanic.tabs.scheduled'), icon: Calendar, bg: '#EDE9FE', fg: '#6D28D9' },
-                videocall: { label: t('dashboard.mechanic.tabs.video'), icon: Video, bg: '#DBEAFE', fg: '#1D4ED8' },
-                accident: { label: t('appointments.detail.types.accident'), icon: AlertTriangle, bg: '#FEF3C7', fg: '#92400E' },
+                immediate: { label: t('dashboard.mechanic.tabs.immediate'), icon: Zap, bg: '#FECACA', fg: '#B91C1C' },
+                scheduled: { label: t('dashboard.mechanic.tabs.scheduled'), icon: Calendar, bg: '#DDD6FE', fg: '#6D28D9' },
+                videocall: { label: t('dashboard.mechanic.tabs.video'), icon: Video, bg: '#BFDBFE', fg: '#1D4ED8' },
+                accident: { label: t('appointments.detail.types.accident'), icon: AlertTriangle, bg: '#FDE68A', fg: '#92400E' },
             }[kind];
             return { kind: look, title: splitJobTitle(job.title ?? '').main || undefined, vehicle: job.car || undefined, more };
         };
@@ -417,7 +417,10 @@ export default function DashboardScreen() {
             });
         }
 
-        const shownAttention = visibleAttention(attentionItems, attention.dismissed);
+        // What is waiting on the jobs (scanner reports, ratings, offers, quotes) is what matters here: a setting such as the payouts steps aside
+        // while any of those is showing, and comes back when nothing about the jobs is waiting, so the area stays small.
+        const shownAll = visibleAttention(attentionItems, attention.dismissed);
+        const shownAttention = shownAll.some((i) => !i.setup) ? shownAll.filter((i) => !i.setup) : shownAll;
 
         return (
             <View className="flex-1">

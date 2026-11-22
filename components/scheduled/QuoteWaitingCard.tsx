@@ -1,4 +1,4 @@
-import { Calendar, Car, MapPin } from 'lucide-react-native';
+import { Calendar, Car, DollarSign, MapPin } from 'lucide-react-native';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, TouchableOpacity, View } from 'react-native';
@@ -11,6 +11,11 @@ import { TYPE } from '@/lib/ui/type';
 import { splitJobTitle } from '@/lib/ui/jobTitle';
 
 const INK = { text: '#0B1530', muted: '#6B7490', faint: '#9CA3AF', blue: '#1E56E3', blueDark: '#0B2A8E', blueSoft: '#EAF1FF', line: '#EEF2FA' };
+
+/** A thin separator with rounded ends, between the blocks of the card. */
+function Divider() {
+    return <View style={{ height: 2, borderRadius: 1, backgroundColor: INK.line }} />;
+}
 
 /** A line of the card: its icon in a small tile and the text next to it. */
 function Row({ icon: Icon, children }: { icon: typeof Car; children: React.ReactNode }) {
@@ -28,7 +33,7 @@ function Row({ icon: Icon, children }: { icon: typeof Car; children: React.React
  * A scheduled request this technician already quoted, in "Your quotes": what it is, the vehicle, when it is wanted and where, the amount
  * sent in its own block and how long the customer still has to decide. One button: it opens the sent quote, where it can also be edited.
  */
-export function QuoteWaitingCard({ request, onOpen }: { request: AssistanceRequest; onOpen: (id: string) => void }) {
+export function QuoteWaitingCard({ request, onOpen, onDecline }: { request: AssistanceRequest; onOpen: (id: string) => void; onDecline?: (id: string) => void }) {
     const { t } = useTranslation();
     const issue = splitJobTitle(request.title).main || request.title;
     const price = request.myQuote?.price ? `$${Number(request.myQuote.price).toFixed(2)}` : null;
@@ -47,43 +52,47 @@ export function QuoteWaitingCard({ request, onOpen }: { request: AssistanceReque
                 <View className="flex-1" style={{ minWidth: 0 }}>
                     <Text className="font-outfit-bold" style={{ fontSize: 12, lineHeight: 16, letterSpacing: 0.8, color: INK.muted }}>{t('requestAssistance.header.scheduled').toUpperCase()}</Text>
                     <Text className="font-outfit-bold" style={{ fontSize: 17, lineHeight: 22, color: INK.text }} numberOfLines={2}>{issue}</Text>
+                    {/* The time left is a status badge, right under what the request is (the pill brings its own clock and top margin). */}
+                    {request.offersCloseAt ? (
+                        <View style={{ marginTop: -4 }}>
+                            <AttentionTimer spec={{ deadline: request.offersCloseAt, urgentUnderMinutes: 120, label: (time) => t('scheduledProvider.quoteCard.decides', { time }) }} />
+                        </View>
+                    ) : null}
                 </View>
             </View>
 
-            <View style={{ height: 1, backgroundColor: INK.line }} />
+            <Divider />
 
-            <View style={{ gap: 10 }}>
+            <View style={{ gap: 12 }}>
                 {request.car ? (
                     <Row icon={Car}>
                         <Text className="font-outfit-semibold" style={{ fontSize: 15, lineHeight: 21, color: INK.text }} numberOfLines={1}>{request.car}</Text>
                     </Row>
                 ) : null}
+                {request.car && (when.days || when.window) ? <Divider /> : null}
                 {when.days || when.window ? (
                     <Row icon={Calendar}>
                         {when.days ? <Text className="font-outfit-semibold" style={{ fontSize: 15, lineHeight: 21, color: INK.text }}>{when.days}</Text> : null}
                         {when.window ? <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: INK.muted }}>{when.window}</Text> : null}
                     </Row>
                 ) : null}
+                {area && (request.car || when.days || when.window) ? <Divider /> : null}
                 {area ? (
                     <Row icon={MapPin}>
                         <Text className="font-outfit-semibold" style={{ fontSize: 15, lineHeight: 21, color: INK.text }} numberOfLines={1}>{area}</Text>
                     </Row>
                 ) : null}
+                {/* The amount sent is one more line of the card, not a box inside it. */}
+                {price && (request.car || when.days || when.window || area) ? <Divider /> : null}
+                {price ? (
+                    <Row icon={DollarSign}>
+                        <Text className="font-outfit-semibold" style={{ fontSize: 13, lineHeight: 17, color: INK.muted }}>{t('scheduledProvider.quoteCard.sent')}</Text>
+                        <Text className="font-outfit-bold" style={{ fontSize: 22, lineHeight: 28, letterSpacing: -0.4, color: INK.blueDark }}>{price}</Text>
+                    </Row>
+                ) : null}
             </View>
 
-            {price ? (
-                <View style={{ padding: 14, borderRadius: 16, backgroundColor: INK.blueSoft }}>
-                    <Text className="font-outfit-bold" style={{ fontSize: 12, lineHeight: 16, letterSpacing: 1, color: INK.blue }}>{t('scheduledProvider.quoteCard.sent').toUpperCase()}</Text>
-                    <Text className="font-outfit-bold" style={{ fontSize: 30, lineHeight: 36, letterSpacing: -0.7, color: INK.blueDark }}>{price}</Text>
-                </View>
-            ) : null}
-
-            {request.offersCloseAt ? (
-                // The pill brings its own clock and top margin: pulled back up to the card's own rhythm.
-                <View style={{ marginTop: -10 }}>
-                    <AttentionTimer spec={{ deadline: request.offersCloseAt, urgentUnderMinutes: 120, label: (time) => t('scheduledProvider.quoteCard.decides', { time }) }} />
-                </View>
-            ) : null}
+            <Divider />
 
             <TouchableOpacity
                 onPress={() => onOpen(request.id)}
@@ -95,6 +104,19 @@ export function QuoteWaitingCard({ request, onOpen }: { request: AssistanceReque
             >
                 <Text className="font-outfit-bold text-white" style={TYPE.button}>{t('scheduledProvider.quoteCard.open')}</Text>
             </TouchableOpacity>
+
+            {onDecline ? (
+                <TouchableOpacity
+                    onPress={() => onDecline(request.id)}
+                    activeOpacity={0.85}
+                    accessibilityRole="button"
+                    className="items-center justify-center"
+                    style={{ minHeight: 56, borderRadius: 14, backgroundColor: '#E6EAF2' }}
+                    testID={`quote-decline-${request.id}`}
+                >
+                    <Text className="font-outfit-bold" style={{ ...TYPE.button, color: '#4A5470' }}>{t('scheduledProvider.decline.cta')}</Text>
+                </TouchableOpacity>
+            ) : null}
 
             <Text className="font-outfit-regular text-center" style={{ fontSize: 12, lineHeight: 16, color: INK.faint }} selectable>{refLabel(request.refCode, request.id)}</Text>
         </View>

@@ -52,7 +52,7 @@ export function formatTimeLeft(ms: number, t: (key: string, opts?: Record<string
     return t('dashboard.attention.timer.minutes', { minutes });
 }
 
-export function AttentionTimer({ spec }: { spec: AttentionTimerSpec }) {
+export function AttentionTimer({ spec, chip }: { spec: AttentionTimerSpec; /** Inside an alert card: the chip's colours, instead of the amber/red ones. */ chip?: { bg: string; ink: string } }) {
     const { t } = useTranslation();
     const [now, setNow] = React.useState(() => Date.now());
     const end = Date.parse(spec.deadline);
@@ -65,9 +65,9 @@ export function AttentionTimer({ spec }: { spec: AttentionTimerSpec }) {
     }, [fast]);
     if (!Number.isFinite(end) || left <= 0) return null;
     const urgent = left < (spec.urgentUnderMinutes ?? 120) * 60_000;
-    const ink = urgent ? '#B4231E' : '#8A5A12';
+    const ink = chip ? (urgent ? '#B4231E' : chip.ink) : urgent ? '#B4231E' : '#8A5A12';
     return (
-        <View className="flex-row items-center self-start" style={{ gap: 6, marginTop: 10, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 100, backgroundColor: urgent ? '#FDECEC' : '#FEF4E2' }} testID="attention-timer">
+        <View className="flex-row items-center self-start" style={{ gap: 6, marginTop: 10, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 100, backgroundColor: chip ? chip.bg : urgent ? '#FAD4D4' : '#FCE3B5' }} testID="attention-timer">
             <Clock size={14} color={ink} />
             <Text className="font-outfit-bold" style={{ fontSize: 13, color: ink, ...(fast ? { fontVariant: ['tabular-nums' as const] } : null) }}>{spec.label(formatTimeLeft(left, t))}</Text>
         </View>

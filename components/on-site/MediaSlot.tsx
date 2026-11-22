@@ -164,13 +164,14 @@ export function MediaSlot({
     };
 
     const pick = () => {
-        const options: { text: string; onPress?: () => void; style?: 'cancel' }[] = [
-            { text: t('appointments.onSite.common.camera'), onPress: fromCamera },
-            { text: t('appointments.onSite.common.library'), onPress: fromLibrary },
+        // A choice among equals: plain soft buttons, and a red Cancel.
+        const options: { text: string; onPress?: () => void; style?: 'cancel' | 'secondary'; icon?: string }[] = [
+            { text: t('appointments.onSite.common.camera'), onPress: fromCamera, style: 'secondary' },
+            { text: t('appointments.onSite.common.library'), onPress: fromLibrary, style: 'secondary' },
         ];
-        if (kind === 'file') options.push({ text: t('appointments.onSite.common.files'), onPress: fromFiles });
+        if (kind === 'file') options.push({ text: t('appointments.onSite.common.files'), onPress: fromFiles, style: 'secondary' });
         options.push({ text: t('appointments.onSite.common.cancel'), style: 'cancel' });
-        appAlert(placeholder, undefined, options);
+        appAlert(title ?? placeholder, title ? placeholder : undefined, options, { icon: kind === 'video' ? 'videocam-outline' : kind === 'file' ? 'cloud-upload-outline' : 'camera-outline' });
     };
 
     const remove = async () => {
@@ -204,7 +205,47 @@ export function MediaSlot({
                     : t('appointments.onSite.common.pending');
     const statusColor = state === 'error' ? OS.red : filled ? OS.greenDark : OS.mutedLight;
 
-    if (tile) {
+    // A document that is in (the scanner report): not a big tile, one line: its icon, its name, that it was uploaded, and the way to remove it.
+    if (compact && picked && !picked.isVideo && !isImagePreview) {
+        const bad = state === 'error';
+        return (
+            <View className={padded ? 'p-4' : ''}>
+                <View className="flex-row items-center" style={{ gap: 12 }} testID="file-uploaded-row">
+                    <View className="items-center justify-center" style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: bad ? OS.redSoft : filled ? OS.greenSoft : OS.blueSoft }}>
+                        <Ionicons name="document-text-outline" size={24} color={bad ? OS.red : filled ? OS.greenDark : OS.blue} />
+                    </View>
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                        <Text className="font-outfit-bold" style={{ fontSize: 15, lineHeight: 20, color: OS.text }} numberOfLines={1}>{picked.name ?? title}</Text>
+                        <View className="flex-row items-center" style={{ gap: 5 }}>
+                            <Ionicons name={bad ? 'alert-circle' : filled ? 'checkmark-circle' : 'cloud-upload-outline'} size={15} color={bad ? OS.red : filled ? OS.greenDark : OS.muted} />
+                            <Text className="font-outfit-semibold" style={{ fontSize: 14, lineHeight: 19, color: bad ? OS.red : filled ? OS.greenDark : OS.muted }}>
+                                {bad ? t('appointments.onSite.common.uploadFailed') : state === 'uploading' ? t('appointments.onSite.common.uploading') : t('appointments.onSite.common.uploaded')}
+                            </Text>
+                        </View>
+                    </View>
+                    {state === 'uploading' ? <ActivityIndicator color={OS.blue} /> : bad ? (
+                        <TouchableOpacity onPress={() => void upload(picked)} hitSlop={8} accessibilityRole="button" className="items-center justify-center" style={{ minHeight: 40, paddingHorizontal: 14, borderRadius: 12, backgroundColor: OS.blueSoft }}>
+                            <Text className="font-outfit-bold" style={{ fontSize: 14, color: OS.blue }}>{t('appointments.onSite.common.retry')}</Text>
+                        </TouchableOpacity>
+                    ) : (
+                        <TouchableOpacity
+                            onPress={() => void (onDeleteSlot ? (mediaId ? remove().then(onDeleteSlot) : onDeleteSlot()) : remove())}
+                            hitSlop={8}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('appointments.onSite.common.remove')}
+                            className="items-center justify-center"
+                            style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#EEF1F6' }}
+                        >
+                            <Ionicons name="close" size={18} color="#4B5563" />
+                        </TouchableOpacity>
+                    )}
+                </View>
+            </View>
+        );
+    }
+
+    // A tile that is empty AND asks for the compact card shows the card; once something is picked it is the tile (the file card, the photo).
+    if (tile && !(compact && !picked)) {
         const icon = tileIcon ?? (kind === 'video' ? 'videocam-outline' : 'camera-outline');
         return (
             <View style={{ flex: 1, minWidth: 140 }}>

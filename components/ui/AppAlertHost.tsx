@@ -1,11 +1,31 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal, Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Modal, Platform, Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { FullWindowOverlay } from 'react-native-screens';
 
 import { OS, cardShadow } from '@/components/on-site/ui';
 import { type AppAlertButton, type AppAlertRequest, dismissAppAlert, subscribeAppAlerts } from '@/lib/ui/appAlert';
 import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
+
+/**
+ * Where the alert is drawn. On iOS a Modal cannot open over another Modal that is already showing (a bottom sheet): the alert simply never
+ * appeared. A window of its own above everything (`FullWindowOverlay`) does, so the app's designed dialog shows over sheets too.
+ */
+function AlertLayer({ visible, onRequestClose, onDismiss, children }: { visible: boolean; onRequestClose: () => void; onDismiss: () => void; children: React.ReactNode }) {
+    if (Platform.OS === 'ios') {
+        return visible ? (
+            <FullWindowOverlay>
+                <View style={{ position: 'absolute', width: '100%', height: '100%' }}>{children}</View>
+            </FullWindowOverlay>
+        ) : null;
+    }
+    return (
+        <Modal supportedOrientations={MODAL_ORIENTATIONS} visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onRequestClose} onDismiss={onDismiss}>
+            {children}
+        </Modal>
+    );
+}
 
 /** Draws `appAlert` calls with the app's dialog design. Mount once, at the root. */
 export function AppAlertHost() {
@@ -63,7 +83,7 @@ export function AppAlertHost() {
     };
 
     return (
-        <Modal supportedOrientations={MODAL_ORIENTATIONS} visible={!!current} transparent animationType="fade" statusBarTranslucent onRequestClose={dismiss} onDismiss={() => pending.run?.()}>
+        <AlertLayer visible={!!current} onRequestClose={dismiss} onDismiss={() => pending.run?.()}>
             <View className="flex-1 items-center justify-center px-5" style={{ backgroundColor: 'rgba(11,21,48,0.55)' }} testID="app-alert">
                 <Pressable style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }} onPress={dismiss} accessible={false} />
                 <View className="w-full" style={[cardShadow, { maxWidth: 400, borderRadius: 24, padding: 20, maxHeight: '80%' }]}>
@@ -96,33 +116,46 @@ export function AppAlertHost() {
                         <Text className="font-outfit-regular text-center" style={{ fontSize: 12, lineHeight: 16, color: '#9CA3AF', marginTop: 10 }} selectable testID="app-alert-ref">{shown.options.highlight.ref}</Text>
                     ) : null}
 
-                    {(okOnly ? [{ text: t('common.ok') } as AppAlertButton] : actions).map((b, i) => (
-                        <TouchableOpacity
-                            key={`${b.text}-${i}`}
-                            onPress={() => press(okOnly ? buttons[0] : b)}
-                            activeOpacity={0.85}
-                            accessibilityRole="button"
-                            className="items-center justify-center"
-                            style={{ minHeight: 56, borderRadius: 14, marginTop: i === 0 ? 20 : 8, backgroundColor: b.style === 'destructive' ? OS.red : OS.blue }}
-                            testID={i === 0 ? 'app-alert-primary' : undefined}
-                        >
-                            <Text className="font-outfit-bold text-white" style={{ fontSize: 18, lineHeight: 24 }}>{b.text}</Text>
-                        </TouchableOpacity>
-                    ))}
+                    {(okOnly ? [{ text: t('common.ok') } as AppAlertButton] : actions).map((b, i) => {
+                        const soft = b.style === 'secondary';
+                        return (
+                            <TouchableOpacity
+                                key={`${b.text}-${i}`}
+                                onPress={() => press(okOnly ? buttons[0] : b)}
+                                activeOpacity={0.85}
+                                accessibilityRole="button"
+                                className="flex-row items-center"
+                                // With an icon the row reads left to right (the squares line up in a column); without, the label is centred.
+                                style={{ gap: 12, minHeight: 56, justifyContent: b.icon ? 'flex-start' : 'center', paddingHorizontal: b.icon ? 10 : 0, borderRadius: 14, marginTop: i === 0 ? 20 : 8, backgroundColor: soft ? '#E6EAF2' : b.style === 'destructive' ? OS.red : OS.blue }}
+                                testID={i === 0 ? 'app-alert-primary' : undefined}
+                            >
+                                {b.icon ? (
+                                    // The icon in its little rounded square, as everywhere else in the app.
+                                    <View className="items-center justify-center" style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: soft ? '#FFFFFF' : 'rgba(255,255,255,0.2)' }}>
+                                        <Ionicons name={b.icon as React.ComponentProps<typeof Ionicons>['name']} size={20} color={soft ? OS.blue : '#FFFFFF'} />
+                                    </View>
+                                ) : null}
+                                <Text className="font-outfit-bold" style={{ fontSize: 18, lineHeight: 24, color: soft ? '#4A5470' : '#FFFFFF' }}>{b.text}</Text>
+                            </TouchableOpacity>
+                        );
+                    })}
                     {cancel ? (
                         <TouchableOpacity
                             onPress={() => press(cancel)}
                             activeOpacity={0.7}
                             accessibilityRole="button"
                             className="items-center justify-center"
-                            style={{ minHeight: 56, borderRadius: 14, backgroundColor: '#E6EAF2', marginTop: actions.length ? 8 : 20 }}
+                            // A choice among soft buttons ends in a plain red "Cancel" (the red of the app's ways out), not one more button.
+                            style={actions.length > 0 && actions.every((b) => b.style === 'secondary')
+                                ? { minHeight: 52, marginTop: 4 }
+                                : { minHeight: 56, borderRadius: 14, backgroundColor: '#E6EAF2', marginTop: actions.length ? 8 : 20 }}
                             testID="app-alert-cancel"
                         >
-                            <Text className="font-outfit-bold" style={{ fontSize: 18, lineHeight: 24, color: '#4A5470' }}>{cancel.text ?? t('common.cancel')}</Text>
+                            <Text className="font-outfit-bold" style={{ fontSize: 18, lineHeight: 24, color: actions.length > 0 && actions.every((b) => b.style === 'secondary') ? OS.red : '#4A5470' }}>{cancel.text ?? t('common.cancel')}</Text>
                         </TouchableOpacity>
                     ) : null}
                 </View>
             </View>
-        </Modal>
+        </AlertLayer>
     );
 }
