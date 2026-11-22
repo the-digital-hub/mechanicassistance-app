@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, Text, TouchableOpacity, View } from 'react-native';
+import { Image, LayoutAnimation, Text, TouchableOpacity, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { OwnerRouteMap } from './OwnerRouteMap';
 import { type ChatAvailability } from '@/lib/chat/chatAvailability';
@@ -286,6 +286,9 @@ export function OwnerVisitTimeline({ status, departed, stage, minutesAway, arriv
         : onSite
         ? stage === 'wrapping' ? 5 : stage === 'fixing' ? 4 : 3
         : 1;
+    // Once the assistance is over nobody needs the whole path: it stays folded, and opens on tap.
+    const [open, setOpen] = React.useState(!completed);
+    React.useEffect(() => { setOpen(!completed); }, [completed]);
     const arrivedSub = arrivedAt ? formatLocalDateTime(arrivedAt, i18n.language) : t(`${P}.arrivedSub`);
 
     const steps: { key: string; title: string; sub: string }[] = [
@@ -311,7 +314,20 @@ export function OwnerVisitTimeline({ status, departed, stage, minutesAway, arriv
 
     return (
         <View style={[card, { padding: 18 }]} testID="owner-visit-timeline">
-            {steps.map((step, i) => {
+            <TouchableOpacity
+                onPress={() => { LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut); setOpen((v) => !v); }}
+                disabled={!completed}
+                activeOpacity={0.7}
+                accessibilityRole={completed ? 'button' : 'header'}
+                accessibilityState={completed ? { expanded: open } : undefined}
+                className="flex-row items-center justify-between"
+                style={{ marginBottom: open ? 16 : 0 }}
+                testID="owner-visit-timeline-toggle"
+            >
+                <Text className="font-outfit-bold" style={{ fontSize: 18, lineHeight: 24, color: AO.text }}>{t(`${P}.title`)}</Text>
+                {completed ? <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={22} color={AO.muted} /> : null}
+            </TouchableOpacity>
+            {open ? steps.map((step, i) => {
                 const last = i === steps.length - 1;
                 const state: TimelineState = i < current ? 'done' : i === current ? 'current' : 'pending';
                 const done = state === 'done';
@@ -334,7 +350,7 @@ export function OwnerVisitTimeline({ status, departed, stage, minutesAway, arriv
                         </View>
                     </View>
                 );
-            })}
+            }) : null}
         </View>
     );
 }

@@ -14,7 +14,7 @@ import { ObdPanel } from './ObdPanel';
 import { VinCrossCheck } from './screens-vin';
 import { ExtraCaptures, MediaSlot, useExistingCaptures } from './MediaSlot';
 import {
-    ActionBar, Body, Card, CardTitle, GhostButton, InfoRow, Intro, MAINTENANCE_ITEMS, OS, PrimaryButton, Segmented, Tip, cardShadow,
+    ActionBar, Body, Card, CardTitle, Checkbox, GhostButton, InfoRow, Intro, MAINTENANCE_ITEMS, OS, PrimaryButton, Segmented, Tip, cardShadow,
 } from './ui';
 
 // Phase 1 of the on-site flow: check-in, issue review and diagnostic.
@@ -245,7 +245,9 @@ export function ScreenDiagnosticsPhotos({ onNext }: { onNext: () => void }) {
     React.useEffect(() => { if (hasWalkaround) setExtrasOpen(true); }, [hasWalkaround]);
 
     const doneCount = Number(plateFilled) + Number(dashFilled);
-    const ready = doneCount === 2;
+    // The way out if the camera fails: not recommended, so it can be ticked but never pushes itself.
+    const [noPhotos, setNoPhotos] = React.useState(false);
+    const ready = doneCount === 2 || noPhotos;
 
     return (
         <>
@@ -283,6 +285,26 @@ export function ScreenDiagnosticsPhotos({ onNext }: { onNext: () => void }) {
 
                 {/* How many required photos are in: part of the page, not of the Continue bar. */}
                 {!ready ? <Tip>{t(`${k}.needRequired`, { done: doneCount })}</Tip> : null}
+
+                {/* Quiet on purpose, same as skipping the VIN: only there in case the photos do not work. */}
+                {doneCount < 2 ? (
+                    <TouchableOpacity
+                        onPress={() => setNoPhotos((v) => !v)}
+                        activeOpacity={0.8}
+                        accessibilityRole="checkbox"
+                        accessibilityState={{ checked: noPhotos }}
+                        className="flex-row items-center mx-4 mt-5"
+                        style={{ gap: 12, minHeight: 56, paddingHorizontal: 16, borderRadius: 14, backgroundColor: noPhotos ? OS.blueSoft : '#F1F3F8', borderWidth: noPhotos ? 1.5 : 0, borderColor: OS.blue }}
+                        testID="photos-skip"
+                    >
+                        <Checkbox checked={noPhotos} size={24} />
+                        <View className="flex-1" style={{ paddingVertical: 8 }}>
+                            <Text className="font-outfit-medium" style={{ fontSize: 15, lineHeight: 21, color: noPhotos ? OS.blue : OS.mutedLight }}>{t(`${k}.skip`)}</Text>
+                            <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 19, color: noPhotos ? OS.blue : OS.mutedLight }}>{t(`${k}.skipNote`)}</Text>
+                        </View>
+                    </TouchableOpacity>
+                ) : null}
+                {noPhotos && doneCount < 2 ? <Tip tone="orange">{t(`${k}.skipWarn`)}</Tip> : null}
             </Body>
             <ActionBar>
                 <PrimaryButton label={t('appointments.onSite.common.continue')} onPress={onNext} disabled={!ready} />

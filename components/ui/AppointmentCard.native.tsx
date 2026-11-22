@@ -454,11 +454,29 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
                 <InfoRows rows={infoRows} />
             </View>
 
+            {/* A finished job: the service report as a PDF, above the receipt button */}
+            {state === 'completed' && (
+                <TouchableOpacity
+                    className="mt-3 flex-row items-center justify-center"
+                    activeOpacity={0.8}
+                    onPress={guardPress(downloadReport)}
+                    disabled={makingPdf}
+                    accessibilityRole="button"
+                    style={{ gap: 8, minHeight: 46, borderRadius: 13, borderWidth: 1.5, borderColor: C.blueSoft, backgroundColor: C.page, opacity: makingPdf ? 0.7 : 1 }}
+                    testID={`appointment-report-pdf-${appointment.id}`}
+                >
+                    {makingPdf ? <ActivityIndicator color={C.blue} /> : <FileText size={18} color={C.blue} />}
+                    <Text className="font-outfit-bold text-[15px]" style={{ color: C.blue }}>
+                        {makingPdf ? t('appointments.report.pdf.preparing') : t('appointments.report.pdf.button')}
+                    </Text>
+                </TouchableOpacity>
+            )}
+
             {/* A cancelled job has nothing to open. */}
             {!isCanceled && (
                 // The same button as the rest of the app: full width, tall, radius 14, 16 px; the active one on the blue gradient with its glow.
                 <TouchableOpacity
-                    className="mt-3"
+                    className={state === 'completed' ? 'mt-2' : 'mt-3'}
                     activeOpacity={0.85}
                     onPress={guardPress(openDetail)}
                     accessibilityRole="button"
@@ -478,24 +496,6 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
                             <Text className="font-outfit-bold text-white" style={{ fontSize: 16 }}>{ctaLabel}</Text>
                         </LinearGradient>
                     )}
-                </TouchableOpacity>
-            )}
-
-            {/* A finished job: the service report as a PDF, under the receipt button */}
-            {state === 'completed' && (
-                <TouchableOpacity
-                    className="mt-2 flex-row items-center justify-center"
-                    activeOpacity={0.8}
-                    onPress={guardPress(downloadReport)}
-                    disabled={makingPdf}
-                    accessibilityRole="button"
-                    style={{ gap: 8, minHeight: 46, borderRadius: 13, borderWidth: 1.5, borderColor: C.blueSoft, backgroundColor: C.page, opacity: makingPdf ? 0.7 : 1 }}
-                    testID={`appointment-report-pdf-${appointment.id}`}
-                >
-                    {makingPdf ? <ActivityIndicator color={C.blue} /> : <FileText size={18} color={C.blue} />}
-                    <Text className="font-outfit-bold text-[15px]" style={{ color: C.blue }}>
-                        {makingPdf ? t('appointments.report.pdf.preparing') : t('appointments.report.pdf.button')}
-                    </Text>
                 </TouchableOpacity>
             )}
 

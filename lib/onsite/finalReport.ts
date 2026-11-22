@@ -1,3 +1,4 @@
+import { parseWorkNotes, workNoteText } from './workNotes';
 import type { OnSiteVisit } from '@/lib/dao/OnSiteDAO';
 
 // The mechanic's final report of one visit: what was reported, what was found and done, and how it ended.
@@ -126,7 +127,7 @@ export function buildFinalReport({ appointment, visit, clientName, vin, odometer
     ];
 
     if (visit.workNotes?.trim()) {
-        sections.push({ key: 'work', title: t(`${k}.workNotes`), rows: [], lines: [{ text: visit.workNotes.trim() }] });
+        sections.push({ key: 'work', title: t(`${k}.workNotes`), rows: [], lines: parseWorkNotes(visit.workNotes).map((n) => ({ text: workNoteText(n) })) });
     }
 
     sections.push({
@@ -151,7 +152,7 @@ export function buildFinalReport({ appointment, visit, clientName, vin, odometer
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 /** The report as a printable page (PDF): a dark header with the reference, summary boxes and numbered section bars. */
-export function finalReportHtml(report: FinalReport): string {
+export function finalReportHtml(report: FinalReport, logoDataUri?: string | null): string {
     const sections = report.sections
         .map((sec, i) => {
             const rows = sec.rows
@@ -169,25 +170,25 @@ export function finalReportHtml(report: FinalReport): string {
     const status = report.status ? `<div class="status${report.status.ok ? ' ok' : ''}">${esc(report.status.label)}</div>` : '';
     return `<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <style>
-@page{margin:0}
+@page{margin:36px}
 *{box-sizing:border-box}
 body{font-family:-apple-system,Helvetica,Arial,sans-serif;color:#0B1530;margin:0;font-size:13px}
-.head{background:#0F1E3C;color:#fff;padding:26px 36px 22px}
+.head{background:#0F1E3C;color:#fff;padding:24px 28px 22px;border-radius:18px;border-bottom:4px solid #8CC8F0}
+.logo{display:block;height:44px;width:auto}
 .brand{font-size:13px;font-weight:700;letter-spacing:.14em}
-.head h1{font-size:25px;font-weight:400;color:#8CC8F0;margin:14px 0 2px}
+.head h1{font-size:25px;font-weight:400;color:#8CC8F0;margin:16px 0 2px}
 .head .sub{font-size:12px;color:#D6E4F5}
 .meta{margin-top:12px;font-size:11px;color:#C5D6EC;line-height:1.7}
-.status{margin-top:12px;display:inline-block;background:#B45309;color:#fff;font-size:11px;font-weight:700;letter-spacing:.04em;padding:8px 12px;text-transform:uppercase}
+.status{margin-top:12px;display:inline-block;background:#B45309;color:#fff;font-size:11px;font-weight:700;letter-spacing:.04em;padding:8px 14px;text-transform:uppercase;border-radius:999px}
 .status.ok{background:#0E9F6E}
-.rule{height:3px;background:#8CC8F0}
-.body{padding:20px 36px 28px}
+.body{padding:20px 0 0}
 .sums{display:flex;gap:12px;margin-bottom:18px}
-.sum{flex:1;border:1px solid #B9D6EC;background:#F3F9FD;padding:10px 12px}
+.sum{flex:1;border:1px solid #B9D6EC;background:#F3F9FD;padding:12px 14px;border-radius:12px;page-break-inside:avoid}
 .sh{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#334155}
 .sv{font-size:14px;margin-top:6px;color:#0F1E3C;font-weight:600}
 .ss{font-size:11px;color:#64748B;margin-top:4px}
 .sec{margin-bottom:6px;page-break-inside:avoid}
-h2{background:#0F1E3C;color:#fff;font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin:18px 0 6px;padding:9px 12px;border-left:4px solid #8CC8F0}
+h2{background:#0F1E3C;color:#fff;font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin:18px 0 6px;padding:10px 14px;border-radius:10px;border-left:4px solid #8CC8F0}
 h2 .n{opacity:.8}
 table{width:100%;border-collapse:collapse}
 td{padding:7px 4px;vertical-align:top;border-bottom:1px solid #EDF1F6}
@@ -195,10 +196,10 @@ td{padding:7px 4px;vertical-align:top;border-bottom:1px solid #EDF1F6}
 .line{padding:5px 4px;border-bottom:1px solid #EDF1F6}
 .box{display:inline-block;width:14px;height:14px;border:1.5px solid #8C96AE;border-radius:3px;margin-right:8px;text-align:center;font-size:10px;line-height:13px;vertical-align:middle}
 .box.on{background:#10B981;border-color:#10B981;color:#fff}
-.foot{margin-top:26px;padding-top:10px;border-top:1px solid #B9D6EC;color:#64748B;font-size:10.5px}
+.foot{margin-top:26px;padding-top:12px;border-top:1px solid #B9D6EC;color:#64748B;font-size:10.5px}
 </style></head><body>
-<div class="head"><div class="brand">MECHANIC ASSISTANCE</div><h1>${esc(report.title)}</h1>${report.subtitle ? `<div class="sub">${esc(report.subtitle)}</div>` : ''}
-<div class="meta">${esc(report.reference)}<br/>${esc(report.generatedAt)}</div>${status}</div><div class="rule"></div>
+<div class="head">${logoDataUri ? `<img class="logo" src="${logoDataUri}" alt="Mechanic Assistance"/>` : '<div class="brand">MECHANIC ASSISTANCE</div>'}<h1>${esc(report.title)}</h1>${report.subtitle ? `<div class="sub">${esc(report.subtitle)}</div>` : ''}
+<div class="meta">${esc(report.reference)}<br/>${esc(report.generatedAt)}</div>${status}</div>
 <div class="body">${boxes ? `<div class="sums">${boxes}</div>` : ''}${sections}<div class="foot">www.mechanicassistance.com &nbsp;|&nbsp; MECHANIC ASSISTANCE - ${esc(report.title)} &nbsp;|&nbsp; ${esc(report.reference)} &nbsp;|&nbsp; ${esc(report.generatedAt)}</div></div>
 </body></html>`;
 }

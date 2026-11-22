@@ -1,3 +1,4 @@
+import { parseWorkNotes, workNoteText } from '@/lib/onsite/workNotes';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -71,7 +72,7 @@ export function ScreenCloseService({ variant, partsCost, redirectReason, service
         visit ? { icon: 'hardware-chip-outline' as const, label: t(`${k}.obd`), value: obdValue } : null,
         visit ? { icon: 'images-outline' as const, label: t(`${k}.media`), value: mediaValue || t(`${k}.mediaNone`) } : null,
         completed && visit ? { icon: 'list-outline' as const, label: t(`${k}.checklist`), value: t(`${k}.checklistDone`, { done: checklistDone, total: MAINTENANCE_ITEMS.length }) } : null,
-        visit?.workNotes?.trim() ? { icon: 'document-text-outline' as const, label: t(`${k}.notes`), value: visit.workNotes.trim() } : null,
+        visit?.workNotes?.trim() ? { icon: 'document-text-outline' as const, label: t(`${k}.notes`), value: parseWorkNotes(visit.workNotes).map(workNoteText).join('\n') } : null,
     ].filter((r): r is NonNullable<typeof r> => r !== null);
 
     const finish = async () => {

@@ -62,6 +62,22 @@ export function useFinalReport(appointmentId: string): { report: FinalReport | n
     return { report, loading };
 }
 
+async function reportLogo(): Promise<string | null> {
+    try {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const { Asset } = require('expo-asset') as typeof import('expo-asset');
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const { File } = require('expo-file-system') as typeof import('expo-file-system');
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const asset = Asset.fromModule(require('@/assets/images/mechanic_assistance_logo.png'));
+        await asset.downloadAsync();
+        if (!asset.localUri) return null;
+        return `data:image/png;base64,${await new File(asset.localUri).base64()}`;
+    } catch {
+        return null;
+    }
+}
+
 /** Makes the PDF and opens the share sheet (save to Files, send…). Returns false when it could not. */
 export async function shareFinalReportPdf(report: FinalReport): Promise<boolean> {
     try {
@@ -70,7 +86,10 @@ export async function shareFinalReportPdf(report: FinalReport): Promise<boolean>
         const Print = require('expo-print') as typeof import('expo-print');
         // eslint-disable-next-line @typescript-eslint/no-require-imports
         const Sharing = require('expo-sharing') as typeof import('expo-sharing');
-        const { uri } = await Print.printToFileAsync({ html: finalReportHtml(report) });
+        // The brand logo goes inside the page as data, so the PDF needs nothing else to draw it. Without it the header says the name in text.
+        const logo = await reportLogo();
+        // Margins on every page (iOS ignores the CSS ones), so a page cut never lands on the edge of the sheet.
+        const { uri } = await Print.printToFileAsync({ html: finalReportHtml(report, logo), margins: { left: 36, right: 36, top: 36, bottom: 36 } });
         if (await Sharing.isAvailableAsync()) {
             await Sharing.shareAsync(uri, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf', dialogTitle: report.title });
         }
@@ -84,15 +103,18 @@ export async function shareFinalReportPdf(report: FinalReport): Promise<boolean>
  * The service report PDF of a finished job, from a card in the list: gathers what this viewer can read (the visit when
  * they are the technician, the owner's payments when they are the owner), builds the report and opens the share sheet.
  */
-export async function shareServiceReportPdf(args: {
+export interface ServiceReportArgs {
     appointment: Appointment;
     role: 'user' | 'mechanic';
     ownerName?: string | null;
     mechanicName?: string | null;
     t: (key: string, options?: Record<string, unknown>) => string;
     lang: string;
-}): Promise<boolean> {
-    try {
+}
+
+/** The service report of a finished job, as the owner or the technician sees it. Throws if something it is built from cannot be read. */
+export async function loadServiceReport(args: ServiceReportArgs): Promise<FinalReport> {
+    {
         const { appointment, role, t, lang } = args;
         const [visit, capture, profile, history] = await Promise.all([
             onSiteDAO.get(appointment.id).catch(() => null),
@@ -110,10 +132,15 @@ export async function shareServiceReportPdf(args: {
             };
         }
         const ownerName = args.ownerName ?? ([profile?.name, profile?.surname].filter(Boolean).join(' ') || null);
-        const report = buildServiceReport({
+        return buildServiceReport({
             appointment, role, visit, ownerName, mechanicName: args.mechanicName, paid, vin: capture?.vin, odometer: capture?.odometer, t, lang,
         });
-        return await shareFinalReportPdf(report);
+    }
+}
+
+export async function shareServiceReportPdf(args: ServiceReportArgs): Promise<boolean> {
+    try {
+        return await shareFinalReportPdf(await loadServiceReport(args));
     } catch {
         return false;
     }
@@ -169,7 +196,7 @@ export function DownloadPdfButton({ report, primary, compact }: { report: FinalR
  * The report as a sheet over the screen that opened it: closing it just drops the sheet, so the closeout
  * stays exactly as it was (scroll, rating typed…). A screen of its own would be a navigation away from it.
  */
-function FinalReportSheet({ report, visible, onClose }: { report: FinalReport | null; visible: boolean; onClose: () => void }) {
+export function FinalReportSheet({ report, visible, onClose }: { report: FinalReport | null; visible: boolean; onClose: () => void }) {
     const { t } = useTranslation();
     return (
         <Modal supportedOrientations={MODAL_ORIENTATIONS} visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>

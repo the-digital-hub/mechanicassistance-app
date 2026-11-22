@@ -676,44 +676,21 @@ export function VinCrossCheck({ entered, visit }: { entered: string | null | und
     const mine = entered || null;
     if (!mine && !obdVin) return null;
 
-    const rows = [
-        { key: 'request', label: t(`${k}.request`), value: requestVin },
-        { key: 'mine', label: t(`${k}.mine`), value: mine },
-        { key: 'obd', label: t(`${k}.obd`), value: obdVin },
-    ];
-    const known = rows.filter((r) => r.value);
-    const pairs = [
-        compareVins(requestVin, mine),
-        compareVins(requestVin, obdVin),
-        compareVins(mine, obdVin),
-    ];
-    const differs = pairs.includes('differ');
-    const allMatch = !differs && known.length >= 2;
-    const tone = differs ? { bg: OS.redSoft, fg: OS.red, icon: 'alert-circle' as const, text: t(`${k}.differ`) }
-        : allMatch ? { bg: OS.greenSoft, fg: OS.greenDark, icon: 'checkmark-circle' as const, text: t(`${k}.match`) }
-        : { bg: OS.blueSoft, fg: OS.blue, icon: 'information-circle' as const, text: t(`${k}.partial`) };
+    // Only the verdict: the three VINs are not laid out here. The detail of a mismatch is asked in its own alert.
+    const known = [requestVin, mine, obdVin].filter(Boolean);
+    const differs = [compareVins(requestVin, mine), compareVins(requestVin, obdVin), compareVins(mine, obdVin)].includes('differ');
+    // With fewer than two VINs there is nothing to compare yet: the OBD scan completes it.
+    if (!differs && known.length < 2) return null;
+    const ok = !differs;
 
     return (
-        <Card style={{ padding: 16 }}>
-            <CardTitle title={t(`${k}.title`)} />
-            <View className="flex-row items-center gap-2 px-3 py-2.5 rounded-xl mb-2" style={{ backgroundColor: tone.bg }}>
-                <Ionicons name={tone.icon} size={18} color={tone.fg} />
-                <Text className="flex-1 font-outfit-bold" style={{ fontSize: 14, lineHeight: 20, color: tone.fg }}>{tone.text}</Text>
-            </View>
-            {rows.map((r, i) => {
-                // Flag the VIN that does not fit: when two agree, only the odd one out; when none do, all of them.
-                const agreeing = (v: string) => known.filter((o) => compareVins(o.value, v) === 'match').length;
-                const best = Math.max(0, ...known.map((o) => agreeing(o.value as string)));
-                const flagged = differs && !!r.value && (best < 2 || agreeing(r.value) < best);
-                return (
-                    <View key={r.key} className="flex-row items-center justify-between gap-3 py-2.5" style={i > 0 ? { borderTopWidth: 1, borderTopColor: OS.borderSoft } : undefined}>
-                        <Text className="font-outfit-medium" style={{ fontSize: 14, color: OS.muted }}>{r.label}</Text>
-                        <Text className="font-outfit-bold" style={{ fontSize: 14, color: flagged ? OS.red : r.value ? OS.text : OS.mutedLight, letterSpacing: r.value ? 0.6 : 0 }}>
-                            {r.value ? normalizeVin(r.value) : t(`${k}.notAvailable`)}
-                        </Text>
-                    </View>
-                );
-            })}
-        </Card>
+        <View
+            className="flex-row items-center mx-4 mt-3"
+            style={{ gap: 10, paddingHorizontal: 16, minHeight: 56, borderRadius: 14, backgroundColor: ok ? OS.greenSoft : OS.redSoft }}
+            testID="vin-check"
+        >
+            <Ionicons name={ok ? 'checkmark-circle' : 'alert-circle'} size={22} color={ok ? OS.greenDark : OS.red} />
+            <Text className="flex-1 font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: ok ? OS.greenDark : OS.red }}>{t(`${k}.${ok ? 'okShort' : 'notOkShort'}`)}</Text>
+        </View>
     );
 }

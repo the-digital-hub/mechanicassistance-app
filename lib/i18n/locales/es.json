@@ -1199,6 +1199,8 @@
         "extendedTimeValue": "+{{count}} min agregados",
         "notRated": "Sin calificar",
         "notAvailable": "—",
+        "okShort": "VIN correcto",
+        "notOkShort": "El VIN no coincide",
         "distanceApprox": "{{miles}} mi",
         "approximateArea": "Zona aproximada — no se muestra la ubicación exacta",
         "budgetLabel": "Presupuesto",
@@ -1651,7 +1653,10 @@
         "extraSub": "Un video corto alrededor del vehículo o más fotos te respaldan si el cliente hace un reclamo.",
         "required": "Obligatoria",
         "added": "Cargada",
-        "needRequired": "{{done}} de 2 fotos obligatorias cargadas"
+        "needRequired": "{{done}} de 2 fotos obligatorias cargadas",
+        "skip": "Continuar sin las fotos",
+        "skipNote": "(no recomendado)",
+        "skipWarn": "Sin estas fotos no queda constancia del estado del vehículo cuando llegaste."
       },
       "validating": {
         "title": "Validando el diagnóstico reportado…",
@@ -1785,9 +1790,13 @@
           "test": "Probalo: confirmá que el problema se fue antes de terminar.",
           "clean": "Dejá el lugar limpio y llevate las piezas viejas."
         },
-        "notesHint": "Sumá una línea por cada cosa que hiciste, cuando quieras.",
+        "notesHint": "Escribí cada cosa que hiciste: un título y qué hiciste. Es el registro escrito del trabajo.",
         "notesPh": "p. ej. Cambié el filtro de aceite",
-        "notesAdd": "Sumar"
+        "notesAdd": "Sumar al registro",
+        "notesTitlePh": "Título, p. ej. Frenos",
+        "notesBodyPh": "Qué hiciste y por qué: piezas cambiadas, qué encontraste, qué recomendaste…",
+        "notesDictate": "Tip: tocá el micrófono del teclado para dictar en vez de escribir.",
+        "notesEditHint": "Editar esta entrada"
       },
       "finalCheck": {
         "eyebrow": "PASO 2 · CHECKLIST DE MANTENIMIENTO",
@@ -2230,7 +2239,8 @@
       "extendedTimeValueAmount": "+{{minutes}} min · ${{amount}}",
       "extendedTimeValue": "+{{minutes}} min sumados",
       "timeline": {
-        "accepted": "Asistencia aceptada",
+"title": "Cronología de la asistencia",
+                "accepted": "Asistencia aceptada",
         "acceptedSub": "Tu técnico está asignado",
         "route": "En camino",
         "routeDone": "El técnico llegó hasta vos",
@@ -2560,6 +2570,9 @@
       "ownerRating": "Tu calificación al dueño",
       "close": "Cerrar",
       "viewShort": "Ver reporte",
+      "ownerCardTitle": "Reporte del servicio",
+      "ownerCardHint": "Todo lo que se hizo en tu vehículo, con el recibo, en PDF.",
+      "mechanicCardHint": "Todo lo realizado, con el recibo.",
       "pdf": {
         "title": "Informe de servicio",
         "subtitle": "Resumen del servicio y del vehículo",

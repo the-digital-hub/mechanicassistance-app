@@ -8,6 +8,7 @@ import { CancellationModal } from '@/components/appointments/CancellationModal';
 import { MechanicAssistanceInfoTab } from '@/components/appointments/MechanicAssistanceInfoTab';
 import { HeadOutNextSteps, MechanicArrivalCard, PulseDot } from '@/components/appointments/MechanicArrivalCard';
 import { CheckInCodeCard } from '@/components/appointments/CheckInCodeCard';
+import { BackToDashboardButton, ServiceReportCard } from '@/components/appointments/ServiceReportCard';
 import { ClientReviewCard } from '@/components/appointments/ClientReviewCard';
 import { MechanicVideoStatusTab } from '@/components/appointments/MechanicVideoStatusTab';
 import { useOwnerReviewPending } from '@/components/appointments/OwnerReviewInline';
@@ -115,6 +116,11 @@ export default function AppointmentDetailScreen() {
     const { id: globalId, join: joinParam } = useGlobalSearchParams();
     // const { id } = useLocalSearchParams();
     const router = useRouter();
+    // Leaving a closed assistance: empty the stack so the tab does not reopen it.
+    const backToDashboard = () => {
+        if (router.canDismiss()) router.dismissAll();
+        router.navigate('/(tabs)/dashboard');
+    };
     const { t, i18n } = useTranslation();
     const { getAppointmentById, refresh: refreshAppointments, isLoading: appointmentsLoading } = useAppointments();
 
@@ -694,6 +700,9 @@ export default function AppointmentDetailScreen() {
                     return (
                         <View style={{ gap: 16 }}>
                             <TranscriptCard appointmentId={appointment.id} role="owner" info={transcriptInfo} />
+                            {appointment.status === 'completed' && (
+                                <ServiceReportCard appointment={appointment} ownerName={[user?.name, user?.surname].filter(Boolean).join(' ') || null} mechanicName={ownerMechanicName} />
+                            )}
                             <MechanicVideoStatusTab
                                 role="owner"
                                 status={videoStatus}
@@ -701,11 +710,17 @@ export default function AppointmentDetailScreen() {
                                 notResolved={videoState?.currentStatus === 'not_resolved'}
                                 reviewSent={ownerRated}
                             />
+                            {appointment.status === 'completed' && <BackToDashboardButton onPress={backToDashboard} />}
                         </View>
                     );
                 }
                 return (
                     <View style={{ gap: 16 }}>
+                        {appointment.status === 'completed' && (
+                            <ServiceReportCard appointment={appointment} ownerName={[user?.name, user?.surname].filter(Boolean).join(' ') || null} mechanicName={ownerMechanicName} />
+                        )}
+                        {/* Closed: no map any more, the final report takes its place. */}
+                        {appointment.status === 'completed' ? null : (
                         <OwnerEtaCard
                             status={appointment.status}
                             departed={departed}
@@ -718,6 +733,7 @@ export default function AppointmentDetailScreen() {
                             mechanicCoords={mechanicCoords}
                             polyline={polyline}
                         />
+                        )}
                         {/* The technician is on the way: show the code here too, right under the map
                             (above the timeline), so the owner is already holding the QR / PIN when they arrive (it is also in Check-in). */}
                         {appointment.status === 'accepted' && departed && (
@@ -733,6 +749,7 @@ export default function AppointmentDetailScreen() {
                                 arrivedAt={ownerVisit?.checkedInAt ?? appointment.startedAt ?? null}
                             />
                         )}
+                        {appointment.status === 'completed' && <BackToDashboardButton onPress={backToDashboard} />}
                     </View>
                 );
             case 'checkin':
@@ -1216,6 +1233,13 @@ export default function AppointmentDetailScreen() {
                                 </View>
                             ) : null}
 
+                            {/* Closed: the final report, then the review */}
+                            {!isVideoCall && appointment.status === 'completed' ? (
+                                <View className="mx-4 mt-3.5">
+                                    <ServiceReportCard appointment={appointment} role="mechanic" />
+                                </View>
+                            ) : null}
+
                             {/* Completed and the customer not rated yet: the review is right under the card */}
                             {!isVideoCall && appointment.status === 'completed' && !isReviewSubmitted && (onSiteVisit ? onSiteVisit.clientRating == null : true) ? (
                                 <View className="mx-4 mt-3.5">
@@ -1231,6 +1255,12 @@ export default function AppointmentDetailScreen() {
                                 appointment={appointment}
                                 onSent={markReviewSent}
                                     />
+                                </View>
+                            ) : null}
+
+                            {!isVideoCall && appointment.status === 'completed' ? (
+                                <View className="mx-4 mt-3.5">
+                                    <BackToDashboardButton onPress={backToDashboard} />
                                 </View>
                             ) : null}
 

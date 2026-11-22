@@ -18,24 +18,50 @@ beforeEach(() => {
 });
 
 describe('KeyboardAwareScrollView', () => {
-    it('makes room for the keyboard while it is open, and gives it back when it closes', () => {
+    const padding = (UNSAFE_getByType: (t: unknown) => { props: { contentContainerStyle: unknown } }) => {
+        const { ScrollView } = require('react-native');
+        const style = ([] as unknown[]).concat(UNSAFE_getByType(ScrollView).props.contentContainerStyle).filter(Boolean);
+        return Object.assign({}, ...style).paddingBottom;
+    };
+
+    it('makes room only for the part of itself the keyboard covers, and gives it back when it closes', () => {
+        jest.useFakeTimers();
+        const { ScrollView, Dimensions } = require('react-native');
+        // The scroll view reaches the bottom of the screen: the keyboard covers 300 of it.
+        const screen = Dimensions.get('window').height;
+        ScrollView.prototype.measureInWindow = (cb: (x: number, y: number, w: number, h: number) => void) => cb(0, 100, 300, screen - 100);
         const { UNSAFE_getByType } = render(
             <KeyboardAwareScrollView contentContainerStyle={{ paddingBottom: 24 }}>
                 <Text>content</Text>
             </KeyboardAwareScrollView>,
         );
-        const { ScrollView } = require('react-native');
-        const padding = () => {
-            const style = ([] as unknown[]).concat(UNSAFE_getByType(ScrollView).props.contentContainerStyle).filter(Boolean);
-            return Object.assign({}, ...style).paddingBottom;
-        };
-        expect(padding()).toBe(24);
+        expect(padding(UNSAFE_getByType)).toBe(24);
 
         act(() => { handlers[showEvent]({ endCoordinates: { height: 300 } }); });
-        expect(padding()).toBe(324);
+        act(() => { jest.advanceTimersByTime(500); });
+        expect(padding(UNSAFE_getByType)).toBe(324);
 
         act(() => { handlers[hideEvent]({}); });
-        expect(padding()).toBe(24);
+        expect(padding(UNSAFE_getByType)).toBe(24);
+        delete ScrollView.prototype.measureInWindow;
+        jest.useRealTimers();
+    });
+
+    it('adds nothing when the screen already makes room for the keyboard', () => {
+        jest.useFakeTimers();
+        const { ScrollView } = require('react-native');
+        // It ends well above the keyboard (a KeyboardAvoidingView around it already shrank it).
+        ScrollView.prototype.measureInWindow = (cb: (x: number, y: number, w: number, h: number) => void) => cb(0, 100, 300, 200);
+        const { UNSAFE_getByType } = render(
+            <KeyboardAwareScrollView contentContainerStyle={{ paddingBottom: 24 }}>
+                <Text>content</Text>
+            </KeyboardAwareScrollView>,
+        );
+        act(() => { handlers[showEvent]({ endCoordinates: { height: 300 } }); });
+        act(() => { jest.advanceTimersByTime(500); });
+        expect(padding(UNSAFE_getByType)).toBe(24);
+        delete ScrollView.prototype.measureInWindow;
+        jest.useRealTimers();
     });
 
     it('keeps buttons tappable with the keyboard open and lets a drag dismiss it', () => {

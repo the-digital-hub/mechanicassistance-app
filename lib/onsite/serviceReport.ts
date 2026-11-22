@@ -1,3 +1,4 @@
+import { parseWorkNotes, workNoteText } from './workNotes';
 import type { Appointment } from '@/context/AppointmentsContext';
 import type { OnSiteVisit } from '@/lib/dao/OnSiteDAO';
 import type { FinalReport, ReportRow, ReportSection } from '@/lib/onsite/finalReport';
@@ -100,7 +101,7 @@ export function buildServiceReport({ appointment, role, visit, ownerName, mechan
                 ? visit.obdCodes.map((c) => ({ text: `${c.code}${c.description ? ` — ${c.description[lang2]}` : ''}` }))
                 : [{ text: t(`${k}.noCodes`) }]),
         );
-        if (visit.workNotes?.trim()) work.lines!.push({ text: `${t(`${k}.workNotes`)}: ${visit.workNotes.trim()}` });
+        for (const n of parseWorkNotes(visit.workNotes)) work.lines!.push({ text: `${t(`${k}.workNotes`)} — ${workNoteText(n)}` });
         for (const id of MAINTENANCE_IDS) work.lines!.push({ text: t(`appointments.onSite.maintenance.items.${id}`), done: !!visit.maintenanceChecklist?.[id] });
     }
     sections.push(work);

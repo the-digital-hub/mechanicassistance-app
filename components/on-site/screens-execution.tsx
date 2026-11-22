@@ -1,3 +1,4 @@
+import { parseWorkNotes, serializeWorkNotes } from '@/lib/onsite/workNotes';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
@@ -291,32 +292,48 @@ export function ScreenEvaluateOptions({ context, onSelect, checklist: initialChe
 }
 
 /**
- * The work notes as a list: one line for each thing that was done, added one by one while the technician remembers them (and removed if
- * it was a slip). Stored in the visit's single `workNotes` text, one entry per line, so older paragraph notes show as one entry.
+ * The work notes: what the technician did, each thing with a title and its explanation ("Brakes" / "Replaced the front pads…"). It is the
+ * written record of the work (the owner's protection and the technician's), so the explanation has room: an open box, not a line. Added one
+ * by one whenever the technician remembers them; tapping an entry takes it back to the form to correct it. The keyboard's own microphone
+ * dictates into either field. Stored in the visit's single `workNotes` text (see lib/onsite/workNotes.ts).
  */
 function WorkNotesList({ value, onChange }: { value: string; onChange: (next: string) => void }) {
     const { t } = useTranslation();
     const k = 'appointments.onSite.resolve';
-    const entries = value.split('\n').map((l) => l.trim()).filter(Boolean);
-    const [draft, setDraft] = React.useState('');
+    const entries = parseWorkNotes(value);
+    const [title, setTitle] = React.useState('');
+    const [body, setBody] = React.useState('');
+    const bodyRef = React.useRef<TextInput>(null);
+    const canAdd = title.trim().length > 0;
     const add = () => {
-        const text = draft.replace(/\s+/g, ' ').trim();
-        if (!text) return;
-        onChange([...entries, text].join('\n'));
-        setDraft('');
+        if (!canAdd) return;
+        onChange(serializeWorkNotes([...entries, { title, body }]));
+        setTitle('');
+        setBody('');
     };
-    const remove = (i: number) => onChange(entries.filter((_, j) => j !== i).join('\n'));
+    const remove = (i: number) => onChange(serializeWorkNotes(entries.filter((_, j) => j !== i)));
+    const edit = (i: number) => {
+        // What was being typed is kept: it goes back to the list before the entry takes its place in the form.
+        const rest = entries.filter((_, j) => j !== i);
+        onChange(serializeWorkNotes(canAdd ? [...rest, { title, body }] : rest));
+        setTitle(entries[i].title);
+        setBody(entries[i].body);
+    };
+    const field = { borderRadius: 14, backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: OS.border, fontSize: 16, color: OS.text } as const;
     return (
         <View testID="work-notes">
             <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: OS.muted, marginTop: 2 }}>{t(`${k}.notesHint`)}</Text>
             {entries.length > 0 ? (
                 <View style={{ marginTop: 10, borderRadius: 16, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: OS.borderSoft, overflow: 'hidden' }}>
                     {entries.map((e, i) => (
-                        <View key={`${i}-${e}`} className="flex-row items-center" style={{ gap: 10, paddingHorizontal: 12, paddingVertical: 10, borderBottomWidth: i < entries.length - 1 ? 1 : 0, borderBottomColor: OS.borderSoft }} testID={`work-note-${i}`}>
-                            <View className="items-center justify-center" style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: OS.greenSoft }}>
+                        <View key={`${i}-${e.title}`} className="flex-row items-start" style={{ gap: 10, paddingHorizontal: 12, paddingVertical: 12, borderBottomWidth: i < entries.length - 1 ? 1 : 0, borderBottomColor: OS.borderSoft }} testID={`work-note-${i}`}>
+                            <View className="items-center justify-center" style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: OS.greenSoft, marginTop: 1 }}>
                                 <Ionicons name="checkmark" size={16} color={OS.greenDark} />
                             </View>
-                            <Text className="flex-1 font-outfit-semibold" style={{ fontSize: 15, lineHeight: 21, color: OS.text }}>{e}</Text>
+                            <TouchableOpacity className="flex-1" onPress={() => edit(i)} activeOpacity={0.7} accessibilityRole="button" accessibilityHint={t(`${k}.notesEditHint`)}>
+                                <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: OS.text }}>{e.title}</Text>
+                                {e.body ? <Text className="font-outfit-regular" style={{ fontSize: 15, lineHeight: 21, color: OS.muted, marginTop: 2 }}>{e.body}</Text> : null}
+                            </TouchableOpacity>
                             <TouchableOpacity onPress={() => remove(i)} hitSlop={8} accessibilityRole="button" accessibilityLabel={t('appointments.onSite.common.remove')} className="items-center justify-center" style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#EEF1F6' }}>
                                 <Ionicons name="close" size={16} color="#4B5563" />
                             </TouchableOpacity>
@@ -324,26 +341,46 @@ function WorkNotesList({ value, onChange }: { value: string; onChange: (next: st
                     ))}
                 </View>
             ) : null}
-            <View className="flex-row items-center" style={{ gap: 8, marginTop: 10 }}>
+
+            <View style={{ marginTop: 12, gap: 8 }}>
                 <TextInput
-                    value={draft}
-                    onChangeText={setDraft}
-                    onSubmitEditing={add}
-                    returnKeyType="done"
+                    value={title}
+                    onChangeText={setTitle}
+                    onSubmitEditing={() => bodyRef.current?.focus()}
+                    returnKeyType="next"
                     blurOnSubmit={false}
-                    placeholder={t(`${k}.notesPh`)}
+                    autoCapitalize="sentences"
+                    placeholder={t(`${k}.notesTitlePh`)}
                     placeholderTextColor={OS.mutedLight}
-                    className="flex-1 font-outfit-regular"
-                    style={{ height: 50, borderRadius: 14, paddingHorizontal: 14, backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: OS.border, fontSize: 16, color: OS.text }}
+                    className="font-outfit-semibold"
+                    style={{ ...field, height: 50, paddingHorizontal: 14 }}
+                    testID="work-note-title"
+                />
+                <TextInput
+                    ref={bodyRef}
+                    value={body}
+                    onChangeText={setBody}
+                    multiline
+                    scrollEnabled={false}
+                    textAlignVertical="top"
+                    autoCapitalize="sentences"
+                    placeholder={t(`${k}.notesBodyPh`)}
+                    placeholderTextColor={OS.mutedLight}
+                    className="font-outfit-regular"
+                    style={{ ...field, minHeight: 120, paddingHorizontal: 14, paddingTop: 13, paddingBottom: 13, lineHeight: 22 }}
                     testID="work-note-input"
                 />
+                <View className="flex-row items-center" style={{ gap: 6, paddingHorizontal: 2 }}>
+                    <Ionicons name="mic-outline" size={16} color={OS.mutedLight} />
+                    <Text className="flex-1 font-outfit-regular" style={{ fontSize: 13, lineHeight: 18, color: OS.mutedLight }}>{t(`${k}.notesDictate`)}</Text>
+                </View>
                 <TouchableOpacity
                     onPress={add}
-                    disabled={!draft.trim()}
+                    disabled={!canAdd}
                     activeOpacity={0.85}
                     accessibilityRole="button"
                     className="flex-row items-center justify-center"
-                    style={{ height: 50, paddingHorizontal: 16, borderRadius: 14, gap: 4, backgroundColor: draft.trim() ? OS.blue : OS.blueIce }}
+                    style={{ minHeight: 52, borderRadius: 14, gap: 6, backgroundColor: canAdd ? OS.blue : OS.blueIce }}
                     testID="work-note-add"
                 >
                     <Ionicons name="add" size={20} color="#FFFFFF" />

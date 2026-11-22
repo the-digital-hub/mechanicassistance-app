@@ -54,6 +54,7 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true, de
     const status = visit?.obdStatus ?? 'none';
     const codes: ObdCode[] = visit?.obdCodes ?? [];
     const fileName = visit?.obdDocumentKey?.split('/').pop();
+    const reportIn = !!visit?.obdDocumentKey && status !== 'failed';
     const anySuggestion = codes.some((c) => c.suggestion);
 
     const upload = async (file: Picked) => {
@@ -190,7 +191,8 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true, de
                     </View>
                 </Card>
             ) : null}
-            <Card>
+            {/* A report is in (being read or read): the codes and the VIN come from it, so typing them by hand is no longer offered. If it failed, the way out stays. */}
+            {reportIn ? null : <Card>
                 <TouchableOpacity
                     onPress={() => { LayoutAnimation.configureNext(LayoutAnimation.create(220, 'easeInEaseOut', 'opacity')); setManualOpen((v) => !v); }}
                     activeOpacity={0.7}
@@ -265,7 +267,7 @@ export function ObdPanel({ appointmentId, visit, onVisit, allowUpload = true, de
                 ) : null}
                     </View>
                 ) : null}
-            </Card>
+            </Card>}
         </>
     );
 }
