@@ -718,6 +718,11 @@ export default function AppointmentDetailScreen() {
                             mechanicCoords={mechanicCoords}
                             polyline={polyline}
                         />
+                        {/* The technician is on the way: show the code here too, right under the map
+                            (above the timeline), so the owner is already holding the QR / PIN when they arrive (it is also in Check-in). */}
+                        {appointment.status === 'accepted' && departed && (
+                            <CheckInCodeCard appointmentId={appointment.id} status={appointment.status} />
+                        )}
                         {/* Step by step, as on a video call. The server announces head-out, check-in and close; the steps between are asked for. */}
                         {['accepted', 'started', 'in_progress', 'awaiting_confirmation', 'disputed', 'completed'].includes(appointment.status) && (
                             <OwnerVisitTimeline
@@ -727,11 +732,6 @@ export default function AppointmentDetailScreen() {
                                 minutesAway={minutesAway}
                                 arrivedAt={ownerVisit?.checkedInAt ?? appointment.startedAt ?? null}
                             />
-                        )}
-                        {/* The technician is on the way: show the code here too, so the owner is
-                            already holding the QR / PIN when they arrive (it is also in Check-in). */}
-                        {appointment.status === 'accepted' && departed && (
-                            <CheckInCodeCard appointmentId={appointment.id} status={appointment.status} />
                         )}
                     </View>
                 );

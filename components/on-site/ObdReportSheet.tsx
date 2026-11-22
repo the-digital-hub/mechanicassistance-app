@@ -142,9 +142,8 @@ export function ObdReportSheet({ appointments, onClose, onChanged }: {
     const { width: screen, height } = useWindowDimensions();
     const insets = useSafeAreaInsets();
     const keyboard = useKeyboardHeight();
-    // The sheet is this tall from the first frame (it used to take the height of its content, which is only known once the pages have loaded, so it
-    // slid up and then jumped to its size): one smooth sweep in, one out. What does not fit scrolls inside, above the keyboard when it is up.
-    const panelHeight = Math.min(height - (Platform.OS === 'ios' ? keyboard : 0) - insets.top - 12, height * 0.62);
+    // What is left above the keyboard (and under the status bar) is the most the sheet can be; what does not fit scrolls inside.
+    const room = height - (Platform.OS === 'ios' ? keyboard : 0) - insets.top - 12;
     const pageWidth = measured || screen - SIDE * 2;
     const scroller = React.useRef<ScrollView>(null);
     const [done, setDone] = React.useState<Set<string>>(new Set());
@@ -165,6 +164,21 @@ export function ObdReportSheet({ appointments, onClose, onChanged }: {
         }
         Animated.timing(heightAnim, { toValue: currentHeight, duration: 280, easing: Easing.inOut(Easing.cubic), useNativeDriver: false }).start();
     }, [currentHeight, heightAnim]);
+
+    // The sheet is as tall as what it holds, glued to the bottom: the title, the page in view and the pager under it (no empty space, no cut).
+    // Its height is a number from the first frame (a guess until the page is measured) and glides to the real one, so it never jumps.
+    const chrome = 16 + 40 + 12 + (list.length > 1 ? 50 : 30);
+    const target = Math.min(room, chrome + (currentHeight ?? 440));
+    const panelAnim = React.useRef(new Animated.Value(target)).current;
+    const panelSized = React.useRef(false);
+    React.useEffect(() => {
+        if (!panelSized.current || !open) {
+            panelSized.current = open;
+            panelAnim.setValue(target);
+            return;
+        }
+        Animated.timing(panelAnim, { toValue: target, duration: 280, easing: Easing.inOut(Easing.cubic), useNativeDriver: false }).start();
+    }, [target, open, panelAnim]);
 
     React.useEffect(() => { if (open) { setDone(new Set()); setPage(0); setHeights({}); sized.current = false; } }, [open]);
 
@@ -189,7 +203,7 @@ export function ObdReportSheet({ appointments, onClose, onChanged }: {
 
     return (
         <SlideModal visible={open} onClose={onClose} avoidKeyboard>
-            <View style={{ ...SHEET, paddingTop: 16, height: panelHeight }} testID="obd-report-sheet">
+            <Animated.View style={{ ...SHEET, paddingTop: 16, height: panelAnim }} testID="obd-report-sheet">
                 <View className="flex-row items-center justify-between px-5 pb-3">
                     <Text className="font-outfit-bold" style={{ fontSize: 22, letterSpacing: -0.4, color: OS.text }}>{t('appointments.closeout.obdTitle')}</Text>
                     <TouchableOpacity onPress={onClose} hitSlop={10} accessibilityRole="button" accessibilityLabel="Close" className="items-center justify-center" style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#EEF1F6' }}>
@@ -227,7 +241,7 @@ export function ObdReportSheet({ appointments, onClose, onChanged }: {
                         ))}
                     </View>
                 ) : <View style={{ height: 30 }} />}
-            </View>
+            </Animated.View>
         </SlideModal>
     );
 }

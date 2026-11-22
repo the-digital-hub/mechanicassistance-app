@@ -5,7 +5,7 @@ import { Animated, Easing, Text, TouchableOpacity } from 'react-native';
  * A small notice at the bottom with one action ("Undo"), for something that was just done and can be taken back. It fades in, stays a few
  * seconds and goes away by itself. `id` changes with each notice, so a new one restarts the time.
  */
-export function UndoToast({ id, label, actionLabel, onAction, onDone, bottom = 104 }: {
+export function UndoToast({ id, label, actionLabel, onAction, onDone, bottom = 24 }: {
     /** `null` hides it. */
     id: string | null;
     label: string;

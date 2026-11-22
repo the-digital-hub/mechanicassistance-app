@@ -1790,9 +1790,9 @@
       },
       "finalCheck": {
         "eyebrow": "STEP 2 · MAINTENANCE CHECKLIST",
-        "title": "Run the final check",
-        "subtitle": "Go through these points before closing the service.",
-        "finish": "Confirm the final check"
+        "title": "Go through the checklist",
+        "subtitle": "Check each point of the service. Next, you tell us how it went.",
+        "finish": "Confirm the checklist"
       },
       "videoOut": {
         "eyebrow": "BEFORE YOU GO · OPTIONAL",
@@ -1938,7 +1938,7 @@
         "items": {
           "fixed": "Issue fixed",
           "time": "Time on the job",
-          "check": "Final check",
+          "check": "Maintenance checklist",
           "checkCount": "{{done}} of {{total}} points checked"
         },
         "next": {
@@ -1957,6 +1957,9 @@
       "unavailable": "Couldn't load your check-in code."
     },
     "closeout": {
+      "serviceDateLabel": "Service date",
+      "autoConfirmLabel": "Time left for the customer to confirm",
+      "assistanceLabel": "Assistance",
       "title": "Assistance Closeout",
       "heroBadge": "PAYMENT SUBMITTED",
       "heroTitle": "You're all set — the charge has been requested.",
@@ -1996,11 +1999,11 @@
       "arrivedOn": "SENT ON",
       "walletSent": "Sent to your wallet",
       "walletSentOn": "Sent to your wallet on {{date}}",
-      "walletPending": "Goes to your wallet once the client confirms",
+      "walletPending": "Paid to your wallet on confirmation",
       "walletNote": "You choose when to pay it out to your bank account.",
-      "heroBadgeAwaiting": "AWAITING CONFIRMATION",
+      "heroBadgeAwaiting": "SERVICE FINISHED",
       "assistanceCode": "Assistance {{code}}",
-      "heroTitleAwaiting": "Waiting for the customer to confirm the work",
+      "heroTitleAwaiting": "Pending the customer's confirmation",
       "heroBadgeDisputed": "UNDER REVIEW",
       "heroTitleDisputed": "The customer said the work was not done. Support is reviewing it.",
       "heroBadgeReleased": "NO CHARGE",
@@ -2064,7 +2067,7 @@
       "autoConfirmQuiet": "If you don't answer, it's confirmed automatically on {{date}} at {{time}}.",
       "autoConfirmIn": "Auto-confirms in",
       "autoConfirmDate": "{{date}} at {{time}}",
-      "autoConfirmShort": "Confirms on {{date}} at {{time}}"
+      "autoConfirmShort": "Otherwise, auto-confirms {{date}} at {{time}}"
     },
     "receipt": {
       "title": "Receipt",
@@ -4355,7 +4358,7 @@
       "when": "When to do it",
       "sent": "Quote sent",
       "sentOn": "Sent on",
-      "decides": "Quote to be answered in {{time}}",
+      "decides": "Reply due in {{time}}",
       "open": "View quote",
       "deadline": "Response deadline",
       "decidesLabel": "Time left for the client to respond"

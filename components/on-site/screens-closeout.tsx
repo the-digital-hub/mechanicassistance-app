@@ -12,9 +12,13 @@ import { onSiteConfirmationStage, onSiteDAO, OnSiteConfirmationStage, OnSiteVisi
 import { FinalReportCard } from './FinalReportActions';
 import { ObdPanel } from './ObdPanel';
 import { SlideModal } from '@/components/ui/SlideModal';
+import { OwnerSheet } from '@/components/dashboard/OwnerHomeBlocks';
+import { PendingRatings } from '@/components/dashboard/PendingRatings';
+import { useAppointments } from '@/context/AppointmentsContext';
 import { SHEET } from '@/lib/ui/sheet';
-import { Body, Card, NoteInput, OnSiteDialog, OS, PrimaryButton, cardShadow } from './ui';
+import { Body, Card, InfoRow, NoteInput, OnSiteDialog, OS, cardShadow } from './ui';
 import { appAlert } from '@/lib/ui/appAlert';
+import { formatLocalDateTime } from '@/lib/video/videoCallTime';
 import { TYPE } from '@/lib/ui/type';
 
 // The last screen of the on-site flow, after "Finish Service" (design:
@@ -96,6 +100,58 @@ function Hero({ redirected, stage, deadline, requestCode }: { redirected: boolea
     );
 }
 
+// ─────────── Waiting for the customer: one traditional card ───────────
+/**
+ * While the customer has not confirmed the service: one card of rows (icon, small label, value) with where it stands, the time left, the
+ * payout and the assistance code, instead of a centred hero and a separate payout card.
+ */
+function AwaitingCard({ visit, requestCode }: { visit: OnSiteVisit; requestCode?: string | null }) {
+    const { t, i18n } = useTranslation();
+    const k = 'appointments.closeout';
+    const deadline = visit.confirmDeadline;
+    const live = !!deadline && Date.parse(deadline) > Date.now();
+    const end = live ? new Date(deadline as string) : null;
+    const serviceDate = formatLocalDateTime(visit.closedAt ?? visit.checkedInAt, i18n.language);
+    return (
+        <Card style={{ marginTop: 16, overflow: 'hidden' }}>
+            {requestCode ? <InfoRow icon="document-text-outline" label={t(`${k}.assistanceLabel`)} value={requestCode} /> : null}
+            {/* When the service was: the day and time it was closed (else when the technician checked in). */}
+            {serviceDate ? <InfoRow icon="calendar-outline" label={t(`${k}.serviceDateLabel`)} value={serviceDate} /> : null}
+            <InfoRow icon="hourglass-outline" label={t(`${k}.heroBadgeAwaiting`)} value={t(`${k}.heroTitleAwaiting`)} />
+            {live && end ? (
+                <InfoRow
+                    icon="time-outline"
+                    label={t(`${k}.autoConfirmLabel`)}
+                    value={(
+                        <View style={{ gap: 6, marginTop: 4 }} testID="confirm-window">
+                            <CountdownBlocks deadline={deadline} tone="amber" />
+                            <Text className="font-outfit-regular" style={{ fontSize: 13, lineHeight: 18, color: OS.muted }}>
+                                {t('appointments.onSiteConfirm.autoConfirmShort', {
+                                    date: end.toLocaleDateString(i18n.language, { weekday: 'short', month: 'short', day: 'numeric' }),
+                                    time: end.toLocaleTimeString(i18n.language, { hour: 'numeric', minute: '2-digit' }),
+                                })}
+                            </Text>
+                        </View>
+                    )}
+                />
+            ) : null}
+            <InfoRow
+                icon="wallet-outline"
+                label={t(`${k}.payoutLabel`)}
+                last
+                value={(
+                    <View testID="payout-status">
+                        <Text className="font-outfit-bold" style={{ fontSize: 22, lineHeight: 28, color: OS.text, marginTop: 2 }}>
+                            {formatAmount(visit.payoutAmount ?? visit.serviceAmount, t(`${k}.unknownAmount`))}
+                        </Text>
+                        <Text className="font-outfit-regular" style={{ fontSize: 13, lineHeight: 18, color: OS.muted }}>{t(`${k}.walletPending`)}</Text>
+                    </View>
+                )}
+            />
+        </Card>
+    );
+}
+
 // ─────────── Payout ───────────
 function Payout({ visit }: { visit: OnSiteVisit }) {
     const { t } = useTranslation();
@@ -141,6 +197,10 @@ function RateOwner({ visit, onVisit }: { visit: OnSiteVisit; onVisit: (v: OnSite
     const [tags, setTags] = React.useState<string[]>([]);
     const [sending, setSending] = React.useState(false);
     const [sheet, setSheet] = React.useState(false);
+    // The appointment, when it is at hand: the rating then opens in the very same sheet as the dashboard's (who the customer is, the stars,
+    // what stood out, the comment).
+    const { getAppointmentById } = useAppointments();
+    const appointment = getAppointmentById(visit.appointmentId);
     const { height: windowHeight } = useWindowDimensions();
     const insets = useSafeAreaInsets();
     const keyboard = useKeyboardHeight();
@@ -192,8 +252,18 @@ function RateOwner({ visit, onVisit }: { visit: OnSiteVisit; onVisit: (v: OnSite
                 )}
             </View>
 
-            {/* The rating opens from below, over the close-out. */}
-            <SlideModal visible={sheet} onClose={() => setSheet(false)} avoidKeyboard>
+            {/* The rating opens from below, over the close-out: the dashboard's own sheet. */}
+            {appointment ? (
+                <OwnerSheet visible={sheet && !visit.clientRating} title={t(`${k}.rateTitle`)} onClose={() => setSheet(false)} scrollBody>
+                    <PendingRatings
+                        appointments={[appointment]}
+                        role="mechanic"
+                        onSent={() => { void onSiteDAO.get(visit.appointmentId).then((fresh) => { if (fresh) onVisit(fresh); }); }}
+                        onClose={() => setSheet(false)}
+                    />
+                </OwnerSheet>
+            ) : null}
+            <SlideModal visible={!appointment && sheet} onClose={() => setSheet(false)} avoidKeyboard>
                 <View style={{ ...SHEET, maxHeight: sheetMax, paddingTop: 16 }} testID="closeout-rate-sheet">
                     <View className="flex-row items-center justify-between px-5 pb-2">
                         <Text className="font-outfit-bold" style={{ fontSize: 22, letterSpacing: -0.4, color: OS.text }}>{t(`${k}.rateTitle`)}</Text>
@@ -259,9 +329,18 @@ export function ScreenCloseout({ visit, onVisit, onBackToDashboard, requestCode 
         <>
             <Body>
                 {/* Result on top (with the time left while the owner has not confirmed), then rating the owner, then the payout. */}
-                <Hero redirected={visit.outcome === 'redirected'} stage={stage} deadline={visit.confirmDeadline} requestCode={requestCode} />
-                <RateOwner visit={visit} onVisit={onVisit} />
-                <Payout visit={visit} />
+                {visit.outcome !== 'redirected' && stage === 'awaiting' ? (
+                    <>
+                        <AwaitingCard visit={visit} requestCode={requestCode} />
+                        <RateOwner visit={visit} onVisit={onVisit} />
+                    </>
+                ) : (
+                    <>
+                        <Hero redirected={visit.outcome === 'redirected'} stage={stage} deadline={visit.confirmDeadline} requestCode={requestCode} />
+                        <RateOwner visit={visit} onVisit={onVisit} />
+                        <Payout visit={visit} />
+                    </>
+                )}
                 <FinalReportCard appointmentId={visit.appointmentId} />
                 {stillNoReport && !obdAlert ? (
                     <TouchableOpacity
@@ -283,9 +362,17 @@ export function ScreenCloseout({ visit, onVisit, onBackToDashboard, requestCode 
                     <Text className="font-outfit-regular text-center mx-5 mt-5" style={{ fontSize: 14, lineHeight: 20, color: OS.greenDark }}>{t(`${k}.footerClosed`)}</Text>
                 ) : null}
                 {/* Part of the page, not a fixed bar: nothing here is required to leave. */}
-                <View className="flex-row mx-4 mt-4 mb-6">
-                    <PrimaryButton label={t(`${k}.back`)} onPress={onBackToDashboard} testID="closeout-back" />
-                </View>
+                {/* A soft slate button, like the app's secondary ones: leaving is not the action of this screen. */}
+                <TouchableOpacity
+                    onPress={onBackToDashboard}
+                    activeOpacity={0.85}
+                    accessibilityRole="button"
+                    className="items-center justify-center mx-4 mt-4 mb-6"
+                    style={{ minHeight: 56, borderRadius: 14, backgroundColor: '#E6EAF2' }}
+                    testID="closeout-back"
+                >
+                    <Text className="font-outfit-bold" style={{ fontSize: 18, lineHeight: 24, color: '#4A5470' }}>{t(`${k}.back`)}</Text>
+                </TouchableOpacity>
             </Body>
 
             <OnSiteDialog

@@ -1791,9 +1791,9 @@
       },
       "finalCheck": {
         "eyebrow": "PASO 2 · CHECKLIST DE MANTENIMIENTO",
-        "title": "Hacé la revisión final",
-        "subtitle": "Repasá estos puntos antes de cerrar el servicio.",
-        "finish": "Confirmar la revisión final"
+        "title": "Repasá el checklist",
+        "subtitle": "Revisá cada punto del servicio. Después contás cómo salió.",
+        "finish": "Confirmar el checklist"
       },
       "videoOut": {
         "eyebrow": "ANTES DE IRTE · OPCIONAL",
@@ -1939,7 +1939,7 @@
         "items": {
           "fixed": "Problema resuelto",
           "time": "Tiempo en el trabajo",
-          "check": "Revisión final",
+          "check": "Checklist de mantenimiento",
           "checkCount": "{{done}} de {{total}} puntos revisados"
         },
         "next": {
@@ -1958,6 +1958,9 @@
       "unavailable": "No se pudo cargar tu código de check-in."
     },
     "closeout": {
+      "serviceDateLabel": "Fecha del servicio",
+      "autoConfirmLabel": "Tiempo del cliente para confirmar",
+      "assistanceLabel": "Asistencia",
       "title": "Cierre de la asistencia",
       "heroBadge": "COBRO SOLICITADO",
       "heroTitle": "Listo — se solicitó el cobro.",
@@ -1997,11 +2000,11 @@
       "arrivedOn": "ENVIADO EL",
       "walletSent": "Enviado a tu wallet",
       "walletSentOn": "Enviado a tu wallet el {{date}}",
-      "walletPending": "Va a tu wallet cuando el cliente confirme",
+      "walletPending": "Se acredita en tu wallet al confirmar",
       "walletNote": "Vos elegís cuándo pasarlo a tu cuenta bancaria.",
-      "heroBadgeAwaiting": "ESPERANDO CONFIRMACIÓN",
+      "heroBadgeAwaiting": "SERVICIO TERMINADO",
       "assistanceCode": "Asistencia {{code}}",
-      "heroTitleAwaiting": "Esperando que el cliente confirme el trabajo",
+      "heroTitleAwaiting": "Pendiente de confirmación del cliente",
       "heroBadgeDisputed": "EN REVISIÓN",
       "heroTitleDisputed": "El cliente indicó que el trabajo no se realizó. Soporte lo está revisando.",
       "heroBadgeReleased": "SIN CARGO",
@@ -2065,7 +2068,7 @@
       "autoConfirmQuiet": "Si no respondés, se confirma automáticamente el {{date}} a las {{time}}.",
       "autoConfirmIn": "Se confirma solo en",
       "autoConfirmDate": "{{date}} a las {{time}}",
-      "autoConfirmShort": "Se confirma el {{date}} a las {{time}}"
+      "autoConfirmShort": "Si no, se confirma solo el {{date}} a las {{time}}"
     },
     "receipt": {
       "title": "Recibo",
@@ -4356,7 +4359,7 @@
       "when": "Cuándo hacerlo",
       "sent": "Presupuesto enviado",
       "sentOn": "Enviado el",
-      "decides": "Presupuesto a responder en {{time}}",
+      "decides": "Respuesta en {{time}}",
       "open": "Ver presupuesto",
       "deadline": "Fecha límite de respuesta",
       "decidesLabel": "Tiempo que le queda al cliente para responder"

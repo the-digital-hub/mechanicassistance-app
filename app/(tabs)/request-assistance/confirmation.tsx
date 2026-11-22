@@ -13,7 +13,7 @@ import { WALLET_METHOD } from '@/lib/payments/cardLabel';
 import { isPaymentMethodRequired, RETURN_TO_BACK } from '@/lib/payments/cardRequired';
 import { usePaymentChoice } from '@/lib/payments/usePaymentChoice';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { AlertCircle, AlignLeft, Camera, Car, CheckCircle2, ChevronLeft, CreditCard, MapPin, ShieldCheck } from 'lucide-react-native';
+import { AlertCircle, AlignLeft, Camera, Car, CheckCircle2, ChevronLeft, ClipboardCheck, CreditCard, MapPin, ShieldCheck } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
@@ -446,30 +446,17 @@ export default function ConfirmationScreen() {
                         action={<ChangeBadge onPress={() => setCardPickerOpen(true)} />}
                     />
                     <SummaryRow
-                        last
                         icon={<AlignLeft size={18} color="#1E56E3" />}
                         label={t('requestAssistance.confirmation.notes')}
                         value={(details as string) || t('requestAssistance.confirmation.none')}
                     />
-                </View>
-
-                {/* Included with the service: the list sits under the title, in its column, not under the icon. */}
-                <View className="flex-row" style={{ gap: 10, backgroundColor: '#EFFAF3', borderRadius: 14, borderWidth: 1, borderColor: '#BFE8D0', paddingHorizontal: 14, paddingVertical: 12 }}>
-                    <CheckCircle2 size={20} color="#1E9E5A" style={{ marginTop: 1 }} />
-                    <View className="flex-1">
-                        <Text className="font-outfit-bold" style={{ fontSize: 15, lineHeight: 20, color: '#0F6B3E' }}>
-                            {t('requestAssistance.confirmation.includedTitle')}
-                        </Text>
-                        {[
-                            t('requestAssistance.confirmation.includedChecklist'),
-                            t('requestAssistance.confirmation.includedScanner'),
-                        ].map((item) => (
-                            <View key={item} className="flex-row items-center" style={{ gap: 8, marginTop: 6 }}>
-                                <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: '#1E9E5A' }} />
-                                <Text className="flex-1 font-outfit-regular" style={{ fontSize: 14, lineHeight: 19, color: '#3B7A57' }}>{item}</Text>
-                            </View>
-                        ))}
-                    </View>
+                    {/* What comes with the service, as one more row of the card (one item per line). */}
+                    <SummaryRow
+                        last
+                        icon={<ClipboardCheck size={18} color="#1E56E3" />}
+                        label={t('requestAssistance.confirmation.includedTitle')}
+                        value={[t('requestAssistance.confirmation.includedChecklist'), t('requestAssistance.confirmation.includedScanner')].join('\n')}
+                    />
                 </View>
 
                 {/* What the submit is doing: a message goes in the body, never in the fixed footer */}

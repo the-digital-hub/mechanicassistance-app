@@ -7,7 +7,7 @@ import MapView, { Marker } from 'react-native-maps';
 import { MAP_PROVIDER } from '@/lib/maps/provider';
 import { TYPE } from '@/lib/ui/type';
 import { ExtraCaptures, MediaSlot, useExistingCaptures } from './MediaSlot';
-import { WorkingAnimation } from './WorkingAnimation';
+import { TipCard, WorkingAnimation } from './WorkingAnimation';
 import {
     ActionBar, Body, Card, CardTitle, Checkbox, Eyebrow, InfoRow, Intro, MaintenanceChecklist, NoteInput, OS,
     OnSiteDialog, PrimaryButton, Tip, useMaintenanceItems,
@@ -416,20 +416,26 @@ export function ScreenResolveIncident({
                             style={{ marginHorizontal: 16, marginTop: 14, borderRadius: 20, padding: 16 }}
                             testID="job-in-progress"
                         >
-                            {/* What is going on, as a badge on top, and under it the timer: all centred. */}
-                            <View className="items-center" style={{ gap: 12 }}>
-                                <View className="flex-row items-center" style={{ gap: 6, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.18)' }}>
-                                    <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: '#4ADE80' }} />
-                                    <Text className="font-outfit-bold" style={{ ...TYPE.caption, color: '#FFFFFF' }}>{t(`${k}.working`)}</Text>
+                            {/* What is going on, as a badge on top and under it the timer, with the animation beside them: the card stays low. */}
+                            <View className="flex-row items-center justify-between" style={{ gap: 12 }}>
+                                <View style={{ gap: 10, flexShrink: 1 }}>
+                                    <View className="flex-row items-center self-start" style={{ gap: 6, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.18)' }}>
+                                        <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: '#4ADE80' }} />
+                                        <Text className="font-outfit-bold" style={{ ...TYPE.caption, color: '#FFFFFF' }}>{t(`${k}.working`)}</Text>
+                                    </View>
+                                    <View>
+                                        <Text className="font-outfit-bold" style={{ fontSize: 48, lineHeight: 54, letterSpacing: -1, color: '#FFFFFF', fontVariant: ['tabular-nums'] }}>{mm}:{ss}</Text>
+                                        <Text className="font-outfit-semibold" style={{ ...TYPE.helper, color: 'rgba(255,255,255,0.85)', marginTop: 2 }}>{t(`${k}.timerLabel`)}</Text>
+                                    </View>
                                 </View>
-                                <View className="items-center">
-                                    <Text className="font-outfit-bold" style={{ fontSize: 48, lineHeight: 54, letterSpacing: -1, color: '#FFFFFF', fontVariant: ['tabular-nums'] }}>{mm}:{ss}</Text>
-                                    <Text className="font-outfit-semibold" style={{ ...TYPE.helper, color: 'rgba(255,255,255,0.85)', marginTop: 2 }}>{t(`${k}.timerLabel`)}</Text>
-                                </View>
+                                <WorkingAnimation label={t(`${k}.working`)} size={112} />
                             </View>
                         </LinearGradient>
 
-                        <WorkingAnimation label={t(`${k}.working`)} />
+                        {/* A tip under the card: one at a time, a new one every few seconds. */}
+                        <View style={{ marginHorizontal: 16, marginTop: 14 }}>
+                            <TipCard />
+                        </View>
 
                 {partsOrder ? (
                     <>
