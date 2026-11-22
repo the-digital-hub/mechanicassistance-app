@@ -244,6 +244,7 @@
     "accept": "Accept"
   },
   "dashboard": {
+    "kind": {"immediate": "Immediate assistance", "scheduled": "Scheduled assistance", "videocall": "Video call assistance", "accident": "Accident assistance"},
     "attention": {
       "hiddenCount": "Hidden {{count}}",
       "hiddenClose": "Hide list",
@@ -385,6 +386,9 @@
         "mileageError": "Could not save the mileage. Please try again."
       },
       "recent": {
+        "kind": { "immediate": "Immediate assistance", "scheduled": "Scheduled service", "video": "Video call" },
+        "rated": "You rated",
+        "notRated": "Rating pending",
         "title": "Recent activity",
         "seeAll": "See all"
       },
@@ -404,6 +408,7 @@
       "days": "{{count}}d ago"
     },
     "mechanic": {
+      "recent": { "title": "Recent jobs", "rated": "Your rating", "notRated": "Rating pending" },
       "activeJob": {
         "title": "Active job",
         "headOut": "Head out",
@@ -2929,6 +2934,26 @@
     "noResults": "No help topics match your search."
   },
   "notifications": {
+    "searchPlaceholder": "Search notifications",
+    "clearSearch": "Clear search",
+    "filter": "Filter",
+    "typeTitle": "What it is about",
+    "groups": {
+        "requests": "Requests",
+        "video": "Video calls",
+        "reviews": "Ratings",
+        "payments": "Payments",
+        "other": "Other"
+    },
+    "removeFilter": "remove",
+    "clearFilters": "Clear filters",
+    "done": "Done",
+    "actionsTitle": "Your notifications",
+    "markAllReadSub": "{{count}} unread",
+    "nothingUnread": "Everything is already read",
+    "deleteAllSub": "Remove all {{count}} for good",
+    "noResults": "No notifications match",
+    "noResultsHint": "Try another word or clear the filters.",
     "deleteConfirmTitle": "Delete Notification",
     "deleteConfirmMessage": "Are you sure you want to remove this notification?",
     "cancel": "Cancel",

@@ -1,7 +1,7 @@
 import { AttentionCards, type AttentionCardData } from '@/components/dashboard/AttentionCard';
 import { VehicleIdsRow } from '@/components/scheduled/ui';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Calendar, Check, ChevronDown, ChevronRight, FileText, Pencil, Wrench, X, type LucideIcon } from 'lucide-react-native';
+import { Calendar, Check, ChevronDown, ChevronRight, Clock, FileText, Pencil, Star, Wrench, X, type LucideIcon } from 'lucide-react-native';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Animated, Easing, KeyboardAvoidingView, Modal, Platform, Pressable, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { TYPE } from '@/lib/ui/type';
@@ -228,7 +228,13 @@ export function VehicleCareCard({
     );
 }
 
-export type ActivityItem = { id: string; title: string; sub: string; amount?: string; onPress?: () => void };
+export type ActivityItem = {
+    id: string; title: string; sub: string; amount?: string; onPress?: () => void;
+    /** The small label above the title: what kind of job it was. */
+    kicker?: string;
+    /** A third line with one fact about it (e.g. how it was rated), green when done and amber when it still asks something of the person. */
+    meta?: { text: string; tone: 'done' | 'todo'; /** With `done`: the stars given, drawn in yellow after the text. */ stars?: number };
+};
 
 export function RecentActivityList({ items }: { items: ActivityItem[] }) {
     return (
@@ -240,16 +246,30 @@ export function RecentActivityList({ items }: { items: ActivityItem[] }) {
                     disabled={!h.onPress}
                     activeOpacity={0.7}
                     className="flex-row items-center"
-                    style={{ paddingHorizontal: 14, paddingVertical: 12, gap: 12, borderBottomWidth: i < items.length - 1 ? 1 : 0, borderBottomColor: C.borderSoft }}
+                    style={{ paddingHorizontal: 14, paddingVertical: 13, gap: 12, borderBottomWidth: i < items.length - 1 ? 1 : 0, borderBottomColor: C.borderSoft }}
                 >
                     <View className="items-center justify-center" style={{ width: 30, height: 30, borderRadius: 10, backgroundColor: C.blueSoft }}>
                         <FileText size={17} color={C.blue} />
                     </View>
                     <View className="flex-1">
-                        <Text className="font-outfit-bold" style={{ fontSize: 14, color: C.text }} numberOfLines={1}>{h.title}</Text>
+                        {h.kicker ? <Text className="font-outfit-semibold uppercase" style={{ fontSize: 11, lineHeight: 14, letterSpacing: 0.8, color: C.blue }} numberOfLines={1}>{h.kicker}</Text> : null}
+                        <Text className="font-outfit-bold" style={{ fontSize: 14, color: C.text, marginTop: h.kicker ? 1 : 0 }} numberOfLines={1}>{h.title}</Text>
                         <Text className="font-outfit-regular" style={{ fontSize: 13, color: C.muted, marginTop: 1 }} numberOfLines={1}>{h.sub}</Text>
+                        {h.meta ? (
+                            <View className="flex-row items-center" style={{ gap: 6, marginTop: 3 }}>
+                                {h.meta.tone === 'todo' ? <Clock size={13} color="#8A5A12" /> : null}
+                                <Text className="font-outfit-semibold" style={{ fontSize: 13, color: h.meta.tone === 'done' ? C.muted : '#8A5A12' }} numberOfLines={1}>{h.meta.text}</Text>
+                                {h.meta.tone === 'done' && h.meta.stars != null ? (
+                                    <View className="flex-row" style={{ gap: 1 }} accessibilityLabel={`${h.meta.stars} / 5`}>
+                                        {[1, 2, 3, 4, 5].map((n) => (
+                                            <Star key={n} size={14} color={n <= h.meta!.stars! ? '#F5A623' : '#D9DEE9'} fill={n <= h.meta!.stars! ? '#F5A623' : 'transparent'} />
+                                        ))}
+                                    </View>
+                                ) : null}
+                            </View>
+                        ) : null}
                     </View>
-                    {h.amount ? <Text className="font-outfit-bold" style={{ fontSize: 13, color: C.text }}>{h.amount}</Text> : null}
+                    {h.amount ? <Text className="font-outfit-bold" style={{ fontSize: 17, letterSpacing: -0.2, color: C.text }}>{h.amount}</Text> : null}
                 </TouchableOpacity>
             ))}
         </View>

@@ -38,7 +38,7 @@ export type AttentionCardData = {
     onPress: () => void;
 };
 
-const TONES = { amber: { bg: '#FCE8BD', fg: '#8A5200' }, blue: { bg: '#DCE7FA', fg: '#1E56E3' } } as const;
+const TONES = { amber: { bg: '#FCE8BD', fg: '#8A5200', soft: '#FFFAF0' }, blue: { bg: '#DCE7FA', fg: '#1E56E3', soft: '#F5F8FE' } } as const;
 const INK = { text: '#0B1530', muted: '#6B7490' };
 /** How much text still fits beside the action pill (characters); beyond it the pill goes under the text. */
 const STACK_TITLE = 30;
@@ -46,9 +46,10 @@ const STACK_SUB = 32;
 const STACK_BODY = 36;
 
 /** The one action of an alert, small, at the end of the line of what it is about: the line itself is the button, the pill says what it does. */
-function ActionPill({ label, tone, stacked }: { label: string; tone: { bg: string; fg: string }; /** Under the text, at its end, instead of beside it. */ stacked?: boolean }) {
+function ActionPill({ label, tone, stacked }: { label: string; tone: { bg: string; fg: string; soft: string }; /** Under the text, at its end, instead of beside it. */ stacked?: boolean }) {
     return (
-        <View className="flex-row items-center" style={{ gap: 1, minHeight: 34, paddingLeft: 12, paddingRight: 6, borderRadius: 100, backgroundColor: tone.bg, ...(stacked ? { alignSelf: 'flex-end' } : null) }} testID="attention-cta">
+        // Almost the white of the row it sits in, with a thin line of the tone: it still reads as a button without a third block of colour.
+        <View className="flex-row items-center" style={{ gap: 1, minHeight: 34, paddingLeft: 12, paddingRight: 6, borderRadius: 100, backgroundColor: tone.soft, borderWidth: 1, borderColor: tone.bg, ...(stacked ? { alignSelf: 'flex-end' } : null) }} testID="attention-cta">
             <Text className="font-outfit-bold" style={{ fontSize: 14, color: tone.fg }}>{label}</Text>
             <ChevronRight size={16} color={tone.fg} />
         </View>

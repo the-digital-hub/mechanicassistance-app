@@ -74,23 +74,21 @@ function ObdPage({ appointment, width, onVisit, onHeight }: { appointment: Appoi
     const issue = splitJobTitle(appointment.title).main;
     const kind = assistanceKind(appointment);
     const look = {
-        immediate: { label: t('dashboard.mechanic.tabs.immediate'), icon: Zap, bg: '#FEE2E2', fg: '#B91C1C' },
-        scheduled: { label: t('dashboard.mechanic.tabs.scheduled'), icon: Calendar, bg: '#EDE9FE', fg: '#6D28D9' },
-        videocall: { label: t('dashboard.mechanic.tabs.video'), icon: Video, bg: '#DBEAFE', fg: '#1D4ED8' },
-        accident: { label: t('appointments.detail.types.accident'), icon: AlertTriangle, bg: '#FEF3C7', fg: '#92400E' },
+        immediate: { label: t('dashboard.kind.immediate'), icon: Zap },
+        scheduled: { label: t('dashboard.kind.scheduled'), icon: Calendar },
+        videocall: { label: t('dashboard.kind.videocall'), icon: Video },
+        accident: { label: t('dashboard.kind.accident'), icon: AlertTriangle },
     }[kind];
-    const KindIcon = look.icon;
     // When the service was (the day it was closed, else the day it was asked for).
     const when = formatLocalDateTime(appointment.completedAt || appointment.date, i18n.language);
     return (
         <View style={{ width, paddingBottom: 10 }} onLayout={(e) => onHeight(e.nativeEvent.layout.height)}>
             {/* Which assistance this report is for, so it is never uploaded to the wrong one. */}
             <View style={{ gap: 10, padding: 14, borderRadius: 16, backgroundColor: OS.blueSofter, borderWidth: 1, borderColor: OS.blueSoft }} testID="obd-report-identity">
-                {/* The kind as a badge with its icon, then when it was, what it is, the vehicle with its model, VIN and plate, and the code last. */}
-                <View className="flex-row items-center self-start" style={{ gap: 5, paddingLeft: 8, paddingRight: 10, paddingVertical: 4, borderRadius: 100, backgroundColor: look.bg }}>
-                    <KindIcon size={13} color={look.fg} />
-                    <Text className="font-outfit-bold" style={{ fontSize: 12, lineHeight: 16, letterSpacing: 0.4, color: look.fg }}>{look.label}</Text>
-                </View>
+                {/* The kind as the first line (icon and text, like the rest), then when it was, what it is, the vehicle with its model, VIN and plate, and the code last. */}
+                <IdRow icon={look.icon}>
+                    <Text className="font-outfit-semibold" style={IDENT} numberOfLines={1}>{look.label}</Text>
+                </IdRow>
                 {when ? (
                     <IdRow icon={Calendar}>
                         <Text className="font-outfit-semibold" style={IDENT} numberOfLines={1}>{when}</Text>

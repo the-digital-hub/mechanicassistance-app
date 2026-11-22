@@ -244,6 +244,7 @@
     "accept": "Aceptar"
   },
   "dashboard": {
+    "kind": {"immediate": "Asistencia inmediata", "scheduled": "Asistencia programada", "videocall": "Asistencia por videollamada", "accident": "Asistencia por accidente"},
     "attention": {
       "hiddenCount": "Ocultas {{count}}",
       "hiddenClose": "Cerrar lista",
@@ -385,6 +386,9 @@
         "mileageError": "No se pudo guardar el kilometraje. Probá de nuevo."
       },
       "recent": {
+        "kind": { "immediate": "Asistencia inmediata", "scheduled": "Servicio programado", "video": "Videollamada" },
+        "rated": "Calificaste",
+        "notRated": "Calificación pendiente",
         "title": "Actividad reciente",
         "seeAll": "Ver todo"
       },
@@ -404,6 +408,7 @@
       "days": "hace {{count}}d"
     },
     "mechanic": {
+      "recent": { "title": "Trabajos recientes", "rated": "Tu calificación", "notRated": "Calificación pendiente" },
       "activeJob": {
         "title": "Trabajo en curso",
         "headOut": "Salir ahora",
@@ -2930,6 +2935,26 @@
     "noResults": "Ningún tema de ayuda coincide con tu búsqueda."
   },
   "notifications": {
+    "searchPlaceholder": "Buscar notificaciones",
+    "clearSearch": "Borrar búsqueda",
+    "filter": "Filtrar",
+    "typeTitle": "De qué se trata",
+    "groups": {
+        "requests": "Solicitudes",
+        "video": "Videollamadas",
+        "reviews": "Calificaciones",
+        "payments": "Pagos",
+        "other": "Otras"
+    },
+    "removeFilter": "quitar",
+    "clearFilters": "Quitar filtros",
+    "done": "Listo",
+    "actionsTitle": "Tus notificaciones",
+    "markAllReadSub": "{{count}} sin leer",
+    "nothingUnread": "Todo está leído",
+    "deleteAllSub": "Borrar las {{count}} para siempre",
+    "noResults": "No hay notificaciones que coincidan",
+    "noResultsHint": "Probá con otra palabra o quitá los filtros.",
     "deleteConfirmTitle": "Eliminar notificación",
     "deleteConfirmMessage": "¿Estás seguro de que querés eliminar esta notificación?",
     "cancel": "Cancelar",

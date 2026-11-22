@@ -8,7 +8,6 @@ import {
     AlarmClock,
     Bell,
     Car,
-    Check,
     CircleCheck,
     CircleDollarSign,
     CircleX,
@@ -24,7 +23,6 @@ import {
     TriangleAlert,
     Video,
     Wrench,
-    X,
     type LucideIcon,
 } from 'lucide-react-native';
 import { useRef, useState } from 'react';
@@ -34,6 +32,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, LayoutAnimation, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import type { NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
 import { appAlert } from '@/lib/ui/appAlert';
+import { groupOfKind, NotificationsActionsSheet, NotificationsToolbar, type NotificationGroup } from '@/components/notifications/NotificationsToolbar';
 
 // Tile palette from the Notification Center design: icon color + soft tint.
 const TONES = {
@@ -110,6 +109,9 @@ export default function NotificationsScreen() {
     const router = useRouter();
     const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
+    const [query, setQuery] = useState('');
+    const [groups, setGroups] = useState<NotificationGroup[]>([]);
+    const [actionsOpen, setActionsOpen] = useState(false);
     const {
         notifications,
         deleteNotifications,
@@ -169,9 +171,12 @@ export default function NotificationsScreen() {
         }
     };
 
-    const filteredNotifications = activeTab === 'all'
-        ? notifications
-        : notifications.filter(n => n.unread);
+    // The tab, then what it is about (the filter) and the words typed in the search box.
+    const needle = query.trim().toLowerCase();
+    const filtering = needle.length > 0 || groups.length > 0;
+    const filteredNotifications = (activeTab === 'all' ? notifications : notifications.filter(n => n.unread))
+        .filter((n) => groups.length === 0 || groups.includes(groupOfKind(n.kind)))
+        .filter((n) => !needle || `${n.title} ${n.body}`.toLowerCase().includes(needle));
 
     // "Delete all" reaches every notification on the server, not only the loaded ones: ask first.
     const handleDeleteAll = () => {
@@ -308,27 +313,20 @@ export default function NotificationsScreen() {
                             );
                         })}
                     </View>
-                    {/* Two small badges, like the tabs next to them: not bare icons floating on the page. */}
-                    <View className="flex-row" style={{ gap: 8 }}>
-                        <TouchableOpacity
-                            onPress={markAllRead}
-                            accessibilityRole="button"
-                            accessibilityLabel={t('notifications.markAllRead')}
-                            style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#E6EAF2', alignItems: 'center', justifyContent: 'center' }}
-                            testID="notifications-mark-all-read"
-                        >
-                            <Check size={17} color="#4A5470" strokeWidth={2.4} />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            onPress={handleDeleteAll}
-                            accessibilityRole="button"
-                            accessibilityLabel={t('notifications.deleteAll')}
-                            style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#FDECEC', alignItems: 'center', justifyContent: 'center' }}
-                            testID="notifications-delete-all"
-                        >
-                            <X size={17} color="#D93636" strokeWidth={2.4} />
-                        </TouchableOpacity>
-                    </View>
+                    {/* One button for what can be done to the whole inbox (mark all as read, delete all). */}
+                    <TouchableOpacity
+                        onPress={() => setActionsOpen(true)}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('notifications.actionsTitle')}
+                        style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: '#E6EAF2', alignItems: 'center', justifyContent: 'center' }}
+                        testID="notifications-actions"
+                    >
+                        <MoreHorizontal size={20} color="#4A5470" />
+                    </TouchableOpacity>
+                </View>
+
+                <View className="px-6 mb-3">
+                    <NotificationsToolbar query={query} onQuery={setQuery} groups={groups} onGroups={setGroups} />
                 </View>
 
                 {/* List */}
@@ -338,9 +336,9 @@ export default function NotificationsScreen() {
                             <View className="mb-4">
                                 <Bell size={40} color="#8C96AE" strokeWidth={1.5} />
                             </View>
-                            <Text className="text-gray-400 font-outfit-medium text-base text-center">{t('notifications.empty')}</Text>
+                            <Text className="text-gray-400 font-outfit-medium text-base text-center">{filtering ? t('notifications.noResults') : t('notifications.empty')}</Text>
                             <Text className="text-gray-300 font-outfit-regular text-sm text-center mt-1">
-                                {t('notifications.emptyHint')}
+                                {filtering ? t('notifications.noResultsHint') : t('notifications.emptyHint')}
                             </Text>
                         </View>
                     ) : (
@@ -408,6 +406,14 @@ export default function NotificationsScreen() {
                     )}
                 </View>
             </ScrollView>
+            <NotificationsActionsSheet
+                visible={actionsOpen}
+                onClose={() => setActionsOpen(false)}
+                unread={totals.unread}
+                total={totals.all}
+                onMarkAllRead={markAllRead}
+                onDeleteAll={handleDeleteAll}
+            />
         </GestureHandlerRootView>
     );
 }

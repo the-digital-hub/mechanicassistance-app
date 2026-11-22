@@ -134,6 +134,9 @@ export default function DashboardScreen() {
     const loadedAppointmentsOnce = useRef(false);
     if (!isLoadingAppointments) loadedAppointmentsOnce.current = true;
     const jobsToday = countCompletedToday(appointments);
+    const recentJobs = user?.role === 'mechanic'
+        ? appointments.filter((a) => a.status === 'completed').sort((a, b) => (b.completedAt || b.updatedAt || '').localeCompare(a.completedAt || a.updatedAt || '')).slice(0, 3)
+        : [];
     const { earnedToday, stats: mechanicStats, week, summary: earningsSummary } = useMechanicKpis(user?.role === 'mechanic', jobsToday);
     // The scanner report is uploaded from a sheet over the dashboard; once it changes, the reminder is checked again.
     const [obdSheetFor, setObdSheetFor] = useState<Appointment[] | null>(null);
@@ -894,6 +897,26 @@ export default function DashboardScreen() {
                         </View>
                     )}
 
+                    {/* The last finished jobs, in the same three lines as the owner's: kind, job and vehicle, and how the customer was rated. */}
+                    {recentJobs.length > 0 && (
+                        <View className="mt-8">
+                            <SectionTitle title={t('dashboard.mechanic.recent.title')} />
+                            <RecentActivityList
+                                items={recentJobs.map((a) => ({
+                                    id: a.id,
+                                    title: a.title || t(`requestAssistance.header.${a.type === 'videocall' ? 'videoCall' : a.type === 'scheduled' ? 'scheduled' : 'immediate'}`),
+                                    sub: [a.car, formatLocalDateTime(a.completedAt || a.date, i18n.language)].filter(Boolean).join(' · '),
+                                    kicker: t(`dashboard.user.recent.kind.${a.type === 'videocall' ? 'video' : a.type === 'scheduled' ? 'scheduled' : 'immediate'}`),
+                                    meta: a.clientRating != null
+                                        ? { text: t('dashboard.mechanic.recent.rated'), tone: 'done', stars: a.clientRating }
+                                        : { text: t('dashboard.mechanic.recent.notRated'), tone: 'todo' },
+                                    amount: a.budget ? String(a.budget) : undefined,
+                                    onPress: guard(() => router.push({ pathname: '/(tabs)/appointments/[id]', params: { id: a.id } })),
+                                }))}
+                            />
+                        </View>
+                    )}
+
                     {/* ASE certification */}
                     <View className="mt-8 mb-4">
                         <AseCta
@@ -1333,6 +1356,10 @@ export default function DashboardScreen() {
                                         id: a.id,
                                         title: serviceName(a),
                                         sub: [vehicleShort(a), dateLabel(a.completedAt || a.date)].filter(Boolean).join(' · '),
+                                        kicker: t(`dashboard.user.recent.kind.${a.type === 'videocall' ? 'video' : a.type === 'scheduled' ? 'scheduled' : 'immediate'}`),
+                                        meta: a.reviewRating != null
+                                            ? { text: t('dashboard.user.recent.rated'), tone: 'done', stars: a.reviewRating }
+                                            : a.mechanicId ? { text: t('dashboard.user.recent.notRated'), tone: 'todo' } : undefined,
                                         amount: a.budget ? String(a.budget) : undefined,
                                         onPress: guard(() => openRequest(a)),
                                     }))}
