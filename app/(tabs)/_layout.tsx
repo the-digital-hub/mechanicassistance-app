@@ -204,6 +204,8 @@ export default function TabLayout() {
   const { user } = useUser();
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
+  // Android edge-to-edge: the system buttons / gesture bar are drawn over the bottom of the screen, so the tab bar grows by their height.
+  const androidBottomInset = Platform.OS === "android" ? insets.bottom : 0;
   // The native header is transparent, so the page runs under its rounded lower edge; the page starts HEADER_OVERLAP above the header's bottom.
   const [headerHeight, setHeaderHeight] = useState(insets.top + (Platform.OS === "ios" ? 44 : 56));
   const sceneUnderHeader = { backgroundColor: PAGE_BG, paddingTop: Math.max(0, headerHeight - HEADER_OVERLAP) };
@@ -241,8 +243,8 @@ export default function TabLayout() {
         // Attached to the bottom edge, top corners rounded (see lib/ui/header.ts).
         tabBarStyle: {
           ...ATTACHED_TAB_BAR,
-          height: TAB_BAR_HEIGHT,
-          paddingBottom: Platform.OS === "ios" ? 28 : 8,
+          height: TAB_BAR_HEIGHT + androidBottomInset,
+          paddingBottom: Platform.OS === "ios" ? 28 : 8 + androidBottomInset,
         },
         headerShown: true,
         headerTitleAlign: "center",
@@ -543,9 +545,9 @@ export default function TabLayout() {
             backgroundColor: "#FFFFFF",
             borderTopWidth: 1,
             borderTopColor: "#E5E5E5",
-            height: Platform.OS === "ios" ? 88 : 68,
+            height: (Platform.OS === "ios" ? 88 : 68) + androidBottomInset,
             paddingTop: 8,
-            paddingBottom: Platform.OS === "ios" ? 28 : 8,
+            paddingBottom: Platform.OS === "ios" ? 28 : 8 + androidBottomInset,
           },
         }}
       />

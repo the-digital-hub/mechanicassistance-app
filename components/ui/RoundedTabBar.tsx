@@ -1,7 +1,8 @@
 import { BottomTabBar, type BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { usePathname } from 'expo-router';
 import React, { useEffect } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { Platform, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { Easing, interpolate, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { PAGE_BG, TAB_BAR_HEIGHT } from '@/lib/ui/header';
@@ -34,6 +35,10 @@ const SHADOW = {
 export function RoundedTabBar(props: BottomTabBarProps) {
     const pathname = usePathname();
     const hidden = useTabBarHidden();
+    // On Android (edge-to-edge) the system buttons / gesture bar sit over the bottom of the screen: the bar grows by their height, so its icons stay above them. iOS's 88 already includes it.
+    const insets = useSafeAreaInsets();
+    const bottomInset = Platform.OS === 'android' ? insets.bottom : 0;
+    const fullHeight = TAB_BAR_HEIGHT + bottomInset;
     const backdrop = WHITE_PATHS.test(pathname) ? '#FFFFFF' : PAGE_BG;
 
     // 0 = the whole bar, 1 = only the handle.
@@ -47,13 +52,13 @@ export function RoundedTabBar(props: BottomTabBarProps) {
         setTabBarHidden(false);
     }, [pathname]);
 
-    const row = useAnimatedStyle(() => ({ height: interpolate(progress.value, [0, 1], [TAB_BAR_HEIGHT, TIP_HEIGHT]) }));
+    const row = useAnimatedStyle(() => ({ height: interpolate(progress.value, [0, 1], [fullHeight, TIP_HEIGHT]) }));
     const tip = useAnimatedStyle(() => ({ opacity: interpolate(progress.value, [0.4, 1], [0, 1], 'clamp') }));
 
     return (
         <Animated.View style={[{ backgroundColor: backdrop }, row]}>
             {/* The bar keeps its full height and hangs from the top of the row: as the row shrinks, it slides down and out of the screen. */}
-            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: TAB_BAR_HEIGHT }} pointerEvents={hidden ? 'none' : 'auto'}>
+            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: fullHeight }} pointerEvents={hidden ? 'none' : 'auto'}>
                 <BottomTabBar {...props} />
             </View>
             <Animated.View
