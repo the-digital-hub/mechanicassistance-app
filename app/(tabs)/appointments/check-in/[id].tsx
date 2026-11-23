@@ -152,6 +152,9 @@ export default function OnSiteFlowScreen() {
     const [feasibilityChoice, setFeasibilityChoice] = React.useState<'yes' | 'parts' | 'no' | null>(null);
     // True while the diagnostic is being sent (a second tap on "next" does nothing).
     const submittingDiagnostic = React.useRef(false);
+    // The technician chose "Continue without the photos": the server's check names them as missing, which must not send them back.
+    // (A hook: it must stay above the early return below.)
+    const photosSkipped = React.useRef(false);
     // The close-out summary lists what was captured, scanned and checked: ask the server for the visit as it is now (captures upload
     // while the technician moves through the steps, and the copy held here is from before them).
     React.useEffect(() => {
@@ -206,8 +209,6 @@ export default function OnSiteFlowScreen() {
 
     // The diagnostic is validated on the server (it names the photos still missing); there is no screen for it: on success the flow moves
     // on to step 4, on failure it goes back to the photos with what is missing.
-    // The technician chose "Continue without the photos": the server's check names them as missing, which must not send them back.
-    const photosSkipped = React.useRef(false);
     const submitDiagnostic = () => {
         if (submittingDiagnostic.current) return;
         submittingDiagnostic.current = true;

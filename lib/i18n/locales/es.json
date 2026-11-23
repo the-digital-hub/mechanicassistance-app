@@ -1202,8 +1202,6 @@
         "extendedTimeValue": "+{{count}} min agregados",
         "notRated": "Sin calificar",
         "notAvailable": "—",
-        "okShort": "VIN correcto",
-        "notOkShort": "El VIN no coincide",
         "distanceApprox": "{{miles}} mi",
         "approximateArea": "Zona aproximada — no se muestra la ubicación exacta",
         "budgetLabel": "Presupuesto",
@@ -1909,6 +1907,8 @@
         "notVin": "Ese código no es un VIN. Probá con el de la puerta o el del parabrisas.",
         "cross": {
           "title": "Control de VIN",
+          "okShort": "VIN correcto",
+          "notOkShort": "El VIN no coincide",
           "request": "En el pedido",
           "mine": "El que cargaste",
           "obd": "Scanner OBD",

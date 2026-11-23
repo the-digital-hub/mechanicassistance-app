@@ -129,9 +129,18 @@ export function ScreenCheckIn({ onSubmit, onMismatch }: {
                     ) : (
                         // No empty frame standing in for the camera: a short line and the button that opens it.
                         <View className="items-center">
-                            <View className="items-center justify-center" style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: OS.blueSoft }}>
+                            {/* The QR tile is a button too: it opens the camera, same as "Open camera". */}
+                            <TouchableOpacity
+                                onPress={() => void openCamera()}
+                                activeOpacity={0.7}
+                                accessibilityRole="button"
+                                accessibilityLabel={t('appointments.checkIn.openCamera')}
+                                className="items-center justify-center"
+                                style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: OS.blueSoft }}
+                                testID="check-in-qr-tile"
+                            >
                                 <Ionicons name="qr-code-outline" size={32} color={OS.blue} />
-                            </View>
+                            </TouchableOpacity>
                             <Text className="font-outfit-medium text-center" style={{ fontSize: 15, lineHeight: 21, color: OS.muted, marginTop: 12, marginBottom: 16 }}>
                                 {permission && !permission.granted && !permission.canAskAgain
                                     ? t('appointments.checkIn.cameraPermission')

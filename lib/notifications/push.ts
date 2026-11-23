@@ -229,10 +229,9 @@ export function routeForPush(data: PushData | undefined, viewer: PushViewer): Hr
                 ? { pathname: '/appointments/review/[id]' as never, params: { id: appointmentId } }
                 : '/appointments';
         case 'obd_reminder':
-            // The closed visit reopens on its final screen, where the report can be uploaded.
-            return appointmentId
-                ? { pathname: '/appointments/check-in/[id]', params: { id: appointmentId } }
-                : '/appointments';
+            // The dashboard opens the same report sheet as its "Needs your attention" alert (swipeable, one page per visit pending),
+            // on the visit the reminder is about.
+            return { pathname: '/(tabs)/dashboard' as never, params: appointmentId ? { obd: appointmentId } : { obd: '1' } };
         case 'video_call_finished':
         case 'video_call_confirmed':
         case 'video_call_disputed':

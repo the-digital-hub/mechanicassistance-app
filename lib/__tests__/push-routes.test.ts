@@ -46,8 +46,8 @@ describe('routeForPush', () => {
 
     it('opens the on-site flow for an OBD reminder, for the mechanic only', () => {
         expect(routeForPush({ kind: 'obd_reminder', appointmentId: 'req-1' }, mechanic)).toEqual({
-            pathname: '/appointments/check-in/[id]',
-            params: { id: 'req-1' },
+            pathname: '/(tabs)/dashboard',
+            params: { obd: 'req-1' },
         });
         expect(routeForPush({ kind: 'obd_reminder', appointmentId: 'req-1' }, customer)).toBeNull();
     });

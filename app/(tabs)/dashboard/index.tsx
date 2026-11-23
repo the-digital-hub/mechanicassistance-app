@@ -33,7 +33,7 @@ import { buildMechanicFeedFilters } from '@/lib/mechanic-feed';
 import { countCompletedToday } from '@/lib/dashboard/mechanicKpis';
 import { useMechanicKpis } from '@/lib/dashboard/useMechanicKpis';
 import { formatMoney } from '@/lib/payments/paymentSource';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { FileText, RotateCcw, Calendar, Video, Zap, MapPin, Wrench, DollarSign, Clock, Car, Gauge, Lock, Power, CreditCard, AlertTriangle, Star, Briefcase, CheckCircle2, ClipboardList, Inbox, ScanLine, Send } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -142,6 +142,21 @@ export default function DashboardScreen() {
     const [obdSheetFor, setObdSheetFor] = useState<Appointment[] | null>(null);
     const [obdReload, setObdReload] = useState(0);
     const obdPending = useObdPending(appointments, user?.role === 'mechanic', obdReload);
+    // The OBD reminder (push or inbox) lands here: once the pending visits are known, the report sheet opens on the one it names, with
+    // the others a swipe away. The param is cleared when it opens, or after a while if nothing is pending (already uploaded).
+    const { obd: obdParam } = useLocalSearchParams<{ obd?: string }>();
+    useEffect(() => {
+        if (!obdParam) return undefined;
+        if (obdPending.length > 0) {
+            const first = obdPending.find((a) => a.id === obdParam);
+            setObdSheetFor(first ? [first, ...obdPending.filter((a) => a.id !== first.id)] : obdPending);
+            router.setParams({ obd: undefined });
+            return undefined;
+        }
+        const giveUp = setTimeout(() => router.setParams({ obd: undefined }), 10_000);
+        return () => clearTimeout(giveUp);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [obdParam, obdPending]);
     // Hidden alerts and the collapsed state of "Needs your attention", kept per account and role.
     const attention = useAttentionState(user?.id ? `${user.role}:${user.id}` : undefined);
     // The notice with "Undo" right after hiding an alert.

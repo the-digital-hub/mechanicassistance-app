@@ -1201,8 +1201,6 @@
         "extendedTimeValue": "+{{count}} min added",
         "notRated": "Not rated yet",
         "notAvailable": "—",
-        "okShort": "VIN OK",
-        "notOkShort": "VIN does not match",
         "distanceApprox": "{{miles}} mi",
         "approximateArea": "Approximate area — the exact location is not shown",
         "budgetLabel": "Budget",
@@ -1908,6 +1906,8 @@
         "notVin": "That code isn't a VIN. Try the label on the door jamb or the windshield.",
         "cross": {
           "title": "VIN check",
+          "okShort": "VIN OK",
+          "notOkShort": "VIN does not match",
           "request": "On the request",
           "mine": "You entered",
           "obd": "OBD scanner",
