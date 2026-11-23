@@ -1024,7 +1024,7 @@ export default function AppointmentDetailScreen() {
 
                                 {isVideoCall && (
                                     <>
-                                        <VideoCallWhenCard date={appointment.date} startNow={appointment.startNow} startedAt={appointment.startedAt} completedAt={appointment.completedAt} live={videoCallLive} />
+                                        <VideoCallWhenCard date={appointment.date} startNow={appointment.startNow} startedAt={appointment.startedAt} completedAt={appointment.completedAt ?? (['completed', 'awaiting_confirmation', 'disputed', 'cancelled'].includes(appointment.status) ? (appointment.updatedAt ?? appointment.createdAt) : undefined)} live={videoCallLive} />
                                         {videoCallLive && <JoinVideoCallButton onPress={openVideoLobby} rejoin={videoStartedAtMs !== null} />}
                                         {/* Finish is the quiet one, right under Join. */}
                                         {videoCallLive && (
@@ -1308,7 +1308,7 @@ export default function AppointmentDetailScreen() {
                             {isVideoCall ? (
                                 <View className="mx-4 mt-3.5" style={{ gap: 10 }}>
                                     {/* When, in both roles: the owner has it in the same place, over the status. */}
-                                    <VideoCallWhenCard date={appointment.date} startNow={appointment.startNow} startedAt={appointment.startedAt} completedAt={appointment.completedAt} live={false} />
+                                    <VideoCallWhenCard date={appointment.date} startNow={appointment.startNow} startedAt={appointment.startedAt} completedAt={appointment.completedAt ?? (['completed', 'awaiting_confirmation', 'disputed', 'cancelled'].includes(appointment.status) ? (appointment.updatedAt ?? appointment.createdAt) : undefined)} live={false} />
                                     {videoCallLive ? (
                                         <>
                                             {/* Extra time the owner asked for: answered here too, not only inside the call. */}

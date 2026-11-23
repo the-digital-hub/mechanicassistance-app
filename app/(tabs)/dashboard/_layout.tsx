@@ -10,7 +10,7 @@ export default function DashboardLayout() {
 
   return (
     <Stack
-      screenOptions={{
+      screenOptions={{ gestureEnabled: false, fullScreenGestureEnabled: false,
         headerShown: false,
         headerTitleAlign: "center",
         headerTintColor: "#0047AB",

@@ -247,7 +247,12 @@
     "accept": "Accept"
   },
   "dashboard": {
-    "kind": {"immediate": "Immediate assistance", "scheduled": "Scheduled assistance", "videocall": "Video call assistance", "accident": "Accident assistance"},
+    "kind": {
+      "immediate": "Immediate assistance",
+      "scheduled": "Scheduled assistance",
+      "videocall": "Video call assistance",
+      "accident": "Accident assistance"
+    },
     "attention": {
       "hiddenCount": "Hidden {{count}}",
       "hiddenClose": "Hide list",
@@ -389,7 +394,11 @@
         "mileageError": "Could not save the mileage. Please try again."
       },
       "recent": {
-        "kind": { "immediate": "Immediate assistance", "scheduled": "Scheduled service", "video": "Video call" },
+        "kind": {
+          "immediate": "Immediate assistance",
+          "scheduled": "Scheduled service",
+          "video": "Video call"
+        },
         "rated": "You rated",
         "notRated": "Rating pending",
         "title": "Recent activity",
@@ -402,7 +411,37 @@
         "videoCall": "Solve it with a technician via video call.",
         "subtitle": "How do you want to be helped?"
       },
-      "activeRequestTitle_other": "Your active requests!"
+      "activeRequestTitle_other": "Your active requests!",
+      "tips": {
+        "card": {
+          "label": "Add a payment card",
+          "text": "Save a card so you can request help in one step. You're only charged when you confirm."
+        },
+        "vehicle": {
+          "label": "Add your vehicle",
+          "text": "Save your car so the technician knows what they're fixing before they arrive."
+        },
+        "address": {
+          "label": "Save an address",
+          "text": "Add home or work to start a request faster."
+        },
+        "photo": {
+          "label": "Add a profile photo",
+          "text": "The technician sees who is waiting for them. A clear photo helps."
+        },
+        "describe": {
+          "label": "Describe the issue",
+          "text": "Say what happened and add photos or video. You get better, faster offers."
+        },
+        "video": {
+          "label": "Try a video call",
+          "text": "Not sure what's wrong? A technician can look at it with you over video."
+        },
+        "checkup": {
+          "label": "Time for a check-up",
+          "text": "It's been a while. A quick service now can save you an emergency later."
+        }
+      }
     },
     "timeAgo": {
       "justNow": "Just now",
@@ -411,7 +450,11 @@
       "days": "{{count}}d ago"
     },
     "mechanic": {
-      "recent": { "title": "Recent jobs", "rated": "Your rating", "notRated": "Rating pending" },
+      "recent": {
+        "title": "Recent jobs",
+        "rated": "Your rating",
+        "notRated": "Rating pending"
+      },
       "activeJob": {
         "title": "Active job",
         "headOut": "Head out",
@@ -449,7 +492,54 @@
         "goAvailableCta": "Go online",
         "lookout": "Stay alert: take the next request and start earning",
         "requests_one": "{{count}} request near you. Take it and start earning",
-        "requests_other": "{{count}} requests near you. Take one and start earning"
+        "requests_other": "{{count}} requests near you. Take one and start earning",
+        "tips": {
+          "identity": {
+            "label": "Verify your identity",
+            "text": "Owners trust verified technicians, and you can't send offers on some jobs until you are."
+          },
+          "ase": {
+            "label": "Link your ASE ID",
+            "text": "Certified technicians stand out. Add your ASE ID to show it on your offers."
+          },
+          "hours": {
+            "label": "Set your hours",
+            "text": "Add your working hours and service area so the right jobs find you."
+          },
+          "documents": {
+            "label": "Add your documents",
+            "text": "Upload your liability insurance and business license to build trust."
+          },
+          "photo": {
+            "label": "Add a profile photo",
+            "text": "Owners see your face before they confirm. A clear photo helps."
+          },
+          "certs": {
+            "label": "Show your training",
+            "text": "Add other certifications you hold, like brand or industry training."
+          },
+          "fast": {
+            "label": "Be quick",
+            "text": "Owners pick the first offers they see. Send yours within minutes."
+          },
+          "rating": {
+            "label": "Earn 5 stars",
+            "text": "Arrive on time and explain what you'll do. Good reviews bring more jobs."
+          },
+          "firstOffer": {
+            "label": "Send your first offer",
+            "text_one": "{{count}} request is waiting near you. Send an offer and get your first job.",
+            "text_other": "{{count}} requests are waiting near you. Send an offer and get your first job."
+          },
+          "comebackDay": {
+            "label": "Your best day",
+            "text": "Most of your jobs came on {{day}}s. Be available then."
+          },
+          "comebackRadius": {
+            "label": "Reach more owners",
+            "text": "Your service area is small. Widen it to see more requests."
+          }
+        }
       },
       "earnedToday": "Earned today",
       "rating": "Rating",
@@ -2241,8 +2331,8 @@
       "extendedTimeValueAmount": "+{{minutes}} min · ${{amount}}",
       "extendedTimeValue": "+{{minutes}} min added",
       "timeline": {
-"title": "Assistance timeline",
-                "accepted": "Assistance accepted",
+        "title": "Assistance timeline",
+        "accepted": "Assistance accepted",
         "acceptedSub": "Your technician is assigned",
         "route": "On the way",
         "routeDone": "The technician reached you",
@@ -2958,11 +3048,11 @@
     "filter": "Filter",
     "typeTitle": "What it is about",
     "groups": {
-        "requests": "Requests",
-        "video": "Video calls",
-        "reviews": "Ratings",
-        "payments": "Payments",
-        "other": "Other"
+      "requests": "Requests",
+      "video": "Video calls",
+      "reviews": "Ratings",
+      "payments": "Payments",
+      "other": "Other"
     },
     "removeFilter": "remove",
     "clearFilters": "Clear filters",
@@ -3192,8 +3282,22 @@
     "close": "Close"
   },
   "setup": {
-    "step": { "of": "Step {{n}} of {{total}}", "n": "Step {{n}}" },
-    "stepNames": {"phone": "Phone", "otp": "Code", "role": "Role", "basic-info": "Basic info", "identity": "Identity", "address": "Address", "credentials": "ASE", "availability": "Schedule", "legal-documents": "Documents", "vehicle-info": "Vehicle"},
+    "step": {
+      "of": "Step {{n}} of {{total}}",
+      "n": "Step {{n}}"
+    },
+    "stepNames": {
+      "phone": "Phone",
+      "otp": "Code",
+      "role": "Role",
+      "basic-info": "Basic info",
+      "identity": "Identity",
+      "address": "Address",
+      "credentials": "ASE",
+      "availability": "Schedule",
+      "legal-documents": "Documents",
+      "vehicle-info": "Vehicle"
+    },
     "accountSetupTitle": "Account Set-up",
     "availabilityTitle": "Availability",
     "skip": "Skip",

@@ -7,7 +7,7 @@ export default function SettingsLayout() {
 
     return (
         <Stack
-            screenOptions={{
+            screenOptions={{ gestureEnabled: false, fullScreenGestureEnabled: false,
                 headerShown: false,
             }}
         >

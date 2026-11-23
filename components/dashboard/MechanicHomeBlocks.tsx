@@ -1,8 +1,8 @@
 import { AttentionCards, type AttentionCardData } from '@/components/dashboard/AttentionCard';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Award, ChevronDown, ChevronRight, Star, Wallet, Wrench, type LucideIcon } from 'lucide-react-native';
-import { useEffect, useRef, type ReactNode } from 'react';
-import { Animated, Easing, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Award, ChevronDown, ChevronRight, Star, Wallet, Wrench, X, type LucideIcon } from 'lucide-react-native';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { Animated, Easing, type NativeScrollEvent, type NativeSyntheticEvent, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 
 import type { MechanicStatus } from '@/lib/dao/interfaces';
 
@@ -176,12 +176,15 @@ function MiniStat({ icon, accent, label, value, sub, children, onPress }: { icon
 
 /** What to say (and do) while nothing has been earned today: a nudge to be ready for the next request. */
 export type EarnNudge = {
-    text: string;
+    /** The status line (first page). Omitted: the strip is only tips. */
+    text?: string;
     /** Green and pulsing: the technician is listening for requests right now. */
     live?: boolean;
     /** A one-tap way to get going (e.g. go Available); the pill then reads as a button. */
     cta?: string;
     onPress?: () => void;
+    /** Short tips that follow the status line, swiped (or moving on by themselves) inside the same strip. */
+    tips?: { key: string; icon: LucideIcon; label: string; text: string; onPress?: () => void; /** "Not now": hides this tip for a few days. */ onDismiss?: () => void }[];
 };
 
 /** A pulsing dot: someone is on the lookout. */
@@ -200,23 +203,87 @@ function LiveDot() {
     );
 }
 
-function EarnNudgePill({ nudge }: { nudge: EarnNudge }) {
-    const body = (
-        <View className="flex-row items-center" style={{ gap: 10, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.18)' }}>
-            {nudge.live ? <LiveDot /> : <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#FCD34D' }} />}
-            <Text className="font-outfit-bold flex-1" style={{ fontSize: 14, lineHeight: 20, color: '#FFFFFF' }}>{nudge.text}</Text>
+/**
+ * While nothing has been earned today: the status line (go online, or on the lookout) and, after it, a few tips for getting the first
+ * job. Same format as the tips of the work screen: one page at a time, swiped or moving on by itself, with dots.
+ */
+export function EarnNudgeStrip({ nudge }: { nudge: EarnNudge }) {
+    const tips = nudge.tips ?? [];
+    const hasStatus = !!nudge.text;
+    const pages = (hasStatus ? 1 : 0) + tips.length;
+    const [index, setIndex] = useState(0);
+    const [width, setWidth] = useState(0);
+    const scroller = useRef<ScrollView>(null);
+    const goTo = useCallback((i: number) => scroller.current?.scrollTo({ x: i * width, animated: true }), [width]);
+    useEffect(() => {
+        if (pages < 2 || width <= 0) return undefined;
+        const timer = setInterval(() => {
+            const next = (index + 1) % pages;
+            goTo(next);
+            setIndex(next);
+        }, 6000);
+        return () => clearInterval(timer);
+    }, [index, width, goTo, pages]);
+    const onSwipeEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+        if (width > 0) setIndex(Math.max(0, Math.min(pages - 1, Math.round(e.nativeEvent.contentOffset.x / width))));
+    };
+    const statusRow = (
+        <View className="flex-row items-center" style={{ gap: 10, paddingHorizontal: 14, minHeight: 48 }}>
+            {nudge.live ? <LiveDot /> : <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#F59E0B' }} />}
+            <Text className="font-outfit-bold flex-1" style={{ fontSize: 15, lineHeight: 21, color: C.text }}>{nudge.text}</Text>
             {nudge.cta ? (
                 <View className="flex-row items-center" style={{ gap: 2 }}>
-                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: '#FFFFFF' }}>{nudge.cta}</Text>
-                    <ChevronRight size={16} color="#FFFFFF" />
+                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: C.blue }}>{nudge.cta}</Text>
+                    <ChevronRight size={16} color={C.blue} />
                 </View>
             ) : null}
         </View>
     );
-    return nudge.onPress ? (
-        <TouchableOpacity onPress={nudge.onPress} activeOpacity={0.8} accessibilityRole="button" style={{ marginTop: 12 }} testID="earn-nudge">{body}</TouchableOpacity>
-    ) : (
-        <View style={{ marginTop: 12 }} testID="earn-nudge">{body}</View>
+    // After every hook (an early return above them changes the hook count between renders).
+    if (pages === 0) return null;
+    return (
+        <View style={{ paddingTop: 14, paddingBottom: pages > 1 ? 12 : 14, borderRadius: 20, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: C.borderSoft }} testID="earn-nudge">
+            <View onLayout={(e) => setWidth(Math.floor(e.nativeEvent.layout.width))}>
+                <ScrollView ref={scroller} horizontal pagingEnabled showsHorizontalScrollIndicator={false} onMomentumScrollEnd={onSwipeEnd} scrollEventThrottle={16} bounces={false} scrollEnabled={pages > 1}>
+                    {hasStatus ? (
+                        <View style={{ width: width || undefined, justifyContent: 'center' }}>
+                            {nudge.onPress ? (
+                                <TouchableOpacity onPress={nudge.onPress} activeOpacity={0.8} accessibilityRole="button" testID="earn-nudge-action">{statusRow}</TouchableOpacity>
+                            ) : statusRow}
+                        </View>
+                    ) : null}
+                    {tips.map(({ key, icon: Icon, label, text, onPress, onDismiss }) => {
+                        const Page = onPress ? TouchableOpacity : View;
+                        return (
+                        <Page key={key} {...(onPress ? { onPress, activeOpacity: 0.8, accessibilityRole: 'button' as const } : {})} className="flex-row items-center" style={{ width: width || undefined, paddingHorizontal: 14, gap: 12, minHeight: 48 }}>
+                            <View className="items-center justify-center" style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: C.blueSoft }}>
+                                <Icon size={20} color={C.blue} />
+                            </View>
+                            <View className="flex-1" style={{ minWidth: 0 }}>
+                                <Text className="font-outfit-bold uppercase" style={{ fontSize: 12, lineHeight: 16, letterSpacing: 0.8, color: C.blue }}>{label}</Text>
+                                <Text className="font-outfit-semibold" style={{ fontSize: 15, lineHeight: 21, color: C.text }}>{text}</Text>
+                            </View>
+                            {onPress ? <ChevronRight size={18} color={C.mutedLight} /> : null}
+                            {onDismiss ? (
+                                <TouchableOpacity onPress={onDismiss} hitSlop={10} accessibilityRole="button" accessibilityLabel="Not now" testID={`tip-dismiss-${key}`} style={{ position: 'absolute', top: -4, right: 8 }}>
+                                    <X size={16} color={C.mutedLight} />
+                                </TouchableOpacity>
+                            ) : null}
+                        </Page>
+                        );
+                    })}
+                </ScrollView>
+            </View>
+            {pages > 1 ? (
+                <View className="flex-row self-center" style={{ gap: 5, marginTop: 10 }}>
+                    {Array.from({ length: pages }, (_, i) => (
+                        <TouchableOpacity key={i} onPress={() => { setIndex(i); goTo(i); }} hitSlop={6} accessibilityRole="button" accessibilityLabel={`${i + 1} / ${pages}`}>
+                            <View style={{ width: i === index ? 16 : 6, height: 6, borderRadius: 3, backgroundColor: i === index ? C.blue : '#D5DCEB' }} />
+                        </TouchableOpacity>
+                    ))}
+                </View>
+            ) : null}
+        </View>
     );
 }
 
@@ -231,7 +298,6 @@ export function TodayBlock({
     rating,
     ratingSub,
     onRatingPress,
-    nudge,
 }: {
     earnedLabel: string;
     earned: string;
@@ -243,8 +309,6 @@ export function TodayBlock({
     ratingSub?: string;
     /** Tapping the rating tile: open the ratings behind it. */
     onRatingPress?: () => void;
-    /** Shown under the amount while it is still zero. */
-    nudge?: EarnNudge;
 }) {
     const stars = Number.parseFloat(rating);
     const hasStars = Number.isFinite(stars);
@@ -270,7 +334,6 @@ export function TodayBlock({
                                 {footer}
                             </View>
                         ) : null}
-                        {nudge ? <EarnNudgePill nudge={nudge} /> : null}
                     </View>
                 </View>
             </LinearGradient>

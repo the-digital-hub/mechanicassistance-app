@@ -247,7 +247,12 @@
     "accept": "Aceptar"
   },
   "dashboard": {
-    "kind": {"immediate": "Asistencia inmediata", "scheduled": "Asistencia programada", "videocall": "Asistencia por videollamada", "accident": "Asistencia por accidente"},
+    "kind": {
+      "immediate": "Asistencia inmediata",
+      "scheduled": "Asistencia programada",
+      "videocall": "Asistencia por videollamada",
+      "accident": "Asistencia por accidente"
+    },
     "attention": {
       "hiddenCount": "Ocultas {{count}}",
       "hiddenClose": "Cerrar lista",
@@ -389,7 +394,11 @@
         "mileageError": "No se pudo guardar el kilometraje. Probá de nuevo."
       },
       "recent": {
-        "kind": { "immediate": "Asistencia inmediata", "scheduled": "Servicio programado", "video": "Videollamada" },
+        "kind": {
+          "immediate": "Asistencia inmediata",
+          "scheduled": "Servicio programado",
+          "video": "Videollamada"
+        },
         "rated": "Calificaste",
         "notRated": "Calificación pendiente",
         "title": "Actividad reciente",
@@ -402,7 +411,37 @@
         "videoCall": "Resolvelo con un mecánico en videollamada.",
         "subtitle": "¿Cómo querés que te ayuden?"
       },
-      "activeRequestTitle_other": "¡Tus solicitudes activas!"
+      "activeRequestTitle_other": "¡Tus solicitudes activas!",
+      "tips": {
+        "card": {
+          "label": "Agregá una tarjeta",
+          "text": "Guardá una tarjeta para pedir ayuda en un paso. Solo se cobra cuando confirmás."
+        },
+        "vehicle": {
+          "label": "Agregá tu vehículo",
+          "text": "Guardá tu auto para que el técnico sepa qué va a arreglar antes de llegar."
+        },
+        "address": {
+          "label": "Guardá una dirección",
+          "text": "Agregá tu casa o trabajo para empezar un pedido más rápido."
+        },
+        "photo": {
+          "label": "Agregá una foto de perfil",
+          "text": "El técnico ve quién lo está esperando. Una foto clara ayuda."
+        },
+        "describe": {
+          "label": "Describí el problema",
+          "text": "Contá qué pasó y sumá fotos o video. Recibís ofertas mejores y más rápidas."
+        },
+        "video": {
+          "label": "Probá una videollamada",
+          "text": "¿No sabés qué le pasa? Un técnico puede verlo con vos por video."
+        },
+        "checkup": {
+          "label": "Hora de un chequeo",
+          "text": "Pasó un tiempo. Un servicio rápido hoy puede ahorrarte una emergencia después."
+        }
+      }
     },
     "timeAgo": {
       "justNow": "Recién",
@@ -411,7 +450,11 @@
       "days": "hace {{count}}d"
     },
     "mechanic": {
-      "recent": { "title": "Trabajos recientes", "rated": "Tu calificación", "notRated": "Calificación pendiente" },
+      "recent": {
+        "title": "Trabajos recientes",
+        "rated": "Tu calificación",
+        "notRated": "Calificación pendiente"
+      },
       "activeJob": {
         "title": "Trabajo en curso",
         "headOut": "Salir ahora",
@@ -449,7 +492,54 @@
         "goAvailableCta": "Conectarme",
         "lookout": "Estate atento: tomá el próximo pedido y empezá a ganar",
         "requests_one": "{{count}} pedido cerca tuyo. Tomalo y empezá a ganar",
-        "requests_other": "{{count}} pedidos cerca tuyo. Tomá uno y empezá a ganar"
+        "requests_other": "{{count}} pedidos cerca tuyo. Tomá uno y empezá a ganar",
+        "tips": {
+          "identity": {
+            "label": "Verificá tu identidad",
+            "text": "Los dueños confían en técnicos verificados, y en algunos trabajos no podés ofertar hasta estarlo."
+          },
+          "ase": {
+            "label": "Vinculá tu ID ASE",
+            "text": "Los técnicos certificados se destacan. Sumá tu ID ASE para mostrarlo en tus ofertas."
+          },
+          "hours": {
+            "label": "Definí tus horarios",
+            "text": "Cargá tus horarios y tu zona de servicio para que te lleguen los trabajos correctos."
+          },
+          "documents": {
+            "label": "Cargá tus documentos",
+            "text": "Subí tu seguro de responsabilidad y tu licencia comercial para generar confianza."
+          },
+          "photo": {
+            "label": "Agregá una foto de perfil",
+            "text": "Los dueños ven tu cara antes de confirmar. Una foto clara ayuda."
+          },
+          "certs": {
+            "label": "Mostrá tu formación",
+            "text": "Sumá otras certificaciones que tengas, como de marca o de la industria."
+          },
+          "fast": {
+            "label": "Sé rápido",
+            "text": "Los dueños eligen las primeras ofertas que ven. Mandá la tuya en minutos."
+          },
+          "rating": {
+            "label": "Ganá 5 estrellas",
+            "text": "Llegá a horario y explicá lo que vas a hacer. Las buenas reseñas traen más trabajos."
+          },
+          "firstOffer": {
+            "label": "Mandá tu primera oferta",
+            "text_one": "Hay {{count}} pedido esperando cerca tuyo. Mandá una oferta y conseguí tu primer trabajo.",
+            "text_other": "Hay {{count}} pedidos esperando cerca tuyo. Mandá una oferta y conseguí tu primer trabajo."
+          },
+          "comebackDay": {
+            "label": "Tu mejor día",
+            "text": "La mayoría de tus trabajos fueron los {{day}}. Conectate ese día."
+          },
+          "comebackRadius": {
+            "label": "Llegá a más dueños",
+            "text": "Tu zona de servicio es chica. Ampliala para ver más pedidos."
+          }
+        }
       },
       "earnedToday": "Ganado hoy",
       "rating": "Calificación",
@@ -2242,8 +2332,8 @@
       "extendedTimeValueAmount": "+{{minutes}} min · ${{amount}}",
       "extendedTimeValue": "+{{minutes}} min sumados",
       "timeline": {
-"title": "Cronología de la asistencia",
-                "accepted": "Asistencia aceptada",
+        "title": "Cronología de la asistencia",
+        "accepted": "Asistencia aceptada",
         "acceptedSub": "Tu técnico está asignado",
         "route": "En camino",
         "routeDone": "El técnico llegó hasta vos",
@@ -2959,11 +3049,11 @@
     "filter": "Filtrar",
     "typeTitle": "De qué se trata",
     "groups": {
-        "requests": "Solicitudes",
-        "video": "Videollamadas",
-        "reviews": "Calificaciones",
-        "payments": "Pagos",
-        "other": "Otras"
+      "requests": "Solicitudes",
+      "video": "Videollamadas",
+      "reviews": "Calificaciones",
+      "payments": "Pagos",
+      "other": "Otras"
     },
     "removeFilter": "quitar",
     "clearFilters": "Quitar filtros",
@@ -3193,8 +3283,22 @@
     "close": "Cerrar"
   },
   "setup": {
-    "step": { "of": "Paso {{n}} de {{total}}", "n": "Paso {{n}}" },
-    "stepNames": {"phone": "Teléfono", "otp": "Código", "role": "Rol", "basic-info": "Datos básicos", "identity": "Identidad", "address": "Dirección", "credentials": "ASE", "availability": "Horario", "legal-documents": "Documentos", "vehicle-info": "Vehículo"},
+    "step": {
+      "of": "Paso {{n}} de {{total}}",
+      "n": "Paso {{n}}"
+    },
+    "stepNames": {
+      "phone": "Teléfono",
+      "otp": "Código",
+      "role": "Rol",
+      "basic-info": "Datos básicos",
+      "identity": "Identidad",
+      "address": "Dirección",
+      "credentials": "ASE",
+      "availability": "Horario",
+      "legal-documents": "Documentos",
+      "vehicle-info": "Vehículo"
+    },
     "accountSetupTitle": "Configuración de la cuenta",
     "availabilityTitle": "Disponibilidad",
     "skip": "Omitir",

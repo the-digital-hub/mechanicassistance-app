@@ -9,7 +9,7 @@ export const unstable_settings = { anchor: 'index' };
 export default function AppointmentsLayout() {
     return (
         <Stack
-            screenOptions={{
+            screenOptions={{ gestureEnabled: false, fullScreenGestureEnabled: false,
                 headerShown: false,
                 headerTitleAlign: 'center',
                 headerTintColor: '#0047AB',

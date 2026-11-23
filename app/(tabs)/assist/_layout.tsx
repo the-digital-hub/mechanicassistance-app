@@ -13,7 +13,7 @@ export default function AssistLayout() {
 
   return (
     <Stack
-      screenOptions={{
+      screenOptions={{ gestureEnabled: false, fullScreenGestureEnabled: false,
         headerShown: false,
       }}
     />

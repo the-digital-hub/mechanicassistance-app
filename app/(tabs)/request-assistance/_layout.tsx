@@ -8,7 +8,7 @@ export default function RequestAssistanceLayout() {
     // and mounting it here resets it when the user leaves the flow entirely.
     <RequestDraftProvider>
       <Stack
-        screenOptions={{
+        screenOptions={{ gestureEnabled: false, fullScreenGestureEnabled: false,
           headerShown: false,
           headerTitleAlign: "center",
           headerTintColor: "#0047AB",

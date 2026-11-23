@@ -1,6 +1,6 @@
 import { VehicleIdsRow } from '@/components/scheduled/ui';
 import { EmergencyRow, MileageField, OwnerAttentionList, OwnerSectionTitle, OwnerSheet, RecentActivityList, RequestAssistanceCta, SheetOption, UpcomingCard, VehicleCareCard, type OwnerAttentionItem } from '@/components/dashboard/OwnerHomeBlocks';
-import { AseCta, AttentionList, AvailabilityCard, RequestTypeTabs, SectionTitle, TodayBlock, WeeklyEarnings, type AttentionItem } from '@/components/dashboard/MechanicHomeBlocks';
+import { AseCta, AttentionList, AvailabilityCard, EarnNudgeStrip, RequestTypeTabs, SectionTitle, TodayBlock, WeeklyEarnings, type AttentionItem } from '@/components/dashboard/MechanicHomeBlocks';
 import { attentionKey, visibleAttention } from '@/lib/dashboard/attention';
 import { pendingRatings, RATING_WINDOW_DAYS } from '@/lib/dashboard/pendingRatings';
 import { useConfirmDeadlines } from '@/lib/dashboard/useConfirmDeadlines';
@@ -44,6 +44,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ImmediateOfferPanel } from '@/components/dashboard/ImmediateOfferPanel';
 import { useOfferFromCard } from '@/hooks/useOfferFromCard';
 import { useObdPending } from '@/hooks/useObdPending';
+import { useMechanicTips, useOwnerTips } from '@/hooks/useMechanicTips';
 import { ObdReportSheet } from '@/components/on-site/ObdReportSheet';
 import { ReviewsSheet } from '@/components/profile/ReviewsSheet';
 import { useProfileReviews } from '@/hooks/useProfileReviews';
@@ -87,6 +88,8 @@ export default function DashboardScreen() {
     // Owner home: which sheet is open, the owner's vehicles and the mileage being edited.
     const [sheet, setSheet] = useState<'request' | 'vehicle' | 'mileage' | null>(null);
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+    // False until the first read: "no vehicle yet" must not be claimed before it is known.
+    const [vehiclesLoaded, setVehiclesLoaded] = useState(false);
     const [vehicleId, setVehicleId] = useState<string | null>(null);
     const [mileageInput, setMileageInput] = useState('');
     const [savingMileage, setSavingMileage] = useState(false);
@@ -177,6 +180,15 @@ export default function DashboardScreen() {
     );
     const { lastMessage } = useSocket();
     const marketplaceFeed = useMarketplaceFeed(user?.role === 'mechanic', lastMessage);
+    // The tips (see hooks/useMechanicTips): what the profile lacks, then what the stage calls for (first offer, a lull); "not now" hides one a few days.
+    const openRequestCount = [...requests, ...marketplaceFeed.items].filter((r) => !declinedIds.has(r.id) && !hasSentQuote(r)).length;
+    const mechanicTips = useMechanicTips(user, user?.role === 'mechanic', { appointments, openRequests: openRequestCount, completedCount: mechanicStats ? mechanicStats.completedCount : null });
+    const ownerTips = useOwnerTips(user, user?.role === 'user', vehiclesLoaded ? vehicles.length : null, appointments);
+    const weekdayName = (day: number) => new Date(2024, 0, 7 + day).toLocaleDateString(i18n.language, { weekday: 'long' });
+    const tipTexts = (root: string, tip: { i18n: string; params?: { count?: number; day?: number } }) => {
+        const params = { count: tip.params?.count, day: tip.params?.day != null ? weekdayName(tip.params.day) : undefined };
+        return { label: t(`${root}.${tip.i18n}.label`, params), text: t(`${root}.${tip.i18n}.text`, params) };
+    };
     const scheduledAttention = useScheduledAttention(user?.role === 'user', user?.id, getActiveRequests(), lastMessage);
     // Services waiting for the owner's confirmation: when each confirms by itself, and the one being confirmed from the alert.
     const confirmDeadlines = useConfirmDeadlines(user?.role === 'user' ? getActiveRequests().filter((r) => r.status === 'awaiting_confirmation') : []);
@@ -287,7 +299,7 @@ export default function DashboardScreen() {
     useFocusEffect(
         useCallback(() => {
             if (user?.role !== 'user' || !user.id) return;
-            vehicleDAO.getByUser(user.id).then(setVehicles).catch(() => undefined);
+            vehicleDAO.getByUser(user.id).then((list) => { setVehicles(list); setVehiclesLoaded(true); }).catch(() => undefined);
         }, [user?.role, user?.id]),
     );
 
@@ -865,6 +877,28 @@ export default function DashboardScreen() {
                         </View>
                     )}
 
+                    {/* Nothing earned yet today: the status line (go online / on the lookout) and, for a technician with no jobs yet, tips for
+                        the first one: above "Today", where it is seen first. */}
+                    {earnedToday !== null && earnedToday <= 0 ? (
+                        <View className="mt-6">
+                            <EarnNudgeStrip
+                                nudge={{
+                                    ...(mechanicStatus !== 'available'
+                                        ? { text: t('dashboard.mechanic.nudge.goAvailable'), cta: t('dashboard.mechanic.nudge.goAvailableCta'), onPress: () => { setMechanicStatus('available').catch(() => undefined); } }
+                                        : { live: true, text: openRequests.length > 0 ? t('dashboard.mechanic.nudge.requests', { count: openRequests.length }) : t('dashboard.mechanic.nudge.lookout') }),
+                                    // Only what THIS technician still lacks (see useMechanicTips); each one leads to where it is done.
+                                    tips: mechanicTips.tips.map((tip) => ({
+                                        key: tip.key,
+                                        icon: tip.icon,
+                                        ...tipTexts('dashboard.mechanic.nudge.tips', tip),
+                                        onPress: tip.route ? () => { mechanicTips.track(tip.key); router.push(tip.route as never); } : undefined,
+                                        onDismiss: () => mechanicTips.dismiss(tip.key),
+                                    })),
+                                }}
+                            />
+                        </View>
+                    ) : null}
+
                     {/* Today */}
                     <View className="mt-8">
                         <SectionTitle title={t('dashboard.mechanic.todayTitle')} actionLabel={t('dashboard.mechanic.viewEarnings')} onAction={() => router.push('/payments')} />
@@ -876,12 +910,6 @@ export default function DashboardScreen() {
                                     {t('dashboard.mechanic.readyToPay')} · <Text className="font-outfit-bold" style={{ color: '#FFFFFF' }}>{formatMoney(Number(earningsSummary.readyNet) || 0)}</Text>
                                 </Text>
                             ) : undefined}
-                            // Nothing earned yet today: motivate. Not available -> one tap to be; available -> be on the lookout for the next request.
-                            nudge={earnedToday !== null && earnedToday <= 0
-                                ? mechanicStatus !== 'available'
-                                    ? { text: t('dashboard.mechanic.nudge.goAvailable'), cta: t('dashboard.mechanic.nudge.goAvailableCta'), onPress: () => { setMechanicStatus('available').catch(() => undefined); } }
-                                    : { live: true, text: openRequests.length > 0 ? t('dashboard.mechanic.nudge.requests', { count: openRequests.length }) : t('dashboard.mechanic.nudge.lookout') }
-                                : undefined}
                             jobsLabel={t('dashboard.mechanic.jobsToday')}
                             jobs={jobsToday.toString()}
                             ratingLabel={t('dashboard.mechanic.rating')}
@@ -1280,6 +1308,23 @@ export default function DashboardScreen() {
                         }))}
                     />
                 </View>
+
+                {/* Tips for this owner: only what is still missing to ask for help without a hitch (card, vehicle, address, verification). */}
+                {ownerTips.tips.length > 0 ? (
+                    <View style={{ marginTop: 18 }}>
+                        <EarnNudgeStrip
+                            nudge={{
+                                tips: ownerTips.tips.map((tip) => ({
+                                    key: tip.key,
+                                    icon: tip.icon,
+                                    ...tipTexts('dashboard.user.tips', tip),
+                                    onPress: tip.route ? () => { ownerTips.track(tip.key); router.push(tip.route as never); } : undefined,
+                                    onDismiss: () => ownerTips.dismiss(tip.key),
+                                })),
+                            }}
+                        />
+                    </View>
+                ) : null}
 
                 {/* Active requests: open, cancel — as before */}
                 {activeRequests.length > 0 && (

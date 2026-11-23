@@ -87,7 +87,7 @@ function AppShell() {
       <AppAlertHost />
       <PushNotificationRouter />
       <InAppRequestBanner />
-      <Stack screenOptions={{ headerShown: false }}>
+      <Stack screenOptions={{ gestureEnabled: false, fullScreenGestureEnabled: false, headerShown: false }}>
         {/* Every (tabs) screen has its own back arrow. With the edge swipe on,
             a second (tabs) entry on this stack could be dragged aside and
             showed the tab navigator underneath, tab bar and all. The nested

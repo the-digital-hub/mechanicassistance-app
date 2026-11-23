@@ -16,6 +16,7 @@ export default function SetupLayout() {
         // recognizer stole the drag and slid the screen sideways. Every screen
         // here has its own back arrow in the header.
         gestureEnabled: false,
+        fullScreenGestureEnabled: false,
         // The same rounded header and small back arrow as the wizards (SetupKit.SetupHeader), not the native one.
         header: ({ options }) => <SetupHeader title={typeof options.title === "string" ? options.title : setupTitle} onBack={() => router.back()} />,
         contentStyle: { backgroundColor: PAGE_BG },
