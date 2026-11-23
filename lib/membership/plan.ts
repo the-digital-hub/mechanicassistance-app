@@ -33,7 +33,24 @@ export interface Membership {
     /** ISO date the account became a member. */
     memberSince: string | null;
     /** The payment of the current period, once made (null: nothing paid yet, or nothing to pay). */
-    payment: { paidAt: string; amount: number; couponCode: string | null } | null;
+    payment: MembershipPayment | null;
+}
+
+/** How the year was paid: out of the earnings, or with a card (kept in the wallet for the renewal and future payments). */
+export interface PaymentMethodUsed {
+    type: 'earnings' | 'card';
+    /** What the person sees: "Earnings balance" or "Visa •••• 4242". */
+    label: string;
+    cardId?: string;
+}
+
+export interface MembershipPayment {
+    paidAt: string;
+    amount: number;
+    couponCode: string | null;
+    method: PaymentMethodUsed;
+    /** Renews by itself with the saved card (only a card can: earnings are not there to charge a year later). */
+    autoRenew: boolean;
 }
 
 export interface PromoResult {
@@ -44,35 +61,50 @@ export interface PromoResult {
     reason?: 'invalid' | 'expired' | 'not_eligible' | 'not_available_yet';
 }
 
-/** What the technician's All-access plan costs: USD per year. */
+type Role = 'mechanic' | 'user';
+
+/** What the All-access plan costs: USD per year (the technician's, and the vehicle owner's). */
 export const TECHNICIAN_PLAN_USD_PER_YEAR = 60;
+export const OWNER_PLAN_USD_PER_YEAR = 15;
 
-/** The promo codes the simulation knows: code → percent off. (Real ones come from billing, see AN in docs/backlog-backend.md.) */
-const PROMO_CODES: Record<string, number> = { MIAMI: 10, MEKA: 25 };
+const PLAN_USD_PER_YEAR: Record<Role, number> = { mechanic: TECHNICIAN_PLAN_USD_PER_YEAR, user: OWNER_PLAN_USD_PER_YEAR };
 
-const couponKey = (userId: string) => `membership_coupon_v1:${userId}`;
-const paymentKey = (userId: string) => `membership_payment_v1:${userId}`;
+/**
+ * The promo codes the simulation knows, by the role they are for: code → percent off. A technician's code does nothing on an owner's plan
+ * and the other way round. (Real ones come from billing, see AN in docs/backlog-backend.md.)
+ */
+const PROMO_CODES: Record<Role, Record<string, number>> = {
+    mechanic: { MIAMI: 10, MEKA: 25 },
+    user: { INSURANCE: 100 },
+};
+
+// The technician keeps the keys it always had; the owner's carry the role (one person can be both).
+const scope = (role: Role, userId: string) => (role === 'mechanic' ? userId : `user:${userId}`);
+const couponKey = (role: Role, userId: string) => `membership_coupon_v1:${scope(role, userId)}`;
+const paymentKey = (role: Role, userId: string) => `membership_payment_v1:${scope(role, userId)}`;
 
 const ONE_YEAR_MS = 365 * 86_400_000;
 
-async function savedPayment(userId?: string | null): Promise<Membership['payment']> {
+async function savedPayment(role: Role, userId?: string | null): Promise<Membership['payment']> {
     if (!userId) return null;
     try {
-        const raw = await AsyncStorage.getItem(paymentKey(userId));
-        const parsed = raw ? (JSON.parse(raw) as Membership['payment']) : null;
-        return parsed && typeof parsed.paidAt === 'string' && typeof parsed.amount === 'number' ? parsed : null;
+        const raw = await AsyncStorage.getItem(paymentKey(role, userId));
+        const parsed = raw ? (JSON.parse(raw) as Partial<MembershipPayment>) : null;
+        if (!parsed || typeof parsed.paidAt !== 'string' || typeof parsed.amount !== 'number') return null;
+        // A payment saved before the method existed still reads.
+        return { paidAt: parsed.paidAt, amount: parsed.amount, couponCode: parsed.couponCode ?? null, method: parsed.method ?? { type: 'card', label: '' }, autoRenew: !!parsed.autoRenew };
     } catch {
         return null;
     }
 }
 
-async function savedCoupon(userId?: string | null): Promise<Coupon | null> {
+async function savedCoupon(role: Role, userId?: string | null): Promise<Coupon | null> {
     if (!userId) return null;
     try {
-        const raw = await AsyncStorage.getItem(couponKey(userId));
+        const raw = await AsyncStorage.getItem(couponKey(role, userId));
         const parsed = raw ? (JSON.parse(raw) as { code?: string }) : null;
         const code = parsed?.code?.toUpperCase();
-        return code && PROMO_CODES[code] ? { code, percentOff: PROMO_CODES[code] } : null;
+        return code && PROMO_CODES[role][code] ? { code, percentOff: PROMO_CODES[role][code] } : null;
     } catch {
         return null;
     }
@@ -82,50 +114,38 @@ async function savedCoupon(userId?: string | null): Promise<Coupon | null> {
 const withCoupon = (list: number, coupon: Coupon | null) =>
     coupon ? Math.round(list * (100 - coupon.percentOff)) / 100 : list;
 
-export async function loadMembership(role: 'mechanic' | 'user' = 'user', userId?: string | null, memberSince?: string | null): Promise<Membership> {
-    // The technician's plan has a price: $60 a year, billed once a year. The owner's stays free while the startup stage lasts.
-    if (role === 'mechanic') {
-        const [coupon, payment] = await Promise.all([savedCoupon(userId), savedPayment(userId)]);
-        return {
-            status: 'active',
-            planName: 'All-access',
-            amount: withCoupon(TECHNICIAN_PLAN_USD_PER_YEAR, coupon),
-            listAmount: TECHNICIAN_PLAN_USD_PER_YEAR,
-            coupon,
-            period: 'year',
-            periodsOffered: ['year'],
-            // Paid: the plan renews a year after the payment.
-            nextPaymentAt: payment ? new Date(Date.parse(payment.paidAt) + ONE_YEAR_MS).toISOString() : null,
-            promoAvailable: !coupon && !payment,
-            memberSince: memberSince ?? null,
-            payment,
-        };
-    }
+export async function loadMembership(role: Role = 'user', userId?: string | null, memberSince?: string | null): Promise<Membership> {
+    // Both plans are billed once a year: $60 for the technician, $15 for the owner (a coupon can take it down, even to nothing).
+    const [coupon, payment] = await Promise.all([savedCoupon(role, userId), savedPayment(role, userId)]);
+    const list = PLAN_USD_PER_YEAR[role];
     return {
-        status: 'startup_waived',
+        status: 'active',
         planName: 'All-access',
-        amount: 0,
-        listAmount: 0,
-        coupon: null,
-        period: 'month',
-        periodsOffered: ['month', 'year'],
-        nextPaymentAt: null,
-        promoAvailable: true,
+        amount: withCoupon(list, coupon),
+        listAmount: list,
+        coupon,
+        period: 'year',
+        periodsOffered: ['year'],
+        // Paid: the plan renews a year after the payment.
+        nextPaymentAt: payment ? new Date(Date.parse(payment.paidAt) + ONE_YEAR_MS).toISOString() : null,
+        promoAvailable: !coupon && !payment,
         memberSince: memberSince ?? null,
-        payment: null,
+        payment,
     };
 }
 
 /**
- * Applies a promo code to the technician's plan (simulated, kept on this device). An unknown code is `invalid`; the owner's plan is free,
- * so a discount has nothing to take off there (`not_eligible`).
+ * Applies a promo code to the plan (simulated, kept on this device). An unknown code is `invalid`; a code that exists but is for the other
+ * kind of account (a technician's on an owner's plan, or the other way round) is `not_eligible`.
  */
-export async function applyPromoCode(code: string, role: 'mechanic' | 'user' = 'mechanic', userId?: string | null): Promise<PromoResult> {
+export async function applyPromoCode(code: string, role: Role = 'mechanic', userId?: string | null): Promise<PromoResult> {
     const normalized = code.trim().toUpperCase();
-    const percentOff = PROMO_CODES[normalized];
-    if (!percentOff) return { ok: false, reason: 'invalid' };
-    if (role !== 'mechanic') return { ok: false, reason: 'not_eligible' };
-    if (userId) await AsyncStorage.setItem(couponKey(userId), JSON.stringify({ code: normalized })).catch(() => undefined);
+    const percentOff = PROMO_CODES[role][normalized];
+    if (!percentOff) {
+        const other: Role = role === 'mechanic' ? 'user' : 'mechanic';
+        return { ok: false, reason: PROMO_CODES[other][normalized] ? 'not_eligible' : 'invalid' };
+    }
+    if (userId) await AsyncStorage.setItem(couponKey(role, userId), JSON.stringify({ code: normalized })).catch(() => undefined);
     return { ok: true, coupon: { code: normalized, percentOff } };
 }
 
@@ -136,32 +156,47 @@ export interface PayResult {
 }
 
 /**
- * Pays the technician's plan for the year (SIMULATED: nothing is charged; the payment is kept on this device until billing has the endpoint,
+ * Pays the plan for the year (SIMULATED: nothing is charged; the payment is kept on this device until billing has the endpoint,
  * see "AN" in docs/backlog-backend.md). The amount is the plan's price after the coupon.
  */
-export async function payMembership(role: 'mechanic' | 'user', userId?: string | null): Promise<PayResult> {
-    if (role !== 'mechanic' || !userId) return { ok: false, reason: 'nothing_to_pay' };
+export async function payMembership(role: Role, userId: string | null | undefined, options: { method: PaymentMethodUsed; autoRenew?: boolean }): Promise<PayResult> {
+    if (!userId) return { ok: false, reason: 'nothing_to_pay' };
     const plan = await loadMembership(role, userId);
     if (plan.payment) return { ok: false, reason: 'already_paid' };
+    if (plan.amount <= 0) return { ok: false, reason: 'nothing_to_pay' };
     // The wait a real charge takes, so the screen shows its "paying" state.
     await new Promise((resolve) => setTimeout(resolve, 900));
-    const payment = { paidAt: new Date().toISOString(), amount: plan.amount, couponCode: plan.coupon?.code ?? null };
+    const payment: MembershipPayment = {
+        paidAt: new Date().toISOString(),
+        amount: plan.amount,
+        couponCode: plan.coupon?.code ?? null,
+        method: options.method,
+        autoRenew: options.method.type === 'card' && options.autoRenew !== false,
+    };
     try {
-        await AsyncStorage.setItem(paymentKey(userId), JSON.stringify(payment));
+        await AsyncStorage.setItem(paymentKey(role, userId), JSON.stringify(payment));
     } catch {
         return { ok: false, reason: 'failed' };
     }
     return { ok: true, payment };
 }
 
+/** Turns the automatic renewal on or off (simulated, kept on this device). Only a card can renew by itself. */
+export async function setMembershipAutoRenew(userId: string | null | undefined, autoRenew: boolean, role: Role = 'mechanic'): Promise<void> {
+    if (!userId) return;
+    const payment = await savedPayment(role, userId);
+    if (!payment || payment.method.type !== 'card') return;
+    await AsyncStorage.setItem(paymentKey(role, userId), JSON.stringify({ ...payment, autoRenew })).catch(() => undefined);
+}
+
 /** Clears the simulated payment (to test the flow again). */
-export async function resetMembershipPayment(userId?: string | null): Promise<void> {
-    if (userId) await AsyncStorage.removeItem(paymentKey(userId)).catch(() => undefined);
+export async function resetMembershipPayment(userId?: string | null, role: Role = 'mechanic'): Promise<void> {
+    if (userId) await AsyncStorage.removeItem(paymentKey(role, userId)).catch(() => undefined);
 }
 
 /** Takes the coupon off the account (simulated). */
-export async function removePromoCode(userId?: string | null): Promise<void> {
-    if (userId) await AsyncStorage.removeItem(couponKey(userId)).catch(() => undefined);
+export async function removePromoCode(userId?: string | null, role: Role = 'mechanic'): Promise<void> {
+    if (userId) await AsyncStorage.removeItem(couponKey(role, userId)).catch(() => undefined);
 }
 
 export interface PlanChangeResult {

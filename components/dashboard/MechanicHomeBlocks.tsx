@@ -262,7 +262,7 @@ export function EarnNudgeStrip({ nudge }: { nudge: EarnNudge }) {
     const StatusIcon = nudge.icon ?? (nudge.live ? Radar : PowerOff);
     const statusTone = nudge.live ? { bg: '#E7F8EF', fg: '#15803D', label: '#15803D' } : { bg: '#FEF3C7', fg: '#B45309', label: '#B45309' };
     const statusRow = (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, minHeight: 48 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, minHeight: 48, width: width || undefined }}>
             <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: statusTone.bg, alignItems: 'center', justifyContent: 'center' }}>
                 <StatusIcon size={20} color={statusTone.fg} />
                 {nudge.live ? <View style={{ position: 'absolute', top: -2, right: -2 }}><LiveDot /></View> : null}

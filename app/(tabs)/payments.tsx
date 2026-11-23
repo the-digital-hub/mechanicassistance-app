@@ -6,7 +6,9 @@ import { ActivityIndicator, RefreshControl, ScrollView, Text, TouchableOpacity, 
 
 import { EarningItemCard } from '@/components/earnings/EarningItemCard';
 import { type ActivityFilterState, EarningsFiltersBar, toYmd } from '@/components/earnings/EarningsFiltersBar';
+import { EarningsTabs } from '@/components/earnings/EarningsTabs';
 import { EarningsSummaryCards } from '@/components/earnings/EarningsSummaryCards';
+import { MembershipActivityRow, MembershipEarningsCard } from '@/components/earnings/MembershipEarnings';
 import { PayoutAccountCard } from '@/components/earnings/PayoutAccountCard';
 import { PayoutHistory } from '@/components/earnings/PayoutHistory';
 import { earningsDAO } from '@/lib/dao/EarningsDAO';
@@ -37,6 +39,7 @@ export default function PaymentsScreen() {
     const [statementError, setStatementError] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
     const [page, setPage] = useState(0);
+    const [tab, setTab] = useState<'activity' | 'payouts' | 'cards'>('activity');
 
     const period = useMemo(
         () => ({ from: filters.from, to: filters.to ? nextDay(filters.to) : undefined }),
@@ -92,11 +95,44 @@ export default function PaymentsScreen() {
             <Text className="text-gray-900 font-outfit-medium text-3xl mb-2">{t(`${K}.title`)}</Text>
             <Text className="text-gray-500 font-outfit-regular text-base mb-6">{t(`${K}.subtitle`)}</Text>
 
-            <PayoutAccountCard status={connect.status} error={connect.error} onReturn={connect.reload} />
+            {/* The Stripe account stays on top only while it blocks the payouts; once it is ready it lives in Payouts. */}
+            {connect.status?.canReceiveTransfers ? null : <PayoutAccountCard status={connect.status} error={connect.error} onReturn={connect.reload} />}
 
             <EarningsSummaryCards summary={earnings.summary} />
 
-            <View className="mb-2" style={{ gap: 8 }}>
+            <EarningsTabs
+                tabs={[{ id: 'activity', label: t(`${K}.tabs.activity`) }, { id: 'payouts', label: t(`${K}.tabs.payouts`) }, { id: 'cards', label: t(`${K}.tabs.cards`) }]}
+                value={tab}
+                onChange={setTab}
+            />
+
+            {tab === 'cards' ? <MembershipEarningsCard /> : null}
+
+            {tab === 'payouts' ? (
+                <>
+                    {connect.status?.canReceiveTransfers ? <PayoutAccountCard status={connect.status} error={connect.error} onReturn={connect.reload} /> : null}
+            <Text className="text-gray-500 font-outfit-regular mb-7 mt-1" style={TYPE.helper}>{t(`${K}.howItWorks`)}</Text>
+            <PayoutHistory payouts={payouts} />
+                </>
+            ) : null}
+
+            {tab === 'activity' ? (
+                <>
+            <View className="flex-row items-end justify-between mb-3">
+                <Text className="text-gray-900 font-outfit-semibold text-lg">{t(`${K}.activity.title`)}</Text>
+                {rows && (
+                    <View className="px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF' }}>
+                        <Text className="font-outfit-bold" style={{ ...TYPE.caption, color: '#1E56E3' }}>
+                            {t(`${K}.activity.count`, { count: rows.length })}
+                        </Text>
+                    </View>
+                )}
+            </View>
+
+            <EarningsFiltersBar value={filters} onChange={(f) => { setFilters(f); setPage(0); }} />
+
+            {/* The statement covers the period chosen right above, so it sits with the filter; the pending-only toggle goes with it. */}
+            <View className="mb-3" style={{ gap: 8 }}>
                 <TouchableOpacity
                     onPress={downloadStatement}
                     disabled={downloading}
@@ -134,20 +170,9 @@ export default function PaymentsScreen() {
                     {t(`${K}.actions.statementFailed`)}
                 </Text>
             )}
-            <Text className="text-gray-500 font-outfit-regular mb-7 mt-1" style={TYPE.helper}>{t(`${K}.howItWorks`)}</Text>
 
-            <View className="flex-row items-end justify-between mb-3">
-                <Text className="text-gray-900 font-outfit-semibold text-lg">{t(`${K}.activity.title`)}</Text>
-                {rows && (
-                    <View className="px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF' }}>
-                        <Text className="font-outfit-bold" style={{ ...TYPE.caption, color: '#1E56E3' }}>
-                            {t(`${K}.activity.count`, { count: rows.length })}
-                        </Text>
-                    </View>
-                )}
-            </View>
-
-            <EarningsFiltersBar value={filters} onChange={(f) => { setFilters(f); setPage(0); }} />
+            {/* The membership payment, a line going out, above the earnings (it does not follow the filters). */}
+            <MembershipActivityRow />
 
             {rows === null ? (
                 <ActivityIndicator color="#0047AB" style={{ marginTop: 12 }} />
@@ -190,7 +215,8 @@ export default function PaymentsScreen() {
                 </>
             )}
 
-            <PayoutHistory payouts={payouts} />
+                </>
+            ) : null}
         </ScrollView>
     );
 }

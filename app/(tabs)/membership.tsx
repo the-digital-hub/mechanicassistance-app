@@ -1,13 +1,20 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { BadgeCheck, CalendarClock, Check, CreditCard, Crown, Info, Repeat, Sparkles, Ticket, Wallet, X } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+import { BadgeCheck, CalendarClock, Check, ChevronRight, Clock, CreditCard, Crown, Info, Repeat, Sparkles, Ticket, Wallet, X } from 'lucide-react-native';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { useUser } from '@/context/UserContext';
-import { applyPromoCode, cancelPlan, loadMembership, payMembership, removePromoCode, resetMembershipPayment, type Membership } from '@/lib/membership/plan';
+import { MembershipPaySheet } from '@/components/membership/MembershipPaySheet';
+import type { PaymentCard } from '@/lib/dao/interfaces';
+import { earningsDAO } from '@/lib/dao/EarningsDAO';
+import { paymentMethodDAO } from '@/lib/dao/PaymentMethodDAO';
+import { applyPromoCode, cancelPlan, loadMembership, payMembership, removePromoCode, resetMembershipPayment, setMembershipAutoRenew, type Membership, type PaymentMethodUsed } from '@/lib/membership/plan';
+import { cardLabel, isExpired } from '@/lib/payments/cardLabel';
+import { RETURN_TO_BACK } from '@/lib/payments/cardRequired';
 import { appAlert } from '@/lib/ui/appAlert';
-import { BUTTON_RADIUS, CONFIRM_GRADIENT } from '@/lib/ui/floatingFooter';
+import { BUTTON_RADIUS, CONFIRM_GRADIENT, CONFIRM_CTA, FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
 import { formatLocalDateTime } from '@/lib/video/videoCallTime';
 import { TYPE } from '@/lib/ui/type';
 
@@ -36,6 +43,27 @@ export default function MembershipScreen() {
     const [code, setCode] = useState('');
     const [busy, setBusy] = useState(false);
     const [paying, setPaying] = useState(false);
+    const router = useRouter();
+    // What the technician can pay with: the cards kept in the wallet and the earnings ready to pay out (null: not known yet).
+    const [cards, setCards] = useState<PaymentCard[]>([]);
+    const [earningsReady, setEarningsReady] = useState<number | null>(null);
+    const [sheetOpen, setSheetOpen] = useState(false);
+    // Went to add a card from the sheet: when coming back, the sheet opens again with the new card there.
+    const [resumeSheet, setResumeSheet] = useState(false);
+
+    useFocusEffect(
+        useCallback(() => {
+            let active = true;
+            paymentMethodDAO.list().then((list) => { if (active) setCards(list); }).catch(() => undefined);
+            // Only a technician has earnings to pay with.
+            if (role === 'mechanic') earningsDAO.list().then((res) => { if (active) setEarningsReady(Number(res.summary.readyNet) || 0); }).catch(() => undefined);
+            return () => { active = false; };
+        }, [role]),
+    );
+
+    useEffect(() => {
+        if (resumeSheet && cards.length > 0) { setSheetOpen(true); setResumeSheet(false); }
+    }, [resumeSheet, cards]);
 
     useEffect(() => {
         let cancelled = false;
@@ -45,46 +73,60 @@ export default function MembershipScreen() {
 
     const name = [user?.name, user?.surname].filter(Boolean).join(' ');
     const waived = plan?.status === 'startup_waived';
+    const pendingPayment = !!plan && !waived && plan.amount > 0 && !plan.payment;
+    const paidNow = !!plan?.payment;
+    // Whoever has something to pay does it from a footer that is always in sight.
+    const canPay = !!plan && !plan.payment && !waived && plan.amount > 0;
+    const scroller = useRef<ScrollView>(null);
+    const promoInput = useRef<TextInput>(null);
+    const promoY = useRef(0);
+    // "Have a promo code?" in the card: takes the screen down to the promo field and opens the keyboard there.
+    const goPromo = () => {
+        scroller.current?.scrollTo({ y: Math.max(0, promoY.current - 16), animated: true });
+        setTimeout(() => promoInput.current?.focus(), 350);
+    };
     const price = `$${(plan?.amount ?? 0).toFixed(2)}`;
     // The technician's plan opens every request to them; the owner's is about asking for help.
     const includes = (role === 'mechanic' ? ['apply', 'account', 'wallet', 'support', 'perks'] : ['account', 'wallet', 'support', 'requests', 'perks']) as readonly string[];
 
     // Simulated until plans launch: it answers that nothing can change yet (see lib/membership/plan.ts).
     const takeCouponOff = async () => {
-        await removePromoCode(user?.id);
+        await removePromoCode(user?.id, role);
         setPlan(await loadMembership(role, user?.id));
     };
 
     const dateOnly = (iso: string) => new Date(iso).toLocaleDateString(i18n.language, { year: 'numeric', month: 'short', day: 'numeric' });
     const money = (n: number) => `$${n.toFixed(2)}`;
 
-    // Pays the year of the plan (simulated until billing has the endpoint): confirm with the amount, then the receipt.
+    // Pays the year of the plan (simulated until billing has the endpoint): the sheet asks how, then the receipt.
     const askPay = () => {
         if (!plan || paying) return;
-        appAlert(
-            t('membership.pay.confirmTitle'),
-            t('membership.pay.confirmBody'),
-            [
-                {
-                    text: t('membership.pay.confirmCta', { amount: money(plan.amount) }),
-                    style: 'success',
-                    onPress: async () => {
-                        setPaying(true);
-                        const result = await payMembership(role, user?.id);
-                        setPaying(false);
-                        if (!result.ok) {
-                            appAlert(t('membership.pay.failedTitle'), t('membership.pay.failed'), undefined, { tone: 'danger' });
-                            return;
-                        }
-                        const next = await loadMembership(role, user?.id);
-                        setPlan(next);
-                        appAlert(t('membership.pay.successTitle'), t('membership.pay.success', { date: next.nextPaymentAt ? dateOnly(next.nextPaymentAt) : '' }), undefined, { tone: 'success' });
-                    },
-                },
-                { text: t('membership.pay.cancel'), style: 'cancel' },
-            ],
-            { tone: 'success', highlight: { label: t('membership.pay.highlightLabel'), value: money(plan.amount), icon: 'card-outline' } },
-        );
+        setSheetOpen(true);
+    };
+
+    const addCard = () => {
+        setSheetOpen(false);
+        setResumeSheet(true);
+        router.push({ pathname: '/payment-cards', params: { returnTo: RETURN_TO_BACK } });
+    };
+
+    const pay = async (method: PaymentMethodUsed, autoRenew: boolean) => {
+        setPaying(true);
+        const result = await payMembership(role, user?.id, { method, autoRenew });
+        setPaying(false);
+        if (!result.ok) {
+            appAlert(t('membership.pay.failedTitle'), t('membership.pay.failed'), undefined, { tone: 'danger' });
+            return;
+        }
+        setSheetOpen(false);
+        const next = await loadMembership(role, user?.id);
+        setPlan(next);
+        appAlert(t('membership.pay.successTitle'), t('membership.pay.success', { date: next.nextPaymentAt ? dateOnly(next.nextPaymentAt) : '' }), undefined, { tone: 'success' });
+    };
+
+    const toggleAutoRenew = async (value: boolean) => {
+        await setMembershipAutoRenew(user?.id, value, role);
+        setPlan(await loadMembership(role, user?.id));
     };
 
     const askCancel = () => {
@@ -116,8 +158,16 @@ export default function MembershipScreen() {
         }
     };
 
+    const defaultCard = cards.filter((c) => !isExpired(c)).find((c) => c.isDefault) ?? cards.find((c) => !isExpired(c));
+    const methodRow: { key: string; icon: typeof CreditCard; value: string; hint: string; onPress?: () => void } = plan?.payment
+        ? { key: 'method', icon: CreditCard, value: plan.payment.method.label || t('membership.billing.methodCard'), hint: t(plan.payment.method.type === 'earnings' ? 'membership.billing.methodEarningsHint' : 'membership.billing.methodCardHint') }
+        : defaultCard
+            ? { key: 'method', icon: CreditCard, value: cardLabel(defaultCard), hint: t('membership.billing.methodDefaultHint'), onPress: askPay }
+            : { key: 'method', icon: CreditCard, value: t('membership.billing.methodUnset'), hint: t('membership.billing.methodUnsetHint'), onPress: askPay };
+
     return (
-        <ScrollView style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ padding: 24, paddingBottom: 48, gap: 18 }} keyboardShouldPersistTaps="handled" testID="membership-screen">
+        <View style={{ flex: 1, backgroundColor: '#F6F8FC' }}>
+        <ScrollView ref={scroller} style={{ flex: 1, backgroundColor: '#F6F8FC' }} contentContainerStyle={{ padding: 24, paddingBottom: 48, gap: 18 }} keyboardShouldPersistTaps="handled" testID="membership-screen">
             <View>
                 <View className="flex-row items-center self-start" style={{ gap: 6, marginTop: 8, marginBottom: 14, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: '#E9F1FF' }}>
                     <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#0047AB' }} />
@@ -137,6 +187,18 @@ export default function MembershipScreen() {
                         <View style={{ position: 'absolute', right: 30, bottom: -70, width: 150, height: 150, borderRadius: 75, backgroundColor: 'rgba(255,255,255,0.05)' }} />
                         <View className="flex-row items-center justify-between">
                             <Image source={require('@/assets/images/brand_ring_white.png')} style={{ width: 44, height: 44 }} resizeMode="contain" />
+                            <View style={{ alignItems: 'flex-end', gap: 6 }}>
+                                {pendingPayment ? (
+                                    <TouchableOpacity onPress={askPay} disabled={!canPay} activeOpacity={0.85} accessibilityRole={canPay ? 'button' : undefined} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: 'rgba(245,158,11,0.97)' }} testID="membership-pending-badge">
+                                        <Clock size={15} color="#FFFFFF" />
+                                        <Text className="font-outfit-bold text-white" style={{ fontSize: 12, letterSpacing: 0.8 }}>{t('membership.pay.pendingBadge').toUpperCase()}</Text>
+                                    </TouchableOpacity>
+                                ) : paidNow ? (
+                                    <View className="flex-row items-center" style={{ gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: 'rgba(18,183,106,0.95)' }} testID="membership-paid-badge">
+                                        <BadgeCheck size={15} color="#FFFFFF" />
+                                        <Text className="font-outfit-bold text-white" style={{ fontSize: 12, letterSpacing: 0.8 }}>{t('membership.pay.paidPill').toUpperCase()}</Text>
+                                    </View>
+                                ) : null}
                             {plan.coupon ? (
                                 <View className="flex-row items-center" style={{ gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: 'rgba(18,183,106,0.95)' }} testID="membership-coupon-badge">
                                     <Ticket size={15} color="#FFFFFF" />
@@ -148,6 +210,7 @@ export default function MembershipScreen() {
                                     <Text className="font-outfit-bold text-white" style={{ fontSize: 12, letterSpacing: 0.8 }}>{t('membership.status.startup_waived').toUpperCase()}</Text>
                                 </View>
                             ) : null}
+                            </View>
                         </View>
                         <Text className="font-outfit-semibold" style={{ ...TYPE.eyebrow, color: '#BFD3FF', marginTop: 26 }}>{t('membership.cardEyebrow').toUpperCase()}</Text>
                         <Text className="font-outfit-bold text-white" style={{ fontSize: 24, lineHeight: 30, letterSpacing: -0.4, marginTop: 4 }}>{plan.planName}</Text>
@@ -156,10 +219,16 @@ export default function MembershipScreen() {
                             <Text className="font-outfit-bold text-white" style={{ fontSize: 40, lineHeight: 44, letterSpacing: -1 }} testID="membership-price">{price}</Text>
                             <Text className="font-outfit-medium" style={{ ...TYPE.body, color: 'rgba(255,255,255,0.8)', paddingBottom: 6 }}>{t(`membership.per.${plan.period}`)}</Text>
                             {plan.coupon ? (
-                                <Text className="font-outfit-medium" style={{ ...TYPE.body, color: 'rgba(255,255,255,0.6)', paddingBottom: 6, marginLeft: 6, textDecorationLine: 'line-through' }} testID="membership-list-price">{`$${plan.listAmount.toFixed(2)}`}</Text>
+                                <Text className="font-outfit-medium" style={{ fontSize: 22, lineHeight: 28, color: 'rgba(255,255,255,0.78)', paddingBottom: 5, marginLeft: 8, textDecorationLine: 'line-through', textDecorationColor: '#FFFFFF', textDecorationStyle: 'solid' }} testID="membership-list-price">{`$${plan.listAmount.toFixed(2)}`}</Text>
                             ) : null}
                         </View>
                         <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: 'rgba(255,255,255,0.8)', marginTop: 2 }}>{plan.coupon ? t('membership.coupon.note', { percent: plan.coupon.percentOff, code: plan.coupon.code }) : t(waived ? 'membership.feeNoteWaived' : plan.period === 'year' ? 'membership.feeNoteYearly' : 'membership.feeNote')}</Text>
+                        {pendingPayment && !plan.coupon ? (
+                            <TouchableOpacity onPress={goPromo} activeOpacity={0.8} accessibilityRole="button" hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} className="flex-row items-center self-start" style={{ gap: 6, marginTop: 16, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.16)' }} testID="membership-have-code">
+                                <Ticket size={15} color="#FFFFFF" />
+                                <Text className="font-outfit-bold text-white" style={TYPE.helper}>{t('membership.promo.haveCode')}</Text>
+                            </TouchableOpacity>
+                        ) : null}
                     </LinearGradient>
 
                     {/* What the plan includes. */}
@@ -180,7 +249,7 @@ export default function MembershipScreen() {
 
                     {/* Promo code (not once the year is paid: the amount is settled). */}
                     {plan.payment ? null : (
-                    <View style={{ ...card, padding: 18, borderStyle: 'dashed', borderColor: '#BFD3FA' }}>
+                    <View onLayout={(e) => { promoY.current = e.nativeEvent.layout.y; }} style={{ ...card, padding: 18, borderStyle: 'dashed', borderColor: '#BFD3FA' }}>
                         <View className="flex-row items-center" style={{ gap: 10, marginBottom: 12 }}>
                             <IconTile icon={Ticket} />
                             <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, color: C.text }}>{t('membership.promo.title')}</Text>
@@ -200,6 +269,7 @@ export default function MembershipScreen() {
                         ) : (
                             <>
                                 <TextInput
+                                    ref={promoInput}
                                     value={code}
                                     onChangeText={setCode}
                                     placeholder={t('membership.promo.placeholder')}
@@ -233,11 +303,11 @@ export default function MembershipScreen() {
                     <View style={{ ...card, padding: 18 }}>
                         <View className="flex-row items-center justify-between" style={{ marginBottom: 6 }}>
                             <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, color: C.text }}>{t('membership.billingTitle')}</Text>
-                            {role === 'mechanic' ? (
+                            {plan.amount > 0 || plan.payment ? (
                                 // Simulated payment: a long press on the pill takes it back, to try the flow again (goes when billing is real).
                                 <TouchableOpacity
                                     activeOpacity={1}
-                                    onLongPress={async () => { if (plan.payment) { await resetMembershipPayment(user?.id); setPlan(await loadMembership(role, user?.id)); } }}
+                                    onLongPress={async () => { if (plan.payment) { await resetMembershipPayment(user?.id, role); setPlan(await loadMembership(role, user?.id)); } }}
                                     style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, backgroundColor: plan.payment ? C.greenSoft : '#FEF3C7' }}
                                     testID="billing-pill"
                                 >
@@ -250,14 +320,14 @@ export default function MembershipScreen() {
                                 key: 'amount',
                                 icon: Wallet,
                                 value: money(plan.amount),
-                                hint: plan.payment ? t('membership.billing.amountPaidHint', { date: dateOnly(plan.payment.paidAt) }) : t(role === 'mechanic' ? 'membership.billing.amountHint' : 'membership.billing.amountFree'),
+                                hint: plan.payment ? t('membership.billing.amountPaidHint', { date: dateOnly(plan.payment.paidAt) }) : t(plan.amount > 0 ? 'membership.billing.amountHint' : plan.coupon ? 'membership.billing.amountCovered' : 'membership.billing.amountFree'),
                             },
                             { key: 'period', icon: Repeat, value: plan.periodsOffered.length === 1 ? t(`membership.billing.periodOnly.${plan.periodsOffered[0]}`) : t('membership.billing.periodValue'), hint: t(plan.periodsOffered.length === 1 ? 'membership.billing.periodOnlyHint' : 'membership.billing.periodHint') },
                             {
                                 key: 'next',
                                 icon: CalendarClock,
-                                value: plan.nextPaymentAt ? dateOnly(plan.nextPaymentAt) : role === 'mechanic' ? t('membership.billing.nextDue') : '—',
-                                hint: t(plan.nextPaymentAt ? 'membership.billing.nextHint' : role === 'mechanic' ? 'membership.billing.nextDueHint' : 'membership.billing.nextHint'),
+                                value: plan.nextPaymentAt ? dateOnly(plan.nextPaymentAt) : plan.amount > 0 ? t('membership.billing.nextDue') : '—',
+                                hint: t(plan.nextPaymentAt ? 'membership.billing.nextHint' : plan.amount > 0 ? 'membership.billing.nextDueHint' : 'membership.billing.nextHint'),
                             },
                             {
                                 key: 'promo',
@@ -265,27 +335,28 @@ export default function MembershipScreen() {
                                 value: plan.coupon ? `${plan.coupon.code} · ${t('membership.coupon.off', { percent: plan.coupon.percentOff })}` : t(plan.promoAvailable ? 'membership.billing.promoValue' : 'membership.billing.promoNone'),
                                 hint: t(plan.coupon ? 'membership.billing.promoAppliedHint' : 'membership.billing.promoHint'),
                             },
+                            // Last row: how it was paid, or how it will be (the default card of the wallet, or "choose when you pay").
+                            ...(plan.amount > 0 || plan.payment ? [methodRow] : []),
                         ].map((row) => (
-                            <View key={row.key} className="flex-row items-center" style={{ gap: 12, paddingVertical: 12, borderTopWidth: 1, borderTopColor: C.line }}>
+                            <TouchableOpacity key={row.key} disabled={!('onPress' in row && row.onPress)} onPress={'onPress' in row ? row.onPress : undefined} activeOpacity={0.8} className="flex-row items-center" style={{ gap: 12, paddingVertical: 12, borderTopWidth: 1, borderTopColor: C.line }} testID={`billing-row-${row.key}`}>
                                 <IconTile icon={row.icon} />
                                 <View className="flex-1" style={{ minWidth: 0 }}>
                                     <Text className="font-outfit-semibold" style={{ ...TYPE.caption, color: C.muted }}>{t(`membership.billing.${row.key}`)}</Text>
                                     <Text className="font-outfit-bold" style={{ ...TYPE.body, color: C.text }}>{row.value}</Text>
                                     <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: C.muted }}>{row.hint}</Text>
                                 </View>
-                            </View>
-                        ))}
-                        {role === 'mechanic' && !plan.payment ? (
-                            <TouchableOpacity onPress={askPay} disabled={paying} activeOpacity={0.85} accessibilityRole="button" style={{ marginTop: 8, opacity: paying ? 0.7 : 1 }} testID="membership-pay">
-                                <LinearGradient colors={[...CONFIRM_GRADIENT]} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }} style={{ minHeight: 56, borderRadius: BUTTON_RADIUS, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingHorizontal: 16 }}>
-                                    {paying ? <ActivityIndicator color="#FFFFFF" /> : (
-                                        <>
-                                            <CreditCard size={20} color="#FFFFFF" />
-                                            <Text className="font-outfit-bold text-white" style={TYPE.button}>{t('membership.pay.button', { amount: money(plan.amount) })}</Text>
-                                        </>
-                                    )}
-                                </LinearGradient>
+                                {'onPress' in row && row.onPress ? <ChevronRight size={18} color={C.muted} /> : null}
                             </TouchableOpacity>
+                        ))}
+                        {plan.payment?.method.type === 'card' ? (
+                            <View className="flex-row items-center" style={{ gap: 12, paddingVertical: 12, borderTopWidth: 1, borderTopColor: C.line }} testID="membership-auto-renew">
+                                <IconTile icon={Repeat} />
+                                <View className="flex-1" style={{ minWidth: 0 }}>
+                                    <Text className="font-outfit-semibold" style={{ ...TYPE.caption, color: C.muted }}>{t('membership.billing.autoRenew')}</Text>
+                                    <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: C.muted }}>{t(plan.payment.autoRenew ? 'membership.billing.autoRenewOn' : 'membership.billing.autoRenewOff', { date: plan.nextPaymentAt ? dateOnly(plan.nextPaymentAt) : '' })}</Text>
+                                </View>
+                                <Switch value={plan.payment.autoRenew} onValueChange={toggleAutoRenew} trackColor={{ true: '#12B76A', false: '#D5DCEB' }} />
+                            </View>
                         ) : null}
                     </View>
 
@@ -303,6 +374,31 @@ export default function MembershipScreen() {
                     </View>
                 </>
             )}
+            <MembershipPaySheet
+                visible={sheetOpen && !!plan}
+                amount={plan?.amount ?? 0}
+                cards={cards}
+                earningsReady={earningsReady}
+                paying={paying}
+                onClose={() => setSheetOpen(false)}
+                onAddCard={addCard}
+                onPay={pay}
+            />
         </ScrollView>
+        {canPay && plan ? (
+            <View style={{ ...FLOATING_FOOTER }} testID="membership-pay-footer">
+                <TouchableOpacity onPress={askPay} disabled={paying} activeOpacity={0.85} accessibilityRole="button" style={{ ...CONFIRM_CTA, opacity: paying ? 0.7 : 1 }} testID="membership-pay">
+                    <LinearGradient colors={[...CONFIRM_GRADIENT]} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }} style={{ minHeight: 56, borderRadius: BUTTON_RADIUS, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingHorizontal: 16 }}>
+                        {paying ? <ActivityIndicator color="#FFFFFF" /> : (
+                            <>
+                                <CreditCard size={20} color="#FFFFFF" />
+                                <Text className="font-outfit-bold text-white" style={TYPE.button}>{t('membership.pay.button', { amount: money(plan.amount) })}</Text>
+                            </>
+                        )}
+                    </LinearGradient>
+                </TouchableOpacity>
+            </View>
+        ) : null}
+        </View>
     );
 }

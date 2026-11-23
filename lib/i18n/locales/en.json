@@ -3317,7 +3317,7 @@
       "title": "What's your number?",
       "subtitle": "We'll send you an SMS to verify your phone number.",
       "consentTitle": "About text messages",
-      "consentPrefix": "By continuing, you agree to receive a one-time verification code and related service texts from MAssistance. Message and data rates may apply. We only use your number to verify and protect your account. Read our",
+      "consentPrefix": "By continuing, you agree to receive a verification code by text from MAssistance. Message and data rates may apply. See our",
       "termsOfService": "Terms",
       "consentAnd": "and",
       "privacyPolicy": "Privacy Policy",
@@ -3776,7 +3776,18 @@
       "nextDue": "Today",
       "nextDueHint": "Your plan starts when you pay.",
       "periodOnlyHint": "Billed once a year.",
-      "promoAppliedHint": "Applied to your plan."
+      "promoAppliedHint": "Applied to your plan.",
+      "method": "Payment method",
+      "methodCard": "Card",
+      "methodCardHint": "Saved in your wallet for renewals and future payments.",
+      "methodEarningsHint": "Taken out of your earnings.",
+      "autoRenew": "Automatic renewal",
+      "autoRenewOn": "We charge your saved card on {{date}} and remind you 7 days before.",
+      "autoRenewOff": "Off: you pay by hand on {{date}}. We remind you 7 days before.",
+      "methodDefaultHint": "Your default card. You can change it when you pay.",
+      "methodUnset": "Choose when you pay",
+      "methodUnsetHint": "Card or earnings. A card is kept in your wallet for renewals.",
+      "amountCovered": "Covered in full by your code."
     },
     "coupon": {
       "badge": "Coupon applied",
@@ -3793,7 +3804,8 @@
       "invalid": "That code is not valid. Check it and try again.",
       "expired": "That code has expired.",
       "not_eligible": "Your account is not eligible for that code.",
-      "not_available_yet": "Plans have not launched yet. Keep your code: you will be able to use it when they do."
+      "not_available_yet": "Plans have not launched yet. Keep your code: you will be able to use it when they do.",
+      "haveCode": "Have a promo code?"
     },
     "actions": {
       "upgrade": "Upgrade plan",
@@ -3811,18 +3823,28 @@
     "notice": "We'll notify you before any future plan or pricing change takes effect.",
     "feeNoteYearly": "Billed once a year.",
     "pay": {
-      "confirmTitle": "Pay your membership?",
-      "confirmBody": "You will pay for one year of the All-access plan.",
-      "confirmCta": "Pay {{amount}}",
-      "cancel": "Cancel",
-      "highlightLabel": "All-access · 1 year",
       "successTitle": "Payment received",
       "success": "Your All-access plan is active. It renews on {{date}}.",
       "failedTitle": "Payment not made",
       "failed": "We couldn't process the payment. Please try again.",
       "button": "Pay {{amount}}",
       "duePill": "Payment due",
-      "paidPill": "Paid"
+      "paidPill": "Paid",
+      "pendingBadge": "Pending payment"
+    },
+    "paySheet": {
+      "title": "How do you want to pay?",
+      "subtitle": "{{amount}} for one year of All-access.",
+      "earningsLabel": "Earnings balance",
+      "earningsAvailable": "{{amount}} ready to pay out",
+      "earningsShort": "{{amount}} ready: not enough to cover the plan",
+      "savedCard": "Saved card",
+      "defaultCard": "Default card",
+      "expired": "Expired",
+      "addCard": "Add a card",
+      "addCardHint": "It is saved in your wallet for renewals and future payments.",
+      "autoRenew": "Renew automatically",
+      "autoRenewHint": "We charge this card next year and remind you 7 days before."
     }
   },
   "promotions": {
@@ -3985,7 +4007,28 @@
       "services_one": "1 service",
       "services_other": "{{count}} services"
     },
-    "howItWorks": "Earnings wait 2 days after the service is charged, then are sent automatically to your payout account."
+    "howItWorks": "Earnings wait 2 days after the service is charged, then are sent automatically to your payout account.",
+    "membership": {
+      "title": "Membership plan",
+      "paid": "Paid · renews {{date}}",
+      "due": "Payment due · {{amount}}",
+      "payNow": "Pay now",
+      "methods": "Payment methods",
+      "methodsNone": "No cards saved yet",
+      "methodsCount_one": "1 card saved",
+      "methodsCount_other": "{{count}} cards saved",
+      "activityTitle": "Membership · All-access",
+      "paidWith": "Paid with {{method}}",
+      "manageCards": "Add or manage cards",
+      "addCard": "Add a card",
+      "defaultCard": "Default card",
+      "expired": "Expired"
+    },
+    "tabs": {
+      "activity": "Activity",
+      "payouts": "Payouts",
+      "cards": "Cards"
+    }
   },
   "chat": {
     "online": "Online",

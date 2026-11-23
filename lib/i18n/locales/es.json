@@ -3318,9 +3318,9 @@
       "title": "¿Cuál es tu número?",
       "subtitle": "Te vamos a enviar un SMS para verificar tu número de teléfono.",
       "consentTitle": "Sobre los mensajes de texto",
-      "consentPrefix": "Al continuar, aceptás recibir un código de verificación único y mensajes de servicio relacionados de MAssistance. Pueden aplicar cargos por mensajes y datos. Usamos tu número solo para verificar y proteger tu cuenta. Leé nuestra",
+      "consentPrefix": "Al continuar, aceptás recibir un código de verificación por mensaje de MAssistance. Pueden aplicar cargos por mensajes y datos. Mirá los",
       "termsOfService": "Términos",
-      "consentAnd": "y los",
+      "consentAnd": "y la",
       "privacyPolicy": "Política de privacidad",
       "consentSuffix": ".",
       "continue": "Continuar",
@@ -3777,7 +3777,18 @@
       "nextDue": "Hoy",
       "nextDueHint": "Tu plan empieza cuando pagás.",
       "periodOnlyHint": "Se cobra una vez al año.",
-      "promoAppliedHint": "Aplicado a tu plan."
+      "promoAppliedHint": "Aplicado a tu plan.",
+      "method": "Método de pago",
+      "methodCard": "Tarjeta",
+      "methodCardHint": "Guardada en tu wallet para renovaciones y pagos futuros.",
+      "methodEarningsHint": "Descontado de tus ganancias.",
+      "autoRenew": "Renovación automática",
+      "autoRenewOn": "Cobramos tu tarjeta guardada el {{date}} y te avisamos 7 días antes.",
+      "autoRenewOff": "Apagada: pagás a mano el {{date}}. Te avisamos 7 días antes.",
+      "methodDefaultHint": "Tu tarjeta predeterminada. La podés cambiar al pagar.",
+      "methodUnset": "Elegís al pagar",
+      "methodUnsetHint": "Tarjeta o earnings. La tarjeta queda guardada en tu wallet para renovar.",
+      "amountCovered": "Cubierto por completo con tu código."
     },
     "coupon": {
       "badge": "Cupón aplicado",
@@ -3794,7 +3805,8 @@
       "invalid": "Ese código no es válido. Revisalo e intentá de nuevo.",
       "expired": "Ese código venció.",
       "not_eligible": "Tu cuenta no es elegible para ese código.",
-      "not_available_yet": "Los planes todavía no se lanzaron. Guardá tu código: vas a poder usarlo cuando lo hagan."
+      "not_available_yet": "Los planes todavía no se lanzaron. Guardá tu código: vas a poder usarlo cuando lo hagan.",
+      "haveCode": "¿Tenés un código promocional?"
     },
     "actions": {
       "upgrade": "Mejorar plan",
@@ -3812,18 +3824,28 @@
     "notice": "Te avisaremos antes de que entre en vigencia cualquier cambio de plan o de precio.",
     "feeNoteYearly": "Se cobra una vez al año.",
     "pay": {
-      "confirmTitle": "¿Pagar tu membresía?",
-      "confirmBody": "Vas a pagar un año del plan All-access.",
-      "confirmCta": "Pagar {{amount}}",
-      "cancel": "Cancelar",
-      "highlightLabel": "All-access · 1 año",
       "successTitle": "Pago recibido",
       "success": "Tu plan All-access está activo. Se renueva el {{date}}.",
       "failedTitle": "No se hizo el pago",
       "failed": "No pudimos procesar el pago. Intentá de nuevo.",
       "button": "Pagar {{amount}}",
       "duePill": "Pago pendiente",
-      "paidPill": "Pagado"
+      "paidPill": "Pagado",
+      "pendingBadge": "Pago pendiente"
+    },
+    "paySheet": {
+      "title": "¿Cómo querés pagar?",
+      "subtitle": "{{amount}} por un año de All-access.",
+      "earningsLabel": "Saldo de ganancias",
+      "earningsAvailable": "{{amount}} listos para cobrar",
+      "earningsShort": "{{amount}} listos: no alcanza para el plan",
+      "savedCard": "Tarjeta guardada",
+      "defaultCard": "Tarjeta predeterminada",
+      "expired": "Vencida",
+      "addCard": "Agregar una tarjeta",
+      "addCardHint": "Queda guardada en tu wallet para las renovaciones y los pagos futuros.",
+      "autoRenew": "Renovar automáticamente",
+      "autoRenewHint": "Cobramos esta tarjeta el año que viene y te avisamos 7 días antes."
     }
   },
   "promotions": {
@@ -3986,7 +4008,28 @@
       "services_one": "1 servicio",
       "services_other": "{{count}} servicios"
     },
-    "howItWorks": "Las ganancias esperan 2 días desde que se cobra el servicio y después se envían solas a tu cuenta de cobro."
+    "howItWorks": "Las ganancias esperan 2 días desde que se cobra el servicio y después se envían solas a tu cuenta de cobro.",
+    "membership": {
+      "title": "Plan de membresía",
+      "paid": "Pagada · se renueva el {{date}}",
+      "due": "Pago pendiente · {{amount}}",
+      "payNow": "Pagar ahora",
+      "methods": "Métodos de pago",
+      "methodsNone": "Todavía no hay tarjetas guardadas",
+      "methodsCount_one": "1 tarjeta guardada",
+      "methodsCount_other": "{{count}} tarjetas guardadas",
+      "activityTitle": "Membresía · All-access",
+      "paidWith": "Pagado con {{method}}",
+      "manageCards": "Agregar o administrar tarjetas",
+      "addCard": "Agregar una tarjeta",
+      "defaultCard": "Tarjeta predeterminada",
+      "expired": "Vencida"
+    },
+    "tabs": {
+      "activity": "Actividad",
+      "payouts": "Pagos",
+      "cards": "Tarjetas"
+    }
   },
   "chat": {
     "online": "En línea",
