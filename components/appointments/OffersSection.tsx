@@ -18,10 +18,10 @@ export function OffersSection({ appointments, isMechanic, onCancel }: {
     const { t } = useTranslation();
     if (appointments.length === 0) return null;
     return (
-        // No box around the cards (a card inside a card): the heading sits on the page and the offers are cards like the rest of the list.
+        // No box around the cards (a card inside a card): the heading is a quiet amber banner and the offers are cards like the rest of the list.
         <View style={{ marginHorizontal: 20, marginBottom: 6, gap: 14 }} testID="offers-section">
-            <View className="flex-row items-center" style={{ gap: 12 }}>
-                <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#FFEFC9' }}>
+            <View className="flex-row items-center" style={{ gap: 12, paddingVertical: 12, paddingHorizontal: 14, borderRadius: 16, backgroundColor: '#FFF6E0', borderWidth: 1, borderColor: '#F6E2B3' }}>
+                <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#FFE7A8' }}>
                     <Zap size={20} color="#8A5200" />
                 </View>
                 <View className="flex-1">
@@ -31,7 +31,7 @@ export function OffersSection({ appointments, isMechanic, onCancel }: {
                             <Text className="font-outfit-bold" style={{ fontSize: 13, lineHeight: 16, color: '#FFFFFF' }}>{appointments.length}</Text>
                         </View>
                     </View>
-                    <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: '#6B7490', marginTop: 1 }}>
+                    <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: '#8A6A2E', marginTop: 1 }}>
                         {t(isMechanic ? 'appointments.filters.offersSubMechanic' : 'appointments.filters.offersSubOwner')}
                     </Text>
                 </View>

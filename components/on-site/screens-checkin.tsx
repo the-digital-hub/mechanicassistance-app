@@ -231,7 +231,8 @@ export function ScreenDiagnosticsObd({ appointmentId, visit, onVisit, onNext, en
 }
 
 // ─────────── Photos ───────────
-export function ScreenDiagnosticsPhotos({ onNext }: { onNext: () => void }) {
+/** `onNext(skipped)`: `skipped` is true when the technician chose to go on without the two required photos. */
+export function ScreenDiagnosticsPhotos({ onNext }: { onNext: (skipped: boolean) => void }) {
     const { t } = useTranslation();
     const k = 'appointments.onSite.photos';
     const plate = useExistingCaptures('plate');
@@ -307,7 +308,7 @@ export function ScreenDiagnosticsPhotos({ onNext }: { onNext: () => void }) {
                 {noPhotos && doneCount < 2 ? <Tip tone="orange">{t(`${k}.skipWarn`)}</Tip> : null}
             </Body>
             <ActionBar>
-                <PrimaryButton label={t('appointments.onSite.common.continue')} onPress={onNext} disabled={!ready} />
+                <PrimaryButton label={t('appointments.onSite.common.continue')} onPress={() => onNext(noPhotos && doneCount < 2)} disabled={!ready} />
             </ActionBar>
         </>
     );

@@ -206,6 +206,8 @@ export default function OnSiteFlowScreen() {
 
     // The diagnostic is validated on the server (it names the photos still missing); there is no screen for it: on success the flow moves
     // on to step 4, on failure it goes back to the photos with what is missing.
+    // The technician chose "Continue without the photos": the server's check names them as missing, which must not send them back.
+    const photosSkipped = React.useRef(false);
     const submitDiagnostic = () => {
         if (submittingDiagnostic.current) return;
         submittingDiagnostic.current = true;
@@ -213,6 +215,10 @@ export default function OnSiteFlowScreen() {
             .submitDiagnostic(id)
             .then(() => go('feasibility'))
             .catch(() => {
+                if (photosSkipped.current) {
+                    go('feasibility');
+                    return;
+                }
                 appAlert(t('appointments.onSite.validating.missing'));
                 go('diagnostics-photos');
             })
@@ -280,7 +286,7 @@ export default function OnSiteFlowScreen() {
                 />
             );
             break;
-        case 'diagnostics-photos': body = <ScreenDiagnosticsPhotos onNext={() => go('diagnostics-obd')} />; break;
+        case 'diagnostics-photos': body = <ScreenDiagnosticsPhotos onNext={(skipped) => { photosSkipped.current = skipped; go('diagnostics-obd'); }} />; break;
         case 'diagnostics-obd':
             body = <ScreenDiagnosticsObd appointmentId={id} visit={visit} onVisit={setVisit} enteredVin={vinCapture?.vin} onNext={submitDiagnostic} />;
             break;

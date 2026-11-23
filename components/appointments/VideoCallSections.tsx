@@ -147,6 +147,14 @@ export function CustomerInRoomCard() {
         <InfoCard
             icon="videocam"
             tone="green"
+            // Live: the camera pulses like a radar, so it reads as someone waiting right now.
+            iconNode={(
+                <View style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
+                    <LiveRadar size={32} color="#16A34A">
+                        <Ionicons name="videocam" size={17} color="#FFFFFF" />
+                    </LiveRadar>
+                </View>
+            )}
             title={t(`${K}.mechanic.customerInRoomTitle`)}
             testID="customer-in-room"
         />
@@ -190,8 +198,10 @@ export function JoinVideoCallButton({ onPress, rejoin = false, disabled = false 
     return <GradientButton label={t(rejoin ? `${K}.rejoin` : `${K}.join`)} icon="videocam" tone="success" onPress={onPress} testID="join-video-call" />;
 }
 
-export function InfoCard({ icon, tone, title, body, children, testID }: {
+export function InfoCard({ icon, tone, title, body, children, testID, iconNode }: {
     icon: IconName;
+    /** Replaces the plain icon tile (a live, animated one). */
+    iconNode?: React.ReactNode;
     tone: 'blue' | 'orange' | 'green' | 'gray';
     title: string;
     body?: string | null;
@@ -208,9 +218,11 @@ export function InfoCard({ icon, tone, title, body, children, testID }: {
         <View style={[card, { padding: 16 }]} testID={testID}>
             {/* The text sits in its own column, under the title and not under the icon; what the card carries (buttons, a clock) goes full width below. */}
             <View className="flex-row" style={{ gap: 12, alignItems: body ? 'flex-start' : 'center' }}>
-                <View style={{ width: 40, height: 40, borderRadius: 13, backgroundColor: palette.bg, alignItems: 'center', justifyContent: 'center' }}>
-                    <Ionicons name={icon} size={20} color={palette.fg} />
-                </View>
+                {iconNode ?? (
+                    <View style={{ width: 40, height: 40, borderRadius: 13, backgroundColor: palette.bg, alignItems: 'center', justifyContent: 'center' }}>
+                        <Ionicons name={icon} size={20} color={palette.fg} />
+                    </View>
+                )}
                 <View style={{ flex: 1, minWidth: 0 }}>
                     <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, color: AO.text, letterSpacing: -0.3, marginTop: body ? 8 : 0 }}>{title}</Text>
                     {!!body && (

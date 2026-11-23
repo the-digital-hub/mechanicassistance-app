@@ -687,7 +687,7 @@ export default function RequestDetailScreen() {
                 title={t(isVideo ? 'requestDetail.confirmVideoTitle' : 'requestDetail.confirmOfferTitle')}
                 message={t('requestDetail.confirmOfferPending')}
                 highlight={isVideo
-                    ? { label: t('requestDetail.offerHighlight.video'), value: String(title ?? ''), icon: 'videocam-outline' }
+                    ? { label: t('requestDetail.offerHighlight.video'), value: [t('requestDetail.videoDurationValue', { count: callMinutes }), fetched?.providerBreakdown?.total ? `$${fetched.providerBreakdown.total}` : price ? `$${price}` : ''].filter(Boolean).join(' · '), icon: 'videocam-outline' }
                     : isImmediate
                     ? { label: t('requestDetail.offerHighlight.immediate'), value: String(title ?? ''), icon: 'flash-outline' }
                     : { label: t('requestDetail.offerHighlight.scheduled'), value: selectedDate ?? '', sub: selectedTime ?? undefined, icon: 'calendar-outline' }
