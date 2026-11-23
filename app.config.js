@@ -9,6 +9,9 @@
 // can call the Places API from the client. Without it, address autocomplete
 // degrades to its Photon fallback instead of breaking.
 //
+// GOOGLE_MAPS_ANDROID_API_KEY (falls back to the iOS key) goes into the Android manifest. Without it every <MapView> crashes the whole app
+// on Android ("API key not found"), so an EAS build for Android fails here instead of shipping an APK that closes on the first map.
+//
 // aps-environment is what lets iOS hand the app a push token at all. Its value
 // has to match the provisioning profile: 'development' for the dev-client
 // profiles (and local `expo run:ios`), 'production' for TestFlight and the
@@ -34,6 +37,24 @@ function withPushEntitlement(config) {
 module.exports = ({ config: baseConfig }) => {
   const config = withPushEntitlement(baseConfig);
   const iosGoogleMapsApiKey = process.env.GOOGLE_MAPS_IOS_API_KEY;
+  const androidGoogleMapsApiKey =
+    process.env.GOOGLE_MAPS_ANDROID_API_KEY || iosGoogleMapsApiKey;
+
+  if (!androidGoogleMapsApiKey && process.env.EAS_BUILD_PLATFORM === 'android') {
+    throw new Error(
+      '[app.config] GOOGLE_MAPS_ANDROID_API_KEY is not set: an Android build without it crashes on every map screen. ' +
+        'Add it as an EAS environment variable / secret.'
+    );
+  }
+  if (androidGoogleMapsApiKey) {
+    config.android = {
+      ...(config.android ?? {}),
+      config: {
+        ...(config.android?.config ?? {}),
+        googleMaps: { apiKey: androidGoogleMapsApiKey },
+      },
+    };
+  }
 
   if (!iosGoogleMapsApiKey) {
     console.warn(
