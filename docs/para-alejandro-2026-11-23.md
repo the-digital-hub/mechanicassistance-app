@@ -25,6 +25,7 @@ Orden pensado para trabajar de arriba hacia abajo: lo que hoy **falla en producc
 |---|---|---|
 | **AK** | `POST /api/assistance/summaries` y `GET /marketplace/requests` | `refCode` (hoy se muestra el inicio del id) |
 | **AE** | `GET /marketplace/requests[/:id]` | `refCode` en la vista reducida del prestador |
+| **AR** | `POST /api/assistance/summaries` | Que también devuelva (con `refCode`) los pedidos que el usuario atendió como prestador: en Earnings del técnico hoy sale «Request details unavailable» y el id largo |
 | **AL** | `GET /marketplace/requests` | `createdAt` (ISO) y `myOffer.createdAt` |
 | **E** | `GET /api/assistance` | `offerExpiresAt` |
 | **AI** | `POST …/client-review` y `…/review` | Aceptar `experienceTags: string[]` (array en ambos) y devolverlo. **Antes de endurecer el DTO, desplegar el backend**: con `forbidNonWhitelisted` una app vieja recibe 400 |
@@ -35,6 +36,7 @@ Orden pensado para trabajar de arriba hacia abajo: lo que hoy **falla en producc
 | **S** | Solicitudes | Evento cuando otro técnico toma la solicitud; 409 `request_unavailable` al ofertar sobre una ya tomada; documentar qué ve el técnico que no ganó |
 | **R** | Catálogo | Issue "Other" cotizable y `customIssue` (≤ 200) en `POST /api/assistance` |
 | **AC** | Citas | Ocultar una cita cancelada por usuario (`POST/DELETE /api/appointments/:id/hide`) |
+| **AQ** | `GET /api/earnings/me/statement` (PDF) | Logo de Mechanic Assistance a color arriba de la primera página (archivos: `assets/images/brand_ring_color.png` y `brand_wordmark_color.png` del repo de la app) |
 | **AP** | `POST /appointments/:id/on-site/diagnostic` | Aceptar el diagnóstico sin fotos de patente y tablero cuando el técnico elige seguir sin ellas (`photosSkipped: true`) y dejarlo marcado en la visita |
 
 ## 4. Funciones nuevas (decisión de producto o capacidad)

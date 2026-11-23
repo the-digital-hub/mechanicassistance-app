@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { useUser } from '@/context/UserContext';
-import { applyPromoCode, cancelPlan, loadMembership, type Membership } from '@/lib/membership/plan';
+import { applyPromoCode, cancelPlan, loadMembership, removePromoCode, type Membership } from '@/lib/membership/plan';
 import { appAlert } from '@/lib/ui/appAlert';
 import { BUTTON_RADIUS } from '@/lib/ui/floatingFooter';
 import { formatLocalDateTime } from '@/lib/video/videoCallTime';
@@ -38,9 +38,9 @@ export default function MembershipScreen() {
 
     useEffect(() => {
         let cancelled = false;
-        loadMembership().then((m) => { if (!cancelled) setPlan(m); });
+        loadMembership(role, user?.id).then((m) => { if (!cancelled) setPlan(m); });
         return () => { cancelled = true; };
-    }, []);
+    }, [role, user?.id]);
 
     const name = [user?.name, user?.surname].filter(Boolean).join(' ');
     const waived = plan?.status === 'startup_waived';
@@ -48,6 +48,11 @@ export default function MembershipScreen() {
     const includes = ['account', 'wallet', 'support', role === 'mechanic' ? 'jobs' : 'requests'] as const;
 
     // Simulated until plans launch: it answers that nothing can change yet (see lib/membership/plan.ts).
+    const takeCouponOff = async () => {
+        await removePromoCode(user?.id);
+        setPlan(await loadMembership(role, user?.id));
+    };
+
     const askCancel = () => {
         appAlert(t('membership.actions.cancelTitle'), t('membership.actions.cancelBody'), [
             { text: t('membership.actions.keep') },
@@ -66,11 +71,12 @@ export default function MembershipScreen() {
         const value = code.trim();
         if (!value || busy) return;
         setBusy(true);
-        const result = await applyPromoCode(value);
+        const result = await applyPromoCode(value, role, user?.id);
         setBusy(false);
         if (result.ok) {
             setCode('');
-            appAlert(t('membership.promo.applied'));
+            setPlan(await loadMembership(role, user?.id));
+            appAlert(t('membership.promo.applied', { percent: result.coupon?.percentOff }), undefined, undefined, { tone: 'success' });
         } else {
             appAlert(t(`membership.promo.${result.reason ?? 'invalid'}`));
         }
@@ -97,7 +103,12 @@ export default function MembershipScreen() {
                         <View style={{ position: 'absolute', right: 30, bottom: -70, width: 150, height: 150, borderRadius: 75, backgroundColor: 'rgba(255,255,255,0.05)' }} />
                         <View className="flex-row items-center justify-between">
                             <Image source={require('@/assets/images/brand_ring_white.png')} style={{ width: 44, height: 44 }} resizeMode="contain" />
-                            {waived ? (
+                            {plan.coupon ? (
+                                <View className="flex-row items-center" style={{ gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: 'rgba(18,183,106,0.95)' }} testID="membership-coupon-badge">
+                                    <Ticket size={15} color="#FFFFFF" />
+                                    <Text className="font-outfit-bold text-white" style={{ fontSize: 12, letterSpacing: 0.8 }}>{`${t('membership.coupon.badge')} · ${t('membership.coupon.off', { percent: plan.coupon.percentOff })}`.toUpperCase()}</Text>
+                                </View>
+                            ) : waived ? (
                                 <View className="flex-row items-center" style={{ gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: 'rgba(18,183,106,0.95)' }}>
                                     <BadgeCheck size={15} color="#FFFFFF" />
                                     <Text className="font-outfit-bold text-white" style={{ fontSize: 12, letterSpacing: 0.8 }}>{t('membership.status.startup_waived').toUpperCase()}</Text>
@@ -110,8 +121,11 @@ export default function MembershipScreen() {
                         <View className="flex-row items-end" style={{ marginTop: 22, gap: 6 }}>
                             <Text className="font-outfit-bold text-white" style={{ fontSize: 40, lineHeight: 44, letterSpacing: -1 }} testID="membership-price">{price}</Text>
                             <Text className="font-outfit-medium" style={{ ...TYPE.body, color: 'rgba(255,255,255,0.8)', paddingBottom: 6 }}>{t(`membership.per.${plan.period}`)}</Text>
+                            {plan.coupon ? (
+                                <Text className="font-outfit-medium" style={{ ...TYPE.body, color: 'rgba(255,255,255,0.6)', paddingBottom: 6, marginLeft: 6, textDecorationLine: 'line-through' }} testID="membership-list-price">{`$${plan.listAmount.toFixed(2)}`}</Text>
+                            ) : null}
                         </View>
-                        <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: 'rgba(255,255,255,0.8)', marginTop: 2 }}>{t(waived ? 'membership.feeNoteWaived' : 'membership.feeNote')}</Text>
+                        <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: 'rgba(255,255,255,0.8)', marginTop: 2 }}>{plan.coupon ? t('membership.coupon.note', { percent: plan.coupon.percentOff, code: plan.coupon.code }) : t(waived ? 'membership.feeNoteWaived' : plan.period === 'year' ? 'membership.feeNoteYearly' : 'membership.feeNote')}</Text>
                     </LinearGradient>
 
                     {/* What the plan includes. */}
@@ -130,6 +144,55 @@ export default function MembershipScreen() {
                         ))}
                     </View>
 
+                    {/* Promo code. */}
+                    <View style={{ ...card, padding: 18, borderStyle: 'dashed', borderColor: '#BFD3FA' }}>
+                        <View className="flex-row items-center" style={{ gap: 10, marginBottom: 12 }}>
+                            <IconTile icon={Ticket} />
+                            <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, color: C.text }}>{t('membership.promo.title')}</Text>
+                        </View>
+                        {plan.coupon ? (
+                            // Applied: the code and what it takes off, with a way to remove it (the input is not needed any more).
+                            <View className="flex-row items-center" style={{ gap: 12, padding: 14, borderRadius: 16, backgroundColor: '#ECFDF3', borderWidth: 1, borderColor: '#BBF0D3' }} testID="promo-applied">
+                                <Check size={20} color="#15803D" />
+                                <View className="flex-1" style={{ minWidth: 0 }}>
+                                    <Text className="font-outfit-bold" style={{ ...TYPE.body, color: C.text }}>{plan.coupon.code}</Text>
+                                    <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: '#4B5563' }}>{t('membership.coupon.off', { percent: plan.coupon.percentOff })}</Text>
+                                </View>
+                                <TouchableOpacity onPress={takeCouponOff} hitSlop={10} accessibilityRole="button" testID="promo-remove">
+                                    <Text className="font-outfit-bold" style={{ ...TYPE.helper, color: '#DC2626' }}>{t('membership.coupon.remove')}</Text>
+                                </TouchableOpacity>
+                            </View>
+                        ) : (
+                            <>
+                                <TextInput
+                                    value={code}
+                                    onChangeText={setCode}
+                                    placeholder={t('membership.promo.placeholder')}
+                                    placeholderTextColor="#9AA3B8"
+                                    autoCapitalize="characters"
+                                    autoCorrect={false}
+                                    returnKeyType="done"
+                                    onSubmitEditing={apply}
+                                    className="font-outfit-semibold"
+                                    style={{ minHeight: 52, borderRadius: BUTTON_RADIUS, paddingHorizontal: 14, backgroundColor: '#F6F8FC', borderWidth: 1.5, borderColor: C.border, fontSize: 16, color: C.text }}
+                                    testID="promo-input"
+                                />
+                                <TouchableOpacity
+                                    onPress={apply}
+                                    disabled={!code.trim() || busy}
+                                    activeOpacity={0.85}
+                                    accessibilityRole="button"
+                                    className="items-center justify-center"
+                                    style={{ minHeight: 56, borderRadius: BUTTON_RADIUS, backgroundColor: C.soft, marginTop: 10, opacity: code.trim() ? 1 : 0.55 }}
+                                    testID="promo-apply"
+                                >
+                                    {busy ? <ActivityIndicator color={C.blue} /> : <Text className="font-outfit-bold" style={{ ...TYPE.button, color: C.blue }}>{t('membership.promo.apply')}</Text>}
+                                </TouchableOpacity>
+                                <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: C.muted, marginTop: 10 }}>{t('membership.promo.hint')}</Text>
+                            </>
+                        )}
+                    </View>
+
                     {/* The billing facts: laid out already, filled in once plans launch. */}
                     <View style={{ ...card, padding: 18 }}>
                         <View className="flex-row items-center justify-between" style={{ marginBottom: 6 }}>
@@ -139,7 +202,7 @@ export default function MembershipScreen() {
                             </View>
                         </View>
                         {[
-                            { key: 'period', icon: Repeat, value: t('membership.billing.periodValue') },
+                            { key: 'period', icon: Repeat, value: plan.periodsOffered.length === 1 ? t(`membership.billing.periodOnly.${plan.periodsOffered[0]}`) : t('membership.billing.periodValue') },
                             { key: 'next', icon: CalendarClock, value: plan.nextPaymentAt ? formatLocalDateTime(plan.nextPaymentAt, i18n.language) : '—' },
                             { key: 'promo', icon: Ticket, value: t(plan.promoAvailable ? 'membership.billing.promoValue' : 'membership.billing.promoNone') },
                         ].map((row) => (
@@ -152,39 +215,6 @@ export default function MembershipScreen() {
                                 </View>
                             </View>
                         ))}
-                    </View>
-
-                    {/* Promo code. */}
-                    <View style={{ ...card, padding: 18, borderStyle: 'dashed', borderColor: '#BFD3FA' }}>
-                        <View className="flex-row items-center" style={{ gap: 10, marginBottom: 12 }}>
-                            <IconTile icon={Ticket} />
-                            <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, color: C.text }}>{t('membership.promo.title')}</Text>
-                        </View>
-                        <TextInput
-                            value={code}
-                            onChangeText={setCode}
-                            placeholder={t('membership.promo.placeholder')}
-                            placeholderTextColor="#9AA3B8"
-                            autoCapitalize="characters"
-                            autoCorrect={false}
-                            returnKeyType="done"
-                            onSubmitEditing={apply}
-                            className="font-outfit-semibold"
-                            style={{ minHeight: 52, borderRadius: BUTTON_RADIUS, paddingHorizontal: 14, backgroundColor: '#F6F8FC', borderWidth: 1.5, borderColor: C.border, fontSize: 16, color: C.text }}
-                            testID="promo-input"
-                        />
-                        <TouchableOpacity
-                            onPress={apply}
-                            disabled={!code.trim() || busy}
-                            activeOpacity={0.85}
-                            accessibilityRole="button"
-                            className="items-center justify-center"
-                            style={{ minHeight: 56, borderRadius: BUTTON_RADIUS, backgroundColor: C.soft, marginTop: 10, opacity: code.trim() ? 1 : 0.55 }}
-                            testID="promo-apply"
-                        >
-                            {busy ? <ActivityIndicator color={C.blue} /> : <Text className="font-outfit-bold" style={{ ...TYPE.button, color: C.blue }}>{t('membership.promo.apply')}</Text>}
-                        </TouchableOpacity>
-                        <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: C.muted, marginTop: 10 }}>{t('membership.promo.hint')}</Text>
                     </View>
 
                     {/* Quiet on purpose: a small red link, not a button (same as cancelling a quote). */}

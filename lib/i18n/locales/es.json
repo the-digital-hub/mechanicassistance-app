@@ -3762,14 +3762,24 @@
       "promo": "Código promocional",
       "promoValue": "Disponible",
       "promoNone": "No disponible",
-      "promoHint": "Los códigos elegibles pueden reducir el costo del plan."
+      "promoHint": "Los códigos elegibles pueden reducir el costo del plan.",
+      "periodOnly": {
+        "year": "Anual",
+        "month": "Mensual"
+      }
+    },
+    "coupon": {
+      "badge": "Cupón aplicado",
+      "off": "{{percent}}% de descuento",
+      "note": "{{percent}}% de descuento con el código {{code}}. Se cobra una vez al año.",
+      "remove": "Quitar"
     },
     "promo": {
       "title": "Código promocional",
       "placeholder": "Ingresá tu código",
       "apply": "Aplicar código",
-      "hint": "Un código válido aplicará su beneficio de membresía cuando los planes se lancen.",
-      "applied": "Código aplicado.",
+      "hint": "Ingresá un código para obtener su descuento en tu plan.",
+      "applied": "Cupón aplicado: {{percent}}% de descuento.",
       "invalid": "Ese código no es válido. Revisalo e intentá de nuevo.",
       "expired": "Ese código venció.",
       "not_eligible": "Tu cuenta no es elegible para ese código.",
@@ -3788,7 +3798,8 @@
       "cancelSoon": "Tu plan no tiene costo durante nuestra etapa de lanzamiento, así que todavía no hay nada para cancelar. Vas a poder gestionarlo acá cuando los planes se lancen.",
       "gotIt": "Entendido"
     },
-    "notice": "Te avisaremos antes de que entre en vigencia cualquier cambio de plan o de precio."
+    "notice": "Te avisaremos antes de que entre en vigencia cualquier cambio de plan o de precio.",
+    "feeNoteYearly": "Se cobra una vez al año."
   },
   "promotions": {
     "badge": "PROMOCIONES",
