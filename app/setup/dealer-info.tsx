@@ -48,7 +48,7 @@ export default function DealerInfoScreen() {
   );
 
   return (
-    <KeyboardAvoidingView className="flex-1" style={{ backgroundColor: SETUP_BG }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+    <KeyboardAvoidingView className="flex-1" style={{ backgroundColor: SETUP_BG }} behavior="padding">
       <KeyboardAwareScrollView
         className="flex-1"
         contentContainerStyle={{ padding: 20, paddingTop: 18, paddingBottom: 24 }}

@@ -114,7 +114,7 @@ export default function PhoneNumberScreen() {
       <KeyboardAvoidingView
         className="flex-1"
         style={{ backgroundColor: SETUP_BG }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior="padding"
       >
         <ScrollView
           className="flex-1"

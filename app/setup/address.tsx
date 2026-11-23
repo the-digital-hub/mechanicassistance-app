@@ -236,7 +236,7 @@ export default function AddressScreen() {
   return (
     <View className="flex-1" style={{ backgroundColor: SETUP_BG }}>
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior="padding"
       style={{ flex: 1 }}
       keyboardVerticalOffset={Platform.OS === "ios" ? headerHeight : 0}
     >

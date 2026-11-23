@@ -313,8 +313,11 @@ export function EarnNudgeStrip({ nudge }: { nudge: EarnNudge }) {
                             </>
                         );
                         // A tip with a link opens it on a tap only (a swipe never does); one without is just a page.
+                        // The layout lives on an inner View: on Android a Pressable whose style is a function dropped the padding, gap and wrapping of its className/style.
                         return onPress ? (
-                            <TapPage key={key} onTap={onPress} style={pageStyle}>{body}</TapPage>
+                            <TapPage key={key} onTap={onPress} style={{ width: pageStyle.width }}>
+                                <View className="flex-row items-center" style={pageStyle}>{body}</View>
+                            </TapPage>
                         ) : (
                             <View key={key} style={pageStyle}>{body}</View>
                         );

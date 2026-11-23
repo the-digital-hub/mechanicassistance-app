@@ -11,7 +11,15 @@ export async function getCurrentCoords(): Promise<{
   try {
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') return null;
-    const loc = await Location.getCurrentPositionAsync({});
+    // On Android getCurrentPositionAsync can wait forever for a fix (indoors, no GPS signal), and both mechanic feeds sit behind it on a
+    // full-screen spinner. The last known position answers at once; otherwise a fresh fix gets a few seconds, after which the feed loads without a geo center.
+    const last = await Location.getLastKnownPositionAsync().catch(() => null);
+    if (last) return { latitude: last.coords.latitude, longitude: last.coords.longitude };
+    const loc = await Promise.race([
+      Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+    ]);
+    if (!loc) return null;
     return { latitude: loc.coords.latitude, longitude: loc.coords.longitude };
   } catch {
     return null;

@@ -135,7 +135,7 @@ export default function SelectVehicleScreen() {
     return (
         <View className="flex-1" style={{ backgroundColor: '#F4F6FC' }}>
             <WizardHeader title={getTitle()} onBack={handleBack} />
-            <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            <KeyboardAvoidingView className="flex-1" behavior="padding">
                 <ScrollView
                     className="flex-1"
                     keyboardShouldPersistTaps="handled"

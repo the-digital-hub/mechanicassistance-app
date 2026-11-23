@@ -1,4 +1,5 @@
 import { MeshBackground } from "@/components/brand/MeshBackground";
+import { useIsFocused } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useRef } from "react";
 import { Animated, Easing, View, ViewProps } from "react-native";
@@ -10,13 +11,15 @@ import { Animated, Easing, View, ViewProps } from "react-native";
  */
 export function GradientLayout({ children, style, ...props }: ViewProps & { resizeMode?: string }) {
   const v = useRef(new Animated.Value(0)).current;
+  // The login stays mounted under the screens that open over it; on Android its light status bar would stay on top of them (white clock on a light page).
+  const focused = useIsFocused();
   useEffect(() => {
     Animated.timing(v, { toValue: 1, duration: 520, delay: 120, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
   }, [v]);
 
   return (
     <View style={[{ flex: 1, width: "100%", height: "100%", overflow: "hidden", backgroundColor: "#061A66" }, style]} {...props}>
-      <StatusBar style="light" />
+      {focused && <StatusBar style="light" />}
       <MeshBackground />
       <Animated.View
         style={{

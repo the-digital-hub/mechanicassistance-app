@@ -146,7 +146,7 @@ export function CertificationForm({ initial, onSaved }: { initial: Certification
     };
 
     return (
-        <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined} testID="certification-form">
+        <KeyboardAvoidingView className="flex-1" behavior="padding" testID="certification-form">
             <ScrollView className="flex-1" keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 8, paddingBottom: 28, gap: 22 }}>
                 <View>
                     <Title>{t(`${K}.type`)}</Title>
