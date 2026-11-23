@@ -152,54 +152,84 @@ export function buildFinalReport({ appointment, visit, clientName, vin, odometer
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 /** The report as a printable page (PDF): a dark header with the reference, summary boxes and numbered section bars. */
-export function finalReportHtml(report: FinalReport, logoDataUri?: string | null): string {
+/** What the PDF draws from data, so it needs nothing else: the brand (ring + name, in colour) and the app's font (Outfit) in three weights. */
+export interface ReportBrand {
+    ring: string;
+    word: string;
+    fonts?: { regular: string; semibold: string; bold: string } | null;
+}
+
+/**
+ * The report as a page for the PDF, in the app's own look: Outfit, the blue palette, white cards with a soft border and rounded corners,
+ * a blue hero card with the title and the status, numbered sections with labelled rows (the same rows and checklist ticks the app shows).
+ */
+export function finalReportHtml(report: FinalReport, brand?: ReportBrand | null): string {
+    const fonts = brand?.fonts;
+    const face = fonts
+        ? `@font-face{font-family:'Outfit';font-weight:400;src:url(${fonts.regular}) format('truetype')}
+@font-face{font-family:'Outfit';font-weight:600;src:url(${fonts.semibold}) format('truetype')}
+@font-face{font-family:'Outfit';font-weight:700;src:url(${fonts.bold}) format('truetype')}`
+        : '';
     const sections = report.sections
         .map((sec, i) => {
             const rows = sec.rows
-                .map((r) => `<tr><td class="l">${esc(r.label)}</td><td class="v">${esc(r.value).replace(/\n/g, '<br/>')}</td></tr>`)
+                .map((r) => `<div class="row"><div class="l">${esc(r.label)}</div><div class="v">${esc(r.value).replace(/\n/g, '<br/>')}</div></div>`)
                 .join('');
             const lines = (sec.lines ?? [])
-                .map((l) => `<div class="line">${l.done === undefined ? '' : `<span class="box${l.done ? ' on' : ''}">${l.done ? '✓' : ''}</span>`}${esc(l.text).replace(/\n/g, '<br/>')}</div>`)
+                .map((l) => `<div class="line">${l.done === undefined ? '<span class="dot"></span>' : `<span class="box${l.done ? ' on' : ''}">${l.done ? '✓' : ''}</span>`}<span class="t">${esc(l.text).replace(/\n/g, '<br/>')}</span></div>`)
                 .join('');
-            return `<div class="sec"><h2><span class="n">${i + 1}.</span> ${esc(sec.title)}</h2>${rows ? `<table>${rows}</table>` : ''}${lines}</div>`;
+            return `<div class="sec"><div class="sh2"><span class="n">${i + 1}</span><span class="st">${esc(sec.title)}</span></div>${rows}${lines}</div>`;
         })
         .join('');
     const boxes = (report.summary ?? [])
         .map((b) => `<div class="sum"><div class="sh">${esc(b.heading)}</div><div class="sv">${esc(b.value)}</div>${b.sub ? `<div class="ss">${esc(b.sub)}</div>` : ''}</div>`)
         .join('');
-    const status = report.status ? `<div class="status${report.status.ok ? ' ok' : ''}">${esc(report.status.label)}</div>` : '';
+    const status = report.status ? `<span class="status${report.status.ok ? ' ok' : ''}">${esc(report.status.label)}</span>` : '';
+    const logo = brand
+        ? `<div class="logo"><img class="ring" src="${brand.ring}" alt=""/><img class="word" src="${brand.word}" alt="Mechanic Assistance"/></div>`
+        : '<div class="brand">MECHANIC ASSISTANCE</div>';
     return `<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <style>
+${face}
 @page{margin:36px}
-*{box-sizing:border-box}
-body{font-family:-apple-system,Helvetica,Arial,sans-serif;color:#0B1530;margin:0;font-size:13px}
-.head{background:#0F1E3C;color:#fff;padding:24px 28px 22px;border-radius:18px;border-bottom:4px solid #8CC8F0}
-.logo{display:block;height:44px;width:auto}
-.brand{font-size:13px;font-weight:700;letter-spacing:.14em}
-.head h1{font-size:25px;font-weight:400;color:#8CC8F0;margin:16px 0 2px}
-.head .sub{font-size:12px;color:#D6E4F5}
-.meta{margin-top:12px;font-size:11px;color:#C5D6EC;line-height:1.7}
-.status{margin-top:12px;display:inline-block;background:#B45309;color:#fff;font-size:11px;font-weight:700;letter-spacing:.04em;padding:8px 14px;text-transform:uppercase;border-radius:999px}
-.status.ok{background:#0E9F6E}
-.body{padding:20px 0 0}
-.sums{display:flex;gap:12px;margin-bottom:18px}
-.sum{flex:1;border:1px solid #B9D6EC;background:#F3F9FD;padding:12px 14px;border-radius:12px;page-break-inside:avoid}
-.sh{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#334155}
-.sv{font-size:14px;margin-top:6px;color:#0F1E3C;font-weight:600}
-.ss{font-size:11px;color:#64748B;margin-top:4px}
-.sec{margin-bottom:6px;page-break-inside:avoid}
-h2{background:#0F1E3C;color:#fff;font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin:18px 0 6px;padding:10px 14px;border-radius:10px;border-left:4px solid #8CC8F0}
-h2 .n{opacity:.8}
-table{width:100%;border-collapse:collapse}
-td{padding:7px 4px;vertical-align:top;border-bottom:1px solid #EDF1F6}
-.l{color:#64748B;width:36%}.v{font-weight:500}
-.line{padding:5px 4px;border-bottom:1px solid #EDF1F6}
-.box{display:inline-block;width:14px;height:14px;border:1.5px solid #8C96AE;border-radius:3px;margin-right:8px;text-align:center;font-size:10px;line-height:13px;vertical-align:middle}
-.box.on{background:#10B981;border-color:#10B981;color:#fff}
-.foot{margin-top:26px;padding-top:12px;border-top:1px solid #B9D6EC;color:#64748B;font-size:10.5px}
+*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{font-family:'Outfit',-apple-system,Helvetica,Arial,sans-serif;color:#0B1530;margin:0;font-size:13px;line-height:1.45}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.logo{display:flex;align-items:center;gap:10px}
+.logo .ring{height:34px;width:34px}
+.logo .word{height:15px;width:auto}
+.brand{font-size:13px;font-weight:700;letter-spacing:.14em;color:#1E56E3}
+.ref{text-align:right;font-size:11px;color:#6B7490;line-height:1.5}
+.ref b{display:block;font-size:12px;font-weight:700;color:#0B1530;letter-spacing:.02em}
+.hero{background:linear-gradient(90deg,#1E56E3,#0B2A8E);color:#fff;border-radius:20px;padding:24px 26px}
+.hero .eyebrow{font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#BFD3FF}
+.hero h1{font-size:30px;line-height:1.1;font-weight:700;letter-spacing:-.02em;margin:8px 0 4px;color:#fff}
+.hero .sub{font-size:13px;color:#DCE7FF}
+.status{display:inline-block;margin-top:16px;background:rgba(255,255,255,.16);color:#fff;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:7px 14px;border-radius:999px}
+.status.ok{background:#12B76A}
+.sums{display:flex;gap:10px;margin:14px 0 4px}
+.sum{flex:1;border:1px solid #EEF2FA;background:#fff;padding:13px 14px;border-radius:16px;page-break-inside:avoid}
+.sh{font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#6B7490}
+.sv{font-size:15px;font-weight:700;margin-top:6px;color:#0B1530;line-height:1.25}
+.ss{font-size:11px;color:#6B7490;margin-top:4px}
+.sec{margin-top:12px;border:1px solid #EEF2FA;background:#fff;border-radius:18px;padding:6px 18px 8px;page-break-inside:avoid}
+.sh2{display:flex;align-items:center;gap:10px;padding:12px 0 8px}
+.sh2 .n{display:inline-block;width:26px;height:26px;border-radius:9px;background:#EAF1FF;color:#1E56E3;font-size:12.5px;font-weight:700;text-align:center;line-height:26px}
+.sh2 .st{font-size:15px;font-weight:700;color:#0B1530}
+.row{display:flex;gap:16px;padding:9px 0;border-top:1px solid #EEF2FA}
+.row .l{width:34%;color:#6B7490;font-weight:400}
+.row .v{flex:1;font-weight:600;color:#0B1530}
+.line{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-top:1px solid #EEF2FA}
+.line .t{flex:1;font-weight:600}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#1E56E3;margin:6px 4px 0 5px;flex:none}
+.box{display:inline-block;width:18px;height:18px;border:1.5px solid #C9D2E3;border-radius:6px;text-align:center;font-size:11px;line-height:15px;flex:none;color:#fff}
+.box.on{background:#12B76A;border-color:#12B76A}
+.foot{margin-top:22px;padding-top:12px;border-top:1px solid #EEF2FA;color:#9CA3AF;font-size:10px;text-align:center;line-height:1.6}
 </style></head><body>
-<div class="head">${logoDataUri ? `<img class="logo" src="${logoDataUri}" alt="Mechanic Assistance"/>` : '<div class="brand">MECHANIC ASSISTANCE</div>'}<h1>${esc(report.title)}</h1>${report.subtitle ? `<div class="sub">${esc(report.subtitle)}</div>` : ''}
-<div class="meta">${esc(report.reference)}<br/>${esc(report.generatedAt)}</div>${status}</div>
-<div class="body">${boxes ? `<div class="sums">${boxes}</div>` : ''}${sections}<div class="foot">www.mechanicassistance.com &nbsp;|&nbsp; MECHANIC ASSISTANCE - ${esc(report.title)} &nbsp;|&nbsp; ${esc(report.reference)} &nbsp;|&nbsp; ${esc(report.generatedAt)}</div></div>
+<div class="top">${logo}<div class="ref"><b>${esc(report.reference)}</b>${esc(report.generatedAt)}</div></div>
+<div class="hero"><div class="eyebrow">${esc(report.subtitle ?? '')}</div><h1>${esc(report.title)}</h1>${status}</div>
+${boxes ? `<div class="sums">${boxes}</div>` : ''}${sections}
+<div class="foot">Mechanic Assistance &nbsp;·&nbsp; www.mechanicassistance.com<br/>${esc(report.title)} &nbsp;·&nbsp; ${esc(report.reference)} &nbsp;·&nbsp; ${esc(report.generatedAt)}</div>
 </body></html>`;
 }

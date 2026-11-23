@@ -12,6 +12,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
+import { SetupHeading } from '@/components/setup/SetupKit';
 import { appAlert } from '@/lib/ui/appAlert';
 
 /**
@@ -103,7 +104,8 @@ export default function ProfileAvailabilityScreen() {
     return (
         <>
             <AvailabilityForm
-              topInset={32}
+                topInset={32}
+                header={<SetupHeading badge={t('setup.availability.badge')} title={t('profile.availabilityScreen.title')} subtitle={t('profile.availabilityScreen.subtitle')} />}
                 initialValue={availabilityFromUser(account)}
                 baseLocation={baseLocationFromAddresses(account.addresses)}
                 onEditLocation={() => setBaseSheetOpen(true)}

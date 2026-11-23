@@ -298,7 +298,8 @@ export default function DashboardScreen() {
 
     useEffect(() => {
         if (!isUserLoading && !user) {
-            router.replace('/onboarding');
+            // Back to the entry route, which decides: resume a registration left half-way, or onboarding.
+            router.replace('/');
         }
     }, [isUserLoading, user, router]);
 

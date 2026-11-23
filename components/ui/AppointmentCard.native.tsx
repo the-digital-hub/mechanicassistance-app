@@ -462,11 +462,11 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
                     onPress={guardPress(downloadReport)}
                     disabled={makingPdf}
                     accessibilityRole="button"
-                    style={{ gap: 8, minHeight: 46, borderRadius: 13, borderWidth: 1.5, borderColor: C.blueSoft, backgroundColor: C.page, opacity: makingPdf ? 0.7 : 1 }}
+                    style={{ gap: 8, minHeight: 56, borderRadius: 14, backgroundColor: C.blueSoft, opacity: makingPdf ? 0.7 : 1 }}
                     testID={`appointment-report-pdf-${appointment.id}`}
                 >
                     {makingPdf ? <ActivityIndicator color={C.blue} /> : <FileText size={18} color={C.blue} />}
-                    <Text className="font-outfit-bold text-[15px]" style={{ color: C.blue }}>
+                    <Text className="font-outfit-bold" style={{ fontSize: 16, color: C.blue }}>
                         {makingPdf ? t('appointments.report.pdf.preparing') : t('appointments.report.pdf.button')}
                     </Text>
                 </TouchableOpacity>

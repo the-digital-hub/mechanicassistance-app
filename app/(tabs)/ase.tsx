@@ -6,9 +6,9 @@ import { ApiError } from '@/lib/api/types';
 import { formatAseId, isCompleteAseId, toAseIdRaw } from '@/lib/ase-id';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight } from 'lucide-react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
+import { AlertCircle, User } from 'lucide-react-native';
+import { SETUP_BG, SetupFooter, SetupHeading } from '@/components/setup/SetupKit';
 import { KeyboardAwareScrollView } from '@/components/ui/KeyboardAwareScrollView';
 
 export default function ASEScreen() {
@@ -93,186 +93,135 @@ export default function ASEScreen() {
         return new Date(date).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
     };
 
+    const card = { padding: 16, borderRadius: 16, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#EEF2FA' } as const;
+    const holder = [user?.name, user?.surname].filter(Boolean).join(' ');
+    const linked = !isLoading && !(notLinked || !data);
+
     return (
-        <KeyboardAwareScrollView style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ padding: 24, paddingBottom: 40 }}>
-            {/* Section Badge */}
-            <View style={{ marginTop: 8 }}>
-              <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
-              <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
-              <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                {t('ase.badge')}
-              </Text>
-            </View>
-            </View>
+        <View className="flex-1" style={{ backgroundColor: SETUP_BG }}>
+            <KeyboardAwareScrollView className="flex-1" contentContainerStyle={{ padding: 20, paddingTop: 32, paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
+                <SetupHeading badge={t('ase.badge')} title={t('ase.title')} subtitle={t('ase.subtitle')} />
 
-            <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
-              {t('ase.title')}
-            </Text>
-
-            <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-              {t('ase.subtitle')}
-            </Text>
-
-            {isLoading ? (
-                <ActivityIndicator size="large" color="#0047AB" style={{ marginTop: 40 }} />
-            ) : notLinked || !data ? (
-                <View>
-                    {/* ASE branding */}
-                    <View className="flex-row items-center mb-6">
-                        <View className="bg-blue-600 rounded-full w-10 h-10 items-center justify-center mr-3">
-                            <Text className="text-white font-bold text-[13px]">ASE</Text>
-                        </View>
-                        <View>
-                            <Text className="font-bold text-[13px] text-gray-800">{t('ase.instituteLine1')}</Text>
-                            <Text className="font-bold text-[13px] text-gray-800 uppercase">{t('ase.instituteLine2')}</Text>
-                        </View>
-                    </View>
-
-                    <Text className="text-[#0F172A] font-outfit-regular text-sm mb-6">
-                        {t('ase.description')}
-                    </Text>
-
-                    {!verified ? (
-                        <View>
-                            <Text className="font-outfit-medium text-[#0F172A] mb-2">{t('ase.memberIdLabel')}</Text>
-                            <Input
-                                placeholder="ASE-XXXX-XXXX"
-                                value={maskedAseId}
-                                onChangeText={(text) => { setAseId(toAseIdRaw(text)); setSearchError(null); }}
-                                containerClassName="bg-white border border-gray-300 rounded-2xl mb-4"
-                                autoCorrect={false}
-                                keyboardType="number-pad"
-                                maxLength={13}
-                            />
-
-                            {searchError && (
-                                <Text className="text-red-500 font-outfit-regular text-sm mb-4">{searchError}</Text>
-                            )}
-
-                            <TouchableOpacity
-                                onPress={handleSearch}
-                                activeOpacity={0.8}
-                                disabled={isSearching || !canSearch}
-                            >
-                                <LinearGradient
-                                    colors={['#2B66F8', '#081E72']}
-                                    start={{ x: 0, y: 1 }}
-                                    end={{ x: 1, y: 0 }}
-                                    style={{
-                                        borderRadius: 14,
-                                        paddingVertical: 16,
-                                        paddingHorizontal: 16,
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        opacity: isSearching || !canSearch ? 0.6 : 1,
-                                    }}
-                                >
-                                    {isSearching ? (
-                                        <ActivityIndicator color="white" />
-                                    ) : (
-                                        <>
-                                            <Text className="text-white font-outfit-bold text-center mr-2" style={TYPE.button}>{t('ase.searchButton')}</Text>
-                                            <ChevronRight size={20} color="white" />
-                                        </>
-                                    )}
-                                </LinearGradient>
-                            </TouchableOpacity>
-                        </View>
-                    ) : (
-                        <View>
-                            <Text className="font-outfit-medium text-[#0F172A] mb-1">{t('ase.memberIdLabel')}</Text>
-                            <Text className="text-[#0047AB] font-outfit-medium text-base mb-6">{verified.aseId}</Text>
-
-                            <View className="space-y-4 mb-8">
-                                {(verified.certifications ?? []).length === 0 ? (
-                                    <Text className="text-gray-400 font-outfit-regular text-sm">{t('ase.noCertifications')}</Text>
-                                ) : (
-                                    (verified.certifications ?? []).map((cert) => (
-                                        <View key={cert.id} className="bg-blue-50/50 p-4 rounded-xl">
-                                            <Text className="font-outfit-bold text-[#0F172A] mb-1">
-                                                {cert.code}{cert.name ? ` - ${cert.name}` : ''}
-                                            </Text>
-                                            <Text className="text-blue-400 text-[13px]">
-                                                {t('ase.expiration', { date: formatExpiration(cert.expirationDate) })}
-                                            </Text>
-                                        </View>
-                                    ))
-                                )}
-                            </View>
-
-                            {searchError && (
-                                <Text className="text-red-500 font-outfit-regular text-sm mb-4">{searchError}</Text>
-                            )}
-
-                            <TouchableOpacity
-                                onPress={() => { setVerified(null); setSearchError(null); }}
-                                activeOpacity={0.8}
-                                className="mb-3"
-                            >
-                                <Text className="text-blue-600 font-outfit-medium text-center text-sm">{t('ase.searchDifferent')}</Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                onPress={handleAssociate}
-                                activeOpacity={0.8}
-                                disabled={isAssociating}
-                            >
-                                <LinearGradient
-                                    colors={['#2B66F8', '#081E72']}
-                                    start={{ x: 0, y: 1 }}
-                                    end={{ x: 1, y: 0 }}
-                                    style={{
-                                        borderRadius: 14,
-                                        paddingVertical: 16,
-                                        paddingHorizontal: 16,
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        opacity: isAssociating ? 0.6 : 1,
-                                    }}
-                                >
-                                    {isAssociating ? (
-                                        <ActivityIndicator color="white" />
-                                    ) : (
-                                        <>
-                                            <Text className="text-white font-outfit-bold text-center mr-2" style={TYPE.button}>{t('ase.linkButton')}</Text>
-                                            <ChevronRight size={20} color="white" />
-                                        </>
-                                    )}
-                                </LinearGradient>
-                            </TouchableOpacity>
-                        </View>
-                    )}
-                </View>
-            ) : (
-                <>
-                    <View className="bg-white border border-gray-200 rounded-2xl p-4 mb-6">
-                        <Text className="text-gray-500 font-outfit-regular text-[13px] mb-1">{t('ase.memberIdLabel')}</Text>
-                        <Text className="text-[#0047AB] font-outfit-bold text-base">{data.aseId}</Text>
-                        <Text className="text-gray-700 font-outfit-regular text-sm mt-1">
-                            {data.firstName} {data.lastName}
-                        </Text>
-                    </View>
-
-                    {data.certifications.length === 0 ? (
-                        <Text className="text-gray-400 font-outfit-regular text-sm">{t('ase.noCertificationsMembership')}</Text>
-                    ) : (
-                        <View className="gap-3">
-                            {data.certifications.map((cert) => (
-                                <View key={cert.id} className="bg-white border border-gray-200 rounded-2xl p-4">
-                                    <Text className="font-outfit-bold text-gray-900">
-                                        {cert.code}{cert.name ? ` - ${cert.name}` : ''}
-                                    </Text>
-                                    <Text className="text-gray-500 text-[13px] mt-1">
-                                        {t('ase.expiration', { date: formatExpiration(cert.expirationDate) })}
-                                    </Text>
+                {isLoading ? (
+                    <ActivityIndicator size="large" color="#0047AB" style={{ marginTop: 40 }} />
+                ) : notLinked || !data ? (
+                    <View>
+                        {/* ASE branding */}
+                        <View style={{ ...card, marginBottom: 20 }}>
+                            <View className="flex-row items-center mb-3">
+                                <View className="bg-blue-600 rounded-full w-10 h-10 items-center justify-center mr-3">
+                                    <Text className="text-white font-outfit-bold" style={TYPE.caption}>ASE</Text>
                                 </View>
-                            ))}
+                                <View className="flex-1">
+                                    <Text className="font-outfit-bold" style={{ ...TYPE.caption, color: '#0B1530' }}>{t('ase.instituteLine1')}</Text>
+                                    <Text className="font-outfit-bold uppercase" style={{ ...TYPE.caption, color: '#0B1530' }}>{t('ase.instituteLine2')}</Text>
+                                </View>
+                            </View>
+                            <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: '#6B7490' }}>{t('ase.description')}</Text>
                         </View>
-                    )}
-                </>
+
+                        {!verified ? (
+                            <View style={{ padding: 16, borderRadius: 20, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#EEF2FA' }}>
+                                <Text className="font-outfit-semibold" style={{ ...TYPE.body, color: '#0B1530', marginBottom: 8 }}>{t('ase.memberIdLabel')}</Text>
+                                <Input
+                                    placeholder="ASE-XXXX-XXXX"
+                                    value={maskedAseId}
+                                    onChangeText={(text) => { setAseId(toAseIdRaw(text)); setSearchError(null); }}
+                                    containerClassName="bg-[#F6F8FC] border border-[#E4EAF5] rounded-[14px]"
+                                    autoCorrect={false}
+                                    keyboardType="number-pad"
+                                    maxLength={13}
+                                />
+                                {holder ? (
+                                    <View className="flex-row items-center" style={{ gap: 12, marginTop: 14, paddingTop: 14, borderTopWidth: 1, borderTopColor: '#EEF2FA' }}>
+                                        <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#EAF1FF' }}>
+                                            <User size={20} color="#1E56E3" />
+                                        </View>
+                                        <View className="flex-1" style={{ minWidth: 0 }}>
+                                            <Text className="font-outfit-semibold" style={{ ...TYPE.caption, color: '#6B7490' }}>{t('setup.credentials.holderLabel')}</Text>
+                                            <Text className="font-outfit-bold" style={{ ...TYPE.body, color: '#0B1530' }} numberOfLines={1}>{holder}</Text>
+                                            <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: '#6B7490' }}>{t('setup.credentials.holderHint')}</Text>
+                                        </View>
+                                    </View>
+                                ) : null}
+                            </View>
+                        ) : (
+                            <View>
+                                <View style={{ ...card, marginBottom: 16 }}>
+                                    <Text className="font-outfit-semibold" style={{ ...TYPE.helper, color: '#6B7490', marginBottom: 2 }}>{t('ase.memberIdLabel')}</Text>
+                                    <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, color: '#1E56E3' }}>{verified.aseId}</Text>
+                                </View>
+                                <View style={{ gap: 12 }}>
+                                    {(verified.certifications ?? []).length === 0 ? (
+                                        <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: '#6B7490' }}>{t('ase.noCertifications')}</Text>
+                                    ) : (
+                                        (verified.certifications ?? []).map((cert) => (
+                                            <View key={cert.id} style={{ padding: 16, borderRadius: 16, backgroundColor: '#F4F8FF', borderWidth: 1, borderColor: '#E1EAFB' }}>
+                                                <Text className="font-outfit-bold" style={{ ...TYPE.body, color: '#0B1530', marginBottom: 2 }}>
+                                                    {cert.code}{cert.name ? ` - ${cert.name}` : ''}
+                                                </Text>
+                                                <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: '#6B7490' }}>
+                                                    {t('ase.expiration', { date: formatExpiration(cert.expirationDate) })}
+                                                </Text>
+                                            </View>
+                                        ))
+                                    )}
+                                </View>
+                            </View>
+                        )}
+
+                        {/* The problem, as an alert row: icon tile, soft red, readable. */}
+                        {searchError && (
+                            <View className="flex-row items-center" style={{ gap: 12, marginTop: 12, padding: 14, borderRadius: 16, backgroundColor: '#FEF2F2', borderWidth: 1, borderColor: '#FBD5D5' }}>
+                                <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#FDE2E2' }}>
+                                    <AlertCircle size={22} color="#DC2626" />
+                                </View>
+                                <Text className="flex-1 font-outfit-semibold" style={{ ...TYPE.helper, color: '#B42318' }}>{searchError}</Text>
+                            </View>
+                        )}
+                    </View>
+                ) : (
+                    <>
+                        <View style={{ ...card, marginBottom: 16 }}>
+                            <Text className="font-outfit-semibold" style={{ ...TYPE.helper, color: '#6B7490', marginBottom: 2 }}>{t('ase.memberIdLabel')}</Text>
+                            <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, color: '#1E56E3' }}>{data.aseId}</Text>
+                            <Text className="font-outfit-regular" style={{ ...TYPE.body, color: '#0B1530', marginTop: 2 }}>
+                                {data.firstName} {data.lastName}
+                            </Text>
+                        </View>
+
+                        {data.certifications.length === 0 ? (
+                            <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: '#6B7490' }}>{t('ase.noCertificationsMembership')}</Text>
+                        ) : (
+                            <View style={{ gap: 12 }}>
+                                {data.certifications.map((cert) => (
+                                    <View key={cert.id} style={{ padding: 16, borderRadius: 16, backgroundColor: '#F4F8FF', borderWidth: 1, borderColor: '#E1EAFB' }}>
+                                        <Text className="font-outfit-bold" style={{ ...TYPE.body, color: '#0B1530', marginBottom: 2 }}>
+                                            {cert.code}{cert.name ? ` - ${cert.name}` : ''}
+                                        </Text>
+                                        <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: '#6B7490' }}>
+                                            {t('ase.expiration', { date: formatExpiration(cert.expirationDate) })}
+                                        </Text>
+                                    </View>
+                                ))}
+                            </View>
+                        )}
+                    </>
+                )}
+            </KeyboardAwareScrollView>
+
+            {isLoading || linked ? null : !verified ? (
+                <SetupFooter label={t('ase.searchButton')} onPress={handleSearch} disabled={!canSearch} loading={isSearching} />
+            ) : (
+                <SetupFooter
+                    label={t('ase.linkButton')}
+                    onPress={handleAssociate}
+                    loading={isAssociating}
+                    secondaryLabel={t('ase.searchDifferent')}
+                    onSecondary={() => { setVerified(null); setSearchError(null); }}
+                    secondaryDisabled={isAssociating}
+                />
             )}
-        </KeyboardAwareScrollView>
+        </View>
     );
 }

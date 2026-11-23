@@ -1,10 +1,11 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { ShieldCheck } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 
+import { SETUP_BG, SetupFooter, SetupHeading } from '@/components/setup/SetupKit';
+import { TYPE } from '@/lib/ui/type';
 import { DocumentUploadCard } from '@/components/ui/DocumentUploadCard';
 import type { LegalDocument, LegalDocumentType } from '@/lib/dao/interfaces';
 import { pickAndUploadLegalDocument } from '@/lib/legal-documents';
@@ -86,33 +87,13 @@ export default function LegalDocumentsScreen() {
   };
 
   return (
+    <View className="flex-1" style={{ backgroundColor: SETUP_BG }}>
     <ScrollView
-      style={{ backgroundColor: '#F6F8FC' }}
-      contentContainerStyle={{ padding: 24, paddingTop: 18, paddingBottom: 40 }}
+      className="flex-1"
+      contentContainerStyle={{ padding: 20, paddingTop: 18, paddingBottom: 24 }}
+      showsVerticalScrollIndicator={false}
     >
-      {/* Section Badge */}
-      <View
-        className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full"
-        style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}
-      >
-        <View
-          className="w-1.5 h-1.5 rounded-full"
-          style={{ backgroundColor: '#0047AB' }}
-        />
-        <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-          {t('setup.legalDocs.badge')}
-        </Text>
-      </View>
-
-      {/* Title */}
-      <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
-        {t('setup.legalDocs.title')}
-      </Text>
-
-      {/* Subtitle */}
-      <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-        {t('setup.legalDocs.subtitle')}
-      </Text>
+      <SetupHeading screen="legal-documents" badge={t('setup.legalDocs.badge')} title={t('setup.legalDocs.title')} subtitle={t('setup.legalDocs.subtitle')} />
 
       {DOCUMENT_TYPES.map(({ type, labelKey }) => (
         <DocumentUploadCard
@@ -135,61 +116,25 @@ export default function LegalDocumentsScreen() {
         />
       ))}
 
-      {/* "You can do this later" notice */}
+      {/* "You can do this later": the quiet alert used across the registration */}
       <View
-        className="flex-row rounded-2xl p-4 mt-2 mb-8 border"
-        style={{ backgroundColor: '#F4F8FF', borderColor: '#E1EAFB' }}
+        className="flex-row"
+        style={{ gap: 10, paddingVertical: 12, paddingHorizontal: 14, marginTop: 4, borderRadius: 14, borderWidth: 1, borderColor: '#E1EAFB', backgroundColor: '#F4F8FF' }}
       >
-        <ShieldCheck size={20} color="#0047AB" />
-        <View className="flex-1 ml-3">
-          <Text className="font-outfit-medium text-[#0F172A] text-sm mb-1">
-            {t('setup.legalDocs.noticeTitle')}
-          </Text>
-          <Text className="font-outfit-regular text-gray-500 text-[13px] leading-5">
-            {t('setup.legalDocs.noticeBody', {
-              cta: t('setup.legalDocs.submit'),
-            })}
-          </Text>
-        </View>
+        <ShieldCheck size={18} color="#1E56E3" style={{ marginTop: 2 }} />
+        <Text className="font-outfit-regular flex-1" style={{ ...TYPE.helper, color: '#6B7490' }}>
+          {t('setup.legalDocs.noticeBody', { cta: t('setup.legalDocs.submit') })}
+        </Text>
       </View>
 
-      {/* Back / Finish. Finish is never disabled: the step is optional. */}
-      <View style={{ gap: 12 }}>
-        <TouchableOpacity
-          onPress={handleSubmit}
-          activeOpacity={0.8}
-          disabled={uploading !== null}
-        >
-          <LinearGradient
-            colors={['#2B66F8', '#081E72']}
-            start={{ x: 0, y: 1 }}
-            end={{ x: 1, y: 0 }}
-            style={{
-              borderRadius: 14,
-              paddingVertical: 16,
-              paddingHorizontal: 16,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              opacity: uploading !== null ? 0.6 : 1,
-            }}
-          >
-            <Text className="text-white font-outfit-bold text-center">
-              {t('setup.legalDocs.submit')}
-            </Text>
-          </LinearGradient>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          activeOpacity={0.8}
-          disabled={uploading !== null}
-          style={{ paddingVertical: 16, borderRadius: 14, backgroundColor: '#E6EAF2' }}
-        >
-          <Text className="font-outfit-bold text-center" style={{ color: '#4A5470' }}>
-            {t('setup.legalDocs.back')}
-          </Text>
-        </TouchableOpacity>
-      </View>
     </ScrollView>
+
+    {/* Finish is never disabled by an empty list: the step is optional (only while a file is uploading). */}
+    <SetupFooter
+      label={t('setup.legalDocs.submit')}
+      onPress={handleSubmit}
+      disabled={uploading !== null}
+    />
+    </View>
   );
 }

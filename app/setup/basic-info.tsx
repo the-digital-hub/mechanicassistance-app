@@ -7,8 +7,9 @@ import { getSetupProgress, saveSetupProgress } from "@/lib/storage";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
-import { ChevronRight } from "lucide-react-native";
-import { LinearGradient } from "expo-linear-gradient";
+import { SETUP_BG, SetupFooter, SetupHeading } from "@/components/setup/SetupKit";
+import { KeyboardAwareScrollView } from "@/components/ui/KeyboardAwareScrollView";
+import { TYPE } from "@/lib/ui/type";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -146,228 +147,188 @@ export default function BasicInfoScreen() {
     router.push(role === "mechanic" && !identityDone ? "/setup/identity" : "/setup/address");
   };
 
+  const labelStyle = { ...TYPE.body, color: '#0B1530', marginBottom: 8 } as const;
+  const inputBox = "bg-white border border-[#E4EAF5] rounded-[14px]";
+
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={{ flex: 1 }}
-    >
-      <ScrollView
-        ref={scrollViewRef}
-        style={{ backgroundColor: '#F6F8FC' }}
-        contentContainerStyle={{ padding: 24, paddingTop: 18, paddingBottom: 40 }}
-        keyboardShouldPersistTaps="handled"
+    <View className="flex-1" style={{ backgroundColor: SETUP_BG }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
       >
-        {/* Section Badge */}
-        <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
-          <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
-          <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-            {t("setup.basicInfo.badge")}
-          </Text>
-        </View>
+        <KeyboardAwareScrollView
+          ref={scrollViewRef}
+          className="flex-1"
+          contentContainerStyle={{ padding: 20, paddingTop: 18, paddingBottom: 24 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <SetupHeading screen="basic-info" badge={t("setup.basicInfo.badge")} title={t("setup.basicInfo.title")} subtitle={t("setup.basicInfo.subtitle")} />
 
-        {/* Title */}
-        <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
-          {t("setup.basicInfo.title")}
-        </Text>
-
-        {/* Subtitle */}
-        <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-          {t("setup.basicInfo.subtitle")}
-        </Text>
-
-        {/* Profile Photo */}
-        <View className="flex-row items-center mb-8">
-          <TouchableOpacity
-            onPress={pickImage}
-            disabled={isUploadingPhoto}
-            className="w-24 h-24 bg-blue-50 rounded-full items-center justify-center border-2 border-dashed border-blue-200 mr-4 relative overflow-hidden"
-          >
-            {localProfileUri ? (
-              <Image source={{ uri: localProfileUri }} className="w-full h-full" />
-            ) : (
-              <Ionicons name="camera" size={32} color="#0047AB" style={{ opacity: 0.5 }} />
-            )}
-            {isUploadingPhoto && (
-              <View className="absolute inset-0 bg-black/40 items-center justify-center">
-                <ActivityIndicator color="#fff" />
-              </View>
-            )}
-            {!isUploadingPhoto && (
-              <View className="absolute bottom-1 right-1 bg-white rounded-full p-1.5 border border-blue-100 shadow-sm">
-                <Ionicons name="pencil" size={12} color="#0047AB" />
-              </View>
-            )}
-          </TouchableOpacity>
-          <View>
-            <Text className="font-outfit-bold text-[#0F172A] text-lg">
-              {t("setup.basicInfo.profilePhoto")}
-            </Text>
-            <Text className="font-outfit-regular text-slate-400 text-sm">
-              {t("setup.basicInfo.updateAvatar")}
-            </Text>
-          </View>
-        </View>
-
-        {/* Model-based inputs with labels */}
-        <View className="space-y-4 mb-6 gap-5">
-          <View>
-            <Text className="font-outfit-medium text-[#0F172A] mb-2 capitalize">
-              {t("setup.basicInfo.name")}
-            </Text>
-            <Input
-              value={formData.name}
-              onChangeText={(text) =>
-                setFormData((p) => ({ ...p, name: text }))
-              }
-              containerClassName="bg-white border border-gray-300 rounded-2xl"
-            />
-          </View>
-
-          <View>
-            <Text className="font-outfit-medium text-[#0F172A] mb-2 capitalize">
-              {t("setup.basicInfo.surname")}
-            </Text>
-            <Input
-              value={formData.surname}
-              onChangeText={(text) =>
-                setFormData((p) => ({ ...p, surname: text }))
-              }
-              containerClassName="bg-white border border-gray-300 rounded-2xl"
-            />
-          </View>
-
-          <View>
-            <Text className="font-outfit-medium text-[#0F172A] mb-2 capitalize">
-              {t("setup.basicInfo.email")}
-            </Text>
-            <Input
-              value={formData.email}
-              onChangeText={(text) =>
-                setFormData((p) => ({ ...p, email: text }))
-              }
-              containerClassName="bg-white border border-gray-300 rounded-2xl"
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-            {emailStatus === 'checking' && (
-              <Text className="font-outfit-regular text-[13px] text-slate-400 mt-1">{t("setup.basicInfo.checkingAvailability")}</Text>
-            )}
-            {emailStatus === 'taken' && (
-              <Text className="font-outfit-regular text-[13px] text-red-500 mt-1">{t("setup.basicInfo.emailTaken")}</Text>
-            )}
-            {emailStatus === 'available' && (
-              <Text className="font-outfit-regular text-[13px] text-green-600 mt-1">{t("setup.basicInfo.emailAvailable")}</Text>
-            )}
-            {emailStatus === 'error' && (
-              <Text className="font-outfit-regular text-[13px] text-orange-500 mt-1">{t("setup.basicInfo.emailCheckError")}</Text>
-            )}
-          </View>
-
-          <View>
-            <Text className="font-outfit-medium text-[#0F172A] mb-2">
-              {t("setup.basicInfo.dob")}
-            </Text>
-            <DatePicker
-              value={formData.dob}
-              onChange={(date) => setFormData((p) => ({ ...p, dob: date }))}
-              placeholder="MM / DD / YYYY"
-              containerClassName="bg-white border border-gray-300 rounded-2xl"
-            />
-          </View>
-
-          {!isAddRole && (
-          <>
-          <View ref={passwordContainerRef}>
-            <Text className="font-outfit-medium text-[#0F172A] mb-2 capitalize">
-              {t("setup.basicInfo.accountPassword")}
-            </Text>
-            <View className="relative">
-              <Input
-                value={formData.password}
-                onChangeText={(text) =>
-                  setFormData((p) => ({ ...p, password: text }))
-                }
-                onFocus={() => scrollToField(passwordContainerRef)}
-                containerClassName="bg-white border border-gray-300 rounded-2xl"
-                isPassword={true}
-              />
+          {/* Profile Photo */}
+          <View className="flex-row items-center" style={{ padding: 16, borderRadius: 18, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#EEF2FA', marginBottom: 24 }}>
+            <TouchableOpacity
+              onPress={pickImage}
+              disabled={isUploadingPhoto}
+              className="w-24 h-24 bg-blue-50 rounded-full items-center justify-center border-2 border-dashed border-blue-200 mr-4 relative overflow-hidden"
+            >
+              {localProfileUri ? (
+                <Image source={{ uri: localProfileUri }} className="w-full h-full" />
+              ) : (
+                <Ionicons name="camera" size={32} color="#0047AB" style={{ opacity: 0.5 }} />
+              )}
+              {isUploadingPhoto && (
+                <View className="absolute inset-0 bg-black/40 items-center justify-center">
+                  <ActivityIndicator color="#fff" />
+                </View>
+              )}
+              {!isUploadingPhoto && (
+                <View className="absolute bottom-1 right-1 bg-white rounded-full p-1.5 border border-blue-100 shadow-sm">
+                  <Ionicons name="pencil" size={13} color="#0047AB" />
+                </View>
+              )}
+            </TouchableOpacity>
+            <View className="flex-1">
+              <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, color: '#0B1530' }}>
+                {t("setup.basicInfo.profilePhoto")}
+              </Text>
+              <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: '#6B7490' }}>
+                {t("setup.basicInfo.updateAvatar")}
+              </Text>
             </View>
           </View>
 
-          <View ref={confirmPasswordContainerRef}>
-            <Text className="font-outfit-medium text-[#0F172A] mb-2 capitalize">
-              {t("setup.basicInfo.confirmPassword")}
-            </Text>
-            <Input
-              value={formData.confirmPassword}
-              onChangeText={(text) =>
-                setFormData((p) => ({ ...p, confirmPassword: text }))
-              }
-              onFocus={() => scrollToField(confirmPasswordContainerRef)}
-              containerClassName="bg-white border border-gray-300 rounded-2xl"
-              isPassword={true}
-            />
-          </View>
-          </>
-          )}
-        </View>
+          {/* Model-based inputs with labels */}
+          <View style={{ gap: 18, marginBottom: 20 }}>
+            <View>
+              <Text className="font-outfit-semibold capitalize" style={labelStyle}>
+                {t("setup.basicInfo.name")}
+              </Text>
+              <Input
+                value={formData.name}
+                onChangeText={(text) =>
+                  setFormData((p) => ({ ...p, name: text }))
+                }
+                containerClassName={inputBox}
+              />
+            </View>
 
-        {/* Password Requirements */}
-        {isAddRole ? <View className="mb-8" /> : (
-        <View className="mb-8 pl-2">
-          <Text
-            className={`font-outfit-regular text-sm mb-1 ${
-              ruleLength ? "text-green-600" : "text-gray-600"
-            }`}
-          >
-            • {t("setup.basicInfo.ruleMinLength")}
-          </Text>
-          <Text
-            className={`font-outfit-regular text-sm ${
-              ruleSymbol ? "text-green-600" : "text-gray-600"
-            }`}
-          >
-            • {t("setup.basicInfo.ruleSymbol")}
-          </Text>
-          <Text
-            className={`font-outfit-regular text-sm mt-1 ${
-              ruleMatch ? "text-green-600" : "text-gray-600"
-            }`}
-          >
-            • {t("setup.basicInfo.rulePasswordsMatch")}
-          </Text>
-        </View>
-        )}
+            <View>
+              <Text className="font-outfit-semibold capitalize" style={labelStyle}>
+                {t("setup.basicInfo.surname")}
+              </Text>
+              <Input
+                value={formData.surname}
+                onChangeText={(text) =>
+                  setFormData((p) => ({ ...p, surname: text }))
+                }
+                containerClassName={inputBox}
+              />
+            </View>
 
-        <TouchableOpacity
-          onPress={handleContinue}
-          activeOpacity={0.8}
-          disabled={isUploadingPhoto}
-        >
-          <LinearGradient
-            colors={['#2B66F8', '#081E72']}
-            start={{ x: 0, y: 1 }}
-            end={{ x: 1, y: 0 }}
-            style={{
-              borderRadius: 14,
-              paddingVertical: 16,
-              paddingHorizontal: 16,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            {isUploadingPhoto ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <>
-                <Text className="text-white font-outfit-bold text-center mr-2">{t("setup.basicInfo.continue")}</Text>
-                <ChevronRight size={20} color="white" />
-              </>
+            <View>
+              <Text className="font-outfit-semibold capitalize" style={labelStyle}>
+                {t("setup.basicInfo.email")}
+              </Text>
+              <Input
+                value={formData.email}
+                onChangeText={(text) =>
+                  setFormData((p) => ({ ...p, email: text }))
+                }
+                containerClassName={inputBox}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+              {emailStatus === 'checking' && (
+                <Text className="font-outfit-regular mt-1" style={{ ...TYPE.helper, color: '#6B7490' }}>{t("setup.basicInfo.checkingAvailability")}</Text>
+              )}
+              {emailStatus === 'taken' && (
+                <Text className="font-outfit-regular mt-1" style={{ ...TYPE.helper, color: '#DC2626' }}>{t("setup.basicInfo.emailTaken")}</Text>
+              )}
+              {emailStatus === 'available' && (
+                <Text className="font-outfit-regular mt-1" style={{ ...TYPE.helper, color: '#10B981' }}>{t("setup.basicInfo.emailAvailable")}</Text>
+              )}
+              {emailStatus === 'error' && (
+                <Text className="font-outfit-regular mt-1" style={{ ...TYPE.helper, color: '#F97316' }}>{t("setup.basicInfo.emailCheckError")}</Text>
+              )}
+            </View>
+
+            <View>
+              <Text className="font-outfit-semibold" style={labelStyle}>
+                {t("setup.basicInfo.dob")}
+              </Text>
+              <DatePicker
+                value={formData.dob}
+                onChange={(date) => setFormData((p) => ({ ...p, dob: date }))}
+                placeholder="MM / DD / YYYY"
+                containerClassName={inputBox}
+              />
+            </View>
+
+            {!isAddRole && (
+            <>
+            <View ref={passwordContainerRef}>
+              <Text className="font-outfit-semibold capitalize" style={labelStyle}>
+                {t("setup.basicInfo.accountPassword")}
+              </Text>
+              <View className="relative">
+                <Input
+                  value={formData.password}
+                  onChangeText={(text) =>
+                    setFormData((p) => ({ ...p, password: text }))
+                  }
+                  onFocus={() => scrollToField(passwordContainerRef)}
+                  containerClassName={inputBox}
+                    isPassword={true}
+                />
+              </View>
+            </View>
+
+            <View ref={confirmPasswordContainerRef}>
+              <Text className="font-outfit-semibold capitalize" style={labelStyle}>
+                {t("setup.basicInfo.confirmPassword")}
+              </Text>
+              <Input
+                value={formData.confirmPassword}
+                onChangeText={(text) =>
+                  setFormData((p) => ({ ...p, confirmPassword: text }))
+                }
+                onFocus={() => scrollToField(confirmPasswordContainerRef)}
+                containerClassName={inputBox}
+                isPassword={true}
+              />
+            </View>
+            </>
             )}
-          </LinearGradient>
-        </TouchableOpacity>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          </View>
+
+          {/* Password Requirements */}
+          {isAddRole ? null : (
+          <View style={{ padding: 16, borderRadius: 16, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#EEF2FA', gap: 4 }}>
+            <Text
+              className="font-outfit-regular"
+              style={{ ...TYPE.helper, color: ruleLength ? '#10B981' : '#6B7490' }}
+            >
+              • {t("setup.basicInfo.ruleMinLength")}
+            </Text>
+            <Text
+              className="font-outfit-regular"
+              style={{ ...TYPE.helper, color: ruleSymbol ? '#10B981' : '#6B7490' }}
+            >
+              • {t("setup.basicInfo.ruleSymbol")}
+            </Text>
+            <Text
+              className="font-outfit-regular"
+              style={{ ...TYPE.helper, color: ruleMatch ? '#10B981' : '#6B7490' }}
+            >
+              • {t("setup.basicInfo.rulePasswordsMatch")}
+            </Text>
+          </View>
+          )}
+        </KeyboardAwareScrollView>
+
+        <SetupFooter label={t("setup.basicInfo.continue")} onPress={handleContinue} loading={isUploadingPhoto} />
+      </KeyboardAvoidingView>
+    </View>
   );
 }

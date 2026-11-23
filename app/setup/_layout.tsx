@@ -1,8 +1,7 @@
-import { FONT } from '@/lib/ui/fonts';
-import { HeaderBackButton } from "@/components/ui/HeaderBackButton";
+import { SetupHeader } from "@/components/setup/SetupKit";
+import { PAGE_BG } from "@/lib/ui/header";
 import { Stack, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { Text, TouchableOpacity } from "react-native";
 
 export default function SetupLayout() {
   const router = useRouter();
@@ -15,20 +14,11 @@ export default function SetupLayout() {
         // No edge swipe-back anywhere in setup: the availability step's service
         // radius slider sits a few points from the left edge, and the edge
         // recognizer stole the drag and slid the screen sideways. Every screen
-        // here has its own back arrow in the header (see headerLeft below).
+        // here has its own back arrow in the header.
         gestureEnabled: false,
-        headerStyle: {
-          backgroundColor: "#F3F4F6", // bg-gray-100
-        },
-        headerShadowVisible: false,
-        headerTitle: setupTitle,
-        headerTitleStyle: {
-          fontFamily: FONT.medium,
-          fontSize: 18,
-          color: "#1F2937", // text-gray-800
-        },
-        headerTitleAlign: "center",
-        headerLeft: () => <HeaderBackButton onPress={() => router.back()} marginLeft={0} />,
+        // The same rounded header and small back arrow as the wizards (SetupKit.SetupHeader), not the native one.
+        header: ({ options }) => <SetupHeader title={typeof options.title === "string" ? options.title : setupTitle} onBack={() => router.back()} />,
+        contentStyle: { backgroundColor: PAGE_BG },
       }}
     >
       <Stack.Screen name="index" options={{ title: setupTitle }} />
@@ -43,62 +33,10 @@ export default function SetupLayout() {
         options={{ title: setupTitle }}
       />
       <Stack.Screen name="credentials" options={{ title: setupTitle }} />
-      <Stack.Screen
-        name="dealer-info"
-        options={{
-          title: setupTitle,
-          headerRight: () => (
-            <TouchableOpacity
-              onPress={() => router.push("/setup/expertise")}
-              style={{ backgroundColor: "transparent" }}
-            >
-              <Text className="text-[#0047AB] font-outfit-medium">{t("setup.skip")}</Text>
-            </TouchableOpacity>
-          ),
-        }}
-      />
-      <Stack.Screen
-        name="expertise"
-        options={{
-          title: t("setup.availabilityTitle"),
-          headerRight: () => (
-            <TouchableOpacity
-              onPress={() => router.push("/setup/availability")}
-              style={{ backgroundColor: "transparent" }}
-            >
-              <Text className="text-[#0047AB] font-outfit-medium">{t("setup.skip")}</Text>
-            </TouchableOpacity>
-          ),
-        }}
-      />
-      <Stack.Screen
-        name="availability"
-        options={{
-          title: setupTitle,
-          headerRight: () => (
-            <TouchableOpacity
-              onPress={() => router.push("/setup/legal-documents")}
-              style={{ backgroundColor: "transparent" }}
-            >
-              <Text className="text-[#0047AB] font-outfit-medium">{t("setup.skip")}</Text>
-            </TouchableOpacity>
-          ),
-        }}
-      />
-      <Stack.Screen
-        name="legal-documents"
-        options={{
-          title: setupTitle,
-          headerRight: () => (
-            <TouchableOpacity
-              onPress={() => router.push("/setup/success")}
-              style={{ backgroundColor: "transparent" }}
-            >
-              <Text className="text-[#0047AB] font-outfit-medium">{t("setup.skip")}</Text>
-            </TouchableOpacity>
-          ),
-        }}
-      />
+      <Stack.Screen name="dealer-info" options={{ title: setupTitle }} />
+      <Stack.Screen name="expertise" options={{ title: t("setup.availabilityTitle") }} />
+      <Stack.Screen name="availability" options={{ title: setupTitle }} />
+      <Stack.Screen name="legal-documents" options={{ title: setupTitle }} />
       <Stack.Screen name="identity" options={{ title: setupTitle }} />
       <Stack.Screen name="vehicle-info" options={{ title: setupTitle }} />
       <Stack.Screen name="success" options={{ headerShown: false }} />

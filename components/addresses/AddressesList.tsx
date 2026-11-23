@@ -9,6 +9,9 @@ import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'rea
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import { appAlert } from '@/lib/ui/appAlert';
+import { SetupHeading } from '@/components/setup/SetupKit';
+import { BUTTON_RADIUS } from '@/lib/ui/floatingFooter';
+import { TYPE } from '@/lib/ui/type';
 
 /**
  * The account's saved addresses. `picking` is the Working hours "Base location"
@@ -68,25 +71,13 @@ export function AddressesList({ picking = false }: { picking?: boolean }) {
     return (
         <View className="flex-1 bg-white">
             <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 24, paddingBottom: 40 }}>
-                {/* Section Badge */}
                 <View style={{ marginTop: 8 }}>
-<View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
-                    <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
-                    <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                        {t('addresses.badge')}
-                    </Text>
+                    <SetupHeading
+                        badge={t('addresses.badge')}
+                        title={picking ? t('addresses.pickTitle') : t('addresses.title', { count: visibleAddresses.length })}
+                        subtitle={picking ? t('addresses.pickSubtitle') : t('addresses.subtitle', { count: visibleAddresses.length })}
+                    />
                 </View>
-</View>
-
-                {/* Title */}
-                <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
-                    {picking ? t('addresses.pickTitle') : t('addresses.title', { count: visibleAddresses.length })}
-                </Text>
-
-                {/* Subtitle */}
-                <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-                    {picking ? t('addresses.pickSubtitle') : t('addresses.subtitle', { count: visibleAddresses.length })}
-                </Text>
 
                 {/* Addresses List */}
                 {visibleAddresses.length > 0 ? (
@@ -121,19 +112,19 @@ export function AddressesList({ picking = false }: { picking?: boolean }) {
                                     </View>
                                     <View className="flex-1 justify-center">
                                         {addressDisplayName(address, t) && (
-                                            <Text className="font-outfit-semibold text-xs tracking-widest text-blue-600 mb-0.5" numberOfLines={1}>
+                                            <Text className="font-outfit-semibold text-blue-600 mb-0.5" style={TYPE.eyebrow} numberOfLines={1}>
                                                 {addressDisplayName(address, t)?.toUpperCase()}
                                             </Text>
                                         )}
-                                        <Text className="font-outfit-semibold text-base text-gray-900">
+                                        <Text className="font-outfit-semibold" style={{ ...TYPE.body, color: '#0B1530' }}>
                                             {address.street}
                                         </Text>
-                                        <Text className="font-outfit-regular text-sm text-gray-500 mt-1">
+                                        <Text className="font-outfit-regular mt-1" style={{ ...TYPE.helper, color: '#6B7490' }}>
                                             {address.city}, {address.state} {address.zip}
                                         </Text>
                                         {address.isServiceBase && (
                                             <View className="mt-1.5 px-2 py-0.5 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
-                                                <Text className="text-blue-600 font-outfit-semibold text-[13px]">
+                                                <Text className="text-blue-600 font-outfit-semibold" style={TYPE.caption}>
                                                     {t('addresses.baseBadge')}
                                                 </Text>
                                             </View>
@@ -163,8 +154,8 @@ export function AddressesList({ picking = false }: { picking?: boolean }) {
                                 start={{ x: 0, y: 1 }}
                                 end={{ x: 1, y: 0 }}
                                 style={{
-                                    borderRadius: 10,
-                                    paddingVertical: 16,
+                                    borderRadius: BUTTON_RADIUS,
+                                    minHeight: 56,
                                     paddingHorizontal: 16,
                                     flexDirection: 'row',
                                     alignItems: 'center',
@@ -172,7 +163,7 @@ export function AddressesList({ picking = false }: { picking?: boolean }) {
                                 }}
                             >
                                 <Plus size={20} color="white" />
-                                <Text className="text-white font-outfit-semibold text-lg text-center ml-2">{t('addresses.addNew')}</Text>
+                                <Text className="text-white font-outfit-bold text-center ml-2" style={TYPE.button}>{t('addresses.addNew')}</Text>
                             </LinearGradient>
                         </TouchableOpacity>
                     </>
@@ -197,8 +188,8 @@ export function AddressesList({ picking = false }: { picking?: boolean }) {
                                 start={{ x: 0, y: 1 }}
                                 end={{ x: 1, y: 0 }}
                                 style={{
-                                    borderRadius: 10,
-                                    paddingVertical: 16,
+                                    borderRadius: BUTTON_RADIUS,
+                                    minHeight: 56,
                                     paddingHorizontal: 16,
                                     flexDirection: 'row',
                                     alignItems: 'center',
@@ -206,7 +197,7 @@ export function AddressesList({ picking = false }: { picking?: boolean }) {
                                 }}
                             >
                                 <Plus size={20} color="white" />
-                                <Text className="text-white font-outfit-semibold text-lg text-center ml-2">{t('addresses.addNew')}</Text>
+                                <Text className="text-white font-outfit-bold text-center ml-2" style={TYPE.button}>{t('addresses.addNew')}</Text>
                             </LinearGradient>
                         </TouchableOpacity>
                     </>

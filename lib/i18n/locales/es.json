@@ -125,6 +125,7 @@
       "promotions": "Promociones",
       "help": "Centro de ayuda",
       "privacy": "Política de privacidad",
+      "membership": "Plan de membresía",
       "settings": "Configuración",
       "logout": "Cerrar sesión",
       "legalDocuments": "Documentación legal",
@@ -169,6 +170,8 @@
       "cta": "Verificá tu credencial ASE"
     },
     "availabilityScreen": {
+      "title": "Horarios y área de servicio",
+      "subtitle": "Elegí los días y horarios en que tomás pedidos, y hasta dónde estás dispuesto a manejar.",
       "savedTitle": "Disponibilidad actualizada",
       "savedMessage": "Se guardaron tus horarios y tu área de servicio.",
       "ok": "OK",
@@ -3190,6 +3193,8 @@
     "close": "Cerrar"
   },
   "setup": {
+    "step": { "of": "Paso {{n}} de {{total}}", "n": "Paso {{n}}" },
+    "stepNames": {"phone": "Teléfono", "otp": "Código", "role": "Rol", "basic-info": "Datos básicos", "identity": "Identidad", "address": "Dirección", "credentials": "ASE", "availability": "Horario", "legal-documents": "Documentos", "vehicle-info": "Vehículo"},
     "accountSetupTitle": "Configuración de la cuenta",
     "availabilityTitle": "Disponibilidad",
     "skip": "Omitir",
@@ -3205,7 +3210,8 @@
       "badge": "EMPECEMOS",
       "title": "¿Cuál es tu número?",
       "subtitle": "Te vamos a enviar un SMS para verificar tu número de teléfono.",
-      "consentPrefix": "Al ingresar mi número, acepto recibir un código por SMS y mensajes de texto relacionados de MAssistance. Pueden aplicar cargos por mensajes y datos. Consulta nuestra",
+      "consentTitle": "Sobre los mensajes de texto",
+      "consentPrefix": "Al continuar, aceptás recibir un código de verificación único y mensajes de servicio relacionados de MAssistance. Pueden aplicar cargos por mensajes y datos. Usamos tu número solo para verificar y proteger tu cuenta. Leé nuestra",
       "termsOfService": "Términos",
       "consentAnd": "y los",
       "privacyPolicy": "Política de privacidad",
@@ -3297,6 +3303,54 @@
       "finalizing": "Finalizando tu cuenta...",
       "errorTitle": "¡Ups! Algo salió mal",
       "tryAgain": "Intentar de nuevo",
+      "welcomeTitle": "Bienvenido a Mechanic Assistance",
+      "welcomeSub": "Nos alegra tenerte en nuestra plataforma.",
+      "tips": {
+        "user": {
+          "request": {
+            "title": "Pedí ayuda",
+            "text": "Pedí asistencia en ruta en pocos toques y recibí ofertas de técnicos certificados."
+          },
+          "track": {
+            "title": "Seguilo en vivo",
+            "text": "Mirá a tu técnico en el mapa desde que sale hacia vos."
+          },
+          "compare": {
+            "title": "Sabé el precio",
+            "text": "Compará ofertas y mirá el precio antes de aceptar."
+          },
+          "video": {
+            "title": "Respuestas rápidas",
+            "text": "Hacé una videollamada con un técnico cuando solo necesitás un consejo."
+          },
+          "vehicles": {
+            "title": "Tus vehículos",
+            "text": "Tené tus autos y cada servicio en un solo lugar."
+          }
+        },
+        "mechanic": {
+          "available": {
+            "title": "Trabajos cerca",
+            "text": "Activá Disponible y los pedidos cercanos llegan a tu lista."
+          },
+          "quote": {
+            "title": "Tu precio",
+            "text": "Enviá un presupuesto en los trabajos programados y poné tu propio precio."
+          },
+          "steps": {
+            "title": "Paso a paso",
+            "text": "Hacé el check-in, escaneá, trabajá y cerrá cada visita con fotos y un reporte."
+          },
+          "paid": {
+            "title": "Cobrá",
+            "text": "Tu pago llega a tu billetera cuando el cliente confirma."
+          },
+          "rating": {
+            "title": "Hacete un nombre",
+            "text": "Cada trabajo terminado puede darte una reseña y mejor calificación."
+          }
+        }
+      },
       "congratulations": "Felicitaciones",
       "setupComplete": "¡Tu cuenta se configuró con éxito!",
       "getStarted": "Empecemos",
@@ -3336,6 +3390,9 @@
     "credentials": {
       "notFound": "No se encontró ningún mecánico ASE con ese ID. Verificá y volvé a intentar.",
       "searchError": "Ocurrió un error durante la búsqueda. Intentá de nuevo.",
+      "holderLabel": "Nombre de tu cuenta",
+      "holderHint": "Tiene que coincidir con tu registro ASE.",
+      "unavailable": "La verificación ASE no está disponible durante el registro por ahora.",
       "noExpiration": "Sin vencimiento",
       "badge": "CERTIFICACIONES ASE",
       "title": "Certificaciones ASE",
@@ -3344,16 +3401,17 @@
       "instituteLine2": "Excelencia en Servicio Automotriz",
       "description": "Tu ID de miembro se valida contra los registros de ASE para verificar el estado de tu certificación y las fechas de vencimiento correspondientes.",
       "memberIdLabel": "ID de miembro ASE",
-      "searchButton": "Buscar registros ASE",
+      "searchButton": "Verificar mi ID ASE",
       "noCertifications": "No se encontraron certificaciones para este ID.",
       "expiration": "Vencimiento: {{date}}",
-      "searchDifferent": "Buscar otro ID",
+      "searchDifferent": "Usar otro ID",
       "validateButton": "Validar certificaciones",
       "mismatch": "Ese ID de ASE está registrado a nombre de otra persona. Revisá el ID e intentá de nuevo.",
       "skipButton": "Verificar más tarde",
       "skipHint": "Podés agregar tu ID de ASE en cualquier momento desde tu perfil."
     },
     "availability": {
+      "badge": "Disponibilidad",
       "selectTime": "Seleccionar hora",
       "done": "Listo",
       "weeklySchedule": "Horario semanal",
@@ -3370,6 +3428,8 @@
       "milesAbbr": "{{count}} mi",
       "baseLocation": "Ubicación base",
       "edit": "Editar",
+      "editAddresses": "Editar direcciones",
+      "change": "Cambiar",
       "saveChanges": "Guardar cambios",
       "errorNoDays": "Elegí al menos un día.",
       "errorEndBeforeStart": "La hora de fin tiene que ser posterior a la de inicio.",
@@ -3416,17 +3476,23 @@
       "title": "Verificá tu identidad",
       "subtitle": "Un escaneo rápido de tu documento y una selfie. Suele llevar unos dos minutos.",
       "stepsIntro": "Qué va a pasar:",
+      "labelDoc": "Tu documento",
+      "labelSelfie": "Tu selfie",
+      "labelResult": "El resultado",
       "step1": "Escaneás el frente y el dorso de tu documento.",
       "step2": "Te sacás una selfie para confirmar que sos vos.",
       "step3": "Revisamos el resultado y te avisamos, normalmente en minutos.",
       "consentTitle": "Antes de empezar",
-      "consentBody": "La verificación la realiza Didit, nuestro proveedor de identidad. Tu documento y tu selfie se envían a Didit y son procesados por ellos; nosotros solo guardamos si la verificación fue aprobada. Tocá Verificar para continuar.",
+      "consentBody": "Didit, nuestro proveedor de identidad, procesa tu documento y tu selfie. Nosotros solo guardamos si la verificación fue aprobada.",
       "accept": "Entiendo y quiero continuar",
       "startButton": "Verificar mi identidad",
       "starting": "Abriendo la verificación...",
       "continue": "Continuar",
       "cancelledTitle": "Verificación sin terminar",
       "cancelledMessage": "Cerraste la verificación antes de terminarla. Podés empezarla de nuevo cuando quieras.",
+      "expiredTitle": "Se venció tu sesión de registro",
+      "expiredMessage": "Por tu seguridad, la verificación del teléfono dura 30 minutos. Verificá tu número de nuevo y seguís donde quedaste.",
+      "expiredAction": "Verificar mi teléfono",
       "failedTitle": "No se pudo iniciar la verificación",
       "failedMessage": "Algo salió mal: {{reason}}",
       "alreadyVerifiedTitle": "Ya verificado",
@@ -3475,7 +3541,7 @@
       "statusApproved": "Aprobado",
       "statusDeclined": "Rechazado",
       "noticeTitle": "¿No tenés tus documentos digitalizados en este momento?",
-      "noticeBody": "No te preocupes. Podés presionar {{cta}} para completar tu registro hoy mismo. Vas a poder adjuntar o actualizar tus pólizas de seguro y licencias comerciales más adelante desde tu perfil.",
+      "noticeBody": "¿Todavía no tenés tus documentos digitalizados? Tocá {{cta}} y cargalos más tarde desde tu perfil.",
       "submit": "Finalizar registro y crear cuenta",
       "back": "Atrás",
       "errorTooLarge": "El archivo pesa {{size}} MB. El máximo es {{max}} MB.",
@@ -3545,13 +3611,74 @@
     "instituteLine2": "Excelencia en Servicio Automotriz",
     "description": "Tu ID de miembro se valida contra los registros de ASE para verificar el estado de tu certificación y las fechas de vencimiento correspondientes.",
     "memberIdLabel": "ID de miembro ASE",
-    "searchButton": "Buscar registros ASE",
+    "searchButton": "Verificar mi ID ASE",
     "noCertifications": "No se encontraron certificaciones para este ID.",
     "noCertificationsMembership": "No se encontraron certificaciones para esta membresía.",
     "expiration": "Vencimiento: {{date}}",
     "searchDifferent": "Buscar otro ID",
     "linkButton": "Vincular membresía ASE",
     "mismatch": "Ese ID de ASE está registrado a nombre de otra persona. Revisá el ID e intentá de nuevo."
+  },
+  "membership": {
+    "badge": "Plan de membresía",
+    "title": "Membresía",
+    "subtitle": "Tu plan con acceso total a la plataforma Mechanic Assistance.",
+    "cardEyebrow": "Tu plan",
+    "per": {
+      "month": "/ mes",
+      "year": "/ año"
+    },
+    "feeNoteWaived": "Sin costo durante nuestra etapa de lanzamiento.",
+    "feeNote": "Se factura con tu plan.",
+    "status": {
+      "startup_waived": "Lanzamiento · sin costo"
+    },
+    "includesTitle": "El plan incluye",
+    "includes": {
+      "account": "Una cuenta segura para todos los portales activos",
+      "wallet": "Billetera, métodos de pago e historial de servicios",
+      "support": "Perfil, preferencias y soporte de tu cuenta",
+      "jobs": "Trabajos, presupuestos y cobros",
+      "requests": "Pedidos de asistencia, seguimiento en vivo y videollamadas"
+    },
+    "billingTitle": "Facturación",
+    "comingSoon": "Próximamente",
+    "billing": {
+      "period": "Período de facturación",
+      "periodValue": "Mensual o anual",
+      "periodHint": "Elegí la frecuencia que mejor se adapte a tu cuenta.",
+      "next": "Próxima fecha de pago",
+      "nextHint": "Tu próxima fecha aparecerá cuando la facturación esté activa.",
+      "promo": "Código promocional",
+      "promoValue": "Disponible",
+      "promoNone": "No disponible",
+      "promoHint": "Los códigos elegibles pueden reducir el costo del plan."
+    },
+    "promo": {
+      "title": "Código promocional",
+      "placeholder": "Ingresá tu código",
+      "apply": "Aplicar código",
+      "hint": "Un código válido aplicará su beneficio de membresía cuando los planes se lancen.",
+      "applied": "Código aplicado.",
+      "invalid": "Ese código no es válido. Revisalo e intentá de nuevo.",
+      "expired": "Ese código venció.",
+      "not_eligible": "Tu cuenta no es elegible para ese código.",
+      "not_available_yet": "Los planes todavía no se lanzaron. Guardá tu código: vas a poder usarlo cuando lo hagan."
+    },
+    "actions": {
+      "upgrade": "Mejorar plan",
+      "cancel": "Cancelar plan",
+      "upgradeTitle": "Mejorá tu plan",
+      "upgradeSoon": "Las opciones para mejorar el plan estarán disponibles cuando los planes se lancen. Te avisaremos apenas puedas elegir una.",
+      "cancelTitle": "¿Cancelar tu plan?",
+      "cancelBody": "Mantendrías tu acceso hasta el final del período actual.",
+      "keep": "Mantener mi plan",
+      "cancelConfirm": "Cancelar plan",
+      "cancelSoonTitle": "No se canceló nada",
+      "cancelSoon": "Tu plan no tiene costo durante nuestra etapa de lanzamiento, así que todavía no hay nada para cancelar. Vas a poder gestionarlo acá cuando los planes se lancen.",
+      "gotIt": "Entendido"
+    },
+    "notice": "Te avisaremos antes de que entre en vigencia cualquier cambio de plan o de precio."
   },
   "promotions": {
     "badge": "PROMOCIONES",

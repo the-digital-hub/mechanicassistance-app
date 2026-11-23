@@ -59,6 +59,19 @@ const BRANCHING_STEPS: Record<string, Record<string, string>> = {
   },
 };
 
+/** The order in which a registration records its steps (the keys of the saved progress). */
+const STEP_ORDER = ['phone', 'otp', 'role', 'basicInfo', 'identity', 'address', 'credentials', 'availability', 'legalDocuments', 'vehicles'];
+
+/**
+ * `lastStep` is the last step recorded, which goes backwards when someone returns to an earlier screen and presses Continue again
+ * (or when a returning phone re-verifies). The data of the later steps is still there, so resume from the furthest step with data.
+ */
+function furthestStep(progress: SetupProgress): string {
+  const recorded = STEP_ORDER.indexOf(progress.lastStep);
+  const furthest = STEP_ORDER.reduce((max, step, i) => (progress[step] !== undefined ? Math.max(max, i) : max), -1);
+  return recorded >= 0 && furthest > recorded ? STEP_ORDER[furthest] : progress.lastStep;
+}
+
 /**
  * Given the saved setup progress, returns the route the user should
  * resume at — i.e. the screen that follows `lastStep`.
@@ -66,8 +79,8 @@ const BRANCHING_STEPS: Record<string, Record<string, string>> = {
  * Returns null if no resume is needed (no lastStep or unrecognised step).
  */
 export function getSetupResumeRoute(progress: SetupProgress): string | null {
-  const { lastStep } = progress;
-  if (!lastStep) return null;
+  if (!progress.lastStep) return null;
+  const lastStep = furthestStep(progress);
 
   // Check role-branching steps first
   if (lastStep in BRANCHING_STEPS) {

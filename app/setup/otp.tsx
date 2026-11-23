@@ -1,15 +1,16 @@
-import { NumericKeypad } from '@/components/ui/Keypad';
 import { describeAuthError } from '@/lib/auth/describe';
 import { toAuthError } from '@/lib/auth/errors';
 import { resendOtp, verifyOtp } from '@/lib/auth/otp';
 import { formatCountdown, useCountdown } from '@/hooks/useCountdown';
 import { clearAddRole, startAddRole } from '@/lib/setup-add-role';
-import { clearSetupProgress, getSetupProgress, saveSetupProgress } from '@/lib/storage';
+import { clearSetupProgress, getSetupProgress, mergeSetupProgress, saveSetupProgress } from '@/lib/storage';
+import { getSetupResumeRoute } from '@/lib/setup-resume';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { ChevronRight } from 'lucide-react-native';
-import { ActivityIndicator, Keyboard, Modal, Platform, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Keyboard, KeyboardAvoidingView, ScrollView, Modal, Platform, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { SETUP_BG, SetupFooter, SetupHeading } from '@/components/setup/SetupKit';
+import { BUTTON_RADIUS } from '@/lib/ui/floatingFooter';
+import { TYPE } from '@/lib/ui/type';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
@@ -21,7 +22,6 @@ export default function OTPScreen() {
     const [phoneNumber, setPhoneNumber] = useState('');
     const [isVerifying, setIsVerifying] = useState(false);
     const [isResending, setIsResending] = useState(false);
-    const [showKeypad, setShowKeypad] = useState(true);
 
     // The challenge, carried over from the phone step. Deadlines are absolute
     // epoch ms so they survive the app going to the background.
@@ -75,16 +75,6 @@ export default function OTPScreen() {
         if (typeof phone.resendAtMs === 'number') setResendAtMs(phone.resendAtMs);
     };
 
-    const handleKeyPress = (key: string) => {
-        if (code.length < 6) {
-            setCode(prev => prev + key);
-        }
-    };
-
-    const handleDelete = () => {
-        setCode(prev => prev.slice(0, -1));
-    };
-
     const handleSubmit = async (codeToVerify?: string) => {
         const currentCode = typeof codeToVerify === 'string' ? codeToVerify : code;
         if (currentCode.length < 6) return;
@@ -117,7 +107,15 @@ export default function OTPScreen() {
                 await clearAddRole();
             }
 
+            // The same number came back to a registration it left half-way: carry on where it stopped instead of at the role step.
+            const before = await getSetupProgress();
+            const stoppedAt: string | undefined = result.kind === 'existing_account' ? undefined : before?.resumeFrom;
             await saveSetupProgress('otp', { verified: true });
+            if (stoppedAt) {
+                await mergeSetupProgress({ lastStep: stoppedAt, resumeFrom: undefined });
+                router.replace(getSetupResumeRoute({ ...before, lastStep: stoppedAt }) as never);
+                return;
+            }
             router.push('/setup/role-selection');
         } catch (err: unknown) {
             const authError = toAuthError(err);
@@ -150,39 +148,36 @@ export default function OTPScreen() {
 
     return (
         <>
-            <TouchableWithoutFeedback onPress={() => { Keyboard.dismiss(); setShowKeypad(false); }} accessible={false}>
-                <View className="flex-1 justify-between" style={{ backgroundColor: '#F6F8FC' }}>
-                    <View className="px-6 flex-1" style={{ paddingTop: 18 }}>
-                        {/* Section Badge */}
-                        <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
-                            <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
-                            <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                                {t('setup.otp.badge')}
-                            </Text>
-                        </View>
-
-                        {/* Title */}
-                        <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
-                            {t('setup.otp.title')}
-                        </Text>
-
-                        {/* Subtitle */}
-                        <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-                            {t('setup.otp.subtitle', { phone: phoneNumber || t('setup.otp.yourPhone') })}
-                        </Text>
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+                <KeyboardAvoidingView className="flex-1" style={{ backgroundColor: SETUP_BG }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+                    <ScrollView className="flex-1" contentContainerStyle={{ padding: 20, paddingTop: 18, paddingBottom: 24 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+                        <SetupHeading
+                            badge={t('setup.otp.badge')}
+                            title={t('setup.otp.title')}
+                            subtitle={t('setup.otp.subtitle', { phone: phoneNumber || t('setup.otp.yourPhone') })}
+                        />
 
                         {/* 6-Digit Input Display with Native Autofill support */}
                         <TouchableOpacity
                             activeOpacity={1}
-                            onPress={() => { setShowKeypad(true); otpInputRef.current?.focus(); }}
-                            className="flex-row justify-between mb-12 px-4 relative"
+                            onPress={() => otpInputRef.current?.focus()}
+                            className="flex-row justify-between relative"
+                            style={{ marginBottom: 20 }}
                         >
                             {[0, 1, 2, 3, 4, 5].map((index) => (
                                 <View
                                     key={index}
-                                    className={`w-10 border-b-2 items-center pb-2 ${code.length === index ? 'border-[#0047AB]' : 'border-slate-300'}`}
+                                    className="items-center justify-center"
+                                    style={{
+                                        width: 48,
+                                        height: 60,
+                                        borderRadius: 14,
+                                        backgroundColor: '#FFFFFF',
+                                        borderWidth: code.length === index ? 2 : 1,
+                                        borderColor: code.length === index ? '#1E56E3' : '#EEF2FA',
+                                    }}
                                 >
-                                    <Text className="text-3xl font-outfit-bold text-[#0F172A]">
+                                    <Text className="font-outfit-bold" style={{ fontSize: 26, lineHeight: 32, color: '#0B1530' }}>
                                         {code[index] || ''}
                                     </Text>
                                 </View>
@@ -208,107 +203,75 @@ export default function OTPScreen() {
                                 importantForAutofill="yes"
                                 style={{ position: 'absolute', width: '100%', height: '100%', opacity: 0 }}
                                 caretHidden={true}
+                                autoFocus
                             />
                         </TouchableOpacity>
 
-                        <View className="mb-4">
-                            <TouchableOpacity
-                                onPress={() => { Keyboard.dismiss(); handleSubmit(); }}
-                                activeOpacity={0.8}
-                                disabled={isVerifying}
-                                className="mb-6"
-                            >
-                                <LinearGradient
-                                    colors={['#2B66F8', '#081E72']}
-                                    start={{ x: 0, y: 1 }}
-                                    end={{ x: 1, y: 0 }}
-                                    style={{
-                                        borderRadius: 14,
-                                        paddingVertical: 16,
-                                        paddingHorizontal: 16,
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                    }}
-                                >
-                                    {isVerifying ? (
-                                        <ActivityIndicator color="white" />
-                                    ) : (
-                                        <>
-                                            <Text className="text-white font-outfit-bold text-center mr-2">{t('setup.otp.verify')}</Text>
-                                            <ChevronRight size={20} color="white" />
-                                        </>
-                                    )}
-                                </LinearGradient>
-                            </TouchableOpacity>
-                            {/* Status line: what the user needs to know before acting. */}
-                            <View className="mb-4 min-h-[20px]">
-                                {attemptsLeft !== null && attemptsLeft > 0 ? (
-                                    <Text className="text-center font-outfit-medium text-red-600">
-                                        {t('setup.otp.attemptsRemaining', { count: attemptsLeft })}
-                                    </Text>
-                                ) : expiresIn > 0 ? (
-                                    <Text className="text-center font-outfit-medium text-slate-500">
-                                        {t('setup.otp.codeExpiresIn', { time: formatCountdown(expiresIn) })}
-                                    </Text>
-                                ) : (
-                                    <Text className="text-center font-outfit-medium text-red-600">
-                                        {t('setup.otp.codeExpired')}
-                                    </Text>
-                                )}
-                            </View>
-                            <TouchableOpacity
-                                className="mb-6"
-                                onPress={handleResend}
-                                disabled={isResending || resendIn > 0}
-                            >
-                                <Text
-                                    className={`text-center font-outfit-medium ${
-                                        resendIn > 0 ? 'text-slate-400' : 'text-[#0047AB]'
-                                    }`}
-                                >
-                                    {isResending
-                                        ? t('setup.otp.sending')
-                                        : resendIn > 0
-                                          ? t('setup.otp.resendIn', { seconds: resendIn })
-                                          : t('setup.otp.resendCode')}
+                        {/* Status line: what the user needs to know before acting. */}
+                        <View style={{ minHeight: 20, marginBottom: 12 }}>
+                            {attemptsLeft !== null && attemptsLeft > 0 ? (
+                                <Text className="text-center font-outfit-medium" style={{ ...TYPE.helper, color: '#DC2626' }}>
+                                    {t('setup.otp.attemptsRemaining', { count: attemptsLeft })}
                                 </Text>
-                            </TouchableOpacity>
-
-                            {/*
-                              Mirror of the hint on the login screen, for the
-                              opposite case: requesting a signup code for a number
-                              that ALREADY has an account also returns the identical
-                              response and sends nothing, so that user would wait
-                              here forever too.
-
-                              Always visible, since showing it conditionally would
-                              reveal whether the number is registered — the exact
-                              thing the identical response exists to hide.
-                            */}
-                            <View className="border-t border-slate-200 pt-5 mb-6">
-                                <Text className="text-center font-outfit-semibold text-[#0F172A] mb-1">
-                                    {t('setup.otp.noCodeHint')}
+                            ) : expiresIn > 0 ? (
+                                <Text className="text-center font-outfit-medium" style={{ ...TYPE.helper, color: '#6B7490' }}>
+                                    {t('setup.otp.codeExpiresIn', { time: formatCountdown(expiresIn) })}
                                 </Text>
-                                <Text className="text-center font-outfit-regular text-sm text-slate-500 mb-3">
-                                    {t('setup.otp.noCodeHintDetail')}
+                            ) : (
+                                <Text className="text-center font-outfit-medium" style={{ ...TYPE.helper, color: '#DC2626' }}>
+                                    {t('setup.otp.codeExpired')}
                                 </Text>
-                                <TouchableOpacity onPress={() => router.replace('/login')}>
-                                    <Text className="text-center font-outfit-semibold text-[#0047AB]">
-                                        {t('setup.otp.logIn')}
-                                    </Text>
-                                </TouchableOpacity>
-                            </View>
+                            )}
                         </View>
-                    </View>
+                        <TouchableOpacity
+                            style={{ marginBottom: 20, paddingVertical: 6 }}
+                            onPress={handleResend}
+                            disabled={isResending || resendIn > 0}
+                        >
+                            <Text
+                                className="text-center font-outfit-semibold"
+                                style={{ ...TYPE.body, color: resendIn > 0 ? '#9AA3B8' : '#1E56E3' }}
+                            >
+                                {isResending
+                                    ? t('setup.otp.sending')
+                                    : resendIn > 0
+                                      ? t('setup.otp.resendIn', { seconds: resendIn })
+                                      : t('setup.otp.resendCode')}
+                            </Text>
+                        </TouchableOpacity>
 
-                    {showKeypad && (
-                        <NumericKeypad
-                            onKeyPress={handleKeyPress}
-                            onDelete={handleDelete}
-                        />
-                    )}
-                </View>
+                        {/*
+                          Mirror of the hint on the login screen, for the
+                          opposite case: requesting a signup code for a number
+                          that ALREADY has an account also returns the identical
+                          response and sends nothing, so that user would wait
+                          here forever too.
+
+                          Always visible, since showing it conditionally would
+                          reveal whether the number is registered — the exact
+                          thing the identical response exists to hide.
+                        */}
+                        <View style={{ padding: 16, borderRadius: 16, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#EEF2FA' }}>
+                            <Text className="text-center font-outfit-semibold" style={{ ...TYPE.body, color: '#0B1530', marginBottom: 4 }}>
+                                {t('setup.otp.noCodeHint')}
+                            </Text>
+                            <Text className="text-center font-outfit-regular" style={{ ...TYPE.helper, color: '#6B7490', marginBottom: 10 }}>
+                                {t('setup.otp.noCodeHintDetail')}
+                            </Text>
+                            <TouchableOpacity onPress={() => router.replace('/login')} style={{ paddingVertical: 4 }}>
+                                <Text className="text-center font-outfit-semibold" style={{ ...TYPE.body, color: '#1E56E3' }}>
+                                    {t('setup.otp.logIn')}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+
+                    <SetupFooter
+                        label={t('setup.otp.verify')}
+                        onPress={() => { Keyboard.dismiss(); handleSubmit(); }}
+                        loading={isVerifying}
+                    />
+                </KeyboardAvoidingView>
             </TouchableWithoutFeedback>
 
             {/* Error Modal */}
@@ -324,33 +287,35 @@ export default function OTPScreen() {
                             <Ionicons name="alert-circle" size={32} color={errorModal.isSuccess ? '#10B981' : '#EF4444'} />
                         </View>
 
-                        <Text className="text-xl font-outfit-bold text-[#0F172A] mb-2 text-center">
+                        <Text className="font-outfit-bold text-center mb-2" style={{ ...TYPE.section, color: '#0B1530' }}>
                             {errorModal.title}
                         </Text>
 
-                        <Text className="text-base font-outfit-regular text-slate-500 text-center mb-8">
+                        <Text className="font-outfit-regular text-center mb-8" style={{ ...TYPE.body, color: '#6B7490' }}>
                             {errorModal.message}
                         </Text>
 
                         {errorModal.onAction && (
                             <TouchableOpacity
-                                className="bg-blue-700 w-full py-4 rounded-[14px] shadow-sm active:opacity-90 mb-3"
+                                className="w-full items-center justify-center mb-3"
+                                style={{ minHeight: 56, borderRadius: BUTTON_RADIUS, backgroundColor: '#1E56E3' }}
                                 onPress={() => {
                                     hideError();
                                     errorModal.onAction?.();
                                 }}
                             >
-                                <Text className="text-white text-center font-outfit-bold text-lg">
+                                <Text className="text-white text-center font-outfit-bold" style={TYPE.button}>
                                     {errorModal.actionLabel}
                                 </Text>
                             </TouchableOpacity>
                         )}
 
                         <TouchableOpacity
-                            className="bg-slate-100 w-full py-4 rounded-[14px] active:opacity-90"
+                            className="w-full items-center justify-center"
+                            style={{ minHeight: 56, borderRadius: BUTTON_RADIUS, backgroundColor: '#E6EAF2' }}
                             onPress={hideError}
                         >
-                            <Text className="text-slate-700 text-center font-outfit-bold text-lg">
+                            <Text className="text-center font-outfit-bold" style={{ ...TYPE.button, color: '#4A5470' }}>
                                 {errorModal.onAction ? t('setup.otp.cancel') : t('setup.otp.gotIt')}
                             </Text>
                         </TouchableOpacity>

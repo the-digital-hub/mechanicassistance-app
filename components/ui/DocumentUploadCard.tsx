@@ -66,14 +66,13 @@ export function DocumentUploadCard({
 
   return (
     <View
-      className="bg-white rounded-2xl p-4 mb-4 border"
-      style={{ borderColor: '#E1EAFB' }}
+      style={{ backgroundColor: '#FFFFFF', borderRadius: 20, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: '#EEF2FA', shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.06, shadowRadius: 14, elevation: 2 }}
     >
       <View className="flex-row items-center justify-between mb-3">
+        {/* The title alone: no icon in front of it, like the other card titles of the app */}
         <View className="flex-row items-center flex-1 mr-2">
-          <FileText size={18} color="#0047AB" />
           <Text
-            className="font-outfit-bold text-[#0F172A] ml-2" style={{ fontSize: 17, lineHeight: 23 }}
+            className="font-outfit-bold text-[#0B1530]" style={{ fontSize: 17, lineHeight: 23 }}
             numberOfLines={1}
           >
             {label}
@@ -101,13 +100,13 @@ export function DocumentUploadCard({
             onPress={onPick}
             disabled={uploading}
             activeOpacity={0.8}
-            className="flex-row items-center rounded-xl px-3 py-3"
-            style={{ backgroundColor: '#F4F8FF' }}
+            className="flex-row items-center px-3 py-3"
+            style={{ backgroundColor: '#F4F8FF', borderRadius: 14 }}
           >
             <FileText size={20} color="#0047AB" />
             <View className="flex-1 ml-3">
               <Text
-                className="font-outfit-bold text-[#0F172A]" style={{ fontSize: 15, lineHeight: 20 }}
+                className="font-outfit-bold text-[#0B1530]" style={{ fontSize: 16, lineHeight: 22 }}
                 numberOfLines={1}
               >
                 {document.originalName || document.fileKey}
@@ -173,7 +172,7 @@ export function DocumentUploadCard({
             activeOpacity={0.85}
             accessibilityRole="button"
             className="flex-row items-center justify-center"
-            style={{ gap: 8, height: 52, borderRadius: 14, backgroundColor: '#1E56E3', opacity: uploading ? 0.7 : 1 }}
+            style={{ gap: 8, minHeight: 56, borderRadius: 14, backgroundColor: '#1E56E3', opacity: uploading ? 0.7 : 1 }}
             testID="legal-doc-upload"
           >
             {uploading ? (
@@ -181,7 +180,7 @@ export function DocumentUploadCard({
             ) : (
               <Upload size={20} color="#FFFFFF" />
             )}
-            <Text className="font-outfit-bold" style={{ fontSize: 17, color: '#FFFFFF' }}>
+            <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#FFFFFF' }}>
               {uploading ? t('setup.legalDocs.uploading') : t('setup.legalDocs.uploadButton')}
             </Text>
           </TouchableOpacity>

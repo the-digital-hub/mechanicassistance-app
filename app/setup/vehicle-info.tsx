@@ -2,15 +2,15 @@ import { saveSetupProgress } from "@/lib/storage";
 import { VehicleForm, type VehicleFormPayload } from "@/components/vehicles/VehicleForm";
 import { VehicleFormHeader } from "@/components/vehicles/vehicleFormDesign";
 import { useRouter } from "expo-router";
-import { ChevronRight } from "lucide-react-native";
-import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
+import { SETUP_BG, SetupFooter, SetupHeading } from "@/components/setup/SetupKit";
+import { TYPE } from "@/lib/ui/type";
 import { useState } from "react";
 import { VehicleTitle } from "@/components/ui/VehicleTitle";
 import { useTranslation } from "react-i18next";
 import {
   ScrollView,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 
@@ -35,95 +35,43 @@ export default function VehicleInfoScreen() {
 
   if (!isAdding && vehicles.length > 0) {
     return (
-      <View className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
-        <ScrollView contentContainerStyle={{ padding: 24, paddingBottom: 40 }}>
-          {/* Section Badge */}
-          <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
-            <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
-            <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-              {t("setup.vehicleInfo.yourVehicles")}
-            </Text>
-          </View>
-
-          {/* Title */}
-          <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
-            {t("setup.vehicleInfo.title")}
-          </Text>
-
-          {/* Subtitle */}
-          <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-            {t("setup.vehicleInfo.subtitle")}
-          </Text>
+      <View className="flex-1" style={{ backgroundColor: SETUP_BG }}>
+        <ScrollView className="flex-1" contentContainerStyle={{ padding: 20, paddingTop: 18, paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
+          <SetupHeading screen="vehicle-info" badge={t("setup.vehicleInfo.yourVehicles")} title={t("setup.vehicleInfo.title")} subtitle={t("setup.vehicleInfo.subtitle")} />
 
           {vehicles.map((v, index) => (
             <View
               key={v.id}
-              className={`flex-row items-center p-5 rounded-2xl mb-4 border-2 ${index === 0 ? "border-blue-600" : "border-slate-100 bg-slate-50/50"}`}
+              className="flex-row items-center bg-white"
+              style={{
+                padding: 16,
+                borderRadius: 16,
+                marginBottom: 12,
+                borderWidth: index === 0 ? 2 : 1,
+                borderColor: index === 0 ? "#1E56E3" : "#EEF2FA",
+              }}
             >
-              <View className="w-12 h-12 bg-white rounded-full items-center justify-center mr-4 border border-slate-100 shadow-sm overflow-hidden">
-                {/* <Image
-                  source={{ uri: getVehicleLogoUrl(v.make) }}
-                  className="w-8 h-8"
-                  resizeMode="contain"
-                /> */}
+              <View className="w-12 h-12 rounded-full items-center justify-center mr-4 overflow-hidden" style={{ backgroundColor: "#E9F1FF" }}>
+                <Ionicons name="car" size={24} color="#1E56E3" />
               </View>
               <View className="flex-1">
-                <Text className="text-lg font-outfit-bold text-[#0F172A] uppercase">
+                <Text className="font-outfit-bold uppercase" style={{ ...TYPE.cardTitle, color: "#0B1530" }}>
                   <VehicleTitle vehicle={v} />
                 </Text>
-                <Text className="text-blue-500 font-outfit-medium text-xs tracking-widest uppercase">
+                <Text className="font-outfit-medium uppercase" style={{ ...TYPE.eyebrow, color: "#1E56E3", marginTop: 2 }}>
                   {v.plate}
                 </Text>
               </View>
             </View>
           ))}
-
-          <TouchableOpacity
-            onPress={() => setIsAdding(true)}
-            activeOpacity={0.8}
-            className="mt-4"
-          >
-            <LinearGradient
-              colors={['#2B66F8', '#081E72']}
-              start={{ x: 0, y: 1 }}
-              end={{ x: 1, y: 0 }}
-              style={{
-                borderRadius: 14,
-                paddingVertical: 16,
-                paddingHorizontal: 16,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Text className="text-white font-outfit-bold text-center mr-2">{t("setup.vehicleInfo.addVehicle")}</Text>
-              <ChevronRight size={20} color="white" />
-            </LinearGradient>
-          </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={handleContinue}
-          activeOpacity={0.8}
-        >
-          <LinearGradient
-            colors={['#2B66F8', '#081E72']}
-            start={{ x: 0, y: 1 }}
-            end={{ x: 1, y: 0 }}
-            style={{
-              borderRadius: 14,
-              paddingVertical: 16,
-              paddingHorizontal: 16,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginTop: 32,
-            }}
-          >
-            <Text className="text-white font-outfit-bold text-center mr-2">{t("setup.vehicleInfo.continue")}</Text>
-            <ChevronRight size={20} color="white" />
-          </LinearGradient>
-        </TouchableOpacity>
         </ScrollView>
+
+        <SetupFooter
+          label={t("setup.vehicleInfo.continue")}
+          onPress={handleContinue}
+          secondaryLabel={t("setup.vehicleInfo.addVehicle")}
+          onSecondary={() => setIsAdding(true)}
+        />
       </View>
     );
   }

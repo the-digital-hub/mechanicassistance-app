@@ -3,13 +3,16 @@ import { verificationDAO } from "@/lib/dao/VerificationDAO";
 import { saveSetupProgress } from "@/lib/storage";
 import { startVerification } from "@didit-protocol/sdk-react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { ChevronRight } from "lucide-react-native";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { appAlert } from '@/lib/ui/appAlert';
+import { SETUP_BG, SetupFooter, SetupHeading } from '@/components/setup/SetupKit';
+import { TYPE } from '@/lib/ui/type';
+import { BadgeCheck, Camera, IdCard, Lock, ScanFace } from 'lucide-react-native';
+import { StepTips } from '@/components/setup/StepTips';
+import { EmptyStateIcon } from '@/components/ui/EmptyStateIcon';
 
 /**
  * Identity verification (KYC) step of the setup wizard.
@@ -22,25 +25,6 @@ import { appAlert } from '@/lib/ui/appAlert';
  * Requires a development build: the SDK is a native module and does not exist in
  * Expo Go.
  */
-
-/** One numbered line in the "what happens next" list. */
-function Step({ index, text }: { index: number; text: string }) {
-  return (
-    <View className="flex-row items-start gap-3 mb-3">
-      <View
-        className="w-6 h-6 rounded-full justify-center items-center mt-0.5"
-        style={{ backgroundColor: "#E9F1FF" }}
-      >
-        <Text className="font-outfit-bold text-[13px]" style={{ color: "#0047AB" }}>
-          {index}
-        </Text>
-      </View>
-      <Text className="text-[#0F172A] font-outfit-regular text-sm flex-1">
-        {text}
-      </Text>
-    </View>
-  );
-}
 
 export default function IdentityScreen() {
   const router = useRouter();
@@ -128,6 +112,16 @@ export default function IdentityScreen() {
         );
         return;
       }
+      // 401: the sign-up token (30 minutes) is gone. Say so, and offer the way forward: verify the phone again.
+      if (error instanceof ApiError && error.statusCode === 401) {
+        appAlert(
+          t("setup.identity.expiredTitle"),
+          t("setup.identity.expiredMessage"),
+          [{ text: t("setup.identity.expiredAction"), onPress: () => router.replace("/setup") }],
+          { tone: "warning" },
+        );
+        return;
+      }
       console.error("Failed to start identity verification:", error);
       appAlert(
         t("setup.identity.failedTitle"),
@@ -141,159 +135,101 @@ export default function IdentityScreen() {
   };
 
   return (
-    <ScrollView
-      style={{ backgroundColor: "#F4F6FC" }}
-      contentContainerStyle={{ padding: 24, paddingTop: 18, paddingBottom: 40 }}
-      keyboardShouldPersistTaps="handled"
-    >
-      {/* Section badge */}
-      <View
-        className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full"
-        style={{ backgroundColor: "#E9F1FF", alignSelf: "flex-start" }}
+    <View className="flex-1" style={{ backgroundColor: SETUP_BG }}>
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ padding: 20, paddingTop: 18, paddingBottom: 24 }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
+        <SetupHeading screen="identity" badge={t("setup.identity.badge")} title={t("setup.identity.title")} subtitle={t("setup.identity.subtitle")} />
+
+        {/* What happens next */}
         <View
-          className="w-1.5 h-1.5 rounded-full"
-          style={{ backgroundColor: "#0047AB" }}
-        />
-        <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-          {t("setup.identity.badge")}
-        </Text>
-      </View>
-
-      <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
-        {t("setup.identity.title")}
-      </Text>
-      <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-        {t("setup.identity.subtitle")}
-      </Text>
-
-      {/* What happens next */}
-      <View
-        className="rounded-2xl p-4 mb-6"
-        style={{ backgroundColor: "#F4F8FF" }}
-      >
-        <Text className="text-[#0F172A] font-outfit-medium text-sm mb-3">
-          {t("setup.identity.stepsIntro")}
-        </Text>
-        <Step index={1} text={t("setup.identity.step1")} />
-        <Step index={2} text={t("setup.identity.step2")} />
-        <Step index={3} text={t("setup.identity.step3")} />
-      </View>
-
-      {/*
-        Consent lives in our product, not in the SDK: Didit's docs are explicit
-        that creating a session does not by itself prove the user was told what
-        happens to their data.
-      */}
-      <View
-        className="bg-white rounded-2xl p-4 mb-6 border"
-        style={{ borderColor: "#E1EAFB" }}
-      >
-        <Text className="text-[#0F172A] font-outfit-medium text-sm mb-2">
-          {t("setup.identity.consentTitle")}
-        </Text>
-        <Text className="text-slate-500 font-outfit-regular text-[13px] mb-4">
-          {t("setup.identity.consentBody")}
-        </Text>
-
-        <TouchableOpacity
-          onPress={() => setConsentGiven((given) => !given)}
-          activeOpacity={0.7}
-          className="flex-row items-center gap-3"
-          accessibilityRole="checkbox"
-          accessibilityState={{ checked: consentGiven }}
+          className="mb-5"
+          style={{ backgroundColor: "#F4F8FF", borderRadius: 16, borderWidth: 1, borderColor: "#E1EAFB", padding: 16 }}
         >
-          <View
-            className="w-6 h-6 rounded-md justify-center items-center border-2"
-            style={{
-              borderColor: consentGiven ? "#0047AB" : "#CBD5E1",
-              backgroundColor: consentGiven ? "#0047AB" : "transparent",
-            }}
-          >
-            {consentGiven && (
-              <Ionicons name="checkmark" size={16} color="white" />
-            )}
+          {/* The icon belongs to this card: a face being scanned, with a lock on it (checked and kept safe). */}
+          <View className="items-center" style={{ marginBottom: 14 }}>
+            <View style={{ width: 112, height: 112 }}>
+              <EmptyStateIcon icon={ScanFace} />
+              <View
+                className="items-center justify-center"
+                style={{ position: "absolute", right: 6, bottom: 8, width: 34, height: 34, borderRadius: 17, backgroundColor: "#1E56E3", borderWidth: 3, borderColor: "#F4F8FF" }}
+                testID="identity-lock"
+              >
+                <Lock size={16} color="#FFFFFF" />
+              </View>
+            </View>
           </View>
-          <Text className="text-[#0F172A] font-outfit-regular text-sm flex-1">
-            {t("setup.identity.accept")}
+          <Text className="font-outfit-semibold mb-3 text-center" style={{ ...TYPE.body, color: "#0B1530" }}>
+            {t("setup.identity.stepsIntro")}
           </Text>
-        </TouchableOpacity>
-      </View>
+          <StepTips
+            testID="identity-steps"
+            steps={[
+              { key: "doc", icon: IdCard, label: t("setup.identity.labelDoc"), text: t("setup.identity.step1") },
+              { key: "selfie", icon: Camera, label: t("setup.identity.labelSelfie"), text: t("setup.identity.step2") },
+              { key: "result", icon: BadgeCheck, label: t("setup.identity.labelResult"), text: t("setup.identity.step3") },
+            ]}
+          />
+        </View>
+
+        {/*
+          Consent lives in our product, not in the SDK: Didit's docs are explicit
+          that creating a session does not by itself prove the user was told what
+          happens to their data.
+        */}
+        <View
+          className="bg-white"
+          style={{ borderRadius: 16, borderWidth: 1, borderColor: "#EEF2FA", padding: 16 }}
+        >
+          <Text className="font-outfit-semibold mb-2" style={{ ...TYPE.body, color: "#0B1530" }}>
+            {t("setup.identity.consentTitle")}
+          </Text>
+          <Text className="font-outfit-regular mb-4" style={{ ...TYPE.helper, color: "#6B7490" }}>
+            {t("setup.identity.consentBody")}
+          </Text>
+
+          <TouchableOpacity
+            onPress={() => setConsentGiven((given) => !given)}
+            activeOpacity={0.7}
+            className="flex-row items-center gap-3"
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: consentGiven }}
+          >
+            <View
+              className="w-6 h-6 rounded-md justify-center items-center border-2"
+              style={{
+                borderColor: consentGiven ? "#0047AB" : "#CBD5E1",
+                backgroundColor: consentGiven ? "#0047AB" : "transparent",
+              }}
+            >
+              {consentGiven && (
+                <Ionicons name="checkmark" size={16} color="white" />
+              )}
+            </View>
+            <Text className="font-outfit-regular flex-1" style={{ ...TYPE.helper, color: "#0B1530" }}>
+              {t("setup.identity.accept")}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
 
       {submitted ? (
-        <TouchableOpacity onPress={goToNextStep} activeOpacity={0.8}>
-          <LinearGradient
-            colors={["#2B66F8", "#081E72"]}
-            start={{ x: 0, y: 1 }}
-            end={{ x: 1, y: 0 }}
-            style={{
-              borderRadius: 14,
-              paddingVertical: 16,
-              paddingHorizontal: 16,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Text className="text-white font-outfit-bold text-center mr-2">
-              {t("setup.identity.continue")}
-            </Text>
-            <ChevronRight size={20} color="white" />
-          </LinearGradient>
-        </TouchableOpacity>
+        <SetupFooter label={t("setup.identity.continue")} onPress={goToNextStep} />
       ) : (
-        <TouchableOpacity
+        <SetupFooter
+          label={isStarting ? t("setup.identity.starting") : t("setup.identity.startButton")}
           onPress={handleStart}
-          activeOpacity={0.8}
-          disabled={isStarting || !consentGiven}
-        >
-          <LinearGradient
-            colors={["#2B66F8", "#081E72"]}
-            start={{ x: 0, y: 1 }}
-            end={{ x: 1, y: 0 }}
-            style={{
-              borderRadius: 14,
-              paddingVertical: 16,
-              paddingHorizontal: 16,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
-              opacity: isStarting || !consentGiven ? 0.6 : 1,
-            }}
-          >
-            {isStarting ? (
-              <>
-                <ActivityIndicator color="white" />
-                <Text className="text-white font-outfit-bold text-center">
-                  {t("setup.identity.starting")}
-                </Text>
-              </>
-            ) : (
-              <>
-                <Ionicons name="shield-checkmark" size={18} color="white" />
-                <Text className="text-white font-outfit-bold text-center">
-                  {t("setup.identity.startButton")}
-                </Text>
-              </>
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
+          loading={isStarting}
+          disabled={!consentGiven}
+          chevron={false}
+          secondaryLabel={t("setup.identity.verifyLater")}
+          onSecondary={handleVerifyLater}
+          secondaryDisabled={isStarting}
+        />
       )}
-
-      {!submitted && (
-        <TouchableOpacity
-          onPress={handleVerifyLater}
-          activeOpacity={0.8}
-          disabled={isStarting}
-          className="mt-3 rounded-[10px] py-4 px-4 items-center justify-center"
-          style={{ backgroundColor: "#F3F4F6", opacity: isStarting ? 0.6 : 1 }}
-        >
-          <Text className="text-gray-700 font-outfit-bold text-center">
-            {t("setup.identity.verifyLater")}
-          </Text>
-        </TouchableOpacity>
-      )}
-    </ScrollView>
+    </View>
   );
 }

@@ -4,11 +4,12 @@ import { ApiError } from '@/lib/api/types';
 import { formatAseId, isCompleteAseId, toAseIdRaw } from '@/lib/ase-id';
 import { getSetupProgress, saveSetupProgress } from '@/lib/storage';
 import { useRouter } from 'expo-router';
-import { ChevronRight } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { AlertCircle, Info, User } from 'lucide-react-native';
+import { KeyboardAvoidingView, Platform, Text, View } from 'react-native';
+import { SETUP_BG, SetupFooter, SetupHeading } from '@/components/setup/SetupKit';
+import { TYPE } from '@/lib/ui/type';
 import { KeyboardAwareScrollView } from '@/components/ui/KeyboardAwareScrollView';
 
 export default function CredentialsScreen() {
@@ -53,8 +54,13 @@ export default function CredentialsScreen() {
                 setError(t('setup.credentials.mismatch'));
             }
         } catch (err) {
+            // So the real cause (status, backend code, message) is in the log, not just "an error occurred".
+            console.warn('[credentials] ASE verify failed', err instanceof ApiError ? { status: err.statusCode, message: err.apiMessage, detail: err.apiError } : err);
             if (err instanceof ApiError && err.statusCode === 404) {
                 setError(t('setup.credentials.notFound'));
+            } else if (err instanceof ApiError && err.statusCode === 403) {
+                // The sign-up token is not accepted on this route yet (backlog AO): say so, and that it can be done later.
+                setError(t('setup.credentials.unavailable'));
             } else {
                 setError(t('setup.credentials.searchError'));
             }
@@ -83,153 +89,122 @@ export default function CredentialsScreen() {
         return new Date(date).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
     };
 
+    const card = { padding: 16, borderRadius: 16, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#EEF2FA' } as const;
+
     return (
-        <KeyboardAwareScrollView style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ padding: 24, paddingTop: 18, paddingBottom: 40 }}>
-            {/* Section Badge */}
-            <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
-              <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
-              <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-                {t('setup.credentials.badge')}
-              </Text>
-            </View>
+        <View className="flex-1" style={{ backgroundColor: SETUP_BG }}>
+            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+                <KeyboardAwareScrollView className="flex-1" contentContainerStyle={{ padding: 20, paddingTop: 18, paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
+                    <SetupHeading screen="credentials" badge={t('setup.credentials.badge')} title={t('setup.credentials.title')} subtitle={t('setup.credentials.subtitle')} />
 
-            {/* Title */}
-            <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
-              {t('setup.credentials.title')}
-            </Text>
+                    {/* ASE Logo Area */}
+                    <View style={{ ...card, marginBottom: 20 }}>
+                        <View className="flex-row items-center mb-3">
+                            <View className="bg-blue-600 rounded-full w-10 h-10 items-center justify-center mr-3">
+                                <Text className="text-white font-outfit-bold" style={TYPE.caption}>ASE</Text>
+                            </View>
+                            <View className="flex-1">
+                                <Text className="font-outfit-bold" style={{ ...TYPE.caption, color: '#0B1530' }}>{t('setup.credentials.instituteLine1')}</Text>
+                                <Text className="font-outfit-bold uppercase" style={{ ...TYPE.caption, color: '#0B1530' }}>{t('setup.credentials.instituteLine2')}</Text>
+                            </View>
+                        </View>
 
-            {/* Subtitle */}
-            <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-              {t('setup.credentials.subtitle')}
-            </Text>
-
-            {/* ASE Logo Area */}
-            <View className="mb-6">
-                <View className="flex-row items-center mb-4">
-                    <View className="bg-blue-600 rounded-full w-10 h-10 items-center justify-center mr-2">
-                        <Text className="text-white font-bold text-[13px]">ASE</Text>
-                    </View>
-                    <View>
-                        <Text className="font-bold text-[13px] text-gray-800">{t('setup.credentials.instituteLine1')}</Text>
-                        <Text className="font-bold text-[13px] text-gray-800 uppercase">{t('setup.credentials.instituteLine2')}</Text>
-                    </View>
-                </View>
-
-                <Text className="text-[#0F172A] font-outfit-regular text-sm mb-6">
-                    {t('setup.credentials.description')}
-                </Text>
-            </View>
-
-            {!verified ? (
-                <View>
-                    <Text className="font-outfit-medium text-[#0F172A] mb-2">{t('setup.credentials.memberIdLabel')}</Text>
-                    <Input
-                        placeholder="ASE-XXXX-XXXX"
-                        value={maskedAseId}
-                        onChangeText={(text) => { setAseId(toAseIdRaw(text)); setError(null); }}
-                        containerClassName="bg-white border border-gray-300 rounded-2xl mb-4"
-                        autoCorrect={false}
-                        keyboardType="number-pad"
-                        maxLength={13}
-                    />
-
-                    {error && (
-                        <Text className="text-red-500 font-outfit-regular text-sm mb-4">{error}</Text>
-                    )}
-
-                    <TouchableOpacity
-                        onPress={handleSearch}
-                        activeOpacity={0.8}
-                        disabled={isLoading || !canSearch}
-                    >
-                        <LinearGradient
-                            colors={['#2B66F8', '#081E72']}
-                            start={{ x: 0, y: 1 }}
-                            end={{ x: 1, y: 0 }}
-                            style={{
-                                borderRadius: 14,
-                                paddingVertical: 16,
-                                paddingHorizontal: 16,
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                opacity: isLoading || !canSearch ? 0.6 : 1,
-                            }}
-                        >
-                            {isLoading ? (
-                                <ActivityIndicator color="white" />
-                            ) : (
-                                <>
-                                    <Text className="text-white font-outfit-bold text-center mr-2">{t('setup.credentials.searchButton')}</Text>
-                                    <ChevronRight size={20} color="white" />
-                                </>
-                            )}
-                        </LinearGradient>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity onPress={handleSkip} activeOpacity={0.8} className="mt-4">
-                        <Text className="text-blue-600 font-outfit-medium text-center text-sm">
-                            {t('setup.credentials.skipButton')}
+                        <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: '#6B7490' }}>
+                            {t('setup.credentials.description')}
                         </Text>
-                    </TouchableOpacity>
-
-                    <Text className="text-gray-400 font-outfit-regular text-[13px] text-center mt-2">
-                        {t('setup.credentials.skipHint')}
-                    </Text>
-                </View>
-            ) : (
-                <View>
-                    <Text className="font-outfit-medium text-[#0F172A] mb-1">{t('setup.credentials.memberIdLabel')}</Text>
-                    <Text className="text-[#0047AB] font-outfit-medium text-base mb-6">{verified.aseId}</Text>
-
-                    <View className="space-y-4 mb-8">
-                        {(verified.certifications ?? []).length === 0 ? (
-                            <Text className="text-gray-400 font-outfit-regular text-sm">{t('setup.credentials.noCertifications')}</Text>
-                        ) : (
-                            (verified.certifications ?? []).map((cert) => (
-                                <View key={cert.id} className="bg-blue-50/50 p-4 rounded-xl">
-                                    <Text className="font-outfit-bold text-[#0F172A] mb-1">
-                                        {cert.code}{cert.name ? ` - ${cert.name}` : ''}
-                                    </Text>
-                                    <Text className="text-blue-400 text-[13px]">
-                                        {t('setup.credentials.expiration', { date: formatExpiration(cert.expirationDate) })}
-                                    </Text>
-                                </View>
-                            ))
-                        )}
                     </View>
 
-                    <TouchableOpacity
-                        onPress={() => setVerified(null)}
-                        activeOpacity={0.8}
-                        className="mb-3"
-                    >
-                        <Text className="text-blue-600 font-outfit-medium text-center text-sm">{t('setup.credentials.searchDifferent')}</Text>
-                    </TouchableOpacity>
+                    {!verified ? (
+                        <View>
+                            {/* One card: the ID and, right under it, the name it has to match. */}
+                            <View style={{ padding: 16, borderRadius: 20, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#EEF2FA' }} testID="ase-id-card">
+                            <Text className="font-outfit-semibold" style={{ ...TYPE.body, color: '#0B1530', marginBottom: 8 }}>{t('setup.credentials.memberIdLabel')}</Text>
+                            <Input
+                                placeholder="ASE-XXXX-XXXX"
+                                value={maskedAseId}
+                                onChangeText={(text) => { setAseId(toAseIdRaw(text)); setError(null); }}
+                                containerClassName="bg-[#F6F8FC] border border-[#E4EAF5] rounded-[14px]"
+                                autoCorrect={false}
+                                keyboardType="number-pad"
+                                maxLength={13}
+                            />
 
-                    <TouchableOpacity
+                                {(name || surname) ? (
+                                    <View className="flex-row items-center" style={{ gap: 12, marginTop: 14, paddingTop: 14, borderTopWidth: 1, borderTopColor: '#EEF2FA' }} testID="ase-holder">
+                                        <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#EAF1FF' }}>
+                                            <User size={20} color="#1E56E3" />
+                                        </View>
+                                        <View className="flex-1" style={{ minWidth: 0 }}>
+                                            <Text className="font-outfit-semibold" style={{ ...TYPE.caption, color: '#6B7490' }}>{t('setup.credentials.holderLabel')}</Text>
+                                            <Text className="font-outfit-bold" style={{ ...TYPE.body, color: '#0B1530' }} numberOfLines={1}>{[name, surname].filter(Boolean).join(' ')}</Text>
+                                            <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: '#6B7490' }}>{t('setup.credentials.holderHint')}</Text>
+                                        </View>
+                                    </View>
+                                ) : null}
+                            </View>
+
+                            {/* The problem, as an alert row: icon tile, soft red, readable. */}
+                            {error && (
+                                <View className="flex-row items-center" style={{ gap: 12, marginTop: 12, padding: 14, borderRadius: 16, backgroundColor: '#FEF2F2', borderWidth: 1, borderColor: '#FBD5D5' }} testID="ase-error">
+                                    <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#FDE2E2' }}>
+                                        <AlertCircle size={22} color="#DC2626" />
+                                    </View>
+                                    <Text className="flex-1 font-outfit-semibold" style={{ ...TYPE.helper, color: '#B42318' }}>{error}</Text>
+                                </View>
+                            )}
+
+                            {/* The way out: a minimal soft badge, icon and one line. */}
+                            <View className="flex-row items-center self-start" style={{ gap: 8, marginTop: 14, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 14, backgroundColor: '#EAF1FF' }} testID="ase-later-hint">
+                                <Info size={16} color="#1E56E3" />
+                                <Text className="flex-shrink font-outfit-semibold" style={{ ...TYPE.helper, color: '#1E56E3' }}>{t('setup.credentials.skipHint')}</Text>
+                            </View>
+                        </View>
+                    ) : (
+                        <View>
+                            <View style={{ ...card, marginBottom: 16 }}>
+                                <Text className="font-outfit-semibold" style={{ ...TYPE.helper, color: '#6B7490', marginBottom: 2 }}>{t('setup.credentials.memberIdLabel')}</Text>
+                                <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, color: '#1E56E3' }}>{verified.aseId}</Text>
+                            </View>
+
+                            <View style={{ gap: 12 }}>
+                                {(verified.certifications ?? []).length === 0 ? (
+                                    <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: '#6B7490' }}>{t('setup.credentials.noCertifications')}</Text>
+                                ) : (
+                                    (verified.certifications ?? []).map((cert) => (
+                                        <View key={cert.id} style={{ padding: 16, borderRadius: 16, backgroundColor: '#F4F8FF', borderWidth: 1, borderColor: '#E1EAFB' }}>
+                                            <Text className="font-outfit-bold" style={{ ...TYPE.body, color: '#0B1530', marginBottom: 2 }}>
+                                                {cert.code}{cert.name ? ` - ${cert.name}` : ''}
+                                            </Text>
+                                            <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: '#6B7490' }}>
+                                                {t('setup.credentials.expiration', { date: formatExpiration(cert.expirationDate) })}
+                                            </Text>
+                                        </View>
+                                    ))
+                                )}
+                            </View>
+                        </View>
+                    )}
+                </KeyboardAwareScrollView>
+
+                {!verified ? (
+                    <SetupFooter
+                        label={t('setup.credentials.searchButton')}
+                        onPress={handleSearch}
+                        disabled={!canSearch}
+                        loading={isLoading}
+                        secondaryLabel={t('setup.credentials.skipButton')}
+                        onSecondary={handleSkip}
+                        secondaryDisabled={isLoading}
+                    />
+                ) : (
+                    <SetupFooter
+                        label={t('setup.credentials.validateButton')}
                         onPress={handleContinue}
-                        activeOpacity={0.8}
-                    >
-                        <LinearGradient
-                            colors={['#2B66F8', '#081E72']}
-                            start={{ x: 0, y: 1 }}
-                            end={{ x: 1, y: 0 }}
-                            style={{
-                                borderRadius: 14,
-                                paddingVertical: 16,
-                                paddingHorizontal: 16,
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                            }}
-                        >
-                            <Text className="text-white font-outfit-bold text-center mr-2">{t('setup.credentials.validateButton')}</Text>
-                            <ChevronRight size={20} color="white" />
-                        </LinearGradient>
-                    </TouchableOpacity>
-                </View>
-            )}
-        </KeyboardAwareScrollView>
+                        secondaryLabel={t('setup.credentials.searchDifferent')}
+                        onSecondary={() => setVerified(null)}
+                    />
+                )}
+            </KeyboardAvoidingView>
+        </View>
     );
 }

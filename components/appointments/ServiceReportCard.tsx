@@ -45,7 +45,7 @@ export function ServiceReportCard({ appointment, role = 'user', ownerName, mecha
             activeOpacity={0.85}
             accessibilityRole="button"
             className="flex-1 items-center justify-center flex-row"
-            style={{ gap: 8, minHeight: 52, borderRadius: 14, backgroundColor: primary ? INK.blue : INK.blueSoft, opacity: busy && !loading ? 0.6 : 1 }}
+            style={{ gap: 8, minHeight: 56, borderRadius: 14, backgroundColor: primary ? INK.blue : INK.blueSoft, opacity: busy && !loading ? 0.6 : 1 }}
             testID={testID}
         >
             {loading ? <ActivityIndicator color={primary ? '#fff' : INK.blue} /> : null}

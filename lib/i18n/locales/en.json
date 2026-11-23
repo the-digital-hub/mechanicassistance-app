@@ -125,6 +125,7 @@
       "promotions": "Promotions",
       "help": "Help Center",
       "privacy": "Privacy Policy",
+      "membership": "Membership plan",
       "settings": "Settings",
       "logout": "Log out",
       "legalDocuments": "Legal documents",
@@ -169,6 +170,8 @@
       "cta": "Verify your ASE credential"
     },
     "availabilityScreen": {
+      "title": "Hours and service area",
+      "subtitle": "Set the days and times you take requests, and how far you're willing to drive.",
       "savedTitle": "Availability updated",
       "savedMessage": "Your working hours and service area were saved.",
       "ok": "OK",
@@ -3189,6 +3192,8 @@
     "close": "Close"
   },
   "setup": {
+    "step": { "of": "Step {{n}} of {{total}}", "n": "Step {{n}}" },
+    "stepNames": {"phone": "Phone", "otp": "Code", "role": "Role", "basic-info": "Basic info", "identity": "Identity", "address": "Address", "credentials": "ASE", "availability": "Schedule", "legal-documents": "Documents", "vehicle-info": "Vehicle"},
     "accountSetupTitle": "Account Set-up",
     "availabilityTitle": "Availability",
     "skip": "Skip",
@@ -3204,7 +3209,8 @@
       "badge": "GET STARTED",
       "title": "What's your number?",
       "subtitle": "We'll send you an SMS to verify your phone number.",
-      "consentPrefix": "By entering my mobile number, I agree to receive a one-time SMS code and related text messages from MAssistance. Msg & data rates may apply. See our",
+      "consentTitle": "About text messages",
+      "consentPrefix": "By continuing, you agree to receive a one-time verification code and related service texts from MAssistance. Message and data rates may apply. We only use your number to verify and protect your account. Read our",
       "termsOfService": "Terms",
       "consentAnd": "and",
       "privacyPolicy": "Privacy Policy",
@@ -3296,6 +3302,54 @@
       "finalizing": "Finalizing your account...",
       "errorTitle": "Oops! Something went wrong",
       "tryAgain": "Try Again",
+      "welcomeTitle": "Welcome to Mechanic Assistance",
+      "welcomeSub": "We are glad to have you on our platform.",
+      "tips": {
+        "user": {
+          "request": {
+            "title": "Ask for help",
+            "text": "Request roadside help in a few taps and get offers from certified technicians."
+          },
+          "track": {
+            "title": "Follow it live",
+            "text": "See your technician on the map from the moment they head out."
+          },
+          "compare": {
+            "title": "Know the price",
+            "text": "Compare offers and see the price up front, before you accept."
+          },
+          "video": {
+            "title": "Quick answers",
+            "text": "Start a video call with a technician when you only need advice."
+          },
+          "vehicles": {
+            "title": "Your vehicles",
+            "text": "Keep your cars and every service in one place."
+          }
+        },
+        "mechanic": {
+          "available": {
+            "title": "Jobs near you",
+            "text": "Turn on Available and requests near you reach your feed."
+          },
+          "quote": {
+            "title": "Your price",
+            "text": "Send a quote on scheduled jobs and set your own price."
+          },
+          "steps": {
+            "title": "Step by step",
+            "text": "Check in, scan, work and close each visit with photos and a report."
+          },
+          "paid": {
+            "title": "Get paid",
+            "text": "Your payout reaches your wallet when the customer confirms."
+          },
+          "rating": {
+            "title": "Build your name",
+            "text": "Every finished job can earn you a review and a better rating."
+          }
+        }
+      },
       "congratulations": "Congratulations",
       "setupComplete": "Your account has been set-up successfully!",
       "getStarted": "Get Started",
@@ -3335,6 +3389,9 @@
     "credentials": {
       "notFound": "No ASE technician found with that ID. Please verify and try again.",
       "searchError": "An error occurred while searching. Please try again.",
+      "holderLabel": "Name on your account",
+      "holderHint": "It must match your ASE record.",
+      "unavailable": "ASE verification is not available during sign-up right now.",
       "noExpiration": "No expiration",
       "badge": "ASE CERTIFICATIONS",
       "title": "ASE Certifications",
@@ -3343,16 +3400,17 @@
       "instituteLine2": "Automotive Service Excellence",
       "description": "Your Member ID is validated against ASE records to verify your certification status and the corresponding expiration dates.",
       "memberIdLabel": "ASE Member ID",
-      "searchButton": "Search ASE records",
+      "searchButton": "Verify my ASE ID",
       "noCertifications": "No certifications found for this ID.",
       "expiration": "Expiration: {{date}}",
-      "searchDifferent": "Search a different ID",
+      "searchDifferent": "Use a different ID",
       "validateButton": "Validate Certifications",
       "mismatch": "That ASE ID is registered to a different name. Check the ID and try again.",
       "skipButton": "Verify later",
       "skipHint": "You can add your ASE ID anytime from your profile."
     },
     "availability": {
+      "badge": "Availability",
       "selectTime": "Select time",
       "done": "Done",
       "weeklySchedule": "Weekly schedule",
@@ -3369,6 +3427,8 @@
       "milesAbbr": "{{count}} mi",
       "baseLocation": "Base location",
       "edit": "Edit",
+      "editAddresses": "Edit addresses",
+      "change": "Change",
       "saveChanges": "Save changes",
       "errorNoDays": "Pick at least one day.",
       "errorEndBeforeStart": "The end time has to be later than the start time.",
@@ -3415,17 +3475,23 @@
       "title": "Verify your identity",
       "subtitle": "A quick scan of your ID and a selfie. It usually takes about two minutes.",
       "stepsIntro": "What happens next:",
+      "labelDoc": "Your ID",
+      "labelSelfie": "Your selfie",
+      "labelResult": "The result",
       "step1": "You scan the front and back of your ID document.",
       "step2": "You take a selfie so we can confirm it is really you.",
       "step3": "We check the result and let you know — usually within minutes.",
       "consentTitle": "Before you start",
-      "consentBody": "Verification is handled by Didit, our identity provider. Your document and selfie are sent to Didit and processed by them; we only store whether the check passed. Tap Verify to continue.",
+      "consentBody": "Didit, our identity provider, processes your ID and selfie. We only keep whether the check passed.",
       "accept": "I understand and want to continue",
       "startButton": "Verify my identity",
       "starting": "Opening verification...",
       "continue": "Continue",
       "cancelledTitle": "Verification not finished",
       "cancelledMessage": "You closed the verification before it finished. You can start it again whenever you are ready.",
+      "expiredTitle": "Your sign-up session expired",
+      "expiredMessage": "For your security the phone check lasts 30 minutes. Verify your number again and you will pick up where you left off.",
+      "expiredAction": "Verify my phone",
       "failedTitle": "Verification could not start",
       "failedMessage": "Something went wrong: {{reason}}",
       "alreadyVerifiedTitle": "Already verified",
@@ -3474,7 +3540,7 @@
       "statusApproved": "Approved",
       "statusDeclined": "Declined",
       "noticeTitle": "Don't have your documents scanned right now?",
-      "noticeBody": "No problem. Press {{cta}} to finish signing up today. You can attach or update your insurance policy and business licence later from your profile.",
+      "noticeBody": "Don't have your documents scanned yet? Tap {{cta}} and add them later from your profile.",
       "submit": "Finish sign-up and create account",
       "back": "Back",
       "errorTooLarge": "That file is {{size}} MB. The limit is {{max}} MB.",
@@ -3544,13 +3610,74 @@
     "instituteLine2": "Automotive Service Excellence",
     "description": "Your Member ID is validated against ASE records to verify your certification status and the corresponding expiration dates.",
     "memberIdLabel": "ASE Member ID",
-    "searchButton": "Search ASE records",
+    "searchButton": "Verify my ASE ID",
     "noCertifications": "No certifications found for this ID.",
     "noCertificationsMembership": "No certifications found for this membership.",
     "expiration": "Expiration: {{date}}",
     "searchDifferent": "Search a different ID",
     "linkButton": "Link ASE Membership",
     "mismatch": "That ASE ID is registered to a different name. Check the ID and try again."
+  },
+  "membership": {
+    "badge": "Membership plan",
+    "title": "Membership",
+    "subtitle": "Your all-access plan for the Mechanic Assistance platform.",
+    "cardEyebrow": "Your plan",
+    "per": {
+      "month": "/ month",
+      "year": "/ year"
+    },
+    "feeNoteWaived": "Complimentary during our startup stage.",
+    "feeNote": "Billed with your plan.",
+    "status": {
+      "startup_waived": "Startup · fee waived"
+    },
+    "includesTitle": "Plan includes",
+    "includes": {
+      "account": "One secure account across active portals",
+      "wallet": "Wallet, payment methods and service history",
+      "support": "Profile, preferences and account support",
+      "jobs": "Job feed, quotes and payouts",
+      "requests": "Roadside requests, live tracking and video calls"
+    },
+    "billingTitle": "Billing",
+    "comingSoon": "Coming soon",
+    "billing": {
+      "period": "Billing period",
+      "periodValue": "Monthly or annual",
+      "periodHint": "Choose the cadence that fits your account.",
+      "next": "Next payment date",
+      "nextHint": "Your next date will appear when billing is active.",
+      "promo": "Promo code",
+      "promoValue": "Available",
+      "promoNone": "Not available",
+      "promoHint": "Eligible codes can reduce the plan fee."
+    },
+    "promo": {
+      "title": "Promo code",
+      "placeholder": "Enter your code",
+      "apply": "Apply code",
+      "hint": "A valid code will apply its membership benefit when plans launch.",
+      "applied": "Code applied.",
+      "invalid": "That code is not valid. Check it and try again.",
+      "expired": "That code has expired.",
+      "not_eligible": "Your account is not eligible for that code.",
+      "not_available_yet": "Plans have not launched yet. Keep your code: you will be able to use it when they do."
+    },
+    "actions": {
+      "upgrade": "Upgrade plan",
+      "cancel": "Cancel plan",
+      "upgradeTitle": "Upgrade your plan",
+      "upgradeSoon": "Upgrade options will be available when plans launch. We'll notify you as soon as you can choose one.",
+      "cancelTitle": "Cancel your plan?",
+      "cancelBody": "You would keep your access until the end of the current period.",
+      "keep": "Keep my plan",
+      "cancelConfirm": "Cancel plan",
+      "cancelSoonTitle": "Nothing was cancelled",
+      "cancelSoon": "Your plan is free during our startup stage, so there is nothing to cancel yet. You will be able to manage it here when plans launch.",
+      "gotIt": "Got it"
+    },
+    "notice": "We'll notify you before any future plan or pricing change takes effect."
   },
   "promotions": {
     "badge": "PROMOTIONS",

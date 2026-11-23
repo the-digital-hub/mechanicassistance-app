@@ -7,7 +7,7 @@ import { useAppointments } from '@/context/AppointmentsContext';
 import { onSiteDAO } from '@/lib/dao/OnSiteDAO';
 import { userDAO } from '@/lib/dao/UserDAO';
 import type { Appointment } from '@/context/AppointmentsContext';
-import { buildFinalReport, finalReportHtml, type FinalReport } from '@/lib/onsite/finalReport';
+import { buildFinalReport, finalReportHtml, type FinalReport, type ReportBrand } from '@/lib/onsite/finalReport';
 import { buildServiceReport } from '@/lib/onsite/serviceReport';
 import { walletDAO } from '@/lib/dao/WalletDAO';
 import { getVinCapture } from '@/lib/onsite/vin';
@@ -62,17 +62,35 @@ export function useFinalReport(appointmentId: string): { report: FinalReport | n
     return { report, loading };
 }
 
-async function reportLogo(): Promise<string | null> {
+async function assetData(module: number, mime: string): Promise<string> {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { Asset } = require('expo-asset') as typeof import('expo-asset');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { File } = require('expo-file-system') as typeof import('expo-file-system');
+    const asset = Asset.fromModule(module);
+    await asset.downloadAsync();
+    if (!asset.localUri) throw new Error('asset not available');
+    return `data:${mime};base64,${await new File(asset.localUri).base64()}`;
+}
+
+/** The brand (ring and name in colour) and the app's font, as data: the PDF is drawn from the page alone. Without the logo it says the name in text; without the font, the system one. */
+async function reportBrand(): Promise<ReportBrand | null> {
     try {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const { Asset } = require('expo-asset') as typeof import('expo-asset');
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const { File } = require('expo-file-system') as typeof import('expo-file-system');
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const asset = Asset.fromModule(require('@/assets/images/mechanic_assistance_logo.png'));
-        await asset.downloadAsync();
-        if (!asset.localUri) return null;
-        return `data:image/png;base64,${await new File(asset.localUri).base64()}`;
+        const [ring, word] = await Promise.all([
+            // eslint-disable-next-line @typescript-eslint/no-require-imports
+            assetData(require('@/assets/images/brand_ring_color.png'), 'image/png'),
+            // eslint-disable-next-line @typescript-eslint/no-require-imports
+            assetData(require('@/assets/images/brand_wordmark_color.png'), 'image/png'),
+        ]);
+        const fonts = await Promise.all([
+            // eslint-disable-next-line @typescript-eslint/no-require-imports
+            assetData(require('@expo-google-fonts/outfit/400Regular/Outfit_400Regular.ttf'), 'font/ttf'),
+            // eslint-disable-next-line @typescript-eslint/no-require-imports
+            assetData(require('@expo-google-fonts/outfit/600SemiBold/Outfit_600SemiBold.ttf'), 'font/ttf'),
+            // eslint-disable-next-line @typescript-eslint/no-require-imports
+            assetData(require('@expo-google-fonts/outfit/700Bold/Outfit_700Bold.ttf'), 'font/ttf'),
+        ]).then(([regular, semibold, bold]) => ({ regular, semibold, bold })).catch(() => null);
+        return { ring, word, fonts };
     } catch {
         return null;
     }
@@ -87,7 +105,7 @@ export async function shareFinalReportPdf(report: FinalReport): Promise<boolean>
         // eslint-disable-next-line @typescript-eslint/no-require-imports
         const Sharing = require('expo-sharing') as typeof import('expo-sharing');
         // The brand logo goes inside the page as data, so the PDF needs nothing else to draw it. Without it the header says the name in text.
-        const logo = await reportLogo();
+        const logo = await reportBrand();
         // Margins on every page (iOS ignores the CSS ones), so a page cut never lands on the edge of the sheet.
         const { uri } = await Print.printToFileAsync({ html: finalReportHtml(report, logo), margins: { left: 36, right: 36, top: 36, bottom: 36 } });
         if (await Sharing.isAvailableAsync()) {

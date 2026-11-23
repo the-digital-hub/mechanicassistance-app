@@ -1,21 +1,25 @@
 import { LEGAL_URLS } from "@/lib/config/legal";
+import { TYPE } from "@/lib/ui/type";
 import { cn } from "@/lib/utils";
 import { openBrowserAsync, WebBrowserPresentationStyle } from "expo-web-browser";
+import { MessageSquareText } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 type Variant = "light" | "dark";
 
-const VARIANTS: Record<Variant, { container: string; text: string; link: string }> = {
+const VARIANTS: Record<Variant, { card: object; icon: string; text: string; link: string }> = {
   light: {
-    container: "bg-blue-50/50 p-4 rounded-xl",
-    text: "text-[13px] text-slate-500 text-center font-outfit-regular leading-5",
-    link: "font-outfit-bold text-[#0047AB] underline",
+    card: { backgroundColor: "#F4F8FF", borderWidth: 1, borderColor: "#E1EAFB" },
+    icon: "#1E56E3",
+    text: "#6B7490",
+    link: "#1E56E3",
   },
   dark: {
-    container: "bg-white/10 border border-white/15 p-4 rounded-xl",
-    text: "text-[13px] text-white/70 text-center font-outfit-regular leading-5",
-    link: "font-outfit-bold text-white underline",
+    card: { backgroundColor: "rgba(255,255,255,0.10)", borderWidth: 1, borderColor: "rgba(255,255,255,0.15)" },
+    icon: "#FFFFFF",
+    text: "rgba(255,255,255,0.75)",
+    link: "#FFFFFF",
   },
 };
 
@@ -30,7 +34,7 @@ type Props = {
  */
 export function SmsConsent({ variant = "light", className }: Props) {
   const { t } = useTranslation();
-  const styles = VARIANTS[variant];
+  const v = VARIANTS[variant];
 
   // openBrowserAsync directly instead of <ExternalLink>: that renders a <Link>,
   // which can't be nested inside a <Text> sentence.
@@ -39,23 +43,18 @@ export function SmsConsent({ variant = "light", className }: Props) {
       presentationStyle: WebBrowserPresentationStyle.AUTOMATIC,
     });
 
+  const link = { color: v.link, textDecorationLine: "underline" as const };
+
   return (
-    <View className={cn(styles.container, className)}>
-      <Text className={styles.text}>
+    <View className={cn("flex-row", className)} style={[{ borderRadius: 14, paddingVertical: 12, paddingHorizontal: 14, gap: 10 }, v.card]}>
+      <MessageSquareText size={18} color={v.icon} style={{ marginTop: 2 }} />
+      <Text className="font-outfit-regular flex-1" style={{ ...TYPE.helper, color: v.text }}>
         {t("setup.phone.consentPrefix")}{" "}
-        <Text
-          className={styles.link}
-          accessibilityRole="link"
-          onPress={() => open(LEGAL_URLS.privacy)}
-        >
+        <Text className="font-outfit-bold" style={link} accessibilityRole="link" onPress={() => open(LEGAL_URLS.privacy)}>
           {t("setup.phone.privacyPolicy")}
         </Text>{" "}
         {t("setup.phone.consentAnd")}{" "}
-        <Text
-          className={styles.link}
-          accessibilityRole="link"
-          onPress={() => open(LEGAL_URLS.terms)}
-        >
+        <Text className="font-outfit-bold" style={link} accessibilityRole="link" onPress={() => open(LEGAL_URLS.terms)}>
           {t("setup.phone.termsOfService")}
         </Text>
         {t("setup.phone.consentSuffix")}

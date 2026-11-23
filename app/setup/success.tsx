@@ -4,14 +4,13 @@ import { clearSession } from "@/lib/auth/session";
 import { userDAO } from "@/lib/dao/UserDAO";
 import { getAddRoleState } from "@/lib/setup-add-role";
 import { clearSetupProgress, getSetupProgress } from "@/lib/storage";
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { ChevronRight } from "lucide-react-native";
-import { TouchableOpacity } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Text, View } from "react-native";
+import { SETUP_BG, SetupFooter } from "@/components/setup/SetupKit";
+import { WelcomeSequence } from "@/components/setup/WelcomeSequence";
+import { TYPE } from "@/lib/ui/type";
 
 /** Where the caller has to go once the signup token is no longer usable. */
 type ExpiredRecovery = "signIn" | "restart";
@@ -37,7 +36,9 @@ function isSignupTokenGone(error: unknown): boolean {
 export default function SuccessScreen() {
   const router = useRouter();
   const { t } = useTranslation();
-  const { adoptSession } = useUser();
+  const { adoptSession, user } = useUser();
+  // The role this account starts with decides which tips greet it.
+  const role: "user" | "mechanic" = user?.role === "mechanic" ? "mechanic" : "user";
   const [isCreating, setIsCreating] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expired, setExpired] = useState<ExpiredRecovery | null>(null);
@@ -151,9 +152,9 @@ export default function SuccessScreen() {
 
   if (isCreating) {
     return (
-      <View className="flex-1 items-center justify-center p-6" style={{ backgroundColor: '#F6F8FC' }}>
+      <View className="flex-1 items-center justify-center p-6" style={{ backgroundColor: SETUP_BG }}>
         <ActivityIndicator size="large" color="#0047AB" />
-        <Text className="text-lg font-outfit-medium text-[#0047AB] text-center mt-4">
+        <Text className="font-outfit-semibold text-center mt-4" style={{ ...TYPE.body, color: '#1E56E3' }}>
           {t(isAddRole ? "setup.addRole.finishing" : "setup.success.finalizing")}
         </Text>
       </View>
@@ -169,142 +170,71 @@ export default function SuccessScreen() {
     };
 
     return (
-      <View className="flex-1 items-center justify-center p-6" style={{ backgroundColor: '#F6F8FC' }}>
-        <Text className="text-xl font-outfit-bold text-[#0F172A] mb-4 text-center">
-          {t("setup.success.expiredTitle")}
-        </Text>
-        <Text className="text-base font-outfit-regular text-slate-500 mb-8 text-center">
-          {t(
-            expired === "signIn"
-              ? "setup.success.expiredMessage"
-              : "setup.success.expiredRestartMessage",
-          )}
-        </Text>
-        <TouchableOpacity onPress={goRecover} activeOpacity={0.8} className="w-full">
-          <LinearGradient
-            colors={['#2B66F8', '#081E72']}
-            start={{ x: 0, y: 1 }}
-            end={{ x: 1, y: 0 }}
-            style={{
-              borderRadius: 14,
-              paddingVertical: 16,
-              paddingHorizontal: 16,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Text className="text-white font-outfit-bold text-center mr-2">
-              {t(
-                expired === "signIn"
-                  ? "setup.success.signIn"
-                  : "setup.success.tryAgain",
-              )}
-            </Text>
-            <ChevronRight size={20} color="white" />
-          </LinearGradient>
-        </TouchableOpacity>
+      <View className="flex-1" style={{ backgroundColor: SETUP_BG }}>
+        <View className="flex-1 items-center justify-center p-6">
+          <Text className="font-outfit-bold text-center mb-3" style={{ fontSize: 26, lineHeight: 32, letterSpacing: -0.5, color: '#0B1530' }}>
+            {t("setup.success.expiredTitle")}
+          </Text>
+          <Text className="font-outfit-regular text-center" style={{ ...TYPE.body, color: '#6B7490' }}>
+            {t(
+              expired === "signIn"
+                ? "setup.success.expiredMessage"
+                : "setup.success.expiredRestartMessage",
+            )}
+          </Text>
+        </View>
+        <SetupFooter
+          label={t(expired === "signIn" ? "setup.success.signIn" : "setup.success.tryAgain")}
+          onPress={goRecover}
+        />
       </View>
     );
   }
 
   if (error) {
+    const cancelAddRole = async () => {
+      // Started from the profile: the session is the app's own, keep it.
+      if (fromProfile) {
+        await clearSetupProgress();
+        router.replace("/(tabs)");
+        return;
+      }
+      // Abandoning the add-role run: end the session the verify step
+      // opened rather than leaving it stored but unused.
+      await userDAO.logout();
+      await clearSession();
+      await clearSetupProgress();
+      router.replace("/login");
+    };
+
     return (
-      <View className="flex-1 items-center justify-center p-6" style={{ backgroundColor: '#F6F8FC' }}>
-        <Text className="text-xl font-outfit-bold text-red-600 mb-4 text-center">
-          {t("setup.success.errorTitle")}
-        </Text>
-        <Text className="text-base font-outfit-regular text-slate-500 mb-8 text-center">
-          {error}
-        </Text>
-        <TouchableOpacity
+      <View className="flex-1" style={{ backgroundColor: SETUP_BG }}>
+        <View className="flex-1 items-center justify-center p-6">
+          <Text className="font-outfit-bold text-center mb-3" style={{ fontSize: 26, lineHeight: 32, letterSpacing: -0.5, color: '#DC2626' }}>
+            {t("setup.success.errorTitle")}
+          </Text>
+          <Text className="font-outfit-regular text-center" style={{ ...TYPE.body, color: '#6B7490' }}>
+            {error}
+          </Text>
+        </View>
+        <SetupFooter
+          label={t("setup.success.tryAgain")}
           onPress={() => router.replace("/setup")}
-          activeOpacity={0.8}
-          className="w-full"
-        >
-          <LinearGradient
-            colors={['#2B66F8', '#081E72']}
-            start={{ x: 0, y: 1 }}
-            end={{ x: 1, y: 0 }}
-            style={{
-              borderRadius: 14,
-              paddingVertical: 16,
-              paddingHorizontal: 16,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Text className="text-white font-outfit-bold text-center mr-2">{t("setup.success.tryAgain")}</Text>
-            <ChevronRight size={20} color="white" />
-          </LinearGradient>
-        </TouchableOpacity>
-        {isAddRole && (
-          <TouchableOpacity
-            onPress={async () => {
-              // Started from the profile: the session is the app's own, keep it.
-              if (fromProfile) {
-                await clearSetupProgress();
-                router.replace("/(tabs)");
-                return;
-              }
-              // Abandoning the add-role run: end the session the verify step
-              // opened rather than leaving it stored but unused.
-              await userDAO.logout();
-              await clearSession();
-              await clearSetupProgress();
-              router.replace("/login");
-            }}
-            className="mt-5"
-          >
-            <Text className="text-gray-500 font-outfit-medium text-sm">{t("setup.addRole.cancel")}</Text>
-          </TouchableOpacity>
-        )}
+          secondaryLabel={isAddRole ? t("setup.addRole.cancel") : undefined}
+          onSecondary={isAddRole ? cancelAddRole : undefined}
+        />
       </View>
     );
   }
 
   return (
-    <View className="flex-1 items-center justify-center p-6" style={{ backgroundColor: '#F6F8FC' }}>
-      {/* Success Icon */}
-      <View className="w-32 h-32 rounded-full border-4 border-blue-400 items-center justify-center mb-8">
-        <Ionicons
-          name="checkmark"
-          size={64}
-          color="#60A5FA"
-          style={{ fontWeight: "bold" }}
-        />
-      </View>
+    <View className="flex-1" style={{ backgroundColor: SETUP_BG }}>
+      <WelcomeSequence
+        role={role}
+        subtitle={t(registeredOnly ? "setup.addRole.registeredOnly" : "setup.success.setupComplete")}
+      />
 
-      <Text className="text-3xl font-outfit-medium text-gray-900 mb-3 text-center">
-        {t("setup.success.congratulations")}
-      </Text>
-      <Text className="text-base font-outfit-regular text-gray-500 mb-12 text-center">
-        {t(registeredOnly ? "setup.addRole.registeredOnly" : "setup.success.setupComplete")}
-      </Text>
-
-      <TouchableOpacity
-        onPress={handleGetStarted}
-        activeOpacity={0.8}
-        className="w-full"
-      >
-        <LinearGradient
-          colors={['#2B66F8', '#081E72']}
-          start={{ x: 0, y: 1 }}
-          end={{ x: 1, y: 0 }}
-          style={{
-            borderRadius: 14,
-            paddingVertical: 16,
-            paddingHorizontal: 16,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Text className="text-white font-outfit-bold text-center mr-2">{t("setup.success.getStarted")}</Text>
-          <ChevronRight size={20} color="white" />
-        </LinearGradient>
-      </TouchableOpacity>
+      <SetupFooter label={t("setup.success.getStarted")} onPress={handleGetStarted} />
     </View>
   );
 }

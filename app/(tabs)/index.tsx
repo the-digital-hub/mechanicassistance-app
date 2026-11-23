@@ -24,7 +24,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect, useRouter } from 'expo-router';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { RotatingChevron } from '@/components/ui/RotatingChevron';
-import { ArrowLeftRight, Award, BadgeCheck, BadgePercent, Briefcase, Camera, Car, Check, ChevronLeft, ChevronRight, Circle, Clock, CreditCard, FileText, HelpCircle, Lock, LogOut, MapPin, Settings, User, Wallet } from 'lucide-react-native';
+import { ArrowLeftRight, Award, BadgeCheck, BadgePercent, Briefcase, Camera, Car, Check, ChevronLeft, ChevronRight, Circle, Clock, CreditCard, Crown, FileText, HelpCircle, Lock, LogOut, MapPin, Settings, User, Wallet } from 'lucide-react-native';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -120,7 +120,8 @@ export default function ProfileScreen() {
 
   useEffect(() => {
     if (!isLoading && !user) {
-      router.replace('/onboarding');
+      // Back to the entry route, which decides: resume a registration left half-way, or onboarding.
+      router.replace('/');
     }
   }, [isLoading, user, router]);
 
@@ -406,6 +407,7 @@ export default function ProfileScreen() {
               children: [
                 { key: 'personalInfo', icon: User, label: t('profile.menu.personalInfo'), route: '/personal-info' },
                 { key: 'savedAddresses', icon: MapPin, label: t(counts.addresses === 1 ? 'profile.menu.savedAddressesOne' : 'profile.menu.savedAddresses'), route: '/(tabs)/addresses' },
+                { key: 'membership', icon: Crown, label: t('profile.menu.membership'), route: '/membership' },
                 { key: 'privacy', icon: Lock, label: t('profile.menu.privacy'), route: '/privacy' },
               ],
             },
@@ -437,6 +439,7 @@ export default function ProfileScreen() {
                 { key: 'personalInfo', icon: User, label: t('profile.menu.personalInfo'), route: '/personal-info' },
                 { key: 'addresses', icon: MapPin, label: t(counts.addresses === 1 ? 'profile.menu.addressesOne' : 'profile.menu.addresses'), route: '/(tabs)/addresses' },
                 { key: 'vehicles', icon: Car, label: t(counts.vehicles === 1 ? 'profile.menu.vehiclesOne' : 'profile.menu.vehicles'), route: '/vehicles' },
+                { key: 'membership', icon: Crown, label: t('profile.menu.membership'), route: '/membership' },
                 { key: 'privacy', icon: Lock, label: t('profile.menu.privacy'), route: '/privacy' },
               ],
             },

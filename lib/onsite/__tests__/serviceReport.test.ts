@@ -33,7 +33,7 @@ describe('buildServiceReport', () => {
         const html = finalReportHtml(buildServiceReport({ appointment, role: 'user', visit: null, paid: null, t, lang: 'en' }));
         expect(html).toContain('MECHANIC ASSISTANCE');
         expect(html).toContain('class="sum"');
-        expect(html).toContain('<span class="n">1.</span>');
+        expect(html).toContain('<span class="n">1</span>');
         if (process.env.DUMP_REPORT_HTML) require('fs').writeFileSync(process.env.DUMP_REPORT_HTML, html);
     });
 });

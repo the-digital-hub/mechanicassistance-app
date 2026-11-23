@@ -1,14 +1,12 @@
 import { SmsConsent } from "@/components/SmsConsent";
 import { describeAuthError } from "@/lib/auth/describe";
 import { requestOtp, toE164 } from "@/lib/auth/otp";
-import { saveSetupProgress } from "@/lib/storage";
+import { clearSetupProgress, getSetupProgress, mergeSetupProgress, saveSetupProgress } from "@/lib/storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { ChevronRight } from "lucide-react-native";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-    ActivityIndicator,
     Keyboard,
     KeyboardAvoidingView,
     Modal,
@@ -20,7 +18,9 @@ import {
     TouchableWithoutFeedback,
     View,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+import { SETUP_BG, SetupFooter, SetupHeading } from "@/components/setup/SetupKit";
+import { TYPE } from "@/lib/ui/type";
+import { BUTTON_RADIUS } from "@/lib/ui/floatingFooter";
 import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 export default function PhoneNumberScreen() {
@@ -80,6 +80,15 @@ export default function PhoneNumberScreen() {
       // message; the conflict surfaces when the account is created.
       const challenge = await requestOtp(fullPhone, "signup");
 
+      // The same number that left a registration half-way picks it up again once its code is verified: what was typed stays and
+      // `resumeFrom` remembers where it stopped (the OTP step reads it). Another number starts clean, so nobody inherits someone else's data.
+      const previous = await getSetupProgress();
+      const samePhone = previous?.phone?.phoneNumber === fullPhone;
+      const stoppedAt: string | undefined = samePhone
+        ? previous.resumeFrom ?? (previous.lastStep && !["phone", "otp"].includes(previous.lastStep) ? previous.lastStep : undefined)
+        : undefined;
+      if (previous?.phone && !samePhone) await clearSetupProgress();
+
       // The timers travel with the progress so the OTP screen can resume them
       // after navigation instead of restarting from zero.
       await saveSetupProgress("phone", {
@@ -88,6 +97,8 @@ export default function PhoneNumberScreen() {
         expiresAtMs: Date.now() + challenge.expiresIn * 1000,
         resendAtMs: Date.now() + challenge.resendAfter * 1000,
       });
+
+      if (stoppedAt) await mergeSetupProgress({ resumeFrom: stoppedAt });
 
       router.push("/setup/otp");
     } catch (error: unknown) {
@@ -102,35 +113,25 @@ export default function PhoneNumberScreen() {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <KeyboardAvoidingView
         className="flex-1"
-        style={{ backgroundColor: '#F6F8FC' }}
+        style={{ backgroundColor: SETUP_BG }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <ScrollView className="flex-1 px-6" style={{ paddingTop: 18 }}>
-          {/* Section Badge */}
-          <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
-            <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
-            <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-              {t("setup.phone.badge")}
-            </Text>
-          </View>
-
-          {/* Title */}
-          <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
-            {t("setup.phone.title")}
-          </Text>
-
-          {/* Subtitle */}
-          <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-            {t("setup.phone.subtitle")}
-          </Text>
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ padding: 20, paddingTop: 18, paddingBottom: 24 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <SetupHeading screen="phone" badge={t("setup.phone.badge")} title={t("setup.phone.title")} subtitle={t("setup.phone.subtitle")} />
 
           {/* Phone input row */}
           <TouchableOpacity
             activeOpacity={1}
             onPress={() => inputRef.current?.focus()}
-            className="flex-row items-center mb-8 border-b-2 border-slate-200 pb-2"
+            className="flex-row items-center"
+            style={{ minHeight: 64, paddingHorizontal: 16, borderRadius: 16, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#EEF2FA', marginBottom: 20 }}
           >
-            <Text className="text-3xl font-outfit-bold text-[#0F172A] mr-4">
+            <Text className="font-outfit-bold" style={{ fontSize: 26, lineHeight: 32, color: '#0B1530', marginRight: 12 }}>
               +1
             </Text>
             <TextInput
@@ -139,48 +140,24 @@ export default function PhoneNumberScreen() {
               onChangeText={handleChangeText}
               keyboardType="phone-pad"
               placeholder="(000) 000-0000"
-              placeholderTextColor="#E2E8F0"
+              placeholderTextColor="#C5CCDB"
               maxLength={14} // (XXX) XXX-XXXX = 14 chars
-              className="text-3xl font-outfit-regular flex-1 text-gray-700"
-              style={{ paddingVertical: 0 }}
+              className="font-outfit-regular flex-1"
+              style={{ paddingVertical: 0, fontSize: 26, lineHeight: 32, color: '#0B1530' }}
               returnKeyType="done"
               onSubmitEditing={handleSubmit}
             />
           </TouchableOpacity>
 
-          <SmsConsent variant="light" className="mt-auto mb-4" />
-
-          {/* Continue button */}
-          <TouchableOpacity
-            onPress={handleSubmit}
-            activeOpacity={0.8}
-            disabled={phoneNumber.length < 10 || isChecking}
-            className="mb-8 mt-auto"
-          >
-            <LinearGradient
-              colors={phoneNumber.length === 10 ? ['#2B66F8', '#081E72'] : ['#B0C4FF', '#B0C4FF']}
-              start={{ x: 0, y: 1 }}
-              end={{ x: 1, y: 0 }}
-              style={{
-                borderRadius: 14,
-                paddingVertical: 16,
-                paddingHorizontal: 16,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              {isChecking ? (
-                <ActivityIndicator color="white" />
-              ) : (
-                <>
-                  <Text className="text-white font-outfit-bold text-center mr-2">{t("setup.phone.continue")}</Text>
-                  <ChevronRight size={20} color="white" />
-                </>
-              )}
-            </LinearGradient>
-          </TouchableOpacity>
+          <SmsConsent variant="light" />
         </ScrollView>
+
+        <SetupFooter
+          label={t("setup.phone.continue")}
+          onPress={handleSubmit}
+          disabled={phoneNumber.length < 10}
+          loading={isChecking}
+        />
 
         {/* Error Modal */}
         <Modal supportedOrientations={MODAL_ORIENTATIONS}
@@ -195,19 +172,20 @@ export default function PhoneNumberScreen() {
                 <Ionicons name="alert-circle" size={32} color="#EF4444" />
               </View>
 
-              <Text className="text-xl font-outfit-bold text-[#0F172A] mb-2 text-center">
+              <Text className="font-outfit-bold text-center mb-2" style={{ ...TYPE.section, color: '#0B1530' }}>
                 {errorModal.title}
               </Text>
 
-              <Text className="text-base font-outfit-regular text-slate-500 text-center mb-8">
+              <Text className="font-outfit-regular text-center mb-8" style={{ ...TYPE.body, color: '#6B7490' }}>
                 {errorModal.message}
               </Text>
 
               <TouchableOpacity
-                className="bg-blue-700 w-full py-4 rounded-[14px] shadow-sm"
+                className="w-full items-center justify-center"
+                style={{ minHeight: 56, borderRadius: BUTTON_RADIUS, backgroundColor: '#1E56E3' }}
                 onPress={hideError}
               >
-                <Text className="text-white text-center font-outfit-bold text-lg">
+                <Text className="text-white text-center font-outfit-bold" style={TYPE.button}>
                   {t("setup.phone.gotIt")}
                 </Text>
               </TouchableOpacity>

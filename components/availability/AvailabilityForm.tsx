@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/Button";
 import { Ionicons } from "@expo/vector-icons";
-import { useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import {
   FlatList,
@@ -13,6 +13,7 @@ import {
 import MapView, { Circle, Marker } from "react-native-maps";
 import { MAP_PROVIDER } from "@/lib/maps/provider";
 import { SlideModal } from '@/components/ui/SlideModal';
+import { SETUP_BG, SetupFooter } from '@/components/setup/SetupKit';
 import {
   BASE_LOCATION,
   DAYS,
@@ -135,6 +136,15 @@ type AvailabilityFormProps = {
   onSubmit: (value: AvailabilityValue) => void | Promise<void>;
   /** Space above the first block. 18 under a plain header; 32 under the rounded one, which the page runs 14 beneath. */
   topInset?: number;
+  /**
+   * Registration step: the save button goes in the fixed bottom bar (SetupFooter) instead of at the end of the scroll, with an optional
+   * soft slate secondary action below it (skip).
+   */
+  fixedFooter?: boolean;
+  secondaryLabel?: string;
+  onSecondary?: () => void;
+  /** Something above the first block (the registration's step badge). */
+  header?: ReactNode;
 };
 
 /**
@@ -142,6 +152,19 @@ type AvailabilityFormProps = {
  * (`app/setup/availability.tsx`) and the mechanic's profile
  * (`app/(tabs)/availability.tsx`); each decides where the value goes.
  */
+/** A white card in the app's style: rounded 20, a hairline border and a soft shadow. */
+const CARD = { backgroundColor: "#FFFFFF", borderRadius: 20, borderWidth: 1, borderColor: "#EEF2FA", shadowColor: "#0E2F8A", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.06, shadowRadius: 14, elevation: 2 } as const;
+
+/** Title of a block of the form (no icon, like the other section titles of the app) and the line that says what it is for. */
+function SectionHead({ title, hint }: { title: string; hint: string }) {
+  return (
+    <View style={{ marginBottom: 12 }}>
+      <Text className="font-outfit-bold" style={{ fontSize: 20, lineHeight: 26, letterSpacing: -0.4, color: "#0B1530" }}>{title}</Text>
+      <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: "#6B7490", marginTop: 2 }}>{hint}</Text>
+    </View>
+  );
+}
+
 export function AvailabilityForm({
   initialValue,
   baseLocation: baseLocationProp,
@@ -150,6 +173,10 @@ export function AvailabilityForm({
   submitting = false,
   onSubmit,
   topInset = 18,
+  header,
+  fixedFooter = false,
+  secondaryLabel,
+  onSecondary,
 }: AvailabilityFormProps) {
   const { t } = useTranslation();
   const baseLocation = baseLocationProp ?? BASE_LOCATION;
@@ -336,7 +363,7 @@ export function AvailabilityForm({
   };
 
   return (
-    <>
+    <View className="flex-1" style={fixedFooter ? { backgroundColor: SETUP_BG } : undefined}>
       <TimePickerModal
         visible={pickerTarget !== null}
         selected={selectedTime}
@@ -345,22 +372,15 @@ export function AvailabilityForm({
       />
 
       <ScrollView
-        className="flex-1 bg-[#EEF2FF]"
-        contentContainerStyle={{ padding: 20, paddingTop: topInset, paddingBottom: 40 }}
+        className={fixedFooter ? "flex-1" : "flex-1 bg-[#EEF2FF]"}
+        contentContainerStyle={{ padding: 20, paddingTop: topInset, paddingBottom: fixedFooter ? 24 : 40 }}
       >
+        {header}
         {/* ── Weekly schedule ── */}
-        <View className="mb-4">
-          <View className="flex-row items-center mb-1">
-            <Ionicons name="calendar-outline" size={20} color="#0047AB" />
-            <Text className="text-[#0F172A] font-outfit-bold text-xl ml-2">
-              {t('setup.availability.weeklySchedule')}
-            </Text>
-          </View>
-          <Text className="text-[#64748B] font-outfit-regular text-base mb-3">
-            {t('setup.availability.weeklyScheduleHint')}
-          </Text>
+        <View style={{ marginBottom: 28 }}>
+          <SectionHead title={t('setup.availability.weeklySchedule')} hint={t('setup.availability.weeklyScheduleHint')} />
 
-          <View className="bg-white rounded-2xl p-4">
+          <View style={{ ...CARD, padding: 16 }}>
             {/* Day pills */}
             <View className="flex-row justify-between mb-5">
               {DAYS.map((day) => {
@@ -389,16 +409,16 @@ export function AvailabilityForm({
             {applySameTime && (
               <View className="flex-row gap-3 mb-4">
                 <View className="flex-1">
-                  <Text className="text-[#64748B] font-outfit-bold text-[14px] mb-1 tracking-widest uppercase">
+                  <Text className="text-[#64748B] font-outfit-bold uppercase" style={{ fontSize: 12, lineHeight: 16, letterSpacing: 1.2, marginBottom: 6 }}>
                     {t('setup.availability.from')}
                   </Text>
                   <TouchableOpacity
-                    className="bg-[#F8FAFF] flex-row items-center justify-between px-3 h-12 rounded-xl border border-[#E2E8F0]"
+                    className="bg-[#F8FAFF] flex-row items-center justify-between px-3 h-12 rounded-[14px] border border-[#E2E8F0]"
                     onPress={() => openPicker({ day: null, field: "from" })}
                   >
                     <View className="flex-row items-center gap-2">
                       <Ionicons name="time-outline" size={18} color="#0047AB" />
-                      <Text className="text-[#0F172A] font-outfit-medium text-[17px]">
+                      <Text className="text-[#0F172A] font-outfit-medium text-[16px]">
                         {formatTime12h(startTime)}
                       </Text>
                     </View>
@@ -407,16 +427,16 @@ export function AvailabilityForm({
                 </View>
 
                 <View className="flex-1">
-                  <Text className="text-[#64748B] font-outfit-bold text-[14px] mb-1 tracking-widest uppercase">
+                  <Text className="text-[#64748B] font-outfit-bold uppercase" style={{ fontSize: 12, lineHeight: 16, letterSpacing: 1.2, marginBottom: 6 }}>
                     {t('setup.availability.to')}
                   </Text>
                   <TouchableOpacity
-                    className="bg-[#F8FAFF] flex-row items-center justify-between px-3 h-12 rounded-xl border border-[#E2E8F0]"
+                    className="bg-[#F8FAFF] flex-row items-center justify-between px-3 h-12 rounded-[14px] border border-[#E2E8F0]"
                     onPress={() => openPicker({ day: null, field: "to" })}
                   >
                     <View className="flex-row items-center gap-2">
                       <Ionicons name="time-outline" size={18} color="#0047AB" />
-                      <Text className="text-[#0F172A] font-outfit-medium text-[17px]">
+                      <Text className="text-[#0F172A] font-outfit-medium text-[16px]">
                         {formatTime12h(endTime)}
                       </Text>
                     </View>
@@ -429,7 +449,7 @@ export function AvailabilityForm({
             {/* Per-day hours — one row per selected day, in week order */}
             {!applySameTime && (
               <View className="mb-4">
-                <Text className="text-[#64748B] font-outfit-regular text-base mb-3">
+                <Text className="text-[#6B7490] font-outfit-regular mb-3" style={{ fontSize: 14, lineHeight: 20 }}>
                   {t('setup.availability.perDayHint')}
                 </Text>
 
@@ -437,12 +457,12 @@ export function AvailabilityForm({
                   const hours = hoursFor(day);
                   return (
                     <View key={day} className="mb-3">
-                      <Text className="text-[#0F172A] font-outfit-bold text-[17px] mb-1">
+                      <Text className="text-[#0F172A] font-outfit-bold text-[16px] mb-1">
                         {t(`setup.availability.dayNames.${day}`)}
                       </Text>
                       <View className="flex-row gap-3">
                         <TouchableOpacity
-                          className="flex-1 bg-[#F8FAFF] flex-row items-center justify-between px-3 h-12 rounded-xl border border-[#E2E8F0]"
+                          className="flex-1 bg-[#F8FAFF] flex-row items-center justify-between px-3 h-12 rounded-[14px] border border-[#E2E8F0]"
                           onPress={() => openPicker({ day, field: "from" })}
                         >
                           <View className="flex-row items-center gap-2">
@@ -451,7 +471,7 @@ export function AvailabilityForm({
                               size={16}
                               color="#0047AB"
                             />
-                            <Text className="text-[#0F172A] font-outfit-medium text-[17px]">
+                            <Text className="text-[#0F172A] font-outfit-medium text-[16px]">
                               {formatTime12h(hours.startTime)}
                             </Text>
                           </View>
@@ -463,7 +483,7 @@ export function AvailabilityForm({
                         </TouchableOpacity>
 
                         <TouchableOpacity
-                          className="flex-1 bg-[#F8FAFF] flex-row items-center justify-between px-3 h-12 rounded-xl border border-[#E2E8F0]"
+                          className="flex-1 bg-[#F8FAFF] flex-row items-center justify-between px-3 h-12 rounded-[14px] border border-[#E2E8F0]"
                           onPress={() => openPicker({ day, field: "to" })}
                         >
                           <View className="flex-row items-center gap-2">
@@ -472,7 +492,7 @@ export function AvailabilityForm({
                               size={16}
                               color="#0047AB"
                             />
-                            <Text className="text-[#0F172A] font-outfit-medium text-[17px]">
+                            <Text className="text-[#0F172A] font-outfit-medium text-[16px]">
                               {formatTime12h(hours.endTime)}
                             </Text>
                           </View>
@@ -516,22 +536,14 @@ export function AvailabilityForm({
         </View>
 
         {/* ── Service area ── */}
-        <View className="mb-6">
-          <View className="flex-row items-center mb-1">
-            <Ionicons name="location-outline" size={20} color="#0047AB" />
-            <Text className="text-[#0F172A] font-outfit-bold text-xl ml-2">
-              {t('setup.availability.serviceArea')}
-            </Text>
-          </View>
-          <Text className="text-[#64748B] font-outfit-regular text-base mb-3">
-            {t('setup.availability.serviceAreaHint')}
-          </Text>
+        <View style={{ marginBottom: 24 }}>
+          <SectionHead title={t('setup.availability.serviceArea')} hint={t('setup.availability.serviceAreaHint')} />
 
-          <View className="bg-white rounded-2xl">
+          <View style={CARD}>
             {/* Map with padding so it doesn't touch the edges */}
             <View className="p-3 pb-0">
               {basePoint ? (
-                <View className="rounded-xl overflow-hidden">
+                <View className="rounded-[14px] overflow-hidden">
                   <MapView
                     provider={MAP_PROVIDER}
                     style={{ height: 180 }}
@@ -557,7 +569,7 @@ export function AvailabilityForm({
                 </View>
               ) : (
                 <View
-                  className="rounded-xl bg-[#F8FAFF] border border-[#E2E8F0] items-center justify-center px-6"
+                  className="rounded-[14px] bg-[#F8FAFF] border border-[#E2E8F0] items-center justify-center px-6"
                   style={{ height: 180 }}
                 >
                   <Ionicons name="map-outline" size={28} color="#94A3B8" />
@@ -606,54 +618,45 @@ export function AvailabilityForm({
 
               {/* Tick labels */}
               <View className="flex-row justify-between mt-1 mb-4">
-                <Text className="text-[#94A3B8] font-outfit-medium text-[15px]">
+                <Text className="text-[#94A3B8] font-outfit-medium text-[13px]">
                   {t('setup.availability.milesAbbr', { count: 1 })}
                 </Text>
-                <Text className="text-[#94A3B8] font-outfit-medium text-[15px]">
+                <Text className="text-[#94A3B8] font-outfit-medium text-[13px]">
                   {t('setup.availability.milesAbbr', { count: Math.round(RADIUS_MAX / 2) })}
                 </Text>
-                <Text className="text-[#94A3B8] font-outfit-medium text-[15px]">
+                <Text className="text-[#94A3B8] font-outfit-medium text-[13px]">
                   {t('setup.availability.milesAbbr', { count: RADIUS_MAX })}
                 </Text>
               </View>
 
-              {/* Base location: the address in full, and its own button under it (a long address no longer squeezes "Edit") */}
-              <View
-                className="bg-[#F8FAFF] rounded-2xl border border-[#D5DEF0] p-3"
-                style={{ gap: 12 }}
+              {/* Base location: the whole card is the action (it opens the sheet of addresses), with a "Change" chip and a chevron like the app's other rows */}
+              <TouchableOpacity
+                onPress={onEditLocation}
+                activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityLabel={`${t('setup.availability.baseLocation')}: ${baseLocation.address}. ${t('setup.availability.edit')}`}
+                className="bg-[#F8FAFF] rounded-2xl border border-[#D5DEF0] flex-row items-center"
+                style={{ gap: 12, padding: 14 }}
+                testID="base-location-row"
               >
-                <View className="flex-row items-start" style={{ gap: 12 }}>
-                  <View className="items-center justify-center" style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: "#E6EEFF" }}>
-                    <Ionicons name="location" size={24} color="#0047AB" />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-[#64748B] font-outfit-bold text-[14px] uppercase tracking-widest mb-0.5">
+                <View className="items-center justify-center" style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: "#E6EEFF" }}>
+                  <Ionicons name="location" size={24} color="#0047AB" />
+                </View>
+                <View className="flex-1" style={{ minWidth: 0 }}>
+                  {/* The label and, on the same line at the right, the "Change" chip that says what the card does */}
+                  <View className="flex-row items-center justify-between" style={{ gap: 8, marginBottom: 2 }}>
+                    <Text className="text-[#64748B] font-outfit-bold uppercase" style={{ fontSize: 12, lineHeight: 16, letterSpacing: 1.2 }}>
                       {t('setup.availability.baseLocation')}
                     </Text>
-                    <Text
-                      className="text-[#0F172A] font-outfit-bold"
-                      style={{ fontSize: 17, lineHeight: 23 }}
-                      numberOfLines={3}
-                    >
-                      {baseLocation.address}
-                    </Text>
+                    <View style={{ paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999, backgroundColor: "#E6EEFF" }}>
+                      <Text className="font-outfit-semibold" style={{ fontSize: 13, color: "#0047AB" }}>{t('setup.availability.change')}</Text>
+                    </View>
                   </View>
-                </View>
-                <TouchableOpacity
-                  onPress={onEditLocation}
-                  activeOpacity={0.85}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${t('setup.availability.baseLocation')}: ${baseLocation.address}. ${t('setup.availability.edit')}`}
-                  className="flex-row items-center justify-center"
-                  style={{ gap: 8, minHeight: 50, borderRadius: 14, backgroundColor: '#E6EAF2' }}
-                  testID="base-location-row"
-                >
-                  <Ionicons name="create-outline" size={20} color="#4A5470" />
-                  <Text className="font-outfit-bold" style={{ fontSize: 17, color: '#4A5470' }}>
-                    {t('setup.availability.edit')}
+                  <Text className="text-[#0F172A] font-outfit-semibold" style={{ fontSize: 16, lineHeight: 22 }} numberOfLines={2}>
+                    {baseLocation.address}
                   </Text>
-                </TouchableOpacity>
-              </View>
+                </View>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -668,16 +671,28 @@ export function AvailabilityForm({
           </View>
         )}
 
-        <Button
-          onPress={handleSave}
-          size="lg"
-          className="bg-[#0047AB] rounded-[14px]"
-          style={{ minHeight: 56 }}
-          isLoading={submitting}
-        >
-          {submitLabel}
-        </Button>
+        {!fixedFooter && (
+          <Button
+            onPress={handleSave}
+            size="lg"
+            className="bg-[#0047AB] rounded-[14px]"
+            style={{ minHeight: 56 }}
+            isLoading={submitting}
+          >
+            {submitLabel}
+          </Button>
+        )}
       </ScrollView>
-    </>
+
+      {fixedFooter && (
+        <SetupFooter
+          label={submitLabel}
+          onPress={handleSave}
+          loading={submitting}
+          secondaryLabel={secondaryLabel}
+          onSecondary={onSecondary}
+        />
+      )}
+    </View>
   );
 }

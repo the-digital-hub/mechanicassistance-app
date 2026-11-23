@@ -499,6 +499,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="membership"
+        options={{
+          href: null,
+          title: t('tabs.profile'),
+          headerLeft: () => <PersonalInfoHeaderLeft />,
+          headerRight: () => <PersonalInfoHeaderRight />,
+        }}
+      />
+      <Tabs.Screen
         name="settings"
         options={{
           href: null,

@@ -6,8 +6,10 @@ import type { ParsedAddress } from "@/lib/places";
 import { getAddRoleState } from "@/lib/setup-add-role";
 import { getSetupProgress, saveSetupProgress } from "@/lib/storage";
 import { useRouter } from "expo-router";
-import { ChevronRight } from "lucide-react-native";
-import { LinearGradient } from "expo-linear-gradient";
+import { KeyboardAwareScrollView } from "@/components/ui/KeyboardAwareScrollView";
+import { SETUP_BG, SetupFooter, SetupHeading } from "@/components/setup/SetupKit";
+import { BUTTON_RADIUS } from "@/lib/ui/floatingFooter";
+import { TYPE } from "@/lib/ui/type";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { SlideModal } from '@/components/ui/SlideModal';
@@ -221,39 +223,29 @@ export default function AddressScreen() {
     }
   };
 
+  const fieldLabel = "font-outfit-semibold mb-2";
+  const fieldLabelStyle = { fontSize: 15, color: '#0B1530' } as const;
+  const inputBox = "bg-white border border-[#E1E7F2] rounded-[14px]";
+
   return (
+    <View className="flex-1" style={{ backgroundColor: SETUP_BG }}>
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={{ flex: 1 }}
       keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
-      <ScrollView
+      <KeyboardAwareScrollView
         ref={scrollViewRef}
-        style={{ backgroundColor: '#F6F8FC' }}
-        contentContainerStyle={{ padding: 24, paddingTop: 18, paddingBottom: 40 }}
+        className="flex-1"
+        contentContainerStyle={{ padding: 20, paddingTop: 18, paddingBottom: 24 }}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        {/* Section Badge */}
-        <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
-          <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
-          <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
-            {t('setup.address.badge')}
-          </Text>
-        </View>
-
-        {/* Title */}
-        <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
-          {t('setup.address.title')}
-        </Text>
-
-        {/* Subtitle */}
-        <Text className="text-gray-500 font-outfit-regular text-base mb-8">
-          {t('setup.address.subtitle')}
-        </Text>
+        <SetupHeading screen="address" badge={t('setup.address.badge')} title={t('setup.address.title')} subtitle={t('setup.address.subtitle')} />
 
         {existingAddresses.length > 0 && (
-          <View className="mb-8 rounded-2xl overflow-hidden" style={{ backgroundColor: '#F4F8FF' }}>
-            <Text className="font-outfit-semibold text-[#0F172A] px-4 pt-4 pb-2">
+          <View className="mb-6 overflow-hidden" style={{ backgroundColor: '#F4F8FF', borderRadius: 16, borderWidth: 1, borderColor: '#EEF2FA' }}>
+            <Text className="font-outfit-semibold px-4 pt-4 pb-2" style={{ ...TYPE.body, color: '#0B1530' }}>
               {t('setup.addRole.existingAddresses')}
             </Text>
             {existingAddresses.map((address, index) => (
@@ -263,10 +255,10 @@ export default function AddressScreen() {
                 style={{ borderTopWidth: index > 0 ? 1 : 0, borderTopColor: '#E1EAFB' }}
               >
                 <View className="flex-1 mr-3">
-                  <Text className="font-outfit-medium text-sm text-gray-900" numberOfLines={1}>
+                  <Text className="font-outfit-medium" style={{ ...TYPE.helper, color: '#0B1530' }} numberOfLines={1}>
                     {address.street}
                   </Text>
-                  <Text className="font-outfit-regular text-[13px] text-gray-500" numberOfLines={1}>
+                  <Text className="font-outfit-regular" style={{ ...TYPE.caption, color: '#6B7490' }} numberOfLines={1}>
                     {[address.city, address.state, address.zip].filter(Boolean).join(', ')}
                   </Text>
                 </View>
@@ -275,7 +267,7 @@ export default function AddressScreen() {
                   className="px-3 py-2 rounded-full"
                   style={{ backgroundColor: '#E9F1FF' }}
                 >
-                  <Text className="text-blue-600 font-outfit-semibold text-[13px]">
+                  <Text className="font-outfit-semibold" style={{ ...TYPE.caption, color: '#1E56E3' }}>
                     {t('setup.addRole.useThis')}
                   </Text>
                 </TouchableOpacity>
@@ -284,26 +276,31 @@ export default function AddressScreen() {
           </View>
         )}
 
-        {/* Toggle */}
-        <View className={`flex-row ${addressType === "other" ? "mb-4" : "mb-8"}`}>
-          {(["home", "work", "other"] as const).map((type, i, all) => (
-            <TouchableOpacity
-              key={type}
-              onPress={() => setAddressType(type)}
-              className={`flex-1 py-3 border justify-center items-center ${i === 0 ? "rounded-l-xl" : ""} ${i === all.length - 1 ? "rounded-r-xl" : ""} ${addressType === type ? "bg-white border-[#0047AB]" : "bg-gray-50 border-gray-200"}`}
-            >
-              <Text
-                className={`font-outfit-medium ${addressType === type ? "text-[#0F172A]" : "text-gray-500"}`}
+        {/* Toggle: soft slate track, chosen type in white */}
+        <View className="flex-row" style={{ gap: 6, padding: 6, borderRadius: 18, backgroundColor: '#E6EAF2', marginBottom: addressType === "other" ? 16 : 24 }}>
+          {(["home", "work", "other"] as const).map((type) => {
+            const on = addressType === type;
+            return (
+              <TouchableOpacity
+                key={type}
+                onPress={() => setAddressType(type)}
+                activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityState={{ selected: on }}
+                className="flex-1 justify-center items-center"
+                style={{ minHeight: 44, borderRadius: BUTTON_RADIUS, backgroundColor: on ? '#FFFFFF' : 'transparent' }}
               >
-                {t(`addresses.name.${type}`)}
-              </Text>
-            </TouchableOpacity>
-          ))}
+                <Text className="font-outfit-semibold" style={{ ...TYPE.body, color: on ? '#0B1530' : '#6B7490' }}>
+                  {t(`addresses.name.${type}`)}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         {addressType === "other" && (
-          <View className="mb-8">
-            <Text className="font-outfit-medium text-[#0F172A] mb-2">
+          <View className="mb-6">
+            <Text className={fieldLabel} style={fieldLabelStyle}>
               {t('addresses.name.label')}
             </Text>
             <Input
@@ -311,60 +308,60 @@ export default function AddressScreen() {
               onChangeText={setOtherLabel}
               placeholder={t('addresses.name.customPlaceholder')}
               maxLength={40}
-              containerClassName="bg-white border border-gray-300 rounded-2xl"
+              containerClassName={inputBox}
             />
           </View>
         )}
 
-        <View className="space-y-4 mb-4 gap-5">
+        <View className="mb-4 gap-5">
           <View className="relative z-50">
-            <Text className="font-outfit-medium text-[#0F172A] mb-2">
+            <Text className={fieldLabel} style={fieldLabelStyle}>
               {t('setup.address.streetNumber')}
             </Text>
             <AddressAutocomplete
               value={formData.street}
               onChangeText={handleStreetChange}
               onSelect={handleSelectAddress}
-              containerClassName="bg-white border border-gray-300 rounded-2xl"
+              containerClassName={inputBox}
               placeholder={t('setup.address.streetPlaceholder')}
             />
           </View>
 
           <View>
-            <Text className="font-outfit-medium text-[#0F172A] mb-2">
+            <Text className={fieldLabel} style={fieldLabelStyle}>
               {t('setup.address.apartment')}
             </Text>
             <Input
               value={formData.apartment}
               onChangeText={(text) => handleChange("apartment", text)}
-              containerClassName="bg-white border border-gray-300 rounded-2xl"
+              containerClassName={inputBox}
             />
           </View>
 
           <View className="flex-row gap-4">
             <View className="flex-1">
-              <Text className="font-outfit-medium text-[#0F172A] mb-2">
+              <Text className={fieldLabel} style={fieldLabelStyle}>
                 {t('setup.address.city')}
               </Text>
               <Input
                 value={formData.city}
                 onChangeText={(text) => handleChange("city", text)}
-                containerClassName="bg-white border border-gray-300 rounded-2xl"
+                containerClassName={inputBox}
               />
             </View>
 
             <View className="flex-1">
-              <Text className="font-outfit-medium text-[#0F172A] mb-2">
+              <Text className={fieldLabel} style={fieldLabelStyle}>
                 {t('setup.address.state')}
               </Text>
               <TouchableOpacity
                 onPress={() => setShowStateModal(true)}
-                className="bg-white border border-gray-300 rounded-2xl justify-center px-4"
-                style={{ height: 52 }}
+                className="bg-white border justify-center px-4"
+                style={{ minHeight: 52, borderRadius: BUTTON_RADIUS, borderColor: '#E1E7F2' }}
               >
                 <Text
-                  className={`font-outfit-medium ${formData.state ? "text-[#0F172A]" : "text-gray-400"}`}
-                  style={{ lineHeight: 25 }}
+                  className="font-outfit-medium"
+                  style={{ ...TYPE.body, color: formData.state ? '#0B1530' : '#9AA3B8' }}
                 >
                   {formData.state || t('setup.address.select')}
                 </Text>
@@ -373,7 +370,7 @@ export default function AddressScreen() {
           </View>
 
           <View ref={zipContainerRef}>
-            <Text className="font-outfit-medium text-[#0F172A] mb-2">{t('setup.address.zip')}</Text>
+            <Text className={fieldLabel} style={fieldLabelStyle}>{t('setup.address.zip')}</Text>
             <Input
               value={formData.zip}
               onChangeText={(text) => {
@@ -381,65 +378,32 @@ export default function AddressScreen() {
                 handleChange("zip", cleaned);
               }}
               onFocus={() => scrollToField(zipContainerRef)}
-              containerClassName="bg-white border border-gray-300 rounded-2xl"
+              containerClassName={inputBox}
               keyboardType="number-pad"
               maxLength={5}
             />
           </View>
         </View>
+      </KeyboardAwareScrollView>
 
-        <View className="gap-3 mt-4 mb-10">
-          <TouchableOpacity
-            onPress={handleContinue}
-            activeOpacity={0.8}
-          >
-            <LinearGradient
-              colors={['#2B66F8', '#081E72']}
-              start={{ x: 0, y: 1 }}
-              end={{ x: 1, y: 0 }}
-              style={{
-                borderRadius: 14,
-                paddingVertical: 16,
-                paddingHorizontal: 16,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Text className="text-white font-outfit-bold text-center mr-2">{t('setup.address.continue')}</Text>
-              <ChevronRight size={20} color="white" />
-            </LinearGradient>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={handleSkip}
-            activeOpacity={0.8}
-          >
-            <View
-              style={{
-                borderRadius: 10,
-                paddingVertical: 16,
-                paddingHorizontal: 16,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#E6EAF2',
-              }}
-            >
-              <Text className="font-outfit-bold text-center" style={{ color: '#4A5470' }}>{t('setup.address.skip')}</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
+      <SetupFooter
+        label={t('setup.address.continue')}
+        onPress={handleContinue}
+        secondaryLabel={t('setup.address.skip')}
+        onSecondary={handleSkip}
+      />
+    </KeyboardAvoidingView>
 
-        {/* State Selection Modal */}
+    {/* State Selection Modal */}
         <SlideModal visible={showStateModal} onClose={() => setShowStateModal(false)} dim="rgba(0,0,0,0.5)">
           <View>
             <View className="bg-white rounded-t-3xl" style={{ height: Dimensions.get('window').height * 0.66 }}>
               <View className="p-6 border-b border-gray-100 flex-row justify-between items-center">
-                <Text className="text-xl font-outfit-bold text-blue-900">
+                <Text className="font-outfit-bold" style={{ ...TYPE.section, color: '#0B1530' }}>
                   {t('setup.address.selectState')}
                 </Text>
                 <TouchableOpacity onPress={() => setShowStateModal(false)}>
-                  <Text className="text-blue-600 font-outfit-bold">{t('setup.address.done')}</Text>
+                  <Text className="font-outfit-bold" style={{ ...TYPE.body, color: '#1E56E3' }}>{t('setup.address.done')}</Text>
                 </TouchableOpacity>
               </View>
               <FlatList
@@ -454,11 +418,11 @@ export default function AddressScreen() {
                     }}
                   >
                     <Text
-                      className={`text-base font-outfit-medium ${formData.state === item.code ? "text-blue-900" : "text-gray-800"}`}
+                      className="font-outfit-medium" style={{ ...TYPE.body, color: formData.state === item.code ? '#081E72' : '#0B1530' }}
                     >
                       {item.name}
                     </Text>
-                    <Text className="text-sm font-outfit-bold text-blue-600">
+                    <Text className="font-outfit-bold" style={{ ...TYPE.helper, color: '#1E56E3' }}>
                       {item.code}
                     </Text>
                   </TouchableOpacity>
@@ -467,7 +431,6 @@ export default function AddressScreen() {
             </View>
           </View>
         </SlideModal>
-      </ScrollView>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
