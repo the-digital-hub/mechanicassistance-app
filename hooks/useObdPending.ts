@@ -7,8 +7,17 @@ import { onSiteDAO } from '@/lib/dao/OnSiteDAO';
 /** Only recent closed visits count: an old one without a report is history, not a task. */
 const WINDOW_DAYS = 14;
 /** The visit is read one by one, so only the newest few are checked. */
-const MAX_CHECKED = 6;
+const MAX_CHECKED = 10;
 const CLOSED = ['completed', 'awaiting_confirmation', 'disputed'];
+
+/**
+ * Whether a visit of a finished job still has no scanner report. The same test the close-out screen uses for its "OBD scan report
+ * pending" row (no report, or a failed one): the alert and that row must never disagree. (The visit's own `closedAt` is not asked: the
+ * job is already finished, and a visit without it still showed the pending row there but never raised the alert.)
+ */
+export function lacksObdReport(visit: { obdStatus?: string | null } | null | undefined): boolean {
+    return !!visit && (visit.obdStatus === 'none' || visit.obdStatus === 'failed');
+}
 
 /**
  * The technician's closed on-site visits that still have no scanner (OBD) report, newest first: what "Needs your attention" reminds about.
@@ -42,7 +51,7 @@ export function useObdPending(appointments: readonly Appointment[], enabled: boo
         Promise.all(
             candidates.map((a) =>
                 onSiteDAO.get(a.id)
-                    .then((visit) => (visit?.closedAt && (visit.obdStatus === 'none' || visit.obdStatus === 'failed') ? a.id : null))
+                    .then((visit) => (lacksObdReport(visit) ? a.id : null))
                     .catch(() => null),
             ),
         ).then((ids) => { if (!cancelled) setMissing(ids.filter((id): id is string => !!id)); });

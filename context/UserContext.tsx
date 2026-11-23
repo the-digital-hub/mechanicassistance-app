@@ -8,6 +8,7 @@ import {
     migrateLegacyTokenStorage,
     onSessionExpired,
     saveCachedUser,
+    suppressSessionExpiry,
 } from '@/lib/auth/session';
 import { addressDAO } from '@/lib/dao/AddressDAO';
 import { userDAO } from '@/lib/dao/UserDAO';
@@ -54,7 +55,7 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 /** How long logout waits for the server before signing out locally anyway. */
-const LOGOUT_REMOTE_TIMEOUT_MS = 5000;
+const LOGOUT_REMOTE_TIMEOUT_MS = 3000;
 
 export function UserProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<UserData | null>(null);
@@ -240,6 +241,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }, [mergeFullProfile]);
 
     const logout = useCallback(async () => {
+        suppressSessionExpiry(true);
         try {
             // While the tokens still work: stop this phone getting the account's
             // notifications, and revoke the whole rotation family server-side so
@@ -259,6 +261,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
             // Not awaited: Google/Firebase sign-out has no timeout either, and
             // our own session is already gone. Errors (already signed out) ignored.
             firebaseSignOut().catch(() => undefined);
+            // Late 401s of the revoke call are still ignored for a moment; after that a real expiry notifies again.
+            setTimeout(() => suppressSessionExpiry(false), 2000);
         }
     }, []);
 

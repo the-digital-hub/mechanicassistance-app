@@ -25,6 +25,7 @@ import { ImmediateOfferPanel } from '@/components/dashboard/ImmediateOfferPanel'
 import { useOfferFromCard } from '@/hooks/useOfferFromCard';
 import { useScrollPressGuard } from '@/hooks/useScrollPressGuard';
 import { ActivityIndicator, Animated, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { localizedAddress } from '@/lib/ui/remoteAddress';
 
 /** "Listening for new requests": a small chip whose dot breathes, so the empty feed feels alive. */
 function ListeningChip({ label }: { label: string }) {
@@ -354,12 +355,12 @@ export default function AssistanceRequestsScreen() {
               const badge = request.type === 'immediate' ? t('dashboard.mechanic.urgent') : null;
 
               // Hide the street; show only city/state (+ zip) once — same as the dashboard feed.
-              const addressParts = String(request.address || '').split(',').map((p) => p.trim()).filter(Boolean);
+              const addressParts = String(localizedAddress(request.address, t) || '').split(',').map((p) => p.trim()).filter(Boolean);
               // Scheduled: the wanted days and hours, read from the request's notes.
               const whenParts = request.type === 'scheduled' ? (() => { const n = parseRequestNotes(request.notes, request.date); return n.days || n.window ? n : null; })() : null;
               const cityLine = addressParts.length > 1
                 ? `${addressParts.slice(1).join(', ')}${request.zip ? ` · ${request.zip}` : ''}`
-                : String(request.address || '');
+                : String(localizedAddress(request.address, t) || '');
 
               const cardShadow = {
                 shadowColor: '#000',

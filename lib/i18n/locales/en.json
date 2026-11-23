@@ -3372,7 +3372,13 @@
       "ruleMinLength": "At least 8 characters.",
       "ruleSymbol": "Contains a symbol or a number",
       "rulePasswordsMatch": "Passwords match",
-      "continue": "Continue"
+      "continue": "Continue",
+      "photoSourceTitle": "Profile photo",
+      "photoCamera": "Take a photo",
+      "photoLibrary": "Choose from library",
+      "photoCancel": "Cancel",
+      "cameraPermissionTitle": "Camera access needed",
+      "cameraPermissionMessage": "Allow camera access in Settings to take your profile photo, or choose one from your library."
     },
     "otp": {
       "tooManyAttempts": "Too many attempts. Please wait a few minutes and try again later.",
@@ -3645,7 +3651,7 @@
       "statusDeclined": "Declined",
       "noticeTitle": "Don't have your documents scanned right now?",
       "noticeBody": "Don't have your documents scanned yet? Tap {{cta}} and add them later from your profile.",
-      "submit": "Finish sign-up and create account",
+      "submit": "Create my account",
       "back": "Back",
       "errorTooLarge": "That file is {{size}} MB. The limit is {{max}} MB.",
       "errorType": "Only PDF or image files are accepted.",
@@ -3665,7 +3671,7 @@
       "alreadyYours": "ALREADY YOURS",
       "signInAs": "Sign in as {{role}}",
       "addRoleAs": "Add {{role}} to my account",
-      "cancel": "Cancel and sign out",
+      "cancel": "Cancel",
       "signInFailed": "We couldn't sign you in with that role. Please try again.",
       "loadFailed": "We couldn't load your account details. Please try again.",
       "activeJobs": "You have a service in progress as {{role}}. Finish it before switching.",
@@ -4863,5 +4869,12 @@
       "respectful": "Respectful",
       "easy_access": "Easy access"
     }
+  },
+  "stripeInfo": {
+    "title": "What is Stripe?",
+    "provider": "Stripe is the payment company that handles the money on Mechanic Assistance. It checks who you are and sends your earnings to your bank account. Your bank details go to Stripe, never to the app.",
+    "customer": "Stripe is the secure payment company that processes card payments on Mechanic Assistance. Your card number goes straight to Stripe; we only keep the brand, the last 4 digits and the expiry date.",
+    "gotIt": "Got it",
+    "learnMore": "Learn more about Stripe"
   }
 }

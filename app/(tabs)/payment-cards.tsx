@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
+import { StripeInfoButton } from '@/components/payments/StripeInfoButton';
 import { WalletSection } from '@/components/payments/WalletSection';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { ApiError } from '@/lib/api/types';
@@ -380,6 +381,7 @@ function PaymentCardsContent() {
               <Text className="flex-1 text-gray-400 font-outfit-regular text-[13px]">
                 {t('paymentCards.securityNote')}
               </Text>
+              <StripeInfoButton audience="customer" size={16} testID="cards-stripe-info" />
             </View>
           </>
         )}

@@ -3373,7 +3373,13 @@
       "ruleMinLength": "Al menos 8 caracteres.",
       "ruleSymbol": "Contiene un símbolo o un número",
       "rulePasswordsMatch": "Las contraseñas coinciden",
-      "continue": "Continuar"
+      "continue": "Continuar",
+      "photoSourceTitle": "Foto de perfil",
+      "photoCamera": "Sacar una foto",
+      "photoLibrary": "Elegir de la galería",
+      "photoCancel": "Cancelar",
+      "cameraPermissionTitle": "Falta permiso de cámara",
+      "cameraPermissionMessage": "Permití el acceso a la cámara en Ajustes para sacarte la foto de perfil, o elegí una de tu galería."
     },
     "otp": {
       "tooManyAttempts": "Demasiados intentos. Esperá unos minutos y volvé a intentar más tarde.",
@@ -3646,7 +3652,7 @@
       "statusDeclined": "Rechazado",
       "noticeTitle": "¿No tenés tus documentos digitalizados en este momento?",
       "noticeBody": "¿Todavía no tenés tus documentos digitalizados? Tocá {{cta}} y cargalos más tarde desde tu perfil.",
-      "submit": "Finalizar registro y crear cuenta",
+      "submit": "Crear mi cuenta",
       "back": "Atrás",
       "errorTooLarge": "El archivo pesa {{size}} MB. El máximo es {{max}} MB.",
       "errorType": "Solo se aceptan archivos PDF o imágenes.",
@@ -3666,7 +3672,7 @@
       "alreadyYours": "YA ES TUYO",
       "signInAs": "Iniciar sesión como {{role}}",
       "addRoleAs": "Sumar {{role}} a mi cuenta",
-      "cancel": "Cancelar y cerrar sesión",
+      "cancel": "Cancelar",
       "signInFailed": "No pudimos iniciar sesión con ese rol. Intentá de nuevo.",
       "loadFailed": "No pudimos cargar los datos de tu cuenta. Intentá de nuevo.",
       "activeJobs": "Tenés un servicio en curso como {{role}}. Terminalo antes de cambiar.",
@@ -4863,5 +4869,12 @@
       "respectful": "Trato respetuoso",
       "easy_access": "Fácil acceso"
     }
+  },
+  "stripeInfo": {
+    "title": "¿Qué es Stripe?",
+    "provider": "Stripe es la empresa de pagos que maneja el dinero en Mechanic Assistance. Verifica quién sos y envía tus ganancias a tu cuenta bancaria. Tus datos bancarios van a Stripe, nunca a la app.",
+    "customer": "Stripe es la empresa de pagos segura que procesa los pagos con tarjeta en Mechanic Assistance. El número de tu tarjeta va directo a Stripe; nosotros solo guardamos la marca, los últimos 4 dígitos y el vencimiento.",
+    "gotIt": "Entendido",
+    "learnMore": "Conocer más sobre Stripe"
   }
 }

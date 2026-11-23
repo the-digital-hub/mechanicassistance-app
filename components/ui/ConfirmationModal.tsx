@@ -1,8 +1,11 @@
 import { FONT } from '@/lib/ui/fonts';
 import { LucideIcon } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
+    ActivityIndicator,
+    Animated as RNAnimated,
     Dimensions,
+    Easing,
     Modal,
     StyleSheet,
     Text,
@@ -36,6 +39,52 @@ interface ConfirmationModalProps {
   confirmTone?: "primary" | "success";
   /** The fact the dialog is about (a day and time, a service), big in its own block, as in the app's alerts. */
   highlight?: { label: string; value: string; sub?: string; icon?: keyof typeof Ionicons.glyphMap };
+  /** The icon as a round, live one (pops in, breathes a soft ring, the glyph nudges) instead of the plain glyph: for an alert about leaving. */
+  liveIcon?: boolean;
+  /** The action is running: the confirm button shows a spinner and ignores taps (a slow network must not look like a frozen dialog). */
+  confirmLoading?: boolean;
+}
+
+/** A round icon that plays when the alert opens: the disc pops in with a bounce, a ring breathes out, the glyph nudges toward the exit. */
+function LiveIcon({ icon: Icon, color }: { icon: LucideIcon; color: string }) {
+  const pop = useRef(new RNAnimated.Value(0)).current;
+  const ring = useRef(new RNAnimated.Value(0)).current;
+  const nudge = useRef(new RNAnimated.Value(0)).current;
+  useEffect(() => {
+    pop.setValue(0);
+    const popIn = RNAnimated.spring(pop, { toValue: 1, friction: 5, tension: 130, useNativeDriver: true });
+    const breathe = RNAnimated.loop(RNAnimated.timing(ring, { toValue: 1, duration: 1600, easing: Easing.out(Easing.quad), useNativeDriver: true }));
+    const move = RNAnimated.loop(RNAnimated.sequence([
+      RNAnimated.timing(nudge, { toValue: 1, duration: 700, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+      RNAnimated.timing(nudge, { toValue: 0, duration: 700, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+    ]));
+    popIn.start();
+    breathe.start();
+    move.start();
+    return () => { popIn.stop(); breathe.stop(); move.stop(); };
+  }, [pop, ring, nudge]);
+  return (
+    <View style={{ width: 96, height: 96, alignItems: "center", justifyContent: "center", marginBottom: 14 }} testID="confirmation-live-icon">
+      <RNAnimated.View
+        pointerEvents="none"
+        style={{
+          position: "absolute", width: 80, height: 80, borderRadius: 40, borderWidth: 2, borderColor: "#BFD3FA",
+          opacity: ring.interpolate({ inputRange: [0, 0.2, 1], outputRange: [0, 0.8, 0] }),
+          transform: [{ scale: ring.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1.35] }) }],
+        }}
+      />
+      <RNAnimated.View
+        style={{
+          width: 80, height: 80, borderRadius: 40, backgroundColor: "#EAF1FF", alignItems: "center", justifyContent: "center",
+          transform: [{ scale: pop.interpolate({ inputRange: [0, 1], outputRange: [0.5, 1] }) }],
+        }}
+      >
+        <RNAnimated.View style={{ transform: [{ translateX: nudge.interpolate({ inputRange: [0, 1], outputRange: [0, 4] }) }] }}>
+          <Icon size={36} color={color} />
+        </RNAnimated.View>
+      </RNAnimated.View>
+    </View>
+  );
 }
 
 export function ConfirmationModal({
@@ -51,6 +100,8 @@ export function ConfirmationModal({
   confirmButtonColor = "#0047AB",
   highlight,
   confirmTone = "primary",
+  liveIcon = false,
+  confirmLoading = false,
 }: ConfirmationModalProps) {
   const scale = useSharedValue(0);
   const opacity = useSharedValue(0);
@@ -98,9 +149,13 @@ export function ConfirmationModal({
         </Animated.View>
 
         <Animated.View style={[styles.modal, animatedStyle]}>
-          <View style={styles.iconContainer}>
-            <Icon size={48} color={iconColor} />
-          </View>
+          {liveIcon ? (
+            <LiveIcon icon={Icon} color={iconColor} />
+          ) : (
+            <View style={styles.iconContainer}>
+              <Icon size={48} color={iconColor} />
+            </View>
+          )}
 
           <Text style={styles.title}>{title}</Text>
           {highlight ? (
@@ -120,6 +175,7 @@ export function ConfirmationModal({
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               onPress={onConfirm}
+              disabled={confirmLoading}
               activeOpacity={0.8}
               style={styles.confirmButtonTouchable}
             >
@@ -129,7 +185,7 @@ export function ConfirmationModal({
                 end={{ x: 1, y: 0 }}
                 style={styles.confirmButton}
               >
-                <Text style={styles.confirmButtonText}>{confirmText}</Text>
+                {confirmLoading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.confirmButtonText}>{confirmText}</Text>}
               </LinearGradient>
             </TouchableOpacity>
 

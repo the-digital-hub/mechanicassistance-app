@@ -106,6 +106,7 @@ export default function LoginScreen() {
   const [rememberLogin, setRememberLogin] = useState(true);
   const [otpCode, setOtpCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const verifyInFlightRef = useRef(false);
   const [showKeypad, setShowKeypad] = useState(true);
 
   // Challenge state. The deadlines are absolute epoch ms rather than durations
@@ -298,6 +299,9 @@ export default function LoginScreen() {
     const currentCode =
       typeof codeToVerify === "string" ? codeToVerify : otpCode;
     if (currentCode.length < 6 || !requestId) return;
+    // The code can arrive twice (autofill and typing, a re-render): a code is single-use, so the second try would be rejected.
+    if (verifyInFlightRef.current) return;
+    verifyInFlightRef.current = true;
 
     setIsLoading(true);
     try {
@@ -341,6 +345,7 @@ export default function LoginScreen() {
         describeAuthError(err, t),
       );
     } finally {
+      verifyInFlightRef.current = false;
       setIsLoading(false);
     }
   };

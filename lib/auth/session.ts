@@ -203,7 +203,17 @@ export function onSessionExpired(listener: ExpiryListener): () => void {
     };
 }
 
+/**
+ * While the person is logging out on purpose, a 401 from the server's own revoke call is not "your session expired": it must not trigger
+ * a second navigation on top of the one logout already does (two racing `replace` calls left the app stuck on the profile spinner).
+ */
+let suppressExpiry = false;
+export function suppressSessionExpiry(on: boolean): void {
+    suppressExpiry = on;
+}
+
 export function emitSessionExpired(): void {
+    if (suppressExpiry) return;
     expiryListeners.forEach((listener) => {
         try {
             listener();

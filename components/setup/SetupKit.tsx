@@ -13,6 +13,7 @@ import { FONT } from '@/lib/ui/fonts';
 import { ROUNDED_HEADER } from '@/lib/ui/header';
 import { BUTTON_RADIUS, FLOATING_CTA, FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
 import { TYPE } from '@/lib/ui/type';
+import { useKeyboardOpen } from '@/hooks/useKeyboardOpen';
 
 /**
  * The pieces every step of the account set-up shares, so the whole registration looks like the rest of the app: the same heading, and the
@@ -98,8 +99,11 @@ export function SetupFooter({
 }) {
     const insets = useSafeAreaInsets();
     const off = !!disabled || !!loading;
+    // With the keyboard up the bar rides right on top of it: no safe-area strip under the buttons (the keyboard already covers it), and only
+    // the main action, so the field and its suggestions keep the room.
+    const keyboardOpen = useKeyboardOpen();
     return (
-        <View style={{ ...FLOATING_FOOTER, paddingBottom: Math.max(insets.bottom, 18), gap: 10 }}>
+        <View style={{ ...FLOATING_FOOTER, paddingBottom: keyboardOpen ? 12 : Math.max(insets.bottom, 18), gap: 10 }}>
             {note}
             <TouchableOpacity onPress={onPress} disabled={off} activeOpacity={0.85} accessibilityRole="button" style={{ ...FLOATING_CTA, borderRadius: BUTTON_RADIUS, opacity: disabled && !loading ? 0.5 : 1 }} testID={testID}>
                 <LinearGradient
@@ -118,7 +122,7 @@ export function SetupFooter({
                     )}
                 </LinearGradient>
             </TouchableOpacity>
-            {secondaryLabel && onSecondary ? (
+            {secondaryLabel && onSecondary && !keyboardOpen ? (
                 <TouchableOpacity onPress={onSecondary} disabled={secondaryDisabled} activeOpacity={0.85} accessibilityRole="button" className="items-center justify-center" style={{ minHeight: 56, borderRadius: BUTTON_RADIUS, backgroundColor: '#E6EAF2', opacity: secondaryDisabled ? 0.5 : 1 }}>
                     <Text className="font-outfit-bold" style={{ ...TYPE.button, color: '#4A5470' }}>{secondaryLabel}</Text>
                 </TouchableOpacity>

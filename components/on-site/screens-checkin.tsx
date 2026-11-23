@@ -16,6 +16,7 @@ import { ExtraCaptures, MediaSlot, useExistingCaptures } from './MediaSlot';
 import {
     ActionBar, Body, Card, CardTitle, Checkbox, GhostButton, InfoRow, Intro, MAINTENANCE_ITEMS, OS, PrimaryButton, Segmented, Tip, cardShadow,
 } from './ui';
+import { localizedAddress } from '@/lib/ui/remoteAddress';
 
 // Phase 1 of the on-site flow: check-in, issue review and diagnostic.
 
@@ -381,7 +382,7 @@ export function ScreenArrived({ appointment, onStart }: { appointment: OnSiteApp
     const { t } = useTranslation();
     const k = 'appointments.checkIn.arrived';
     const rows: { icon: React.ComponentProps<typeof Ionicons>['name']; label: string; value: string }[] = [
-        ...(appointment.address ? [{ icon: 'location-outline' as const, label: t(`${k}.location`), value: appointment.address }] : []),
+        ...(appointment.address ? [{ icon: 'location-outline' as const, label: t(`${k}.location`), value: localizedAddress(appointment.address, t) }] : []),
         ...(appointment.car ? [{ icon: 'car-outline' as const, label: t(`${k}.vehicle`), value: appointment.car }] : []),
         { icon: 'construct-outline' as const, label: t(`${k}.job`), value: reportedIssue(appointment) },
     ];

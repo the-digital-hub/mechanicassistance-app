@@ -1,4 +1,5 @@
 import { SetupHeader } from "@/components/setup/SetupKit";
+import { goBackOr } from "@/lib/navigation/goBackOr";
 import { PAGE_BG } from "@/lib/ui/header";
 import { Stack, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -17,8 +18,10 @@ export default function SetupLayout() {
         // here has its own back arrow in the header.
         gestureEnabled: false,
         fullScreenGestureEnabled: false,
-        // The same rounded header and small back arrow as the wizards (SetupKit.SetupHeader), not the native one.
-        header: ({ options }) => <SetupHeader title={typeof options.title === "string" ? options.title : setupTitle} onBack={() => router.back()} />,
+        // The same rounded header and small back arrow as the wizards (SetupKit.SetupHeader), not the native one. Back goes to the previous step; a
+        // step that is the first of its stack (a registration resumed half-way, or reached by a redirect) has nothing behind it, so it leaves to the welcome
+        // screen instead of doing nothing and leaving the person stuck there.
+        header: ({ options }) => <SetupHeader title={typeof options.title === "string" ? options.title : setupTitle} onBack={() => goBackOr(router, "/onboarding")} />,
         contentStyle: { backgroundColor: PAGE_BG },
       }}
     >

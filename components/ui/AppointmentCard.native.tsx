@@ -27,6 +27,7 @@ import { useCountdown } from '@/hooks/useCountdown';
 import { chatAvailability } from '@/lib/chat/chatAvailability';
 import { InfoRows } from '@/components/ui/CardInfoRows';
 import { RequestIdRow } from '@/components/ui/RequestIdRow';
+import { isRemoteAddress, localizedAddress } from '@/lib/ui/remoteAddress';
 
 interface AppointmentCardProps {
     appointment: Appointment;
@@ -238,8 +239,8 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
 
     // The mechanic gets the area only (city / zip); the owner keeps their own address.
     const locationLabel = isMechanic
-        ? coarseAddress(appointment.address, appointment.zip) || t('appointments.list.card.notAvailable')
-        : appointment.address;
+        ? (isRemoteAddress(appointment.address) ? localizedAddress(appointment.address, t) : coarseAddress(appointment.address, appointment.zip)) || t('appointments.list.card.notAvailable')
+        : localizedAddress(appointment.address, t);
 
     // A finished or cancelled job leads with its date; an active one leads with the vehicle.
     const dateRow = { icon: Calendar, label: t(isPast ? 'appointments.list.card.rows.date' : 'appointments.list.card.rows.when'), value: whenLabel };

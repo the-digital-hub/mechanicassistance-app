@@ -8,6 +8,7 @@ import { formatEtaTime, useAppointmentEta } from '@/hooks/useAppointmentEta';
 import { openDirections } from '@/lib/maps/directions';
 import { VideoCallZoneNote } from '@/components/video/VideoCallZoneNote';
 import { videoCallBookedLabel } from '@/lib/video/videoCallTime';
+import { localizedAddress } from '@/lib/ui/remoteAddress';
 
 interface MechanicAssistanceInfoTabProps {
     appointment: any;
@@ -158,7 +159,7 @@ export function MechanicAssistanceInfoTab({ appointment, section, videoSection }
                         <DetailRow
                             icon="location-outline"
                             label={t('appointments.detail.info.address')}
-                            value={appointment.address}
+                            value={localizedAddress(appointment.address, t)}
                             last
                             action={jobOver ? undefined : {
                                 label: t('appointments.detail.info.viewInMaps'),

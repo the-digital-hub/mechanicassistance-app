@@ -8,6 +8,7 @@ import { formatMoney } from '@/lib/payments/paymentSource';
 import type { EarningRow } from '@/lib/payments/useEarnings';
 import { TYPE } from '@/lib/ui/type';
 import { formatLocalDateTime } from '@/lib/video/videoCallTime';
+import { localizedAddress } from '@/lib/ui/remoteAddress';
 
 const K = 'payments';
 
@@ -40,7 +41,7 @@ export function EarningItemCard({ row }: { row: EarningRow }) {
                     </Text>
                     {(!job || job.address) && (
                         <Text className="font-outfit-medium mt-0.5" style={{ ...TYPE.helper, color: job ? '#0047AB' : '#9CA3AF' }} numberOfLines={2}>
-                            {job ? t(`${K}.activity.location`, { address: job.address }) : t(`${K}.activity.unavailable`)}
+                            {job ? t(`${K}.activity.location`, { address: localizedAddress(job.address, t) }) : t(`${K}.activity.unavailable`)}
                         </Text>
                     )}
                     <Text className="text-gray-400 font-outfit-regular mt-1" style={{ fontSize: 12, lineHeight: 16 }} numberOfLines={1} selectable>

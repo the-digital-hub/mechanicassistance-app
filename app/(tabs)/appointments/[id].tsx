@@ -78,6 +78,7 @@ import { RequestObdPanel, useRequestObd } from '@/components/video/RequestObdPan
 import { RequestVinCheckModal } from '@/components/video/RequestVinCheckModal';
 import { useVisitObdVinCheck } from '@/hooks/useRequestObdVinCheck';
 import { parseAttachments } from '@/lib/media/attachments';
+import { localizedAddress } from '@/lib/ui/remoteAddress';
 import { usePaymentCards } from '@/lib/payments/usePaymentCards';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Dimensions, ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -783,7 +784,7 @@ export default function AppointmentDetailScreen() {
                         : null,
                     issues ? { icon: 'construct-outline' as const, label: t('appointments.ownerAccepted.rows.issue'), value: issues } : null,
                     appointment.notes ? { icon: 'document-text-outline' as const, label: t('appointments.ownerAccepted.rows.notes'), value: appointment.notes } : null,
-                    appointment.address ? { icon: 'location-outline' as const, label: t('appointments.ownerAccepted.rows.location'), value: appointment.address } : null,
+                    appointment.address ? { icon: 'location-outline' as const, label: t('appointments.ownerAccepted.rows.location'), value: localizedAddress(appointment.address, t) } : null,
                     posted ? { icon: 'calendar-outline' as const, label: t('appointments.ownerAccepted.rows.posted'), value: posted } : null,
                 ].filter((r): r is NonNullable<typeof r> => r !== null);
                 return (
@@ -1507,6 +1508,7 @@ export default function AppointmentDetailScreen() {
 // KEEPING THESE HELPER FUNCTIONS DEFINED BUT UNUSED FOR NOW TO AVOID IMPORT ERRORS IF I UNCOMMENT
 
 function InfoTab({ appointment, onScanComplete }: { appointment: any, onScanComplete: () => void }) {
+    const { t } = useTranslation();
     return (
         <View className="gap-5" testID="info-tab-content">
             {/* Title & Type */}
@@ -1547,7 +1549,7 @@ function InfoTab({ appointment, onScanComplete }: { appointment: any, onScanComp
                 <Text className="text-gray-500 font-outfit-medium text-[13px] mb-1">Location</Text>
                 <View className="flex-row items-center gap-2">
                     <Ionicons name="location" size={16} color="#0047AB" />
-                    <Text className="text-blue-900 font-outfit-medium">{appointment.address}</Text>
+                    <Text className="text-blue-900 font-outfit-medium">{localizedAddress(appointment.address, t)}</Text>
                 </View>
             </View>
 

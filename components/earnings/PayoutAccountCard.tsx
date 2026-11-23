@@ -8,6 +8,7 @@ import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 import { connectDAO } from '@/lib/dao/ConnectDAO';
 import type { ConnectStatus } from '@/lib/dao/interfaces';
 import { TYPE } from '@/lib/ui/type';
+import { StripeInfoButton } from '@/components/payments/StripeInfoButton';
 
 const K = 'payments.account';
 
@@ -86,6 +87,10 @@ export function PayoutAccountCard({
                             </Text>
                         </>
                     )}
+                </View>
+                {/* Whoever does not know what Stripe is taps the "i": the explanation opens in an alert, the page stays as it is. */}
+                <View style={{ alignSelf: 'flex-start', marginTop: 2 }}>
+                    <StripeInfoButton audience="provider" testID="payout-stripe-info" />
                 </View>
             </View>
 

@@ -7,7 +7,7 @@ import { PAGE_BG } from "@/lib/ui/header";
 // The page colour behind the rounded header and the floating tab bar.
 const APP_THEME = { ...DefaultTheme, colors: { ...DefaultTheme.colors, background: PAGE_BG } };
 import { useFonts } from "expo-font";
-import { Stack, useRouter, type ErrorBoundaryProps } from "expo-router";
+import { Stack, useRouter, useSegments, type ErrorBoundaryProps } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
@@ -55,8 +55,9 @@ LogBox.ignoreLogs([
 // Inner component — lives inside UserProvider so it can read auth loading state.
 // Keeps the splash screen visible until both fonts and the Firebase session check resolve.
 function AppShell() {
-  const { isLoading } = useUser();
+  const { isLoading, user } = useUser();
   const router = useRouter();
+  const segments = useSegments();
 
   // Once the session check is done, the animated brand splash takes over from
   // the native one (which it hides as soon as it is on screen, no white flash).
@@ -78,6 +79,19 @@ function AppShell() {
       }),
     [router],
   );
+
+  /**
+   * The way out of the signed-in screens when there is no session: if the app is still inside (tabs) a moment after the user is gone
+   * (logging out, or a session lost some other way), go to the entry route, which decides where to land. A navigation made at the same time
+   * as the closing of a native modal can be swallowed on iOS, and nothing else would retry it, leaving the profile on its spinner.
+   * It does nothing once the screen has already changed (the segments change and cancel the timer).
+   */
+  const inTabs = segments[0] === "(tabs)";
+  useEffect(() => {
+    if (isLoading || user || !inTabs) return undefined;
+    const timer = setTimeout(() => router.replace("/entry"), 900);
+    return () => clearTimeout(timer);
+  }, [isLoading, user, inTabs, router]);
 
   if (isLoading) return null;
 

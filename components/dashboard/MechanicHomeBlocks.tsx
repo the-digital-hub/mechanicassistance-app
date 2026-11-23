@@ -2,7 +2,7 @@ import { AttentionCards, type AttentionCardData } from '@/components/dashboard/A
 import { LinearGradient } from 'expo-linear-gradient';
 import { Award, ChevronDown, ChevronRight, Star, Wallet, Wrench, X, type LucideIcon } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import { Animated, Easing, type NativeScrollEvent, type NativeSyntheticEvent, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Animated, Easing, Pressable, type NativeScrollEvent, type NativeSyntheticEvent, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 
 import type { MechanicStatus } from '@/lib/dao/interfaces';
 
@@ -207,6 +207,30 @@ function LiveDot() {
  * While nothing has been earned today: the status line (go online, or on the lookout) and, after it, a few tips for getting the first
  * job. Same format as the tips of the work screen: one page at a time, swiped or moving on by itself, with dots.
  */
+/**
+ * A tap, and only a tap, inside a page that swipes. On the first or last page a left/right drag has nowhere to scroll to, so the scroll view
+ * lets go of it and the touch ended up as a press on the tip (a swipe opened its link). A finger that moved is not a tap.
+ */
+function TapPage({ onTap, style, children, testID, className }: { onTap: () => void; style?: object; children: ReactNode; testID?: string; className?: string }) {
+    const start = useRef<{ x: number; y: number } | null>(null);
+    return (
+        <Pressable
+            testID={testID}
+            className={className}
+            accessibilityRole="button"
+            onPressIn={(e) => { start.current = { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY }; }}
+            onPress={(e) => {
+                const from = start.current;
+                if (from && (Math.abs(e.nativeEvent.pageX - from.x) > 8 || Math.abs(e.nativeEvent.pageY - from.y) > 8)) return;
+                onTap();
+            }}
+            style={({ pressed }) => [style, { opacity: pressed ? 0.8 : 1 }]}
+        >
+            {children}
+        </Pressable>
+    );
+}
+
 export function EarnNudgeStrip({ nudge }: { nudge: EarnNudge }) {
     const tips = nudge.tips ?? [];
     const hasStatus = !!nudge.text;
@@ -248,28 +272,34 @@ export function EarnNudgeStrip({ nudge }: { nudge: EarnNudge }) {
                     {hasStatus ? (
                         <View style={{ width: width || undefined, justifyContent: 'center' }}>
                             {nudge.onPress ? (
-                                <TouchableOpacity onPress={nudge.onPress} activeOpacity={0.8} accessibilityRole="button" testID="earn-nudge-action">{statusRow}</TouchableOpacity>
+                                <TapPage onTap={nudge.onPress} testID="earn-nudge-action">{statusRow}</TapPage>
                             ) : statusRow}
                         </View>
                     ) : null}
                     {tips.map(({ key, icon: Icon, label, text, onPress, onDismiss }) => {
-                        const Page = onPress ? TouchableOpacity : View;
-                        return (
-                        <Page key={key} {...(onPress ? { onPress, activeOpacity: 0.8, accessibilityRole: 'button' as const } : {})} className="flex-row items-center" style={{ width: width || undefined, paddingHorizontal: 14, gap: 12, minHeight: 48 }}>
-                            <View className="items-center justify-center" style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: C.blueSoft }}>
-                                <Icon size={20} color={C.blue} />
-                            </View>
-                            <View className="flex-1" style={{ minWidth: 0 }}>
-                                <Text className="font-outfit-bold uppercase" style={{ fontSize: 12, lineHeight: 16, letterSpacing: 0.8, color: C.blue }}>{label}</Text>
-                                <Text className="font-outfit-semibold" style={{ fontSize: 15, lineHeight: 21, color: C.text }}>{text}</Text>
-                            </View>
-                            {onPress ? <ChevronRight size={18} color={C.mutedLight} /> : null}
-                            {onDismiss ? (
-                                <TouchableOpacity onPress={onDismiss} hitSlop={10} accessibilityRole="button" accessibilityLabel="Not now" testID={`tip-dismiss-${key}`} style={{ position: 'absolute', top: -4, right: 8 }}>
-                                    <X size={16} color={C.mutedLight} />
-                                </TouchableOpacity>
-                            ) : null}
-                        </Page>
+                        const pageStyle = { width: width || undefined, paddingHorizontal: 14, gap: 12, minHeight: 48 };
+                        const body = (
+                            <>
+                                <View className="items-center justify-center" style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: C.blueSoft }}>
+                                    <Icon size={20} color={C.blue} />
+                                </View>
+                                <View className="flex-1" style={{ minWidth: 0 }}>
+                                    <Text className="font-outfit-bold uppercase" style={{ fontSize: 12, lineHeight: 16, letterSpacing: 0.8, color: C.blue }}>{label}</Text>
+                                    <Text className="font-outfit-semibold" style={{ fontSize: 15, lineHeight: 21, color: C.text }}>{text}</Text>
+                                </View>
+                                {onPress ? <ChevronRight size={18} color={C.mutedLight} /> : null}
+                                {onDismiss ? (
+                                    <TouchableOpacity onPress={onDismiss} hitSlop={10} accessibilityRole="button" accessibilityLabel="Not now" testID={`tip-dismiss-${key}`} style={{ position: 'absolute', top: -4, right: 8 }}>
+                                        <X size={16} color={C.mutedLight} />
+                                    </TouchableOpacity>
+                                ) : null}
+                            </>
+                        );
+                        // A tip with a link opens it on a tap only (a swipe never does); one without is just a page.
+                        return onPress ? (
+                            <TapPage key={key} onTap={onPress} className="flex-row items-center" style={pageStyle}>{body}</TapPage>
+                        ) : (
+                            <View key={key} className="flex-row items-center" style={pageStyle}>{body}</View>
                         );
                     })}
                 </ScrollView>

@@ -56,6 +56,7 @@ import { TYPE } from '@/lib/ui/type';
 import { VehicleTitle } from '@/components/ui/VehicleTitle';
 import { MechanicStatusSheet } from '@/components/profile/MechanicStatusSheet';
 import { KeyboardAwareScrollView } from '@/components/ui/KeyboardAwareScrollView';
+import { localizedAddress } from '@/lib/ui/remoteAddress';
 
 /** Returns a translation key for the current time of day — resolve with t() at the call site. */
 const getTimeGreetingKey = (): string => {
@@ -326,7 +327,7 @@ export default function DashboardScreen() {
     useEffect(() => {
         if (!isUserLoading && !user) {
             // Back to the entry route, which decides: resume a registration left half-way, or onboarding.
-            router.replace('/');
+            router.replace('/entry');
         }
     }, [isUserLoading, user, router]);
 
@@ -602,12 +603,12 @@ export default function DashboardScreen() {
                                 const badge = request.type === 'immediate' ? t('dashboard.mechanic.urgent') : null;
 
                                 // Hide the street; show only city/state (+ zip) once.
-                                const addressParts = String(request.address || '').split(',').map((p) => p.trim()).filter(Boolean);
+                                const addressParts = String(localizedAddress(request.address, t) || '').split(',').map((p) => p.trim()).filter(Boolean);
                                 // Scheduled: the wanted days and hours, read from the request's notes.
                                 const whenParts = request.type === 'scheduled' ? (() => { const n = parseRequestNotes(request.notes, request.date); return n.days || n.window ? n : null; })() : null;
                                 const cityLine = addressParts.length > 1
                                     ? `${addressParts.slice(1).join(', ')}${request.zip ? ` · ${request.zip}` : ''}`
-                                    : String(request.address || '');
+                                    : String(localizedAddress(request.address, t) || '');
 
                                 const cardShadow = {
                                     shadowColor: '#000',

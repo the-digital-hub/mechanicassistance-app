@@ -119,11 +119,12 @@ export default function ProfileScreen() {
   };
 
   useEffect(() => {
-    if (!isLoading && !user) {
+    // (Not while logging out: handleLogout navigates by itself, and two replaces at once left the screen on the spinner.)
+    if (!isLoading && !user && !isLoggingOut) {
       // Back to the entry route, which decides: resume a registration left half-way, or onboarding.
-      router.replace('/');
+      router.replace('/entry');
     }
-  }, [isLoading, user, router]);
+  }, [isLoading, user, isLoggingOut, router]);
 
   const changeStatus = async (status: 'available' | 'busy' | 'offline') => {
     if (status === mechanicStatus || isUpdatingStatus) return;
@@ -141,9 +142,12 @@ export default function ProfileScreen() {
     try {
       await logout();
     } finally {
+      // The alert is a native modal: navigating while it is still closing can be swallowed on iOS, so the navigation waits for it to be gone.
       setShowLogoutModal(false);
-      setIsLoggingOut(false);
-      router.replace('/onboarding');
+      setTimeout(() => router.replace('/onboarding'), 450);
+      // Stays "logging out" a moment so the guard below does not navigate on top of this replace; if this screen is somehow still here
+      // afterwards, the guard takes over as the way out.
+      setTimeout(() => setIsLoggingOut(false), 2500);
     }
   };
 
@@ -546,7 +550,9 @@ export default function ProfileScreen() {
         title={t('profile.modals.logoutTitle')}
         message=""
         icon={LogOut}
-        iconColor="#00A8E8"
+        liveIcon
+        confirmLoading={isLoggingOut}
+        iconColor="#1E56E3"
         confirmButtonColor="#0047AB"
         confirmText={t('profile.modals.yes')}
         cancelText={t('profile.modals.no')}

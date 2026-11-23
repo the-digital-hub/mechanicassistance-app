@@ -21,6 +21,7 @@ export default function OTPScreen() {
     const [code, setCode] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
     const [isVerifying, setIsVerifying] = useState(false);
+    const verifyInFlightRef = useRef(false);
     const [isResending, setIsResending] = useState(false);
 
     // The challenge, carried over from the phone step. Deadlines are absolute
@@ -80,6 +81,9 @@ export default function OTPScreen() {
         if (currentCode.length < 6) return;
 
         if (!requestId || !phoneE164) return;
+        // A code is single-use: when it arrives twice (autofill and typing), the second try must not be sent.
+        if (verifyInFlightRef.current) return;
+        verifyInFlightRef.current = true;
 
         setIsVerifying(true);
         try {
@@ -123,6 +127,7 @@ export default function OTPScreen() {
             showError(t('setup.otp.invalidCodeTitle'), describeAuthError(err, t));
             setCode('');
         } finally {
+            verifyInFlightRef.current = false;
             setIsVerifying(false);
         }
     };

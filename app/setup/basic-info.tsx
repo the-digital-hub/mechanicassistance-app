@@ -81,13 +81,31 @@ export default function BasicInfoScreen() {
     );
   };
 
-  const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.7,
-    });
+  /** Tapping the photo asks where it comes from: the camera or the photo library. */
+  const askPhotoSource = () => {
+    if (isUploadingPhoto) return;
+    appAlert(
+      t("setup.basicInfo.photoSourceTitle"),
+      undefined,
+      [
+        { text: t("setup.basicInfo.photoCamera"), icon: "camera-outline", onPress: () => void pickImage("camera") },
+        { text: t("setup.basicInfo.photoLibrary"), icon: "images-outline", style: "secondary", onPress: () => void pickImage("library") },
+        { text: t("setup.basicInfo.photoCancel"), style: "cancel" },
+      ],
+    );
+  };
+
+  const pickImage = async (source: "camera" | "library") => {
+    const options: ImagePicker.ImagePickerOptions = { mediaTypes: ["images"], allowsEditing: true, aspect: [1, 1], quality: 0.7 };
+    if (source === "camera") {
+      // The camera needs an explicit grant; the library picker does not.
+      const permission = await ImagePicker.requestCameraPermissionsAsync();
+      if (!permission.granted) {
+        appAlert(t("setup.basicInfo.cameraPermissionTitle"), t("setup.basicInfo.cameraPermissionMessage"));
+        return;
+      }
+    }
+    const result = source === "camera" ? await ImagePicker.launchCameraAsync(options) : await ImagePicker.launchImageLibraryAsync(options);
 
     if (result.canceled) return;
     const localUri = result.assets[0].uri;
@@ -168,7 +186,7 @@ export default function BasicInfoScreen() {
           {/* Profile Photo */}
           <View className="flex-row items-center" style={{ padding: 16, borderRadius: 18, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#EEF2FA', marginBottom: 24 }}>
             <TouchableOpacity
-              onPress={pickImage}
+              onPress={askPhotoSource}
               disabled={isUploadingPhoto}
               className="w-24 h-24 bg-blue-50 rounded-full items-center justify-center border-2 border-dashed border-blue-200 mr-4 relative overflow-hidden"
             >

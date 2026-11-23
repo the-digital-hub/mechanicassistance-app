@@ -6,6 +6,7 @@ import type { ParsedAddress } from "@/lib/places";
 import { getAddRoleState } from "@/lib/setup-add-role";
 import { getSetupProgress, saveSetupProgress } from "@/lib/storage";
 import { useRouter } from "expo-router";
+import { useHeaderHeight } from "@react-navigation/elements";
 import { KeyboardAwareScrollView } from "@/components/ui/KeyboardAwareScrollView";
 import { SETUP_BG, SetupFooter, SetupHeading } from "@/components/setup/SetupKit";
 import { BUTTON_RADIUS } from "@/lib/ui/floatingFooter";
@@ -127,7 +128,10 @@ export default function AddressScreen() {
   const formData = { home: homeData, work: workData, other: otherData }[addressType];
 
   const scrollViewRef = useRef<ScrollView>(null);
+  // The screen starts under the step header: that is what the keyboard's offset has to be (a fixed number left a gap above the keyboard).
+  const headerHeight = useHeaderHeight();
   const zipContainerRef = useRef<View>(null);
+  const streetContainerRef = useRef<View>(null);
 
   const scrollToField = (fieldRef: React.RefObject<View | null>) => {
     if (!fieldRef.current || !scrollViewRef.current) return;
@@ -182,6 +186,8 @@ export default function AddressScreen() {
    * the suggestion, so drop them instead of saving a mismatched pair.
    */
   const handleStreetChange = (text: string) => {
+    // The suggestions open under the field: bring it up so they have the room above the keyboard.
+    if (text.length >= 3) scrollToField(streetContainerRef);
     const setter = activeSetter;
     setter((prev) => ({
       ...prev,
@@ -232,7 +238,7 @@ export default function AddressScreen() {
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={{ flex: 1 }}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+      keyboardVerticalOffset={Platform.OS === "ios" ? headerHeight : 0}
     >
       <KeyboardAwareScrollView
         ref={scrollViewRef}
@@ -314,7 +320,7 @@ export default function AddressScreen() {
         )}
 
         <View className="mb-4 gap-5">
-          <View className="relative z-50">
+          <View ref={streetContainerRef} className="relative z-50">
             <Text className={fieldLabel} style={fieldLabelStyle}>
               {t('setup.address.streetNumber')}
             </Text>
