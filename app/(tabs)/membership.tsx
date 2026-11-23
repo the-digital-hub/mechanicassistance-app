@@ -1,13 +1,13 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { BadgeCheck, CalendarClock, Check, Crown, Info, Repeat, Sparkles, Ticket, X } from 'lucide-react-native';
+import { BadgeCheck, CalendarClock, Check, CreditCard, Crown, Info, Repeat, Sparkles, Ticket, Wallet, X } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { useUser } from '@/context/UserContext';
-import { applyPromoCode, cancelPlan, loadMembership, removePromoCode, type Membership } from '@/lib/membership/plan';
+import { applyPromoCode, cancelPlan, loadMembership, payMembership, removePromoCode, resetMembershipPayment, type Membership } from '@/lib/membership/plan';
 import { appAlert } from '@/lib/ui/appAlert';
-import { BUTTON_RADIUS } from '@/lib/ui/floatingFooter';
+import { BUTTON_RADIUS, CONFIRM_GRADIENT } from '@/lib/ui/floatingFooter';
 import { formatLocalDateTime } from '@/lib/video/videoCallTime';
 import { TYPE } from '@/lib/ui/type';
 
@@ -26,7 +26,7 @@ function IconTile({ icon: Icon }: { icon: typeof Crown }) {
 
 /**
  * The profile's Membership plan (technician and vehicle owner). The membership card on top, what the plan includes, the billing facts
- * (shown as coming soon until plans launch) and a promo code field. Simulated: see lib/membership/plan.ts.
+ * (with the payment of the year for a technician) and a promo code field. Simulated: see lib/membership/plan.ts.
  */
 export default function MembershipScreen() {
     const { t, i18n } = useTranslation();
@@ -35,6 +35,7 @@ export default function MembershipScreen() {
     const [plan, setPlan] = useState<Membership | null>(null);
     const [code, setCode] = useState('');
     const [busy, setBusy] = useState(false);
+    const [paying, setPaying] = useState(false);
 
     useEffect(() => {
         let cancelled = false;
@@ -45,12 +46,45 @@ export default function MembershipScreen() {
     const name = [user?.name, user?.surname].filter(Boolean).join(' ');
     const waived = plan?.status === 'startup_waived';
     const price = `$${(plan?.amount ?? 0).toFixed(2)}`;
-    const includes = ['account', 'wallet', 'support', role === 'mechanic' ? 'jobs' : 'requests'] as const;
+    // The technician's plan opens every request to them; the owner's is about asking for help.
+    const includes = (role === 'mechanic' ? ['apply', 'account', 'wallet', 'support', 'perks'] : ['account', 'wallet', 'support', 'requests', 'perks']) as readonly string[];
 
     // Simulated until plans launch: it answers that nothing can change yet (see lib/membership/plan.ts).
     const takeCouponOff = async () => {
         await removePromoCode(user?.id);
         setPlan(await loadMembership(role, user?.id));
+    };
+
+    const dateOnly = (iso: string) => new Date(iso).toLocaleDateString(i18n.language, { year: 'numeric', month: 'short', day: 'numeric' });
+    const money = (n: number) => `$${n.toFixed(2)}`;
+
+    // Pays the year of the plan (simulated until billing has the endpoint): confirm with the amount, then the receipt.
+    const askPay = () => {
+        if (!plan || paying) return;
+        appAlert(
+            t('membership.pay.confirmTitle'),
+            t('membership.pay.confirmBody'),
+            [
+                {
+                    text: t('membership.pay.confirmCta', { amount: money(plan.amount) }),
+                    style: 'success',
+                    onPress: async () => {
+                        setPaying(true);
+                        const result = await payMembership(role, user?.id);
+                        setPaying(false);
+                        if (!result.ok) {
+                            appAlert(t('membership.pay.failedTitle'), t('membership.pay.failed'), undefined, { tone: 'danger' });
+                            return;
+                        }
+                        const next = await loadMembership(role, user?.id);
+                        setPlan(next);
+                        appAlert(t('membership.pay.successTitle'), t('membership.pay.success', { date: next.nextPaymentAt ? dateOnly(next.nextPaymentAt) : '' }), undefined, { tone: 'success' });
+                    },
+                },
+                { text: t('membership.pay.cancel'), style: 'cancel' },
+            ],
+            { tone: 'success', highlight: { label: t('membership.pay.highlightLabel'), value: money(plan.amount), icon: 'card-outline' } },
+        );
     };
 
     const askCancel = () => {
@@ -144,7 +178,8 @@ export default function MembershipScreen() {
                         ))}
                     </View>
 
-                    {/* Promo code. */}
+                    {/* Promo code (not once the year is paid: the amount is settled). */}
+                    {plan.payment ? null : (
                     <View style={{ ...card, padding: 18, borderStyle: 'dashed', borderColor: '#BFD3FA' }}>
                         <View className="flex-row items-center" style={{ gap: 10, marginBottom: 12 }}>
                             <IconTile icon={Ticket} />
@@ -192,29 +227,66 @@ export default function MembershipScreen() {
                             </>
                         )}
                     </View>
+                    )}
 
-                    {/* The billing facts: laid out already, filled in once plans launch. */}
+                    {/* Billing: what is due (or paid), when the plan renews and, for a technician with something to pay, the button. */}
                     <View style={{ ...card, padding: 18 }}>
                         <View className="flex-row items-center justify-between" style={{ marginBottom: 6 }}>
                             <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, color: C.text }}>{t('membership.billingTitle')}</Text>
-                            <View style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, backgroundColor: C.soft }}>
-                                <Text className="font-outfit-bold" style={{ ...TYPE.eyebrow, color: C.blue }}>{t('membership.comingSoon').toUpperCase()}</Text>
-                            </View>
+                            {role === 'mechanic' ? (
+                                // Simulated payment: a long press on the pill takes it back, to try the flow again (goes when billing is real).
+                                <TouchableOpacity
+                                    activeOpacity={1}
+                                    onLongPress={async () => { if (plan.payment) { await resetMembershipPayment(user?.id); setPlan(await loadMembership(role, user?.id)); } }}
+                                    style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, backgroundColor: plan.payment ? C.greenSoft : '#FEF3C7' }}
+                                    testID="billing-pill"
+                                >
+                                    <Text className="font-outfit-bold" style={{ ...TYPE.eyebrow, color: plan.payment ? C.greenText : '#B45309' }}>{t(plan.payment ? 'membership.pay.paidPill' : 'membership.pay.duePill').toUpperCase()}</Text>
+                                </TouchableOpacity>
+                            ) : null}
                         </View>
                         {[
-                            { key: 'period', icon: Repeat, value: plan.periodsOffered.length === 1 ? t(`membership.billing.periodOnly.${plan.periodsOffered[0]}`) : t('membership.billing.periodValue') },
-                            { key: 'next', icon: CalendarClock, value: plan.nextPaymentAt ? formatLocalDateTime(plan.nextPaymentAt, i18n.language) : '—' },
-                            { key: 'promo', icon: Ticket, value: t(plan.promoAvailable ? 'membership.billing.promoValue' : 'membership.billing.promoNone') },
+                            {
+                                key: 'amount',
+                                icon: Wallet,
+                                value: money(plan.amount),
+                                hint: plan.payment ? t('membership.billing.amountPaidHint', { date: dateOnly(plan.payment.paidAt) }) : t(role === 'mechanic' ? 'membership.billing.amountHint' : 'membership.billing.amountFree'),
+                            },
+                            { key: 'period', icon: Repeat, value: plan.periodsOffered.length === 1 ? t(`membership.billing.periodOnly.${plan.periodsOffered[0]}`) : t('membership.billing.periodValue'), hint: t(plan.periodsOffered.length === 1 ? 'membership.billing.periodOnlyHint' : 'membership.billing.periodHint') },
+                            {
+                                key: 'next',
+                                icon: CalendarClock,
+                                value: plan.nextPaymentAt ? dateOnly(plan.nextPaymentAt) : role === 'mechanic' ? t('membership.billing.nextDue') : '—',
+                                hint: t(plan.nextPaymentAt ? 'membership.billing.nextHint' : role === 'mechanic' ? 'membership.billing.nextDueHint' : 'membership.billing.nextHint'),
+                            },
+                            {
+                                key: 'promo',
+                                icon: Ticket,
+                                value: plan.coupon ? `${plan.coupon.code} · ${t('membership.coupon.off', { percent: plan.coupon.percentOff })}` : t(plan.promoAvailable ? 'membership.billing.promoValue' : 'membership.billing.promoNone'),
+                                hint: t(plan.coupon ? 'membership.billing.promoAppliedHint' : 'membership.billing.promoHint'),
+                            },
                         ].map((row) => (
                             <View key={row.key} className="flex-row items-center" style={{ gap: 12, paddingVertical: 12, borderTopWidth: 1, borderTopColor: C.line }}>
                                 <IconTile icon={row.icon} />
                                 <View className="flex-1" style={{ minWidth: 0 }}>
                                     <Text className="font-outfit-semibold" style={{ ...TYPE.caption, color: C.muted }}>{t(`membership.billing.${row.key}`)}</Text>
                                     <Text className="font-outfit-bold" style={{ ...TYPE.body, color: C.text }}>{row.value}</Text>
-                                    <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: C.muted }}>{t(`membership.billing.${row.key}Hint`)}</Text>
+                                    <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: C.muted }}>{row.hint}</Text>
                                 </View>
                             </View>
                         ))}
+                        {role === 'mechanic' && !plan.payment ? (
+                            <TouchableOpacity onPress={askPay} disabled={paying} activeOpacity={0.85} accessibilityRole="button" style={{ marginTop: 8, opacity: paying ? 0.7 : 1 }} testID="membership-pay">
+                                <LinearGradient colors={[...CONFIRM_GRADIENT]} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }} style={{ minHeight: 56, borderRadius: BUTTON_RADIUS, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingHorizontal: 16 }}>
+                                    {paying ? <ActivityIndicator color="#FFFFFF" /> : (
+                                        <>
+                                            <CreditCard size={20} color="#FFFFFF" />
+                                            <Text className="font-outfit-bold text-white" style={TYPE.button}>{t('membership.pay.button', { amount: money(plan.amount) })}</Text>
+                                        </>
+                                    )}
+                                </LinearGradient>
+                            </TouchableOpacity>
+                        ) : null}
                     </View>
 
                     {/* Quiet on purpose: a small red link, not a button (same as cancelling a quote). */}

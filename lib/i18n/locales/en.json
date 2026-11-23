@@ -539,7 +539,10 @@
             "label": "Reach more owners",
             "text": "Your service area is small. Widen it to see more requests."
           }
-        }
+        },
+        "offlineLabel": "You're offline",
+        "liveLabel": "Stay alert",
+        "lookoutText": "Take the next request and start earning."
       },
       "earnedToday": "Earned today",
       "rating": "Rating",
@@ -3747,17 +3750,17 @@
       "account": "One secure account across active portals",
       "wallet": "Wallet, payment methods and service history",
       "support": "Profile, preferences and account support",
-      "jobs": "Job feed, quotes and payouts",
-      "requests": "Roadside requests, live tracking and video calls"
+      "requests": "Roadside requests, live tracking and video calls",
+      "apply": "Apply to every request: immediate, scheduled and video calls",
+      "perks": "Exclusive access and promotions for being part of the community"
     },
     "billingTitle": "Billing",
-    "comingSoon": "Coming soon",
     "billing": {
       "period": "Billing period",
       "periodValue": "Monthly or annual",
       "periodHint": "Choose the cadence that fits your account.",
       "next": "Next payment date",
-      "nextHint": "Your next date will appear when billing is active.",
+      "nextHint": "Your plan renews on this date.",
       "promo": "Promo code",
       "promoValue": "Available",
       "promoNone": "Not available",
@@ -3765,7 +3768,15 @@
       "periodOnly": {
         "year": "Annual",
         "month": "Monthly"
-      }
+      },
+      "amount": "Amount",
+      "amountHint": "One year of the All-access plan.",
+      "amountPaidHint": "Paid on {{date}}.",
+      "amountFree": "Free during our launch stage.",
+      "nextDue": "Today",
+      "nextDueHint": "Your plan starts when you pay.",
+      "periodOnlyHint": "Billed once a year.",
+      "promoAppliedHint": "Applied to your plan."
     },
     "coupon": {
       "badge": "Coupon applied",
@@ -3794,11 +3805,25 @@
       "keep": "Keep my plan",
       "cancelConfirm": "Cancel plan",
       "cancelSoonTitle": "Nothing was cancelled",
-      "cancelSoon": "Your plan is free during our startup stage, so there is nothing to cancel yet. You will be able to manage it here when plans launch.",
+      "cancelSoon": "Cancelling from the app isn't available yet. Your plan stays active until it renews.",
       "gotIt": "Got it"
     },
     "notice": "We'll notify you before any future plan or pricing change takes effect.",
-    "feeNoteYearly": "Billed once a year."
+    "feeNoteYearly": "Billed once a year.",
+    "pay": {
+      "confirmTitle": "Pay your membership?",
+      "confirmBody": "You will pay for one year of the All-access plan.",
+      "confirmCta": "Pay {{amount}}",
+      "cancel": "Cancel",
+      "highlightLabel": "All-access · 1 year",
+      "successTitle": "Payment received",
+      "success": "Your All-access plan is active. It renews on {{date}}.",
+      "failedTitle": "Payment not made",
+      "failed": "We couldn't process the payment. Please try again.",
+      "button": "Pay {{amount}}",
+      "duePill": "Payment due",
+      "paidPill": "Paid"
+    }
   },
   "promotions": {
     "badge": "PROMOTIONS",

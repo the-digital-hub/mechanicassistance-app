@@ -885,8 +885,8 @@ export default function DashboardScreen() {
                             <EarnNudgeStrip
                                 nudge={{
                                     ...(mechanicStatus !== 'available'
-                                        ? { text: t('dashboard.mechanic.nudge.goAvailable'), cta: t('dashboard.mechanic.nudge.goAvailableCta'), onPress: () => { setMechanicStatus('available').catch(() => undefined); } }
-                                        : { live: true, text: openRequests.length > 0 ? t('dashboard.mechanic.nudge.requests', { count: openRequests.length }) : t('dashboard.mechanic.nudge.lookout') }),
+                                        ? { label: t('dashboard.mechanic.nudge.offlineLabel'), text: t('dashboard.mechanic.nudge.goAvailable'), cta: t('dashboard.mechanic.nudge.goAvailableCta'), onPress: () => { setMechanicStatus('available').catch(() => undefined); } }
+                                        : { live: true, label: t('dashboard.mechanic.nudge.liveLabel'), text: openRequests.length > 0 ? t('dashboard.mechanic.nudge.requests', { count: openRequests.length }) : t('dashboard.mechanic.nudge.lookoutText') }),
                                     // Only what THIS technician still lacks (see useMechanicTips); each one leads to where it is done.
                                     tips: mechanicTips.tips.map((tip) => ({
                                         key: tip.key,

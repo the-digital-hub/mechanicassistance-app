@@ -7,7 +7,8 @@ export interface AppAlertButton {
     text?: string;
     onPress?: (value?: string) => void;
     /** `secondary`: a soft slate button (a choice among equals, not the one action to take). */
-    style?: 'default' | 'cancel' | 'destructive' | 'secondary';
+    style?: 'default' | 'cancel' | 'destructive' | 'secondary' | 'success';
+    /** `success` (green): the action that confirms and charges, as the app's green buttons do. */
     /** An Ionicons name shown before the label. */
     icon?: string;
 }

@@ -126,7 +126,7 @@ export function AppAlertHost() {
                                 accessibilityRole="button"
                                 className="flex-row items-center"
                                 // With an icon the row reads left to right (the squares line up in a column); without, the label is centred.
-                                style={{ gap: 12, minHeight: 56, justifyContent: b.icon ? 'flex-start' : 'center', paddingHorizontal: b.icon ? 10 : 0, borderRadius: 14, marginTop: i === 0 ? 20 : 8, backgroundColor: soft ? '#E6EAF2' : b.style === 'destructive' ? OS.red : OS.blue }}
+                                style={{ gap: 12, minHeight: 56, justifyContent: b.icon ? 'flex-start' : 'center', paddingHorizontal: b.icon ? 10 : 0, borderRadius: 14, marginTop: i === 0 ? 20 : 8, backgroundColor: soft ? '#E6EAF2' : b.style === 'destructive' ? OS.red : b.style === 'success' ? '#12B76A' : OS.blue }}
                                 testID={i === 0 ? 'app-alert-primary' : undefined}
                             >
                                 {b.icon ? (

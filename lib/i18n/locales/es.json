@@ -539,7 +539,10 @@
             "label": "Llegá a más dueños",
             "text": "Tu zona de servicio es chica. Ampliala para ver más pedidos."
           }
-        }
+        },
+        "offlineLabel": "Estás desconectado",
+        "liveLabel": "Estate atento",
+        "lookoutText": "Tomá el próximo pedido y empezá a ganar."
       },
       "earnedToday": "Ganado hoy",
       "rating": "Calificación",
@@ -3748,17 +3751,17 @@
       "account": "Una cuenta segura para todos los portales activos",
       "wallet": "Billetera, métodos de pago e historial de servicios",
       "support": "Perfil, preferencias y soporte de tu cuenta",
-      "jobs": "Trabajos, presupuestos y cobros",
-      "requests": "Pedidos de asistencia, seguimiento en vivo y videollamadas"
+      "requests": "Pedidos de asistencia, seguimiento en vivo y videollamadas",
+      "apply": "Postulate a todos los pedidos: inmediatos, programados y videollamadas",
+      "perks": "Accesos y promociones exclusivas por ser parte de la comunidad"
     },
     "billingTitle": "Facturación",
-    "comingSoon": "Próximamente",
     "billing": {
       "period": "Período de facturación",
       "periodValue": "Mensual o anual",
       "periodHint": "Elegí la frecuencia que mejor se adapte a tu cuenta.",
       "next": "Próxima fecha de pago",
-      "nextHint": "Tu próxima fecha aparecerá cuando la facturación esté activa.",
+      "nextHint": "Tu plan se renueva en esta fecha.",
       "promo": "Código promocional",
       "promoValue": "Disponible",
       "promoNone": "No disponible",
@@ -3766,7 +3769,15 @@
       "periodOnly": {
         "year": "Anual",
         "month": "Mensual"
-      }
+      },
+      "amount": "Monto",
+      "amountHint": "Un año del plan All-access.",
+      "amountPaidHint": "Pagado el {{date}}.",
+      "amountFree": "Gratis durante nuestra etapa de lanzamiento.",
+      "nextDue": "Hoy",
+      "nextDueHint": "Tu plan empieza cuando pagás.",
+      "periodOnlyHint": "Se cobra una vez al año.",
+      "promoAppliedHint": "Aplicado a tu plan."
     },
     "coupon": {
       "badge": "Cupón aplicado",
@@ -3795,11 +3806,25 @@
       "keep": "Mantener mi plan",
       "cancelConfirm": "Cancelar plan",
       "cancelSoonTitle": "No se canceló nada",
-      "cancelSoon": "Tu plan no tiene costo durante nuestra etapa de lanzamiento, así que todavía no hay nada para cancelar. Vas a poder gestionarlo acá cuando los planes se lancen.",
+      "cancelSoon": "Todavía no se puede cancelar desde la app. Tu plan sigue activo hasta que se renueve.",
       "gotIt": "Entendido"
     },
     "notice": "Te avisaremos antes de que entre en vigencia cualquier cambio de plan o de precio.",
-    "feeNoteYearly": "Se cobra una vez al año."
+    "feeNoteYearly": "Se cobra una vez al año.",
+    "pay": {
+      "confirmTitle": "¿Pagar tu membresía?",
+      "confirmBody": "Vas a pagar un año del plan All-access.",
+      "confirmCta": "Pagar {{amount}}",
+      "cancel": "Cancelar",
+      "highlightLabel": "All-access · 1 año",
+      "successTitle": "Pago recibido",
+      "success": "Tu plan All-access está activo. Se renueva el {{date}}.",
+      "failedTitle": "No se hizo el pago",
+      "failed": "No pudimos procesar el pago. Intentá de nuevo.",
+      "button": "Pagar {{amount}}",
+      "duePill": "Pago pendiente",
+      "paidPill": "Pagado"
+    }
   },
   "promotions": {
     "badge": "PROMOCIONES",

@@ -1,6 +1,6 @@
 import { AttentionCards, type AttentionCardData } from '@/components/dashboard/AttentionCard';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Award, ChevronDown, ChevronRight, Star, Wallet, Wrench, X, type LucideIcon } from 'lucide-react-native';
+import { Award, ChevronDown, ChevronRight, PowerOff, Radar, Star, Wallet, Wrench, X, type LucideIcon } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Animated, Easing, Pressable, type NativeScrollEvent, type NativeSyntheticEvent, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 
@@ -178,6 +178,9 @@ function MiniStat({ icon, accent, label, value, sub, children, onPress }: { icon
 export type EarnNudge = {
     /** The status line (first page). Omitted: the strip is only tips. */
     text?: string;
+    /** The small label above the line (like a tip's), and the icon in its tile. */
+    label?: string;
+    icon?: LucideIcon;
     /** Green and pulsing: the technician is listening for requests right now. */
     live?: boolean;
     /** A one-tap way to get going (e.g. go Available); the pill then reads as a button. */
@@ -211,20 +214,23 @@ function LiveDot() {
  * A tap, and only a tap, inside a page that swipes. On the first or last page a left/right drag has nowhere to scroll to, so the scroll view
  * lets go of it and the touch ended up as a press on the tip (a swipe opened its link). A finger that moved is not a tap.
  */
-function TapPage({ onTap, style, children, testID, className }: { onTap: () => void; style?: object; children: ReactNode; testID?: string; className?: string }) {
+function TapPage({ onTap, style, children, testID }: { onTap: () => void; style?: object; children: ReactNode; testID?: string }) {
     const start = useRef<{ x: number; y: number } | null>(null);
+    // Pressed look kept in state, with a plain style object: NativeWind drops a style *function* on a Pressable, and the page then lost its
+    // width and its row (the icon over the chevron, no text).
+    const [pressed, setPressed] = useState(false);
     return (
         <Pressable
             testID={testID}
-            className={className}
             accessibilityRole="button"
-            onPressIn={(e) => { start.current = { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY }; }}
+            onPressIn={(e) => { start.current = { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY }; setPressed(true); }}
+            onPressOut={() => setPressed(false)}
             onPress={(e) => {
                 const from = start.current;
                 if (from && (Math.abs(e.nativeEvent.pageX - from.x) > 8 || Math.abs(e.nativeEvent.pageY - from.y) > 8)) return;
                 onTap();
             }}
-            style={({ pressed }) => [style, { opacity: pressed ? 0.8 : 1 }]}
+            style={[style, { opacity: pressed ? 0.8 : 1 }]}
         >
             {children}
         </Pressable>
@@ -251,10 +257,20 @@ export function EarnNudgeStrip({ nudge }: { nudge: EarnNudge }) {
     const onSwipeEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
         if (width > 0) setIndex(Math.max(0, Math.min(pages - 1, Math.round(e.nativeEvent.contentOffset.x / width))));
     };
+    // The status page has the same shape as the tips: an icon in its tile, a small label and the line (green and live when listening for
+    // requests, amber when offline), with the one-tap action at the end.
+    const StatusIcon = nudge.icon ?? (nudge.live ? Radar : PowerOff);
+    const statusTone = nudge.live ? { bg: '#E7F8EF', fg: '#15803D', label: '#15803D' } : { bg: '#FEF3C7', fg: '#B45309', label: '#B45309' };
     const statusRow = (
-        <View className="flex-row items-center" style={{ gap: 10, paddingHorizontal: 14, minHeight: 48 }}>
-            {nudge.live ? <LiveDot /> : <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#F59E0B' }} />}
-            <Text className="font-outfit-bold flex-1" style={{ fontSize: 15, lineHeight: 21, color: C.text }}>{nudge.text}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, minHeight: 48 }}>
+            <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: statusTone.bg, alignItems: 'center', justifyContent: 'center' }}>
+                <StatusIcon size={20} color={statusTone.fg} />
+                {nudge.live ? <View style={{ position: 'absolute', top: -2, right: -2 }}><LiveDot /></View> : null}
+            </View>
+            <View style={{ flex: 1, minWidth: 0 }}>
+                {nudge.label ? <Text className="font-outfit-bold uppercase" style={{ fontSize: 12, lineHeight: 16, letterSpacing: 0.8, color: statusTone.label }}>{nudge.label}</Text> : null}
+                <Text className="font-outfit-semibold" style={{ fontSize: 15, lineHeight: 21, color: C.text }}>{nudge.text}</Text>
+            </View>
             {nudge.cta ? (
                 <View className="flex-row items-center" style={{ gap: 2 }}>
                     <Text className="font-outfit-bold" style={{ fontSize: 14, color: C.blue }}>{nudge.cta}</Text>
@@ -277,7 +293,8 @@ export function EarnNudgeStrip({ nudge }: { nudge: EarnNudge }) {
                         </View>
                     ) : null}
                     {tips.map(({ key, icon: Icon, label, text, onPress, onDismiss }) => {
-                        const pageStyle = { width: width || undefined, paddingHorizontal: 14, gap: 12, minHeight: 48 };
+                        // Layout written out (not a className): a Pressable with a style function does not take NativeWind's row, and the text ran off the page.
+                        const pageStyle = { width: width || undefined, flexDirection: 'row' as const, alignItems: 'center' as const, paddingHorizontal: 14, gap: 12, minHeight: 48 };
                         const body = (
                             <>
                                 <View className="items-center justify-center" style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: C.blueSoft }}>
@@ -297,9 +314,9 @@ export function EarnNudgeStrip({ nudge }: { nudge: EarnNudge }) {
                         );
                         // A tip with a link opens it on a tap only (a swipe never does); one without is just a page.
                         return onPress ? (
-                            <TapPage key={key} onTap={onPress} className="flex-row items-center" style={pageStyle}>{body}</TapPage>
+                            <TapPage key={key} onTap={onPress} style={pageStyle}>{body}</TapPage>
                         ) : (
-                            <View key={key} className="flex-row items-center" style={pageStyle}>{body}</View>
+                            <View key={key} style={pageStyle}>{body}</View>
                         );
                     })}
                 </ScrollView>
