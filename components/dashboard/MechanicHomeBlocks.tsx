@@ -214,7 +214,7 @@ function LiveDot() {
  * A tap, and only a tap, inside a page that swipes. On the first or last page a left/right drag has nowhere to scroll to, so the scroll view
  * lets go of it and the touch ended up as a press on the tip (a swipe opened its link). A finger that moved is not a tap.
  */
-function TapPage({ onTap, style, children, testID }: { onTap: () => void; style?: object; children: ReactNode; testID?: string }) {
+function TapPage({ onTap, style, children, testID, accessibilityLabel }: { onTap: () => void; style?: object; children: ReactNode; testID?: string; accessibilityLabel?: string }) {
     const start = useRef<{ x: number; y: number } | null>(null);
     // Pressed look kept in state, with a plain style object: NativeWind drops a style *function* on a Pressable, and the page then lost its
     // width and its row (the icon over the chevron, no text).
@@ -223,6 +223,7 @@ function TapPage({ onTap, style, children, testID }: { onTap: () => void; style?
         <Pressable
             testID={testID}
             accessibilityRole="button"
+            accessibilityLabel={accessibilityLabel}
             onPressIn={(e) => { start.current = { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY }; setPressed(true); }}
             onPressOut={() => setPressed(false)}
             onPress={(e) => {
@@ -257,51 +258,32 @@ export function EarnNudgeStrip({ nudge }: { nudge: EarnNudge }) {
     const onSwipeEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
         if (width > 0) setIndex(Math.max(0, Math.min(pages - 1, Math.round(e.nativeEvent.contentOffset.x / width))));
     };
-    // The status page has the same shape as the tips: an icon in its tile, a small label and the line (green and live when listening for
-    // requests, amber when offline), with the one-tap action at the end.
+    // The status page is one more page of the same kind as the tips (same layout, same tap-only link, same chevron): an icon in its tile, a
+    // small label and the line, green and live when listening for requests, amber when offline.
     const StatusIcon = nudge.icon ?? (nudge.live ? Radar : PowerOff);
     const statusTone = nudge.live ? { bg: '#E7F8EF', fg: '#15803D', label: '#15803D' } : { bg: '#FEF3C7', fg: '#B45309', label: '#B45309' };
-    const statusRow = (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, minHeight: 48, width: width || undefined }}>
-            <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: statusTone.bg, alignItems: 'center', justifyContent: 'center' }}>
-                <StatusIcon size={20} color={statusTone.fg} />
-                {nudge.live ? <View style={{ position: 'absolute', top: -2, right: -2 }}><LiveDot /></View> : null}
-            </View>
-            <View style={{ flex: 1, minWidth: 0 }}>
-                {nudge.label ? <Text className="font-outfit-bold uppercase" style={{ fontSize: 12, lineHeight: 16, letterSpacing: 0.8, color: statusTone.label }}>{nudge.label}</Text> : null}
-                <Text className="font-outfit-semibold" style={{ fontSize: 15, lineHeight: 21, color: C.text }}>{nudge.text}</Text>
-            </View>
-            {nudge.cta ? (
-                <View className="flex-row items-center" style={{ gap: 2 }}>
-                    <Text className="font-outfit-bold" style={{ fontSize: 14, color: C.blue }}>{nudge.cta}</Text>
-                    <ChevronRight size={16} color={C.blue} />
-                </View>
-            ) : null}
-        </View>
-    );
+    type Page = { key: string; icon: LucideIcon; tone: { bg: string; fg: string; label: string }; label?: string; text: string; live?: boolean; onPress?: () => void; onDismiss?: () => void; testID?: string; a11y?: string };
+    const pageList: Page[] = [
+        ...(hasStatus ? [{ key: 'status', icon: StatusIcon, tone: statusTone, label: nudge.label, text: nudge.text as string, live: nudge.live, onPress: nudge.onPress, testID: 'earn-nudge-action', a11y: nudge.cta }] : []),
+        ...tips.map((tip) => ({ key: tip.key, icon: tip.icon, tone: { bg: C.blueSoft, fg: C.blue, label: C.blue }, label: tip.label, text: tip.text, onPress: tip.onPress, onDismiss: tip.onDismiss })),
+    ];
     // After every hook (an early return above them changes the hook count between renders).
     if (pages === 0) return null;
     return (
         <View style={{ paddingTop: 14, paddingBottom: pages > 1 ? 12 : 14, borderRadius: 20, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: C.borderSoft }} testID="earn-nudge">
             <View onLayout={(e) => setWidth(Math.floor(e.nativeEvent.layout.width))}>
                 <ScrollView ref={scroller} horizontal pagingEnabled showsHorizontalScrollIndicator={false} onMomentumScrollEnd={onSwipeEnd} scrollEventThrottle={16} bounces={false} scrollEnabled={pages > 1}>
-                    {hasStatus ? (
-                        <View style={{ width: width || undefined, justifyContent: 'center' }}>
-                            {nudge.onPress ? (
-                                <TapPage onTap={nudge.onPress} testID="earn-nudge-action">{statusRow}</TapPage>
-                            ) : statusRow}
-                        </View>
-                    ) : null}
-                    {tips.map(({ key, icon: Icon, label, text, onPress, onDismiss }) => {
+                    {pageList.map(({ key, icon: Icon, tone, label, text, live, onPress, onDismiss, testID, a11y }) => {
                         // Layout written out (not a className): a Pressable with a style function does not take NativeWind's row, and the text ran off the page.
                         const pageStyle = { width: width || undefined, flexDirection: 'row' as const, alignItems: 'center' as const, paddingHorizontal: 14, gap: 12, minHeight: 48 };
                         const body = (
                             <>
-                                <View className="items-center justify-center" style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: C.blueSoft }}>
-                                    <Icon size={20} color={C.blue} />
+                                <View className="items-center justify-center" style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: tone.bg }}>
+                                    <Icon size={20} color={tone.fg} />
+                                    {live ? <View style={{ position: 'absolute', top: -2, right: -2 }}><LiveDot /></View> : null}
                                 </View>
                                 <View className="flex-1" style={{ minWidth: 0 }}>
-                                    <Text className="font-outfit-bold uppercase" style={{ fontSize: 12, lineHeight: 16, letterSpacing: 0.8, color: C.blue }}>{label}</Text>
+                                    {label ? <Text className="font-outfit-bold uppercase" style={{ fontSize: 12, lineHeight: 16, letterSpacing: 0.8, color: tone.label }}>{label}</Text> : null}
                                     <Text className="font-outfit-semibold" style={{ fontSize: 15, lineHeight: 21, color: C.text }}>{text}</Text>
                                 </View>
                                 {onPress ? <ChevronRight size={18} color={C.mutedLight} /> : null}
@@ -312,10 +294,10 @@ export function EarnNudgeStrip({ nudge }: { nudge: EarnNudge }) {
                                 ) : null}
                             </>
                         );
-                        // A tip with a link opens it on a tap only (a swipe never does); one without is just a page.
+                        // A page with a link opens it on a tap only (a swipe never does); one without is just a page.
                         // The layout lives on an inner View: on Android a Pressable whose style is a function dropped the padding, gap and wrapping of its className/style.
                         return onPress ? (
-                            <TapPage key={key} onTap={onPress} style={{ width: pageStyle.width }}>
+                            <TapPage key={key} onTap={onPress} testID={testID} accessibilityLabel={a11y} style={{ width: pageStyle.width }}>
                                 <View className="flex-row items-center" style={pageStyle}>{body}</View>
                             </TapPage>
                         ) : (
