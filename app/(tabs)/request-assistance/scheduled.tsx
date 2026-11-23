@@ -1,6 +1,7 @@
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
+import { getCurrentPositionOrNull } from '@/lib/location/currentPosition';
 import { CreditCard } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -255,7 +256,11 @@ export default function ScheduledRequestScreen() {
                 setLocationError(t('scheduled.location.permissionDenied'));
                 return;
             }
-            const position = await Location.getCurrentPositionAsync({});
+            const position = await getCurrentPositionOrNull();
+            if (!position) {
+                setLocationError(t('scheduled.location.unavailable'));
+                return;
+            }
             const { latitude, longitude } = position.coords;
             let line = t('scheduled.location.currentLocation');
             let zip = '';

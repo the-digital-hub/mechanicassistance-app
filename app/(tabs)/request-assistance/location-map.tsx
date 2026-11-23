@@ -9,6 +9,7 @@ import { useUser } from '@/context/UserContext';
 import { addressDisplayName, addressesForRole } from '@/lib/address';
 import type { ParsedAddress } from '@/lib/places';
 import * as Location from 'expo-location';
+import { getCurrentPositionOrNull } from '@/lib/location/currentPosition';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Briefcase, ChevronDown, ChevronLeft, Home, MapPin } from 'lucide-react-native';
 import { OwnerSheet, SheetOption } from '@/components/dashboard/OwnerHomeBlocks';
@@ -116,7 +117,14 @@ export default function LocationMapScreen() {
                 return;
             }
 
-            let location = await Location.getCurrentPositionAsync({});
+            const location = await getCurrentPositionOrNull();
+            if (!location) {
+                // No fix (GPS off or no signal): open the map over the country so the address search or a tap can still set the place.
+                appAlert(t('requestAssistance.locationMap.unavailable'));
+                setRegion({ latitude: 39.8, longitude: -98.6, latitudeDelta: 30, longitudeDelta: 30 });
+                setIsLoading(false);
+                return;
+            }
             updateRegionFromLocation(location);
         })();
         // eslint-disable-next-line react-hooks/exhaustive-deps
