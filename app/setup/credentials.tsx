@@ -93,7 +93,7 @@ export default function CredentialsScreen() {
 
     return (
         <View className="flex-1" style={{ backgroundColor: SETUP_BG }}>
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+            <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
                 <KeyboardAwareScrollView className="flex-1" contentContainerStyle={{ padding: 20, paddingTop: 18, paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
                     <SetupHeading screen="credentials" badge={t('setup.credentials.badge')} title={t('setup.credentials.title')} subtitle={t('setup.credentials.subtitle')} />
 

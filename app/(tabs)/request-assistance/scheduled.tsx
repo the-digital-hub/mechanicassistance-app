@@ -406,7 +406,7 @@ export default function ScheduledRequestScreen() {
                 onClose={() => setCardRequired(false)}
             />
             <WizardHeader title={t('scheduled.title')} onBack={handleBack} />
-            <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            <KeyboardAvoidingView className="flex-1" behavior="padding">
                 <ScrollView
                     ref={scrollRef}
                     className="flex-1"

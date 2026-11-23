@@ -68,7 +68,7 @@ export default function LiveChatScreen() {
 
     return (
         <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            behavior="padding"
             className="flex-1 bg-white"
             keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
         >

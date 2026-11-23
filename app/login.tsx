@@ -633,7 +633,7 @@ export default function LoginScreen() {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
           <GradientLayout className="flex-1" resizeMode="cover">
             <KeyboardAvoidingView
-              behavior={Platform.OS === "ios" ? "padding" : undefined}
+              behavior="padding"
               style={{ flex: 1 }}
             >
               {/* Back to the phone form: the same small translucent badge as "Back to start". */}
@@ -876,7 +876,7 @@ export default function LoginScreen() {
         onRequestClose={closeForgot}
       >
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior="padding"
           className="flex-1"
         >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>

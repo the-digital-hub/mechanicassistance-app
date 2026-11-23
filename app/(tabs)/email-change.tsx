@@ -188,7 +188,7 @@ export default function EmailChangeScreen() {
         <KeyboardAvoidingView
             className="flex-1"
             style={{ backgroundColor: '#F6F8FC' }}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            behavior="padding"
             keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
         >
             <ScrollView className="flex-1 px-6 pt-4" keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 40 }}>

@@ -469,7 +469,7 @@ export function VehicleForm({ initialValue, submitLabel, submitting, onSubmit, h
 
     return (
         <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            behavior="padding"
             style={{ flex: 1, backgroundColor: AV.page }}
             keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
         >

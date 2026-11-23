@@ -184,7 +184,7 @@ export default function ChatScreen() {
 
     return (
         <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            behavior="padding"
             className="flex-1 bg-white"
         >
             {/* Header */}

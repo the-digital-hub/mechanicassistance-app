@@ -386,7 +386,7 @@ export default function OnSiteFlowScreen() {
     }
 
     return (
-        <KeyboardAvoidingView className="flex-1" style={{ backgroundColor: OS.page }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <KeyboardAvoidingView className="flex-1" style={{ backgroundColor: OS.page }} behavior="padding">
             <FlowHeader
                 title={screen === 'done' ? t('appointments.closeout.title') : t(`appointments.onSite.titles.${TITLE_KEY[screen]}`)}
                 onBack={loading ? () => goBackOr(router, { pathname: '/appointments/[id]', params: { id } }) : back}
