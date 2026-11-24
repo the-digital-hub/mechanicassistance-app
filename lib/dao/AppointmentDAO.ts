@@ -25,6 +25,19 @@ export class AppointmentDAO implements IAppointmentDAO {
         return apiClient.patch(`/api/appointments/${id}`, updates);
     }
 
+    /**
+     * Hides a cancelled appointment from the signed-in person's list (the other party and the records keep it). Idempotent. 404 when it is
+     * not theirs (or is only a request), 409 `appointment_not_cancelled` when it is not cancelled.
+     */
+    async hide(id: string): Promise<{ id: string; hidden: boolean }> {
+        return apiClient.post(`/api/appointments/${id}/hide`, {});
+    }
+
+    /** Brings a hidden appointment back to the list. */
+    async unhide(id: string): Promise<{ id: string; hidden: boolean }> {
+        return apiClient.delete(`/api/appointments/${id}/hide`);
+    }
+
     /** The cancellation dispute of a cancelled appointment, or null when it has none (404). */
     async getCancellationDispute(id: string): Promise<CancellationDispute | null> {
         try {

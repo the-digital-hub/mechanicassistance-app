@@ -117,6 +117,7 @@ describe('buildOffer', () => {
 describe('offerSubmitProblem', () => {
     it('maps quote errors', () => {
         expect(offerSubmitProblem('offers_closed')).toBe('closed');
+        expect(offerSubmitProblem('request_unavailable')).toBe('closed');
         expect(offerSubmitProblem('quote_slot_invalid')).toBe('slot');
         expect(offerSubmitProblem('quote_price_required')).toBe('price');
         expect(offerSubmitProblem('quote_description_required')).toBe('description');

@@ -134,7 +134,7 @@ export function buildOffer(f: OfferForm): OfferInput {
 export type OfferSubmitProblem = 'closed' | 'slot' | 'price' | 'description' | FeedProblem;
 
 export function offerSubmitProblem(code: string | undefined): OfferSubmitProblem {
-    if (code === 'offers_closed') return 'closed';
+    if (code === 'offers_closed' || code === 'request_unavailable') return 'closed';
     if (code === 'quote_slot_invalid' || code === 'quote_validity_invalid') return 'slot';
     if (code === 'quote_price_required' || code === 'quote_price_invalid' || code === 'quote_diagnostic_fee_required' || code === 'quote_amount_too_high') return 'price';
     if (code === 'quote_description_required') return 'description';

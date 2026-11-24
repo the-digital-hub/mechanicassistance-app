@@ -22,6 +22,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { RequestIssueText } from '@/components/ui/RequestIssueText';
 import { appAlert } from '@/lib/ui/appAlert';
 import { ApiError } from '@/lib/api/types';
+import { apiErrorCode } from '@/lib/payments/cardRequired';
 import { useSocket } from '@/context/SocketContext';
 import { useRequestRoute } from '@/hooks/useRequestRoute';
 
@@ -297,6 +298,11 @@ export default function RequestDetailScreen() {
             );
         } catch (error: any) {
             setShowConfirm(false);
+            // Another technician got there first: the server says so with its own code (no need to ask again whether it is still open).
+            if (error instanceof ApiError && error.statusCode === 409 && apiErrorCode(error) === 'request_unavailable') {
+                markTaken();
+                return;
+            }
             if (error instanceof ApiError && [403, 404, 409].includes(error.statusCode) && !(await checkStillOpen())) return;
             appAlert(t('requestDetail.acceptFailed', { error: error.message || 'Unknown error' }));
         } finally {
