@@ -4397,7 +4397,8 @@
   "crash": {
     "title": "Something went wrong",
     "message": "The app ran into an unexpected error. You can try again.",
-    "retry": "Try again"
+    "retry": "Try again",
+    "copy": "Copy the error details"
   },
   "emailChange": {
     "badge": "SIGN-IN EMAIL",
