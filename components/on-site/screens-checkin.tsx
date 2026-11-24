@@ -17,6 +17,7 @@ import {
     ActionBar, Body, Card, CardTitle, Checkbox, GhostButton, InfoRow, Intro, MAINTENANCE_ITEMS, OS, PrimaryButton, Segmented, Tip, cardShadow,
 } from './ui';
 import { localizedAddress } from '@/lib/ui/remoteAddress';
+import { isPlaceholderAddress, useReadableAddress } from '@/lib/ui/readableAddress';
 
 // Phase 1 of the on-site flow: check-in, issue review and diagnostic.
 
@@ -25,6 +26,8 @@ export interface OnSiteAppointment {
     car?: string;
     notes?: string;
     address?: string;
+    locationLat?: number;
+    locationLng?: number;
     title?: string;
     vehicleIssues?: { name: string }[];
 }
@@ -378,8 +381,11 @@ function Milestone({ icon, badge, title, subtitle, action, onAction, testID, chi
 export function ScreenArrived({ appointment, onStart }: { appointment: OnSiteAppointment & { refCode?: string | null }; onStart: () => void }) {
     const { t } = useTranslation();
     const k = 'appointments.checkIn.arrived';
+    // "My Current Location" is only what the wizard stores when the phone could not name the street: the real address is looked up from the
+    // coordinates, and when it cannot be found the row is left out rather than showing the placeholder.
+    const address = useReadableAddress(appointment.address, appointment.locationLat, appointment.locationLng);
     const rows: { icon: React.ComponentProps<typeof Ionicons>['name']; label: string; value: string }[] = [
-        ...(appointment.address ? [{ icon: 'location-outline' as const, label: t(`${k}.location`), value: localizedAddress(appointment.address, t) }] : []),
+        ...(address && !isPlaceholderAddress(address) ? [{ icon: 'location-outline' as const, label: t(`${k}.location`), value: localizedAddress(address, t) }] : []),
         ...(appointment.car ? [{ icon: 'car-outline' as const, label: t(`${k}.vehicle`), value: appointment.car }] : []),
         { icon: 'construct-outline' as const, label: t(`${k}.job`), value: reportedIssue(appointment) },
     ];

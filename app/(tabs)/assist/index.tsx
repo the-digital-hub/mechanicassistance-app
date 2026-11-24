@@ -509,7 +509,7 @@ export default function AssistanceRequestsScreen() {
                     )}
 
                     {/* Immediate: the zone, distance, ETA and "Send offer" are on the card itself, as in the dashboard. */}
-                    {request.type === 'immediate' ? (
+                    {request.type === 'immediate' || request.type === 'videocall' ? (
                       <ImmediateOfferPanel request={request} onSend={guard(startOffer)} onDecline={guard(handleDecline)} />
                     ) : (
                     <View className="gap-3 px-5 py-4 border-t border-gray-100">

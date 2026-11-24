@@ -43,9 +43,45 @@ export function distanceLabel(miles: number | null | undefined): string {
 /** Requests made before the label was dropped: "Preferred window: 9 AM – 12 PM" becomes "Fri, Nov 20 · 9 AM – 12 PM". */
 export function notesWithDay(notes: string | null | undefined, date: string | null | undefined): string | undefined {
     if (!notes) return undefined;
-    const d = date ? new Date(date) : null;
+    notes = normalizeAvailabilityLines(notes);
+    const d = calendarDate(date);
     const day = d && !isNaN(d.getTime()) ? d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : null;
     return notes.replace(/^Preferred window: (?:\w{3}, \w{3} \d+, )?/m, day ? `${day} · ` : '');
+}
+
+/**
+ * The day a request is dated, as a local calendar date. A date with no time (or midnight UTC, which is how a bare day is read) names a
+ * day, not an instant: read as an instant it lands on the evening before in the Americas ("Nov 25" showed as "Nov 24").
+ */
+export function calendarDate(date: string | null | undefined): Date | null {
+    if (!date) return null;
+    const bare = date.match(/^(\d{4})-(\d{2})-(\d{2})(?:T00:00:00(?:\.0+)?Z?)?$/);
+    if (bare) return new Date(Number(bare[1]), Number(bare[2]) - 1, Number(bare[3]));
+    const d = new Date(date);
+    return isNaN(d.getTime()) ? null : d;
+}
+
+const dayKeyLabel = (key: string) => {
+    const [y, m, d] = key.split('-').map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+};
+
+/**
+ * Availability written in another shape than the app's own ("Rango 2026-11-25 al 2026-11-26 (10:00 AM - 7:00 PM EST)", or a window with a
+ * plain hyphen) is put into the shape the screens read: "Wed, Nov 25 – Thu, Nov 26 · 10:00 AM – 7:00 PM".
+ */
+export function normalizeAvailabilityLines(notes: string): string {
+    return notes
+        .split('\n')
+        .map((line) => {
+            const range = line.match(/^\s*(?:Rango|Range)\s+(\d{4}-\d{2}-\d{2})\s+(?:al|to)\s+(\d{4}-\d{2}-\d{2})\s*\(?\s*(\d{1,2}:\d{2} [AP]M)\s*[-–—]\s*(\d{1,2}:\d{2} [AP]M)[^)]*\)?\s*$/i);
+            if (range) {
+                const days = range[1] === range[2] ? dayKeyLabel(range[1]) : `${dayKeyLabel(range[1])} – ${dayKeyLabel(range[2])}`;
+                return `${days} · ${range[3]} – ${range[4]}`;
+            }
+            return line.replace(/(\d{1,2}:\d{2} [AP]M)\s*[-—]\s*(\d{1,2}:\d{2} [AP]M)(\s*[A-Z]{2,4})?\s*$/, '$1 – $2');
+        })
+        .join('\n');
 }
 
 /**
@@ -202,8 +238,8 @@ const keyOf = (d: Date) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(
  * named in `days` ("Fri, Nov 20 – Sun, Nov 22"). A single day when there is no range or it cannot be read.
  */
 export function requestDays(days: string, date: string | null | undefined): string[] {
-    const start = date ? new Date(date) : null;
-    if (!start || isNaN(start.getTime())) return [];
+    const start = calendarDate(date);
+    if (!start) return [];
     const first = new Date(start.getFullYear(), start.getMonth(), start.getDate());
     const end = days.split('–')[1]?.match(/([A-Z][a-z]{2}) (\d{1,2})/);
     if (!end) return [keyOf(first)];
@@ -228,7 +264,9 @@ export function arrivalTimes(window: string): number[] {
     const [a, b] = window.split(' – ');
     const from = minutesOf(a ?? '');
     const to = minutesOf(b ?? '');
-    if (!Number.isFinite(from) || !Number.isFinite(to) || to <= from) return [];
+    // No readable window (the request did not carry one in a shape we know): the technician still has to be able to name an arrival,
+    // so the day is offered from 8:00 AM to 6:00 PM, on the hour. The customer sees the exact time in the quote anyway.
+    if (!Number.isFinite(from) || !Number.isFinite(to) || to <= from) return Array.from({ length: 11 }, (_, i) => (8 + i) * 60);
     const out: number[] = [from];
     for (let m = (Math.floor(from / 60) + 1) * 60; m < to && out.length < 8; m += 60) out.push(m);
     return out;

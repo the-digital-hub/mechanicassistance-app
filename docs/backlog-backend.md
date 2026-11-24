@@ -490,3 +490,29 @@ El menú del perfil ya marca lo pendiente (identidad, ASE, documentos legales, m
 
 ## AV — Estado de cuenta (PDF) del dueño del vehículo: hoy solo existe el del técnico
 El técnico baja el PDF del estado de cuenta desde Earnings → Activity → filtros (`GET /api/earnings/me/statement?from&to`, billing). El dueño tiene la misma pantalla de actividad («Recent payment activity», con el mismo filtro de fechas) pero **no tiene PDF**: el endpoint es de earnings y no incluye sus pagos. Pedido: `GET /api/payments/me/statement?from=YYYY-MM-DD&to=YYYY-MM-DD` → PDF con los pagos de servicio, los movimientos del wallet y los cobros del plan (cada vehículo de Assistance Pass con su fecha), con el logo a color (ver AQ). Con el endpoint, la app agrega la sección «Account statement» a la hoja de filtros de la actividad del dueño (el componente ya lo admite: `EarningsFiltersBar` recibe `statement`).
+
+---
+
+## AW — `providerAmount` en `pendingRequest` de las extensiones (lo que gana el técnico por el tiempo extra)
+
+- **Qué hace falta:** `GET /api/appointments/:id/video/extensions` (y el evento `extension_requested`), cuando lo consulta el técnico, devuelve en `pendingRequest` el campo `providerAmount` (decimal, "12.75"): lo que gana por esos minutos, ya con el recargo por franja y **sin** la comisión ni el precio del dueño. Al dueño no se le manda.
+- **Por qué:** el técnico acepta o rechaza el tiempo extra sin saber cuánto cobra. La app ya muestra «Ganás $X» en la tarjeta cuando el campo existe y, mientras no llegue, la tarjeta sale sin monto.
+- **Prueba:** el dueño pide 15 minutos; en el teléfono del técnico la tarjeta dice el monto y, al aceptar, coincide con la línea que queda en Ganancias.
+
+---
+
+## AX — El dueño avisa que no va a enviar el escaneo OBD (cerrar el pedido de OBD)
+
+- **Qué hace falta:** un estado `skipped` en el reporte OBD de la solicitud: `POST /api/assistance/:id/obd/skip` (solo el dueño; se deshace al adjuntar un archivo) y `status: 'skipped'` en `GET /api/assistance/:id/obd`, con el evento `obd_update`.
+- **Por qué:** la app ya ofrece, muy discreto, «No lo tengo, no lo voy a enviar» debajo de la carga del archivo, pero hoy solo se guarda en el teléfono del dueño: el técnico no se entera y sigue viendo «sin escaneo». Cuando exista el estado, la app lo envía y el técnico lee «El cliente no va a enviar el escaneo».
+- **Prueba:** el dueño toca el enlace y confirma; en el teléfono del técnico el panel OBD dice que no hay escaneo y por qué.
+
+
+---
+
+## AY — Disponibilidad estructurada en los pedidos agendados (hoy viaja como texto libre)
+
+- **Qué hace falta:** que `GET /marketplace/requests` (y `/:id`) devuelva la disponibilidad del dueño como datos, no solo dentro de `notes`: `availability: { from: 'YYYY-MM-DD', to: 'YYYY-MM-DD', windowStart: 'HH:mm', windowEnd: 'HH:mm', timezone: 'America/New_York' }`. La fecha `date` tiene que ser el día de servicio pedido (no el día de publicación) y, si es solo un día, no puede venir como medianoche UTC.
+- **Por qué:** la app del técnico arma los días y los horarios de llegada leyendo una línea de `notes` con un formato fijo («Wed, Nov 25 – Thu, Nov 26 · 10:00 AM – 7:00 PM»). Un pedido llegó con otro formato («Rango 2026-11-25 al 2026-11-26 (10:00 AM - 7:00 PM EST)»): el técnico vio solo el 24, sin horarios para elegir y sin poder enviar la cotización. El Hub sí mostraba bien el 25 al 26, así que el dato existe del lado del servidor.
+- **Qué hizo la app mientras tanto:** lee también ese formato, acepta guion simple en el horario y ya no corre un día las fechas sin hora. Cuando llegue `availability`, la app lo usa primero y deja el texto como respaldo.
+- **Prueba:** crear un pedido agendado del 25 al 26, 10:00 AM a 7:00 PM, desde cada cliente (app, web, bot); en el teléfono del técnico los días y los horarios salen iguales que en el Hub.

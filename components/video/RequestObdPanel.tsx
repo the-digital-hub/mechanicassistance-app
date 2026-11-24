@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -8,6 +9,7 @@ import { Card, CardTitle, OS, Tip } from '@/components/on-site/ui';
 import { useSocket } from '@/context/SocketContext';
 import { absoluteMediaUrl } from '@/lib/dao/OnSiteDAO';
 import { requestObdDAO, RequestObdReport } from '@/lib/dao/RequestObdDAO';
+import { appAlert } from '@/lib/ui/appAlert';
 
 // The OBD scanner report of a video call. The owner attaches (or replaces) the
 // file; its codes are read in the background by the document service. The
@@ -70,6 +72,22 @@ export function RequestObdPanel({ requestId, role, editable, state }: RequestObd
     const [suggestionsOpen, setSuggestionsOpen] = React.useState(false);
     const [openingFile, setOpeningFile] = React.useState(false);
     const [replacing, setReplacing] = React.useState(false);
+    // The owner can say they will not send the scan. Kept on this phone for now (the server has no such state yet, backlog AX), and
+    // deliberately a quiet text link: what matters is that the scan arrives.
+    const skipKey = `obd_skipped_v1:${requestId}`;
+    const [skipped, setSkipped] = React.useState(false);
+    React.useEffect(() => {
+        AsyncStorage.getItem(skipKey).then((v) => setSkipped(v === '1')).catch(() => undefined);
+    }, [skipKey]);
+    const setSkip = (value: boolean) => {
+        setSkipped(value);
+        (value ? AsyncStorage.setItem(skipKey, '1') : AsyncStorage.removeItem(skipKey)).catch(() => undefined);
+    };
+    const askSkip = () =>
+        appAlert(t(`${kv}.${role === 'mechanic' ? 'skipTitleMechanic' : 'skipTitle'}`), t(`${kv}.${role === 'mechanic' ? 'skipMessageMechanic' : 'skipMessage'}`), [
+            { text: t(`${kv}.skipConfirm`), style: 'secondary', onPress: () => setSkip(true) },
+            { text: t(`${kv}.skipKeep`), style: 'cancel' },
+        ], { tone: 'info', icon: 'document-outline' });
 
     const status = report?.status ?? 'none';
     const codes = report?.codes ?? [];
@@ -77,6 +95,9 @@ export function RequestObdPanel({ requestId, role, editable, state }: RequestObd
     const anySuggestion = codes.some((c) => c.suggestion);
     const canUpload = role === 'owner' && editable;
     const canType = role === 'mechanic' && editable;
+    // The technician closes it too: the client has no scan and will not send it (only while nothing was sent or typed in).
+    const mechanicCanSkip = role === 'mechanic' && editable && !fileName && !codes.length && status === 'none';
+    const mechanicSkipped = mechanicCanSkip && skipped;
     // Once the call is over nothing can be added: the notes say what happened, not what could still be done.
 
     const upload = async (file: Picked) => {
@@ -135,7 +156,15 @@ export function RequestObdPanel({ requestId, role, editable, state }: RequestObd
     return (
         <>
             {dialog}
-            {canUpload && (!fileName || replacing) ? (
+            {canUpload && !fileName && skipped ? (
+                <Card>
+                    <Text className="font-outfit-regular text-[14px] leading-5 px-4 pt-3.5" style={{ color: OS.muted }}>{t(`${kv}.skippedNote`)}</Text>
+                    <TouchableOpacity onPress={() => setSkip(false)} className="px-4 pt-2 pb-3.5 self-start" accessibilityRole="button" testID="request-obd-unskip">
+                        <Text className="font-outfit-bold text-[13px]" style={{ color: OS.blue }}>{t(`${kv}.skipUndo`)}</Text>
+                    </TouchableOpacity>
+                </Card>
+            ) : null}
+            {canUpload && (!fileName || replacing) && !(skipped && !fileName) ? (
                 <Card>
                     <CardTitle title={t(`${kv}.file`)} optional />
                     <MediaSlot
@@ -146,10 +175,23 @@ export function RequestObdPanel({ requestId, role, editable, state }: RequestObd
                         customUpload={upload}
                         existingFileName={fileName}
                     />
+                    {!fileName ? (
+                        <TouchableOpacity onPress={askSkip} className="items-center pb-3.5" hitSlop={8} accessibilityRole="button" testID="request-obd-skip">
+                            <Text className="font-outfit-medium text-[13px]" style={{ color: OS.mutedLight }}>{t(`${kv}.skipLink`)}</Text>
+                        </TouchableOpacity>
+                    ) : null}
                 </Card>
             ) : null}
 
-            {status === 'none' && !canUpload && !codes.length ? (
+            {mechanicSkipped ? (
+                <Card>
+                    <Text className="font-outfit-regular text-[14px] leading-5 px-4 pt-3.5" style={{ color: OS.muted }}>{t(`${kv}.skippedNoteMechanic`)}</Text>
+                    <TouchableOpacity onPress={() => setSkip(false)} className="px-4 pt-2 pb-3.5 self-start" accessibilityRole="button" testID="request-obd-unskip">
+                        <Text className="font-outfit-bold text-[13px]" style={{ color: OS.blue }}>{t(`${kv}.skipUndoMechanic`)}</Text>
+                    </TouchableOpacity>
+                </Card>
+            ) : null}
+            {status === 'none' && !canUpload && !codes.length && !mechanicSkipped ? (
                 <Tip>{role === 'mechanic' ? t(`${kv}.${editable ? 'noneMechanic' : 'noneMechanicEnded'}`) : t(`${kv}.noneOwner`)}</Tip>
             ) : null}
             {status === 'processing' ? (
@@ -247,7 +289,7 @@ export function RequestObdPanel({ requestId, role, editable, state }: RequestObd
                 </Card>
             ) : null}
 
-            {canType ? (
+            {canType && !mechanicSkipped ? (
                 <Card>
                     <Text className="font-outfit-bold text-[13px] px-4 pt-3.5" style={{ color: OS.text }}>{t(`${k}.manualHint`)}</Text>
                     <View className="flex-row gap-2 px-4 pt-2 pb-3">
@@ -279,6 +321,11 @@ export function RequestObdPanel({ requestId, role, editable, state }: RequestObd
                     </View>
                     {inputError ? (
                         <Text className="font-outfit-medium text-[13px] px-4 pb-3 -mt-1" style={{ color: OS.red }}>{inputError}</Text>
+                    ) : null}
+                    {mechanicCanSkip ? (
+                        <TouchableOpacity onPress={askSkip} className="items-center pb-3.5" hitSlop={8} accessibilityRole="button" testID="request-obd-skip">
+                            <Text className="font-outfit-medium text-[13px]" style={{ color: OS.mutedLight }}>{t(`${kv}.skipLinkMechanic`)}</Text>
+                        </TouchableOpacity>
                     ) : null}
                 </Card>
             ) : null}

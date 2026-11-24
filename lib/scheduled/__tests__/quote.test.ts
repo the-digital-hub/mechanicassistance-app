@@ -30,6 +30,22 @@ const draft = (extra: Partial<QuoteDraft> = {}): QuoteDraft => ({
     ...extra,
 });
 
+describe('availability written in other shapes', () => {
+    it('reads "Rango … al … (window TZ)" as days and window', () => {
+        const p = parseRequestNotes('Rango 2026-11-25 al 2026-11-26 (10:00 AM - 7:00 PM EST)', '2026-11-25T00:00:00.000Z');
+        expect(p.days).toBe('Wed, Nov 25 – Thu, Nov 26');
+        expect(p.window).toBe('10:00 AM – 7:00 PM');
+        expect(requestDays(p.days, '2026-11-25T00:00:00.000Z')).toEqual(['2026-11-25', '2026-11-26']);
+    });
+    it('reads a window with a plain hyphen', () => {
+        expect(parseRequestNotes('Wed, Nov 25 · 10:00 AM - 7:00 PM').window).toBe('10:00 AM – 7:00 PM');
+    });
+    it('a bare day stays that day (no shift to the evening before)', () => {
+        expect(requestDays('', '2026-11-25')).toEqual(['2026-11-25']);
+        expect(requestDays('', '2026-11-25T00:00:00.000Z')).toEqual(['2026-11-25']);
+    });
+});
+
 describe('parseRequestNotes', () => {
     const notes = [
         'At a repair shop · within 25 miles of the service address',
@@ -83,7 +99,7 @@ describe('days and times', () => {
     it('offers the start and each full hour inside the window', () => {
         expect(arrivalTimes('8:00 AM – 12:00 PM')).toEqual([480, 540, 600, 660]);
         expect(arrivalTimes('12:30 PM – 4:30 PM')).toEqual([750, 780, 840, 900, 960]);
-        expect(arrivalTimes('')).toEqual([]);
+        expect(arrivalTimes('')).toEqual([480, 540, 600, 660, 720, 780, 840, 900, 960, 1020, 1080]);
     });
 });
 

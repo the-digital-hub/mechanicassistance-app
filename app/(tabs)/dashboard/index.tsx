@@ -755,7 +755,7 @@ export default function DashboardScreen() {
                                             )}
 
                                             {/* Immediate: the zone, distance and ETA and "Send offer" are on the card itself; the rest keeps the detail screen. */}
-                                            {request.type === 'immediate' ? (
+                                            {request.type === 'immediate' || request.type === 'videocall' ? (
                                                 <ImmediateOfferPanel request={request} onSend={guard(startOffer)} onDecline={guard(handleDecline)} />
                                             ) : (
                                             <View className="gap-2 px-5 py-4 border-t border-gray-100">

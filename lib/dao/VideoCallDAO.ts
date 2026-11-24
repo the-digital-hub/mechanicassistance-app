@@ -130,10 +130,12 @@ export interface VideoExtension {
     newExpiryUnixSec: number | null;
 }
 
-/** An extra-time request still waiting for the technician (both sides see it; never with amounts). */
+/** An extra-time request still waiting for the technician (never the owner's price: only what the technician would earn, when the server sends it). */
 export interface PendingExtensionRequest {
     extensionId: string;
     minutes: number;
+    /** What the technician earns for this extra time, decimal string ("12.75"), what is left for them (the app does not show fees). Absent until the backend sends it (backlog AW). */
+    providerAmount?: string | null;
     /** ISO: the technician can answer until then (never past the end of the call). */
     expiresAt: string;
     requestedAt: string;
