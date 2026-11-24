@@ -143,7 +143,7 @@ export function AnimatedSplash({ onReady, onFinish }: { onReady?: () => void; on
 }
 
 const styles = StyleSheet.create({
-    center: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
+    center: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
     pulse: {
         position: 'absolute',
         width: 220,

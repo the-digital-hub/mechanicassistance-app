@@ -13,7 +13,7 @@ import {
   Wrench,
 } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
-import { Image, Platform, Text, TouchableOpacity, View } from "react-native";
+import { ColorValue, Image, Platform, Text, TouchableOpacity, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
 import { HapticTab } from "@/components/haptic-tab";
@@ -177,7 +177,7 @@ export function NotificationHeaderRight() {
   );
 }
 
-function ProfileTabIcon({ color }: { color: string }) {
+function ProfileTabIcon({ color }: { color: ColorValue }) {
   const { user } = useUser();
   return (
     <View

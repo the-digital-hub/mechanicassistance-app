@@ -68,6 +68,22 @@ const withFirebaseAuthAppDelegate = (config) => {
       );
     }
 
+    // 1b. Expo SDK 58 removed `factory.startReactNative(` from AppDelegate (the
+    // scene delegate starts React now), which is the anchor @react-native-firebase/app
+    // <= 26 looks for. Without it FirebaseApp.configure() is silently skipped, so add
+    // it ourselves right before the super call. Idempotent: skipped if already there.
+    if (!contents.includes('FirebaseApp.configure()')) {
+      const superCall =
+        /^([ \t]*)return\s+super\.application\(\s*application\s*,\s*didFinishLaunchingWithOptions:\s*launchOptions\s*\)/m;
+      if (superCall.test(contents)) {
+        contents = contents.replace(superCall, '$1FirebaseApp.configure()\n$&');
+      } else {
+        throw new Error(
+          '[withFirebaseAuthAPNS] Could not find the didFinishLaunchingWithOptions super call to insert FirebaseApp.configure().'
+        );
+      }
+    }
+
     // 2. Inject APNs methods inside AppDelegate class, before its closing brace
     if (!contents.includes('didRegisterForRemoteNotificationsWithDeviceToken')) {
       contents = contents.replace(

@@ -6,7 +6,7 @@ import { ownerVehiclePrice } from '@/lib/membership/plan';
 import { hasVin } from '@/lib/vehicles/duplicateVin';
 import { Vehicle } from '@/lib/dao/interfaces';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation } from "expo-router/react-navigation";
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';

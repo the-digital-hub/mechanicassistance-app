@@ -28,7 +28,7 @@ import {
 } from 'react-native';
 
 export default function ChatScreen() {
-    const { id } = useLocalSearchParams();
+    const { id } = useLocalSearchParams<{ id: string }>();
     const conversationId = Array.isArray(id) ? id[0] : id;
     const router = useRouter();
     const { t } = useTranslation();

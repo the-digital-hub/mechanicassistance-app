@@ -1,4 +1,4 @@
-import type { Router } from 'expo-router';
+import type { ImperativeRouter as Router } from 'expo-router';
 import type { TFunction } from 'i18next';
 import { ApiError } from '@/lib/api/types';
 import type { OpenWork } from '@/lib/dao/interfaces';

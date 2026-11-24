@@ -1,7 +1,16 @@
 import { appleAuth } from '@invertase/react-native-apple-authentication';
-import auth, {
-    FirebaseAuthTypes,
+import {
+    AppleAuthProvider,
+    GoogleAuthProvider,
+    createUserWithEmailAndPassword,
+    getAuth,
     getIdToken as firebaseGetIdToken,
+    signInWithCredential,
+    signInWithPhoneNumber,
+    signOut,
+    updateProfile,
+    type ConfirmationResult,
+    type User,
 } from '@react-native-firebase/auth';
 import {
     GoogleSignin,
@@ -22,7 +31,7 @@ GoogleSignin.configure({ webClientId: WEB_CLIENT_ID });
 // ─── Phone Auth (existing) ──────────────────────────────────────────────────────
 
 // Module-level store for the pending confirmation result (shared between screens during setup flow)
-let pendingConfirmation: FirebaseAuthTypes.ConfirmationResult | null = null;
+let pendingConfirmation: ConfirmationResult | null = null;
 
 /**
  * Sends an OTP SMS via Firebase Phone Auth.
@@ -30,19 +39,19 @@ let pendingConfirmation: FirebaseAuthTypes.ConfirmationResult | null = null;
  */
 export const sendOTP = async (phoneNumber: string): Promise<void> => {
     console.log('[FirebaseAuth] sendOTP called for:', phoneNumber);
-    console.log('[FirebaseAuth] Current user before sendOTP:', auth().currentUser?.uid ?? 'none');
+    console.log('[FirebaseAuth] Current user before sendOTP:', getAuth().currentUser?.uid ?? 'none');
 
     // Sign out any existing Firebase session before starting phone auth
     // to avoid auth/internal-error when a previous user is still signed in
-    if (auth().currentUser) {
+    if (getAuth().currentUser) {
         console.log('[FirebaseAuth] Signing out existing user before OTP...');
-        await auth().signOut();
+        await signOut(getAuth());
     }
 
     const startTime = Date.now();
     try {
         console.log('[FirebaseAuth] Calling signInWithPhoneNumber...');
-        pendingConfirmation = await auth().signInWithPhoneNumber(phoneNumber);
+        pendingConfirmation = await signInWithPhoneNumber(getAuth(), phoneNumber);
         const elapsed = Date.now() - startTime;
         console.log(`[FirebaseAuth] signInWithPhoneNumber resolved in ${elapsed}ms`);
         console.log('[FirebaseAuth] verificationId:', (pendingConfirmation as any)?.verificationId ?? 'n/a');
@@ -60,7 +69,7 @@ export const sendOTP = async (phoneNumber: string): Promise<void> => {
  * Verifies the OTP code entered by the user.
  * Works for both login and signup flows.
  */
-export const verifyOTP = async (code: string): Promise<FirebaseAuthTypes.User> => {
+export const verifyOTP = async (code: string): Promise<User> => {
     if (!pendingConfirmation) {
         throw new Error('No pending OTP. Please request a new code.');
     }
@@ -83,7 +92,7 @@ export const hasPendingOTP = (): boolean => pendingConfirmation !== null;
  *
  * Throws if the user cancels the Google prompt or if Firebase rejects the credential.
  */
-export const signInWithGoogle = async (): Promise<FirebaseAuthTypes.User> => {
+export const signInWithGoogle = async (): Promise<User> => {
     // Ensure any previous Google session is cleared to force account picker
     await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true }).catch(() => {
         // Play Services check is Android-only — ignore failures on iOS
@@ -100,8 +109,8 @@ export const signInWithGoogle = async (): Promise<FirebaseAuthTypes.User> => {
         throw new Error('Google Sign-In did not return an ID token.');
     }
 
-    const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-    const userCredential = await auth().signInWithCredential(googleCredential);
+    const googleCredential = GoogleAuthProvider.credential(idToken);
+    const userCredential = await signInWithCredential(getAuth(), googleCredential);
 
     if (!userCredential.user) {
         throw new Error('Firebase authentication with Google credential failed.');
@@ -120,7 +129,7 @@ export const signInWithGoogle = async (): Promise<FirebaseAuthTypes.User> => {
  * Note: Apple only provides the user's name/email on the FIRST sign-in.
  * Subsequent sign-ins return only the identity token.
  */
-export const signInWithApple = async (): Promise<FirebaseAuthTypes.User> => {
+export const signInWithApple = async (): Promise<User> => {
     const appleAuthRequestResponse = await appleAuth.performRequest({
         requestedOperation: appleAuth.Operation.LOGIN,
         requestedScopes: [appleAuth.Scope.FULL_NAME, appleAuth.Scope.EMAIL],
@@ -132,8 +141,8 @@ export const signInWithApple = async (): Promise<FirebaseAuthTypes.User> => {
         throw new Error('Apple Sign-In did not return an identity token.');
     }
 
-    const appleCredential = auth.AppleAuthProvider.credential(identityToken, nonce);
-    const userCredential = await auth().signInWithCredential(appleCredential);
+    const appleCredential = AppleAuthProvider.credential(identityToken, nonce);
+    const userCredential = await signInWithCredential(getAuth(), appleCredential);
 
     if (!userCredential.user) {
         throw new Error('Firebase authentication with Apple credential failed.');
@@ -143,7 +152,7 @@ export const signInWithApple = async (): Promise<FirebaseAuthTypes.User> => {
     const fullName = appleAuthRequestResponse.fullName;
     if (fullName && (fullName.givenName || fullName.familyName) && !userCredential.user.displayName) {
         const displayName = [fullName.givenName, fullName.familyName].filter(Boolean).join(' ');
-        await userCredential.user.updateProfile({ displayName });
+        await updateProfile(userCredential.user, { displayName });
     }
 
     console.log('[FirebaseAuth] Apple sign-in successful, uid:', userCredential.user.uid);
@@ -155,8 +164,8 @@ export const signInWithApple = async (): Promise<FirebaseAuthTypes.User> => {
  * Creates a new Firebase user with email and password.
  * Returns the Firebase user on success.
  */
-export const registerWithEmail = async (email: string, password: string): Promise<FirebaseAuthTypes.User> => {
-    const userCredential = await auth().createUserWithEmailAndPassword(email, password);
+export const registerWithEmail = async (email: string, password: string): Promise<User> => {
+    const userCredential = await createUserWithEmailAndPassword(getAuth(), email, password);
 
     if (!userCredential.user) {
         throw new Error('Email registration failed.');
@@ -170,7 +179,7 @@ export const registerWithEmail = async (email: string, password: string): Promis
 
 /** Returns the Firebase ID token for the currently signed-in Firebase user. */
 export const getIdToken = async (): Promise<string | null> => {
-    const user = auth().currentUser;
+    const user = getAuth().currentUser;
     return user ? firebaseGetIdToken(user) : null;
 };
 
@@ -183,5 +192,5 @@ export const firebaseSignOut = async (): Promise<void> => {
         // Ignore — user may not have signed in with Google
     }
 
-    await auth().signOut();
+    await signOut(getAuth());
 };

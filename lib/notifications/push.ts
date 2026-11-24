@@ -7,7 +7,7 @@ import {
     onTokenRefresh,
     requestPermission,
     setBackgroundMessageHandler,
-    type FirebaseMessagingTypes,
+    type RemoteMessage as FirebaseRemoteMessage,
 } from '@react-native-firebase/messaging';
 import Constants from 'expo-constants';
 import type { Href } from 'expo-router';
@@ -270,7 +270,7 @@ export function routeForPush(data: PushData | undefined, viewer: PushViewer): Hr
     }
 }
 
-export type RemoteMessage = FirebaseMessagingTypes.RemoteMessage;
+export type RemoteMessage = FirebaseRemoteMessage;
 
 /** Push kinds that change an appointment's cancellation dispute. */
 export const CANCELLATION_DISPUTE_KINDS: ReadonlySet<string> = new Set(['cancellation_disputed', 'cancellation_dispute_resolved']);

@@ -8,7 +8,7 @@ import { useSocket } from '@/context/SocketContext';
 import { useRequestObdVinCheck } from '@/hooks/useRequestObdVinCheck';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { Ionicons } from '@expo/vector-icons';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused } from "expo-router/react-navigation";
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft, Clock, Zap, Car, MapPin, DollarSign, Timer } from 'lucide-react-native';
 import { formatMoney } from '@/lib/payments/paymentSource';

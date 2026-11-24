@@ -1,5 +1,5 @@
 import { MeshBackground } from "@/components/brand/MeshBackground";
-import { useIsFocused } from "@react-navigation/native";
+import { useIsFocused } from "expo-router/react-navigation";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useRef } from "react";
 import { Animated, Easing, View, ViewProps } from "react-native";

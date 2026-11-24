@@ -6,7 +6,7 @@ import type { ParsedAddress } from "@/lib/places";
 import { getAddRoleState } from "@/lib/setup-add-role";
 import { getSetupProgress, saveSetupProgress } from "@/lib/storage";
 import { useRouter } from "expo-router";
-import { useHeaderHeight } from "@react-navigation/elements";
+import { useHeaderHeight } from "expo-router/react-navigation";
 import { KeyboardAwareScrollView } from "@/components/ui/KeyboardAwareScrollView";
 import { SETUP_BG, SetupFooter, SetupHeading } from "@/components/setup/SetupKit";
 import { BUTTON_RADIUS } from "@/lib/ui/floatingFooter";
