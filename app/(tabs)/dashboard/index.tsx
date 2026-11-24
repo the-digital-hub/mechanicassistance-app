@@ -911,7 +911,7 @@ export default function DashboardScreen() {
                         <SectionTitle title={t('dashboard.mechanic.todayTitle')} actionLabel={t('dashboard.mechanic.viewEarnings')} onAction={() => router.push('/payments')} />
                         <TodayBlock
                             earnedLabel={t('dashboard.mechanic.earnedToday')}
-                            earned={earnedToday === null ? '—' : formatMoney(earnedToday)}
+                            earned={earnedToday === null ? null : formatMoney(earnedToday)}
                             footer={earningsSummary ? (
                                 <Text className="font-outfit-regular" style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)' }}>
                                     {t('dashboard.mechanic.readyToPay')} · <Text className="font-outfit-bold" style={{ color: '#FFFFFF' }}>{formatMoney(Number(earningsSummary.readyNet) || 0)}</Text>
@@ -1349,6 +1349,7 @@ export default function DashboardScreen() {
                                 address={item.address}
                                 status={item.status}
                                 offerExpiresAt={item.offerExpiresAt}
+                                offersCloseAt={item.offersCloseAt}
                                 onPress={guard(() => openRequest(item))}
                                 onCancel={guard(() => cancelRequest(item.id))}
                             />

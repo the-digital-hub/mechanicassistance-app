@@ -9,12 +9,13 @@ import { isCancelledStatus, useAppointments } from '@/context/AppointmentsContex
 import { useUser } from '@/context/UserContext';
 import { useSocket } from '@/context/SocketContext';
 import { useHiddenAppointments } from '@/hooks/useHiddenAppointments';
+import { appointmentDAO } from '@/lib/dao/AppointmentDAO';
 import { quotesWaiting } from '@/lib/scheduled/quotes';
 import { useMarketplaceFeed } from '@/lib/scheduled/useMarketplaceFeed';
 import { ScrollPressGuardContext, useScrollPressGuard } from '@/hooks/useScrollPressGuard';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Trash2, X } from 'lucide-react-native';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, Modal, Text, TouchableOpacity, View } from 'react-native';
 import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
@@ -26,7 +27,7 @@ const PAGE_SIZE = 15;
 export default function AppointmentsScreen() {
   const tabInset = useTabBarInset();
     const { t } = useTranslation();
-    const { getUpcoming, getPendingApproval, getPast, refresh } = useAppointments();
+    const { appointments: allAppointments, getUpcoming, getPendingApproval, getPast, refresh } = useAppointments();
     const router = useRouter();
     const { user } = useUser();
     const { tab: tabParam } = useLocalSearchParams<{ tab?: string }>();
@@ -58,6 +59,19 @@ export default function AppointmentsScreen() {
             refresh();
         }, [])
     );
+
+    // Removing a cancelled appointment is kept on the server now (it follows the person to another phone). The list that used to live on
+    // this phone is sent once: whatever the server still lists that was hidden here is hidden there too. The local list stays as the quick answer.
+    const sentToServer = useRef<Set<string>>(new Set());
+    useEffect(() => {
+        getPast().forEach((a) => {
+            if (hidden.has(a.id) && isCancelledStatus(a.status) && !sentToServer.current.has(a.id)) {
+                sentToServer.current.add(a.id);
+                void appointmentDAO.hide(a.id).catch(() => undefined);
+            }
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [hidden, allAppointments]);
 
     const upcomingAll = getUpcoming();
     const offersAll = getPendingApproval();
@@ -229,7 +243,7 @@ export default function AppointmentsScreen() {
                         <View className="w-full" style={{ gap: 8 }}>
                             <TouchableOpacity
                                 style={{ minHeight: 52, borderRadius: 14, backgroundColor: '#D96B6B', alignItems: 'center', justifyContent: 'center' }}
-                                onPress={() => { if (removeId) hide(removeId); setRemoveId(null); }}
+                                onPress={() => { if (removeId) { hide(removeId); void appointmentDAO.hide(removeId).catch(() => undefined); } setRemoveId(null); }}
                                 testID="remove-cancelled-confirm"
                             >
                                 <Text className="text-center font-outfit-bold text-white" style={{ fontSize: 16 }}>{t('appointments.list.removeConfirm')}</Text>

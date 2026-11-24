@@ -106,6 +106,9 @@ export default function ScheduledOffersScreen() {
 
     const sorted = useMemo(() => openOffersByTotal(offers), [offers]);
     const best = useMemo(() => bestOfferId(offers, now), [offers, now]);
+    // Offers still open on the server whose own time (or date) has passed: they were received, but can no longer be taken.
+    const selectable = useMemo(() => sorted.filter((o) => canSelect(o, now)), [sorted, now]);
+    const expiredCount = sorted.length - selectable.length;
     const chosen = useMemo(() => offers.find((o) => o.id === openId) ?? null, [offers, openId]);
     const chosenTotal = chosen ? totalOf(chosen) : null;
     const payment = usePaymentChoice(chosenTotal);
@@ -519,10 +522,10 @@ export default function ScheduledOffersScreen() {
                     title={
                         phase === 'cancelled'
                             ? t('scheduledOffers.cancelledTitle')
-                            : sorted.length
-                                ? t('scheduledOffers.listTitle', { count: sorted.length })
+                            : selectable.length
+                                ? t('scheduledOffers.listTitle', { count: selectable.length })
                                 : phase === 'closedEmpty'
-                                    ? t('scheduledOffers.noOffersTitle')
+                                    ? t(expiredCount > 0 ? 'scheduledOffers.expiredTitle' : 'scheduledOffers.noOffersTitle')
                                     : t('scheduledOffers.waitingTitle')
                     }
                     sub={request?.title}
@@ -546,7 +549,7 @@ export default function ScheduledOffersScreen() {
                     </>
                 ) : phase === 'closedEmpty' ? (
                     <>
-                        <Note tone="amber">{t('scheduledOffers.noOffersSub')}</Note>
+                        <Note tone="amber">{t(expiredCount > 0 ? 'scheduledOffers.expiredSub' : 'scheduledOffers.noOffersSub')}</Note>
                         <TouchableOpacity onPress={extend} disabled={busy} activeOpacity={0.85} accessibilityRole="button" style={{ paddingVertical: 16, borderRadius: 14, alignItems: 'center', backgroundColor: SC.blue, opacity: busy ? 0.6 : 1 }}>
                             <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#FFFFFF' }}>{t('scheduledOffers.extendLong', { hours: EXTEND_HOURS })}</Text>
                         </TouchableOpacity>

@@ -679,6 +679,8 @@ export interface IAppointmentDAO {
     create(appointment: any): Promise<any>;
     update(id: string, updates: any): Promise<void>;
     getCancellationDispute(id: string): Promise<CancellationDispute | null>;
+    hide(id: string): Promise<{ id: string; hidden: boolean }>;
+    unhide(id: string): Promise<{ id: string; hidden: boolean }>;
 }
 
 export interface ISetupDAO {

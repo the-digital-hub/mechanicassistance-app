@@ -322,7 +322,8 @@
         "accepted": "Accepted",
         "started": "In progress",
         "awaitingConfirmation": "Confirm it",
-        "disputed": "Under review"
+        "disputed": "Under review",
+        "windowClosed": "Offers closed"
       },
       "requestStatusDetail": {
         "pending": "Looking for a technician",
@@ -330,7 +331,8 @@
         "accepted": "Technician assigned",
         "started": "Service underway",
         "awaitingConfirmation": "The technician finished — confirm it",
-        "disputed": "Support is reviewing it"
+        "disputed": "Support is reviewing it",
+        "windowClosed": "The time to receive offers ended"
       },
       "offerHeldHint": "Confirm it before the hold ends.",
       "viewRequest": "View request",
@@ -4718,7 +4720,9 @@
       "select": "Select this offer",
       "totalNote": "\"Your total\" is calculated by Mechanic Assistance and includes applicable fees and taxes.",
       "nearest": "Nearest"
-    }
+    },
+    "expiredTitle": "The offers expired",
+    "expiredSub": "The offers you received ran out of time (the provider's proposal or its date passed). Give providers more time or start a new request."
   },
   "finalQuote": {
     "title": "Final quote",

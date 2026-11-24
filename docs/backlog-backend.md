@@ -436,6 +436,8 @@ esperar aprobación.
 - `isReviewSubmitted` lo prenden ambas calificaciones; la app ya no lo usa para decidir si el dueño debe calificar (solo `reviewRating == null`).
 
 ## AJ — Gateway: falta rutear `/api/mechanic-certifications` (bloquea "Other certifications")
+**Resuelto el 24-nov (devolución de backend):** el 403 venía del gateway, que no pasaba el token interno en `/api/reviews` ni en `/api/mechanic-certifications`. Corregido y desplegado; falta reintentar «Other certifications» y «My reviews» en la app.
+
 Guardar una certificación devuelve `403 "Call this through the API gateway (/api/...)"`. La tabla de ruteo del gateway (`mechanicassistance-gateway/src/main.ts`, ver `servicios/gateway/README.md` §4) no lista el prefijo `/api/mechanic-certifications`, así que la petición no llega a users-service. Pedido: agregarlo junto a `/api/mechanic-documents` → `USERS_SERVICE_URL` y desplegar el gateway. La app ya manda a `/api/mechanic-certifications` (GET/POST/PATCH/DELETE) y muestra el error del servidor en el formulario.
 
 ## AK — `refCode` en `POST /api/assistance/summaries` y `GET /marketplace/requests`

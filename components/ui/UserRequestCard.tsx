@@ -21,6 +21,8 @@ interface UserRequestCardProps {
     status: AppointmentStatus;
     /** While `offered`: when the hold on the technician's offer ends (ISO). The time left shows on the card. */
     offerExpiresAt?: string | null;
+    /** A scheduled request: when the window to receive offers ends (ISO). Past it, the card no longer says it is searching. */
+    offersCloseAt?: string | null;
     onPress: () => void;
     /** Only rendered while the request can still be called off (pending/offered). */
     onCancel?: () => void;
@@ -40,6 +42,7 @@ export function UserRequestCard({
     address,
     status,
     offerExpiresAt,
+    offersCloseAt,
     onPress,
     onCancel,
 }: UserRequestCardProps) {
@@ -106,6 +109,14 @@ export function UserRequestCard({
                     bg: '#FDECEC', color: '#C53030', dot: '#E53E3E',
                 };
             default:
+                // A scheduled request whose window to receive offers is over is waiting for the owner, not searching.
+                if (type === 'scheduled' && status === 'pending' && offersCloseAt && Date.parse(offersCloseAt) <= Date.now()) {
+                    return {
+                        label: t('dashboard.user.requestStatus.windowClosed'),
+                        detail: t('dashboard.user.requestStatusDetail.windowClosed'),
+                        bg: '#FFF4E8', color: '#EA580C', dot: '#F59E0B',
+                    };
+                }
                 return {
                     label: t('dashboard.user.requestStatus.pending'),
                     detail: t('dashboard.user.requestStatusDetail.pending'),
