@@ -1349,6 +1349,7 @@ export default function DashboardScreen() {
                                 address={item.address}
                                 status={item.status}
                                 offerExpiresAt={item.offerExpiresAt}
+                                offersCloseAt={item.offersCloseAt}
                                 onPress={guard(() => openRequest(item))}
                                 onCancel={guard(() => cancelRequest(item.id))}
                             />

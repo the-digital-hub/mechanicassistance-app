@@ -1,7 +1,7 @@
 import { BottomTabBar, type BottomTabBarProps } from "expo-router/js-tabs";
 import { usePathname } from 'expo-router';
 import React, { useEffect } from 'react';
-import { Platform, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { Easing, interpolate, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
@@ -77,6 +77,11 @@ export function RoundedTabBar(props: BottomTabBarProps) {
 
     const row = useAnimatedStyle(() => ({ height: interpolate(progress.value, [0, 1], [fullHeight, TIP_HEIGHT]) }));
     const tip = useAnimatedStyle(() => ({ opacity: interpolate(progress.value, [0.4, 1], [0, 1], 'clamp') }));
+
+    // A screen that asks for no tab bar (the video call is full screen) gets no row either: it would show as an empty strip under it.
+    const focusedRoute = props.state.routes[props.state.index];
+    const focusedStyle = StyleSheet.flatten(props.descriptors[focusedRoute.key]?.options.tabBarStyle) as { display?: string } | undefined;
+    if (focusedStyle?.display === 'none') return null;
 
     return (
         <Animated.View style={[overlay ? { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: 'transparent' } : { backgroundColor: backdrop }, row]}>

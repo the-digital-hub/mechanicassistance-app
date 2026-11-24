@@ -322,7 +322,8 @@
         "accepted": "Aceptado",
         "started": "En curso",
         "awaitingConfirmation": "Confirmala",
-        "disputed": "En revisión"
+        "disputed": "En revisión",
+        "windowClosed": "Ofertas cerradas"
       },
       "requestStatusDetail": {
         "pending": "Buscando mecánico",
@@ -330,7 +331,8 @@
         "accepted": "Técnico asignado",
         "started": "Servicio en marcha",
         "awaitingConfirmation": "El mecánico finalizó — confirmala",
-        "disputed": "Soporte lo está revisando"
+        "disputed": "Soporte lo está revisando",
+        "windowClosed": "Terminó el tiempo para recibir ofertas"
       },
       "offerHeldHint": "Confirmala antes de que termine la reserva.",
       "viewRequest": "Ver solicitud",
@@ -4719,7 +4721,9 @@
       "select": "Elegir esta oferta",
       "totalNote": "\"Tu total\" lo calcula Mechanic Assistance e incluye las tarifas e impuestos que correspondan.",
       "nearest": "Más cerca"
-    }
+    },
+    "expiredTitle": "Las ofertas vencieron",
+    "expiredSub": "Las ofertas que recibiste se vencieron (pasó el tiempo de la propuesta o su fecha). Dale más tiempo a los prestadores o empezá un pedido nuevo."
   },
   "finalQuote": {
     "title": "Presupuesto final",

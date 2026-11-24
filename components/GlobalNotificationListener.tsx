@@ -9,6 +9,7 @@ import { refLabel } from '@/lib/refCode';
 import { assistanceDAO } from '@/lib/dao/AssistanceDAO';
 import { appAlert, type AppAlertHighlight } from '@/lib/ui/appAlert';
 import { splitJobTitle } from '@/lib/ui/jobTitle';
+import { resolveRequestIssueLabel } from '@/lib/i18n/requestIssueLabel';
 import { showOnSiteConfirmAlert } from '@/lib/notifications/onSiteConfirmAlert';
 
 /** How long the backend takes, roughly, to record a notification after the socket event. */
@@ -20,7 +21,7 @@ export function GlobalNotificationListener() {
     const router = useRouter();
     const segments = useSegments();
     const { refresh, markSeen } = useNotifications();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
 
     // The same event reaches notifications-service through SNS → SQS, a moment
     // after the socket: reload the inbox once its row exists. The app is open,
@@ -50,7 +51,8 @@ export function GlobalNotificationListener() {
             const r = await assistanceDAO.getById(requestId);
             if (!r) return undefined;
             const kind = r.assistanceType === 'witness' ? 'accident' : r.type === 'videocall' ? 'videocall' : r.type === 'scheduled' ? 'scheduled' : 'immediate';
-            const issue = splitJobTitle(r.title).main;
+            // The stored title keeps the catalog names in the customer's language: what is wrong is read from the catalog in this person's.
+            const issue = (await resolveRequestIssueLabel(requestId, i18n.language)) || splitJobTitle(r.title).main;
             return {
                 label: t(`appointments.detail.types.${kind}`),
                 value: issue || r.car || '',

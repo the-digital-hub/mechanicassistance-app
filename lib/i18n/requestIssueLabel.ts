@@ -40,6 +40,29 @@ function loadSnapshots(requestId: string): Promise<VehicleIssueSnapshot[]> {
 }
 
 /**
+ * Translated issue names of a request in `language`, comma-joined. Empty when the request has no issues or either lookup fails: callers
+ * fall back to the request's notes / title. (Plain async version, for alerts and other places that are not a component.)
+ */
+export async function resolveRequestIssueLabel(requestId: string, language: string): Promise<string> {
+    try {
+        const [snapshots, catalog, languageId] = await Promise.all([
+            loadSnapshots(requestId),
+            loadCatalog(),
+            getLanguageId(language),
+        ]);
+        const names = snapshots
+            .map((s) => {
+                const issue = catalog.get(s.vehicleIssueId);
+                return issue ? translatedName(issue, languageId) : s.name;
+            })
+            .filter(Boolean);
+        return Array.from(new Set(names)).join(', ');
+    } catch {
+        return '';
+    }
+}
+
+/**
  * Translated issue names of a request, comma-joined. Empty until resolved, and
  * empty when the request has no issues or either lookup fails — callers fall
  * back to the request's notes / title.
@@ -51,24 +74,9 @@ export function useRequestIssueLabel(requestId?: string): string {
     useEffect(() => {
         if (!requestId) return;
         let cancelled = false;
-        (async () => {
-            try {
-                const [snapshots, catalog, languageId] = await Promise.all([
-                    loadSnapshots(requestId),
-                    loadCatalog(),
-                    getLanguageId(i18n.language),
-                ]);
-                const names = snapshots
-                    .map((s) => {
-                        const issue = catalog.get(s.vehicleIssueId);
-                        return issue ? translatedName(issue, languageId) : s.name;
-                    })
-                    .filter(Boolean);
-                if (!cancelled) setLabel(Array.from(new Set(names)).join(', '));
-            } catch {
-                if (!cancelled) setLabel('');
-            }
-        })();
+        void resolveRequestIssueLabel(requestId, i18n.language).then((value) => {
+            if (!cancelled) setLabel(value);
+        });
         return () => { cancelled = true; };
     }, [requestId, i18n.language]);
 
