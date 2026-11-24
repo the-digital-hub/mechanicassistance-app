@@ -339,10 +339,12 @@ export default function TabLayout() {
           },
         })}
       />
+      {/* Screens in the navigator with no tab of their own: `tabBarButton: () => null` hides the button. (`href: null` no longer works for this since
+          Expo Router 58: a tab hidden that way redirects to the dashboard instead of opening.) */}
       <Tabs.Screen
         name="notifications"
         options={{
-          href: null,
+          tabBarButton: () => null,
           title: t('tabs.notifications'),
           tabBarIcon: ({ color }) => <Bell size={24} color={color} />,
           headerLeft: () => null,
@@ -363,7 +365,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="personal-info"
         options={{
-          href: null,
+          tabBarButton: () => null,
           title: t('tabs.profile'),
           headerLeft: () => <PersonalInfoHeaderLeft />,
           headerRight: () => <PersonalInfoHeaderRight />,
@@ -372,7 +374,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="availability"
         options={{
-          href: null,
+          tabBarButton: () => null,
           // The name the profile menu gives this section.
           title: t('profile.menu.schedule'),
           headerLeft: () => <PersonalInfoHeaderLeft />,
@@ -382,7 +384,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="phone-change"
         options={{
-          href: null,
+          tabBarButton: () => null,
           title: t('tabs.profile'),
           headerLeft: () => <PersonalInfoHeaderLeft />,
           headerRight: () => <PersonalInfoHeaderRight />,
@@ -391,7 +393,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="email-change"
         options={{
-          href: null,
+          tabBarButton: () => null,
           title: t('tabs.profile'),
           headerLeft: () => <PersonalInfoHeaderLeft />,
           headerRight: () => <PersonalInfoHeaderRight />,
@@ -400,7 +402,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="service-base"
         options={{
-          href: null,
+          tabBarButton: () => null,
           title: t('profile.menu.schedule'),
           headerLeft: () => <PersonalInfoHeaderLeft />,
           headerRight: () => <PersonalInfoHeaderRight />,
@@ -409,7 +411,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="payment-cards"
         options={{
-          href: null,
+          tabBarButton: () => null,
           title: t('profile.menu.paymentCards'),
           headerLeft: () => <PersonalInfoHeaderLeft />,
           headerRight: () => <PersonalInfoHeaderRight />,
@@ -418,7 +420,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="payment-activity"
         options={{
-          href: null,
+          tabBarButton: () => null,
           title: t('wallet.activity.title'),
           headerLeft: () => <PersonalInfoHeaderLeft />,
           headerRight: () => <PersonalInfoHeaderRight />,
@@ -427,7 +429,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="ase"
         options={{
-          href: null,
+          tabBarButton: () => null,
           title: t('tabs.profile'),
           headerLeft: () => <PersonalInfoHeaderLeft />,
           headerRight: () => <PersonalInfoHeaderRight />,
@@ -436,7 +438,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="certification-form"
         options={{
-          href: null,
+          tabBarButton: () => null,
           title: t('tabs.profile'),
           headerLeft: () => <PersonalInfoHeaderLeft />,
           headerRight: () => <PersonalInfoHeaderRight />,
@@ -445,7 +447,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="other-certifications"
         options={{
-          href: null,
+          tabBarButton: () => null,
           title: t('tabs.profile'),
           headerLeft: () => <PersonalInfoHeaderLeft />,
           headerRight: () => <PersonalInfoHeaderRight />,
@@ -454,7 +456,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="legal-documents"
         options={{
-          href: null,
+          tabBarButton: () => null,
           title: t('tabs.profile'),
           headerLeft: () => <PersonalInfoHeaderLeft />,
           headerRight: () => <PersonalInfoHeaderRight />,
@@ -463,7 +465,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="payments"
         options={{
-          href: null,
+          tabBarButton: () => null,
           title: t('tabs.profile'),
           headerLeft: () => <PersonalInfoHeaderLeft />,
           headerRight: () => <PersonalInfoHeaderRight />,
@@ -472,7 +474,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="promotions"
         options={{
-          href: null,
+          tabBarButton: () => null,
           title: t('tabs.profile'),
           headerLeft: () => <PersonalInfoHeaderLeft />,
           headerRight: () => <PersonalInfoHeaderRight />,
@@ -481,7 +483,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="help"
         options={{
-          href: null,
+          tabBarButton: () => null,
           title: t('tabs.profile'),
           headerLeft: () => <PersonalInfoHeaderLeft />,
           headerRight: () => <PersonalInfoHeaderRight />,
@@ -490,7 +492,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="privacy"
         options={{
-          href: null,
+          tabBarButton: () => null,
           title: t('tabs.profile'),
           headerLeft: () => <PersonalInfoHeaderLeft />,
           headerRight: () => <PersonalInfoHeaderRight />,
@@ -499,7 +501,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="membership"
         options={{
-          href: null,
+          tabBarButton: () => null,
           title: t('tabs.profile'),
           headerLeft: () => <PersonalInfoHeaderLeft />,
           headerRight: () => <PersonalInfoHeaderRight />,
@@ -508,7 +510,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          href: null,
+          tabBarButton: () => null,
           title: t('tabs.profile'),
           headerLeft: () => <PersonalInfoHeaderLeft />,
           headerRight: () => <PersonalInfoHeaderRight />,
@@ -517,7 +519,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="live-chat"
         options={{
-          href: null,
+          tabBarButton: () => null,
           title: t('tabs.profile'),
           headerLeft: () => <HeaderBackButton onPress={() => goBackOr(router, "/(tabs)")} />,
         }}
@@ -525,7 +527,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="vehicles"
         options={{
-          href: null,
+          tabBarButton: () => null,
           title: t('tabs.profile'),
           headerLeft: () => <HeaderBackButton onPress={() => goBackOr(router, "/(tabs)")} />,
         }}
@@ -533,7 +535,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="addresses"
         options={{
-          href: null,
+          tabBarButton: () => null,
           title: t('tabs.profile'),
           headerLeft: () => <PersonalInfoHeaderLeft />,
           headerRight: () => <PersonalInfoHeaderRight />,
@@ -542,15 +544,15 @@ export default function TabLayout() {
       />
 
       {/* Hidden deep-nav routes — keep tab bar visible */}
-      <Tabs.Screen name="chat" options={{ href: null, headerShown: false, sceneStyle: sceneNoHeader }} />
+      <Tabs.Screen name="chat" options={{ tabBarButton: () => null, headerShown: false, sceneStyle: sceneNoHeader }} />
       <Tabs.Screen
         name="video-lobby"
-        options={{ href: null, headerShown: false, sceneStyle: sceneNoHeader }}
+        options={{ tabBarButton: () => null, headerShown: false, sceneStyle: sceneNoHeader }}
       />
       {/* The call is full screen: no tab bar under it (sideways it would take a third of the height). */}
       <Tabs.Screen
         name="video-call"
-        options={{ href: null, headerShown: false, sceneStyle: sceneNoHeader, tabBarStyle: { display: "none" } }}
+        options={{ tabBarButton: () => null, headerShown: false, sceneStyle: sceneNoHeader, tabBarStyle: { display: "none" } }}
       />
     </Tabs>
     </View>
