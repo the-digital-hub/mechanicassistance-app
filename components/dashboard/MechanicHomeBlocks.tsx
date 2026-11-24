@@ -494,9 +494,10 @@ export function RequestTypeTabs<T extends string>({
                         accessibilityRole="tab"
                         accessibilityState={{ selected: on }}
                         className="flex-row items-center justify-center"
-                        style={{ width: tabWidth, minHeight: 48, borderRadius: 12, backgroundColor: on ? C.blue : 'transparent', gap: 8 }}
+                        style={{ width: tabWidth, minHeight: 48, borderRadius: 12, backgroundColor: on ? C.blue : 'transparent', gap: 6, paddingHorizontal: 10 }}
                     >
-                        <Text className="font-outfit-bold" style={{ fontSize: 15, color: on ? '#FFFFFF' : C.muted }} numberOfLines={1}>{tab.label}</Text>
+                        {/* The word shrinks a little before it ever touches the count or the edge (long labels, large text sizes). */}
+                        <Text className="font-outfit-bold" style={{ flexShrink: 1, fontSize: 15, color: on ? '#FFFFFF' : C.muted }} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78}>{tab.label}</Text>
                         <View className="items-center justify-center rounded-full" style={{ minWidth: 24, height: 24, paddingHorizontal: 7, backgroundColor: on ? 'rgba(255,255,255,0.24)' : tab.alert ? '#E53E3E' : C.blueSoft }}>
                             <Text className="font-outfit-bold" style={{ fontSize: 13, color: on || tab.alert ? '#FFFFFF' : C.blue }}>{tab.count}</Text>
                         </View>

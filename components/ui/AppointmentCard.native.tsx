@@ -4,6 +4,7 @@ import { useUser } from '@/context/UserContext';
 import { useOwnerVehicleIds } from '@/hooks/useOwnerVehicle';
 import { haversineDistanceKm, kmToMiles } from '@/lib/utils';
 import { refLabel } from '@/lib/refCode';
+import { useIssueLabel } from '@/lib/i18n/requestIssueLabel';
 import { approximateArea, coarseAddress } from '@/lib/maps/approximateLocation';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
@@ -135,6 +136,8 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
     const { t, i18n } = useTranslation();
     const { user } = useUser();
     const isMechanic = user?.role === 'mechanic';
+    // What is wrong, read from the catalog in this person's language (the stored title keeps the customer's).
+    const issueLabel = useIssueLabel(appointment.vehicleIssues);
     const isVideoCall = (appointment.assistanceType ?? appointment.type) === 'videocall';
     const hasLocation = !!appointment.locationLat && !!appointment.locationLng;
 
@@ -394,7 +397,7 @@ export function AppointmentCard({ appointment: base, onCancel }: AppointmentCard
                         {t(typeBar.labelKey)}
                     </Text>
                     <Text className="font-outfit-bold text-[17px]" style={{ color: C.text, letterSpacing: -0.3 }} numberOfLines={1}>
-                        {appointment.title || t(`appointments.list.card.title.${stateTextKey(state, isMechanic)}`)}
+                        {issueLabel || appointment.title || t(`appointments.list.card.title.${stateTextKey(state, isMechanic)}`)}
                     </Text>
                 </View>
             </View>

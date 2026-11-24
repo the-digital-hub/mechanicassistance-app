@@ -39,6 +39,38 @@ function loadSnapshots(requestId: string): Promise<VehicleIssueSnapshot[]> {
     return pending;
 }
 
+/** Issue names of already-loaded snapshots, in `language`, comma-joined (no extra request: the catalog is loaded once for everyone). */
+export async function labelFromSnapshots(snapshots: readonly VehicleIssueSnapshot[], language: string): Promise<string> {
+    if (snapshots.length === 0) return '';
+    try {
+        const [catalog, languageId] = await Promise.all([loadCatalog(), getLanguageId(language)]);
+        const names = snapshots
+            .map((s) => {
+                const issue = catalog.get(s.vehicleIssueId);
+                return issue ? translatedName(issue, languageId) : s.name;
+            })
+            .filter(Boolean);
+        return Array.from(new Set(names)).join(', ');
+    } catch {
+        return '';
+    }
+}
+
+/** The same label for snapshots a list already carries (a card in a list must not ask the server once more per row). Empty until resolved. */
+export function useIssueLabel(snapshots: readonly VehicleIssueSnapshot[] | undefined): string {
+    const { i18n } = useTranslation();
+    const [label, setLabel] = useState('');
+    const key = (snapshots ?? []).map((s) => s.vehicleIssueId).join(',');
+    useEffect(() => {
+        if (!snapshots || snapshots.length === 0) { setLabel(''); return; }
+        let cancelled = false;
+        void labelFromSnapshots(snapshots, i18n.language).then((value) => { if (!cancelled) setLabel(value); });
+        return () => { cancelled = true; };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [key, i18n.language]);
+    return label;
+}
+
 /**
  * Translated issue names of a request in `language`, comma-joined. Empty when the request has no issues or either lookup fails: callers
  * fall back to the request's notes / title. (Plain async version, for alerts and other places that are not a component.)

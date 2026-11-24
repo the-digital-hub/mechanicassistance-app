@@ -17,7 +17,8 @@ jest.mock('@/lib/dao/NotificationDAO', () => ({
     },
 }));
 jest.mock('@/modules/app-badge', () => ({ clearAppBadge: jest.fn().mockResolvedValue(undefined) }));
-jest.mock('@/lib/i18n', () => ({ __esModule: true, default: { language: 'en' } }));
+jest.mock('@/lib/i18n', () => ({ __esModule: true, default: { language: 'en', on: jest.fn(), off: jest.fn() } }));
+jest.mock('@/lib/notifications/push', () => ({ syncPushRegistration: jest.fn().mockResolvedValue(true) }));
 
 const item = (id: string, kind: string, read: boolean, minutesAgo: number) => ({
     id, kind, title: kind, body: '', read, createdAt: new Date(Date.now() - minutesAgo * 60_000).toISOString(),

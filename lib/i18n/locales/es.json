@@ -2625,6 +2625,10 @@
           "failedBody": "Probá de nuevo."
         },
         "view": "Ver"
+      },
+      "over": {
+        "title": "Esa videollamada ya terminó",
+        "body": "Ya no se puede entrar a la sala. Acá ves cómo terminó."
       }
     },
     "clientReview": {
@@ -3114,7 +3118,8 @@
     "deleteFailedServer": "El servidor no pudo eliminar las notificaciones (error {{status}}). Intentá más tarde.",
     "deleteAllConfirmTitle": "¿Eliminar todas las notificaciones?",
     "deleteAllConfirmMessage": "Se van a eliminar todas tus notificaciones ({{count}}), no solo las que ves. No se puede deshacer.",
-    "deleteAllUnreadConfirmMessage": "Se van a eliminar todas tus notificaciones no leídas ({{count}}). No se puede deshacer."
+    "deleteAllUnreadConfirmMessage": "Se van a eliminar todas tus notificaciones no leídas ({{count}}). No se puede deshacer.",
+    "callEnded": "La videollamada ya terminó"
   },
   "settingsMenu": {
     "language": "Idioma",
@@ -4808,11 +4813,11 @@
       "details": "Detalle de la solicitud",
       "quote": "Tu cotización",
       "review": "Revisar cotización",
-      "sent": "Cotización enviada",
+      "sent": "Tu cotización",
       "decline": "Rechazar",
-      "declined": "Rechazada",
-      "awarded": "Trabajo confirmado",
-      "closed": "Cotización cerrada"
+      "declined": "Detalle de la solicitud",
+      "awarded": "Tu cotización",
+      "closed": "Tu cotización"
     },
     "details": {
       "title": "Revisá y enviá tu cotización.",

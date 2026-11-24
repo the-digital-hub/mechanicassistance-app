@@ -1,4 +1,5 @@
 import { useTabBarInset } from '@/components/ui/RoundedTabBar';
+import { isCancelledStatus, useAppointments } from '@/context/AppointmentsContext';
 import { useNotifications } from '@/context/NotificationsContext';
 import { useUser } from '@/context/UserContext';
 import { ApiError } from '@/lib/api/types';
@@ -212,6 +213,14 @@ export default function NotificationsScreen() {
 
     // Notifications whose moment has passed (the offer was answered, expired or the request ended): shown dimmed.
     const [endedIds, setEndedIds] = useState<Set<string>>(new Set());
+    // A video-call notification whose call is already over (done, being confirmed, cancelled): shown dimmed and says so, like an offer that lapsed.
+    const { appointments } = useAppointments();
+    const callIsOver = (notif: typeof notifications[0]) => {
+        if (notif.kind !== 'video_call' && notif.kind !== 'video_call_reminder') return false;
+        const a = appointments.find((x) => x.id === (notif.appointmentId ?? notif.requestId));
+        return !!a && (isCancelledStatus(a.status) || ['completed', 'awaiting_confirmation', 'disputed'].includes(a.status));
+    };
+    const isOver = (notif: typeof notifications[0]) => endedIds.has(notif.id) || callIsOver(notif);
     const markEnded = (id: string) => setEndedIds((prev) => new Set(prev).add(id));
     const [openingId, setOpeningId] = useState<string | null>(null);
 
@@ -359,13 +368,15 @@ export default function NotificationsScreen() {
                                 containerStyle={{ backgroundColor: '#E5484D' }}
                             >
                             <TouchableOpacity
-                                className={`px-6 py-5 border-b border-gray-50 flex-row gap-4 ${notif.unread ? 'bg-blue-50/30' : ''}`}
-                                style={{ backgroundColor: notif.unread ? '#F2F7FF' : '#F6F8FC', opacity: endedIds.has(notif.id) ? 0.6 : 1 }}
+                                className={`px-6 py-5 border-b border-gray-50 ${notif.unread ? 'bg-blue-50/30' : ''}`}
+                                style={{ backgroundColor: notif.unread ? '#F2F7FF' : '#F6F8FC' }}
                                 onPress={() => handleNotificationPress(notif)}
                                 activeOpacity={notif.requestId ? 0.7 : 1}
                                 accessibilityActions={[{ name: 'delete', label: t('notifications.delete') }]}
                                 onAccessibilityAction={(e) => { if (e.nativeEvent.actionName === 'delete') handleDelete(notif.id); }}
                             >
+                                {/* The dimming is on the content, not on the row: the row keeps its own solid background, so the red of the delete swipe never shows through it. */}
+                                <View className="flex-row gap-4" style={{ opacity: isOver(notif) ? 0.6 : 1 }}>
                                 {/* Icon */}
                                 <NotificationIcon kind={notif.kind} unread={notif.unread} />
 
@@ -391,11 +402,15 @@ export default function NotificationsScreen() {
                                         </View>
                                     </View>
                                     <Text className="text-gray-500 font-outfit-regular text-[16.5px] leading-6" style={{ marginTop: 2 }}>{notif.body}</Text>
+                                    {callIsOver(notif) ? (
+                                        <Text className="text-gray-400 font-outfit-medium text-[15px] mt-1">{t('notifications.callEnded')}</Text>
+                                    ) : null}
                                     {notif.type === 'mechanic_found' && notif.requestId && (
                                         endedIds.has(notif.id)
                                             ? <Text className="text-gray-400 font-outfit-medium text-[15px] mt-1">{t('notifications.offerEnded')}</Text>
                                             : <Text className="text-blue-500 font-outfit-medium text-[15px] mt-1">{openingId === notif.id ? t('notifications.opening') : t('notifications.tapToView')}</Text>
                                     )}
+                                </View>
                                 </View>
                             </TouchableOpacity>
                             </Swipeable>

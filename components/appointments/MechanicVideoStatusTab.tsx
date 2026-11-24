@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 
 import { AO } from '@/components/offer/OfferSections';
+import { formatLocalDateTime } from '@/lib/video/videoCallTime';
 
 const K = 'appointments.videoCall.statusTab';
 
@@ -14,7 +15,7 @@ type StepState = 'done' | 'current' | 'pending';
  * accepted, call open, closed (waiting for the client's confirmation), rate the customer.
  * It says what is happening now and what comes next; the facts of the request live in Details.
  */
-export function MechanicVideoStatusTab({ status, callStarted, notResolved, reviewSent, role = 'mechanic' }: {
+export function MechanicVideoStatusTab({ status, callStarted, notResolved, reviewSent, times, role = 'mechanic' }: {
     /** accepted | in_progress | awaiting_confirmation | disputed | completed */
     status: string | undefined;
     /** The client joined and the timer is running. */
@@ -23,10 +24,12 @@ export function MechanicVideoStatusTab({ status, callStarted, notResolved, revie
     notResolved: boolean;
     /** The other person was already rated. */
     reviewSent: boolean;
+    /** When each step happened (ISO), shown next to its title once it has: accepted, the call, closed. */
+    times?: { accepted?: string | null; call?: string | null; closed?: string | null };
     /** Whose phone this is: the owner reads the same steps with their own wording (`statusTab.owner.*`). */
     role?: 'mechanic' | 'owner';
 }) {
-    const { t: translate } = useTranslation();
+    const { t: translate, i18n } = useTranslation();
     const t = (key: string) => translate(role === 'owner' ? [key.replace(`${K}.`, `${K}.owner.`), key] : key);
     const closed = status === 'completed';
     const waiting = status === 'awaiting_confirmation';
@@ -50,10 +53,10 @@ export function MechanicVideoStatusTab({ status, callStarted, notResolved, revie
             ? t(`${K}.reviewNow`)
             : t(`${K}.reviewLater`);
 
-    const steps: { key: string; title: string; sub: string; state: StepState }[] = [
-        { key: 'accepted', title: t(`${K}.acceptedTitle`), sub: t(`${K}.acceptedSub`), state: 'done' },
-        { key: 'call', title: t(`${K}.callTitle`), sub: callSub, state: closed || waiting || disputed ? 'done' : 'current' },
-        { key: 'closed', title: t(`${K}.closedTitle`), sub: closedSub, state: closed ? 'done' : waiting || disputed ? 'current' : 'pending' },
+    const steps: { key: string; title: string; sub: string; state: StepState; at?: string | null }[] = [
+        { key: 'accepted', title: t(`${K}.acceptedTitle`), sub: t(`${K}.acceptedSub`), state: 'done', at: times?.accepted },
+        { key: 'call', title: t(`${K}.callTitle`), sub: callSub, state: closed || waiting || disputed ? 'done' : 'current', at: callStarted || closed || waiting || disputed ? times?.call : undefined },
+        { key: 'closed', title: t(`${K}.closedTitle`), sub: closedSub, state: closed ? 'done' : waiting || disputed ? 'current' : 'pending', at: closed || waiting || disputed ? times?.closed : undefined },
         { key: 'review', title: t(`${K}.reviewTitle`), sub: reviewSub, state: reviewSent ? 'done' : closed ? 'current' : 'pending' },
     ];
 
@@ -88,7 +91,12 @@ export function MechanicVideoStatusTab({ status, callStarted, notResolved, revie
                             {!last ? <View style={{ flex: 1, width: 2, marginVertical: 4, backgroundColor: done ? '#BFE3D0' : '#E6EAF3', minHeight: 20 }} /> : null}
                         </View>
                         <View style={{ flex: 1, paddingBottom: last ? 0 : 18 }}>
-                            <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: step.state === 'pending' ? AO.mutedLight : AO.text }}>{step.title}</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+                                <Text className="font-outfit-bold" style={{ flexShrink: 1, fontSize: 16, lineHeight: 22, color: step.state === 'pending' ? AO.mutedLight : AO.text }}>{step.title}</Text>
+                                {step.at && formatLocalDateTime(step.at, i18n.language) ? (
+                                    <Text className="font-outfit-medium" style={{ fontSize: 13, lineHeight: 18, color: AO.muted }} testID={`status-time-${step.key}`}>{formatLocalDateTime(step.at, i18n.language)}</Text>
+                                ) : null}
+                            </View>
                             <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: current ? AO.blue : AO.muted }}>{step.sub}</Text>
                         </View>
                     </View>
