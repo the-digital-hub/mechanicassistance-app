@@ -205,13 +205,6 @@ export default function PasswordScreen() {
             {saving ? <ActivityIndicator color="white" /> : <Text className="text-white font-outfit-bold text-lg text-center">{t('password.changePassword')}</Text>}
           </LinearGradient>
         </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          activeOpacity={0.8}
-          className="items-center" style={{ paddingVertical: 16, borderRadius: 14, backgroundColor: '#E6EAF2' }}
-        >
-          <Text className="font-outfit-bold" style={{ fontSize: 17, lineHeight: 23, color: '#4A5470' }}>{t('password.back')}</Text>
-        </TouchableOpacity>
       </View>
     </KeyboardAwareScrollView>
   );

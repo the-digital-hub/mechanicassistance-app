@@ -34,6 +34,7 @@ export function defaultMethod(cards: readonly PaymentCard[], earningsReady: numb
 export function MembershipPaySheet({
     visible,
     amount,
+    planName,
     cards,
     earningsReady,
     paying,
@@ -43,6 +44,8 @@ export function MembershipPaySheet({
 }: {
     visible: boolean;
     amount: number;
+    /** The plan being paid, as the person knows it. */
+    planName: string;
     cards: PaymentCard[];
     /** What the earnings have ready to pay out; null while unknown. */
     earningsReady: number | null;
@@ -94,7 +97,7 @@ export function MembershipPaySheet({
             <View style={{ ...SHEET, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 34, maxHeight: '85%' }} testID="membership-pay-sheet">
                 <SheetHandle />
                 <Text className="font-outfit-bold" style={{ fontSize: 20, lineHeight: 26, color: INK.text }}>{t('membership.paySheet.title')}</Text>
-                <Text className="font-outfit-regular" style={{ ...TYPE.body, color: INK.muted, marginTop: 4, marginBottom: 14 }}>{t('membership.paySheet.subtitle', { amount: money(amount) })}</Text>
+                <Text className="font-outfit-regular" style={{ ...TYPE.body, color: INK.muted, marginTop: 4, marginBottom: 14 }}>{t('membership.paySheet.subtitle', { amount: money(amount), plan: planName })}</Text>
 
                 <ScrollView showsVerticalScrollIndicator={false}>
                     {cards.map((c) => option(c.id, <CreditCard size={20} color={INK.blue} />, cardLabel(c), isExpired(c) ? t('membership.paySheet.expired') : c.isDefault ? t('membership.paySheet.defaultCard') : t('membership.paySheet.savedCard'), isExpired(c)))}

@@ -14,6 +14,7 @@ import { ChevronRight, Clock, CreditCard } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { TYPE } from '@/lib/ui/type';
 
 type CardProps = {
     item: AssistanceTypeCatalogItem;
@@ -302,7 +303,7 @@ export default function RequestAssistanceTypeScreen() {
                 </View>
 
                 {/* Title */}
-                <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">{t('requestAssistance.type.title')}</Text>
+                <Text className="text-gray-900 font-outfit-medium mb-3" style={TYPE.screenTitle}>{t('requestAssistance.type.title')}</Text>
 
                 {/* Subtitle */}
                 <Text className="text-gray-500 font-outfit-regular text-base mb-8">

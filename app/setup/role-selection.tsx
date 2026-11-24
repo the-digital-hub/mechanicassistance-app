@@ -183,7 +183,8 @@ export default function RoleSelectionScreen() {
                                     end={{ x: 1, y: 0 }}
                                     style={{ minHeight: 48, borderRadius: BUTTON_RADIUS, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12 }}
                                 >
-                                    <Text className="font-outfit-bold" style={{ ...TYPE.body, color: on ? '#FFFFFF' : '#4A5470' }}>
+                                    {/* One line on every screen: on a small one the text shrinks a little instead of wrapping ("Vehicle Owner" split in two). */}
+                                    <Text className="font-outfit-bold" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ ...TYPE.body, color: on ? '#FFFFFF' : '#4A5470' }}>
                                         {t(role === 'mechanic' ? 'setup.roleSelection.technician' : 'setup.roleSelection.vehicleOwner')}
                                     </Text>
                                 </LinearGradient>

@@ -157,7 +157,7 @@ const Onboarding = () => {
       {/* Top bar: logo + login */}
       <Animated.View style={fadeOut} pointerEvents="box-none">
       <Reveal index={-2}>
-        <View style={[styles.topBar, { paddingTop: insets.top + 14 }]}>
+        <View style={[styles.topBar, { paddingTop: insets.top + 32 }]}>
           <View style={styles.logoBlock}>
             <Image source={require("@/assets/images/brand_ring_color.png")} style={styles.topLogo} resizeMode="contain" />
             <Image source={require("@/assets/images/brand_wordmark_color.png")} style={styles.topWord} resizeMode="contain" />
@@ -180,7 +180,7 @@ const Onboarding = () => {
         </TouchableOpacity>
 
         {/* Quiet language switch, available from the very first screen */}
-        <View style={[styles.langWrap, { top: insets.top + 12 }]}>
+        <View style={[styles.langWrap, { top: insets.top + 8 }]}>
           {(["en", "es"] as SupportedLanguage[]).map((code, i) => (
             <React.Fragment key={code}>
               {i > 0 ? <Text style={styles.langSep}>|</Text> : null}
@@ -294,8 +294,8 @@ const styles = StyleSheet.create({
 
   topBar: { paddingHorizontal: 20, alignItems: "center" },
   logoBlock: { alignItems: "center" },
-  topLogo: { width: 92, height: 92 },
-  topWord: { width: 250, height: 250 * (51 / 947), marginTop: 12 },
+  topLogo: { width: 104, height: 104 },
+  topWord: { width: 268, height: 268 * (51 / 947), marginTop: 13 },
   loginPill: {
     position: "absolute",
     right: 20,
@@ -314,15 +314,15 @@ const styles = StyleSheet.create({
     zIndex: 20,
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 12,
-    height: 30,
-    borderRadius: 15,
+    gap: 10,
+    paddingHorizontal: 16,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: "rgba(7,19,38,0.32)",
   },
-  langText: { color: "rgba(255,255,255,0.65)", fontFamily: FONT.medium, fontSize: 13, letterSpacing: 0.6 },
+  langText: { color: "rgba(255,255,255,0.65)", fontFamily: FONT.medium, fontSize: 16, letterSpacing: 0.6 },
   langTextOn: { color: "#FFFFFF", fontFamily: FONT.bold },
-  langSep: { color: "rgba(255,255,255,0.35)", fontSize: 13 },
+  langSep: { color: "rgba(255,255,255,0.35)", fontSize: 16 },
   loginPillText: { color: "#1E56E3", fontFamily: FONT.bold, fontSize: 15 },
 
   sheetWrap: { position: "absolute", left: 0, right: 0, bottom: -40 },

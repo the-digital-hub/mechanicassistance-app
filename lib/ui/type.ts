@@ -16,6 +16,8 @@ export const TYPE = {
     eyebrow: { fontSize: 12, letterSpacing: 1.2 },
     /** Heading above a block of cards or rows ("Your request", "Active job"). */
     section: { fontSize: 20, lineHeight: 26, letterSpacing: -0.4 },
+    /** Title of a main screen, under its badge ("Take your next request", "Your assistances"): one size on every tab. */
+    screenTitle: { fontSize: 26, lineHeight: 32, letterSpacing: -0.6 },
     /** Title inside a card ("What's included", "Checklist"). */
     cardTitle: { fontSize: 17, lineHeight: 23 },
     /** Group / category heading ("Starting & electrical"). */

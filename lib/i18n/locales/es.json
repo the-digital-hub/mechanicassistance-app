@@ -136,7 +136,8 @@
       "schedule": "Horario y zona",
       "addressesOne": "Mi Dirección",
       "vehiclesOne": "Mi Vehículo",
-      "savedAddressesOne": "Dirección guardada"
+      "savedAddressesOne": "Dirección guardada",
+      "identity": "Verificación de identidad"
     },
     "reviews": {
       "titleMechanic": "Lo que dicen los clientes",
@@ -233,6 +234,13 @@
     "groups": {
       "account": "Cuenta",
       "professional": "Perfil profesional"
+    },
+    "pending": {
+      "count_one": "{{count}} pendiente",
+      "count_other": "{{count}} pendientes",
+      "verify": "Verificar",
+      "missing": "Falta",
+      "pay": "Pagar"
     }
   },
   "assistanceCard": {
@@ -440,6 +448,10 @@
         "checkup": {
           "label": "Hora de un chequeo",
           "text": "Pasó un tiempo. Un servicio rápido hoy puede ahorrarte una emergencia después."
+        },
+        "membership": {
+          "label": "Terminá tu plan",
+          "text": "Concluí el alta de tu plan Assistance Pass en Membresía."
         }
       }
     },
@@ -538,6 +550,10 @@
           "comebackRadius": {
             "label": "Llegá a más dueños",
             "text": "Tu zona de servicio es chica. Ampliala para ver más pedidos."
+          },
+          "membership": {
+            "label": "Terminá tu plan",
+            "text": "Concluí el alta de tu plan All-access en Membresía."
           }
         },
         "offlineLabel": "Estás desconectado",
@@ -778,8 +794,8 @@
       }
     },
     "vehicleDocumentation": {
-      "title": "Agregá fotos o video",
-      "subtitle": "Grabá o fotografiá el problema exacto. Una buena documentación ayuda al mecánico a entenderlo y cotizar mejor.",
+      "title": "Registro visual del problema",
+      "subtitle": "Hasta {{max}} fotos y 1 video del problema, cada uno con una breve descripción. Ayudan al mecánico a entenderlo y cotizar mejor.",
       "optional": "OPCIONAL",
       "sectionTitle": "Video o fotos",
       "sectionOptional": "(opcional)",
@@ -787,13 +803,10 @@
       "tabPhotos": "Agregar fotos",
       "recordIssue": "Grabá el problema",
       "browseVideo": "Grabá o elegí un video (MP4, MOV)",
-      "videoNotePlaceholder": "Agregá notas sobre este video (opcional)…",
-      "photoNotePlaceholder": "Agregá una nota sobre esta foto (opcional)…",
       "photoOfIssue": "Foto del problema",
       "browsePhoto": "Sacá una foto o elegí un archivo",
       "videoHint": "Mostrá el problema mientras ocurre.",
       "addVideo": "Agregar video",
-      "photoHint": "Hasta {{max}} fotos. Tocá una para agregar una nota.",
       "addPhoto": "Agregar foto",
       "addAnotherPhotoShort": "Agregar otra foto",
       "addAnotherPhoto": "+ Agregar otra foto",
@@ -813,7 +826,12 @@
       "submit": "Solicitar asistencia",
       "skip": "Omitir por ahora",
       "tileVideo": "Video",
-      "tilePhoto": "Foto"
+      "tilePhoto": "Foto",
+      "photoCardTitle": "Foto {{n}}",
+      "videoCardTitle": "Video",
+      "photoCardHint": "Sacá o elegí una foto de lo que falla.",
+      "videoCardHint": "Grabá o elegí un video corto del problema.",
+      "detailPlaceholder": "¿Qué se ve? (opcional)"
     },
     "locationMap": {
       "myCurrentLocation": "Mi ubicación actual",
@@ -947,7 +965,7 @@
       "subtitle": "Revisá la oferta y confirmá para que el técnico salga en camino.",
       "yourTechnician": "TU TÉCNICO",
       "technicianFallback": "Tu técnico",
-      "technicianLocked": "Técnico encontrado",
+      "technicianLocked": "Listo para ayudarte",
       "technicianLockedHint": "Confirmá para ver quién va",
       "servicesCount_one": "{{count}} servicio",
       "servicesCount_other": "{{count}} servicios",
@@ -1748,7 +1766,6 @@
         "extraSub": "Un video corto alrededor del vehículo o más fotos te respaldan si el cliente hace un reclamo.",
         "required": "Obligatoria",
         "added": "Cargada",
-        "needRequired": "{{done}} de 2 fotos obligatorias cargadas",
         "skip": "Continuar sin las fotos",
         "skipNote": "(no recomendado)",
         "skipWarn": "Sin estas fotos no queda constancia del estado del vehículo cuando llegaste."
@@ -3025,7 +3042,9 @@
         "notes": "Notas",
         "notesPlaceholder": "ej. Llantas aftermarket, suspensión elevada…",
         "saveHint": "Ingresá el VIN para guardar tu vehículo."
-      }
+      },
+      "duplicateVinTitle": "Este VIN ya está cargado",
+      "duplicateVinMessage": "Ya hay un vehículo con este VIN en tu lista. Cada vehículo se puede cargar una sola vez."
     }
   },
   "privacy": {
@@ -3330,9 +3349,9 @@
     },
     "roleSelection": {
       "badge": "ELEGÍ TU ROL",
-      "choosePath": "Elegí tu camino",
-      "subtitle": "Contanos cómo vas a usar la app",
-      "technician": "Técnico",
+      "choosePath": "¿Cómo vas a usar la app?",
+      "subtitle": "Elegí tu rol para empezar.",
+      "technician": "Mecánico",
       "vehicleOwner": "Dueño de vehículo",
       "mechanic": {
         "title": "Convertí tus habilidades en ingresos.",
@@ -3342,11 +3361,11 @@
           "Pagos rápidos",
           "Tus tarifas"
         ],
-        "buttonText": "Continuar como Técnico"
+        "buttonText": "Continuar como Mecánico"
       },
       "user": {
-        "title": "Ayuda en la ruta, cuando la necesites.",
-        "description": "Conectate con técnicos certificados cerca tuyo, comparó ofertas y volvé al camino.",
+        "title": "Ayuda mecánica en tu casa, en la calle o en un taller.",
+        "description": "Conectate con mecánicos certificados cerca tuyo, compará ofertas y resolvé el problema sin moverte.",
         "highlights": [
           "Seguimiento en vivo",
           "Precio por adelantado",
@@ -3383,7 +3402,18 @@
       "photoLibrary": "Elegir de la galería",
       "photoCancel": "Cancelar",
       "cameraPermissionTitle": "Falta permiso de cámara",
-      "cameraPermissionMessage": "Permití el acceso a la cámara en Ajustes para sacarte la foto de perfil, o elegí una de tu galería."
+      "cameraPermissionMessage": "Permití el acceso a la cámara en Ajustes para sacarte la foto de perfil, o elegí una de tu galería.",
+      "errorName": "Ingresá tu nombre.",
+      "errorSurname": "Ingresá tu apellido.",
+      "errorEmail": "Ingresá tu email.",
+      "errorEmailInvalid": "Ingresá un email válido, como nombre@ejemplo.com.",
+      "errorDob": "Elegí tu fecha de nacimiento.",
+      "errorPassword": "Usá al menos 8 caracteres, con un símbolo o un número.",
+      "errorConfirm": "Las contraseñas tienen que coincidir.",
+      "cameraHint": "Poné tu cara dentro del círculo.",
+      "takePhoto": "Sacar foto",
+      "switchCamera": "Cambiar de cámara",
+      "closeCamera": "Cerrar la cámara"
     },
     "otp": {
       "tooManyAttempts": "Demasiados intentos. Esperá unos minutos y volvé a intentar más tarde.",
@@ -3480,10 +3510,9 @@
       "vinDecodedMessage": "Encontrado: {{make}} {{model}}",
       "ok": "OK",
       "vinNotFoundTitle": "VIN no encontrado",
-      "yourVehicles": "TUS VEHÍCULOS",
       "title": "Información del vehículo",
       "subtitle": "Ayudanos a reconocerte más rápido.",
-      "addVehicle": "Agregar vehículo",
+      "addVehicle": "Agregar otro vehículo",
       "continue": "Continuar",
       "badge": "INFORMACIÓN DEL VEHÍCULO",
       "vin": "VIN",
@@ -3499,7 +3528,30 @@
       "selectModel": "Seleccionar modelo",
       "done": "Listo",
       "searchMake": "Buscar marca...",
-      "searchModel": "Buscar modelo..."
+      "searchModel": "Buscar modelo...",
+      "askBadge": "VEHÍCULO",
+      "askTitle": "¿Querés cargar tu vehículo?",
+      "askSubtitle": "Cargarlo ahora hace que tu primera solicitud sea más rápida. También lo podés hacer después desde tu perfil.",
+      "addNow": "Cargar mi vehículo",
+      "later": "Lo hago después",
+      "tips": {
+        "vin": {
+          "label": "Usá el VIN",
+          "text": "Ingresá el VIN de 17 caracteres y completamos marca, modelo, año y especificaciones por vos."
+        },
+        "scan": {
+          "label": "Escanealo",
+          "text": "Usá el escáner para leer el código VIN sin escribirlo."
+        },
+        "more": {
+          "label": "Cuanto más, mejor",
+          "text": "Cuanto más completo, mejor entienden los técnicos tu problema y cotizan el arreglo."
+        }
+      },
+      "yourVehicles_one": "TU VEHÍCULO",
+      "yourVehicles_other": "TUS VEHÍCULOS",
+      "listTitle_one": "Información del vehículo",
+      "listTitle_other": "Información de los vehículos"
     },
     "credentials": {
       "notFound": "No se encontró ningún mecánico ASE con ese ID. Verificá y volvé a intentar.",
@@ -3597,7 +3649,7 @@
       "step2": "Te sacás una selfie para confirmar que sos vos.",
       "step3": "Revisamos el resultado y te avisamos, normalmente en minutos.",
       "consentTitle": "Antes de empezar",
-      "consentBody": "Didit, nuestro proveedor de identidad, procesa tu documento y tu selfie. Nosotros solo guardamos si la verificación fue aprobada.",
+      "consentBody": "Didit, nuestro proveedor de identidad, revisa tu documento y tu selfie. Solo guardamos el resultado.",
       "accept": "Entiendo y quiero continuar",
       "startButton": "Verificar mi identidad",
       "starting": "Abriendo la verificación...",
@@ -3615,7 +3667,9 @@
       "submittedMessage": "Estamos revisando tus documentos. Mientras tanto podés terminar de configurar tu cuenta.",
       "consentRequiredTitle": "Falta un paso",
       "consentRequiredMessage": "Confirmá que entendés cómo se usan tus datos antes de continuar.",
-      "verifyLater": "Verificar después"
+      "verifyLater": "Verificar después",
+      "labelReady": "Tenelo a mano",
+      "stepReady": "Tené a mano tu licencia de conducir: la vas a escanear para verificar tu identidad."
     },
     "dealerInfo": {
       "title": "Información del concesionario",
@@ -3685,7 +3739,7 @@
       "identityVerified": "Tu identidad ya está verificada.",
       "finishing": "Sumando el rol a tu cuenta...",
       "roleUser": "dueño de vehículo",
-      "roleMechanic": "técnico",
+      "roleMechanic": "mecánico",
       "registeredOnly": "Tu perfil quedó guardado. Este rol llega pronto a la app; mientras tanto seguís usando tu rol actual."
     }
   },
@@ -3772,7 +3826,7 @@
         "month": "Mensual"
       },
       "amount": "Monto",
-      "amountHint": "Un año del plan All-access.",
+      "amountHint": "Un año del plan {{plan}}.",
       "amountPaidHint": "Pagado el {{date}}.",
       "amountFree": "Gratis durante nuestra etapa de lanzamiento.",
       "nextDue": "Hoy",
@@ -3826,7 +3880,7 @@
     "feeNoteYearly": "Se cobra una vez al año.",
     "pay": {
       "successTitle": "Pago recibido",
-      "success": "Tu plan All-access está activo. Se renueva el {{date}}.",
+      "success": "Tu plan {{plan}} está activo. Se renueva el {{date}}.",
       "failedTitle": "No se hizo el pago",
       "failed": "No pudimos procesar el pago. Intentá de nuevo.",
       "button": "Pagar {{amount}}",
@@ -3836,7 +3890,7 @@
     },
     "paySheet": {
       "title": "¿Cómo querés pagar?",
-      "subtitle": "{{amount}} por un año de All-access.",
+      "subtitle": "{{amount}} por un año de {{plan}}.",
       "earningsLabel": "Saldo de ganancias",
       "earningsAvailable": "{{amount}} listos para cobrar",
       "earningsShort": "{{amount}} listos: no alcanza para el plan",
@@ -3847,6 +3901,21 @@
       "addCardHint": "Queda guardada en tu wallet para las renovaciones y los pagos futuros.",
       "autoRenew": "Renovar automáticamente",
       "autoRenewHint": "Cobramos esta tarjeta el año que viene y te avisamos 7 días antes."
+    },
+    "fleet": {
+      "title": "Tus vehículos",
+      "hint": "El plan es por vehículo con VIN, por año y cada uno con su propia fecha. El primero {{first}}, el segundo y el tercero {{second}}, desde el cuarto {{fourth}}.",
+      "empty": "Cargá un vehículo con VIN para empezar tu plan",
+      "until": "Vigente hasta {{date}}",
+      "covered": "Cubierto",
+      "base": "{{count}} × {{price}} al año",
+      "discount": "Bonificación por flota",
+      "totalDue": "Total a pagar",
+      "total": "Total del año",
+      "addedTitle": "Vehículo agregado",
+      "addedBody": "Sumarlo a tu plan cuesta {{price}} al año, con tu bonificación por flota incluida. Tiene su propia fecha.",
+      "addedSee": "Ver membresía",
+      "addedLater": "Después"
     }
   },
   "promotions": {
@@ -3966,7 +4035,9 @@
       "statement": "Estado de cuenta (PDF)",
       "statementFailed": "No se pudo descargar el estado de cuenta. Intentá de nuevo.",
       "pending": "Pagos pendientes",
-      "all": "Todos los pagos"
+      "all": "Todos los pagos",
+      "statementDownload": "Descargar PDF",
+      "statementHint": "Abarca las fechas elegidas arriba."
     },
     "activity": {
       "title": "Actividad de ganancias",
@@ -3988,7 +4059,11 @@
       "loadFailed": "No se pudieron cargar tus ganancias. Deslizá hacia abajo para reintentar.",
       "pageRange": "{{from}}–{{to}} de {{total}}",
       "prevPage": "Página anterior",
-      "nextPage": "Página siguiente"
+      "nextPage": "Página siguiente",
+      "statusTitle": "Estado",
+      "statusAll": "Todos",
+      "statusPending": "Solo pendientes",
+      "statusPendingChip": "Pendientes"
     },
     "status": {
       "pending": "PENDIENTE",
@@ -4880,8 +4955,8 @@
         "body": "Las solicitudes programadas son solo para cuentas de técnico."
       },
       "identityPending": {
-        "title": "Verificá tu identidad para ver solicitudes programadas",
-        "body": "Tu verificación de identidad todavía no está aprobada. Terminala para empezar a cotizar."
+        "title": "Verificá tu identidad para tomar solicitudes",
+        "body": "Tu verificación de identidad todavía no está aprobada. Tocá acá para terminarla y empezar a cotizar."
       },
       "suspended": {
         "title": "Las solicitudes programadas están en pausa para vos",
@@ -4953,8 +5028,8 @@
   },
   "stripeInfo": {
     "title": "¿Qué es Stripe?",
-    "provider": "Stripe es la empresa de pagos que maneja el dinero en Mechanic Assistance. Verifica quién sos y envía tus ganancias a tu cuenta bancaria. Tus datos bancarios van a Stripe, nunca a la app.",
-    "customer": "Stripe es la empresa de pagos segura que procesa los pagos con tarjeta en Mechanic Assistance. El número de tu tarjeta va directo a Stripe; nosotros solo guardamos la marca, los últimos 4 dígitos y el vencimiento.",
+    "provider": "Stripe es la plataforma de pagos segura que usa Mechanic Assistance para cobrar los servicios y pagarte tus ganancias. Verifica tu identidad y deposita el dinero directo en tu cuenta bancaria. Tus datos bancarios van a Stripe, nunca a la app.",
+    "customer": "Stripe es la plataforma de pagos segura que usa Mechanic Assistance para cobrar tus servicios. El número de tu tarjeta va directo a Stripe; nosotros solo guardamos la marca, los últimos 4 dígitos y el vencimiento.",
     "gotIt": "Entendido",
     "learnMore": "Conocer más sobre Stripe"
   }

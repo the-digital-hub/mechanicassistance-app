@@ -9,6 +9,7 @@ import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { SETUP_BG, SetupFooter, SetupHeading } from "@/components/setup/SetupKit";
 import { KeyboardAwareScrollView } from "@/components/ui/KeyboardAwareScrollView";
+import { ProfilePhotoCamera } from "@/components/ui/ProfilePhotoCamera";
 import { TYPE } from "@/lib/ui/type";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -30,6 +31,9 @@ export default function BasicInfoScreen() {
   });
   const [localProfileUri, setLocalProfileUri] = useState<string | null>(null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  // After a Continue with something missing: what is missing is marked on its field (and goes away as it is filled in).
+  const [attempted, setAttempted] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
   // Adding a role to an existing account (lib/setup-add-role.ts): the account
   // already exists, so there is no password to set, and its own email is not
   // "taken".
@@ -64,6 +68,10 @@ export default function BasicInfoScreen() {
   }, []);
 
   const scrollViewRef = useRef<ScrollView>(null);
+  const nameRef = useRef<View>(null);
+  const surnameRef = useRef<View>(null);
+  const emailRef = useRef<View>(null);
+  const dobRef = useRef<View>(null);
   const passwordContainerRef = useRef<View>(null);
   const confirmPasswordContainerRef = useRef<View>(null);
 
@@ -96,19 +104,23 @@ export default function BasicInfoScreen() {
   };
 
   const pickImage = async (source: "camera" | "library") => {
-    const options: ImagePicker.ImagePickerOptions = { mediaTypes: ["images"], allowsEditing: true, aspect: [1, 1], quality: 0.7 };
     if (source === "camera") {
-      // The camera needs an explicit grant; the library picker does not.
+      // The camera needs an explicit grant; the library picker does not. The photo is then taken in our own camera, with a round window.
       const permission = await ImagePicker.requestCameraPermissionsAsync();
       if (!permission.granted) {
         appAlert(t("setup.basicInfo.cameraPermissionTitle"), t("setup.basicInfo.cameraPermissionMessage"));
         return;
       }
+      setCameraOpen(true);
+      return;
     }
-    const result = source === "camera" ? await ImagePicker.launchCameraAsync(options) : await ImagePicker.launchImageLibraryAsync(options);
-
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], allowsEditing: true, aspect: [1, 1], quality: 0.7 });
     if (result.canceled) return;
-    const localUri = result.assets[0].uri;
+    await acceptPhoto(result.assets[0].uri);
+  };
+
+  /** A photo chosen or taken: shown right away and uploaded. */
+  const acceptPhoto = async (localUri: string) => {
     setLocalProfileUri(localUri);
     setIsUploadingPhoto(true);
     try {
@@ -150,9 +162,33 @@ export default function BasicInfoScreen() {
     formData.confirmPassword.length > 0 &&
     formData.password === formData.confirmPassword;
 
+  const emailText = formData.email.trim();
+  const errors = {
+    name: formData.name.trim() ? null : t("setup.basicInfo.errorName"),
+    surname: formData.surname.trim() ? null : t("setup.basicInfo.errorSurname"),
+    email: !emailText ? t("setup.basicInfo.errorEmail") : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailText) ? null : t("setup.basicInfo.errorEmailInvalid"),
+    dob: formData.dob ? null : t("setup.basicInfo.errorDob"),
+    password: isAddRole || pwResult.success ? null : t("setup.basicInfo.errorPassword"),
+    confirm: isAddRole || (formData.confirmPassword.length > 0 && ruleMatch) ? null : t("setup.basicInfo.errorConfirm"),
+  };
+  const shown = (key: keyof typeof errors) => (attempted ? errors[key] : null);
+  const errorBox = "bg-white border border-[#DC2626] rounded-[14px]";
+  const fieldError = (message: string | null) =>
+    message ? <Text className="font-outfit-regular mt-1" style={{ ...TYPE.helper, color: '#DC2626' }}>{message}</Text> : null;
+
   const handleContinue = async () => {
+    setAttempted(true);
+    // Whatever is missing is shown, and the screen goes to the first of it.
+    const order: [keyof typeof errors, React.RefObject<View | null>][] = [
+      ["name", nameRef], ["surname", surnameRef], ["email", emailRef], ["dob", dobRef],
+      ["password", passwordContainerRef], ["confirm", confirmPasswordContainerRef],
+    ];
+    const first = order.find(([key]) => errors[key]);
+    if (first) {
+      scrollToField(first[1]);
+      return;
+    }
     if (emailStatus === 'taken' || emailStatus === 'checking') return;
-    if (!isAddRole && (!pwResult.success || !ruleMatch)) return;
     await saveSetupProgress("basicInfo", formData);
 
     // Didit identity verification is required for mechanics and optional for
@@ -218,7 +254,7 @@ export default function BasicInfoScreen() {
 
           {/* Model-based inputs with labels */}
           <View style={{ gap: 18, marginBottom: 20 }}>
-            <View>
+            <View ref={nameRef}>
               <Text className="font-outfit-semibold capitalize" style={labelStyle}>
                 {t("setup.basicInfo.name")}
               </Text>
@@ -227,11 +263,12 @@ export default function BasicInfoScreen() {
                 onChangeText={(text) =>
                   setFormData((p) => ({ ...p, name: text }))
                 }
-                containerClassName={inputBox}
+                containerClassName={shown("name") ? errorBox : inputBox}
               />
+              {fieldError(shown("name"))}
             </View>
 
-            <View>
+            <View ref={surnameRef}>
               <Text className="font-outfit-semibold capitalize" style={labelStyle}>
                 {t("setup.basicInfo.surname")}
               </Text>
@@ -240,11 +277,12 @@ export default function BasicInfoScreen() {
                 onChangeText={(text) =>
                   setFormData((p) => ({ ...p, surname: text }))
                 }
-                containerClassName={inputBox}
+                containerClassName={shown("surname") ? errorBox : inputBox}
               />
+              {fieldError(shown("surname"))}
             </View>
 
-            <View>
+            <View ref={emailRef}>
               <Text className="font-outfit-semibold capitalize" style={labelStyle}>
                 {t("setup.basicInfo.email")}
               </Text>
@@ -253,10 +291,11 @@ export default function BasicInfoScreen() {
                 onChangeText={(text) =>
                   setFormData((p) => ({ ...p, email: text }))
                 }
-                containerClassName={inputBox}
+                containerClassName={shown("email") ? errorBox : inputBox}
                 keyboardType="email-address"
                 autoCapitalize="none"
               />
+              {fieldError(shown("email"))}
               {emailStatus === 'checking' && (
                 <Text className="font-outfit-regular mt-1" style={{ ...TYPE.helper, color: '#6B7490' }}>{t("setup.basicInfo.checkingAvailability")}</Text>
               )}
@@ -271,7 +310,7 @@ export default function BasicInfoScreen() {
               )}
             </View>
 
-            <View>
+            <View ref={dobRef}>
               <Text className="font-outfit-semibold" style={labelStyle}>
                 {t("setup.basicInfo.dob")}
               </Text>
@@ -279,14 +318,15 @@ export default function BasicInfoScreen() {
                 value={formData.dob}
                 onChange={(date) => setFormData((p) => ({ ...p, dob: date }))}
                 placeholder="MM / DD / YYYY"
-                containerClassName={inputBox}
+                containerClassName={shown("dob") ? errorBox : inputBox}
               />
+              {fieldError(shown("dob"))}
             </View>
 
             {!isAddRole && (
             <>
             <View ref={passwordContainerRef}>
-              <Text className="font-outfit-semibold capitalize" style={labelStyle}>
+              <Text className="font-outfit-semibold" style={labelStyle}>
                 {t("setup.basicInfo.accountPassword")}
               </Text>
               <View className="relative">
@@ -296,14 +336,15 @@ export default function BasicInfoScreen() {
                     setFormData((p) => ({ ...p, password: text }))
                   }
                   onFocus={() => scrollToField(passwordContainerRef)}
-                  containerClassName={inputBox}
+                  containerClassName={shown("password") ? errorBox : inputBox}
                     isPassword={true}
                 />
               </View>
+              {fieldError(shown("password"))}
             </View>
 
             <View ref={confirmPasswordContainerRef}>
-              <Text className="font-outfit-semibold capitalize" style={labelStyle}>
+              <Text className="font-outfit-semibold" style={labelStyle}>
                 {t("setup.basicInfo.confirmPassword")}
               </Text>
               <Input
@@ -312,9 +353,10 @@ export default function BasicInfoScreen() {
                   setFormData((p) => ({ ...p, confirmPassword: text }))
                 }
                 onFocus={() => scrollToField(confirmPasswordContainerRef)}
-                containerClassName={inputBox}
+                containerClassName={shown("confirm") ? errorBox : inputBox}
                 isPassword={true}
               />
+              {fieldError(shown("confirm"))}
             </View>
             </>
             )}
@@ -346,6 +388,7 @@ export default function BasicInfoScreen() {
         </KeyboardAwareScrollView>
 
         <SetupFooter label={t("setup.basicInfo.continue")} onPress={handleContinue} loading={isUploadingPhoto} />
+        <ProfilePhotoCamera visible={cameraOpen} onClose={() => setCameraOpen(false)} onCaptured={(uri) => { setCameraOpen(false); void acceptPhoto(uri); }} />
       </KeyboardAvoidingView>
     </View>
   );

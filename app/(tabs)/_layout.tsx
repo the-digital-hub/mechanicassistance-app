@@ -21,7 +21,7 @@ import { HeaderBackButton } from "@/components/ui/HeaderBackButton";
 import { RoundedHeaderBackground } from "@/components/ui/RoundedHeaderBackground";
 import { RoundedTabBar } from "@/components/ui/RoundedTabBar";
 import { createScrollIntent } from "@/lib/ui/tabBarVisibility";
-import { ATTACHED_TAB_BAR, HEADER_OVERLAP, PAGE_BG, TAB_BAR_HEIGHT } from "@/lib/ui/header";
+import { FLOATING_TAB_BAR, HEADER_OVERLAP, PAGE_BG, PILL_HEIGHT } from "@/lib/ui/header";
 import { NotificationBell } from "@/components/NotificationBell";
 import { MechanicLocationBroadcaster } from "@/components/MechanicLocationBroadcaster";
 import { LocationRevalidator } from "@/components/LocationRevalidator";
@@ -146,11 +146,12 @@ function MechanicStatusBadge() {
     <>
       <TouchableOpacity
         onPress={() => setShowModal(true)}
-        style={{ marginLeft: 16, backgroundColor: styles.bgColor, borderWidth: 1, borderColor: '#E5E7EB' }}
+        style={{ marginLeft: 16, flexShrink: 1, backgroundColor: styles.bgColor, borderWidth: 1, borderColor: '#E5E7EB' }}
         className="flex-row items-center gap-2 px-3 py-1.5 rounded-full"
       >
         <Circle size={8} color={styles.dotColor} fill={styles.dotColor} />
-        <Text style={{ color: styles.textColor }} className="font-outfit-semibold text-[13px]">
+        {/* One line on small screens too ("Desconectado" split in two): it shrinks a little instead. */}
+        <Text style={{ color: styles.textColor, flexShrink: 1 }} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} className="font-outfit-semibold text-[13px]">
           {getStatusLabel()}
         </Text>
       </TouchableOpacity>
@@ -240,11 +241,11 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: "#0047AB",
         tabBarInactiveTintColor: "#8E8E93",
-        // Attached to the bottom edge, top corners rounded (see lib/ui/header.ts).
+        // A floating pill, with room around it (see lib/ui/header.ts).
         tabBarStyle: {
-          ...ATTACHED_TAB_BAR,
-          height: TAB_BAR_HEIGHT + androidBottomInset,
-          paddingBottom: Platform.OS === "ios" ? 28 : 8 + androidBottomInset,
+          ...FLOATING_TAB_BAR,
+          height: PILL_HEIGHT,
+          paddingBottom: 0,
         },
         headerShown: true,
         headerTitleAlign: "center",
@@ -541,14 +542,7 @@ export default function TabLayout() {
           title: t('tabs.profile'),
           headerLeft: () => <PersonalInfoHeaderLeft />,
           headerRight: () => <PersonalInfoHeaderRight />,
-          tabBarStyle: {
-            backgroundColor: "#FFFFFF",
-            borderTopWidth: 1,
-            borderTopColor: "#E5E5E5",
-            height: (Platform.OS === "ios" ? 88 : 68) + androidBottomInset,
-            paddingTop: 8,
-            paddingBottom: Platform.OS === "ios" ? 28 : 8 + androidBottomInset,
-          },
+          tabBarStyle: { ...FLOATING_TAB_BAR, height: PILL_HEIGHT, paddingBottom: 0 },
         }}
       />
 

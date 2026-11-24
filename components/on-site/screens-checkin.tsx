@@ -264,7 +264,7 @@ export function ScreenDiagnosticsPhotos({ onNext }: { onNext: (skipped: boolean)
         <>
             <Body>
                 <Intro eyebrow={t(`${k}.eyebrow`)} title={t(`${k}.title`)} subtitle={t(`${k}.subtitle`)} />
-                <View className="mx-4 flex-row" style={{ gap: 12 }}>
+                <View className="mx-4 flex-row" style={{ gap: 12, marginTop: 20 }}>
                     <MediaSlot tile padded={false} height={170} title={t(`${k}.plate`)} tileHint={t('appointments.onSite.common.addPhoto')} badge={<RequiredPill done={plateFilled} />} placeholder={t(`${k}.platePh`)} captureKind="plate" existing={plate[0]} onChange={setPlateFilled} />
                     <MediaSlot tile padded={false} height={170} title={t(`${k}.dash`)} tileHint={t('appointments.onSite.common.addPhoto')} badge={<RequiredPill done={dashFilled} />} placeholder={t(`${k}.dashPh`)} captureKind="dashboard" existing={dashboard[0]} onChange={setDashFilled} />
                 </View>
@@ -293,9 +293,6 @@ export function ScreenDiagnosticsPhotos({ onNext }: { onNext: (skipped: boolean)
                         <ExtraCaptures videoKind="walkaround_in" photoKind="extra_in" existingVideo={walkaround[0]} videoPlaceholder={t(`${k}.videoPh`)} photoPlaceholder={t(`${k}.extraPh`)} />
                     </View>
                 ) : null}
-
-                {/* How many required photos are in: part of the page, not of the Continue bar. */}
-                {!ready ? <Tip>{t(`${k}.needRequired`, { done: doneCount })}</Tip> : null}
 
                 {/* Quiet on purpose, same as skipping the VIN: only there in case the photos do not work. */}
                 {doneCount < 2 ? (

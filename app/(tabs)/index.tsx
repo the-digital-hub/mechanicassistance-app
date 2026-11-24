@@ -1,11 +1,12 @@
+import { useTabBarInset } from '@/components/ui/RoundedTabBar';
 import { FONT } from '@/lib/ui/fonts';
 import { SwitchRoleSheet } from '@/components/profile/SwitchRoleSheet';
-import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { AseStatusBadge } from '@/components/ui/AseStatusBadge';
 import { VerificationBadge } from '@/components/ui/VerificationBadge';
 import { useUser } from '@/context/UserContext';
 import { useAppointments } from '@/context/AppointmentsContext';
 import { useMechanicStatus } from '@/context/MechanicStatusContext';
+import { useProfilePending } from '@/hooks/useProfilePending';
 import { Stars } from '@/components/offer/OfferSections';
 import { ReviewsSheet } from '@/components/profile/ReviewsSheet';
 import { useProfileReviews } from '@/hooks/useProfileReviews';
@@ -24,24 +25,26 @@ import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect, useRouter } from 'expo-router';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { RotatingChevron } from '@/components/ui/RotatingChevron';
-import { ArrowLeftRight, Award, BadgeCheck, BadgePercent, Briefcase, Camera, Car, Check, ChevronLeft, ChevronRight, Circle, Clock, CreditCard, Crown, FileText, HelpCircle, Lock, LogOut, MapPin, Settings, User, Wallet } from 'lucide-react-native';
+import { ArrowLeftRight, Award, BadgeCheck, BadgePercent, Briefcase, Camera, Car, Check, ChevronLeft, ChevronRight, Circle, Clock, CreditCard, Crown, FileText, HelpCircle, Lock, LogOut, MapPin, Settings, User, Wallet, ShieldCheck } from 'lucide-react-native';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { appAlert } from '@/lib/ui/appAlert';
 import { alertOpenWork, alertRoleSwitchBlocked } from '@/lib/roles/roleSwitchMessages';
 import { MechanicStatusSheet } from '@/components/profile/MechanicStatusSheet';
+import { TYPE } from '@/lib/ui/type';
 
 /** The dropdowns' motion, the same as the issue pickers: soft and short. */
 const MENU_GLIDE = LinearTransition.duration(220);
 
 export default function ProfileScreen() {
+  const tabInset = useTabBarInset();
   const router = useRouter();
   const { user, isLoading, updateUser, logout, switchRole } = useUser();
   const { mechanicStatus, setMechanicStatus, isUpdatingStatus } = useMechanicStatus();
+  const pending = useProfilePending(user);
   const { t, i18n } = useTranslation();
 
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
   // Technician menu groups that are currently open (Account, Professional profile).
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -136,6 +139,19 @@ export default function ProfileScreen() {
     }
   };
 
+  // The app's own alert (like every other confirmation): the icon tile, the question, a main button and the way out.
+  const askLogout = () => {
+    appAlert(
+      t('profile.modals.logoutTitle'),
+      undefined,
+      [
+        { text: t('profile.menu.logout'), onPress: () => { void handleLogout(); } },
+        { text: t('common.cancel'), style: 'cancel' },
+      ],
+      { tone: 'info', icon: 'log-out-outline' },
+    );
+  };
+
   const handleLogout = async () => {
     if (isLoggingOut) return;
     setIsLoggingOut(true);
@@ -143,7 +159,6 @@ export default function ProfileScreen() {
       await logout();
     } finally {
       // The alert is a native modal: navigating while it is still closing can be swallowed on iOS, so the navigation waits for it to be gone.
-      setShowLogoutModal(false);
       setTimeout(() => router.replace('/onboarding'), 450);
       // Stays "logging out" a moment so the guard below does not navigate on top of this replace; if this screen is somehow still here
       // afterwards, the guard takes over as the way out.
@@ -218,7 +233,7 @@ export default function ProfileScreen() {
           <ActivityIndicator size="large" color="#0047AB" />
         </View>
       ) : (
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: tabInset }}>
         {/* Section Badge + language switch (EN | ES, same pill as the welcome screen) */}
         <View className="flex-row items-center justify-between" style={{ marginTop: 18, marginBottom: 16 }}>
           <View className="flex-row items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF' }}>
@@ -227,20 +242,20 @@ export default function ProfileScreen() {
               {t('profile.badge')}
             </Text>
           </View>
-          <View className="flex-row items-center" style={{ gap: 8, paddingHorizontal: 12, height: 30, borderRadius: 15, backgroundColor: '#EEF2FA' }}>
+          <View className="flex-row items-center" style={{ gap: 12, paddingHorizontal: 16, height: 38, borderRadius: 19, backgroundColor: '#EEF2FA' }}>
             {(['en', 'es'] as const).map((code, i) => {
               const on = (i18n.language?.startsWith('es') ? 'es' : 'en') === code;
               return (
                 <React.Fragment key={code}>
-                  {i > 0 ? <Text style={{ color: '#C3CADB', fontSize: 13 }}>|</Text> : null}
+                  {i > 0 ? <Text style={{ color: '#C3CADB', fontSize: 16 }}>|</Text> : null}
                   <TouchableOpacity
                     onPress={() => setAppLanguage(code)}
                     accessibilityRole="button"
                     accessibilityState={{ selected: on }}
-                    hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     testID={`profile-lang-${code}`}
                   >
-                    <Text style={{ fontFamily: on ? FONT.bold : FONT.medium, fontSize: 13, letterSpacing: 0.6, color: on ? '#1E56E3' : '#8C96AE' }}>{code.toUpperCase()}</Text>
+                    <Text style={{ fontFamily: on ? FONT.bold : FONT.medium, fontSize: 16, letterSpacing: 0.6, color: on ? '#1E56E3' : '#8C96AE' }}>{code.toUpperCase()}</Text>
                   </TouchableOpacity>
                 </React.Fragment>
               );
@@ -249,7 +264,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* Title */}
-        <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">{t('profile.title')}</Text>
+        <Text className="text-gray-900 font-outfit-medium mb-3" style={TYPE.screenTitle}>{t('profile.title')}</Text>
 
         {/* Subtitle */}
         <Text className="text-gray-500 font-outfit-regular text-base mb-8">
@@ -393,6 +408,8 @@ export default function ProfileScreen() {
             color?: string;
             /** A group: tapping it opens/closes these, shown with the same row design. */
             children?: MenuItem[];
+            /** Something to do inside this row: a small amber label ("Verify", "Missing", "Pay"); its group counts them. */
+            badge?: string;
           };
           const switchRole: MenuItem = {
             key: 'switchRole',
@@ -402,7 +419,7 @@ export default function ProfileScreen() {
             action: () => setShowRoleSheet(true),
             busy: isSwitchingRole,
           };
-          const logout: MenuItem = { key: 'logout', icon: LogOut, label: t('profile.menu.logout'), action: () => setShowLogoutModal(true), color: '#EF4444' };
+          const logout: MenuItem = { key: 'logout', icon: LogOut, label: t('profile.menu.logout'), action: askLogout, color: '#EF4444' };
           const technicianMenu: MenuItem[] = [
             {
               key: 'account',
@@ -411,7 +428,7 @@ export default function ProfileScreen() {
               children: [
                 { key: 'personalInfo', icon: User, label: t('profile.menu.personalInfo'), route: '/personal-info' },
                 { key: 'savedAddresses', icon: MapPin, label: t(counts.addresses === 1 ? 'profile.menu.savedAddressesOne' : 'profile.menu.savedAddresses'), route: '/(tabs)/addresses' },
-                { key: 'membership', icon: Crown, label: t('profile.menu.membership'), route: '/membership' },
+                { key: 'membership', icon: Crown, label: t('profile.menu.membership'), route: '/membership', badge: pending.membership ? t('profile.pending.pay') : undefined },
                 { key: 'privacy', icon: Lock, label: t('profile.menu.privacy'), route: '/privacy' },
               ],
             },
@@ -421,9 +438,11 @@ export default function ProfileScreen() {
               label: t('profile.groups.professional'),
               children: [
                 { key: 'schedule', icon: Clock, label: t('profile.menu.schedule'), route: '/availability' },
-                { key: 'ase', icon: Award, label: t('profile.menu.ase'), route: '/ase' },
+                { key: 'ase', icon: Award, label: t('profile.menu.ase'), route: '/ase', badge: pending.ase ? t('profile.pending.verify') : undefined },
                 { key: 'otherCerts', icon: BadgeCheck, label: t('profile.menu.otherCertifications'), route: '/other-certifications' },
-                { key: 'legal', icon: FileText, label: t('profile.menu.legalDocuments'), route: '/legal-documents' },
+                { key: 'legal', icon: FileText, label: t('profile.menu.legalDocuments'), route: '/legal-documents', badge: pending.legal ? t('profile.pending.missing') : undefined },
+                // Last of the group: the identity check only has a row while it is pending, and it is where the Didit verification starts.
+                ...(pending.identity ? [{ key: 'identity', icon: ShieldCheck, label: t('profile.menu.identity'), route: '/verify-identity', badge: t('profile.pending.verify') }] : []),
               ],
             },
             { key: 'wallet', icon: CreditCard, label: t('profile.menu.wallet'), route: '/payments' },
@@ -443,7 +462,7 @@ export default function ProfileScreen() {
                 { key: 'personalInfo', icon: User, label: t('profile.menu.personalInfo'), route: '/personal-info' },
                 { key: 'addresses', icon: MapPin, label: t(counts.addresses === 1 ? 'profile.menu.addressesOne' : 'profile.menu.addresses'), route: '/(tabs)/addresses' },
                 { key: 'vehicles', icon: Car, label: t(counts.vehicles === 1 ? 'profile.menu.vehiclesOne' : 'profile.menu.vehicles'), route: '/vehicles' },
-                { key: 'membership', icon: Crown, label: t('profile.menu.membership'), route: '/membership' },
+                { key: 'membership', icon: Crown, label: t('profile.menu.membership'), route: '/membership', badge: pending.membership ? t('profile.pending.pay') : undefined },
                 { key: 'privacy', icon: Lock, label: t('profile.menu.privacy'), route: '/privacy' },
               ],
             },
@@ -459,6 +478,9 @@ export default function ProfileScreen() {
           const renderRow = (item: MenuItem, opts: { last: boolean; nested?: boolean }) => {
             const isGroup = !!item.children;
             const open = !!openGroups[item.key];
+            // A group says how many things inside it are pending (even closed); a row says which one it is.
+            const pendingCount = item.children ? item.children.filter((c) => !!c.badge).length : 0;
+            const pendingLabel = pendingCount > 0 ? t('profile.pending.count', { count: pendingCount }) : item.badge;
             return (
               <TouchableOpacity
                 key={item.key}
@@ -481,6 +503,12 @@ export default function ProfileScreen() {
                 <Text className={`flex-1 font-outfit-semibold text-lg ${item.color ? 'text-red-500' : 'text-gray-900'}`}>
                   {item.label}
                 </Text>
+                {pendingLabel ? (
+                  <View className="flex-row items-center px-2.5 py-1 rounded-full mr-2" style={{ backgroundColor: '#FEF3C7', gap: 6 }} testID={`profile-pending-${item.key}`}>
+                    <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: '#F59E0B' }} />
+                    <Text className="font-outfit-bold" style={{ fontSize: 13, color: '#B45309' }} numberOfLines={1}>{pendingLabel}</Text>
+                  </View>
+                ) : null}
                 {item.value ? (
                   <View className="px-2.5 py-1 rounded-full mr-2" style={{ backgroundColor: '#EAF1FF' }}>
                     <Text className="font-outfit-bold" style={{ fontSize: 13, color: '#1E56E3' }} numberOfLines={1}>{item.value}</Text>
@@ -542,21 +570,12 @@ export default function ProfileScreen() {
         onLoadMore={profileReviews.loadMore}
       />
 
-      {/* Logout Confirmation Modal */}
-      <ConfirmationModal
-        visible={showLogoutModal}
-        onClose={() => setShowLogoutModal(false)}
-        onConfirm={handleLogout}
-        title={t('profile.modals.logoutTitle')}
-        message=""
-        icon={LogOut}
-        liveIcon
-        confirmLoading={isLoggingOut}
-        iconColor="#1E56E3"
-        confirmButtonColor="#0047AB"
-        confirmText={t('profile.modals.yes')}
-        cancelText={t('profile.modals.no')}
-      />
+      {/* While the session is closing (the alert is already gone): the screen waits under a veil instead of looking frozen. */}
+      {isLoggingOut ? (
+        <View pointerEvents="auto" style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(246,248,252,0.75)' }} testID="logging-out">
+          <ActivityIndicator size="large" color="#0047AB" />
+        </View>
+      ) : null}
 
       <SwitchRoleSheet
         visible={showRoleSheet}

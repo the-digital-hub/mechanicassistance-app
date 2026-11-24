@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CONFIRM_GRADIENT } from "@/lib/ui/floatingFooter";
 import { SETUP_BG, SETUP_GRADIENT, SetupFooter, SetupHeading } from "@/components/setup/SetupKit";
 import { EmptyStateIcon } from "@/components/ui/EmptyStateIcon";
+import { IdentityConsent, IdentitySteps } from "@/components/setup/IdentityIntro";
 import { TYPE } from "@/lib/ui/type";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -67,9 +68,9 @@ export default function VerificationPendingScreen() {
   const { status, declineReason, refresh } = useVerification();
   const [isStarting, setIsStarting] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [consentGiven, setConsentGiven] = useState(false);
 
   const variant = variantFor(status);
-  const icon = ICONS[variant];
   // A user arrives here by choice, so the body must not say jobs are blocked —
   // nothing of theirs is. Only the two variants that talk about consequences
   // need the softer wording; `review` and `approved` read the same either way.
@@ -155,8 +156,8 @@ export default function VerificationPendingScreen() {
   };
 
   const insets = useSafeAreaInsets();
-  // One main action at the bottom, one soft one under it: resume / start / retry with "check status" below; when there is nothing to
-  // start (in review) checking the status is the main one; approved only continues.
+  // One action at the bottom: resume / start / retry; when there is nothing to start (in review) checking the status is the one; approved
+  // only continues. No "check again" next to a start button: the screen updates itself when the decision arrives.
   const primary =
     variant === "approved"
       ? { label: t("verification.continueButton"), onPress: leave, loading: false, gradient: CONFIRM_GRADIENT, chevron: true }
@@ -169,7 +170,9 @@ export default function VerificationPendingScreen() {
             chevron: true,
           }
         : { label: isRefreshing ? t("verification.checking") : t("verification.refreshButton"), onPress: handleRefresh, loading: isRefreshing, gradient: SETUP_GRADIENT, chevron: false };
-  const showRefresh = canRetry;
+  // A new check (not started, or started again after a decline) says what happens with the ID and asks to accept it; picking up one already
+  // started only shows it.
+  const needsConsent = variant === "notStarted" || variant === "declined";
 
   return (
     <View style={{ flex: 1, backgroundColor: SETUP_BG }}>
@@ -196,9 +199,14 @@ export default function VerificationPendingScreen() {
       >
         <SetupHeading badge={t("verification.screenBadge")} title={t(`verification.${variant}Title`)} subtitle={t(bodyKey)} />
 
-        <View className="items-center" style={{ marginTop: 4, marginBottom: 24 }}>
-          <EmptyStateIcon icon={ICONS[variant]} />
-        </View>
+        {/* With something to start: what happens next, like in Account Set-up. Otherwise (in review, approved) just the status icon. */}
+        {canRetry ? (
+          <IdentitySteps />
+        ) : (
+          <View className="items-center" style={{ marginTop: 4, marginBottom: 24 }}>
+            <EmptyStateIcon icon={ICONS[variant]} />
+          </View>
+        )}
 
         {variant === "declined" && declineReason && (
           <View className="flex-row items-center" style={{ gap: 12, padding: 14, borderRadius: 16, backgroundColor: "#FEF2F2", borderWidth: 1, borderColor: "#FBD5D5" }}>
@@ -210,17 +218,21 @@ export default function VerificationPendingScreen() {
             </Text>
           </View>
         )}
+
+        {canRetry ? (
+          <View style={{ marginTop: variant === "declined" && declineReason ? 16 : 0 }}>
+            <IdentityConsent checked={consentGiven} onToggle={() => setConsentGiven((given) => !given)} checkbox={needsConsent} />
+          </View>
+        ) : null}
       </ScrollView>
 
       <SetupFooter
         label={primary.label}
         onPress={primary.onPress}
         loading={primary.loading}
+        disabled={canRetry && needsConsent && !consentGiven}
         gradient={primary.gradient}
         chevron={primary.chevron}
-        secondaryLabel={showRefresh ? (isRefreshing ? t("verification.checking") : t("verification.refreshButton")) : undefined}
-        onSecondary={showRefresh ? handleRefresh : undefined}
-        secondaryDisabled={isRefreshing}
         testID="verify-primary"
       />
     </View>

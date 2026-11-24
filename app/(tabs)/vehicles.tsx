@@ -2,6 +2,8 @@ import { Button } from '@/components/ui/Button';
 import { HeaderBackButton } from '@/components/ui/HeaderBackButton';
 import { useUser } from '@/context/UserContext';
 import { vehicleDAO } from '@/lib/dao/VehicleDAO';
+import { ownerVehiclePrice } from '@/lib/membership/plan';
+import { hasVin } from '@/lib/vehicles/duplicateVin';
 import { Vehicle } from '@/lib/dao/interfaces';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -85,16 +87,35 @@ export default function VehiclesScreen() {
 
     const handleSaveVehicle = async (payload: VehicleFormPayload) => {
         if (!user?.id) return;
+        // A VIN is one vehicle: it is not added twice (the one being edited does not count against itself).
+        if (hasVin(vehicles, payload.vin, editingVehicle?.id)) {
+            appAlert(t('vehicles.form.duplicateVinTitle'), t('vehicles.form.duplicateVinMessage'));
+            return;
+        }
 
         setIsSaving(true);
         try {
+            let addedPrice: number | null = null;
             if (editingVehicle?.id) {
                 await vehicleDAO.update(editingVehicle.id, payload);
             } else {
                 await vehicleDAO.create({ userId: user.id, ...payload });
+                // The owner's plan is per vehicle with a VIN: say what this one adds, bonus included.
+                if (user.role !== 'mechanic' && payload.vin?.trim()) addedPrice = ownerVehiclePrice(vehicles.filter((v) => v.vin?.trim()).length);
             }
             closeForm();
             loadVehicles();
+            if (addedPrice !== null) {
+                appAlert(
+                    t('membership.fleet.addedTitle'),
+                    t('membership.fleet.addedBody', { price: `$${addedPrice.toFixed(2)}` }),
+                    [
+                        { text: t('membership.fleet.addedSee'), onPress: () => router.push('/(tabs)/membership') },
+                        { text: t('membership.fleet.addedLater'), style: 'cancel' },
+                    ],
+                    { tone: 'info', icon: 'car-outline' },
+                );
+            }
         } catch (error) {
             console.error('Failed to save vehicle', error);
             appAlert(t('vehicles.form.saveErrorTitle'), t('vehicles.form.saveErrorMessage'));

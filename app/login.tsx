@@ -4,7 +4,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { FLOATING_CTA } from "@/lib/ui/floatingFooter";
 import { TYPE } from "@/lib/ui/type";
-import { Button } from "@/components/ui/Button";
 import { GradientLayout } from "@/components/ui/GradientLayout";
 import { Input } from "@/components/ui/Input";
 import { NumericKeypad } from "@/components/ui/Keypad";
@@ -19,6 +18,7 @@ import {
   verifyOtp,
   type OtpChallenge,
 } from "@/lib/auth/otp";
+import { CodeStatusPill, ResendButton, codeStatus } from "@/components/auth/OtpStatus";
 import { formatCountdown, useCountdown } from "@/hooks/useCountdown";
 import {
   getIdToken,
@@ -542,24 +542,16 @@ export default function LoginScreen() {
                 />
               </TouchableOpacity>
 
-              {/* Status line: what the user needs to know before acting. */}
-              <View className="mb-6 min-h-[20px]">
-                {attemptsLeft !== null && attemptsLeft > 0 ? (
-                  <Text className="text-center font-outfit-medium text-red-600">
-                    {t("login.attemptsRemaining", { count: attemptsLeft })}
-                  </Text>
-                ) : expiresIn > 0 ? (
-                  <Text className="text-center font-outfit-medium text-slate-500">
-                    {t("login.codeExpiresIn", {
-                      time: formatCountdown(expiresIn),
-                    })}
-                  </Text>
-                ) : (
-                  <Text className="text-center font-outfit-medium text-red-600">
-                    {t("login.codeExpiredMessage")}
-                  </Text>
-                )}
-              </View>
+              {/* What the user needs to know before acting: how long the code lasts. */}
+              <CodeStatusPill
+                {...codeStatus({
+                  expiresIn,
+                  attemptsLeft,
+                  expiresText: t("login.codeExpiresIn", { time: formatCountdown(expiresIn) }),
+                  expiredText: t("login.codeExpiredMessage"),
+                  attemptsText: t("login.attemptsRemaining", { count: attemptsLeft ?? 0 }),
+                })}
+              />
 
               <View className="mb-4">
                 <View style={{ marginBottom: 24 }}>
@@ -574,21 +566,14 @@ export default function LoginScreen() {
                     disabled={expiresIn === 0}
                   />
                 </View>
-                <TouchableOpacity
-                  onPress={handleResendOTP}
-                  className="mb-6"
-                  disabled={isLoading || resendIn > 0}
-                >
-                  <Text
-                    className={`text-center font-outfit-medium ${
-                      resendIn > 0 ? "text-slate-400" : "text-[#0047AB]"
-                    }`}
-                  >
-                    {resendIn > 0
-                      ? t("login.resendIn", { seconds: resendIn })
-                      : t("login.resendCode")}
-                  </Text>
-                </TouchableOpacity>
+                <View className="mb-6">
+                  <ResendButton
+                    label={resendIn > 0 ? t("login.resendIn", { seconds: resendIn }) : t("login.resendCode")}
+                    disabled={isLoading || resendIn > 0}
+                    loading={false}
+                    onPress={handleResendOTP}
+                  />
+                </View>
 
                 {/*
                   Always visible, never conditional.
@@ -948,15 +933,26 @@ export default function LoginScreen() {
                   </TouchableOpacity>
                 ) : (
                   <>
-                    <Button
+                    {/* Same size as the Cancel button under it (and as the Close one after sending): 56 high, 14 radius, large text. */}
+                    <TouchableOpacity
+                      className="bg-blue-700 w-full py-4 rounded-[14px] shadow-sm active:opacity-90 mb-3 items-center justify-center"
+                      style={{ minHeight: 56, opacity: forgotLoading ? 0.8 : 1 }}
                       onPress={handleForgotSubmit}
-                      isLoading={forgotLoading}
-                      className="mb-3"
+                      disabled={forgotLoading}
+                      accessibilityRole="button"
+                      testID="forgot-send"
                     >
-                      {t("login.sendResetButton")}
-                    </Button>
+                      {forgotLoading ? (
+                        <ActivityIndicator color="#FFFFFF" />
+                      ) : (
+                        <Text className="text-white text-center font-outfit-bold text-lg">
+                          {t("login.sendResetButton")}
+                        </Text>
+                      )}
+                    </TouchableOpacity>
                     <TouchableOpacity
                       className="bg-slate-100 w-full py-4 rounded-[14px] active:opacity-90"
+                      style={{ minHeight: 56, justifyContent: "center" }}
                       onPress={closeForgot}
                       disabled={forgotLoading}
                     >

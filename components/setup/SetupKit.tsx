@@ -116,7 +116,7 @@ export function SetupFooter({
                         <ActivityIndicator color="white" />
                     ) : (
                         <>
-                            <Text className="font-outfit-bold text-white text-center" style={TYPE.button}>{label}</Text>
+                            <Text className="font-outfit-bold text-white text-center" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ ...TYPE.button, flexShrink: 1 }}>{label}</Text>
                             {chevron ? <ChevronRight size={20} color="white" /> : null}
                         </>
                     )}
@@ -124,7 +124,7 @@ export function SetupFooter({
             </TouchableOpacity>
             {secondaryLabel && onSecondary && !keyboardOpen ? (
                 <TouchableOpacity onPress={onSecondary} disabled={secondaryDisabled} activeOpacity={0.85} accessibilityRole="button" className="items-center justify-center" style={{ minHeight: 56, borderRadius: BUTTON_RADIUS, backgroundColor: '#E6EAF2', opacity: secondaryDisabled ? 0.5 : 1 }}>
-                    <Text className="font-outfit-bold" style={{ ...TYPE.button, color: '#4A5470' }}>{secondaryLabel}</Text>
+                    <Text className="font-outfit-bold" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ ...TYPE.button, color: '#4A5470' }}>{secondaryLabel}</Text>
                 </TouchableOpacity>
             ) : null}
         </View>

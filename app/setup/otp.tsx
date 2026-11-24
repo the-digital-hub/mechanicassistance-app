@@ -1,6 +1,7 @@
 import { describeAuthError } from '@/lib/auth/describe';
 import { toAuthError } from '@/lib/auth/errors';
 import { resendOtp, verifyOtp } from '@/lib/auth/otp';
+import { CodeStatusPill, ResendButton, codeStatus } from '@/components/auth/OtpStatus';
 import { formatCountdown, useCountdown } from '@/hooks/useCountdown';
 import { clearAddRole, startAddRole } from '@/lib/setup-add-role';
 import { clearSetupProgress, getSetupProgress, mergeSetupProgress, saveSetupProgress } from '@/lib/storage';
@@ -212,38 +213,24 @@ export default function OTPScreen() {
                             />
                         </TouchableOpacity>
 
-                        {/* Status line: what the user needs to know before acting. */}
-                        <View style={{ minHeight: 20, marginBottom: 12 }}>
-                            {attemptsLeft !== null && attemptsLeft > 0 ? (
-                                <Text className="text-center font-outfit-medium" style={{ ...TYPE.helper, color: '#DC2626' }}>
-                                    {t('setup.otp.attemptsRemaining', { count: attemptsLeft })}
-                                </Text>
-                            ) : expiresIn > 0 ? (
-                                <Text className="text-center font-outfit-medium" style={{ ...TYPE.helper, color: '#6B7490' }}>
-                                    {t('setup.otp.codeExpiresIn', { time: formatCountdown(expiresIn) })}
-                                </Text>
-                            ) : (
-                                <Text className="text-center font-outfit-medium" style={{ ...TYPE.helper, color: '#DC2626' }}>
-                                    {t('setup.otp.codeExpired')}
-                                </Text>
-                            )}
+                        {/* What the user needs to know before acting: how long the code lasts, and the way to ask for a new one. */}
+                        <CodeStatusPill
+                            {...codeStatus({
+                                expiresIn,
+                                attemptsLeft,
+                                expiresText: t('setup.otp.codeExpiresIn', { time: formatCountdown(expiresIn) }),
+                                expiredText: t('setup.otp.codeExpired'),
+                                attemptsText: t('setup.otp.attemptsRemaining', { count: attemptsLeft ?? 0 }),
+                            })}
+                        />
+                        <View style={{ marginBottom: 20 }}>
+                            <ResendButton
+                                label={isResending ? t('setup.otp.sending') : resendIn > 0 ? t('setup.otp.resendIn', { seconds: resendIn }) : t('setup.otp.resendCode')}
+                                disabled={resendIn > 0}
+                                loading={isResending}
+                                onPress={handleResend}
+                            />
                         </View>
-                        <TouchableOpacity
-                            style={{ marginBottom: 20, paddingVertical: 6 }}
-                            onPress={handleResend}
-                            disabled={isResending || resendIn > 0}
-                        >
-                            <Text
-                                className="text-center font-outfit-semibold"
-                                style={{ ...TYPE.body, color: resendIn > 0 ? '#9AA3B8' : '#1E56E3' }}
-                            >
-                                {isResending
-                                    ? t('setup.otp.sending')
-                                    : resendIn > 0
-                                      ? t('setup.otp.resendIn', { seconds: resendIn })
-                                      : t('setup.otp.resendCode')}
-                            </Text>
-                        </TouchableOpacity>
 
                         {/*
                           Mirror of the hint on the login screen, for the

@@ -5,12 +5,11 @@ import { RequestSteps, stepEyebrow } from '@/components/ui/RequestSteps';
 import { TYPE } from '@/lib/ui/type';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { ChevronLeft } from 'lucide-react-native';
-import { CaptureTile } from '@/components/ui/CaptureTile';
+import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import type { PendingAttachment } from '@/lib/media/attachments';
 import { appAlert } from '@/lib/ui/appAlert';
 import { KeyboardAwareScrollView } from '@/components/ui/KeyboardAwareScrollView';
@@ -31,8 +30,6 @@ export default function VehicleDocumentationScreen() {
     const [video, setVideo] = useState<VideoSlot | null>(null);
     const [photos, setPhotos] = useState<PhotoSlot[]>([]);
 
-    // Which item's note is open under the grid: the video, a photo by index, or none.
-    const [noteFor, setNoteFor] = useState<'video' | number | null>(null);
 
     const getTitle = () => {
         switch (type) {
@@ -110,11 +107,11 @@ export default function VehicleDocumentationScreen() {
         );
     };
 
+    const hasMedia = !!video || photos.length > 0;
+
     const setPhotoNote = (index: number, note: string) => {
         setPhotos(photos.map((photo, i) => (i === index ? { ...photo, note } : photo)));
     };
-
-    const hasMedia = !!video || photos.length > 0;
 
     const handleContinue = () => {
         const attachments: PendingAttachment[] = [
@@ -160,98 +157,96 @@ export default function VehicleDocumentationScreen() {
                     {t('requestAssistance.vehicleDocumentation.title')}
                 </Text>
                 <Text className="text-gray-500 font-outfit-regular text-base mb-6">
-                    {t('requestAssistance.vehicleDocumentation.subtitle')}
+                    {t('requestAssistance.vehicleDocumentation.subtitle', { max: MAX_PHOTOS })}
                 </Text>
 
-                {/* No tabs. Photo first, then video. With nothing yet: the two ways in, as tiles. With something: just what was added,
-                    and buttons to keep adding (no empty tiles waiting to be filled). */}
+                {/* Like the legal documents: one white card per item, top to bottom. A card with something in it shows the picture,
+                    its own detail field and "Remove"; the next empty card carries the blue button to add it. */}
                 {(() => {
                     const voc = 'requestAssistance.vehicleDocumentation';
-                    if (!video && photos.length === 0) {
-                        return (
-                            <View className="flex-row" style={{ gap: 12 }}>
-                                <CaptureTile title={t(`${voc}.tilePhoto`)} hint={t(`${voc}.addPhoto`)} icon="camera-outline" onPress={() => askSource(pickPhoto)} testID="doc-add-photo" />
-                                <CaptureTile title={t(`${voc}.tileVideo`)} hint={t(`${voc}.addVideo`)} icon="videocam-outline" onPress={() => askSource(pickVideo)} testID="doc-add-video" />
+                    const card = (key: string, title: string, body: React.ReactNode) => (
+                        <View key={key} style={{ backgroundColor: '#FFFFFF', borderRadius: 20, padding: 16, borderWidth: 1, borderColor: '#EEF2FA', shadowColor: '#0E2F8A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.06, shadowRadius: 14, elevation: 2 }} testID={`doc-card-${key}`}>
+                            <Text className="font-outfit-bold text-[#0B1530]" style={{ fontSize: 17, lineHeight: 23, marginBottom: 12 }}>{title}</Text>
+                            {body}
+                        </View>
+                    );
+                    const filled = (uri: string, isVideo: boolean, note: string, onChange: (note: string) => void, onRemove: () => void, testID: string) => (
+                        <View style={{ gap: 12 }}>
+                            <View style={{ gap: 12 }}>
+                                <View className="items-center justify-center overflow-hidden" style={{ width: '100%', height: 170, borderRadius: 14, backgroundColor: '#0B1530' }}>
+                                    {isVideo ? (
+                                        <Ionicons name="play-circle-outline" size={52} color="rgba(255,255,255,0.88)" />
+                                    ) : (
+                                        <Image source={{ uri }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+                                    )}
+                                </View>
+                                <TextInput
+                                    multiline
+                                    value={note}
+                                    onChangeText={onChange}
+                                    placeholder={t(`${voc}.detailPlaceholder`)}
+                                    placeholderTextColor="#9AA4BC"
+                                    className="font-outfit-regular"
+                                    style={{ minHeight: 72, borderRadius: 14, borderWidth: 1.5, borderColor: '#D5DCEB', backgroundColor: '#F8FAFE', paddingHorizontal: 12, paddingVertical: 10, textAlignVertical: 'top', ...TYPE.body, color: '#0F172A' }}
+                                    testID={`${testID}-note`}
+                                />
                             </View>
-                        );
-                    }
-                    const cells: React.ReactNode[] = [
-                        ...photos.map((photo, index) => (
-                            <CaptureTile
-                                key={`${photo.uri}-${index}`}
-                                title={t(`${voc}.tilePhoto`)}
-                                hint=""
-                                icon="camera-outline"
-                                uri={photo.uri}
-                                onRemove={() => { setPhotos(photos.filter((_, i) => i !== index)); setNoteFor(null); }}
-                                onPressFilled={() => setNoteFor(noteFor === index ? null : index)}
-                                hasNote={!!photo.note.trim()}
-                                selected={noteFor === index}
-                            />
-                        )),
-                        ...(video ? [
-                            <CaptureTile
-                                key="video"
-                                title={t(`${voc}.tileVideo`)}
-                                hint=""
-                                icon="videocam-outline"
-                                uri={video.uri}
-                                isVideo
-                                onRemove={() => { setVideo(null); if (noteFor === 'video') setNoteFor(null); }}
-                                onPressFilled={() => setNoteFor(noteFor === 'video' ? null : 'video')}
-                                hasNote={!!video.note.trim()}
-                                selected={noteFor === 'video'}
-                            />,
-                        ] : []),
-                    ];
-                    const rows: React.ReactNode[][] = [];
-                    for (let i = 0; i < cells.length; i += 2) rows.push(cells.slice(i, i + 2));
-                    const addButton = (key: string, label: string, icon: 'camera-outline' | 'videocam-outline', onPress: () => void, testID: string) => (
-                        <TouchableOpacity
-                            key={key}
-                            onPress={onPress}
-                            activeOpacity={0.8}
-                            accessibilityRole="button"
-                            className="flex-row items-center justify-center"
-                            style={{ gap: 8, minHeight: 52, borderRadius: 14, backgroundColor: '#E6EAF2' }}
-                            testID={testID}
-                        >
-                            <Ionicons name={icon} size={22} color="#4A5470" />
-                            <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#4A5470' }}>{label}</Text>
-                        </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={onRemove}
+                                activeOpacity={0.8}
+                                accessibilityRole="button"
+                                className="flex-row items-center self-start"
+                                style={{ gap: 6, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: '#FEE2E2' }}
+                                testID={`${testID}-remove`}
+                            >
+                                <Ionicons name="trash-outline" size={14} color="#DC2626" />
+                                <Text className="font-outfit-bold" style={{ fontSize: 14, color: '#DC2626' }}>{t(`${voc}.remove`)}</Text>
+                            </TouchableOpacity>
+                        </View>
+                    );
+                    const empty = (icon: 'camera-outline' | 'videocam-outline', hint: string, label: string, onPress: () => void, testID: string) => (
+                        <View style={{ gap: 14 }}>
+                            <View className="flex-row items-center" style={{ gap: 12 }}>
+                                <View className="items-center justify-center" style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: '#EAF1FF' }}>
+                                    <Ionicons name={icon} size={22} color="#1E56E3" />
+                                </View>
+                                <Text className="flex-1 font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: '#6B7490' }}>{hint}</Text>
+                            </View>
+                            <TouchableOpacity
+                                onPress={onPress}
+                                activeOpacity={0.85}
+                                accessibilityRole="button"
+                                className="flex-row items-center justify-center"
+                                style={{ gap: 8, minHeight: 56, borderRadius: 14, backgroundColor: '#1E56E3' }}
+                                testID={testID}
+                            >
+                                <Ionicons name={icon} size={20} color="#FFFFFF" />
+                                <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#FFFFFF' }}>{label}</Text>
+                            </TouchableOpacity>
+                        </View>
                     );
                     return (
-                        <View style={{ gap: 12 }}>
-                            {rows.map((row, r) => (
-                                <View key={r} className="flex-row" style={{ gap: 12 }}>
-                                    {row}
-                                    {row.length === 1 ? <View style={{ flex: 1, minWidth: 140 }} /> : null}
-                                </View>
+                        <View style={{ gap: 16 }}>
+                            {photos.map((photo, index) => card(
+                                `photo-${index}`,
+                                t(`${voc}.photoCardTitle`, { n: index + 1 }),
+                                filled(photo.uri, false, photo.note, (note) => setPhotoNote(index, note), () => setPhotos(photos.filter((_, i) => i !== index)), `doc-photo-${index}`),
                             ))}
-                            {photos.length < MAX_PHOTOS ? addButton('more-photo', t(`${voc}.addAnotherPhotoShort`), 'camera-outline', () => askSource(pickPhoto), 'doc-add-photo') : null}
-                            {!video ? addButton('more-video', t(`${voc}.addVideo`), 'videocam-outline', () => askSource(pickVideo), 'doc-add-video') : null}
+                            {photos.length < MAX_PHOTOS ? card(
+                                'photo-next',
+                                t(`${voc}.photoCardTitle`, { n: photos.length + 1 }),
+                                empty('camera-outline', t(`${voc}.photoCardHint`), t(`${voc}.addPhoto`), () => askSource(pickPhoto), 'doc-add-photo'),
+                            ) : null}
+                            {card(
+                                'video',
+                                t(`${voc}.videoCardTitle`),
+                                video
+                                    ? filled(video.uri, true, video.note, (note) => setVideo((v) => (v ? { ...v, note } : v)), () => setVideo(null), 'doc-video')
+                                    : empty('videocam-outline', t(`${voc}.videoCardHint`), t(`${voc}.addVideo`), () => askSource(pickVideo), 'doc-add-video'),
+                            )}
                         </View>
                     );
                 })()}
-
-                <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: '#6B7490', marginTop: 10 }}>
-                    {t('requestAssistance.vehicleDocumentation.photoHint', { max: MAX_PHOTOS })}
-                </Text>
-
-                {/* The note of the tile that was tapped: it opens under the grid, not under every photo. */}
-                {noteFor !== null ? (
-                    <TextInput
-                        multiline
-                        autoFocus
-                        placeholder={t(noteFor === 'video' ? 'requestAssistance.vehicleDocumentation.videoNotePlaceholder' : 'requestAssistance.vehicleDocumentation.photoNotePlaceholder')}
-                        placeholderTextColor="#9AA4BC"
-                        value={noteFor === 'video' ? video?.note ?? '' : photos[noteFor]?.note ?? ''}
-                        onChangeText={(note) => (noteFor === 'video' ? setVideo((v) => (v ? { ...v, note } : v)) : setPhotoNote(noteFor, note))}
-                        className="rounded-xl p-3 mt-3 font-outfit-regular text-[#0F172A]"
-                        style={{ borderWidth: 1.5, borderColor: '#BFD2FA', backgroundColor: '#FFFFFF', height: 84, textAlignVertical: 'top', ...TYPE.body }}
-                        testID="doc-note"
-                    />
-                ) : null}
             </KeyboardAwareScrollView>
 
             <Footer

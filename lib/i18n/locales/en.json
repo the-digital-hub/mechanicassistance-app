@@ -136,7 +136,8 @@
       "schedule": "Hours & area",
       "addressesOne": "My Address",
       "vehiclesOne": "My Vehicle",
-      "savedAddressesOne": "Saved address"
+      "savedAddressesOne": "Saved address",
+      "identity": "Identity verification"
     },
     "reviews": {
       "titleMechanic": "What customers say",
@@ -233,6 +234,13 @@
     "groups": {
       "account": "Account",
       "professional": "Professional profile"
+    },
+    "pending": {
+      "count_one": "{{count}} pending",
+      "count_other": "{{count}} pending",
+      "verify": "Verify",
+      "missing": "Missing",
+      "pay": "Pay"
     }
   },
   "assistanceCard": {
@@ -440,6 +448,10 @@
         "checkup": {
           "label": "Time for a check-up",
           "text": "It's been a while. A quick service now can save you an emergency later."
+        },
+        "membership": {
+          "label": "Finish your plan",
+          "text": "Complete the sign-up of your Assistance Pass plan in Membership."
         }
       }
     },
@@ -538,6 +550,10 @@
           "comebackRadius": {
             "label": "Reach more owners",
             "text": "Your service area is small. Widen it to see more requests."
+          },
+          "membership": {
+            "label": "Finish your plan",
+            "text": "Complete the sign-up of your All-access plan in Membership."
           }
         },
         "offlineLabel": "You're offline",
@@ -777,8 +793,8 @@
       }
     },
     "vehicleDocumentation": {
-      "title": "Add photos or video",
-      "subtitle": "Record or photograph the exact issue. Clear documentation helps your technician understand the problem and quote accurately.",
+      "title": "Visual record of the issue",
+      "subtitle": "Up to {{max}} photos and 1 video of the problem, each with a short description. They help the mechanic understand it and quote better.",
       "optional": "OPTIONAL",
       "sectionTitle": "Video or photos",
       "sectionOptional": "(optional)",
@@ -786,13 +802,10 @@
       "tabPhotos": "Add photos",
       "recordIssue": "Record the issue",
       "browseVideo": "Record or choose a video (MP4, MOV)",
-      "videoNotePlaceholder": "Add notes about this video (optional)…",
-      "photoNotePlaceholder": "Add a note about this photo (optional)…",
       "photoOfIssue": "Photo of the issue",
       "browsePhoto": "Take a photo or browse files",
       "videoHint": "Show the problem as it happens.",
       "addVideo": "Add video",
-      "photoHint": "Up to {{max}} photos. Tap one to add a note.",
       "addPhoto": "Add photo",
       "addAnotherPhotoShort": "Add another photo",
       "addAnotherPhoto": "+ Add another photo",
@@ -812,7 +825,12 @@
       "submit": "Request Assistance",
       "skip": "Skip for now",
       "tileVideo": "Video",
-      "tilePhoto": "Photo"
+      "tilePhoto": "Photo",
+      "photoCardTitle": "Photo {{n}}",
+      "videoCardTitle": "Video",
+      "photoCardHint": "Take or choose a photo of what is wrong.",
+      "videoCardHint": "Record or choose a short video of the problem.",
+      "detailPlaceholder": "What does it show? (optional)"
     },
     "locationMap": {
       "myCurrentLocation": "My Current Location",
@@ -946,7 +964,7 @@
       "subtitle": "Review the offer and confirm to send the technician on the way.",
       "yourTechnician": "YOUR TECHNICIAN",
       "technicianFallback": "Your technician",
-      "technicianLocked": "Technician found",
+      "technicianLocked": "Ready to help you",
       "technicianLockedHint": "Confirm to see who is coming",
       "servicesCount_one": "{{count}} service",
       "servicesCount_other": "{{count}} services",
@@ -1747,7 +1765,6 @@
         "extraSub": "A short walk-around video or a few more photos help if the client ever raises a claim.",
         "required": "Required",
         "added": "Added",
-        "needRequired": "{{done}} of 2 required photos added",
         "skip": "Continue without the photos",
         "skipNote": "(not recommended)",
         "skipWarn": "Without these photos there is no proof of the vehicle's condition when you arrived."
@@ -3024,7 +3041,9 @@
         "notes": "Notes",
         "notesPlaceholder": "e.g. Aftermarket wheels, lifted suspension…",
         "saveHint": "Enter the VIN to save your vehicle."
-      }
+      },
+      "duplicateVinTitle": "This VIN is already added",
+      "duplicateVinMessage": "A vehicle with this VIN is already in your list. Each vehicle can only be added once."
     }
   },
   "privacy": {
@@ -3329,8 +3348,8 @@
     },
     "roleSelection": {
       "badge": "CHOOSE YOUR ROLE",
-      "choosePath": "Choose Your Path",
-      "subtitle": "Tell us how you'll be using the app",
+      "choosePath": "How will you use the app?",
+      "subtitle": "Pick your role to get started.",
       "technician": "Technician",
       "vehicleOwner": "Vehicle Owner",
       "mechanic": {
@@ -3344,8 +3363,8 @@
         "buttonText": "Continue as Technician"
       },
       "user": {
-        "title": "Roadside help, on demand.",
-        "description": "Connect with certified technicians around you, compare offers and get back on the road.",
+        "title": "Mechanic help at home, on the street or at a shop.",
+        "description": "Connect with certified technicians around you, compare offers and get it solved without going anywhere.",
         "highlights": [
           "Live tracking",
           "Up-front pricing",
@@ -3370,8 +3389,8 @@
       "emailAvailable": "Email available",
       "emailCheckError": "Could not verify email",
       "dob": "Date of birth",
-      "accountPassword": "Account Password",
-      "confirmPassword": "Confirm Password",
+      "accountPassword": "Account password",
+      "confirmPassword": "Confirm password",
       "ruleNoNameEmail": "Must not contain your name or email.",
       "ruleMinLength": "At least 8 characters.",
       "ruleSymbol": "Contains a symbol or a number",
@@ -3382,7 +3401,18 @@
       "photoLibrary": "Choose from library",
       "photoCancel": "Cancel",
       "cameraPermissionTitle": "Camera access needed",
-      "cameraPermissionMessage": "Allow camera access in Settings to take your profile photo, or choose one from your library."
+      "cameraPermissionMessage": "Allow camera access in Settings to take your profile photo, or choose one from your library.",
+      "errorName": "Enter your first name.",
+      "errorSurname": "Enter your last name.",
+      "errorEmail": "Enter your email.",
+      "errorEmailInvalid": "Enter a valid email, like name@example.com.",
+      "errorDob": "Choose your date of birth.",
+      "errorPassword": "Use at least 8 characters, with a symbol or a number.",
+      "errorConfirm": "The passwords must match.",
+      "cameraHint": "Center your face inside the circle.",
+      "takePhoto": "Take photo",
+      "switchCamera": "Switch camera",
+      "closeCamera": "Close camera"
     },
     "otp": {
       "tooManyAttempts": "Too many attempts. Please wait a few minutes and try again later.",
@@ -3479,10 +3509,9 @@
       "vinDecodedMessage": "Found: {{make}} {{model}}",
       "ok": "OK",
       "vinNotFoundTitle": "VIN Not Found",
-      "yourVehicles": "YOUR VEHICLES",
       "title": "Vehicle Info",
       "subtitle": "Help us recognize you faster.",
-      "addVehicle": "Add vehicle",
+      "addVehicle": "Add another vehicle",
       "continue": "Continue",
       "badge": "VEHICLE INFORMATION",
       "vin": "VIN #",
@@ -3498,7 +3527,30 @@
       "selectModel": "Select Model",
       "done": "Done",
       "searchMake": "Search Make...",
-      "searchModel": "Search Model..."
+      "searchModel": "Search Model...",
+      "askBadge": "VEHICLE",
+      "askTitle": "Want to add your vehicle?",
+      "askSubtitle": "Adding it now makes your first request faster. You can also do it later from your profile.",
+      "addNow": "Add my vehicle",
+      "later": "I'll do it later",
+      "tips": {
+        "vin": {
+          "label": "Use the VIN",
+          "text": "Enter the 17-character VIN and we fill in make, model, year and specs for you."
+        },
+        "scan": {
+          "label": "Scan it",
+          "text": "Use the scanner to read the VIN code instead of typing it."
+        },
+        "more": {
+          "label": "The more, the better",
+          "text": "The more complete it is, the better technicians understand and quote your repair."
+        }
+      },
+      "yourVehicles_one": "YOUR VEHICLE",
+      "yourVehicles_other": "YOUR VEHICLES",
+      "listTitle_one": "Vehicle Info",
+      "listTitle_other": "Vehicle Info"
     },
     "credentials": {
       "notFound": "No ASE technician found with that ID. Please verify and try again.",
@@ -3596,7 +3648,7 @@
       "step2": "You take a selfie so we can confirm it is really you.",
       "step3": "We check the result and let you know — usually within minutes.",
       "consentTitle": "Before you start",
-      "consentBody": "Didit, our identity provider, processes your ID and selfie. We only keep whether the check passed.",
+      "consentBody": "Didit, our identity provider, checks your ID and selfie. We only keep the result.",
       "accept": "I understand and want to continue",
       "startButton": "Verify my identity",
       "starting": "Opening verification...",
@@ -3614,7 +3666,9 @@
       "submittedMessage": "We are reviewing your documents. You can finish setting up your account in the meantime.",
       "consentRequiredTitle": "One more thing",
       "consentRequiredMessage": "Please confirm you understand how your data is used before continuing.",
-      "verifyLater": "Verify later"
+      "verifyLater": "Verify later",
+      "labelReady": "Have it ready",
+      "stepReady": "Keep your driver's license at hand: you will scan it to verify your identity."
     },
     "dealerInfo": {
       "title": "Dealer Info",
@@ -3771,7 +3825,7 @@
         "month": "Monthly"
       },
       "amount": "Amount",
-      "amountHint": "One year of the All-access plan.",
+      "amountHint": "One year of the {{plan}} plan.",
       "amountPaidHint": "Paid on {{date}}.",
       "amountFree": "Free during our launch stage.",
       "nextDue": "Today",
@@ -3825,7 +3879,7 @@
     "feeNoteYearly": "Billed once a year.",
     "pay": {
       "successTitle": "Payment received",
-      "success": "Your All-access plan is active. It renews on {{date}}.",
+      "success": "Your {{plan}} plan is active. It renews on {{date}}.",
       "failedTitle": "Payment not made",
       "failed": "We couldn't process the payment. Please try again.",
       "button": "Pay {{amount}}",
@@ -3835,7 +3889,7 @@
     },
     "paySheet": {
       "title": "How do you want to pay?",
-      "subtitle": "{{amount}} for one year of All-access.",
+      "subtitle": "{{amount}} for one year of {{plan}}.",
       "earningsLabel": "Earnings balance",
       "earningsAvailable": "{{amount}} ready to pay out",
       "earningsShort": "{{amount}} ready: not enough to cover the plan",
@@ -3846,6 +3900,21 @@
       "addCardHint": "It is saved in your wallet for renewals and future payments.",
       "autoRenew": "Renew automatically",
       "autoRenewHint": "We charge this card next year and remind you 7 days before."
+    },
+    "fleet": {
+      "title": "Your vehicles",
+      "hint": "The plan is per vehicle with a VIN, per year, each with its own date. The first is {{first}}, the second and third {{second}}, from the fourth {{fourth}}.",
+      "empty": "Add a vehicle with a VIN to start your plan",
+      "until": "Valid until {{date}}",
+      "covered": "Covered",
+      "base": "{{count}} × {{price}} a year",
+      "discount": "Fleet bonus",
+      "totalDue": "Total due",
+      "total": "Total for the year",
+      "addedTitle": "Vehicle added",
+      "addedBody": "Adding it to your plan costs {{price}} a year, your fleet bonus included. It has its own date.",
+      "addedSee": "See membership",
+      "addedLater": "Later"
     }
   },
   "promotions": {
@@ -3965,7 +4034,9 @@
       "statement": "Account statement (PDF)",
       "statementFailed": "Could not download the statement. Try again.",
       "pending": "Pending payments",
-      "all": "All payments"
+      "all": "All payments",
+      "statementDownload": "Download PDF",
+      "statementHint": "Covers the dates chosen above."
     },
     "activity": {
       "title": "Earnings activity",
@@ -3987,7 +4058,11 @@
       "loadFailed": "Could not load your earnings. Pull down to try again.",
       "pageRange": "{{from}}–{{to}} of {{total}}",
       "prevPage": "Previous page",
-      "nextPage": "Next page"
+      "nextPage": "Next page",
+      "statusTitle": "Status",
+      "statusAll": "All",
+      "statusPending": "Pending only",
+      "statusPendingChip": "Pending"
     },
     "status": {
       "pending": "PENDING",
@@ -4880,8 +4955,8 @@
         "body": "Scheduled requests are only for technician accounts."
       },
       "identityPending": {
-        "title": "Verify your identity to see scheduled requests",
-        "body": "Your identity check is not approved yet. Finish it to start quoting."
+        "title": "Verify your identity to take requests",
+        "body": "Your identity check is not approved yet. Tap here to finish it and start quoting."
       },
       "suspended": {
         "title": "Scheduled requests are paused for you",
@@ -4953,8 +5028,8 @@
   },
   "stripeInfo": {
     "title": "What is Stripe?",
-    "provider": "Stripe is the payment company that handles the money on Mechanic Assistance. It checks who you are and sends your earnings to your bank account. Your bank details go to Stripe, never to the app.",
-    "customer": "Stripe is the secure payment company that processes card payments on Mechanic Assistance. Your card number goes straight to Stripe; we only keep the brand, the last 4 digits and the expiry date.",
+    "provider": "Stripe is the secure payments platform Mechanic Assistance uses to collect what owners pay and to send you your earnings. It verifies your identity and deposits the money straight into your bank account. Your bank details go to Stripe, never to the app.",
+    "customer": "Stripe is the secure payments platform Mechanic Assistance uses to charge your services. Your card number goes straight to Stripe; we only keep the brand, the last 4 digits and the expiry date.",
     "gotIt": "Got it",
     "learnMore": "Learn more about Stripe"
   }

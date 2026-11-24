@@ -37,7 +37,7 @@ export interface AppAlertOptions {
     tone?: AppAlertTone;
     /** An Ionicons name to show instead of the default for the tone. */
     icon?: string;
-    /** Android's tap-outside; here: the dialog also closes on tap outside when it has a cancel button or none. */
+    /** Closing by tapping outside (or the back button) when there is no cancel button: a dialog with a cancel button or a single button already closes that way; this lets one with several choices close too, without choosing any. */
     cancelable?: boolean;
     onDismiss?: () => void;
 }

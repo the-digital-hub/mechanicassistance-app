@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { BadgeCheck, CalendarClock, Check, ChevronRight, Clock, CreditCard, Crown, Info, Repeat, Sparkles, Ticket, Wallet, X } from 'lucide-react-native';
+import { BadgeCheck, CalendarClock, Car, Check, ChevronRight, Clock, CreditCard, Crown, Info, Repeat, Sparkles, Ticket, Wallet, X } from 'lucide-react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -7,10 +7,13 @@ import { ActivityIndicator, Image, ScrollView, Switch, Text, TextInput, Touchabl
 
 import { useUser } from '@/context/UserContext';
 import { MembershipPaySheet } from '@/components/membership/MembershipPaySheet';
+import { KeyboardAwareScrollView } from '@/components/ui/KeyboardAwareScrollView';
+import { useKeyboardOpen } from '@/hooks/useKeyboardOpen';
 import type { PaymentCard } from '@/lib/dao/interfaces';
 import { earningsDAO } from '@/lib/dao/EarningsDAO';
 import { paymentMethodDAO } from '@/lib/dao/PaymentMethodDAO';
-import { applyPromoCode, cancelPlan, loadMembership, payMembership, removePromoCode, resetMembershipPayment, setMembershipAutoRenew, type Membership, type PaymentMethodUsed } from '@/lib/membership/plan';
+import { applyPromoCode, cancelPlan, loadMembership, OWNER_VEHICLE_PRICES, OWNER_VEHICLE_PRICE_FROM_FOURTH, payMembership, removePromoCode, resetMembershipPayment, setMembershipAutoRenew, type FleetLine, type Membership, type PaymentMethodUsed, type PlanVehicle } from '@/lib/membership/plan';
+import { vehicleDAO } from '@/lib/dao/VehicleDAO';
 import { cardLabel, isExpired } from '@/lib/payments/cardLabel';
 import { RETURN_TO_BACK } from '@/lib/payments/cardRequired';
 import { appAlert } from '@/lib/ui/appAlert';
@@ -65,11 +68,25 @@ export default function MembershipScreen() {
         if (resumeSheet && cards.length > 0) { setSheetOpen(true); setResumeSheet(false); }
     }, [resumeSheet, cards]);
 
-    useEffect(() => {
-        let cancelled = false;
-        loadMembership(role, user?.id).then((m) => { if (!cancelled) setPlan(m); });
-        return () => { cancelled = true; };
-    }, [role, user?.id]);
+    // The owner's plan is per vehicle: the vehicles are read each time the screen is reached (adding one elsewhere changes the plan).
+    const vehiclesRef = useRef<PlanVehicle[] | undefined>(undefined);
+    const reloadPlan = useCallback(
+        () => loadMembership(role, user?.id, null, role === 'user' ? vehiclesRef.current : undefined),
+        [role, user?.id],
+    );
+    useFocusEffect(
+        useCallback(() => {
+            let cancelled = false;
+            (async () => {
+                if (role === 'user' && user?.id) {
+                    vehiclesRef.current = await vehicleDAO.getByUser(user.id).catch(() => []);
+                }
+                const m = await reloadPlan();
+                if (!cancelled) setPlan(m);
+            })();
+            return () => { cancelled = true; };
+        }, [role, user?.id, reloadPlan]),
+    );
 
     const name = [user?.name, user?.surname].filter(Boolean).join(' ');
     const waived = plan?.status === 'startup_waived';
@@ -77,6 +94,7 @@ export default function MembershipScreen() {
     const paidNow = !!plan?.payment;
     // Whoever has something to pay does it from a footer that is always in sight.
     const canPay = !!plan && !plan.payment && !waived && plan.amount > 0;
+    const keyboardOpen = useKeyboardOpen();
     const scroller = useRef<ScrollView>(null);
     const promoInput = useRef<TextInput>(null);
     const promoY = useRef(0);
@@ -92,7 +110,7 @@ export default function MembershipScreen() {
     // Simulated until plans launch: it answers that nothing can change yet (see lib/membership/plan.ts).
     const takeCouponOff = async () => {
         await removePromoCode(user?.id, role);
-        setPlan(await loadMembership(role, user?.id));
+        setPlan(await reloadPlan());
     };
 
     const dateOnly = (iso: string) => new Date(iso).toLocaleDateString(i18n.language, { year: 'numeric', month: 'short', day: 'numeric' });
@@ -112,21 +130,21 @@ export default function MembershipScreen() {
 
     const pay = async (method: PaymentMethodUsed, autoRenew: boolean) => {
         setPaying(true);
-        const result = await payMembership(role, user?.id, { method, autoRenew });
+        const result = await payMembership(role, user?.id, { method, autoRenew, vehicles: vehiclesRef.current });
         setPaying(false);
         if (!result.ok) {
             appAlert(t('membership.pay.failedTitle'), t('membership.pay.failed'), undefined, { tone: 'danger' });
             return;
         }
         setSheetOpen(false);
-        const next = await loadMembership(role, user?.id);
+        const next = await reloadPlan();
         setPlan(next);
-        appAlert(t('membership.pay.successTitle'), t('membership.pay.success', { date: next.nextPaymentAt ? dateOnly(next.nextPaymentAt) : '' }), undefined, { tone: 'success' });
+        appAlert(t('membership.pay.successTitle'), t('membership.pay.success', { plan: next.planName, date: next.nextPaymentAt ? dateOnly(next.nextPaymentAt) : '' }), undefined, { tone: 'success' });
     };
 
     const toggleAutoRenew = async (value: boolean) => {
         await setMembershipAutoRenew(user?.id, value, role);
-        setPlan(await loadMembership(role, user?.id));
+        setPlan(await reloadPlan());
     };
 
     const askCancel = () => {
@@ -151,7 +169,7 @@ export default function MembershipScreen() {
         setBusy(false);
         if (result.ok) {
             setCode('');
-            setPlan(await loadMembership(role, user?.id));
+            setPlan(await reloadPlan());
             appAlert(t('membership.promo.applied', { percent: result.coupon?.percentOff }), undefined, undefined, { tone: 'success' });
         } else {
             appAlert(t(`membership.promo.${result.reason ?? 'invalid'}`));
@@ -167,7 +185,7 @@ export default function MembershipScreen() {
 
     return (
         <View style={{ flex: 1, backgroundColor: '#F6F8FC' }}>
-        <ScrollView ref={scroller} style={{ flex: 1, backgroundColor: '#F6F8FC' }} contentContainerStyle={{ padding: 24, paddingBottom: 48, gap: 18 }} keyboardShouldPersistTaps="handled" testID="membership-screen">
+        <KeyboardAwareScrollView ref={scroller} style={{ flex: 1, backgroundColor: '#F6F8FC' }} contentContainerStyle={{ padding: 24, paddingBottom: 48, gap: 18 }} keyboardShouldPersistTaps="handled" testID="membership-screen">
             <View>
                 <View className="flex-row items-center self-start" style={{ gap: 6, marginTop: 8, marginBottom: 14, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: '#E9F1FF' }}>
                     <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#0047AB' }} />
@@ -200,9 +218,13 @@ export default function MembershipScreen() {
                                     </View>
                                 ) : null}
                             {plan.coupon ? (
-                                <View className="flex-row items-center" style={{ gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: 'rgba(18,183,106,0.95)' }} testID="membership-coupon-badge">
-                                    <Ticket size={15} color="#FFFFFF" />
-                                    <Text className="font-outfit-bold text-white" style={{ fontSize: 12, letterSpacing: 0.8 }}>{`${t('membership.coupon.badge')} · ${t('membership.coupon.off', { percent: plan.coupon.percentOff })}`.toUpperCase()}</Text>
+                                // Two lines so it never runs into the sides of the card: the coupon, and what it takes off as an amount (the percentage is in the note under the price).
+                                <View className="flex-row items-center" style={{ gap: 10, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 16, backgroundColor: 'rgba(18,183,106,0.95)' }} testID="membership-coupon-badge">
+                                    <Ticket size={20} color="#FFFFFF" />
+                                    <View>
+                                        <Text className="font-outfit-bold text-white" style={{ fontSize: 12, lineHeight: 15, letterSpacing: 0.8 }}>{t('membership.coupon.badge').toUpperCase()}</Text>
+                                        <Text className="font-outfit-bold text-white" style={{ fontSize: 20, lineHeight: 24, letterSpacing: -0.3 }} testID="membership-coupon-discount">{`\u2212${money(plan.listAmount - plan.amount)}`}</Text>
+                                    </View>
                                 </View>
                             ) : waived ? (
                                 <View className="flex-row items-center" style={{ gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: 'rgba(18,183,106,0.95)' }}>
@@ -230,6 +252,71 @@ export default function MembershipScreen() {
                             </TouchableOpacity>
                         ) : null}
                     </LinearGradient>
+
+                    {/* The owner's plan is per vehicle: each one with its price and its own year, and how the total comes about. */}
+                    {plan.fleet ? (
+                        <View style={{ ...card, padding: 18 }} testID="membership-fleet">
+                            <View className="flex-row items-center" style={{ gap: 10, marginBottom: 4 }}>
+                                <IconTile icon={Car} />
+                                <Text className="font-outfit-bold" style={{ ...TYPE.cardTitle, color: C.text }}>{t('membership.fleet.title')}</Text>
+                            </View>
+                            <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: C.muted, marginBottom: 6 }}>
+                                {t('membership.fleet.hint', { first: money(OWNER_VEHICLE_PRICES[0]), second: money(OWNER_VEHICLE_PRICES[1]), fourth: money(OWNER_VEHICLE_PRICE_FROM_FOURTH) })}
+                            </Text>
+                            {plan.fleet.lines.length === 0 ? (
+                                <TouchableOpacity onPress={() => router.push('/(tabs)/vehicles')} activeOpacity={0.8} accessibilityRole="button" className="flex-row items-center" style={{ gap: 12, paddingVertical: 14, borderTopWidth: 1, borderTopColor: C.line }} testID="membership-fleet-empty">
+                                    <Text className="flex-1 font-outfit-semibold" style={{ ...TYPE.body, color: C.text }}>{t('membership.fleet.empty')}</Text>
+                                    <ChevronRight size={18} color={C.muted} />
+                                </TouchableOpacity>
+                            ) : (
+                                plan.fleet.lines.map((line: FleetLine) => {
+                                    const covered = !line.payment && line.price <= 0;
+                                    return (
+                                        <View key={line.vehicleId} className="flex-row items-center" style={{ gap: 12, paddingVertical: 12, borderTopWidth: 1, borderTopColor: C.line }} testID={`fleet-line-${line.vehicleId}`}>
+                                            <View className="flex-1" style={{ minWidth: 0 }}>
+                                                <Text className="font-outfit-bold" style={{ ...TYPE.body, color: C.text }} numberOfLines={1}>{line.label}</Text>
+                                                <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: C.muted }} numberOfLines={1}>
+                                                    {line.payment ? t('membership.fleet.until', { date: dateOnly(line.renewsAt as string) }) : `VIN ••••${line.vinTail}`}
+                                                </Text>
+                                            </View>
+                                            <View style={{ alignItems: 'flex-end', gap: 4 }}>
+                                                <Text className="font-outfit-bold" style={{ ...TYPE.body, color: C.text }}>{money(line.payment ? line.payment.amount : covered ? line.listPrice : line.price)}</Text>
+                                                <View style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999, backgroundColor: line.payment || covered ? C.greenSoft : '#FEF3C7' }}>
+                                                    <Text className="font-outfit-bold" style={{ ...TYPE.eyebrow, color: line.payment || covered ? C.greenText : '#B45309' }}>
+                                                        {t(line.payment ? 'membership.pay.paidPill' : covered ? 'membership.fleet.covered' : 'membership.pay.duePill').toUpperCase()}
+                                                    </Text>
+                                                </View>
+                                            </View>
+                                        </View>
+                                    );
+                                })
+                            )}
+                            {plan.fleet.lines.length > 0 ? (
+                                <View style={{ borderTopWidth: 1, borderTopColor: C.line, paddingTop: 12, gap: 6 }}>
+                                    <View className="flex-row justify-between">
+                                        <Text className="font-outfit-regular" style={{ ...TYPE.body, color: C.muted }}>{t('membership.fleet.base', { count: plan.fleet.lines.length, price: money(OWNER_VEHICLE_PRICES[0]) })}</Text>
+                                        <Text className="font-outfit-semibold" style={{ ...TYPE.body, color: C.text }}>{money(plan.fleet.lines.length * OWNER_VEHICLE_PRICES[0])}</Text>
+                                    </View>
+                                    {plan.fleet.fleetDiscount > 0 ? (
+                                        <View className="flex-row justify-between" testID="fleet-discount">
+                                            <Text className="font-outfit-regular" style={{ ...TYPE.body, color: C.greenText }}>{t('membership.fleet.discount')}</Text>
+                                            <Text className="font-outfit-semibold" style={{ ...TYPE.body, color: C.greenText }}>{`\u2212${money(plan.fleet.fleetDiscount)}`}</Text>
+                                        </View>
+                                    ) : null}
+                                    {plan.coupon && plan.listAmount > plan.amount ? (
+                                        <View className="flex-row justify-between">
+                                            <Text className="font-outfit-regular" style={{ ...TYPE.body, color: C.greenText }}>{plan.coupon.code}</Text>
+                                            <Text className="font-outfit-semibold" style={{ ...TYPE.body, color: C.greenText }}>{`\u2212${money(plan.listAmount - plan.amount)}`}</Text>
+                                        </View>
+                                    ) : null}
+                                    <View className="flex-row justify-between" style={{ marginTop: 4 }}>
+                                        <Text className="font-outfit-bold" style={{ ...TYPE.body, color: C.text }}>{t(plan.fleet.pendingCount > 0 ? 'membership.fleet.totalDue' : 'membership.fleet.total')}</Text>
+                                        <Text className="font-outfit-bold" style={{ ...TYPE.body, color: C.text }} testID="fleet-total">{money(plan.amount)}</Text>
+                                    </View>
+                                </View>
+                            ) : null}
+                        </View>
+                    ) : null}
 
                     {/* What the plan includes. */}
                     <View style={{ ...card, padding: 18 }}>
@@ -307,7 +394,7 @@ export default function MembershipScreen() {
                                 // Simulated payment: a long press on the pill takes it back, to try the flow again (goes when billing is real).
                                 <TouchableOpacity
                                     activeOpacity={1}
-                                    onLongPress={async () => { if (plan.payment) { await resetMembershipPayment(user?.id, role); setPlan(await loadMembership(role, user?.id)); } }}
+                                    onLongPress={async () => { if (plan.payment) { await resetMembershipPayment(user?.id, role); setPlan(await reloadPlan()); } }}
                                     style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, backgroundColor: plan.payment ? C.greenSoft : '#FEF3C7' }}
                                     testID="billing-pill"
                                 >
@@ -320,7 +407,7 @@ export default function MembershipScreen() {
                                 key: 'amount',
                                 icon: Wallet,
                                 value: money(plan.amount),
-                                hint: plan.payment ? t('membership.billing.amountPaidHint', { date: dateOnly(plan.payment.paidAt) }) : t(plan.amount > 0 ? 'membership.billing.amountHint' : plan.coupon ? 'membership.billing.amountCovered' : 'membership.billing.amountFree'),
+                                hint: plan.payment ? t('membership.billing.amountPaidHint', { date: dateOnly(plan.payment.paidAt) }) : t(plan.amount > 0 ? 'membership.billing.amountHint' : plan.coupon ? 'membership.billing.amountCovered' : 'membership.billing.amountFree', { plan: plan.planName }),
                             },
                             { key: 'period', icon: Repeat, value: plan.periodsOffered.length === 1 ? t(`membership.billing.periodOnly.${plan.periodsOffered[0]}`) : t('membership.billing.periodValue'), hint: t(plan.periodsOffered.length === 1 ? 'membership.billing.periodOnlyHint' : 'membership.billing.periodHint') },
                             {
@@ -375,6 +462,7 @@ export default function MembershipScreen() {
                 </>
             )}
             <MembershipPaySheet
+                planName={plan?.planName ?? ''}
                 visible={sheetOpen && !!plan}
                 amount={plan?.amount ?? 0}
                 cards={cards}
@@ -384,8 +472,9 @@ export default function MembershipScreen() {
                 onAddCard={addCard}
                 onPay={pay}
             />
-        </ScrollView>
-        {canPay && plan ? (
+        </KeyboardAwareScrollView>
+        {/* The pay bar steps aside while the promo code is being typed: the keyboard (and the field) get the room. */}
+        {canPay && plan && !keyboardOpen ? (
             <View style={{ ...FLOATING_FOOTER }} testID="membership-pay-footer">
                 <TouchableOpacity onPress={askPay} disabled={paying} activeOpacity={0.85} accessibilityRole="button" style={{ ...CONFIRM_CTA, opacity: paying ? 0.7 : 1 }} testID="membership-pay">
                     <LinearGradient colors={[...CONFIRM_GRADIENT]} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }} style={{ minHeight: 56, borderRadius: BUTTON_RADIUS, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingHorizontal: 16 }}>

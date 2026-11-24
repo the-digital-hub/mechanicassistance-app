@@ -381,7 +381,7 @@ function PaymentCardsContent() {
               <Text className="flex-1 text-gray-400 font-outfit-regular text-[13px]">
                 {t('paymentCards.securityNote')}
               </Text>
-              <StripeInfoButton audience="customer" size={16} testID="cards-stripe-info" />
+              <StripeInfoButton audience="customer" size={20} testID="cards-stripe-info" />
             </View>
           </>
         )}

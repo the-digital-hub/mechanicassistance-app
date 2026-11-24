@@ -13,7 +13,7 @@ const STRIPE_URL = 'https://stripe.com';
  * know it. Nothing is added to the page itself; whoever has the doubt taps it, and can go on to Stripe's site from there.
  * `audience`: the technician is paid through it; the owner pays by card through it (each gets its own sentence).
  */
-export function StripeInfoButton({ audience, size = 18, color = '#6B7490', testID }: { audience: 'provider' | 'customer'; size?: number; color?: string; testID?: string }) {
+export function StripeInfoButton({ audience, size = 22, color = '#6B7490', testID }: { audience: 'provider' | 'customer'; size?: number; color?: string; testID?: string }) {
     const { t } = useTranslation();
     const show = () =>
         appAlert(
@@ -23,7 +23,7 @@ export function StripeInfoButton({ audience, size = 18, color = '#6B7490', testI
                 { text: t('stripeInfo.gotIt') },
                 { text: t('stripeInfo.learnMore'), icon: 'open-outline', style: 'secondary', onPress: () => void WebBrowser.openBrowserAsync(STRIPE_URL) },
             ],
-            { tone: 'info' },
+            { tone: 'info', cancelable: true },
         );
     return (
         <TouchableOpacity onPress={show} hitSlop={12} accessibilityRole="button" accessibilityLabel={t('stripeInfo.title')} testID={testID ?? 'stripe-info'}>

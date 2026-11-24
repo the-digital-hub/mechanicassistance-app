@@ -76,10 +76,12 @@ export function AppAlertHost() {
         dismissAppAlert(shown.id);
         setTimeout(once, 450); // iOS also calls the Modal's onDismiss: whichever comes first.
     };
-    // Tap outside / back: the cancel button, or just closing when it is a plain message.
+    // Tap outside / back: the cancel button, or just closing when it is a plain message (or one that says it can be dismissed: `cancelable`).
     const dismiss = () => {
         if (cancel) press(cancel);
         else if (buttons.length <= 1) press(buttons[0]);
+        // Information with a way on (like "Learn more"): tapping outside just closes it, doing none of the buttons.
+        else if (shown.options?.cancelable) press(undefined);
     };
 
     return (

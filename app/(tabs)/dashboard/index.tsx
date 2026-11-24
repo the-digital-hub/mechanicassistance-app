@@ -1,3 +1,4 @@
+import { useTabBarInset } from '@/components/ui/RoundedTabBar';
 import { VehicleIdsRow } from '@/components/scheduled/ui';
 import { EmergencyRow, MileageField, OwnerAttentionList, OwnerSectionTitle, OwnerSheet, RecentActivityList, RequestAssistanceCta, SheetOption, UpcomingCard, VehicleCareCard, type OwnerAttentionItem } from '@/components/dashboard/OwnerHomeBlocks';
 import { AseCta, AttentionList, AvailabilityCard, EarnNudgeStrip, RequestTypeTabs, SectionTitle, TodayBlock, WeeklyEarnings, type AttentionItem } from '@/components/dashboard/MechanicHomeBlocks';
@@ -80,6 +81,7 @@ const DASHBOARD_PADDING_X = 20;
 const REQUEST_CARD_GAP = 24;
 
 export default function DashboardScreen() {
+  const tabInset = useTabBarInset();
     const router = useRouter();
     const { scrollProps, guard } = useScrollPressGuard();
     const { t, i18n } = useTranslation();
@@ -186,8 +188,8 @@ export default function DashboardScreen() {
     const mechanicTips = useMechanicTips(user, user?.role === 'mechanic', { appointments, openRequests: openRequestCount, completedCount: mechanicStats ? mechanicStats.completedCount : null });
     const ownerTips = useOwnerTips(user, user?.role === 'user', vehiclesLoaded ? vehicles.length : null, appointments);
     const weekdayName = (day: number) => new Date(2024, 0, 7 + day).toLocaleDateString(i18n.language, { weekday: 'long' });
-    const tipTexts = (root: string, tip: { i18n: string; params?: { count?: number; day?: number } }) => {
-        const params = { count: tip.params?.count, day: tip.params?.day != null ? weekdayName(tip.params.day) : undefined };
+    const tipTexts = (root: string, tip: { i18n: string; params?: { count?: number; day?: number; amount?: string } }) => {
+        const params = { count: tip.params?.count, day: tip.params?.day != null ? weekdayName(tip.params.day) : undefined, amount: tip.params?.amount };
         return { label: t(`${root}.${tip.i18n}.label`, params), text: t(`${root}.${tip.i18n}.text`, params) };
     };
     const scheduledAttention = useScheduledAttention(user?.role === 'user', user?.id, getActiveRequests(), lastMessage);
@@ -459,7 +461,7 @@ export default function DashboardScreen() {
 
         return (
             <View className="flex-1">
-                <KeyboardAwareScrollView {...scrollProps} style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ paddingBottom: 40 }}>
+                <KeyboardAwareScrollView {...scrollProps} style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ paddingBottom: 40 + tabInset }}>
                     <View className="px-6 pt-4">
                     {/* Section Badge */}
                     <View style={{ marginTop: 18 }}>
@@ -472,7 +474,7 @@ export default function DashboardScreen() {
                     </View>
 
                     {/* Title */}
-                    <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
+                    <Text className="text-gray-900 font-outfit-medium mb-3" style={TYPE.screenTitle}>
                         {t('dashboard.mechanic.readyToWork')}{user?.name ? `, ${user.name.split(' ')[0]}` : ''}
                     </Text>
 
@@ -501,33 +503,37 @@ export default function DashboardScreen() {
                     {/* Not Available: no new requests reach the technician, so offer the one tap that fixes it. */}
                     {mechanicStatus !== 'available' && (
                         <View
-                            className="flex-row items-center mb-6 p-4 rounded-2xl"
-                            style={{ backgroundColor: '#FFF7ED', borderWidth: 1, borderColor: '#FED7AA', gap: 12 }}
+                            className="mb-6 p-4 rounded-2xl"
+                            style={{ backgroundColor: '#FFF7ED', borderWidth: 1, borderColor: '#FED7AA', gap: 10 }}
                             testID="dashboard-go-online"
                         >
-                            <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#FFEDD5' }}>
-                                <Power size={20} color="#EA580C" />
-                            </View>
-                            <View className="flex-1">
-                                <Text className="font-outfit-semibold text-[15px]" style={{ color: '#7C2D12' }}>
-                                    {mechanicStatus === 'busy' ? t('dashboard.mechanic.goOnline.busyTitle') : t('dashboard.mechanic.goOnline.offlineTitle')}
-                                </Text>
-                                <Text className="font-outfit-regular text-[13px] mt-0.5" style={{ color: '#9A3412' }}>
-                                    {t('dashboard.mechanic.goOnline.message')}
-                                </Text>
+                            {/* The words get the whole width; a small button goes under them (aligned with the text), instead of squeezing them into a narrow column. */}
+                            <View className="flex-row items-start" style={{ gap: 12 }}>
+                                <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#FFEDD5' }}>
+                                    <Power size={20} color="#EA580C" />
+                                </View>
+                                <View className="flex-1" style={{ minWidth: 0 }}>
+                                    <Text className="font-outfit-semibold text-[15px]" style={{ color: '#7C2D12' }}>
+                                        {mechanicStatus === 'busy' ? t('dashboard.mechanic.goOnline.busyTitle') : t('dashboard.mechanic.goOnline.offlineTitle')}
+                                    </Text>
+                                    <Text className="font-outfit-regular mt-0.5" style={{ ...TYPE.helper, color: '#9A3412' }}>
+                                        {t('dashboard.mechanic.goOnline.message')}
+                                    </Text>
+                                </View>
                             </View>
                             <TouchableOpacity
                                 onPress={() => { setMechanicStatus('available').catch(() => undefined); }}
                                 disabled={isUpdatingStatus}
                                 activeOpacity={0.85}
-                                className="px-4 py-2.5 rounded-xl"
-                                style={{ backgroundColor: '#1E56E3', opacity: isUpdatingStatus ? 0.6 : 1 }}
+                                className="items-center justify-center self-start"
+                                style={{ minHeight: 40, minWidth: 40, paddingHorizontal: 18, borderRadius: 14, backgroundColor: '#1E56E3', marginLeft: 52, opacity: isUpdatingStatus ? 0.6 : 1 }}
                                 accessibilityRole="button"
+                                testID="dashboard-go-online-button"
                             >
                                 {isUpdatingStatus ? (
                                     <ActivityIndicator color="#FFFFFF" />
                                 ) : (
-                                    <Text className="font-outfit-bold text-[13px] text-white">{t('dashboard.mechanic.goOnline.action')}</Text>
+                                    <Text className="font-outfit-bold text-white" style={{ fontSize: 14, lineHeight: 20 }}>{t('dashboard.mechanic.goOnline.action')}</Text>
                                 )}
                             </TouchableOpacity>
                         </View>
@@ -1268,7 +1274,7 @@ export default function DashboardScreen() {
                 
                 {...scrollProps}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: DASHBOARD_PADDING_X, paddingTop: 18, paddingBottom: 40 }}
+                contentContainerStyle={{ paddingHorizontal: DASHBOARD_PADDING_X, paddingTop: 18, paddingBottom: 40 + tabInset }}
             >
                 {/* Section Badge */}
                 <View style={{ marginTop: 14 }}>
@@ -1281,7 +1287,7 @@ export default function DashboardScreen() {
                 </View>
 
                 {/* Title */}
-                <Text className="font-outfit-bold" style={{ fontSize: 28, lineHeight: 32, letterSpacing: -0.7, color: '#0B1530' }}>
+                <Text className="font-outfit-bold" style={{ ...TYPE.screenTitle, color: '#0B1530' }}>
                     {t('dashboard.user.title')}{user?.name ? `, ${user.name.split(' ')[0]}` : ''}
                 </Text>
 

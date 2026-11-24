@@ -56,13 +56,21 @@ export function MembershipEarningsCard() {
                         {paid && plan.nextPaymentAt ? t('payments.membership.paid', { date: date(plan.nextPaymentAt) }) : t('payments.membership.due', { amount: money(plan.amount) })}
                     </Text>
                 </View>
-                {paid ? null : (
-                    <View style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: INK.amberSoft }}>
-                        <Text className="font-outfit-bold" style={{ ...TYPE.eyebrow, color: INK.amber }}>{t('payments.membership.payNow').toUpperCase()}</Text>
-                    </View>
-                )}
-                <ChevronRight size={18} color={INK.muted} />
+                {paid ? <ChevronRight size={18} color={INK.muted} /> : null}
             </TouchableOpacity>
+            {/* Not paid: the way to pay goes under the words (aligned with them), not in a second column squeezing them. */}
+            {paid ? null : (
+                <TouchableOpacity
+                    onPress={() => router.push('/(tabs)/membership' as never)}
+                    activeOpacity={0.85}
+                    accessibilityRole="button"
+                    className="items-center justify-center self-start"
+                    style={{ marginTop: 10, marginLeft: 52, minHeight: 40, paddingHorizontal: 18, borderRadius: BUTTON_RADIUS, backgroundColor: '#12B76A' }}
+                    testID="membership-earnings-pay"
+                >
+                    <Text className="font-outfit-bold text-white" style={{ fontSize: 14, lineHeight: 20 }}>{t('payments.membership.payNow')}</Text>
+                </TouchableOpacity>
+            )}
 
             <View style={{ height: 1, backgroundColor: INK.line, marginVertical: 14 }} />
 

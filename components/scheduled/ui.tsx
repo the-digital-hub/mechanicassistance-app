@@ -264,17 +264,26 @@ export function Chip({ on, onPress, children, disabled }: { on: boolean; onPress
 }
 
 /** A note with a tone: blue for information, amber for something to watch. */
-export function Note({ tone = 'blue', title, children }: { tone?: 'blue' | 'amber' | 'green'; title?: string; children: ReactNode }) {
+export function Note({ tone = 'blue', title, children, onPress, testID }: { tone?: 'blue' | 'amber' | 'green'; title?: string; children: ReactNode; /** Makes the whole note a button that leads somewhere (a chevron shows it). */ onPress?: () => void; testID?: string }) {
     const palette = {
         blue: { bg: SC.blueSoft, fg: SC.blueDark },
         amber: { bg: SC.amberSoft, fg: SC.amberText },
         green: { bg: SC.greenSoft, fg: SC.greenText },
     }[tone];
-    return (
-        <View style={{ padding: 12, borderRadius: 12, backgroundColor: palette.bg }}>
-            {title ? <Text className="font-outfit-bold" style={{ ...TYPE.helper, color: palette.fg }}>{title}</Text> : null}
-            <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: palette.fg, marginTop: title ? 2 : 0 }}>{children}</Text>
-        </View>
+    const content = (
+        <>
+            <View style={{ flex: 1, minWidth: 0 }}>
+                {title ? <Text className="font-outfit-bold" style={{ ...TYPE.helper, color: palette.fg }}>{title}</Text> : null}
+                <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: palette.fg, marginTop: title ? 2 : 0 }}>{children}</Text>
+            </View>
+            {onPress ? <ChevronRight size={20} color={palette.fg} /> : null}
+        </>
+    );
+    const box = { padding: 12, borderRadius: 12, backgroundColor: palette.bg, flexDirection: 'row' as const, alignItems: 'center' as const, gap: 10 };
+    return onPress ? (
+        <TouchableOpacity onPress={onPress} activeOpacity={0.8} accessibilityRole="button" style={box} testID={testID}>{content}</TouchableOpacity>
+    ) : (
+        <View style={box} testID={testID}>{content}</View>
     );
 }
 

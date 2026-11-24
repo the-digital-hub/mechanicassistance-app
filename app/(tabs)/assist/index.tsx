@@ -1,3 +1,4 @@
+import { useTabBarInset } from '@/components/ui/RoundedTabBar';
 import { MechanicFeedStatusBanner } from '@/components/MechanicFeedStatusBanner';
 import { useMechanicStatus } from '@/context/MechanicStatusContext';
 import { useSocket } from '@/context/SocketContext';
@@ -53,6 +54,7 @@ const QUOTE_SORTS = ['closing', 'closingLate', 'sentNew', 'sentOld', 'highest', 
 type QuoteSort = (typeof QUOTE_SORTS)[number];
 
 export default function AssistanceRequestsScreen() {
+  const tabInset = useTabBarInset();
   const router = useRouter();
   const { scrollProps, guard } = useScrollPressGuard();
   const { startOffer, offerDialog } = useOfferFromCard();
@@ -237,7 +239,7 @@ export default function AssistanceRequestsScreen() {
 
   return (
     <View className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
-      <ScrollView {...scrollProps} contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 24, paddingBottom: 40 }}>
+      <ScrollView {...scrollProps} contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 24, paddingBottom: 40 + tabInset }}>
         {/* Section Badge */}
         <View style={{ marginTop: 8 }}>
           <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
@@ -249,7 +251,7 @@ export default function AssistanceRequestsScreen() {
         </View>
 
         {/* Title: it says which of the two sections this is */}
-        <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">
+        <Text className="text-gray-900 font-outfit-medium mb-3" style={TYPE.screenTitle}>
           {section === 'quotes' ? t('assist.quotesTitle') : t('assist.title')}
         </Text>
 
@@ -276,7 +278,13 @@ export default function AssistanceRequestsScreen() {
 
         {marketplaceFeed.problem && marketplaceFeed.problem !== 'generic' ? (
           <View className="mb-6">
-            <Note tone="amber" title={t(`scheduledProvider.problems.${marketplaceFeed.problem}.title`)}>
+            {/* An unverified identity is something to fix right here: the note takes them to the verification (Didit). */}
+            <Note
+              tone="amber"
+              title={t(`scheduledProvider.problems.${marketplaceFeed.problem}.title`)}
+              onPress={marketplaceFeed.problem === 'identityPending' ? () => router.push('/verify-identity' as never) : undefined}
+              testID="requests-problem-note"
+            >
               {t(`scheduledProvider.problems.${marketplaceFeed.problem}.body`)}
             </Note>
           </View>

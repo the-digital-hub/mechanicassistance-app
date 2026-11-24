@@ -1,8 +1,8 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { CalendarDays, SlidersHorizontal, X } from 'lucide-react-native';
+import { CalendarDays, FileDown, SlidersHorizontal, X } from 'lucide-react-native';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 
 import { DateRangeCalendar } from '@/components/appointments/DateRangeCalendar';
 import { SlideModal } from '@/components/ui/SlideModal';
@@ -24,6 +24,8 @@ export interface ActivityFilterState {
     from?: string;
     to?: string;
     sort: 'newest' | 'oldest';
+    /** Only what is still in the 2-day waiting period (the technician's earnings). */
+    pendingOnly?: boolean;
 }
 
 type Preset = 'any' | 'today' | '7d' | '30d' | 'month' | 'custom';
@@ -74,15 +76,17 @@ function Pill({ label, on, onPress, testID }: { label: string; on: boolean; onPr
  * sheet) and the filter button with how many filters are in force; the filters themselves (date, order) in a sheet from below,
  * and the ones in force as chips that can be removed one by one.
  */
-export function EarningsFiltersBar({ value, onChange }: {
+export function EarningsFiltersBar({ value, onChange, statement }: {
     value: ActivityFilterState;
     onChange: (next: ActivityFilterState) => void;
+    /** The technician's extras, inside the sheet (not on the page): the pending-only filter and the account statement PDF of the chosen dates. */
+    statement?: { onDownload: (range: { from?: string; to?: string }) => void; busy: boolean; failed: boolean };
 }) {
     const { t, i18n } = useTranslation();
     const locale = i18n.language?.startsWith('en') ? 'en-US' : 'es-AR';
     const [sheet, setSheet] = React.useState(false);
     const preset = presetOf(value);
-    const count = (preset !== 'any' ? 1 : 0) + (value.sort !== 'newest' ? 1 : 0);
+    const count = (preset !== 'any' ? 1 : 0) + (value.sort !== 'newest' ? 1 : 0) + (value.pendingOnly ? 1 : 0);
 
     const fmt = (d: string) => parseDay(d).toLocaleDateString(locale, { month: 'short', day: 'numeric' });
     const dateLabel = preset === 'custom'
@@ -95,6 +99,7 @@ export function EarningsFiltersBar({ value, onChange }: {
     const chips: { key: string; label: string; clear: () => void }[] = [
         ...(preset !== 'any' ? [{ key: 'date', label: dateLabel, clear: () => onChange({ ...value, from: undefined, to: undefined }) }] : []),
         ...(value.sort !== 'newest' ? [{ key: 'order', label: t(`${K}.oldest`), clear: () => onChange({ ...value, sort: 'newest' }) }] : []),
+        ...(value.pendingOnly ? [{ key: 'pending', label: t(`${K}.statusPendingChip`), clear: () => onChange({ ...value, pendingOnly: false }) }] : []),
     ];
 
     return (
@@ -137,23 +142,24 @@ export function EarningsFiltersBar({ value, onChange }: {
                             <X size={14} color={C.blue} />
                         </TouchableOpacity>
                     ))}
-                    <TouchableOpacity onPress={() => onChange({ sort: 'newest' })} hitSlop={8} accessibilityRole="button" testID="earnings-filter-clear">
+                    <TouchableOpacity onPress={() => onChange({ sort: 'newest', pendingOnly: false })} hitSlop={8} accessibilityRole="button" testID="earnings-filter-clear">
                         <Text className="font-outfit-semibold" style={{ fontSize: 14, color: C.muted }}>{t(`${F}.clearAll`)}</Text>
                     </TouchableOpacity>
                 </View>
             ) : null}
 
-            <FilterSheet visible={sheet} onClose={() => setSheet(false)} value={value} onApply={(next) => { onChange(next); setSheet(false); }} />
+            <FilterSheet visible={sheet} onClose={() => setSheet(false)} value={value} statement={statement} onApply={(next) => { onChange(next); setSheet(false); }} />
         </View>
     );
 }
 
 /** The filters in a sheet from below: date (a preset or a range on a calendar) and order. Applied together. */
-function FilterSheet({ visible, onClose, value, onApply }: {
+function FilterSheet({ visible, onClose, value, onApply, statement }: {
     visible: boolean;
     onClose: () => void;
     value: ActivityFilterState;
     onApply: (next: ActivityFilterState) => void;
+    statement?: { onDownload: (range: { from?: string; to?: string }) => void; busy: boolean; failed: boolean };
 }) {
     const { t } = useTranslation();
     const { height } = useWindowDimensions();
@@ -202,6 +208,35 @@ function FilterSheet({ visible, onClose, value, onApply }: {
                             <Pill label={t(`${K}.oldest`)} on={draft.sort === 'oldest'} onPress={() => setDraft({ ...draft, sort: 'oldest' })} testID="earnings-order-oldest" />
                         </View>
                     </Section>
+
+                    {statement ? (
+                        <>
+                            <Section title={t(`${K}.statusTitle`)}>
+                                <View className="flex-row flex-wrap" style={{ gap: 8 }}>
+                                    <Pill label={t(`${K}.statusAll`)} on={!draft.pendingOnly} onPress={() => setDraft({ ...draft, pendingOnly: false })} testID="earnings-status-all" />
+                                    <Pill label={t(`${K}.statusPending`)} on={!!draft.pendingOnly} onPress={() => setDraft({ ...draft, pendingOnly: true })} testID="earnings-status-pending" />
+                                </View>
+                            </Section>
+
+                            <Section title={t('payments.actions.statement')}>
+                                <TouchableOpacity
+                                    onPress={() => statement.onDownload({ from: draft.from, to: draft.to })}
+                                    disabled={statement.busy}
+                                    activeOpacity={0.85}
+                                    accessibilityRole="button"
+                                    className="flex-row items-center justify-center"
+                                    style={{ gap: 8, minHeight: 52, borderRadius: 14, backgroundColor: '#E6EAF2', opacity: statement.busy ? 0.6 : 1 }}
+                                    testID="earnings-statement"
+                                >
+                                    {statement.busy ? <ActivityIndicator color="#4A5470" /> : <FileDown size={18} color="#4A5470" />}
+                                    <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#4A5470' }}>{t('payments.actions.statementDownload')}</Text>
+                                </TouchableOpacity>
+                                <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: statement.failed ? '#B91C1C' : C.muted, marginTop: 8 }}>
+                                    {statement.failed ? t('payments.actions.statementFailed') : t('payments.actions.statementHint')}
+                                </Text>
+                            </Section>
+                        </>
+                    ) : null}
                 </ScrollView>
 
                 {/* Stacked: the action on top, the way out under it. */}
@@ -212,7 +247,7 @@ function FilterSheet({ visible, onClose, value, onApply }: {
                         </LinearGradient>
                     </TouchableOpacity>
                     <TouchableOpacity
-                        onPress={() => { setDraft({ sort: 'newest' }); setDraftPreset('any'); }}
+                        onPress={() => { setDraft({ sort: 'newest', pendingOnly: false }); setDraftPreset('any'); }}
                         activeOpacity={0.85}
                         accessibilityRole="button"
                         className="items-center justify-center"

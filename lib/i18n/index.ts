@@ -8,12 +8,23 @@ import es from './locales/es.json';
 export const LANGUAGE_STORAGE_KEY = 'app_language';
 export type SupportedLanguage = 'en' | 'es';
 
+/** The language of the phone: Spanish if it is set to Spanish, English for anything else. (No native module needed: the JS engine knows the locale.) */
+export function deviceLanguage(): SupportedLanguage {
+  try {
+    const locale = Intl.DateTimeFormat().resolvedOptions().locale ?? '';
+    return locale.toLowerCase().startsWith('es') ? 'es' : 'en';
+  } catch {
+    return 'en';
+  }
+}
+
 i18next.use(initReactI18next).init({
   resources: {
     en: { translation: en },
     es: { translation: es },
   },
-  lng: 'en',
+  // Starts in the phone's language; a language the user picked later (saved below) wins over it.
+  lng: deviceLanguage(),
   fallbackLng: 'en',
   interpolation: { escapeValue: false },
 });

@@ -1,3 +1,4 @@
+import { useTabBarInset } from '@/components/ui/RoundedTabBar';
 import { useNotifications } from '@/context/NotificationsContext';
 import { useUser } from '@/context/UserContext';
 import { ApiError } from '@/lib/api/types';
@@ -106,6 +107,7 @@ function DeleteAction({ onPress }: { onPress: () => void }) {
 }
 
 export default function NotificationsScreen() {
+  const tabInset = useTabBarInset();
     const router = useRouter();
     const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
@@ -272,7 +274,7 @@ export default function NotificationsScreen() {
 
     return (
         <GestureHandlerRootView className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
-            <ScrollView className="flex-1" showsVerticalScrollIndicator={false} onScroll={handleScroll} scrollEventThrottle={200}>
+            <ScrollView className="flex-1" showsVerticalScrollIndicator={false} onScroll={handleScroll} scrollEventThrottle={200} contentContainerStyle={{ paddingBottom: tabInset }}>
                 <View className="px-6 pt-4 pb-4">
                     {/* Section Badge */}
                     <View style={{ marginTop: 18 }}>

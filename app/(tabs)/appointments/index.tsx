@@ -1,3 +1,4 @@
+import { useTabBarInset } from '@/components/ui/RoundedTabBar';
 import { AppointmentsFilterBar } from '@/components/appointments/AppointmentsFilters';
 import { AppointmentsHome } from '@/components/appointments/AppointmentsHome';
 import { OffersSection } from '@/components/appointments/OffersSection';
@@ -17,11 +18,13 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, Modal, Text, TouchableOpacity, View } from 'react-native';
 import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
+import { TYPE } from '@/lib/ui/type';
 
 /** How many appointments a page of the list holds. */
 const PAGE_SIZE = 15;
 
 export default function AppointmentsScreen() {
+  const tabInset = useTabBarInset();
     const { t } = useTranslation();
     const { getUpcoming, getPendingApproval, getPast, refresh } = useAppointments();
     const router = useRouter();
@@ -129,7 +132,7 @@ export default function AppointmentsScreen() {
                         </View>
 
                         {/* Title */}
-                        <Text className="text-gray-900 font-outfit-medium text-3xl mb-3">{t(user?.role === 'mechanic' ? 'appointments.list.title' : 'appointments.list.titleOwner')}</Text>
+                        <Text className="text-gray-900 font-outfit-medium mb-3" style={TYPE.screenTitle}>{t(user?.role === 'mechanic' ? 'appointments.list.title' : 'appointments.list.titleOwner')}</Text>
                         <Text className="text-gray-500 font-outfit-regular text-base" style={{ marginBottom: 8 }}>{t('appointments.list.subtitle')}</Text>
 
                         {/* Tab switcher: Upcoming and Past, always, so the history is one tap away and never the first thing shown */}
@@ -177,7 +180,7 @@ export default function AppointmentsScreen() {
                         ) : null}
                     </View>
                 )}
-                contentContainerStyle={{ paddingBottom: 20 }}
+                contentContainerStyle={{ paddingBottom: 20 + tabInset }}
                 ListFooterComponent={remaining > 0 ? (
                     <View style={{ paddingHorizontal: 20, paddingTop: 2 }}>
                         <TouchableOpacity

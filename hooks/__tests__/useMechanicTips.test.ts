@@ -44,6 +44,26 @@ describe('buildMechanicTips', () => {
 });
 
 
+describe('the unpaid plan', () => {
+    it('is the first tip of a technician whose plan is not paid, and leads to Membership with its amount', () => {
+        const tips = buildMechanicTips({ ...complete, identityApproved: false, membershipDue: '$60.00' });
+        expect(tips.map((t) => t.key)).toEqual(['membership', 'identity']);
+        expect(tips[0]).toMatchObject({ route: '/membership', params: { amount: '$60.00' } });
+    });
+
+    it('is not there once it is paid or covered (null or absent)', () => {
+        expect(buildMechanicTips({ ...complete, membershipDue: null })).toEqual([]);
+        expect(buildMechanicTips({ ...complete })).toEqual([]);
+    });
+
+    it('is the first tip of an owner whose plan is not paid', () => {
+        const tips = buildOwnerTips({ hasCard: false, hasVehicle: true, hasAddress: true, hasPhoto: true, noRequestsYet: false, membershipDue: '$15.00' });
+        expect(tips.map((t) => t.key)).toEqual(['membership', 'card']);
+        expect(tips[0]).toMatchObject({ route: '/membership', params: { amount: '$15.00' } });
+        expect(buildOwnerTips({ hasCard: true, hasVehicle: true, hasAddress: true, hasPhoto: true, noRequestsYet: false, membershipDue: null })).toEqual([]);
+    });
+});
+
 describe('buildOwnerTips', () => {
     const ready = { hasCard: true, hasVehicle: true, hasAddress: true, hasPhoto: true, noRequestsYet: false };
 

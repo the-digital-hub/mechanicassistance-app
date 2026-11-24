@@ -1,7 +1,9 @@
 import { BottomTabBar, type BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { usePathname } from 'expo-router';
 import React, { useEffect } from 'react';
-import { Platform, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { requireOptionalNativeModule } from 'expo-modules-core';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { Easing, interpolate, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
@@ -10,6 +12,32 @@ import { setTabBarHidden, useTabBarHidden } from '@/lib/ui/tabBarVisibility';
 
 /** Screens that end in a fixed white footer (the wizard steps, the quote and check-in flows), and the ones with a white page of their own. */
 const WHITE_PATHS = /^\/(request-assistance(\/.+)?|assist\/scheduled.*|dashboard\/filter|privacy|appointments\/check-in.*|addresses.*)$/;
+
+/**
+ * The main tabs: here the bar floats over the content (transparent row, the page scrolls under it and shows through blurred). Every other screen
+ * keeps the bar in its own row, because they end in a fixed footer that must sit above it.
+ */
+const OVERLAY_PATHS = /^\/(dashboard|assist|appointments|notifications)?$/;
+
+// expo-blur is a native module: until a build that includes it is installed, the soft fade alone is drawn.
+let BlurViewImpl: React.ComponentType<{ intensity: number; tint: 'light'; style?: object }> | null = null;
+try {
+    // The JS side loads fine without the native side (the view is only looked up when drawn, and then it is a red error), so ask for the native module itself.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    if (requireOptionalNativeModule('ExpoBlur')) BlurViewImpl = require('expo-blur').BlurView;
+} catch {
+    BlurViewImpl = null;
+}
+
+/** How far the blur starts above the bar, so it fades in instead of showing an edge. */
+const BLUR_REACH = 36;
+
+/** Room a screen on a main tab leaves at the end of its content, so the last item can be scrolled above the floating bar. */
+export function useTabBarInset(): number {
+    const pathname = usePathname();
+    const insets = useSafeAreaInsets();
+    return OVERLAY_PATHS.test(pathname) ? TAB_BAR_HEIGHT + (Platform.OS === 'android' ? insets.bottom : 0) : 0;
+}
 
 /** Height of what stays when the bar is tucked away: just a handle at the very edge. */
 const TIP_HEIGHT = 12;
@@ -39,6 +67,7 @@ export function RoundedTabBar(props: BottomTabBarProps) {
     const insets = useSafeAreaInsets();
     const bottomInset = Platform.OS === 'android' ? insets.bottom : 0;
     const fullHeight = TAB_BAR_HEIGHT + bottomInset;
+    const overlay = OVERLAY_PATHS.test(pathname);
     const backdrop = WHITE_PATHS.test(pathname) ? '#FFFFFF' : PAGE_BG;
 
     // 0 = the whole bar, 1 = only the handle.
@@ -56,7 +85,25 @@ export function RoundedTabBar(props: BottomTabBarProps) {
     const tip = useAnimatedStyle(() => ({ opacity: interpolate(progress.value, [0.4, 1], [0, 1], 'clamp') }));
 
     return (
-        <Animated.View style={[{ backgroundColor: backdrop }, row]}>
+        <Animated.View style={[overlay ? { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: 'transparent' } : { backgroundColor: backdrop }, row]}>
+            {/* What scrolls under the bar shows through blurred: three layers, the strongest at the bottom, and a fade into the page colour. */}
+            {overlay && !hidden ? (
+                <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: fullHeight + BLUR_REACH }}>
+                    {BlurViewImpl ? (
+                        <>
+                            <BlurViewImpl intensity={12} tint="light" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: fullHeight + BLUR_REACH }} />
+                            <BlurViewImpl intensity={28} tint="light" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: (fullHeight + BLUR_REACH) * 0.66 }} />
+                            <BlurViewImpl intensity={48} tint="light" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: (fullHeight + BLUR_REACH) * 0.36 }} />
+                        </>
+                    ) : null}
+                    <LinearGradient
+                        // Light on purpose: it only softens, so what scrolls underneath stays visible (more so with the blur than without it).
+                        colors={BlurViewImpl ? ['rgba(246,248,252,0)', 'rgba(246,248,252,0.18)', 'rgba(246,248,252,0.45)'] : ['rgba(246,248,252,0)', 'rgba(246,248,252,0.55)', 'rgba(246,248,252,0.88)']}
+                        locations={[0, 0.5, 1]}
+                        style={StyleSheet.absoluteFill}
+                    />
+                </View>
+            ) : null}
             {/* The bar keeps its full height and hangs from the top of the row: as the row shrinks, it slides down and out of the screen. */}
             <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: fullHeight }} pointerEvents={hidden ? 'none' : 'auto'}>
                 <BottomTabBar {...props} />

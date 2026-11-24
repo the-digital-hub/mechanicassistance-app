@@ -46,5 +46,25 @@ export const ATTACHED_TAB_BAR: ViewStyle = {
     elevation: 16,
 };
 
+/**
+ * The tab bar as a floating pill: white, fully rounded, with side margins and room under it, a soft shadow all around. (It still has a row of
+ * its own, so nothing scrolls under it, and nothing is drawn over the footers above it.) ATTACHED_TAB_BAR above is the old one.
+ */
+export const PILL_HEIGHT = Platform.OS === 'ios' ? 64 : 60;
+export const FLOATING_TAB_BAR: ViewStyle = {
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 0,
+    borderRadius: 32,
+    marginHorizontal: 16,
+    marginTop: 6,
+    paddingTop: 0,
+    shadowColor: '#0B1F5C',
+    // The shadow falls downward only, so it never reaches the fixed footers that end just above the bar.
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 10,
+};
+
 /** Height of the tab bar (the safe area at the bottom included). The layout and the slide animation of the bar share it. */
 export const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 88 : 68;
