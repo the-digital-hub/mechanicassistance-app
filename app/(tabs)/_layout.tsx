@@ -348,7 +348,7 @@ export default function TabLayout() {
           tabBarItemStyle: { display: "none" },
           title: t('tabs.notifications'),
           tabBarIcon: ({ color }) => <Bell size={24} color={color} />,
-          headerLeft: () => null,
+          headerLeft: () => <MechanicStatusHeaderLeft />,
           headerRight: () => <NotificationHeaderRight />,
         }}
       />
