@@ -312,7 +312,8 @@ export function OwnerSheet({ visible, title, subtitle, onClose, children, scroll
                         borderTopRightRadius: 28,
                         paddingHorizontal: 20,
                         paddingTop: 10,
-                        paddingBottom: 34,
+                        // Android draws the Modal under its navigation buttons: the sheet adds their height (iOS's 34 is the home indicator).
+                        paddingBottom: Platform.OS === 'android' ? 18 + insets.bottom : 34,
                         ...(fixedHeight && maxHeight ? { height: maxHeight } : { maxHeight }),
                         opacity: progress.interpolate({ inputRange: [0, 0.4, 1], outputRange: [0, 1, 1] }),
                         transform: [{ translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [scrollBody ? windowHeight : 360, 0] }) }],

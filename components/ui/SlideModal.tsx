@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, KeyboardAvoidingView, Modal, Platform, Pressable, useWindowDimensions, View } from 'react-native';
 
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
 /**
@@ -18,6 +20,7 @@ export function SlideModal({ visible, onClose, dim = 'rgba(11,21,48,0.4)', close
     children: React.ReactNode;
 }) {
     const { height } = useWindowDimensions();
+    const insets = useSafeAreaInsets();
     const [mounted, setMounted] = useState(visible);
     const progress = useRef(new Animated.Value(0)).current;
     useEffect(() => {
@@ -42,6 +45,8 @@ export function SlideModal({ visible, onClose, dim = 'rgba(11,21,48,0.4)', close
                 </Animated.View>
                 <Animated.View style={{ transform: [{ translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [height, 0] }) }] }}>
                     {children}
+                    {/* Android draws the Modal under its navigation buttons: white strip of their height so the panel's last row clears them. */}
+                    {Platform.OS === 'android' && insets.bottom > 0 ? <View style={{ height: insets.bottom, backgroundColor: '#FFFFFF' }} /> : null}
                 </Animated.View>
             </Body>
         </Modal>
