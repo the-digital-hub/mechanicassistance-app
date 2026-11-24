@@ -31,4 +31,12 @@ describe('VideoTile', () => {
     expect(mirrored({ isLocal: true, backCamera: true })).toBe(false);
     expect(mirrored({ isLocal: false })).toBe(false);
   });
+
+  it('lifts the small picture above the big one (Android surface order)', () => {
+    const fakeStream: any = { toURL: () => 'stream-url' };
+    const zOrder = (overlay?: boolean) =>
+      render(<VideoTile name="Ana" isCameraOff={false} stream={fakeStream} isLocal={false} overlay={overlay} />).getByTestId('rtc-view').props.zOrder;
+    expect(zOrder(true)).toBe(1);
+    expect(zOrder()).toBe(0);
+  });
 });

@@ -10,9 +10,11 @@ interface VideoTileProps {
   isLocal: boolean;
   /** The local picture comes from the rear camera: it is shown as it is, not mirrored. */
   backCamera?: boolean;
+  /** The small picture over the big one: on Android two video surfaces overlap only if the upper one has a higher zOrder, else it shows the big picture through it. */
+  overlay?: boolean;
 }
 
-export function VideoTile({ stream, name, isCameraOff, isLocal, backCamera = false }: VideoTileProps) {
+export function VideoTile({ stream, name, isCameraOff, isLocal, backCamera = false, overlay = false }: VideoTileProps) {
   const showVideo = !isCameraOff && stream != null;
   const initial = name?.trim()?.charAt(0)?.toUpperCase() || '?';
 
@@ -34,6 +36,7 @@ export function VideoTile({ stream, name, isCameraOff, isLocal, backCamera = fal
       objectFit="cover"
       // Only the selfie camera is a mirror: with the rear one, moving the phone to one side moves the picture to the other.
       mirror={isLocal && !backCamera}
+      zOrder={overlay ? 1 : 0}
       style={styles.tile}
     />
   );
