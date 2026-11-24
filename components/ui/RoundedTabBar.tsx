@@ -1,8 +1,7 @@
 import { BottomTabBar, type BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { usePathname } from 'expo-router';
 import React, { useEffect } from 'react';
-import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { requireOptionalNativeModule } from 'expo-modules-core';
+import { Platform, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { Easing, interpolate, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
@@ -19,20 +18,8 @@ const WHITE_PATHS = /^\/(request-assistance(\/.+)?|assist\/scheduled.*|dashboard
  */
 const OVERLAY_PATHS = /^\/(dashboard|assist|appointments|notifications)?$/;
 
-// expo-blur is a native module: until a build that includes it is installed, the soft fade alone is drawn.
-let BlurViewImpl: React.ComponentType<{ intensity: number; tint: 'light'; style?: object }> | null = null;
-try {
-    // The JS side loads fine without the native side (the view is only looked up when drawn, and then it is a red error), so ask for the native module itself.
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    if (requireOptionalNativeModule('ExpoBlur')) BlurViewImpl = require('expo-blur').BlurView;
-} catch {
-    BlurViewImpl = null;
-}
-
-/** How far the blur starts above the bar, so it fades in instead of showing an edge. */
-const BLUR_REACH = 10;
-const BLUR_STEPS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-const BLUR_STEP_INTENSITY = 6;
+/** How far the fade starts above the bar, so the content melts into the page instead of ending in a line. */
+const FADE_REACH = 44;
 
 /** Room a screen on a main tab leaves at the end of its content, so the last item can be scrolled above the floating bar. */
 export function useTabBarInset(): number {
@@ -88,22 +75,14 @@ export function RoundedTabBar(props: BottomTabBarProps) {
 
     return (
         <Animated.View style={[overlay ? { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: 'transparent' } : { backgroundColor: backdrop }, row]}>
-            {/* What scrolls under the bar shows through blurred: three layers, the strongest at the bottom, and a fade into the page colour. */}
+            {/* What scrolls under the bar melts into the page colour below it (like Uber's bar): transparent at the top, the page colour at the bottom. */}
             {overlay && !hidden ? (
-                <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: fullHeight + BLUR_REACH }}>
-                    {BlurViewImpl ? (
-                        // Many thin layers, each a little blurrier and a little shorter than the one before: no layer is strong enough to show an edge, together they fade out.
-                        BLUR_STEPS.map((step) => (
-                            <BlurViewImpl key={step} intensity={BLUR_STEP_INTENSITY} tint="light" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: ((fullHeight + BLUR_REACH) * (BLUR_STEPS.length - step)) / BLUR_STEPS.length }} />
-                        ))
-                    ) : null}
-                    <LinearGradient
-                        // Light on purpose: it only softens, so what scrolls underneath stays visible (more so with the blur than without it).
-                        colors={BlurViewImpl ? ['rgba(246,248,252,0)', 'rgba(246,248,252,0.18)', 'rgba(246,248,252,0.45)'] : ['rgba(246,248,252,0)', 'rgba(246,248,252,0.55)', 'rgba(246,248,252,0.88)']}
-                        locations={[0, 0.5, 1]}
-                        style={StyleSheet.absoluteFill}
-                    />
-                </View>
+                <LinearGradient
+                    pointerEvents="none"
+                    colors={['rgba(246,248,252,0)', 'rgba(246,248,252,0.55)', 'rgba(246,248,252,0.9)', 'rgba(246,248,252,1)']}
+                    locations={[0, 0.4, 0.72, 1]}
+                    style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: fullHeight + FADE_REACH }}
+                />
             ) : null}
             {/* The bar keeps its full height and hangs from the top of the row: as the row shrinks, it slides down and out of the screen. */}
             <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: fullHeight }} pointerEvents={hidden ? 'none' : 'auto'}>

@@ -61,7 +61,6 @@
     "expo": "~55.0.0",
     "expo-application": "~55.0.19",
     "expo-audio": "~55.0.18",
-    "expo-blur": "~55.0.18",
     "expo-build-properties": "~55.0.14",
     "expo-camera": "~55.0.23",
     "expo-constants": "~55.0.16",
