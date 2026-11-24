@@ -4,6 +4,7 @@ import { AppState } from 'react-native';
 import { useUser } from '@/context/UserContext';
 import { notificationDAO, type InboxItem } from '@/lib/dao/NotificationDAO';
 import i18next from '@/lib/i18n';
+import { syncPushRegistration } from '@/lib/notifications/push';
 import { clearAppBadge } from '@/modules/app-badge';
 
 export interface AppNotification {
@@ -212,6 +213,18 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
             console.warn('[inbox] mark seen failed:', (err as Error).message);
         }
     }, [userId]);
+
+    // The language was changed: the list is asked for again in the new one (the texts come from the server in the language it is given), and the
+    // phone's registration is updated so what arrives next is in it too.
+    useEffect(() => {
+        if (!userId) return undefined;
+        const onChange = () => {
+            void refresh();
+            void syncPushRegistration({ ask: false });
+        };
+        i18next.on('languageChanged', onChange);
+        return () => { i18next.off('languageChanged', onChange); };
+    }, [userId, refresh]);
 
     // Signed in, and every return to the foreground: fresh list, icon cleared.
     // Signed out: nothing to show, and nothing left on the icon.

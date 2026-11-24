@@ -1,3 +1,4 @@
+import { appAlert } from '@/lib/ui/appAlert';
 import { useAcceptedSlot } from '@/lib/scheduled/slot';
 import { isFarScheduled } from '@/lib/scheduled/timing';
 import { RequestAgainButton } from '@/components/scheduled/RequestAgainButton';
@@ -228,6 +229,12 @@ export default function AppointmentDetailScreen() {
     );
     const videoStatus = videoState?.status ?? appointment?.status;
     const videoCallLive = videoStatus === 'accepted' || videoStatus === 'in_progress';
+    // When each step of the call's timeline happened: accepted, the call started, and it closed (the last change once it is over).
+    const videoStepTimes = {
+        accepted: appointment?.acceptedAt,
+        call: videoState?.callStartedAt ?? appointment?.startedAt,
+        closed: appointment?.completedAt ?? (['completed', 'awaiting_confirmation', 'disputed'].includes(appointment?.status ?? '') ? (appointment?.updatedAt ?? appointment?.createdAt) : undefined),
+    };
     // The owner's OBD scanner report: it can change until the call is over.
     const obd = useRequestObd(isVideoCall ? appointment?.id : undefined);
     const obdEditable = ['pending', 'accepted', 'in_progress'].includes(videoStatus ?? '');
@@ -424,11 +431,18 @@ export default function AppointmentDetailScreen() {
     const joinOpenedFor = React.useRef<string | null>(null);
     React.useEffect(() => {
         if (!joinParam || !appointment?.id || joinOpenedFor.current === appointment.id) return;
+        // The link was about a call that is over (done, cancelled, awaiting confirmation): there is no room to enter any more. It is said once,
+        // and the screen shows how the call ended.
+        if (isVideoCall && !videoCallLive) {
+            joinOpenedFor.current = appointment.id;
+            appAlert(t('appointments.videoCall.over.title'), t('appointments.videoCall.over.body'), undefined, { tone: 'info' });
+            return;
+        }
         // The technician joins once the customer is in the room: landing here earlier waits, and the sheet opens when they enter.
         if (!isUserRole && isVideoCall && videoStartedAtMs === null && !customerInRoom) return;
         joinOpenedFor.current = appointment.id;
         setJoinSheetOpen(true);
-    }, [joinParam, appointment?.id, isUserRole, isVideoCall, videoStartedAtMs, customerInRoom]);
+    }, [joinParam, appointment?.id, isUserRole, isVideoCall, videoCallLive, videoStartedAtMs, customerInRoom]);
     // Connected: the sheet closes first, then the call opens (presenting a screen while a modal is still leaving can fail).
     const enterVideoCall = (room: { roomUrl: string; token: string; expiry: number }) => {
         if (!appointment) return;
@@ -710,6 +724,7 @@ export default function AppointmentDetailScreen() {
                                 callStarted={videoStartedAtMs !== null}
                                 notResolved={videoState?.currentStatus === 'not_resolved'}
                                 reviewSent={ownerRated}
+                                times={videoStepTimes}
                             />
                             {appointment.status === 'completed' && <BackToDashboardButton onPress={backToDashboard} />}
                         </View>
@@ -869,6 +884,7 @@ export default function AppointmentDetailScreen() {
                             callStarted={videoStartedAtMs !== null}
                             notResolved={videoState?.currentStatus === 'not_resolved'}
                             reviewSent={isReviewSubmitted}
+                            times={videoStepTimes}
                         />
                     </View>
                 );

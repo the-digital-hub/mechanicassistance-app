@@ -2624,6 +2624,10 @@
           "failedBody": "Please try again."
         },
         "view": "View"
+      },
+      "over": {
+        "title": "That video call is over",
+        "body": "The room can no longer be entered. Here is how it ended."
       }
     },
     "clientReview": {
@@ -3113,7 +3117,8 @@
     "deleteFailedServer": "The server could not delete the notifications (error {{status}}). Try again later.",
     "deleteAllConfirmTitle": "Delete all notifications?",
     "deleteAllConfirmMessage": "All your notifications ({{count}}) will be deleted, not only the ones on screen. This cannot be undone.",
-    "deleteAllUnreadConfirmMessage": "All your unread notifications ({{count}}) will be deleted. This cannot be undone."
+    "deleteAllUnreadConfirmMessage": "All your unread notifications ({{count}}) will be deleted. This cannot be undone.",
+    "callEnded": "This video call is over"
   },
   "settingsMenu": {
     "language": "Language",
@@ -4807,12 +4812,12 @@
       "details": "Request Details",
       "quote": "Your quote",
       "review": "Review quote",
-      "sent": "Quote sent",
+      "sent": "Your quote",
       "sentOn": "Sent on",
       "decline": "Decline",
-      "declined": "Declined",
-      "awarded": "Job confirmed",
-      "closed": "Quote closed"
+      "declined": "Request Details",
+      "awarded": "Your quote",
+      "closed": "Your quote"
     },
     "details": {
       "title": "Review and send your quote.",
