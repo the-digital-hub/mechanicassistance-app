@@ -30,7 +30,9 @@ try {
 }
 
 /** How far the blur starts above the bar, so it fades in instead of showing an edge. */
-const BLUR_REACH = 36;
+const BLUR_REACH = 10;
+const BLUR_STEPS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+const BLUR_STEP_INTENSITY = 6;
 
 /** Room a screen on a main tab leaves at the end of its content, so the last item can be scrolled above the floating bar. */
 export function useTabBarInset(): number {
@@ -90,11 +92,10 @@ export function RoundedTabBar(props: BottomTabBarProps) {
             {overlay && !hidden ? (
                 <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: fullHeight + BLUR_REACH }}>
                     {BlurViewImpl ? (
-                        <>
-                            <BlurViewImpl intensity={12} tint="light" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: fullHeight + BLUR_REACH }} />
-                            <BlurViewImpl intensity={28} tint="light" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: (fullHeight + BLUR_REACH) * 0.66 }} />
-                            <BlurViewImpl intensity={48} tint="light" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: (fullHeight + BLUR_REACH) * 0.36 }} />
-                        </>
+                        // Many thin layers, each a little blurrier and a little shorter than the one before: no layer is strong enough to show an edge, together they fade out.
+                        BLUR_STEPS.map((step) => (
+                            <BlurViewImpl key={step} intensity={BLUR_STEP_INTENSITY} tint="light" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: ((fullHeight + BLUR_REACH) * (BLUR_STEPS.length - step)) / BLUR_STEPS.length }} />
+                        ))
                     ) : null}
                     <LinearGradient
                         // Light on purpose: it only softens, so what scrolls underneath stays visible (more so with the blur than without it).
