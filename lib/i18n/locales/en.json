@@ -323,7 +323,8 @@
         "started": "In progress",
         "awaitingConfirmation": "Confirm it",
         "disputed": "Under review",
-        "windowClosed": "Offers closed"
+        "windowClosed": "Offers closed",
+        "waitingQuotes": "Waiting for quotes"
       },
       "requestStatusDetail": {
         "pending": "Looking for a technician",
@@ -332,7 +333,8 @@
         "started": "Service underway",
         "awaitingConfirmation": "The technician finished — confirm it",
         "disputed": "Support is reviewing it",
-        "windowClosed": "The time to receive offers ended"
+        "windowClosed": "The time to receive offers ended",
+        "waitingQuotes": "Providers can quote until the window closes"
       },
       "offerHeldHint": "Confirm it before the hold ends.",
       "viewRequest": "View request",
@@ -3752,7 +3754,7 @@
   "assist": {
     "badge": "PENDING ASSISTANCE REQUESTS",
     "title": "Take your next request",
-    "subtitle": "Open requests near you, waiting for a technician.",
+    "subtitle": "Open requests near you.",
     "searchPlaceholder": "Search by vehicle, area, or issue",
     "all": "All",
     "yourQuotes": "Your quotes",

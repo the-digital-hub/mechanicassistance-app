@@ -323,7 +323,8 @@
         "started": "En curso",
         "awaitingConfirmation": "Confirmala",
         "disputed": "En revisión",
-        "windowClosed": "Ofertas cerradas"
+        "windowClosed": "Ofertas cerradas",
+        "waitingQuotes": "Esperando cotizaciones"
       },
       "requestStatusDetail": {
         "pending": "Buscando mecánico",
@@ -332,7 +333,8 @@
         "started": "Servicio en marcha",
         "awaitingConfirmation": "El mecánico finalizó — confirmala",
         "disputed": "Soporte lo está revisando",
-        "windowClosed": "Terminó el tiempo para recibir ofertas"
+        "windowClosed": "Terminó el tiempo para recibir ofertas",
+        "waitingQuotes": "Los prestadores pueden cotizar hasta que cierre el plazo"
       },
       "offerHeldHint": "Confirmala antes de que termine la reserva.",
       "viewRequest": "Ver solicitud",
@@ -3753,7 +3755,7 @@
   "assist": {
     "badge": "SOLICITUDES DE ASISTENCIA PENDIENTES",
     "title": "Tomá tu próximo pedido",
-    "subtitle": "Pedidos abiertos cerca tuyo, esperando un técnico.",
+    "subtitle": "Pedidos abiertos cerca tuyo.",
     "searchPlaceholder": "Buscar por vehículo, zona o problema",
     "all": "Todas",
     "yourQuotes": "Tus presupuestos",

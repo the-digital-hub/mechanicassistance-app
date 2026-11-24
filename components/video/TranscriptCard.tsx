@@ -10,8 +10,10 @@ import { FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
 import { getConsents } from '@/lib/video/consent';
 import { type TranscriptLine, getLocalTranscript } from '@/lib/video/transcriptStore';
 import { buildTranscriptHtml } from '@/lib/video/transcriptPdf';
+import { reportBrand } from '@/lib/pdf/brand';
 import { TYPE } from '@/lib/ui/type';
 import { SheetDim } from '@/components/ui/SheetDim';
+import { LinearGradient } from 'expo-linear-gradient';
 import { SHEET } from '@/lib/ui/sheet';
 import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 
@@ -100,6 +102,8 @@ export function TranscriptCard({ appointmentId, role, info, variant = 'card' }: 
         setExporting(true);
         try {
             const consents = await getConsents(appointmentId);
+            // The brand in colour and the app's font go inside the page as data (without them the header says the name in text).
+            const brand = await reportBrand();
             const html = buildTranscriptHtml({
                 ref: info?.ref,
                 vehicle: info?.vehicle,
@@ -110,6 +114,7 @@ export function TranscriptCard({ appointmentId, role, info, variant = 'card' }: 
                 lines: data.lines,
                 consents,
                 locale: i18n.language,
+                brand,
                 labels: {
                     title: t(`${K}.pdf.title`), reference: t(`${K}.pdf.reference`), vehicle: t(`${K}.pdf.vehicle`), callDate: t(`${K}.pdf.callDate`),
                     duration: t(`${K}.pdf.duration`), generated: t(`${K}.pdf.generated`), consentTitle: t(`${K}.pdf.consentTitle`),
@@ -124,7 +129,8 @@ export function TranscriptCard({ appointmentId, role, info, variant = 'card' }: 
             const Print = require('expo-print') as typeof import('expo-print');
             // eslint-disable-next-line @typescript-eslint/no-require-imports
             const Sharing = require('expo-sharing') as typeof import('expo-sharing');
-            const { uri } = await Print.printToFileAsync({ html });
+            // Margins on every page (iOS ignores the CSS ones), so a page cut never lands on the edge of the sheet.
+            const { uri } = await Print.printToFileAsync({ html, margins: { left: 36, right: 36, top: 36, bottom: 36 } });
             if (await Sharing.isAvailableAsync()) {
                 await Sharing.shareAsync(uri, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf', dialogTitle: t(`${K}.pdf.title`) });
             }
@@ -199,10 +205,10 @@ export function TranscriptCard({ appointmentId, role, info, variant = 'card' }: 
                 <SheetDim color="rgba(11,21,48,0.35)" />
                 <Pressable style={{ flex: 1 }} onPress={() => setOpen(false)} />
                 <View style={{ ...SHEET, height: '75%', overflow: 'hidden' }} testID="transcript-sheet">
-                    {/* The fixed top: rounded, with a soft shadow the lines slide under (no hard divider). */}
+                    {/* The fixed top: rounded; the lines slide under a very short fade of white (no shadow, no hard edge). */}
                     <View
                         className="flex-row items-center"
-                        style={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 14, backgroundColor: '#FFFFFF', borderTopLeftRadius: 28, borderTopRightRadius: 28, zIndex: 2, shadowColor: '#0B1F5C', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.08, shadowRadius: 10, elevation: 4 }}
+                        style={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 14, backgroundColor: '#FFFFFF', borderTopLeftRadius: 28, borderTopRightRadius: 28, zIndex: 2 }}
                     >
                         <Text className="font-outfit-bold" style={{ flex: 1, fontSize: 18, color: AO.text }}>{t(`${K}.title`)}</Text>
                         <TouchableOpacity onPress={() => setOpen(false)} hitSlop={10} accessibilityRole="button" accessibilityLabel={t(`${K}.close`)}>
@@ -212,6 +218,7 @@ export function TranscriptCard({ appointmentId, role, info, variant = 'card' }: 
                     {loading ? (
                         <ActivityIndicator color={AO.blue} style={{ marginTop: 40 }} />
                     ) : (
+                        <View style={{ flex: 1 }}>
                         <FlatList
                             style={{ flex: 1 }}
                             data={data?.lines ?? []}
@@ -236,6 +243,12 @@ export function TranscriptCard({ appointmentId, role, info, variant = 'card' }: 
                                 </View>
                             )}
                         />
+                        <LinearGradient
+                            pointerEvents="none"
+                            colors={['#FFFFFF', 'rgba(255,255,255,0)']}
+                            style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 14 }}
+                        />
+                        </View>
                     )}
                     <View style={[FLOATING_FOOTER, { paddingBottom: 28 }]}>
                         <TouchableOpacity

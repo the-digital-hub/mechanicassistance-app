@@ -176,6 +176,14 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
     // overwrite the list with a stale (or partial) snapshot — an appointment would
     // "disappear". Only the latest call is allowed to write.
     const loadSeq = useRef(0);
+    // The vehicle issues of each request, with when they were read: they come from the pricing service one request at a time, so they are kept
+    // between loads (and read again after a few minutes) instead of being asked for on every reload.
+    const ISSUES_FRESH_MS = 5 * 60 * 1000;
+    const issuesCache = useRef(new Map<string, { at: number; value: VehicleIssueSnapshot[] }>());
+    useEffect(() => {
+        issuesCache.current.clear();
+    }, [user?.id]);
+    const issuesOf = (id: string): VehicleIssueSnapshot[] => issuesCache.current.get(id)?.value ?? [];
 
     const loadAppointments = async () => {
         const seq = ++loadSeq.current;
@@ -195,22 +203,11 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                 assistanceDAO.getAll(user.role === 'user' ? { userId: user.id } : { mechanicId: user.id })
             ]);
 
-            // Best-effort: vehicle issues live in the pricing service, not on
-            // assistance_requests/appointments. A failed fetch for one id must
-            // not block the rest of the list from loading.
+            // Vehicle issues live in the pricing service, not on assistance_requests/appointments: they are read after the list is already on
+            // screen (hundreds of requests mean hundreds of calls, and the list must not wait for them), and a failed one just stays empty.
             const ids = Array.from(new Set([...data.map((a: any) => a.id), ...assistanceRequests.map((r: AssistanceRequest) => r.id)]));
-            const issuesEntries = await Promise.all(
-                ids.map(async (id): Promise<[string, VehicleIssueSnapshot[]]> => {
-                    try {
-                        return [id, await pricingDAO.getRequestIssues(id)];
-                    } catch (error) {
-                        console.warn(`Failed to load vehicle issues for ${id}`, error);
-                        return [id, []];
-                    }
-                })
-            );
-            const issuesById = new Map(issuesEntries);
 
+            const build = (): Appointment[] => {
             const mappedAssistance: Appointment[] = assistanceRequests
                 .filter((req: AssistanceRequest) => !data.some(appt => appt.id === req.id))
                 .map((req: AssistanceRequest) => ({
@@ -247,7 +244,7 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                     photos: parseAttachments(req.photos),
                     locationLat: req.locationLat,
                     locationLng: req.locationLng,
-                    vehicleIssues: issuesById.get(req.id) || [],
+                    vehicleIssues: issuesOf(req.id),
                     vehicleCondition: req.vehicleCondition ?? null,
                     source: 'assistance' as const
                 }));
@@ -281,14 +278,39 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                         : {}),
                     // The photos and clips the owner attached to the request belong to the job: the appointment row does not carry them.
                     photos: parseAttachments(appt.photos ?? ar?.photos),
-                    vehicleIssues: issuesById.get(appt.id) || [],
+                    vehicleIssues: issuesOf(appt.id),
                     vehicleCondition: appt.vehicleCondition ?? ar?.vehicleCondition ?? null,
                     source: 'appointment' as const,
                 };
             });
 
+                return [...mappedAssistance, ...mappedData];
+            };
+
             if (!isLatest()) return;
-            setAppointments([...mappedAssistance, ...mappedData]);
+            setAppointments(build());
+            // The list is shown: whoever waited for it (a detail opened from a notification) does not wait for the issues.
+            setIsLoading(false);
+            // The list is in view: now the issues of the requests that have none yet (or are stale), a few at a time.
+            const now = Date.now();
+            const queue = ids.filter((id) => {
+                const known = issuesCache.current.get(id);
+                return !known || now - known.at > ISSUES_FRESH_MS;
+            });
+            if (queue.length > 0) {
+                const worker = async () => {
+                    for (let id = queue.shift(); id !== undefined; id = queue.shift()) {
+                        try {
+                            issuesCache.current.set(id, { at: Date.now(), value: await pricingDAO.getRequestIssues(id) });
+                        } catch (error) {
+                            console.warn(`Failed to load vehicle issues for ${id}`, error);
+                        }
+                    }
+                };
+                await Promise.all(Array.from({ length: 8 }, worker));
+                if (!isLatest()) return;
+                setAppointments(build());
+            }
 
             // GLOBAL NOTIFICATION LOGIC REMOVED
             // We will handle the alert in the Appointments screen instead.

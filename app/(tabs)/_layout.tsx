@@ -1,3 +1,4 @@
+import { StackActions } from "expo-router/react-navigation";
 import { FONT } from '@/lib/ui/fonts';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useUser } from "@/context/UserContext";
@@ -163,6 +164,17 @@ function MechanicStatusBadge() {
   );
 }
 
+/**
+ * What tapping a tab does when it already has screens stacked inside it (a detail opened from the list): the stack goes back to its first
+ * screen, then the tab is shown. In React Navigation 8 `navigate` no longer pops a stack to a screen that is already in it, so asking for
+ * `{ screen: 'index' }` alone could leave the detail on top (or stack a second list over it).
+ */
+function showTabRoot(navigation: { getState: () => { routes: { key: string; state?: { key?: string } }[] }; dispatch: (action: object) => void; navigate: (...args: never[]) => void }, event: { target?: string }, tab: string) {
+  const nestedKey = navigation.getState().routes.find((r) => r.key === event.target)?.state?.key;
+  if (nestedKey) navigation.dispatch({ ...StackActions.popToTop(), target: nestedKey });
+  (navigation.navigate as unknown as (name: string, params: object) => void)(tab, { screen: 'index' });
+}
+
 export function NotificationHeaderRight() {
   const router = useRouter();
 
@@ -284,7 +296,7 @@ export default function TabLayout() {
         listeners={({ navigation }) => ({
           tabPress: (e) => {
             e.preventDefault();
-            navigation.navigate('assist', { screen: 'index' });
+            showTabRoot(navigation, e, 'assist');
           },
         })}
       />
@@ -302,7 +314,7 @@ export default function TabLayout() {
         listeners={({ navigation }) => ({
           tabPress: (e) => {
             e.preventDefault();
-            navigation.navigate('request-assistance', { screen: 'index' });
+            showTabRoot(navigation, e, 'request-assistance');
           },
         })}
       />
@@ -335,7 +347,7 @@ export default function TabLayout() {
           // entered straight on a detail from another tab or a notification.
           tabPress: (e) => {
             e.preventDefault();
-            navigation.navigate('appointments', { screen: 'index' });
+            showTabRoot(navigation, e, 'appointments');
           },
         })}
       />

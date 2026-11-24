@@ -91,13 +91,12 @@ export function MechanicVideoStatusTab({ status, callStarted, notResolved, revie
                             {!last ? <View style={{ flex: 1, width: 2, marginVertical: 4, backgroundColor: done ? '#BFE3D0' : '#E6EAF3', minHeight: 20 }} /> : null}
                         </View>
                         <View style={{ flex: 1, paddingBottom: last ? 0 : 18 }}>
-                            <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
-                                <Text className="font-outfit-bold" style={{ flexShrink: 1, fontSize: 16, lineHeight: 22, color: step.state === 'pending' ? AO.mutedLight : AO.text }}>{step.title}</Text>
-                                {step.at && formatLocalDateTime(step.at, i18n.language) ? (
-                                    <Text className="font-outfit-medium" style={{ fontSize: 13, lineHeight: 18, color: AO.muted }} testID={`status-time-${step.key}`}>{formatLocalDateTime(step.at, i18n.language)}</Text>
-                                ) : null}
-                            </View>
+                            <Text className="font-outfit-bold" style={{ fontSize: 16, lineHeight: 22, color: step.state === 'pending' ? AO.mutedLight : AO.text }}>{step.title}</Text>
                             <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: current ? AO.blue : AO.muted }}>{step.sub}</Text>
+                            {/* When it happened: with the rest of the step's words, under them. */}
+                            {step.at && formatLocalDateTime(step.at, i18n.language) ? (
+                                <Text className="font-outfit-medium" style={{ fontSize: 13, lineHeight: 18, color: AO.mutedLight, marginTop: 2 }} testID={`status-time-${step.key}`}>{formatLocalDateTime(step.at, i18n.language)}</Text>
+                            ) : null}
                         </View>
                     </View>
                 );

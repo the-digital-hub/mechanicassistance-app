@@ -7,7 +7,6 @@ import type { Appointment } from '@/context/AppointmentsContext';
 import { FinalReportSheet, loadServiceReport, shareServiceReportPdf } from '@/components/on-site/FinalReportActions';
 import type { FinalReport } from '@/lib/onsite/finalReport';
 import { appAlert } from '@/lib/ui/appAlert';
-import { TYPE } from '@/lib/ui/type';
 
 const INK = { text: '#0B1530', muted: '#6B7490', blue: '#1E56E3', blueSoft: '#EAF1FF', line: '#EEF2FA' };
 
@@ -44,12 +43,12 @@ export function ServiceReportCard({ appointment, role = 'user', ownerName, mecha
             disabled={!!busy}
             activeOpacity={0.85}
             accessibilityRole="button"
-            className="flex-1 items-center justify-center flex-row"
-            style={{ gap: 8, minHeight: 56, borderRadius: 14, backgroundColor: primary ? INK.blue : INK.blueSoft, opacity: busy && !loading ? 0.6 : 1 }}
+            className="items-center justify-center flex-row"
+            style={{ alignSelf: 'stretch', gap: 8, minHeight: 46, borderRadius: 14, backgroundColor: primary ? INK.blue : '#E6EAF2', opacity: busy && !loading ? 0.6 : 1 }}
             testID={testID}
         >
-            {loading ? <ActivityIndicator color={primary ? '#fff' : INK.blue} /> : null}
-            <Text className="font-outfit-bold" style={{ ...TYPE.button, color: primary ? '#fff' : INK.blue }}>{label}</Text>
+            {loading ? <ActivityIndicator color={primary ? '#fff' : '#4A5470'} /> : null}
+            <Text className="font-outfit-bold" style={{ fontSize: 15, lineHeight: 20, color: primary ? '#fff' : '#4A5470' }}>{label}</Text>
         </TouchableOpacity>
     );
 
@@ -65,9 +64,10 @@ export function ServiceReportCard({ appointment, role = 'user', ownerName, mecha
                     <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: INK.muted }}>{t(role === 'mechanic' ? 'appointments.report.mechanicCardHint' : 'appointments.report.ownerCardHint')}</Text>
                 </View>
             </View>
-            <View className="flex-row" style={{ gap: 10 }}>
-                <Button label={t('appointments.report.viewShort')} onPress={view} loading={busy === 'view'} testID="service-report-view" />
+            {/* One under the other: the main action above, the quiet one (soft slate) below. */}
+            <View style={{ gap: 10 }}>
                 <Button label={t('appointments.report.download')} onPress={download} loading={busy === 'pdf'} primary testID="service-report-download" />
+                <Button label={t('appointments.report.viewShort')} onPress={view} loading={busy === 'view'} testID="service-report-view" />
             </View>
         </View>
     );

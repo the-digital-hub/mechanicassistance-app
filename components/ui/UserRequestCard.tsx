@@ -110,11 +110,19 @@ export function UserRequestCard({
                 };
             default:
                 // A scheduled request whose window to receive offers is over is waiting for the owner, not searching.
-                if (type === 'scheduled' && status === 'pending' && offersCloseAt && Date.parse(offersCloseAt) <= Date.now()) {
+                if (type === 'scheduled' && status === 'pending') {
+                    if (offersCloseAt && Date.parse(offersCloseAt) <= Date.now()) {
+                        return {
+                            label: t('dashboard.user.requestStatus.windowClosed'),
+                            detail: t('dashboard.user.requestStatusDetail.windowClosed'),
+                            bg: '#FFF4E8', color: '#EA580C', dot: '#F59E0B',
+                        };
+                    }
+                    // While the window is open a scheduled request is not "searching for a technician" (that is the immediate one): it waits for quotes.
                     return {
-                        label: t('dashboard.user.requestStatus.windowClosed'),
-                        detail: t('dashboard.user.requestStatusDetail.windowClosed'),
-                        bg: '#FFF4E8', color: '#EA580C', dot: '#F59E0B',
+                        label: t('dashboard.user.requestStatus.waitingQuotes'),
+                        detail: t('dashboard.user.requestStatusDetail.waitingQuotes'),
+                        bg: '#EAF1FF', color: '#1E56E3', dot: '#1E56E3',
                     };
                 }
                 return {

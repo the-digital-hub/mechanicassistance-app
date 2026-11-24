@@ -107,6 +107,16 @@ function DeleteAction({ onPress }: { onPress: () => void }) {
     );
 }
 
+/** What a notification's moment being over looks like: its text stays as readable as the others, and a small slate badge says it is over. */
+function EndedPill({ label }: { label: string }) {
+    return (
+        <View className="flex-row items-center self-start" style={{ gap: 6, marginTop: 8, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, backgroundColor: '#E9ECF2' }} testID="notification-ended">
+            <CircleCheck size={14} color="#4B5563" />
+            <Text className="font-outfit-semibold" style={{ fontSize: 13, color: '#4B5563' }}>{label}</Text>
+        </View>
+    );
+}
+
 export default function NotificationsScreen() {
   const tabInset = useTabBarInset();
     const router = useRouter();
@@ -220,7 +230,6 @@ export default function NotificationsScreen() {
         const a = appointments.find((x) => x.id === (notif.appointmentId ?? notif.requestId));
         return !!a && (isCancelledStatus(a.status) || ['completed', 'awaiting_confirmation', 'disputed'].includes(a.status));
     };
-    const isOver = (notif: typeof notifications[0]) => endedIds.has(notif.id) || callIsOver(notif);
     const markEnded = (id: string) => setEndedIds((prev) => new Set(prev).add(id));
     const [openingId, setOpeningId] = useState<string | null>(null);
 
@@ -376,7 +385,7 @@ export default function NotificationsScreen() {
                                 onAccessibilityAction={(e) => { if (e.nativeEvent.actionName === 'delete') handleDelete(notif.id); }}
                             >
                                 {/* The dimming is on the content, not on the row: the row keeps its own solid background, so the red of the delete swipe never shows through it. */}
-                                <View className="flex-row gap-4" style={{ opacity: isOver(notif) ? 0.6 : 1 }}>
+                                <View className="flex-row gap-4">
                                 {/* Icon */}
                                 <NotificationIcon kind={notif.kind} unread={notif.unread} />
 
@@ -403,11 +412,11 @@ export default function NotificationsScreen() {
                                     </View>
                                     <Text className="text-gray-500 font-outfit-regular text-[16.5px] leading-6" style={{ marginTop: 2 }}>{notif.body}</Text>
                                     {callIsOver(notif) ? (
-                                        <Text className="text-gray-400 font-outfit-medium text-[15px] mt-1">{t('notifications.callEnded')}</Text>
+                                        <EndedPill label={t('notifications.callEnded')} />
                                     ) : null}
                                     {notif.type === 'mechanic_found' && notif.requestId && (
                                         endedIds.has(notif.id)
-                                            ? <Text className="text-gray-400 font-outfit-medium text-[15px] mt-1">{t('notifications.offerEnded')}</Text>
+                                            ? <EndedPill label={t('notifications.offerEnded')} />
                                             : <Text className="text-blue-500 font-outfit-medium text-[15px] mt-1">{openingId === notif.id ? t('notifications.opening') : t('notifications.tapToView')}</Text>
                                     )}
                                 </View>
