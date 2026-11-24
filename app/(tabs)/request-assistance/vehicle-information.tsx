@@ -1,3 +1,4 @@
+import { HeaderBell } from '@/components/HeaderBell';
 import { FONT } from '@/lib/ui/fonts';
 import { RequestSteps, stepEyebrow } from '@/components/ui/RequestSteps';
 import { ROUNDED_HEADER } from '@/lib/ui/header';
@@ -97,7 +98,7 @@ export default function VehicleInformationScreen() {
                 <Text style={{ fontFamily: FONT.medium, fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>
                     {getTitle()}
                 </Text>
-                <View className="w-6" />
+                <HeaderBell />
             </View>
             <KeyboardAwareScrollView className="flex-1 px-6 pt-4" contentContainerStyle={{ paddingBottom: 24 }} keyboardShouldPersistTaps="handled">
                     <RequestSteps type={params.type} step="condition" flush />

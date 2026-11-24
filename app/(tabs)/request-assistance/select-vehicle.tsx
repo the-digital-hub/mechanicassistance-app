@@ -182,7 +182,7 @@ export default function SelectVehicleScreen() {
                     {/* Outside the loading branch: the user can add a vehicle before the list resolves. */}
                     {!isLoading && !selected ? (
                         <PickReveal>
-                            <AddVehicleButton label={t('requestAssistance.selectVehicle.addVehicle')} onPress={() => router.push('/(tabs)/vehicles')} testID="select-vehicle-add" align="end" />
+                            <AddVehicleButton label={t('requestAssistance.selectVehicle.addVehicle')} onPress={() => router.push({ pathname: '/(tabs)/vehicles', params: { add: '1' } })} testID="select-vehicle-add" align="end" />
                         </PickReveal>
                     ) : null}
 

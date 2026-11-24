@@ -71,6 +71,10 @@ export function VinCard({ value, onChange, onDecode, decoding, decoded, error, l
                     maxLength={VIN_LENGTH}
                     autoCapitalize="characters"
                     autoCorrect={false}
+                    returnKeyType="done"
+                    blurOnSubmit
+                    // "Done" on the keyboard looks the VIN up when it is complete (the keyboard goes away with it).
+                    onSubmitEditing={() => { if (canDecode) onDecode(); }}
                     placeholder={t('vehicles.form.design.vinPlaceholder')}
                     placeholderTextColor={AV.mutedLight}
                     style={{

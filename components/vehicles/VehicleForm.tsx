@@ -16,7 +16,9 @@ import { useCameraPermissions } from 'expo-camera';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, KeyboardAvoidingView, KeyboardTypeOptions, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, KeyboardTypeOptions, Text, TouchableOpacity, View } from 'react-native';
+import { KeyboardAwareScrollView } from '@/components/ui/KeyboardAwareScrollView';
+import { useKeyboardOpen } from '@/hooks/useKeyboardOpen';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { appAlert } from '@/lib/ui/appAlert';
 
@@ -464,17 +466,17 @@ export function VehicleForm({ initialValue, submitLabel, submitting, onSubmit, h
 
     const vinReady = values.vin.trim().length === VIN_LENGTH;
     const canSave = vinReady && !submitting;
+    const keyboardOpen = useKeyboardOpen();
     const optional = t('vehicles.form.design.optional');
     const statusLabel = values.status ? statusOptions.find(o => o.value === values.status)?.label ?? values.status : undefined;
 
     return (
-        <KeyboardAvoidingView
-            behavior="padding"
-            style={{ flex: 1, backgroundColor: AV.page }}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-        >
-            <ScrollView
+        <View style={{ flex: 1, backgroundColor: AV.page }}>
+            {/* The app's keyboard-aware scroll: it makes room for the keyboard and brings the field being typed in into view (the card stays in sight
+                above it); nothing squeezes and nothing rides up over the keyboard. */}
+            <KeyboardAwareScrollView
                 style={{ flex: 1 }}
+                topGap={96}
                 contentContainerStyle={{ paddingHorizontal: 20, paddingTop: topInset, paddingBottom: 20, gap: 14 }}
                 keyboardShouldPersistTaps="handled"
             >
@@ -746,8 +748,10 @@ export function VehicleForm({ initialValue, submitLabel, submitting, onSubmit, h
                         multiline: true,
                     })}
                 </VehicleFormSection>
-            </ScrollView>
+            </KeyboardAwareScrollView>
 
+            {/* The save bar steps aside while a field is being typed in: the keyboard (and the field) get the room. */}
+            {keyboardOpen ? null : (
             <View
                 style={{
                     ...FLOATING_FOOTER,
@@ -778,6 +782,7 @@ export function VehicleForm({ initialValue, submitLabel, submitting, onSubmit, h
                     </LinearGradient>
                 </TouchableOpacity>
             </View>
-        </KeyboardAvoidingView>
+            )}
+        </View>
     );
 }

@@ -1,3 +1,4 @@
+import { HeaderBell } from '@/components/HeaderBell';
 import { FONT } from '@/lib/ui/fonts';
 import { RequestSteps, stepEyebrow } from '@/components/ui/RequestSteps';
 import { ROUNDED_HEADER } from '@/lib/ui/header';
@@ -52,11 +53,6 @@ export default function ObdScannerScreen() {
     const choose = (value: Exclude<Answer, null>) => {
         setAnswer(value);
         if (value === 'no') setObdFile(null);
-    };
-
-    const skip = () => {
-        choose('no');
-        next();
     };
 
     // Nothing is uploaded yet: the request does not exist until "When".
@@ -125,9 +121,7 @@ export default function ObdScannerScreen() {
                 <Text style={{ fontFamily: FONT.bold, fontSize: 17, color: C.ink, flex: 1, textAlign: 'center' }}>
                     {t(`${k}.headerTitle`)}
                 </Text>
-                <TouchableOpacity onPress={skip} testID="obd-scanner-skip" className="w-10 items-end">
-                    <Text className="font-outfit-semibold" style={{ fontSize: 15, color: C.blue }}>{t(`${k}.skip`)}</Text>
-                </TouchableOpacity>
+                <HeaderBell />
             </View>
             <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: 24, gap: 14 }}>
                     <RequestSteps type={params.type} step="scanner" gap={14} flush />

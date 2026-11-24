@@ -1,14 +1,16 @@
+import { useTabBarInset } from '@/components/ui/RoundedTabBar';
 import { setAppLanguage } from '@/lib/i18n';
 import { Check } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 export default function LanguageScreen() {
+    const tabInset = useTabBarInset();
     const { t, i18n } = useTranslation();
     const current = i18n.language?.startsWith('es') ? 'es' : 'en';
 
     return (
-        <ScrollView style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 24, paddingBottom: 40 }}>
+        <ScrollView style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 24, paddingBottom: 40 + tabInset }}>
             <View style={{ marginTop: 8 }}>
 <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                 <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />

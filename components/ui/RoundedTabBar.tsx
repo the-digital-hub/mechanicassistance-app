@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { Easing, interpolate, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { PAGE_BG, TAB_BAR_HEIGHT } from '@/lib/ui/header';
-import { setTabBarHidden, useTabBarHidden } from '@/lib/ui/tabBarVisibility';
+import { setTabBarHidden, useTabBarFooter, useTabBarHidden } from '@/lib/ui/tabBarVisibility';
 
 /** Screens that end in a fixed white footer (the wizard steps, the quote and check-in flows), and the ones with a white page of their own. */
 const WHITE_PATHS = /^\/(request-assistance(\/.+)?|assist\/scheduled.*|dashboard\/filter|privacy|appointments\/check-in.*|addresses.*)$/;
@@ -16,7 +16,7 @@ const WHITE_PATHS = /^\/(request-assistance(\/.+)?|assist\/scheduled.*|dashboard
  * The main tabs: here the bar floats over the content (transparent row, the page scrolls under it and shows through blurred). Every other screen
  * keeps the bar in its own row, because they end in a fixed footer that must sit above it.
  */
-const OVERLAY_PATHS = /^\/(dashboard|assist|appointments|notifications)?$/;
+const OVERLAY_PATHS = /^\/(dashboard|assist|appointments|notifications|membership|payments|payment-cards|payment-activity|personal-info|promotions|settings(\/language)?)?$/;
 
 /** How far the fade starts above the bar, so the content melts into the page instead of ending in a line. */
 const FADE_REACH = 44;
@@ -25,7 +25,11 @@ const FADE_REACH = 44;
 export function useTabBarInset(): number {
     const pathname = usePathname();
     const insets = useSafeAreaInsets();
-    return OVERLAY_PATHS.test(pathname) ? TAB_BAR_HEIGHT + (Platform.OS === 'android' ? insets.bottom : 0) : 0;
+    const hidden = useTabBarHidden();
+    const footer = useTabBarFooter();
+    if (!OVERLAY_PATHS.test(pathname) || footer) return 0;
+    // With the bar tucked away only its little handle is left: the end of the content comes down with it instead of leaving an empty band.
+    return hidden ? TIP_HEIGHT : TAB_BAR_HEIGHT + (Platform.OS === 'android' ? insets.bottom : 0);
 }
 
 /** Height of what stays when the bar is tucked away: just a handle at the very edge. */
@@ -56,7 +60,8 @@ export function RoundedTabBar(props: BottomTabBarProps) {
     const insets = useSafeAreaInsets();
     const bottomInset = Platform.OS === 'android' ? insets.bottom : 0;
     const fullHeight = TAB_BAR_HEIGHT + bottomInset;
-    const overlay = OVERLAY_PATHS.test(pathname);
+    const footer = useTabBarFooter();
+    const overlay = OVERLAY_PATHS.test(pathname) && !footer;
     const backdrop = WHITE_PATHS.test(pathname) ? '#FFFFFF' : PAGE_BG;
 
     // 0 = the whole bar, 1 = only the handle.

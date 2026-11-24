@@ -1,3 +1,5 @@
+import { useTabBarInset } from '@/components/ui/RoundedTabBar';
+import { appAlert } from '@/lib/ui/appAlert';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -21,6 +23,7 @@ const CREDITS = ['deposit', 'refund', 'auto_replenish', 'adjustment_credit'];
  * wallet's own movements, like the portal's "Recent payment activity".
  */
 export default function PaymentActivityScreen() {
+    const tabInset = useTabBarInset();
     const { t, i18n } = useTranslation();
     const [payments, setPayments] = useState<PaymentHistoryItem[] | null>(null);
     const [movements, setMovements] = useState<WalletMovement[]>([]);
@@ -31,6 +34,9 @@ export default function PaymentActivityScreen() {
     const [error, setError] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
     const [filters, setFilters] = useState<ActivityFilterState>({ sort: 'newest' });
+
+    // The owner's statement is not generated yet (see AV in docs/backlog-backend.md): the button is there, and says so.
+    const askStatement = () => appAlert(t('payments.actions.statementSoonTitle'), t('payments.actions.statementSoon'), undefined, { tone: 'info' });
 
     /** Date range (both days inclusive) and order, over what is loaded. */
     const shape = useCallback(<T extends { createdAt: string }>(items: T[]): T[] => {
@@ -92,7 +98,7 @@ export default function PaymentActivityScreen() {
     return (
         <ScrollView
             style={{ backgroundColor: '#F4F6FC' }}
-            contentContainerStyle={{ padding: 24, paddingTop: 32, paddingBottom: 40 }}
+            contentContainerStyle={{ padding: 24, paddingTop: 32, paddingBottom: 40 + tabInset }}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor="#0047AB" />}
             testID="payment-activity-screen"
         >
@@ -100,7 +106,7 @@ export default function PaymentActivityScreen() {
 
             {error && <Text className="font-outfit-semibold text-sm mb-3" style={{ color: '#B91C1C' }}>{t(`${K}.activity.loadFailed`)}</Text>}
 
-            <EarningsFiltersBar value={filters} onChange={setFilters} />
+            <EarningsFiltersBar value={filters} onChange={setFilters} statement={{ onDownload: askStatement, busy: false, failed: false, withStatus: false }} />
 
             <Text className="text-gray-900 font-outfit-semibold text-base mb-2">{t(`${K}.activity.payments`)}</Text>
             {shownPayments === null ? (

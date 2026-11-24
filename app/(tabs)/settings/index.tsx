@@ -1,9 +1,11 @@
+import { useTabBarInset } from '@/components/ui/RoundedTabBar';
 import { useRouter } from 'expo-router';
 import { Bell, ChevronLeft, ChevronRight, Globe, Key, UserX } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 export default function SettingsScreen() {
+    const tabInset = useTabBarInset();
     const router = useRouter();
     const { t, i18n } = useTranslation();
     const current = i18n.language?.startsWith('es') ? 'es' : 'en';
@@ -33,7 +35,7 @@ export default function SettingsScreen() {
     ];
 
     return (
-        <ScrollView style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 24, paddingBottom: 40 }}>
+        <ScrollView style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 24, paddingBottom: 40 + tabInset }}>
             {/* Section Badge */}
             <View style={{ marginTop: 8 }}>
               <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>

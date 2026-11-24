@@ -25,7 +25,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect, useRouter } from 'expo-router';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { RotatingChevron } from '@/components/ui/RotatingChevron';
-import { ArrowLeftRight, Award, BadgeCheck, BadgePercent, Briefcase, Camera, Car, Check, ChevronLeft, ChevronRight, Circle, Clock, CreditCard, Crown, FileText, HelpCircle, Lock, LogOut, MapPin, Settings, User, Wallet, ShieldCheck } from 'lucide-react-native';
+import { ArrowLeftRight, Award, Globe, BadgeCheck, BadgePercent, Briefcase, Camera, Car, Check, ChevronLeft, ChevronRight, Circle, Clock, CreditCard, Crown, FileText, HelpCircle, Lock, LogOut, MapPin, Settings, User, Wallet, ShieldCheck } from 'lucide-react-native';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -234,32 +234,13 @@ export default function ProfileScreen() {
         </View>
       ) : (
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: tabInset }}>
-        {/* Section Badge + language switch (EN | ES, same pill as the welcome screen) */}
+        {/* Section Badge */}
         <View className="flex-row items-center justify-between" style={{ marginTop: 18, marginBottom: 16 }}>
           <View className="flex-row items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF' }}>
             <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
             <Text className="text-blue-600 font-outfit-semibold text-xs tracking-widest">
               {t('profile.badge')}
             </Text>
-          </View>
-          <View className="flex-row items-center" style={{ gap: 12, paddingHorizontal: 16, height: 38, borderRadius: 19, backgroundColor: '#EEF2FA' }}>
-            {(['en', 'es'] as const).map((code, i) => {
-              const on = (i18n.language?.startsWith('es') ? 'es' : 'en') === code;
-              return (
-                <React.Fragment key={code}>
-                  {i > 0 ? <Text style={{ color: '#C3CADB', fontSize: 16 }}>|</Text> : null}
-                  <TouchableOpacity
-                    onPress={() => setAppLanguage(code)}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: on }}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                    testID={`profile-lang-${code}`}
-                  >
-                    <Text style={{ fontFamily: on ? FONT.bold : FONT.medium, fontSize: 16, letterSpacing: 0.6, color: on ? '#1E56E3' : '#8C96AE' }}>{code.toUpperCase()}</Text>
-                  </TouchableOpacity>
-                </React.Fragment>
-              );
-            })}
           </View>
         </View>
 
@@ -330,6 +311,33 @@ export default function ProfileScreen() {
               <VerificationBadge />
               <AseStatusBadge />
             </View>
+          </View>
+        </View>
+
+        {/* Language: one slim row, with both languages written out in full and the one in use filled. */}
+        <View className="bg-white rounded-2xl mb-6 flex-row items-center justify-between" style={{ paddingVertical: 10, paddingLeft: 14, paddingRight: 10, gap: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 3 }} testID="profile-language-card">
+          <View className="flex-row items-center" style={{ gap: 10 }}>
+            <Globe size={20} color="#1E56E3" />
+            <Text className="font-outfit-bold" style={{ ...TYPE.body, color: '#0B1530' }}>{t('settingsMenu.language')}</Text>
+          </View>
+          <View className="flex-row" style={{ padding: 3, gap: 3, borderRadius: 12, backgroundColor: '#EEF2FA' }}>
+            {([{ code: 'en', label: 'English' }, { code: 'es', label: 'Español' }] as const).map(({ code, label }) => {
+              const on = (i18n.language?.startsWith('es') ? 'es' : 'en') === code;
+              return (
+                <TouchableOpacity
+                  key={code}
+                  onPress={() => setAppLanguage(code)}
+                  activeOpacity={0.85}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: on }}
+                  className="items-center justify-center"
+                  style={{ minHeight: 36, minWidth: 80, paddingHorizontal: 10, borderRadius: 9, backgroundColor: on ? '#1E56E3' : 'transparent' }}
+                  testID={`profile-lang-${code}`}
+                >
+                  <Text style={{ fontFamily: on ? FONT.bold : FONT.medium, fontSize: 14, color: on ? '#FFFFFF' : '#4A5470' }}>{label}</Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
 

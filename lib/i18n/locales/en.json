@@ -787,9 +787,9 @@
       },
       "continue": "Continue",
       "conditionSub": {
-        "drivable": "It starts and moves normally.",
-        "unsafe_to_drive": "Something is wrong. Don't drive it.",
-        "pushable_only": "It won't start or move by itself."
+        "drivable": "It starts and I can drive it normally.",
+        "unsafe_to_drive": "I can't drive it safely.",
+        "pushable_only": "I can only move it by pushing."
       }
     },
     "vehicleDocumentation": {
@@ -3914,7 +3914,8 @@
       "addedTitle": "Vehicle added",
       "addedBody": "Adding it to your plan costs {{price}} a year, your fleet bonus included. It has its own date.",
       "addedSee": "See membership",
-      "addedLater": "Later"
+      "addedLater": "Later",
+      "couponApplied": "Coupon applied: {{code}}"
     }
   },
   "promotions": {
@@ -4036,7 +4037,9 @@
       "pending": "Pending payments",
       "all": "All payments",
       "statementDownload": "Download PDF",
-      "statementHint": "Covers the dates chosen above."
+      "statementHint": "Covers the dates chosen above.",
+      "statementSoonTitle": "Coming soon",
+      "statementSoon": "We're getting your account statement PDF ready. You'll be able to download it from here soon."
     },
     "activity": {
       "title": "Earnings activity",

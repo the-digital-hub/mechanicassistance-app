@@ -65,11 +65,6 @@ function PersonalInfoHeaderLeft() {
 
 function PersonalInfoHeaderRight() {
   const router = useRouter();
-  const { user } = useUser();
-
-  if (user?.role === 'mechanic') {
-    return null;
-  }
 
   return (
     <TouchableOpacity

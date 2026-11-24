@@ -78,3 +78,28 @@ export function createScrollIntent(options?: { hideAfter?: number; showAfter?: n
         },
     };
 }
+
+/**
+ * Whether the screen on view has a fixed bottom bar of its own (a pay button): while it does, the tab bar stays in its own row under it
+ * instead of floating over the content, so the button is never covered by the fade.
+ */
+let footerShown = false;
+const footerListeners = new Set<(v: boolean) => void>();
+
+export function setTabBarFooter(next: boolean): void {
+    if (next === footerShown) return;
+    footerShown = next;
+    footerListeners.forEach((fn) => fn(next));
+}
+
+export function useTabBarFooter(): boolean {
+    const [value, setValue] = useState(footerShown);
+    useEffect(() => {
+        footerListeners.add(setValue);
+        setValue(footerShown);
+        return () => {
+            footerListeners.delete(setValue);
+        };
+    }, []);
+    return value;
+}

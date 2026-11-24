@@ -431,7 +431,7 @@ export default function ScheduledRequestScreen() {
                     ) : null}
 
                     {step === 1 ? (
-                        <VehicleStep draft={draft} patch={patch} vehicles={vehicles} loading={vehiclesLoading} onPick={pickVehicle} onAddVehicle={() => router.push('/(tabs)/vehicles')} />
+                        <VehicleStep draft={draft} patch={patch} vehicles={vehicles} loading={vehiclesLoading} onPick={pickVehicle} onAddVehicle={() => router.push({ pathname: '/(tabs)/vehicles', params: { add: '1' } })} />
                     ) : null}
                     {step === 2 ? (
                         <LocationStep

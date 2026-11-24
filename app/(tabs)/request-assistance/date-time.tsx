@@ -1,3 +1,4 @@
+import { HeaderBell } from '@/components/HeaderBell';
 import { FONT } from '@/lib/ui/fonts';
 import { Footer } from '@/components/scheduled/ui';
 import { ROUNDED_HEADER } from '@/lib/ui/header';
@@ -111,7 +112,7 @@ export default function DateTimeScreen() {
                 <Text style={{ fontFamily: FONT.medium, fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>
                     {t('requestAssistance.dateTime.header')}
                 </Text>
-                <View className="w-6" />
+                <HeaderBell />
             </View>
 
             <ScrollView className="flex-1 px-6" contentContainerStyle={{ paddingTop: 32, paddingBottom: 24 }}>

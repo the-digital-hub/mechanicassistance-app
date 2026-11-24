@@ -1,3 +1,4 @@
+import { useTabBarInset } from '@/components/ui/RoundedTabBar';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BadgeCheck, CalendarClock, Car, Check, ChevronRight, Clock, CreditCard, Crown, Info, Repeat, Sparkles, Ticket, Wallet, X } from 'lucide-react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -9,6 +10,7 @@ import { useUser } from '@/context/UserContext';
 import { MembershipPaySheet } from '@/components/membership/MembershipPaySheet';
 import { KeyboardAwareScrollView } from '@/components/ui/KeyboardAwareScrollView';
 import { useKeyboardOpen } from '@/hooks/useKeyboardOpen';
+import { setTabBarFooter } from '@/lib/ui/tabBarVisibility';
 import type { PaymentCard } from '@/lib/dao/interfaces';
 import { earningsDAO } from '@/lib/dao/EarningsDAO';
 import { paymentMethodDAO } from '@/lib/dao/PaymentMethodDAO';
@@ -39,6 +41,7 @@ function IconTile({ icon: Icon }: { icon: typeof Crown }) {
  * (with the payment of the year for a technician) and a promo code field. Simulated: see lib/membership/plan.ts.
  */
 export default function MembershipScreen() {
+    const tabInset = useTabBarInset();
     const { t, i18n } = useTranslation();
     const { user } = useUser();
     const role: 'mechanic' | 'user' = user?.role === 'mechanic' ? 'mechanic' : 'user';
@@ -95,6 +98,11 @@ export default function MembershipScreen() {
     // Whoever has something to pay does it from a footer that is always in sight.
     const canPay = !!plan && !plan.payment && !waived && plan.amount > 0;
     const keyboardOpen = useKeyboardOpen();
+    // The pay bar sits over the tab bar's row: while it is there the tab bar keeps its own row (no fade over the button).
+    useEffect(() => {
+        setTabBarFooter(canPay);
+        return () => setTabBarFooter(false);
+    }, [canPay]);
     const scroller = useRef<ScrollView>(null);
     const promoInput = useRef<TextInput>(null);
     const promoY = useRef(0);
@@ -185,7 +193,7 @@ export default function MembershipScreen() {
 
     return (
         <View style={{ flex: 1, backgroundColor: '#F6F8FC' }}>
-        <KeyboardAwareScrollView ref={scroller} style={{ flex: 1, backgroundColor: '#F6F8FC' }} contentContainerStyle={{ padding: 24, paddingBottom: 48, gap: 18 }} keyboardShouldPersistTaps="handled" testID="membership-screen">
+        <KeyboardAwareScrollView ref={scroller} style={{ flex: 1, backgroundColor: '#F6F8FC' }} contentContainerStyle={{ padding: 24, paddingBottom: 48 + tabInset, gap: 18 }} keyboardShouldPersistTaps="handled" testID="membership-screen">
             <View>
                 <View className="flex-row items-center self-start" style={{ gap: 6, marginTop: 8, marginBottom: 14, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: '#E9F1FF' }}>
                     <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#0047AB' }} />
@@ -264,7 +272,7 @@ export default function MembershipScreen() {
                                 {t('membership.fleet.hint', { first: money(OWNER_VEHICLE_PRICES[0]), second: money(OWNER_VEHICLE_PRICES[1]), fourth: money(OWNER_VEHICLE_PRICE_FROM_FOURTH) })}
                             </Text>
                             {plan.fleet.lines.length === 0 ? (
-                                <TouchableOpacity onPress={() => router.push('/(tabs)/vehicles')} activeOpacity={0.8} accessibilityRole="button" className="flex-row items-center" style={{ gap: 12, paddingVertical: 14, borderTopWidth: 1, borderTopColor: C.line }} testID="membership-fleet-empty">
+                                <TouchableOpacity onPress={() => router.push({ pathname: '/(tabs)/vehicles', params: { add: '1' } })} activeOpacity={0.8} accessibilityRole="button" className="flex-row items-center" style={{ gap: 12, paddingVertical: 14, borderTopWidth: 1, borderTopColor: C.line }} testID="membership-fleet-empty">
                                     <Text className="flex-1 font-outfit-semibold" style={{ ...TYPE.body, color: C.text }}>{t('membership.fleet.empty')}</Text>
                                     <ChevronRight size={18} color={C.muted} />
                                 </TouchableOpacity>
@@ -305,7 +313,10 @@ export default function MembershipScreen() {
                                     ) : null}
                                     {plan.coupon && plan.listAmount > plan.amount ? (
                                         <View className="flex-row justify-between">
-                                            <Text className="font-outfit-regular" style={{ ...TYPE.body, color: C.greenText }}>{plan.coupon.code}</Text>
+                                            <View style={{ flex: 1, minWidth: 0 }}>
+                                                <Text className="font-outfit-semibold" style={{ ...TYPE.body, color: C.greenText }}>{t('membership.fleet.couponApplied', { code: plan.coupon.code })}</Text>
+                                                <Text className="font-outfit-regular" style={{ ...TYPE.helper, color: C.greenText }}>{t('membership.coupon.off', { percent: plan.coupon.percentOff })}</Text>
+                                            </View>
                                             <Text className="font-outfit-semibold" style={{ ...TYPE.body, color: C.greenText }}>{`\u2212${money(plan.listAmount - plan.amount)}`}</Text>
                                         </View>
                                     ) : null}

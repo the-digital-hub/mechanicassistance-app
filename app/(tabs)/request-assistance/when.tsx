@@ -1,3 +1,4 @@
+import { HeaderBell } from '@/components/HeaderBell';
 import { FONT } from '@/lib/ui/fonts';
 import { RequestSteps, stepEyebrow } from '@/components/ui/RequestSteps';
 import { ROUNDED_HEADER } from '@/lib/ui/header';
@@ -580,7 +581,7 @@ export default function VideoCallWhenScreen() {
                 <Text style={{ fontFamily: FONT.bold, fontSize: 17, color: C.ink, flex: 1, textAlign: 'center' }}>
                     {t('requestAssistance.when.headerTitle')}
                 </Text>
-                <View className="w-10" />
+                <HeaderBell />
             </View>
             <ScrollView ref={scrollRef} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: 24, gap: 14 }}>
                     <RequestSteps type={params.type} step="when" gap={14} flush />

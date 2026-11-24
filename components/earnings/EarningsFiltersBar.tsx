@@ -80,7 +80,7 @@ export function EarningsFiltersBar({ value, onChange, statement }: {
     value: ActivityFilterState;
     onChange: (next: ActivityFilterState) => void;
     /** The technician's extras, inside the sheet (not on the page): the pending-only filter and the account statement PDF of the chosen dates. */
-    statement?: { onDownload: (range: { from?: string; to?: string }) => void; busy: boolean; failed: boolean };
+    statement?: { onDownload: (range: { from?: string; to?: string }) => void; busy: boolean; failed: boolean; /** The pending-only filter next to it (the technician's; the owner's activity has no such state). Default on. */ withStatus?: boolean };
 }) {
     const { t, i18n } = useTranslation();
     const locale = i18n.language?.startsWith('en') ? 'en-US' : 'es-AR';
@@ -159,7 +159,7 @@ function FilterSheet({ visible, onClose, value, onApply, statement }: {
     onClose: () => void;
     value: ActivityFilterState;
     onApply: (next: ActivityFilterState) => void;
-    statement?: { onDownload: (range: { from?: string; to?: string }) => void; busy: boolean; failed: boolean };
+    statement?: { onDownload: (range: { from?: string; to?: string }) => void; busy: boolean; failed: boolean; withStatus?: boolean };
 }) {
     const { t } = useTranslation();
     const { height } = useWindowDimensions();
@@ -211,12 +211,14 @@ function FilterSheet({ visible, onClose, value, onApply, statement }: {
 
                     {statement ? (
                         <>
+                            {statement.withStatus === false ? null : (
                             <Section title={t(`${K}.statusTitle`)}>
                                 <View className="flex-row flex-wrap" style={{ gap: 8 }}>
                                     <Pill label={t(`${K}.statusAll`)} on={!draft.pendingOnly} onPress={() => setDraft({ ...draft, pendingOnly: false })} testID="earnings-status-all" />
                                     <Pill label={t(`${K}.statusPending`)} on={!!draft.pendingOnly} onPress={() => setDraft({ ...draft, pendingOnly: true })} testID="earnings-status-pending" />
                                 </View>
                             </Section>
+                            )}
 
                             <Section title={t('payments.actions.statement')}>
                                 <TouchableOpacity

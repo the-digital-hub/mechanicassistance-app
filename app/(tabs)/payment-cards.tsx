@@ -1,3 +1,4 @@
+import { useTabBarInset } from '@/components/ui/RoundedTabBar';
 import { CardField, StripeProvider, useStripe } from '@stripe/stripe-react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -79,6 +80,7 @@ export default function PaymentCardsScreen() {
 }
 
 function PaymentCardsContent() {
+  const tabInset = useTabBarInset();
   const { t } = useTranslation();
   const router = useRouter();
   const { confirmSetupIntent } = useStripe();
@@ -404,7 +406,7 @@ function PaymentCardsContent() {
 
       <ScrollView
         style={{ backgroundColor: '#F6F8FC' }}
-        contentContainerStyle={{ padding: 24, paddingBottom: 40 }}
+        contentContainerStyle={{ padding: 24, paddingBottom: 40 + tabInset }}
         keyboardShouldPersistTaps="handled"
       >
         {/* Section Badge */}

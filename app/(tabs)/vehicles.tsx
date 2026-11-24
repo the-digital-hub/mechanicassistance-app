@@ -7,7 +7,7 @@ import { hasVin } from '@/lib/vehicles/duplicateVin';
 import { Vehicle } from '@/lib/dao/interfaces';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -24,6 +24,9 @@ export default function VehiclesScreen() {
     const router = useRouter();
     const { t } = useTranslation();
     const { user } = useUser();
+    // Opened from "Add vehicle" (a request, the plan): it lands straight on the form and goes back to where it came from when done.
+    const { add } = useLocalSearchParams<{ add?: string }>();
+    const openedToAdd = add === '1';
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
@@ -39,11 +42,15 @@ export default function VehiclesScreen() {
     // Reset editing state when screen loses/regains focus
     useFocusEffect(
         useCallback(() => {
+            if (openedToAdd) {
+                setEditingVehicle(null);
+                setIsEditing(true);
+            }
             return () => {
                 // Cleanup on blur: reset to list view
                 closeForm();
             };
-        }, [])
+        }, [openedToAdd])
     );
 
     // Override header back button based on editing state
@@ -53,7 +60,7 @@ export default function VehiclesScreen() {
             headerLeft: () => (
                 <HeaderBackButton
                     onPress={() => {
-                        if (isEditing) {
+                        if (isEditing && !openedToAdd) {
                             closeForm();
                         } else if (router.canGoBack()) {
                             // Back to wherever it was opened from (a request, the profile…).
@@ -65,7 +72,7 @@ export default function VehiclesScreen() {
                 />
             ),
         });
-    }, [isEditing]);
+    }, [isEditing, openedToAdd]);
 
     const loadVehicles = async () => {
         if (!user?.id) return;
@@ -105,6 +112,8 @@ export default function VehiclesScreen() {
             }
             closeForm();
             loadVehicles();
+            // Came to add one: back to the request (or the plan), which picks the new vehicle up when it is in view again.
+            if (openedToAdd && !editingVehicle?.id && router.canGoBack()) router.back();
             if (addedPrice !== null) {
                 appAlert(
                     t('membership.fleet.addedTitle'),

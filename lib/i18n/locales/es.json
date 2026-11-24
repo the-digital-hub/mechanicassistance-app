@@ -788,9 +788,9 @@
       },
       "continue": "Continuar",
       "conditionSub": {
-        "drivable": "Arranca y se mueve normalmente.",
-        "unsafe_to_drive": "Algo anda mal. No lo manejes.",
-        "pushable_only": "No arranca ni se mueve solo."
+        "drivable": "Arranca y lo puedo manejar normalmente.",
+        "unsafe_to_drive": "No puedo manejarlo con seguridad.",
+        "pushable_only": "Solo puedo moverlo empujándolo."
       }
     },
     "vehicleDocumentation": {
@@ -3915,7 +3915,8 @@
       "addedTitle": "Vehículo agregado",
       "addedBody": "Sumarlo a tu plan cuesta {{price}} al año, con tu bonificación por flota incluida. Tiene su propia fecha.",
       "addedSee": "Ver membresía",
-      "addedLater": "Después"
+      "addedLater": "Después",
+      "couponApplied": "Cupón aplicado: {{code}}"
     }
   },
   "promotions": {
@@ -4037,7 +4038,9 @@
       "pending": "Pagos pendientes",
       "all": "Todos los pagos",
       "statementDownload": "Descargar PDF",
-      "statementHint": "Abarca las fechas elegidas arriba."
+      "statementHint": "Abarca las fechas elegidas arriba.",
+      "statementSoonTitle": "Muy pronto",
+      "statementSoon": "Estamos preparando el PDF de tu estado de cuenta. Pronto vas a poder descargarlo desde acá."
     },
     "activity": {
       "title": "Actividad de ganancias",

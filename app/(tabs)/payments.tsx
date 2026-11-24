@@ -1,3 +1,4 @@
+import { useTabBarInset } from '@/components/ui/RoundedTabBar';
 import * as Sharing from 'expo-sharing';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
@@ -32,6 +33,7 @@ function nextDay(ymd: string): string {
  * after the charge, then the next run), so there is nothing to request here.
  */
 export default function PaymentsScreen() {
+    const tabInset = useTabBarInset();
     const { t } = useTranslation();
     const [filters, setFilters] = useState<ActivityFilterState>({ sort: 'newest' });
       const [downloading, setDownloading] = useState(false);
@@ -81,7 +83,7 @@ export default function PaymentsScreen() {
     return (
         <ScrollView
             style={{ backgroundColor: '#F4F6FC' }}
-            contentContainerStyle={{ padding: 24, paddingBottom: 40 }}
+            contentContainerStyle={{ padding: 24, paddingBottom: 40 + tabInset }}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor="#0047AB" />}
             testID="earnings-screen"
         >

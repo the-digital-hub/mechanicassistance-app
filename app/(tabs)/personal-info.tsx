@@ -1,3 +1,4 @@
+import { useTabBarInset } from '@/components/ui/RoundedTabBar';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useUser } from '@/context/UserContext';
@@ -11,11 +12,13 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Image, KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TouchableOpacity, View, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { appAlert } from '@/lib/ui/appAlert';
+import { ProfilePhotoCamera } from '@/components/ui/ProfilePhotoCamera';
 import { TYPE } from '@/lib/ui/type';
 import { MODAL_ORIENTATIONS } from '@/lib/ui/modalOrientations';
 import { SlideModal } from '@/components/ui/SlideModal';
 
 export default function PersonalInfoScreen() {
+    const tabInset = useTabBarInset();
     const router = useRouter();
     const { t } = useTranslation();
     const { user, isLoading, updateUser } = useUser();
@@ -23,6 +26,7 @@ export default function PersonalInfoScreen() {
     const [showStateModal, setShowStateModal] = useState(false);
     const [localProfileUri, setLocalProfileUri] = useState<string | null>(null);
     const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+    const [cameraOpen, setCameraOpen] = useState(false);
 
     const scrollViewRef = useRef<ScrollView>(null);
     const streetContainerRef = useRef<View>(null);
@@ -81,16 +85,42 @@ export default function PersonalInfoScreen() {
         }
     }, [user]);
 
-    const pickImage = async () => {
+    /** Tapping the photo asks where it comes from: the camera (in our own round-window camera) or the photo library. */
+    const askPhotoSource = () => {
+        if (isUploadingPhoto) return;
+        appAlert(
+            t('setup.basicInfo.photoSourceTitle'),
+            undefined,
+            [
+                { text: t('setup.basicInfo.photoCamera'), icon: 'camera-outline', onPress: () => void pickImage('camera') },
+                { text: t('setup.basicInfo.photoLibrary'), icon: 'images-outline', style: 'secondary', onPress: () => void pickImage('library') },
+                { text: t('setup.basicInfo.photoCancel'), style: 'cancel' },
+            ],
+        );
+    };
+
+    const pickImage = async (source: 'camera' | 'library') => {
+        if (source === 'camera') {
+            const permission = await ImagePicker.requestCameraPermissionsAsync();
+            if (!permission.granted) {
+                appAlert(t('setup.basicInfo.cameraPermissionTitle'), t('setup.basicInfo.cameraPermissionMessage'));
+                return;
+            }
+            setCameraOpen(true);
+            return;
+        }
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ['images'],
             allowsEditing: true,
             aspect: [1, 1],
             quality: 0.5,
         });
-
         if (result.canceled) return;
-        const localUri = result.assets[0].uri;
+        await acceptPhoto(result.assets[0].uri);
+    };
+
+    /** A photo taken or chosen: shown right away, uploaded and saved on the profile. */
+    const acceptPhoto = async (localUri: string) => {
         setLocalProfileUri(localUri);
         setIsUploadingPhoto(true);
         try {
@@ -181,7 +211,7 @@ export default function PersonalInfoScreen() {
                 className="flex-1 px-6 pt-4"
                 style={{ backgroundColor: '#F6F8FC' }}
                 keyboardShouldPersistTaps="handled"
-                contentContainerStyle={{ paddingBottom: 40 }}
+                contentContainerStyle={{ paddingBottom: 40 + tabInset }}
             >
                 {/* Section Badge */}
                 <View style={{ marginTop: 18 }}>
@@ -203,7 +233,7 @@ export default function PersonalInfoScreen() {
 
                 {/* Profile Image Section */}
                 <View className="items-center mb-8">
-                    <TouchableOpacity onPress={pickImage} disabled={isUploadingPhoto} className="relative">
+                    <TouchableOpacity onPress={askPhotoSource} disabled={isUploadingPhoto} className="relative" testID="personal-info-avatar">
                         <View className="w-24 h-24 bg-gray-100 rounded-full justify-center items-center border border-gray-200 overflow-hidden">
                             {localProfileUri ? (
                                 <Image source={{ uri: localProfileUri }} className="w-full h-full" />
@@ -418,6 +448,7 @@ export default function PersonalInfoScreen() {
                     </View>
                 </Modal>
             </ScrollView>
+            <ProfilePhotoCamera visible={cameraOpen} onClose={() => setCameraOpen(false)} onCaptured={(uri) => { setCameraOpen(false); void acceptPhoto(uri); }} />
         </KeyboardAvoidingView>
     );
 }

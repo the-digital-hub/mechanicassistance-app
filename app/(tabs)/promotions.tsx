@@ -1,3 +1,4 @@
+import { useTabBarInset } from '@/components/ui/RoundedTabBar';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BadgePercent, ChevronRight } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -53,10 +54,11 @@ function PromoCard({ logo, eyebrow, title, body, cta, testID }: {
 
 /** The profile's Promotions: the ASE offer first, the Innova one second. */
 export default function PromotionsScreen() {
+    const tabInset = useTabBarInset();
     const { t } = useTranslation();
 
     return (
-        <ScrollView style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ padding: 24, paddingBottom: 40, gap: 20 }}>
+        <ScrollView style={{ backgroundColor: '#F6F8FC' }} contentContainerStyle={{ padding: 24, paddingBottom: 40 + tabInset, gap: 20 }}>
             <View>
                 {/* Section Badge */}
                 <View style={{ marginTop: 8 }}>

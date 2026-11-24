@@ -1,3 +1,4 @@
+import { HeaderBell } from '@/components/HeaderBell';
 import { FONT } from '@/lib/ui/fonts';
 import { useAppointments } from '@/context/AppointmentsContext';
 import { ROUNDED_HEADER } from '@/lib/ui/header';
@@ -250,7 +251,7 @@ export default function SearchingScreen() {
                 <Text style={{ fontFamily: FONT.medium, fontSize: 18, color: '#1A1A1A', flex: 1, textAlign: 'center' }}>
                     {getTitle()}
                 </Text>
-                <View className="w-6" />
+                <HeaderBell />
             </View>
 
             <ScrollView className="flex-1 px-6" contentContainerStyle={{ paddingTop: 32 }} showsVerticalScrollIndicator={false}>
