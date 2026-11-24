@@ -319,6 +319,22 @@ export function EarnNudgeStrip({ nudge }: { nudge: EarnNudge }) {
     );
 }
 
+/** A soft pulsing bar where a number is about to appear (instead of a dash that reads like an error). */
+function LoadingBar({ width = 132, height = 34 }: { width?: number; height?: number }) {
+    const pulse = useRef(new Animated.Value(0.35)).current;
+    useEffect(() => {
+        const loop = Animated.loop(
+            Animated.sequence([
+                Animated.timing(pulse, { toValue: 0.75, duration: 700, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+                Animated.timing(pulse, { toValue: 0.35, duration: 700, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+            ]),
+        );
+        loop.start();
+        return () => loop.stop();
+    }, [pulse]);
+    return <Animated.View style={{ width, height, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.45)', opacity: pulse }} testID="today-loading" />;
+}
+
 /** Earned today as a hero amount plus two stat tiles (jobs done, rating). */
 export function TodayBlock({
     earnedLabel,
@@ -332,7 +348,8 @@ export function TodayBlock({
     onRatingPress,
 }: {
     earnedLabel: string;
-    earned: string;
+    /** `null` while it is loading: a pulsing bar shows instead of the amount. */
+    earned: string | null;
     footer?: ReactNode;
     jobsLabel: string;
     jobs: string;
@@ -360,7 +377,11 @@ export function TodayBlock({
                     {/* The amount and the payout note sit in the label's column, under it, not under the icon. */}
                     <View className="flex-1" style={{ minWidth: 0 }}>
                         <Text className="font-outfit-semibold" style={{ fontSize: 14, lineHeight: 20, color: 'rgba(255,255,255,0.88)', marginTop: 9 }}>{earnedLabel}</Text>
-                        <Text className="font-outfit-bold" style={{ fontSize: 42, letterSpacing: -1.4, lineHeight: 48, color: '#FFFFFF', marginTop: 4 }} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{earned}</Text>
+                        {earned === null ? (
+                            <View style={{ height: 48, marginTop: 4, justifyContent: 'center' }}><LoadingBar /></View>
+                        ) : (
+                            <Text className="font-outfit-bold" style={{ fontSize: 42, letterSpacing: -1.4, lineHeight: 48, color: '#FFFFFF', marginTop: 4 }} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{earned}</Text>
+                        )}
                         {footer ? (
                             <View className="self-start" style={{ marginTop: 10, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.16)' }}>
                                 {footer}
