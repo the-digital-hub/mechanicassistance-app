@@ -35,6 +35,15 @@ export class EarningsDAO {
      * A file, not JSON, so it bypasses apiClient's envelope unwrapping.
      */
     async downloadStatement(period: { from?: string; to?: string } = {}): Promise<string> {
+        return this.downloadPdf('/api/earnings/me/statement', period);
+    }
+
+    /** The vehicle owner's statement: what they paid for services and their wallet movements (`GET /api/payments/me/statement`). */
+    async downloadOwnerStatement(period: { from?: string; to?: string } = {}): Promise<string> {
+        return this.downloadPdf('/api/payments/me/statement', period);
+    }
+
+    private async downloadPdf(path: string, period: { from?: string; to?: string }): Promise<string> {
         await ConfigService.init();
         const token = await getFreshAccessToken();
         if (!token) throw new Error('No session');
@@ -42,7 +51,7 @@ export class EarningsDAO {
             Object.entries(period).filter((e): e is [string, string] => !!e[1]),
         ).toString();
         const base = ConfigService.getApiBaseUrl().replace(/\/+$/, '');
-        const url = `${base}/api/earnings/me/statement${query ? `?${query}` : ''}`;
+        const url = `${base}${path}${query ? `?${query}` : ''}`;
         const target = new File(Paths.cache, `statement-${new Date().toISOString().slice(0, 10)}.pdf`);
         if (target.exists) target.delete();
         const file = await File.downloadFileAsync(url, target, {

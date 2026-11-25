@@ -516,3 +516,22 @@ El técnico baja el PDF del estado de cuenta desde Earnings → Activity → fil
 - **Por qué:** la app del técnico arma los días y los horarios de llegada leyendo una línea de `notes` con un formato fijo («Wed, Nov 25 – Thu, Nov 26 · 10:00 AM – 7:00 PM»). Un pedido llegó con otro formato («Rango 2026-11-25 al 2026-11-26 (10:00 AM - 7:00 PM EST)»): el técnico vio solo el 24, sin horarios para elegir y sin poder enviar la cotización. El Hub sí mostraba bien el 25 al 26, así que el dato existe del lado del servidor.
 - **Qué hizo la app mientras tanto:** lee también ese formato, acepta guion simple en el horario y ya no corre un día las fechas sin hora. Cuando llegue `availability`, la app lo usa primero y deja el texto como respaldo.
 - **Prueba:** crear un pedido agendado del 25 al 26, 10:00 AM a 7:00 PM, desde cada cliente (app, web, bot); en el teléfono del técnico los días y los horarios salen iguales que en el Hub.
+
+---
+
+## Respuesta de backend del 25-nov-2026 (`devolucion-diego-pendientes-backend-2026-11-25.md`)
+
+**Hecho por backend y ya usado por la app (para verificar en el teléfono):**
+- **AT · incidencias por lote:** la app llama una sola vez a `POST /api/pricing/requests/issues { ids }` (hasta 100 por llamada) en Citas y en Requests del técnico; la mitigación de a 8 se retiró.
+- **AI · `experienceTags`:** `SEND_CLIENT_REVIEW_TAGS` quedó en `true`: la reseña del técnico al cliente envía sus opciones.
+- **AP · diagnóstico sin fotos:** si el técnico siguió sin fotos, la app manda `{ photosSkipped: true }`; el reporte del servicio agrega «Fotos del vehículo: No se tomaron en el check-in» cuando la visita trae `diagnosticPhotosSkipped`.
+- **AV · PDF del dueño:** el botón de Actividad de pagos descarga `GET /api/payments/me/statement?from&to` (el último día se envía como el día siguiente, `to` es exclusivo). Falta el bloque de Assistance Pass, que depende de AN.
+- **AK y AL · `refCode`, `createdAt`:** la app ya los leía si venían; solo hay que verificar «Your quotes» (código y orden por fecha de envío).
+- **AO, AS, AQ, AM (`vehicleCondition`):** sin cambios en la app; verificar alta del técnico (ID ASE), arranque sin sesión, logo en los PDF.
+
+**Pedidos de backend a nosotros (sin responder):**
+- **AT · el 401 de pricing:** necesitan la URL exacta, el cuerpo del 401 y la hora aproximada de un caso real.
+- **AM · eventos de la visita:** hay que definir qué pasos van en la línea de tiempo del dueño, el nombre de cada evento y sus datos.
+- **AR:** si en Ganancias siguen filas «Request details unavailable», mandar un id de ejemplo y el usuario del técnico.
+
+**Siguen sin empezar:** AN (membresía, espera decisiones de producto), AU, P y E. **Sin respuesta todavía:** AW, AX, AY.

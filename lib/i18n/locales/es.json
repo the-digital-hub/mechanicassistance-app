@@ -2745,6 +2745,8 @@
         "issue": "Problema reportado",
         "notes": "Notas del cliente",
         "callLength": "Duración de la videollamada",
+        "noPhotos": "Fotos del vehículo",
+        "noPhotosValue": "No se tomaron en el check-in",
         "minutes": "{{count}} min",
         "reason": "Motivo",
         "noCodes": "No se registraron códigos de falla.",

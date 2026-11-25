@@ -298,16 +298,15 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
                 return !known || now - known.at > ISSUES_FRESH_MS;
             });
             if (queue.length > 0) {
-                const worker = async () => {
-                    for (let id = queue.shift(); id !== undefined; id = queue.shift()) {
-                        try {
-                            issuesCache.current.set(id, { at: Date.now(), value: await pricingDAO.getRequestIssues(id) });
-                        } catch (error) {
-                            console.warn(`Failed to load vehicle issues for ${id}`, error);
-                        }
-                    }
-                };
-                await Promise.all(Array.from({ length: 8 }, worker));
+                // One call for all of them (up to 100 ids each). If the batch is not there (an older backend) or fails, the ones that
+                // have none just stay empty, as before.
+                try {
+                    const byId = await pricingDAO.getRequestIssuesBatch(queue);
+                    const at = Date.now();
+                    queue.forEach((id) => issuesCache.current.set(id, { at, value: byId[id] ?? [] }));
+                } catch (error) {
+                    console.warn('Failed to load vehicle issues', error);
+                }
                 if (!isLatest()) return;
                 setAppointments(build());
             }
