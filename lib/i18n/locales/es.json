@@ -826,6 +826,8 @@
       "photoLimitMessage": "Solo se admiten {{max}} fotos por solicitud.",
       "cameraPermissionTitle": "Falta permiso de cámara",
       "cameraPermissionMessage": "Permití el acceso a la cámara para grabar o fotografiar el problema.",
+      "pickerErrorTitle": "No se pudo abrir",
+      "pickerErrorMessage": "No pudimos abrir la cámara o la galería. Probá de nuevo o elegí el archivo desde la galería.",
       "sourceTitle": "Agregar contenido",
       "sourceCamera": "Cámara",
       "sourceLibrary": "Elegir de la galería",

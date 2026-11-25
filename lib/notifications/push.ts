@@ -15,6 +15,7 @@ import { PermissionsAndroid, Platform } from 'react-native';
 import i18next from '../i18n';
 import { withTimeout } from '../api/apiClient';
 import { notificationDAO } from '../dao/NotificationDAO';
+import { requestPostNotifications } from '../../modules/app-badge';
 
 /**
  * Push notifications, app side.
@@ -41,6 +42,11 @@ async function androidPermission(ask: boolean): Promise<boolean> {
     const permission = PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS;
     if (await PermissionsAndroid.check(permission)) return true;
     if (!ask) return false;
+    // Through Expo's permission queue, not PermissionsAndroid.request: the two
+    // overlapping (this prompt and a location or camera request) left Expo's
+    // queue stuck, and the camera stopped opening until the app restarted.
+    const viaExpo = await requestPostNotifications();
+    if (viaExpo !== null) return viaExpo;
     return (await PermissionsAndroid.request(permission)) === PermissionsAndroid.RESULTS.GRANTED;
 }
 

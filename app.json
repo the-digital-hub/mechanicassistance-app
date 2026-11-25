@@ -93,6 +93,7 @@
         "expo-build-properties",
         {
           "ios": {
+            "deploymentTarget": "16.4",
             "useFrameworks": "static",
             "buildReactNativeFromSource": true
           },
@@ -105,6 +106,7 @@
       "./plugins/withFirebasePodfile",
       "./plugins/withFirebaseAuthAPNS",
       "./plugins/withAndroidNotificationChannel",
+      "./plugins/withCameraIntentQueries",
       "./plugins/withStripeNoTapAndPay",
       "@react-native-google-signin/google-signin",
       [

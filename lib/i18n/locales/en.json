@@ -825,6 +825,8 @@
       "photoLimitMessage": "Only {{max}} photos are supported per request.",
       "cameraPermissionTitle": "Camera access needed",
       "cameraPermissionMessage": "Allow camera access to record or take a photo of the issue.",
+      "pickerErrorTitle": "Couldn't open it",
+      "pickerErrorMessage": "We couldn't open the camera or your library. Please try again, or pick the file from your library.",
       "sourceTitle": "Add media",
       "sourceCamera": "Camera",
       "sourceLibrary": "Choose from library",

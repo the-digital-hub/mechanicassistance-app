@@ -55,12 +55,27 @@ export default function VehicleDocumentationScreen() {
         return true;
     };
 
+    /** The picker is started from the source dialog's button, so a rejection would otherwise vanish and the button would seem dead. */
+    const pickerFailed = (error: unknown) => {
+        console.warn('[vehicle-documentation] picker failed', error);
+        appAlert(
+            t('requestAssistance.vehicleDocumentation.pickerErrorTitle'),
+            t('requestAssistance.vehicleDocumentation.pickerErrorMessage')
+        );
+    };
+
     const pickVideo = async (source: 'camera' | 'library') => {
         if (source === 'camera' && !(await ensureCamera())) return;
 
-        const result = source === 'camera'
-            ? await ImagePicker.launchCameraAsync({ mediaTypes: ['videos'], videoMaxDuration: 60, quality: 0.5 })
-            : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['videos'], quality: 0.5 });
+        let result: ImagePicker.ImagePickerResult;
+        try {
+            result = source === 'camera'
+                ? await ImagePicker.launchCameraAsync({ mediaTypes: ['videos'], videoMaxDuration: 60, quality: 0.5 })
+                : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['videos'], quality: 0.5 });
+        } catch (error) {
+            pickerFailed(error);
+            return;
+        }
 
         if (result.canceled) return;
 
@@ -88,9 +103,15 @@ export default function VehicleDocumentationScreen() {
         }
         if (source === 'camera' && !(await ensureCamera())) return;
 
-        const result = source === 'camera'
-            ? await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [4, 3], quality: 0.5 })
-            : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [4, 3], quality: 0.5 });
+        let result: ImagePicker.ImagePickerResult;
+        try {
+            result = source === 'camera'
+                ? await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [4, 3], quality: 0.5 })
+                : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [4, 3], quality: 0.5 });
+        } catch (error) {
+            pickerFailed(error);
+            return;
+        }
 
         if (result.canceled) return;
         setPhotos([...photos, { uri: result.assets[0].uri, note: '' }]);
