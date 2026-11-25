@@ -26,6 +26,10 @@ const CYAN = "#83D4ED";
 const PHOTO_H = height * 0.6;
 // The photo starts a bit lower so the big logo sits on the sky, not on the technician.
 const PHOTO_SHIFT = 150;
+// Short screens (16:9 phones, iPhone SE): the card grows with its content and would climb over the logo, so the logo, the
+// type and the gaps shrink, and on the very shortest the chips go. Portrait is locked, so this is decided once.
+const SHORT = height < 760;
+const TINY = height < 660;
 
 /** Fades and lifts its children in, staggered by `index`. */
 function Reveal({ index, children }: { index: number; children: React.ReactNode }) {
@@ -157,7 +161,7 @@ const Onboarding = () => {
       {/* Top bar: logo + login */}
       <Animated.View style={fadeOut} pointerEvents="box-none">
       <Reveal index={-2}>
-        <View style={[styles.topBar, { paddingTop: insets.top + 32 }]}>
+        <View style={[styles.topBar, { paddingTop: insets.top + (SHORT ? 20 : 32) }]}>
           <View style={styles.logoBlock}>
             <Image source={require("@/assets/images/brand_ring_color.png")} style={styles.topLogo} resizeMode="contain" />
             <Image source={require("@/assets/images/brand_wordmark_color.png")} style={styles.topWord} resizeMode="contain" />
@@ -246,18 +250,18 @@ const Onboarding = () => {
         </Reveal>
 
         <Reveal index={4}>
-          <View style={styles.chips}>
+          {TINY ? null : <View style={styles.chips}>
             {chips.map(({ icon: Icon, label }) => (
               <View key={label} style={styles.chip}>
                 <Icon size={15} color={CYAN} />
                 <Text style={styles.chipText}>{label}</Text>
               </View>
             ))}
-          </View>
+          </View>}
         </Reveal>
 
         <Reveal index={5}>
-          <View style={{ gap: 12, marginTop: 22 }}>
+          <View style={{ gap: 12, marginTop: SHORT ? 16 : 22 }}>
             {/* On a brand-blue surface the app's buttons switch to their inverse variant:
                 white primary with a blue label, translucent outline secondary. Same radius, height and type as the rest. */}
             <TouchableOpacity
@@ -294,8 +298,8 @@ const styles = StyleSheet.create({
 
   topBar: { paddingHorizontal: 20, alignItems: "center" },
   logoBlock: { alignItems: "center" },
-  topLogo: { width: 104, height: 104 },
-  topWord: { width: 268, height: 268 * (51 / 947), marginTop: 13 },
+  topLogo: { width: SHORT ? 72 : 104, height: SHORT ? 72 : 104 },
+  topWord: { width: SHORT ? 200 : 268, height: (SHORT ? 200 : 268) * (51 / 947), marginTop: SHORT ? 8 : 13 },
   loginPill: {
     position: "absolute",
     right: 20,
@@ -348,18 +352,18 @@ const styles = StyleSheet.create({
   title: {
     color: "#FFFFFF",
     fontFamily: FONT.bold,
-    fontSize: 42,
-    lineHeight: 46,
+    fontSize: SHORT ? 34 : 42,
+    lineHeight: SHORT ? 38 : 46,
     letterSpacing: -1,
   },
   sub: {
     color: "#C9D6EE",
     fontFamily: FONT.regular,
-    fontSize: 17,
-    lineHeight: 24,
-    marginTop: 12,
+    fontSize: SHORT ? 15 : 17,
+    lineHeight: SHORT ? 21 : 24,
+    marginTop: SHORT ? 8 : 12,
   },
-  chips: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 18 },
+  chips: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: SHORT ? 12 : 18 },
   chip: {
     flexDirection: "row",
     alignItems: "center",
