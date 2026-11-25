@@ -46,3 +46,8 @@ app-example
 /android
 node_modules/
 
+# Gradle output of the local Expo modules (modules/*/android), written by every Android build
+modules/*/android/build/
+modules/*/android/.cxx/
+modules/*/android/.gradle/
+
