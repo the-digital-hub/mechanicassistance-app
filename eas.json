@@ -27,6 +27,12 @@
       "android": {
         "buildType": "apk"
       }
+    },
+    "play": {
+      "extends": "production",
+      "android": {
+        "buildType": "app-bundle"
+      }
     }
   },
   "submit": {
