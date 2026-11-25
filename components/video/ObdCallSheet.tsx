@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, Text, View, Dimensions } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { ScrollView, Text, TouchableOpacity, View, Dimensions } from 'react-native';
 import { AO } from '@/components/offer/OfferSections';
 import { RequestObdPanel, useRequestObd } from './RequestObdPanel';
 import { SHEET } from '@/lib/ui/sheet';
@@ -26,9 +27,14 @@ export function ObdCallSheet({ visible, requestId, role, state, onClose }: {
                 testID="obd-call-sheet"
             >
                 <SheetHandle />
-                <Text className="font-outfit-bold" style={{ fontSize: 17, color: AO.text, paddingHorizontal: 20 }}>
-                    {t('appointments.videoCall.obd.sheetTitle')}
-                </Text>
+                <View className="flex-row items-center" style={{ paddingHorizontal: 20 }}>
+                    <Text className="font-outfit-bold" style={{ flex: 1, fontSize: 17, color: AO.text }}>
+                        {t('appointments.videoCall.obd.sheetTitle')}
+                    </Text>
+                    <TouchableOpacity onPress={onClose} hitSlop={10} accessibilityRole="button" accessibilityLabel={t('appointments.videoCall.live.chat.close')} testID="obd-call-close">
+                        <Ionicons name="close" size={24} color={AO.muted} />
+                    </TouchableOpacity>
+                </View>
                 <ScrollView contentContainerStyle={{ paddingBottom: 12 }} keyboardShouldPersistTaps="handled">
                     <RequestObdPanel requestId={requestId} role={role} editable state={state} />
                 </ScrollView>

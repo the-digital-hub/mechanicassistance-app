@@ -175,10 +175,14 @@ function RatingCard({ appointment, role, width, position, total, onSent, onSkip 
                             onComment={setComment}
                             commentPlaceholder={t(`${K}.commentPh`)}
                             starLabel={(n) => t(`${K}.stars`, { count: n })}
+                            question={t(`${K}.${role === 'user' ? 'questionUser' : 'questionMechanic'}`)}
+                            hint={t(`${K}.tapStar`)}
+                            revealAfterRating
                             testIDPrefix="rating"
                         />
                     </View>
                     <View style={{ gap: 8, marginTop: 14 }}>
+                        {rating > 0 ? (
                         <TouchableOpacity
                             onPress={() => void submit()}
                             disabled={!rating || sending}
@@ -190,6 +194,7 @@ function RatingCard({ appointment, role, width, position, total, onSent, onSkip 
                         >
                             {sending ? <ActivityIndicator color="#FFFFFF" /> : <Text className="font-outfit-bold text-white" style={{ fontSize: 17, lineHeight: 23 }}>{t(`${K}.send`)}</Text>}
                         </TouchableOpacity>
+                        ) : null}
                         <TouchableOpacity
                             onPress={onSkip}
                             activeOpacity={0.8}

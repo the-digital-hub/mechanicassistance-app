@@ -50,9 +50,14 @@ describe('PendingRatings', () => {
         await waitFor(() => expect(mockReviewClient).toHaveBeenCalledWith('a', 5, undefined, []));
     });
 
-    it('does not send without stars', async () => {
-        const { getAllByTestId } = render(<PendingRatings appointments={[job('a')]} role="user" onSent={jest.fn()} onClose={jest.fn()} />);
-        await act(async () => { fireEvent.press(getAllByTestId('rating-send')[0]); });
+    it('asks the question and offers no way to send until a star is picked', async () => {
+        const { queryAllByTestId, getByText, getAllByTestId } = render(<PendingRatings appointments={[job('a')]} role="user" onSent={jest.fn()} onClose={jest.fn()} />);
+        expect(getByText('dashboard.rating.questionUser')).toBeTruthy();
+        expect(getByText('dashboard.rating.tapStar')).toBeTruthy();
+        expect(queryAllByTestId('rating-send')).toHaveLength(0);
+        expect(queryAllByTestId('rating-tag-onTime')).toHaveLength(0);
+        fireEvent.press(getAllByTestId('rating-star-3')[0]);
+        expect(queryAllByTestId('rating-send')).toHaveLength(1);
         expect(mockSubmit).not.toHaveBeenCalled();
     });
 });

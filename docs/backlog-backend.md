@@ -482,6 +482,7 @@ En «Earnings activity» del técnico (y en el historial de pagos), cada fila bu
 Al abrir la app sin sesión (bienvenida, login, registro), `GET /api/assistance-types?scope=app` devuelve `401 Missing or malformed Authorization header`, y la app avisa «Could not load the assistance type catalog; using fallback list» (se ve en Metro y en `adb logcat`, igual en iOS y Android). Con sesión se vuelve a pedir, pero hasta entonces el catálogo viene de la lista fija del cliente, que puede quedar desactualizada respecto del backend. Pedido: permitir ese `GET` sin autenticar (es un catálogo público, sin datos del usuario) o confirmar que la lista de respaldo es la fuente a usar antes del login. Para verificar: `curl https://t9smggmz3a.us-east-1.awsapprunner.com/api/assistance-types?scope=app` debe devolver 200 sin cabecera `Authorization`.
 
 ## AT — Incidencias del pedido por lote (`/api/pricing/requests/:id/issues` se pide una por una)
+**Mitigado en la app el 24-nov:** la lista de citas y pedidos se muestra apenas llegan las dos listas; las incidencias se piden después, de a 8 en paralelo, y se guardan 5 minutos (antes la lista esperaba a las ~340 llamadas y el detalle abierto desde una notificación se quedaba cargando). El pedido al backend (endpoint por lote) sigue en pie: son demasiadas llamadas igual.
 Al abrir la app, `AppointmentsContext` pide las incidencias de cada pedido y cita con un `GET /api/pricing/requests/:id/issues` por id. En una cuenta con ~170 pedidos son ≈340 llamadas por carga y ≈670 en los primeros segundos (hay recargas por socket y foco); en Android el dashboard del dueño tardó más de 1 minuto en salir del spinner. Además todas esas llamadas respondieron `401 Missing or malformed Authorization header` en esa corrida. Pedido: un endpoint por lote, por ejemplo `POST /api/pricing/requests/issues` con `{ ids: string[] }` → `{ [id]: VehicleIssueSnapshot[] }`, o incluir las incidencias en `GET /api/assistance` y `GET /api/appointments`; y revisar por qué ese servicio rechaza el token que el resto de la API acepta. Para verificar: abrir la app con una cuenta con historial largo y contar las llamadas (`adb logcat | grep -c pricing/requests`).
 
 ## AU — Versión de la política de privacidad y quién ya la aceptó (para avisar «Update» en el perfil)
@@ -489,3 +490,48 @@ El menú del perfil ya marca lo pendiente (identidad, ASE, documentos legales, m
 
 ## AV — Estado de cuenta (PDF) del dueño del vehículo: hoy solo existe el del técnico
 El técnico baja el PDF del estado de cuenta desde Earnings → Activity → filtros (`GET /api/earnings/me/statement?from&to`, billing). El dueño tiene la misma pantalla de actividad («Recent payment activity», con el mismo filtro de fechas) pero **no tiene PDF**: el endpoint es de earnings y no incluye sus pagos. Pedido: `GET /api/payments/me/statement?from=YYYY-MM-DD&to=YYYY-MM-DD` → PDF con los pagos de servicio, los movimientos del wallet y los cobros del plan (cada vehículo de Assistance Pass con su fecha), con el logo a color (ver AQ). Con el endpoint, la app agrega la sección «Account statement» a la hoja de filtros de la actividad del dueño (el componente ya lo admite: `EarningsFiltersBar` recibe `statement`).
+
+---
+
+## AW — `providerAmount` en `pendingRequest` de las extensiones (lo que gana el técnico por el tiempo extra)
+
+- **Qué hace falta:** `GET /api/appointments/:id/video/extensions` (y el evento `extension_requested`), cuando lo consulta el técnico, devuelve en `pendingRequest` el campo `providerAmount` (decimal, "12.75"): lo que gana por esos minutos, ya con el recargo por franja y **sin** la comisión ni el precio del dueño. Al dueño no se le manda.
+- **Por qué:** el técnico acepta o rechaza el tiempo extra sin saber cuánto cobra. La app ya muestra «Ganás $X» en la tarjeta cuando el campo existe y, mientras no llegue, la tarjeta sale sin monto.
+- **Prueba:** el dueño pide 15 minutos; en el teléfono del técnico la tarjeta dice el monto y, al aceptar, coincide con la línea que queda en Ganancias.
+
+---
+
+## AX — El dueño avisa que no va a enviar el escaneo OBD (cerrar el pedido de OBD)
+
+- **Qué hace falta:** un estado `skipped` en el reporte OBD de la solicitud: `POST /api/assistance/:id/obd/skip` (solo el dueño; se deshace al adjuntar un archivo) y `status: 'skipped'` en `GET /api/assistance/:id/obd`, con el evento `obd_update`.
+- **Por qué:** la app ya ofrece, muy discreto, «No lo tengo, no lo voy a enviar» debajo de la carga del archivo, pero hoy solo se guarda en el teléfono del dueño: el técnico no se entera y sigue viendo «sin escaneo». Cuando exista el estado, la app lo envía y el técnico lee «El cliente no va a enviar el escaneo».
+- **Prueba:** el dueño toca el enlace y confirma; en el teléfono del técnico el panel OBD dice que no hay escaneo y por qué.
+
+
+---
+
+## AY — Disponibilidad estructurada en los pedidos agendados (hoy viaja como texto libre)
+
+- **Qué hace falta:** que `GET /marketplace/requests` (y `/:id`) devuelva la disponibilidad del dueño como datos, no solo dentro de `notes`: `availability: { from: 'YYYY-MM-DD', to: 'YYYY-MM-DD', windowStart: 'HH:mm', windowEnd: 'HH:mm', timezone: 'America/New_York' }`. La fecha `date` tiene que ser el día de servicio pedido (no el día de publicación) y, si es solo un día, no puede venir como medianoche UTC.
+- **Por qué:** la app del técnico arma los días y los horarios de llegada leyendo una línea de `notes` con un formato fijo («Wed, Nov 25 – Thu, Nov 26 · 10:00 AM – 7:00 PM»). Un pedido llegó con otro formato («Rango 2026-11-25 al 2026-11-26 (10:00 AM - 7:00 PM EST)»): el técnico vio solo el 24, sin horarios para elegir y sin poder enviar la cotización. El Hub sí mostraba bien el 25 al 26, así que el dato existe del lado del servidor.
+- **Qué hizo la app mientras tanto:** lee también ese formato, acepta guion simple en el horario y ya no corre un día las fechas sin hora. Cuando llegue `availability`, la app lo usa primero y deja el texto como respaldo.
+- **Prueba:** crear un pedido agendado del 25 al 26, 10:00 AM a 7:00 PM, desde cada cliente (app, web, bot); en el teléfono del técnico los días y los horarios salen iguales que en el Hub.
+
+---
+
+## Respuesta de backend del 25-nov-2026 (`devolucion-diego-pendientes-backend-2026-11-25.md`)
+
+**Hecho por backend y ya usado por la app (para verificar en el teléfono):**
+- **AT · incidencias por lote:** la app llama una sola vez a `POST /api/pricing/requests/issues { ids }` (hasta 100 por llamada) en Citas y en Requests del técnico; la mitigación de a 8 se retiró.
+- **AI · `experienceTags`:** `SEND_CLIENT_REVIEW_TAGS` quedó en `true`: la reseña del técnico al cliente envía sus opciones.
+- **AP · diagnóstico sin fotos:** si el técnico siguió sin fotos, la app manda `{ photosSkipped: true }`; el reporte del servicio agrega «Fotos del vehículo: No se tomaron en el check-in» cuando la visita trae `diagnosticPhotosSkipped`.
+- **AV · PDF del dueño:** el botón de Actividad de pagos descarga `GET /api/payments/me/statement?from&to` (el último día se envía como el día siguiente, `to` es exclusivo). Falta el bloque de Assistance Pass, que depende de AN.
+- **AK y AL · `refCode`, `createdAt`:** la app ya los leía si venían; solo hay que verificar «Your quotes» (código y orden por fecha de envío).
+- **AO, AS, AQ, AM (`vehicleCondition`):** sin cambios en la app; verificar alta del técnico (ID ASE), arranque sin sesión, logo en los PDF.
+
+**Pedidos de backend a nosotros (sin responder):**
+- **AT · el 401 de pricing:** necesitan la URL exacta, el cuerpo del 401 y la hora aproximada de un caso real.
+- **AM · eventos de la visita:** hay que definir qué pasos van en la línea de tiempo del dueño, el nombre de cada evento y sus datos.
+- **AR:** si en Ganancias siguen filas «Request details unavailable», mandar un id de ejemplo y el usuario del técnico.
+
+**Siguen sin empezar:** AN (membresía, espera decisiones de producto), AU, P y E. **Sin respuesta todavía:** AW, AX, AY.

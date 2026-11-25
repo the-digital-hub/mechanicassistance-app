@@ -1,3 +1,4 @@
+import { ApiError } from '@/lib/api/types';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
@@ -108,6 +109,13 @@ export function MediaSlot({
     const [mediaId, setMediaId] = React.useState<string | null>(existing?.id ?? null);
     const [state, setState] = React.useState<UploadState>(existing || existingFileName ? 'done' : 'local');
     const [text, setText] = React.useState('');
+    // Why the last upload failed (the server's own reason), so "Couldn't upload" is not a dead end.
+    const [errorDetail, setErrorDetail] = React.useState<string | null>(null);
+    const failure = (error: unknown) => {
+        console.warn('[MediaSlot] upload failed', error);
+        setErrorDetail(error instanceof ApiError ? `${error.statusCode} · ${error.apiMessage}` : error instanceof Error ? error.message : null);
+        setState('error');
+    };
 
     const onChangeRef = React.useRef(onChange);
     onChangeRef.current = onChange;
@@ -119,11 +127,12 @@ export function MediaSlot({
     const upload = async (p: Picked) => {
         if (customUpload) {
             setState('uploading');
+            setErrorDetail(null);
             try {
                 await customUpload(p);
                 setState('done');
-            } catch {
-                setState('error');
+            } catch (error) {
+                failure(error);
             }
             return;
         }
@@ -133,8 +142,8 @@ export function MediaSlot({
             const media = await onSiteDAO.addCapture(ctx.appointmentId, captureKind, p.uri, p.isVideo ? 'video' : 'image');
             setMediaId(media.id);
             setState('done');
-        } catch {
-            setState('error');
+        } catch (error) {
+            failure(error);
         }
     };
 
@@ -187,6 +196,7 @@ export function MediaSlot({
         setMediaId(null);
         setState('local');
         setText('');
+        setErrorDetail(null);
     };
 
     const isImagePreview =
@@ -425,6 +435,10 @@ export function MediaSlot({
                     ) : null}
                 </View>
             </View>
+
+            {state === 'error' && errorDetail ? (
+                <Text className="font-outfit-regular" style={{ fontSize: 13, lineHeight: 18, color: OS.muted, marginTop: 6 }} testID="media-error-detail">{errorDetail}</Text>
+            ) : null}
 
             {note && picked ? (
                 <NoteInput value={text} onChangeText={setText} placeholder={t('appointments.onSite.common.photoNote')} />

@@ -1,11 +1,12 @@
 import { useTabBarInset } from '@/components/ui/RoundedTabBar';
-import { appAlert } from '@/lib/ui/appAlert';
 import { useFocusEffect } from 'expo-router';
+import * as Sharing from 'expo-sharing';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 import { type ActivityFilterState, EarningsFiltersBar, toYmd } from '@/components/earnings/EarningsFiltersBar';
+import { earningsDAO } from '@/lib/dao/EarningsDAO';
 import { type PaymentHistoryItem, type WalletMovement, walletDAO } from '@/lib/dao/WalletDAO';
 import { NO_SERVICE_INFO, type WalletServiceInfo, walletServiceInfo } from '@/lib/payments/movementServices';
 import { paymentHeadline } from '@/lib/payments/paymentHeadline';
@@ -35,8 +36,22 @@ export default function PaymentActivityScreen() {
     const [refreshing, setRefreshing] = useState(false);
     const [filters, setFilters] = useState<ActivityFilterState>({ sort: 'newest' });
 
-    // The owner's statement is not generated yet (see AV in docs/backlog-backend.md): the button is there, and says so.
-    const askStatement = () => appAlert(t('payments.actions.statementSoonTitle'), t('payments.actions.statementSoon'), undefined, { tone: 'info' });
+    // The statement PDF of the chosen dates (`to` is exclusive on the server, so the last day is sent as the next one).
+    const [downloading, setDownloading] = useState(false);
+    const [statementError, setStatementError] = useState(false);
+    const downloadStatement = async (range: { from?: string; to?: string }) => {
+        setDownloading(true);
+        setStatementError(false);
+        try {
+            const next = range.to ? (() => { const d = new Date(`${range.to}T12:00:00`); d.setDate(d.getDate() + 1); return toYmd(d); })() : undefined;
+            const uri = await earningsDAO.downloadOwnerStatement({ from: range.from, to: next });
+            await Sharing.shareAsync(uri, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf', dialogTitle: t('payments.actions.statement') });
+        } catch {
+            setStatementError(true);
+        } finally {
+            setDownloading(false);
+        }
+    };
 
     /** Date range (both days inclusive) and order, over what is loaded. */
     const shape = useCallback(<T extends { createdAt: string }>(items: T[]): T[] => {
@@ -106,7 +121,7 @@ export default function PaymentActivityScreen() {
 
             {error && <Text className="font-outfit-semibold text-sm mb-3" style={{ color: '#B91C1C' }}>{t(`${K}.activity.loadFailed`)}</Text>}
 
-            <EarningsFiltersBar value={filters} onChange={setFilters} statement={{ onDownload: askStatement, busy: false, failed: false, withStatus: false }} />
+            <EarningsFiltersBar value={filters} onChange={setFilters} statement={{ onDownload: downloadStatement, busy: downloading, failed: statementError, withStatus: false }} />
 
             <Text className="text-gray-900 font-outfit-semibold text-base mb-2">{t(`${K}.activity.payments`)}</Text>
             {shownPayments === null ? (

@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
@@ -22,8 +23,8 @@ const OUTCOME_KEY: Record<ExtensionOutcome, string> = {
 /**
  * Extra time that has to be approved by the technician, over the live call.
  * Owner: "Waiting for the technician…" with the time left to answer, and a message when the
- * request ends without adding time. Technician: the minutes asked for, the countdown and
- * Accept / Decline — never an amount. The call underneath stays usable.
+ * request ends without adding time. Technician: the minutes asked for, the countdown, what
+ * they would earn for it (never the owner's price) and Accept / Decline. The call underneath stays usable.
  */
 export function ExtensionRequestPanel({ appointmentId, isOwner, top = 12, refreshKey = 0, inline = false }: {
     appointmentId: string;
@@ -87,36 +88,56 @@ export function ExtensionRequestPanel({ appointmentId, isOwner, top = 12, refres
                         </View>
                     ) : (
                         <View
-                            style={{ padding: 16, borderRadius: 20, backgroundColor: '#FFFFFF', shadowColor: '#0B1530', shadowOpacity: inline ? 0.08 : 0.3, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: inline ? 2 : 8 }}
+                            style={{ borderRadius: 24, backgroundColor: '#FFFFFF', overflow: 'hidden', shadowColor: '#0B1530', shadowOpacity: inline ? 0.08 : 0.3, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: inline ? 2 : 10 }}
                         >
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                                <View style={{ width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: '#E9F1FF' }}>
-                                    <Ionicons name="time-outline" size={22} color="#1E56E3" />
+                            <LinearGradient colors={['#1E56E3', '#0B2A8E']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ paddingHorizontal: 18, paddingVertical: 16 }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                    <View style={{ width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.18)' }}>
+                                        <Ionicons name="time-outline" size={24} color="#FFFFFF" />
+                                    </View>
+                                    <View style={{ flex: 1 }}>
+                                        <Text className="font-outfit-semibold" style={{ fontSize: 12, letterSpacing: 1.2, color: '#DCE7FF' }}>{t(`${K}.requestedEyebrow`).toUpperCase()}</Text>
+                                        <Text className="font-outfit-bold" style={{ fontSize: 20, lineHeight: 26, color: '#FFFFFF' }}>
+                                            {t(`${K}.requestedTitle`, { minutes: pending.minutes })}
+                                        </Text>
+                                    </View>
+                                    <View style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.18)' }}>
+                                        <Text className="font-outfit-bold" style={{ fontSize: 14, color: '#FFFFFF' }} testID="extension-countdown">{clock(secondsLeft)}</Text>
+                                    </View>
                                 </View>
-                                <View style={{ flex: 1 }}>
-                                    <Text className="font-outfit-bold" style={{ fontSize: 17, lineHeight: 23, color: '#0B1530' }}>
-                                        {t(`${K}.requestedTitle`, { minutes: pending.minutes })}
-                                    </Text>
-                                    <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: '#6B7490' }}>{t(`${K}.requestedHint`)}</Text>
-                                </View>
-                                <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#1E56E3' }} testID="extension-countdown">{clock(secondsLeft)}</Text>
-                            </View>
+                            </LinearGradient>
+                            <View style={{ padding: 16 }}>
+                                {pending.providerAmount ? (
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 16, backgroundColor: '#F1FAF5', borderWidth: 1, borderColor: '#CBEBDA' }} testID="extension-earn">
+                                        <View style={{ width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: '#DDF3E7' }}>
+                                            <Ionicons name="cash-outline" size={22} color="#047857" />
+                                        </View>
+                                        <View style={{ flex: 1 }}>
+                                            <Text className="font-outfit-semibold" style={{ fontSize: 12, letterSpacing: 1.2, color: '#4B6B5C' }}>{t(`${K}.youEarn`).toUpperCase()}</Text>
+                                            <Text className="font-outfit-regular" style={{ fontSize: 13, lineHeight: 18, color: '#4B6B5C' }}>{t(`${K}.youEarnNote`)}</Text>
+                                        </View>
+                                        <Text className="font-outfit-bold" style={{ fontSize: 24, color: '#047857' }}>{`$${pending.providerAmount}`}</Text>
+                                    </View>
+                                ) : null}
+                                <Text className="font-outfit-regular" style={{ fontSize: 14, lineHeight: 20, color: '#6B7490', marginTop: pending.providerAmount ? 12 : 0 }}>{t(`${K}.requestedHint`)}</Text>
                             <View style={{ flexDirection: 'column', gap: 10, marginTop: 14 }}>
                                 <TouchableOpacity
                                     onPress={() => answer('accept')}
                                     disabled={!!acting}
-                                    style={{ minHeight: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: '#1E56E3', opacity: acting ? 0.6 : 1 }}
+                                    style={{ opacity: acting ? 0.6 : 1 }}
                                     accessibilityRole="button"
                                     testID="extension-accept"
                                 >
-                                    {acting === 'accept' ? <ActivityIndicator color="#FFFFFF" /> : (
-                                        <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#FFFFFF' }}>{t(`${K}.accept`)}</Text>
-                                    )}
+                                    <LinearGradient colors={['#10B981', '#047857']} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }} style={{ minHeight: 52, borderRadius: 14, alignItems: 'center', justifyContent: 'center' }}>
+                                        {acting === 'accept' ? <ActivityIndicator color="#FFFFFF" /> : (
+                                            <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#FFFFFF' }}>{t(`${K}.accept`)}</Text>
+                                        )}
+                                    </LinearGradient>
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     onPress={() => answer('decline')}
                                     disabled={!!acting}
-                                    style={{ minHeight: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: '#E6EAF2', opacity: acting ? 0.6 : 1 }}
+                                    style={{ minHeight: 52, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: '#E6EAF2', opacity: acting ? 0.6 : 1 }}
                                     accessibilityRole="button"
                                     testID="extension-decline"
                                 >
@@ -124,6 +145,7 @@ export function ExtensionRequestPanel({ appointmentId, isOwner, top = 12, refres
                                         <Text className="font-outfit-bold" style={{ fontSize: 16, color: '#4A5470' }}>{t(`${K}.decline`)}</Text>
                                     )}
                                 </TouchableOpacity>
+                            </View>
                             </View>
                         </View>
                     )}

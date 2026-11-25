@@ -99,10 +99,14 @@ export default function MembershipScreen() {
     const canPay = !!plan && !plan.payment && !waived && plan.amount > 0;
     const keyboardOpen = useKeyboardOpen();
     // The pay bar sits over the tab bar's row: while it is there the tab bar keeps its own row (no fade over the button).
-    useEffect(() => {
-        setTabBarFooter(canPay);
-        return () => setTabBarFooter(false);
-    }, [canPay]);
+    // Only while this screen is the one on view: tab screens stay mounted when you leave them, and a footer flag left on made every other
+    // tab lose the fade (the content ended in a hard line over a solid bar row).
+    useFocusEffect(
+        useCallback(() => {
+            setTabBarFooter(canPay);
+            return () => setTabBarFooter(false);
+        }, [canPay]),
+    );
     const scroller = useRef<ScrollView>(null);
     const promoInput = useRef<TextInput>(null);
     const promoY = useRef(0);

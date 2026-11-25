@@ -2,7 +2,7 @@ import { FONT } from '@/lib/ui/fonts';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, KeyboardAvoidingView, Modal, Platform, Pressable, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { FlatList, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { AO } from '@/components/offer/OfferSections';
 import type { ChatLine } from '@/lib/video/callMessages';
@@ -20,6 +20,21 @@ export function CallChatSheet({ visible, lines, onSend, onClose }: {
 }) {
     const { t } = useTranslation();
     const [draft, setDraft] = React.useState('');
+    // With the keyboard up there is no home-bar gap to leave under the input, and the list should stay on the latest message.
+    const [keyboardUp, setKeyboardUp] = React.useState(false);
+    const listRef = React.useRef<FlatList<ChatLine>>(null);
+    React.useEffect(() => {
+        const ios = Platform.OS === 'ios';
+        const show = Keyboard.addListener(ios ? 'keyboardWillShow' : 'keyboardDidShow', () => {
+            setKeyboardUp(true);
+            setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 80);
+        });
+        const hide = Keyboard.addListener(ios ? 'keyboardWillHide' : 'keyboardDidHide', () => setKeyboardUp(false));
+        return () => {
+            show.remove();
+            hide.remove();
+        };
+    }, []);
     const send = () => {
         const text = draft.trim();
         if (!text) return;
@@ -30,9 +45,9 @@ export function CallChatSheet({ visible, lines, onSend, onClose }: {
     return (
         <Modal supportedOrientations={MODAL_ORIENTATIONS} transparent visible={visible} animationType="fade" onRequestClose={onClose}>
           <SheetDim color="rgba(11,21,48,0.35)" />
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
                 <Pressable style={{ flex: 1 }} onPress={onClose} />
-                <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: '70%', overflow: 'hidden' }} testID="call-chat-sheet">
+                <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: keyboardUp ? '92%' : '70%', overflow: 'hidden' }} testID="call-chat-sheet">
                     <View
                         className="flex-row items-center"
                         style={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 14, backgroundColor: '#FFFFFF', borderTopLeftRadius: 28, borderTopRightRadius: 28, zIndex: 2, shadowColor: '#0B1F5C', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.08, shadowRadius: 10, elevation: 4 }}
@@ -43,6 +58,9 @@ export function CallChatSheet({ visible, lines, onSend, onClose }: {
                         </TouchableOpacity>
                     </View>
                     <FlatList
+                        ref={listRef}
+                        onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: false })}
+                        keyboardShouldPersistTaps="handled"
                         data={lines}
                         keyExtractor={(l) => l.id}
                         style={{ minHeight: 120 }}
@@ -56,7 +74,7 @@ export function CallChatSheet({ visible, lines, onSend, onClose }: {
                             </View>
                         )}
                     />
-                    <View className="flex-row items-center" style={{ gap: 10, paddingHorizontal: 20, paddingTop: 8, paddingBottom: 28 }}>
+                    <View className="flex-row items-center" style={{ gap: 10, paddingHorizontal: 20, paddingTop: 8, paddingBottom: keyboardUp ? 10 : 28 }}>
                         <TextInput
                             value={draft}
                             onChangeText={setDraft}

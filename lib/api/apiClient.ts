@@ -97,11 +97,30 @@ const UPLOAD_TIMEOUT_MS = 5 * 60 * 1000;
 /** Upper bound on reading the stored tokens before a request. */
 const AUTH_HEADERS_TIMEOUT_MS = 3000;
 
+/**
+ * Multipart upload over XMLHttpRequest. Since Expo SDK 58 the global `fetch` is expo/fetch, which cannot send React Native's local file
+ * part (`{ uri, name, type }`: "Unsupported FormDataPart implementation"), so every photo, video and document upload failed with Retry.
+ * XHR still streams the file from disk, which also keeps a 250 MB video out of memory.
+ */
+function uploadWithXhr(url: string, init: RequestInit, timeoutMs: number): Promise<Response> {
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open(init.method ?? 'POST', url);
+        xhr.timeout = timeoutMs;
+        Object.entries((init.headers ?? {}) as Record<string, string>).forEach(([k, v]) => xhr.setRequestHeader(k, v));
+        xhr.onload = () => resolve(new Response(xhr.responseText, { status: xhr.status, headers: { 'Content-Type': xhr.getResponseHeader('Content-Type') ?? 'application/json' } }));
+        xhr.onerror = () => reject(new Error('Network request failed'));
+        xhr.ontimeout = () => reject(new Error('Upload timed out'));
+        xhr.send(init.body as XMLHttpRequestBodyInit);
+    });
+}
+
 async function fetchWithTimeout(
     url: string,
     init: RequestInit,
     timeoutMs: number = REQUEST_TIMEOUT_MS,
 ): Promise<Response> {
+    if (typeof FormData !== 'undefined' && init.body instanceof FormData) return uploadWithXhr(url, init, timeoutMs);
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
     try {

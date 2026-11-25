@@ -198,7 +198,7 @@ export function JoinVideoCallButton({ onPress, rejoin = false, disabled = false 
     return <GradientButton label={t(rejoin ? `${K}.rejoin` : `${K}.join`)} icon="videocam" tone="success" onPress={onPress} testID="join-video-call" />;
 }
 
-export function InfoCard({ icon, tone, title, body, children, testID, iconNode }: {
+export function InfoCard({ icon, tone, title, body, children, testID, iconNode, tinted }: {
     icon: IconName;
     /** Replaces the plain icon tile (a live, animated one). */
     iconNode?: React.ReactNode;
@@ -207,6 +207,8 @@ export function InfoCard({ icon, tone, title, body, children, testID, iconNode }
     body?: string | null;
     children?: React.ReactNode;
     testID?: string;
+    /** The whole card takes a very soft shade of its tone (and a border of it): for the cards that say where the assistance stands. */
+    tinted?: boolean;
 }) {
     const palette = {
         blue: { bg: AO.blueSoft, fg: AO.blue },
@@ -214,8 +216,14 @@ export function InfoCard({ icon, tone, title, body, children, testID, iconNode }
         green: { bg: AO.greenSoft, fg: AO.greenText },
         gray: { bg: '#EEF0F4', fg: '#4B5563' },
     }[tone];
+    const shade = {
+        blue: { backgroundColor: '#F4F8FF', borderColor: '#D9E6FB' },
+        orange: { backgroundColor: '#FFF8F0', borderColor: '#F8E1C7' },
+        green: { backgroundColor: '#F1FAF5', borderColor: '#CBEBDA' },
+        gray: { backgroundColor: '#FFFFFF', borderColor: '#EEF2FA' },
+    }[tone];
     return (
-        <View style={[card, { padding: 16 }]} testID={testID}>
+        <View style={[card, { padding: 16 }, tinted ? shade : null]} testID={testID}>
             {/* The text sits in its own column, under the title and not under the icon; what the card carries (buttons, a clock) goes full width below. */}
             <View className="flex-row" style={{ gap: 12, alignItems: body ? 'flex-start' : 'center' }}>
                 {iconNode ?? (
@@ -297,7 +305,7 @@ export function OwnerVideoCallStatusCard({ state, mechanicName, busy, onConfirm,
     const k = `${K}.owner`;
     if (state.status === 'awaiting_confirmation') {
         return (
-            <InfoCard icon="help-circle-outline" tone="blue" title={t(`${k}.awaitingTitle`)} body={t(`${k}.awaitingBody`, { name: mechanicName })} testID="owner-video-confirm-card">
+            <InfoCard tinted icon="help-circle-outline" tone="blue" title={t(`${k}.awaitingTitle`)} body={t(`${k}.awaitingBody`, { name: mechanicName })} testID="owner-video-confirm-card">
                 {!!state.finishNote && <NoteBlock label={t(`${k}.mechanicNote`)} text={state.finishNote} />}
                 <DeadlineLine deadline={state.confirmDeadline} />
                 <ConfirmOrDisputeRow
@@ -312,14 +320,14 @@ export function OwnerVideoCallStatusCard({ state, mechanicName, busy, onConfirm,
         );
     }
     if (state.status === 'disputed') {
-        return <InfoCard icon="shield-checkmark-outline" tone="orange" title={t(`${k}.disputedTitle`)} body={t(`${k}.disputedBody`)} testID="owner-video-disputed" />;
+        return <InfoCard tinted icon="shield-checkmark-outline" tone="orange" title={t(`${k}.disputedTitle`)} body={t(`${k}.disputedBody`)} testID="owner-video-disputed" />;
     }
     if (state.status === 'completed' && state.currentStatus === 'not_resolved') {
         return <InfoCard icon="card-outline" tone="gray" title={t(`${k}.notChargedTitle`)} body={t(`${k}.notChargedBody`)} testID="owner-video-not-charged" />;
     }
     // Closed and confirmed: the same card the technician sees, in the owner's words.
     if (state.status === 'completed') {
-        return <InfoCard icon="checkmark-circle-outline" tone="green" title={t(`${k}.completedTitle`)} body={t(`${k}.completedBody`)} testID="owner-video-completed" />;
+        return <InfoCard tinted icon="checkmark-circle-outline" tone="green" title={t(`${k}.completedTitle`)} body={t(`${k}.completedBody`)} testID="owner-video-completed" />;
     }
     return null;
 }
@@ -330,19 +338,20 @@ export function MechanicVideoCallStatusCard({ state }: { state: VideoCallState }
     const k = `${K}.mechanic`;
     if (state.status === 'awaiting_confirmation') {
         return (
-            <InfoCard icon="hourglass-outline" tone="blue" title={t(`${k}.awaitingTitle`)} testID="mechanic-video-awaiting">
+            <InfoCard tinted icon="hourglass-outline" tone="blue" title={t(`${k}.awaitingTitle`)} testID="mechanic-video-awaiting">
                 {!!state.finishNote && <NoteBlock label={t(`${k}.yourNote`)} text={state.finishNote} />}
                 <DeadlineLine deadline={state.confirmDeadline} />
             </InfoCard>
         );
     }
     if (state.status === 'disputed') {
-        return <InfoCard icon="alert-circle-outline" tone="orange" title={t(`${k}.disputedTitle`)} body={t(`${k}.disputedBody`)} testID="mechanic-video-disputed" />;
+        return <InfoCard tinted icon="alert-circle-outline" tone="orange" title={t(`${k}.disputedTitle`)} body={t(`${k}.disputedBody`)} testID="mechanic-video-disputed" />;
     }
     if (state.status === 'completed') {
         const notResolved = state.currentStatus === 'not_resolved';
         return (
             <InfoCard
+                tinted
                 icon={notResolved ? 'card-outline' : 'checkmark-circle-outline'}
                 tone={notResolved ? 'gray' : 'green'}
                 title={notResolved ? t(`${K}.status.notCharged`) : t(`${k}.completedTitle`)}

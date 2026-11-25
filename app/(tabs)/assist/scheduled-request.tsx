@@ -31,6 +31,7 @@ import {
     vehicleLabel,
     WARRANTIES,
     type QuoteDraft,
+    calendarDate,
 } from '@/lib/scheduled/provider';
 
 type ViewId = 'details' | 'quote' | 'review' | 'sent' | 'decline' | 'declined' | 'awarded' | 'notselected' | 'closed';
@@ -189,7 +190,7 @@ export default function ScheduledRequestScreen() {
         : '—';
     const vehicle = vehicleLabel(request);
     const dist = distanceLabel(request.distanceMiles);
-    const whenLabel = notes.days || (request.date ? new Date(request.date).toLocaleDateString(i18n.language, { weekday: 'short', month: 'short', day: 'numeric' }) : '');
+    const whenLabel = notes.days || (calendarDate(request.date)?.toLocaleDateString(i18n.language, { weekday: 'short', month: 'short', day: 'numeric' }) ?? '');
     const mine = request.myOffer;
     const totals = quoteTotals(q);
     const problem = quoteProblem(q);
@@ -513,6 +514,7 @@ export default function ScheduledRequestScreen() {
                                 <Chips>{days.map((d) => <ChipBtn key={d} on={q.day === d} onPress={() => patch({ day: d })}>{dayLabel(d)}</ChipBtn>)}</Chips>
                                 <Text className="font-outfit-bold" style={{ fontSize: 13, color: SC.muted, marginTop: 14, marginBottom: 8 }}>{t('scheduledProvider.quote.arrivalTime')}</Text>
                                 <Chips>{times.map((m) => <ChipBtn key={m} on={q.time === m} onPress={() => patch({ time: m })}>{formatMinutes(m)}</ChipBtn>)}</Chips>
+                                {!notes.window ? <Text className="font-outfit-regular" style={{ fontSize: 13, lineHeight: 19, color: SC.muted, marginTop: 8 }}>{t('scheduledProvider.quote.noWindowHint')}</Text> : null}
                                 <Text className="font-outfit-bold" style={{ fontSize: 13, color: SC.muted, marginTop: 14, marginBottom: 8 }}>{t('scheduledProvider.quote.duration')}</Text>
                                 <Chips>{DURATIONS.map((d) => <ChipBtn key={d.id} on={q.durationId === d.id} onPress={() => patch({ durationId: d.id })}>{d.label}</ChipBtn>)}</Chips>
                             </View>

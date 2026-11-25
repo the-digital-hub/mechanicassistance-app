@@ -213,7 +213,7 @@ export default function OnSiteFlowScreen() {
         if (submittingDiagnostic.current) return;
         submittingDiagnostic.current = true;
         onSiteDAO
-            .submitDiagnostic(id)
+            .submitDiagnostic(id, photosSkipped.current)
             .then(() => go('feasibility'))
             .catch(() => {
                 if (photosSkipped.current) {

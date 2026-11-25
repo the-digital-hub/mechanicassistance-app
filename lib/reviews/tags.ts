@@ -3,8 +3,7 @@ export const OWNER_REVIEW_TAGS = ['on_time', 'professional', 'fair_price', 'clea
 export const CLIENT_REVIEW_TAGS = ['punctual', 'clear_description', 'respectful', 'easy_access'] as const;
 
 /**
- * `POST /appointments/:id/client-review` is documented as `{rating, review?}` and its DTO whitelists fields
- * (`forbidNonWhitelisted`), so sending `experienceTags` could be a 400. Flip to true once the backend accepts it
- * (see docs/backlog-backend.md); until then the technician still picks options, but only stars and text are sent.
+ * `POST /appointments/:id/client-review` accepts `experienceTags` (backend, 25-nov, AI). It was off while its DTO (`forbidNonWhitelisted`)
+ * could have answered 400; set it back to false if an older backend ever has to be served.
  */
-export const SEND_CLIENT_REVIEW_TAGS = false;
+export const SEND_CLIENT_REVIEW_TAGS = true;

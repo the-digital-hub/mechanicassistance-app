@@ -89,6 +89,20 @@ export function AppAlertHost() {
             <View className="flex-1 items-center justify-center px-5" style={{ backgroundColor: 'rgba(11,21,48,0.55)' }} testID="app-alert">
                 <Pressable style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }} onPress={dismiss} accessible={false} />
                 <View className="w-full" style={[cardShadow, { maxWidth: 400, borderRadius: 24, padding: 20, maxHeight: '80%' }]}>
+                    {/* An alert that can be dismissed without choosing (`cancelable`) also has its X in the corner. */}
+                    {shown.options?.cancelable ? (
+                        <TouchableOpacity
+                            onPress={dismiss}
+                            hitSlop={10}
+                            accessibilityRole="button"
+                            accessibilityLabel="Close"
+                            className="items-center justify-center"
+                            style={{ position: 'absolute', top: 14, right: 14, width: 32, height: 32, borderRadius: 16, backgroundColor: '#EEF1F6', zIndex: 2 }}
+                            testID="app-alert-close"
+                        >
+                            <Ionicons name="close" size={18} color="#4B5563" />
+                        </TouchableOpacity>
+                    ) : null}
                     <View className="items-center justify-center self-center" style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: tone.bg }}>
                         <Ionicons name={tone.icon} size={28} color={tone.color} />
                     </View>

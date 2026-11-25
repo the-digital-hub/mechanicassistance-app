@@ -54,6 +54,8 @@ export interface OnSiteVisit {
     redirectNote: string | null;
     exitSkipped: boolean;
     closedAt: string | null;
+    /** The technician went on without the plate and dashboard photos (server flag, 25-nov). */
+    diagnosticPhotosSkipped?: boolean;
     obdStatus: ObdStatus;
     obdDocumentKey: string | null;
     obdCodes: ObdCode[];
@@ -208,9 +210,12 @@ class OnSiteDAOImpl {
         return apiClient.delete(`${base(appointmentId)}/on-site/media/${mediaId}`);
     }
 
-    /** "Validating": throws with the missing photos named when plate/dashboard are absent. */
-    submitDiagnostic(appointmentId: string): Promise<{ ready: true }> {
-        return apiClient.post(`${base(appointmentId)}/on-site/diagnostic`, {});
+    /**
+     * "Validating": throws with the missing photos named when plate/dashboard are absent. With `photosSkipped` (the technician chose to
+     * go on without them) the server accepts it and marks the visit (`diagnosticPhotosSkipped`), so the report says so.
+     */
+    submitDiagnostic(appointmentId: string, photosSkipped = false): Promise<{ ready: true; photosSkipped?: boolean }> {
+        return apiClient.post(`${base(appointmentId)}/on-site/diagnostic`, photosSkipped ? { photosSkipped: true } : {});
     }
 
     close(

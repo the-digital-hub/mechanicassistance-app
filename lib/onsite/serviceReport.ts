@@ -90,6 +90,7 @@ export function buildServiceReport({ appointment, role, visit, ownerName, mechan
             row(t(`${k}.issue`), issue),
             row(t(`${k}.notes`), appointment.notes),
             isVideoCall && appointment.durationMinutes ? row(t(`${k}.callLength`), t(`${k}.minutes`, { count: appointment.durationMinutes + (appointment.extendedMinutes ?? 0) })) : null,
+            visit?.diagnosticPhotosSkipped ? row(t(`${k}.noPhotos`), t(`${k}.noPhotosValue`)) : null,
             redirected && visit?.redirectReason ? row(t(`${k}.reason`), t(`appointments.onSite.options.reasons.${visit.redirectReason}`)) : null,
         ]),
         lines: [] as { text: string; done?: boolean }[],

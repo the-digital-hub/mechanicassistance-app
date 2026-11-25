@@ -1039,4 +1039,5 @@ export interface IPricingDAO {
     calculatePrice(payload: CalculatePricePayload): Promise<PriceCalculationResult>;
     persistRequestPrice(serviceRequestId: string, payload: PersistRequestPricePayload): Promise<PriceCalculationResult>;
     getRequestIssues(serviceRequestId: string): Promise<VehicleIssueSnapshot[]>;
+    getRequestIssuesBatch(ids: string[]): Promise<Record<string, VehicleIssueSnapshot[]>>;
 }

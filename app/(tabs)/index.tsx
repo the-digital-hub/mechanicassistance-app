@@ -379,18 +379,18 @@ export default function ProfileScreen() {
                     className="flex-1 rounded-[14px] items-center justify-center"
                     style={{
                       minHeight: 52,
-                      paddingHorizontal: 6,
+                      paddingHorizontal: 4,
                       backgroundColor: mechanicStatus === option.id ? optionStyles.bgColor : '#F9FAFB',
                       borderColor: mechanicStatus === option.id ? optionStyles.borderColor : '#E5E7EB',
                       borderWidth: 1,
                     }}
                     testID={`profile-status-${option.id}`}
                   >
-                    {/* The dot sits in the corner: the whole width of the button is for the word (the longest, "Desconectado", stays on one line). */}
+                    {/* The dot sits in the corner: the whole width of the button is for the word. All three share one size, the one the longest ("Desconectado") fits in, so none looks different. */}
                     <View style={{ position: 'absolute', top: 7, right: 7 }}>
                       <Circle size={8} color={getStatusColor(option.id)} fill={getStatusColor(option.id)} />
                     </View>
-                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={{ color: mechanicStatus === option.id ? optionStyles.textColor : '#9CA3AF', fontFamily: FONT.semibold, fontSize: 14 }}>
+                    <Text numberOfLines={1} allowFontScaling={false} style={{ color: mechanicStatus === option.id ? optionStyles.textColor : '#9CA3AF', fontFamily: FONT.semibold, fontSize: 13 }}>
                       {option.label}
                     </Text>
                   </TouchableOpacity>

@@ -14,7 +14,7 @@ import { hasSentQuote, quotesWaiting } from '@/lib/scheduled/quotes';
 import { parseRequestNotes } from '@/lib/scheduled/provider';
 import { buildMechanicFeedFilters } from '@/lib/mechanic-feed';
 import { pricingDAO } from '@/lib/dao/PricingDAO';
-import { AssistanceRequest } from '@/lib/dao/interfaces';
+import { AssistanceRequest, type VehicleIssueSnapshot } from '@/lib/dao/interfaces';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Radar, Search, SlidersHorizontal, X, Zap, Video, Calendar, Clock, Car, Gauge, Wrench, Lock, DollarSign } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -156,16 +156,13 @@ export default function AssistanceRequestsScreen() {
       // Best-effort: vehicle issues live in the pricing service, not on
       // assistance_requests. A failed fetch for one request must not block
       // the rest of the feed from loading.
-      const withIssues = await Promise.all(
-        data.map(async (req) => {
-          try {
-            return { ...req, vehicleIssues: await pricingDAO.getRequestIssues(req.id) };
-          } catch (e) {
-            console.warn(`Failed to load vehicle issues for ${req.id}`, e);
-            return req;
-          }
-        })
-      );
+      let byId: Record<string, VehicleIssueSnapshot[]> = {};
+      try {
+        byId = await pricingDAO.getRequestIssuesBatch(data.map((req) => req.id));
+      } catch (e) {
+        console.warn('Failed to load vehicle issues', e);
+      }
+      const withIssues = data.map((req) => (byId[req.id] ? { ...req, vehicleIssues: byId[req.id] } : req));
       setRequests(withIssues);
     } catch (e) {
       console.error('Failed to load assistance requests', e);
@@ -509,7 +506,7 @@ export default function AssistanceRequestsScreen() {
                     )}
 
                     {/* Immediate: the zone, distance, ETA and "Send offer" are on the card itself, as in the dashboard. */}
-                    {request.type === 'immediate' ? (
+                    {request.type === 'immediate' || request.type === 'videocall' ? (
                       <ImmediateOfferPanel request={request} onSend={guard(startOffer)} onDecline={guard(handleDecline)} />
                     ) : (
                     <View className="gap-3 px-5 py-4 border-t border-gray-100">

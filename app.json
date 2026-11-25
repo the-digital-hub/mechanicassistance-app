@@ -95,12 +95,17 @@
           "ios": {
             "useFrameworks": "static",
             "buildReactNativeFromSource": true
+          },
+          "android": {
+            "enableMinifyInReleaseBuilds": false,
+            "extraProguardRules": "-dontwarn com.stripe.android.pushProvisioning.**"
           }
         }
       ],
       "./plugins/withFirebasePodfile",
       "./plugins/withFirebaseAuthAPNS",
       "./plugins/withAndroidNotificationChannel",
+      "./plugins/withStripeNoTapAndPay",
       "@react-native-google-signin/google-signin",
       [
         "expo-splash-screen",

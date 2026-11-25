@@ -235,6 +235,10 @@ export default function AppointmentDetailScreen() {
         call: videoState?.callStartedAt ?? appointment?.startedAt,
         closed: appointment?.completedAt ?? (['completed', 'awaiting_confirmation', 'disputed'].includes(appointment?.status ?? '') ? (appointment?.updatedAt ?? appointment?.createdAt) : undefined),
     };
+    // The technician's "When" card of a video call: over the join buttons while the call is open, and under how it ended once it is over.
+    const mechanicWhenCard = appointment ? (
+        <VideoCallWhenCard date={appointment.date} startNow={appointment.startNow} startedAt={appointment.startedAt} completedAt={appointment.completedAt ?? (['completed', 'awaiting_confirmation', 'disputed', 'cancelled'].includes(appointment.status) ? (appointment.updatedAt ?? appointment.createdAt) : undefined)} live={false} />
+    ) : null;
     // The owner's OBD scanner report: it can change until the call is over.
     const obd = useRequestObd(isVideoCall ? appointment?.id : undefined);
     const obdEditable = ['pending', 'accepted', 'in_progress'].includes(videoStatus ?? '');
@@ -1325,7 +1329,7 @@ export default function AppointmentDetailScreen() {
                             {isVideoCall ? (
                                 <View className="mx-4 mt-3.5" style={{ gap: 10 }}>
                                     {/* When, in both roles: the owner has it in the same place, over the status. */}
-                                    <VideoCallWhenCard date={appointment.date} startNow={appointment.startNow} startedAt={appointment.startedAt} completedAt={appointment.completedAt ?? (['completed', 'awaiting_confirmation', 'disputed', 'cancelled'].includes(appointment.status) ? (appointment.updatedAt ?? appointment.createdAt) : undefined)} live={false} />
+                                    {videoCallLive ? mechanicWhenCard : null}
                                     {videoCallLive ? (
                                         <>
                                             {/* Extra time the owner asked for: answered here too, not only inside the call. */}
@@ -1361,6 +1365,7 @@ export default function AppointmentDetailScreen() {
                                     ) : videoState ? (
                                         <>
                                             <MechanicVideoCallStatusCard state={videoState} />
+                                            {mechanicWhenCard}
                                             {/* Closed: the rating of the customer is right here, open, ready to send. */}
                                             {videoStatus === 'completed' ? (
                                                 <View className="mt-3.5">
@@ -1379,7 +1384,7 @@ export default function AppointmentDetailScreen() {
                                                 </View>
                                             ) : null}
                                         </>
-                                    ) : null}
+                                    ) : mechanicWhenCard}
                                 </View>
                             ) : null}
 

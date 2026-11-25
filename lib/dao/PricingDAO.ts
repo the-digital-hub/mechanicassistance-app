@@ -58,6 +58,20 @@ export class PricingDAO implements IPricingDAO {
     async getRequestIssues(serviceRequestId: string): Promise<VehicleIssueSnapshot[]> {
         return apiClient.get(`/api/pricing/requests/${serviceRequestId}/issues`);
     }
+
+    /**
+     * The issues of many requests in one go (`POST /api/pricing/requests/issues`, up to 100 ids per call; a request with none, or that does
+     * not exist, comes back as `[]`). Replaces one call per request.
+     */
+    async getRequestIssuesBatch(ids: string[]): Promise<Record<string, VehicleIssueSnapshot[]>> {
+        const unique = Array.from(new Set(ids.filter(Boolean)));
+        const out: Record<string, VehicleIssueSnapshot[]> = {};
+        for (let i = 0; i < unique.length; i += 100) {
+            const part = await apiClient.post<Record<string, VehicleIssueSnapshot[]>>('/api/pricing/requests/issues', { ids: unique.slice(i, i + 100) });
+            Object.assign(out, part ?? {});
+        }
+        return out;
+    }
 }
 
 export const pricingDAO = new PricingDAO();
