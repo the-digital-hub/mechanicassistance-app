@@ -2667,7 +2667,11 @@
     },
     "backgroundLocation": {
       "notificationTitle": "Compartiendo tu ubicación",
-      "notificationBody": "El cliente te sigue en el mapa mientras vas a la asistencia."
+      "notificationBody": "El cliente te sigue en el mapa mientras vas a la asistencia.",
+      "disclosureTitle": "Compartí tu ubicación mientras manejás",
+      "disclosureBody": "Mechanic Assistance recopila tu ubicación mientras vas hacia un cliente, incluso con la app cerrada o el teléfono bloqueado, para que el cliente te siga en vivo en el mapa y vea tu hora de llegada. Se detiene cuando termina el trabajo. Nunca se usa para publicidad ni se recopila en otro momento.\n\nEn la próxima pantalla elegí \"Permitir todo el tiempo\".",
+      "disclosureNotNow": "Ahora no",
+      "disclosureContinue": "Continuar"
     },
     "report": {
       "title": "Reporte final",
