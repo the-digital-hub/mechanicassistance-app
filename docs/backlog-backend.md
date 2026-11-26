@@ -535,3 +535,9 @@ El técnico baja el PDF del estado de cuenta desde Earnings → Activity → fil
 - **AR:** si en Ganancias siguen filas «Request details unavailable», mandar un id de ejemplo y el usuario del técnico.
 
 **Siguen sin empezar:** AN (membresía, espera decisiones de producto), AU, P y E. **Sin respuesta todavía:** AW, AX, AY.
+
+---
+
+## Web del dueño del vehículo (25-nov-2026): pedidos W1 a W15
+
+Juan Pablo construye la web del dueño sobre este backend. Los pedidos (CORS y sesión en navegador, registro y Didit en web, notificaciones web, eventos de socket, eliminar cuenta, idempotencia al crear el pedido, disponibilidad estructurada, orden de vehículos, etc.) están en `docs/pendientes-alejandro-2026-11-25-web.md`. Bloquean el inicio: **W1 a W4**.
