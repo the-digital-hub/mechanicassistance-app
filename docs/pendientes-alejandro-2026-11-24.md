@@ -1,6 +1,6 @@
 # Pendientes de backend (Alejandro)
 
-> **Actualización 25-nov:** AO, AS, AT (lote), AK, AL, AI, AP, AQ, AV y `vehicleCondition` de AM están hechos por backend y la app ya los usa (detalle al final de `docs/backlog-backend.md`). Siguen abiertos: AN, AU, P, E, **AW, AX y AY**, más dos datos que backend nos pidió: el 401 de pricing y la definición de los eventos de la visita.
+> **Actualización 25-nov:** AO, AS, AT (lote), AK, AL, AI, AP, AQ, AV y `vehicleCondition` de AM están hechos por backend y la app ya los usa (detalle al final de `docs/backlog-backend.md`). **AU (política de privacidad) quedó hecho el 25-nov y la app lo usa desde el build 143.** Siguen abiertos: AN, P, E, **AW, AX y AY**, más dos datos que backend nos pidió: el 401 de pricing y la definición de los eventos de la visita.
 
 **Fecha:** 24 de noviembre de 2026 · **De:** equipo de la app · **Base:** la devolución de backend del 24-nov y los pedidos de la app (`docs/backlog-backend.md`).
 
