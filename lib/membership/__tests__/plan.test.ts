@@ -33,50 +33,12 @@ describe('loadMembership', () => {
     });
 });
 
+// Promo codes are not in the client any more: billing owns them (see plan.ts).
 describe('promo codes', () => {
-    it('MIAMI takes 10% off the technician plan, in any case, and it stays', async () => {
-        const result = await applyPromoCode(' miami ', 'mechanic', 'u3');
-        expect(result).toEqual({ ok: true, coupon: { code: 'MIAMI', percentOff: 10 } });
-        const plan = await loadMembership('mechanic', 'u3');
-        expect(plan.amount).toBe(108);
-        expect(plan.listAmount).toBe(120);
-        expect(plan.coupon).toEqual({ code: 'MIAMI', percentOff: 10 });
-        expect(plan.promoAvailable).toBe(false);
-    });
-
-    it('MEKA takes 25% off the technician plan', async () => {
-        expect(await applyPromoCode('meka', 'mechanic', 'u4')).toEqual({ ok: true, coupon: { code: 'MEKA', percentOff: 25 } });
-        const plan = await loadMembership('mechanic', 'u4');
-        expect(plan.amount).toBe(90);
-        expect(plan.listAmount).toBe(120);
-    });
-
-    it('does not touch other accounts, and can be removed', async () => {
-        await applyPromoCode('MIAMI', 'mechanic', 'u5');
-        expect((await loadMembership('mechanic', 'u6')).amount).toBe(120);
-        await removePromoCode('u5');
-        expect((await loadMembership('mechanic', 'u5')).amount).toBe(120);
-    });
-
-    it('refuses an unknown code, and the codes of the other kind of account', async () => {
-        expect(await applyPromoCode('NOPE', 'mechanic', 'u7')).toEqual({ ok: false, reason: 'invalid' });
-        expect(await applyPromoCode('NOPE', 'user', 'u7')).toEqual({ ok: false, reason: 'invalid' });
-        // The technician's codes do nothing on the owner's plan, and the owner's on the technician's.
-        expect(await applyPromoCode('MIAMI', 'user', 'u8')).toEqual({ ok: false, reason: 'not_eligible' });
-        expect(await applyPromoCode('MEKA', 'user', 'u9')).toEqual({ ok: false, reason: 'not_eligible' });
-        expect(await applyPromoCode('INSURANCE', 'mechanic', 'u9')).toEqual({ ok: false, reason: 'not_eligible' });
-        expect((await loadMembership('user', 'u8')).amount).toBe(15);
-    });
-
-    it('INSURANCE takes 100% off the owner plan, and stays apart from the same person as a technician', async () => {
-        expect(await applyPromoCode(' insurance ', 'user', 'u10')).toEqual({ ok: true, coupon: { code: 'INSURANCE', percentOff: 100 } });
-        const owner = await loadMembership('user', 'u10');
-        expect(owner.amount).toBe(0);
-        expect(owner.listAmount).toBe(15);
-        expect(owner.coupon?.code).toBe('INSURANCE');
-        expect((await loadMembership('mechanic', 'u10')).amount).toBe(120);
-        await removePromoCode('u10', 'user');
-        expect((await loadMembership('user', 'u10')).amount).toBe(15);
+    it('refuses every code on the client, whatever the role', async () => {
+        expect(await applyPromoCode('MIAMI', 'mechanic', 'c1')).toEqual({ ok: false, reason: 'invalid' });
+        expect(await applyPromoCode('INSURANCE', 'user', 'c2')).toEqual({ ok: false, reason: 'invalid' });
+        expect((await loadMembership('mechanic', 'c1')).coupon).toBeNull();
     });
 });
 
@@ -90,27 +52,24 @@ describe('paying the plan', () => {
         return promise;
     };
 
-    it('pays the year with the coupon applied, renews a year later and cannot be paid twice', async () => {
-        await applyPromoCode('MEKA', 'mechanic', 'p1');
+    it('pays the year, renews a year later and cannot be paid twice', async () => {
         const result = await pay('mechanic', 'p1');
         expect(result.ok).toBe(true);
-        expect(result.payment).toMatchObject({ amount: 90, couponCode: 'MEKA' });
+        expect(result.payment).toMatchObject({ amount: 120, couponCode: null });
         const plan = await loadMembership('mechanic', 'p1');
-        expect(plan.payment?.amount).toBe(90);
+        expect(plan.payment?.amount).toBe(120);
         expect(plan.promoAvailable).toBe(false);
         const renews = Date.parse(plan.nextPaymentAt as string) - Date.parse(plan.payment!.paidAt);
         expect(renews).toBe(365 * 86_400_000);
         expect(await pay('mechanic', 'p1')).toEqual({ ok: false, reason: 'already_paid' });
     });
 
-    it('lets the owner pay $15, has nothing to pay once a code covers it all, and the payment can be reset', async () => {
+    it('lets the owner pay $15, and the payment can be reset', async () => {
         const owner = await pay('user', 'p2');
         expect(owner.ok).toBe(true);
         expect(owner.payment).toMatchObject({ amount: 15, couponCode: null });
         // The technician plan of the same person is a different one.
         expect((await loadMembership('mechanic', 'p2')).payment).toBeNull();
-        await applyPromoCode('INSURANCE', 'user', 'p4');
-        expect(await pay('user', 'p4')).toEqual({ ok: false, reason: 'nothing_to_pay' });
         await pay('mechanic', 'p3');
         await resetMembershipPayment('p3');
         expect((await loadMembership('mechanic', 'p3')).payment).toBeNull();
@@ -159,14 +118,6 @@ describe('the owner plan, per vehicle', () => {
         expect(plan.fleet?.lines).toHaveLength(1);
         expect(plan.amount).toBe(15);
         expect((await loadMembership('user', 'o4', null, [])).amount).toBe(0);
-    });
-
-    it('applies the coupon on every vehicle', async () => {
-        await applyPromoCode('INSURANCE', 'user', 'o5');
-        const plan = await loadMembership('user', 'o5', null, [car(1), car(2)]);
-        expect(plan.amount).toBe(0);
-        expect(plan.listAmount).toBe(27);
-        expect(plan.fleet?.pendingCount).toBe(0);
     });
 
     it('pays only the pending vehicles, each with its own year, and a new one is pending again', async () => {

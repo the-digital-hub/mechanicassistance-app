@@ -117,12 +117,13 @@ export const OWNER_PLAN_NAME = 'Assistance Pass';
 export const ownerVehiclePrice = (position: number) => OWNER_VEHICLE_PRICES[position] ?? OWNER_VEHICLE_PRICE_FROM_FOURTH;
 
 /**
- * The promo codes the simulation knows, by the role they are for: code → percent off. A technician's code does nothing on an owner's plan
- * and the other way round. (Real ones come from billing, see AN in docs/backlog-backend.md.)
+ * Promo codes the client knows. None: they live in billing now (`POST /api/membership/promo-code`, coupons made and switched on from the Hub,
+ * see `servicios/billing/08-membresia-api.md` in the analysis repo), and the app does not carry its own. Phase 2 of the membership replaces
+ * this table, `applyPromoCode` and the saved coupon with those calls.
  */
 const PROMO_CODES: Record<Role, Record<string, number>> = {
-    mechanic: { MIAMI: 10, MEKA: 25 },
-    user: { INSURANCE: 100 },
+    mechanic: {},
+    user: {},
 };
 
 // The technician keeps the keys it always had; the owner's carry the role (one person can be both).
