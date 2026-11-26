@@ -76,7 +76,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera for video calls, to verify your identity by scanning your ID document, and to scan the customer's check-in QR code and the vehicle's VIN barcode when you arrive."
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera for video calls, to verify your identity by scanning your ID document, to scan the customer's check-in QR code and the vehicle's VIN barcode when you arrive, and to take photos of the vehicle."
         }
       ],
       "@react-native-firebase/app",
@@ -85,8 +85,8 @@
       [
         "@config-plugins/react-native-webrtc",
         {
-          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera for video calls and to verify your identity by scanning your ID document.",
-          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone for video calls."
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera for video calls, to verify your identity by scanning your ID document, to scan the customer's check-in QR code and the vehicle's VIN barcode when you arrive, and to take photos of the vehicle.",
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone for video calls and to record a short video of the vehicle's problem."
         }
       ],
       [
