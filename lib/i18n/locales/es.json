@@ -240,7 +240,8 @@
       "count_other": "{{count}} pendientes",
       "verify": "Verificar",
       "missing": "Falta",
-      "pay": "Pagar"
+      "pay": "Pagar",
+      "update": "Actualizar"
     }
   },
   "assistanceCard": {
@@ -3077,13 +3078,21 @@
   "privacy": {
     "badge": "PRIVACIDAD Y SEGURIDAD",
     "title": "Política de privacidad",
-    "subtitle": "Conocé cómo protegemos tus datos y tu privacidad. Última actualización: 14/08/2024",
-    "intro": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent pellentesque congue lorem, vel tincidunt tortor placerat a. Proin ac diam quam. Aenean in sagittis magna, ut feugiat diam. Fusce a scelerisque neque, sed accumsan metus.",
-    "termsHeading": "Términos y condiciones",
-    "termsBody": "Nunc auctor tortor in dolor luctus, quis euismod urna tincidunt. Aenean arcu metus, bibendum at rhoncus at, volutpat ut lacus. Morbi pellentesque malesuada eros semper ultrices. Vestibulum lobortis enim vel neque auctor, a ultrices ex placerat. Mauris ut lacinia justo, sed suscipit tortor. Nam egestas nulla posuere neque tincidunt porta.",
-    "clause1": "1. Ut lacinia justo sit amet lorem sodales accumsan. Proin malesuada eleifend fermentum. Donec condimentum, nunc at rhoncus faucibus, ex nisi laoreet",
-    "clause2": "2. Podemos usar tu dirección de email para enviarte promociones y novedades ocasionales. Podés darte de baja de estos emails en cualquier momento ajustando la configuración de tu cuenta.",
-    "accept": "Aceptar"
+    "subtitle": "Cómo cuidamos tus datos. Estas son las versiones vigentes de nuestros textos legales.",
+    "accept": "Aceptar",
+    "accepted": "Aceptada",
+    "version": "Versión {{version}}",
+    "published": "Publicada el {{date}}",
+    "acceptedOn": "La aceptaste el {{date}}",
+    "loadFailedTitle": "No pudimos cargar la política",
+    "loadFailed": "Revisá tu conexión y probá de nuevo.",
+    "retry": "Reintentar",
+    "readOnWebsite": "Leerla en nuestro sitio",
+    "empty": "Todavía no hay una política publicada.",
+    "acceptFailedTitle": "No pudimos guardar tu aceptación",
+    "acceptFailed": "Revisá tu conexión y probá de nuevo.",
+    "supersededTitle": "La política se actualizó",
+    "supersededMessage": "Hay una versión más nueva. Leela y aceptala de nuevo."
   },
   "help": {
     "badge": "AYUDA Y SOPORTE",
