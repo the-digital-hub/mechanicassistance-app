@@ -10,7 +10,7 @@ jest.mock('@react-native-async-storage/async-storage', () => {
     };
 });
 
-import { applyPromoCode, loadMembership, ownerVehiclePrice, payMembership, removePromoCode, resetMembershipPayment, setMembershipAutoRenew, TECHNICIAN_PLAN_USD_PER_YEAR, OWNER_PLAN_USD_PER_YEAR } from '../plan';
+import { applyPromoCode, loadMembership, ownerVehiclePrice, payMembership, resetMembershipPayment, setMembershipAutoRenew, TECHNICIAN_PLAN_USD_PER_YEAR, OWNER_PLAN_USD_PER_YEAR } from '../plan';
 
 describe('loadMembership', () => {
     it('charges the technician $120 a year', async () => {
