@@ -1375,6 +1375,22 @@
       "subtitle": "Please select the reason below. This helps us improve future assignments.",
       "infoMessage": "Frequent cancellations may affect your acceptance rate and visibility in the request queue.",
       "keepRequest": "Keep Request",
+      "failedTitle": "We couldn't cancel the request",
+      "failed": "Your request is still active. Check your connection and try again.",
+      "owner": {
+        "title": "Why are you canceling?",
+        "subtitle": "Pick the reason. It helps us improve the service.",
+        "infoMessage": "Canceling is free until your technician leaves for your location (plus a few minutes of grace). After that, the charge may go to review.",
+        "reasons": {
+          "solved": "The problem is solved",
+          "foundOtherHelp": "I found help somewhere else",
+          "takingTooLong": "It's taking too long",
+          "priceTooHigh": "The price is too high",
+          "wrongInfo": "I entered something wrong (vehicle, place or issue)",
+          "changedMind": "I changed my mind",
+          "other": "Other"
+        }
+      },
       "reasons": {
         "noLongerAvailable": "No longer available",
         "tooFarAway": "Too far away",

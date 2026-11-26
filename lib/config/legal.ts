@@ -3,6 +3,6 @@
  * belong in ConfigService (which resolves per-environment API/WS hosts).
  */
 export const LEGAL_URLS = {
-  terms: "https://mechanicassistance.com/terms-conditions/",
+  terms: "https://mechanicassistance.com/terms/",
   privacy: "https://mechanicassistance.com/privacy-policy/",
 } as const;

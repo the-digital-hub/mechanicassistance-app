@@ -1376,6 +1376,22 @@
       "subtitle": "Seleccioná el motivo debajo. Esto nos ayuda a mejorar futuras asignaciones.",
       "infoMessage": "Las cancelaciones frecuentes pueden afectar tu tasa de aceptación y visibilidad en la cola de solicitudes.",
       "keepRequest": "Mantener solicitud",
+      "failedTitle": "No pudimos cancelar la solicitud",
+      "failed": "Tu solicitud sigue activa. Revisá tu conexión y probá de nuevo.",
+      "owner": {
+        "title": "¿Por qué cancelás?",
+        "subtitle": "Elegí el motivo. Nos ayuda a mejorar el servicio.",
+        "infoMessage": "Cancelar no tiene costo hasta que tu técnico sale hacia tu ubicación (más unos minutos de gracia). Después, el cobro puede pasar a revisión.",
+        "reasons": {
+          "solved": "El problema se resolvió",
+          "foundOtherHelp": "Conseguí ayuda en otro lado",
+          "takingTooLong": "Está tardando demasiado",
+          "priceTooHigh": "El precio es muy alto",
+          "wrongInfo": "Cargué algo mal (vehículo, lugar o problema)",
+          "changedMind": "Cambié de idea",
+          "other": "Otro"
+        }
+      },
       "reasons": {
         "noLongerAvailable": "Ya no está disponible",
         "tooFarAway": "Demasiado lejos",
@@ -3375,9 +3391,9 @@
       "title": "¿Cuál es tu número?",
       "subtitle": "Te vamos a enviar un SMS para verificar tu número de teléfono.",
       "consentTitle": "Sobre los mensajes de texto",
-      "consentPrefix": "Al continuar, aceptás recibir un código de verificación por mensaje de MAssistance. Pueden aplicar cargos por mensajes y datos. Mirá los",
+      "consentPrefix": "Al continuar, aceptás recibir un código de verificación por mensaje de MAssistance. Pueden aplicar cargos por mensajes y datos. Mirá nuestra",
       "termsOfService": "Términos",
-      "consentAnd": "y la",
+      "consentAnd": "y los",
       "privacyPolicy": "Política de privacidad",
       "consentSuffix": ".",
       "continue": "Continuar",
