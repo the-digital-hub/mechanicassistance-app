@@ -1,4 +1,5 @@
 import * as Location from 'expo-location';
+import { ensureForegroundLocationPermission } from '@/lib/location/foregroundPermission';
 
 /** Mechanics see requests within this radius of their current location. */
 export const MECHANIC_RADIUS_KM = 1000;
@@ -9,8 +10,7 @@ export async function getCurrentCoords(): Promise<{
   longitude: number;
 } | null> {
   try {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') return null;
+    if (!(await ensureForegroundLocationPermission())) return null;
     // On Android getCurrentPositionAsync can wait forever for a fix (indoors, no GPS signal), and both mechanic feeds sit behind it on a
     // full-screen spinner. The last known position answers at once; otherwise a fresh fix gets a few seconds, after which the feed loads without a geo center.
     const last = await Location.getLastKnownPositionAsync().catch(() => null);

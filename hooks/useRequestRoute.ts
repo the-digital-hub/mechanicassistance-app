@@ -2,6 +2,7 @@ import * as Location from 'expo-location';
 import { useEffect, useState } from 'react';
 
 import { apiClient } from '@/lib/api/apiClient';
+import { ensureForegroundLocationPermission } from '@/lib/location/foregroundPermission';
 import { approximateArea } from '@/lib/maps/approximateLocation';
 
 export function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -36,8 +37,7 @@ export function useRequestRoute(requestId: string, lat: number | undefined, lng:
         let cancelled = false;
         (async () => {
             try {
-                const { status } = await Location.requestForegroundPermissionsAsync();
-                if (status !== 'granted' || cancelled) return;
+                if (!(await ensureForegroundLocationPermission()) || cancelled) return;
                 const loc = await Location.getCurrentPositionAsync({});
                 if (cancelled) return;
                 const { latitude, longitude } = loc.coords;
