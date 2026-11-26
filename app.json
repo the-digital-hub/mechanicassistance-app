@@ -9,7 +9,7 @@
     "scheme": "mechanic",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.mechanicassistance.app",
       "googleServicesFile": "./firebase/GoogleService-Info.plist",
       "infoPlist": {
