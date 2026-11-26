@@ -387,3 +387,23 @@ This app is not an emergency service.
 - El `CLAUDE.md` del repo está desactualizado respecto del código (habla de backend propio y otros bundle IDs); usé el código actual como fuente de verdad.
 
 > Las notas del revisor (§3.3) son un borrador: los nombres exactos de menús («Switch profile», «Request assistance») y las promesas de reportar/bloquear/borrar cuenta hay que ajustarlos a lo que quede implementado antes de pegarlas en ASC.
+
+---
+
+## 7. Cambios aplicados en la rama `claude/asc-prep-ba08ee` (26-nov-2026)
+
+Aplicados a pedido de Diego, sin push. Hay que llevarlos a `development` (cherry-pick de los commits de esta rama).
+
+| Cambio | Archivos | Estado |
+|---|---|---|
+| Solo iPhone (`supportsTablet: false`) | `app.json` | ✅ hecho |
+| Un solo texto de cámara (expo-camera y webrtc) y micrófono que cubre el video del vehículo | `app.json` | ✅ hecho |
+| Botón «Reportar» en el chat (ícono de bandera arriba a la derecha): abre un email a `contact@mechanicassistance.com` con la referencia de la conversación | `app/(tabs)/chat/[id].tsx`, `lib/support/report.ts` | ✅ hecho (mínimo, sin backend) |
+| «Reportá un problema o contenido inapropiado» en el Centro de ayuda | `app/(tabs)/help.tsx` | ✅ hecho |
+| Casilla obligatoria al registrarse: Términos, Política de privacidad y no publicar contenido ofensivo | `app/setup/index.tsx`, `components/setup/TermsAcceptance.tsx` | ✅ hecho (solo registro por teléfono) |
+| Textos en inglés y español | `lib/i18n/locales/{en,es}.json` (`report.*`, `setup.terms.*`) | ✅ hecho |
+| Bloquear usuario | — | ❌ falta (necesita backend) |
+| Reportar una reseña concreta | — | ❌ falta (el Centro de ayuda cubre el caso general) |
+| Ocultar precio y botón «Pay» de la membresía en iOS | `lib/membership/plan.ts`, `app/(tabs)/membership.tsx` | ❌ pendiente de decisión |
+
+Comprobado: `tsc` sin errores nuevos en los archivos tocados y ESLint sin errores nuevos (los de `chat/[id].tsx` líneas 76 y 103 ya existían). No probado en simulador ni en un teléfono.

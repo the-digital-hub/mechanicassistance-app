@@ -1,4 +1,5 @@
 import { SmsConsent } from "@/components/SmsConsent";
+import { TermsAcceptance } from "@/components/setup/TermsAcceptance";
 import { describeAuthError } from "@/lib/auth/describe";
 import { requestOtp, toE164 } from "@/lib/auth/otp";
 import { clearSetupProgress, getSetupProgress, mergeSetupProgress, saveSetupProgress } from "@/lib/storage";
@@ -28,6 +29,8 @@ export default function PhoneNumberScreen() {
   const { t } = useTranslation();
   const [phoneNumber, setPhoneNumber] = useState(""); // raw digits only
   const [isChecking, setIsChecking] = useState(false);
+  // Must be ticked to go on: Terms and Privacy Policy, and no offensive content (chat and reviews exist in the app).
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [errorModal, setErrorModal] = useState({
     visible: false,
     title: "",
@@ -60,6 +63,7 @@ export default function PhoneNumberScreen() {
 
   const handleSubmit = async () => {
     Keyboard.dismiss();
+    if (!termsAccepted) return;
     if (phoneNumber.length < 10) {
       showError(
         t("setup.phone.invalidTitle"),
@@ -150,12 +154,14 @@ export default function PhoneNumberScreen() {
           </TouchableOpacity>
 
           <SmsConsent variant="light" />
+          <View style={{ height: 12 }} />
+          <TermsAcceptance accepted={termsAccepted} onToggle={() => setTermsAccepted((v) => !v)} />
         </ScrollView>
 
         <SetupFooter
           label={t("setup.phone.continue")}
           onPress={handleSubmit}
-          disabled={phoneNumber.length < 10}
+          disabled={phoneNumber.length < 10 || !termsAccepted}
           loading={isChecking}
         />
 

@@ -3794,6 +3794,12 @@
       "roleUser": "dueño de vehículo",
       "roleMechanic": "mecánico",
       "registeredOnly": "Tu perfil quedó guardado. Este rol llega pronto a la app; mientras tanto seguís usando tu rol actual."
+    },
+    "terms": {
+      "prefix": "Acepto los",
+      "suffix": ". No voy a publicar contenido ofensivo, abusivo o ilegal, y entiendo que las cuentas que lo hagan pueden ser eliminadas.",
+      "accessibilityLabel": "Aceptar los Términos, la Política de privacidad y las reglas de contenido",
+      "and": "y la"
     }
   },
   "assist": {
@@ -5094,5 +5100,20 @@
     "customer": "Stripe es la plataforma de pagos segura que usa Mechanic Assistance para cobrar tus servicios. El número de tu tarjeta va directo a Stripe; nosotros solo guardamos la marca, los últimos 4 dígitos y el vencimiento.",
     "gotIt": "Entendido",
     "learnMore": "Conocer más sobre Stripe"
+  },
+  "report": {
+    "button": "Reportar",
+    "cancel": "Cancelar",
+    "send": "Reportar",
+    "chatTitle": "¿Reportar esta conversación?",
+    "chatMessage": "Vamos a abrir un email para nuestro equipo de soporte, así nos contás qué pasó. Revisamos cada reporte y actuamos.",
+    "subjectChat": "Reporte: conversación en la app",
+    "subjectGeneral": "Reporte: problema o contenido inapropiado",
+    "body": "Contanos qué pasó:\n\n\n---\nReferencia (no la borres): conversación {{ref}}, con {{who}}",
+    "bodyGeneral": "Contanos qué pasó (mensajes, reseñas o comportamiento) y quién estuvo involucrado:\n\n",
+    "noMailTitle": "No encontramos una app de email",
+    "noMailMessage": "Escribinos a {{email}} y contanos qué pasó.",
+    "helpTitle": "Reportá un problema o contenido inapropiado",
+    "helpBody": "Mensajes abusivos, reseñas falsas o conductas inseguras: contanos y lo revisamos."
   }
 }

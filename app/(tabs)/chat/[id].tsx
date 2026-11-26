@@ -10,11 +10,13 @@ import { userDAO } from '@/lib/dao/UserDAO';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { goBackOr } from '@/lib/navigation/goBackOr';
 import * as ImagePicker from 'expo-image-picker';
-import { ChevronLeft, Lock, Paperclip, Send } from 'lucide-react-native';
+import { ChevronLeft, Flag, Lock, Paperclip, Send } from 'lucide-react-native';
+import { openReport, SUPPORT_EMAIL } from '@/lib/support/report';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
+    Alert,
     Image,
     KeyboardAvoidingView,
     NativeScrollEvent,
@@ -47,6 +49,22 @@ export default function ChatScreen() {
     const scrollViewRef = useRef<ScrollView>(null);
     // Only jump to the bottom for new messages, not when older ones are prepended.
     const stickToBottom = useRef(true);
+
+    // Guideline 1.2: a way to report objectionable content. It writes to support with the conversation's reference filled in.
+    const reportConversation = () => {
+        const other = `${recipient?.name ?? ''} ${recipient?.surname ?? ''}`.trim();
+        Alert.alert(t('report.chatTitle'), t('report.chatMessage'), [
+            { text: t('report.cancel'), style: 'cancel' },
+            {
+                text: t('report.send'),
+                style: 'destructive',
+                onPress: async () => {
+                    const opened = await openReport(t('report.subjectChat'), t('report.body', { who: other || '-', ref: conversationId }));
+                    if (!opened) Alert.alert(t('report.noMailTitle'), t('report.noMailMessage', { email: SUPPORT_EMAIL }));
+                },
+            },
+        ]);
+    };
 
     const messages = chatHistory[conversationId] || [];
     // Once the assistance is finished (even before the owner confirms it) the chat is history only, whatever the server still says.
@@ -208,6 +226,16 @@ export default function ChatScreen() {
                         </View>
                     </View>
                 </View>
+                <TouchableOpacity
+                    onPress={reportConversation}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('report.button')}
+                    testID="chat-report-button"
+                    className="ml-2"
+                >
+                    <Flag size={22} color="white" />
+                </TouchableOpacity>
             </View>
 
             <ScrollView

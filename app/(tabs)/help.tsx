@@ -1,10 +1,11 @@
-import { Car, ChevronDown, ChevronRight, CreditCard, LayoutGrid, Search, ShieldCheck, Wrench, X, type LucideIcon } from 'lucide-react-native';
+import { Car, ChevronDown, ChevronRight, CreditCard, Flag, LayoutGrid, Search, ShieldCheck, Wrench, X, type LucideIcon } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { LayoutAnimation, Platform, ScrollView, Text, TextInput, TouchableOpacity, UIManager, View } from 'react-native';
+import { Alert, LayoutAnimation, Platform, ScrollView, Text, TextInput, TouchableOpacity, UIManager, View } from 'react-native';
 import { useUser } from '@/context/UserContext';
 import { HELP_SECTIONS } from '@/lib/help/helpContent';
 import { KeyboardAwareScrollView } from '@/components/ui/KeyboardAwareScrollView';
+import { openReport, SUPPORT_EMAIL } from '@/lib/support/report';
 
 const SECTION_ICONS: Record<string, LucideIcon> = {
     platform: LayoutGrid,
@@ -47,6 +48,12 @@ export default function HelpScreen() {
             .filter((s) => s.items.length > 0);
     }, [lang, user?.role, query]);
 
+
+    // Guideline 1.2: reporting abusive messages, reviews or behaviour is one tap from the Help Center.
+    const reportProblem = async () => {
+        const opened = await openReport(t('report.subjectGeneral'), t('report.bodyGeneral'));
+        if (!opened) Alert.alert(t('report.noMailTitle'), t('report.noMailMessage', { email: SUPPORT_EMAIL }));
+    };
 
     const toggleSection = (id: string) => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -178,6 +185,24 @@ export default function HelpScreen() {
                     </View>
                 );
             })}
+            {/* Report a problem or inappropriate content */}
+            <TouchableOpacity
+                onPress={reportProblem}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                testID="help-report-button"
+                className="flex-row items-center gap-3 bg-white rounded-2xl px-4 py-4 mb-4"
+                style={CARD_SHADOW}
+            >
+                <View className="w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: '#FEE2E2' }}>
+                    <Flag size={20} color="#DC2626" />
+                </View>
+                <View className="flex-1">
+                    <Text className="text-gray-900 font-outfit-semibold text-base">{t('report.helpTitle')}</Text>
+                    <Text className="text-gray-500 font-outfit-regular text-[14px] mt-0.5">{t('report.helpBody')}</Text>
+                </View>
+                <ChevronRight size={20} color="#9CA3AF" />
+            </TouchableOpacity>
             <View className="h-10" />
         </KeyboardAwareScrollView>
         </View>

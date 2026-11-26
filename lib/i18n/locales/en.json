@@ -3793,6 +3793,12 @@
       "roleUser": "vehicle owner",
       "roleMechanic": "technician",
       "registeredOnly": "Your profile is saved. This role is coming soon to the app — you'll keep using your current role meanwhile."
+    },
+    "terms": {
+      "prefix": "I agree to the",
+      "suffix": ". I will not post offensive, abusive or illegal content, and I understand that accounts that do may be removed.",
+      "accessibilityLabel": "Accept the Terms, the Privacy Policy and the content rules",
+      "and": "and"
     }
   },
   "assist": {
@@ -5094,5 +5100,20 @@
     "customer": "Stripe is the secure payments platform Mechanic Assistance uses to charge your services. Your card number goes straight to Stripe; we only keep the brand, the last 4 digits and the expiry date.",
     "gotIt": "Got it",
     "learnMore": "Learn more about Stripe"
+  },
+  "report": {
+    "button": "Report",
+    "cancel": "Cancel",
+    "send": "Report",
+    "chatTitle": "Report this conversation?",
+    "chatMessage": "We'll open an email to our support team so you can tell us what happened. We review every report and act on it.",
+    "subjectChat": "Report: conversation in the app",
+    "subjectGeneral": "Report: problem or inappropriate content",
+    "body": "Describe what happened:\n\n\n---\nReference (please keep): conversation {{ref}}, with {{who}}",
+    "bodyGeneral": "Describe what happened (messages, reviews or behaviour) and who was involved:\n\n",
+    "noMailTitle": "No email app found",
+    "noMailMessage": "Write to {{email}} and tell us what happened.",
+    "helpTitle": "Report a problem or inappropriate content",
+    "helpBody": "Abusive messages, fake reviews or unsafe behaviour: tell us and we will review it."
   }
 }
