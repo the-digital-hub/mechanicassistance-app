@@ -1,4 +1,4 @@
-import { localizedText, normalizePolicies, policyBlocks } from '../policies';
+import { appliesToRole, localizedText, normalizePolicies, policiesForRole, policyBlocks } from '../policies';
 
 describe('localizedText', () => {
     it('takes plain text as it is and picks the shown language of a pair', () => {
@@ -53,5 +53,45 @@ describe('policyBlocks', () => {
             { kind: 'bullet', text: 'one' },
             { kind: 'bullet', text: 'two' },
         ]);
+    });
+});
+
+// Policies can be aimed at roles (backend 26-nov): the server answers with the versions of all the roles of the account.
+describe('policies aimed at roles', () => {
+    const answer = normalizePolicies({
+        policies: [
+            { id: 'o', kind: 'privacy', version: '3', roles: ['user'], accepted: false },
+            { id: 'm', kind: 'privacy', version: '2', roles: ['mechanic'], accepted: false },
+            { id: 'all', kind: 'terms', version: '1', roles: [], accepted: true },
+            { id: 'legacy', kind: 'cookies', version: '1', accepted: true },
+        ],
+        pending: ['o', 'm'],
+        hasPending: true,
+    }, 'en');
+
+    it('reads the roles of a version, and none means every role', () => {
+        expect(answer.policies.map((p) => p.roles)).toEqual([['user'], ['mechanic'], [], []]);
+        expect(appliesToRole(answer.policies[2], 'mechanic')).toBe(true);
+        expect(appliesToRole(answer.policies[0], 'mechanic')).toBe(false);
+        expect(appliesToRole(answer.policies[0], undefined)).toBe(true);
+    });
+
+    it('shows a person with both roles the versions of the role in use, and what is pending for it', () => {
+        const owner = policiesForRole(answer, 'user');
+        expect(owner.policies.map((p) => p.id)).toEqual(['o', 'all', 'legacy']);
+        expect(owner.pending.map((p) => p.id)).toEqual(['o']);
+        const technician = policiesForRole(answer, 'mechanic');
+        expect(technician.policies.map((p) => p.id)).toEqual(['m', 'all', 'legacy']);
+        expect(technician.pending.map((p) => p.id)).toEqual(['m']);
+    });
+
+    it('nothing is pending for a role whose versions are accepted, even if the other role has one', () => {
+        const res = normalizePolicies({
+            policies: [{ id: 'o', roles: ['user'], accepted: true }, { id: 'm', roles: ['mechanic'], accepted: false }],
+            pending: ['m'],
+            hasPending: true,
+        }, 'en');
+        expect(policiesForRole(res, 'user').hasPending).toBe(false);
+        expect(policiesForRole(res, 'mechanic').hasPending).toBe(true);
     });
 });

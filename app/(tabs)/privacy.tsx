@@ -9,7 +9,8 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { LEGAL_URLS } from '@/lib/config/legal';
 import { legalDAO } from '@/lib/dao/LegalDAO';
-import { type LegalPolicy, policyBlocks } from '@/lib/legal/policies';
+import { type LegalPolicy, policiesForRole, policyBlocks } from '@/lib/legal/policies';
+import { useUser } from '@/context/UserContext';
 import { appAlert } from '@/lib/ui/appAlert';
 import { FLOATING_CTA, FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
 import { TYPE } from '@/lib/ui/type';
@@ -22,6 +23,9 @@ import { apiErrorCode } from '@/lib/payments/cardRequired';
 export default function PrivacyScreen() {
     const router = useRouter();
     const { t, i18n } = useTranslation();
+    const { user } = useUser();
+    // The texts are aimed at roles: the ones of the profile in use (someone with both gets each when they switch).
+    const role = user?.role;
     const [policies, setPolicies] = useState<LegalPolicy[] | null>(null);
     const [pending, setPending] = useState<LegalPolicy[]>([]);
     const [failed, setFailed] = useState(false);
@@ -30,7 +34,7 @@ export default function PrivacyScreen() {
     const load = useCallback(async () => {
         setFailed(false);
         try {
-            const res = await legalDAO.policies();
+            const res = policiesForRole(await legalDAO.policies(), role);
             // The list may carry only the versions; the full text is asked for one by one (a handful at most).
             const full = await Promise.all(res.policies.map(async (p) => {
                 if (p.content) return p;
@@ -42,10 +46,10 @@ export default function PrivacyScreen() {
         } catch {
             setFailed(true);
         }
-    }, []);
+    }, [role]);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => { void load(); }, [i18n.language]);
+    useEffect(() => { void load(); }, [i18n.language, role]);
 
     const accept = async () => {
         if (accepting || pending.length === 0) return;
