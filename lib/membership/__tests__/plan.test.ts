@@ -1,3 +1,6 @@
+// The tests below cover the paid plans (kept for when they come back): they run with the launch switch off. plan.free.test.ts covers it on.
+jest.mock('../launch', () => ({ MEMBERSHIP_FREE_AT_LAUNCH: false }));
+
 jest.mock('@react-native-async-storage/async-storage', () => {
     const store: Record<string, string> = {};
     return {

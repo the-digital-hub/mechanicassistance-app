@@ -7,6 +7,7 @@ import { Text, TouchableOpacity, View } from 'react-native';
 import { useUser } from '@/context/UserContext';
 import type { PaymentCard } from '@/lib/dao/interfaces';
 import { paymentMethodDAO } from '@/lib/dao/PaymentMethodDAO';
+import { MEMBERSHIP_FREE_AT_LAUNCH } from '@/lib/membership/launch';
 import { loadMembership, type Membership } from '@/lib/membership/plan';
 import { cardLabel, isExpired } from '@/lib/payments/cardLabel';
 import { RETURN_TO_BACK } from '@/lib/payments/cardRequired';
@@ -48,6 +49,9 @@ export function MembershipEarningsCard() {
     const date = (iso: string) => new Date(iso).toLocaleDateString(i18n.language, { year: 'numeric', month: 'short', day: 'numeric' });
     return (
         <View style={{ ...CARD, padding: 16, marginBottom: 16 }} testID="membership-earnings-card">
+            {/* Free at launch: no plan line, no "pay" button, no divider; the wallet's cards stay. */}
+            {MEMBERSHIP_FREE_AT_LAUNCH ? null : (
+                <>
             <TouchableOpacity onPress={() => router.push('/(tabs)/membership' as never)} activeOpacity={0.85} accessibilityRole="button" className="flex-row items-center" style={{ gap: 12 }} testID="membership-earnings-open">
                 <View className="items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: INK.soft }}><Crown size={20} color={INK.blue} /></View>
                 <View className="flex-1" style={{ minWidth: 0 }}>
@@ -73,6 +77,8 @@ export function MembershipEarningsCard() {
             )}
 
             <View style={{ height: 1, backgroundColor: INK.line, marginVertical: 14 }} />
+                </>
+            )}
 
             <Text className="font-outfit-bold" style={{ ...TYPE.body, color: INK.text }}>{t('payments.membership.methods')}</Text>
             {cards === null ? null : cards.length === 0 ? (

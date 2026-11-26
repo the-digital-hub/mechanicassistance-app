@@ -5,6 +5,8 @@
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { MEMBERSHIP_FREE_AT_LAUNCH } from './launch';
+
 export type MembershipStatus = 'startup_waived' | 'active' | 'past_due' | 'cancelled';
 
 /** A coupon: a percentage off the plan. */
@@ -226,7 +228,25 @@ async function loadOwnerMembership(userId: string | null | undefined, vehicles: 
     };
 }
 
+/** The plan while it is free (see `MEMBERSHIP_FREE_AT_LAUNCH`): nothing to pay, no price, no code, no fleet breakdown. */
+function freeMembership(role: Role, memberSince?: string | null): Membership {
+    return {
+        status: 'startup_waived',
+        planName: role === 'user' ? OWNER_PLAN_NAME : 'All-access',
+        amount: 0,
+        listAmount: 0,
+        coupon: null,
+        period: 'year',
+        periodsOffered: ['year'],
+        nextPaymentAt: null,
+        promoAvailable: false,
+        memberSince: memberSince ?? null,
+        payment: null,
+    };
+}
+
 export async function loadMembership(role: Role = 'user', userId?: string | null, memberSince?: string | null, vehicles?: PlanVehicle[]): Promise<Membership> {
+    if (MEMBERSHIP_FREE_AT_LAUNCH) return freeMembership(role, memberSince);
     // The owner's plan is per vehicle when their vehicles are given; the technician's is one price.
     if (role === 'user' && vehicles) return loadOwnerMembership(userId, vehicles, memberSince);
     // Both plans are billed once a year: $120 for the technician, $15 for the owner (a coupon can take it down, even to nothing).
@@ -253,6 +273,7 @@ export async function loadMembership(role: Role = 'user', userId?: string | null
  * kind of account (a technician's on an owner's plan, or the other way round) is `not_eligible`.
  */
 export async function applyPromoCode(code: string, role: Role = 'mechanic', userId?: string | null): Promise<PromoResult> {
+    if (MEMBERSHIP_FREE_AT_LAUNCH) return { ok: false, reason: 'not_available_yet' };
     const normalized = code.trim().toUpperCase();
     const percentOff = PROMO_CODES[role][normalized];
     if (!percentOff) {
@@ -274,7 +295,7 @@ export interface PayResult {
  * see "AN" in docs/backlog-backend.md). The amount is the plan's price after the coupon.
  */
 export async function payMembership(role: Role, userId: string | null | undefined, options: { method: PaymentMethodUsed; autoRenew?: boolean; vehicles?: PlanVehicle[] }): Promise<PayResult> {
-    if (!userId) return { ok: false, reason: 'nothing_to_pay' };
+    if (MEMBERSHIP_FREE_AT_LAUNCH || !userId) return { ok: false, reason: 'nothing_to_pay' };
     // An owner pays the vehicles that are pending, each one for its own year.
     if (role === 'user' && options.vehicles) {
         const owner = await loadOwnerMembership(userId, options.vehicles);

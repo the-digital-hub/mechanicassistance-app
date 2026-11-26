@@ -404,6 +404,18 @@ Aplicados a pedido de Diego, sin push. Hay que llevarlos a `development` (cherry
 | Textos en inglés y español | `lib/i18n/locales/{en,es}.json` (`report.*`, `setup.terms.*`) | ✅ hecho |
 | Bloquear usuario | — | ❌ falta (necesita backend) |
 | Reportar una reseña concreta | — | ❌ falta (el Centro de ayuda cubre el caso general) |
-| Ocultar precio y botón «Pay» de la membresía en iOS | `lib/membership/plan.ts`, `app/(tabs)/membership.tsx` | ❌ pendiente de decisión |
+| Membresía gratis en esta versión (interruptor `MEMBERSHIP_FREE_AT_LAUNCH`): sin precio, sin botón «Pay», sin códigos de promo, sin aviso de costo al agregar un vehículo, sin la línea de membresía en los pagos del técnico | `lib/membership/launch.ts`, `lib/membership/plan.ts`, `app/(tabs)/vehicles.tsx`, `components/earnings/MembershipEarnings.tsx` | ✅ hecho; pruebas en `lib/membership/__tests__/` |
 
 Comprobado: `tsc` sin errores nuevos en los archivos tocados y ESLint sin errores nuevos (los de `chat/[id].tsx` líneas 76 y 103 ya existían). No probado en simulador ni en un teléfono.
+
+### Membresía: cómo estaba y cómo volver (para retomarla)
+
+**Cómo estaba (todo sigue en el código, solo apagado por el interruptor):**
+- Técnico, plan «All-access»: US$120 al año.
+- Dueño, plan «Assistance Pass»: por vehículo con VIN, por año: el 1.º US$15, el 2.º y 3.º US$12, del 4.º en adelante US$9.
+- Códigos de promo escritos a mano en el cliente: `MIAMI` (10 %) y `MEKA` (25 %) para técnicos; `INSURANCE` (100 %) para dueños.
+- Pago con tarjeta Stripe o con el saldo de ganancias (solo técnico), con renovación automática. El pago estaba **simulado**: se guardaba en el teléfono (`AsyncStorage`), no se cobraba (ver «AN» en `docs/backlog-backend.md`).
+
+**Por qué se apagó:** un pago dentro de la app que desbloquea funciones tiene que pasar por In-App Purchase (guía 3.1.1 de Apple); no se quiso arriesgar el rechazo de la primera revisión.
+
+**Para volver:** poner `MEMBERSHIP_FREE_AT_LAUNCH = false` en `lib/membership/launch.ts`. Antes: decidir cómo se cobra (In-App Purchase u otra vía permitida) y cambiar el pago simulado por el real; y actualizar la ficha (la descripción y las notas del revisor dicen «incluida sin costo») y la declaración de «Purchases» en privacidad. Ojo: Apple restringe que la app dirija a pagar por fuera, salvo excepciones por país.

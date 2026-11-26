@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/Button';
 import { HeaderBackButton } from '@/components/ui/HeaderBackButton';
 import { useUser } from '@/context/UserContext';
 import { vehicleDAO } from '@/lib/dao/VehicleDAO';
+import { MEMBERSHIP_FREE_AT_LAUNCH } from '@/lib/membership/launch';
 import { ownerVehiclePrice } from '@/lib/membership/plan';
 import { hasVin } from '@/lib/vehicles/duplicateVin';
 import { Vehicle } from '@/lib/dao/interfaces';
@@ -108,7 +109,7 @@ export default function VehiclesScreen() {
             } else {
                 await vehicleDAO.create({ userId: user.id, ...payload });
                 // The owner's plan is per vehicle with a VIN: say what this one adds, bonus included.
-                if (user.role !== 'mechanic' && payload.vin?.trim()) addedPrice = ownerVehiclePrice(vehicles.filter((v) => v.vin?.trim()).length);
+                if (!MEMBERSHIP_FREE_AT_LAUNCH && user.role !== 'mechanic' && payload.vin?.trim()) addedPrice = ownerVehiclePrice(vehicles.filter((v) => v.vin?.trim()).length);
             }
             closeForm();
             loadVehicles();
