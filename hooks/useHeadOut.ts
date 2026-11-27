@@ -7,6 +7,20 @@ import { useTranslation } from 'react-i18next';
 import { Linking, Platform } from 'react-native';
 import { appAlert } from '@/lib/ui/appAlert';
 
+function confirmLocationDisclosure(t: (k: string) => string): Promise<boolean> {
+    return new Promise((resolve) => {
+        appAlert(
+            t('appointments.backgroundLocation.disclosureTitle'),
+            t('appointments.backgroundLocation.disclosureBody'),
+            [
+                { text: t('appointments.backgroundLocation.disclosureNotNow'), style: 'cancel', onPress: () => resolve(false) },
+                { text: t('appointments.backgroundLocation.disclosureContinue'), onPress: () => resolve(true) },
+            ],
+            { cancelable: true, onDismiss: () => resolve(false) },
+        );
+    });
+}
+
 /**
  * "Head out": the mechanic left for the vehicle. Until then the job is accepted
  * but nobody follows them — no position shared, no live ETA. Shared by the
@@ -27,6 +41,11 @@ export function useHeadOut() {
             // Ask now, while the mechanic is looking: the broadcast starts as soon as departedAt is set.
             // "Allow all the time" is required: the customer must keep seeing the mechanic while
             // they drive with the app in the background or the phone locked.
+            // Google Play: a prominent disclosure must come before the background-location prompt.
+            if (Platform.OS === 'android') {
+                const { status: current } = await Location.getBackgroundPermissionsAsync();
+                if (current !== 'granted' && !(await confirmLocationDisclosure(t))) return;
+            }
             const { status: perm } = await Location.requestForegroundPermissionsAsync();
             const { status: bgPerm } =
                 perm === 'granted' ? await Location.requestBackgroundPermissionsAsync() : { status: perm };

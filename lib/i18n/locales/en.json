@@ -2685,7 +2685,11 @@
     },
     "backgroundLocation": {
       "notificationTitle": "Sharing your location",
-      "notificationBody": "The client is following you on the map while you head to the assistance."
+      "notificationBody": "The client is following you on the map while you head to the assistance.",
+      "disclosureTitle": "Share your location while you drive",
+      "disclosureBody": "Mechanic Assistance collects your location while you head to a customer, even when the app is closed or your phone is locked, so the customer can follow you live on the map and see your arrival time. It stops when the job ends. It is never used for ads and is not collected at any other time.\n\nOn the next screen, choose \"Allow all the time\".",
+      "disclosureNotNow": "Not now",
+      "disclosureContinue": "Continue"
     },
     "report": {
       "title": "Final report",
@@ -3218,12 +3222,16 @@
     "title": "Delete Account",
     "subtitle": "Permanently remove your account and all associated data",
     "sorry": "We're sorry to see you go.",
-    "warning": "If you delete your account, all your data will be permanently removed.",
+    "warning": "If you delete your account, your profile and personal data will be permanently removed. Records of payments and completed services may be kept as the law requires, without your personal details.",
     "confirmQuestion": "Are you sure you want to continue?",
     "back": "Back",
     "confirmModalTitle": "Are you still sure you want to Delete your account?",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "errorTitle": "We couldn't delete your account",
+    "error": "We couldn't delete your account. Try again.",
+    "blocked": "You have something in progress (an open assistance or a pending payment). Finish or cancel it and try again.",
+    "deleting": "Deleting your account…"
   },
   "addresses": {
     "badge": "SAVE YOUR FAVORITE LOCATIONS",
@@ -4446,7 +4454,8 @@
   "crash": {
     "title": "Something went wrong",
     "message": "The app ran into an unexpected error. You can try again.",
-    "retry": "Try again"
+    "retry": "Try again",
+    "copy": "Copy the error details"
   },
   "emailChange": {
     "badge": "SIGN-IN EMAIL",

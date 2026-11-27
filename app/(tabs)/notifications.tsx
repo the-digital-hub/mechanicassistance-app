@@ -291,7 +291,7 @@ export default function NotificationsScreen() {
     };
 
     return (
-        <GestureHandlerRootView className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
+        <GestureHandlerRootView className="flex-1" style={{ flex: 1, backgroundColor: '#F6F8FC' }}>
             <ScrollView className="flex-1" showsVerticalScrollIndicator={false} onScroll={handleScroll} scrollEventThrottle={200} contentContainerStyle={{ paddingBottom: tabInset }}>
                 <View className="px-6 pt-4 pb-4">
                     {/* Section Badge */}

@@ -16,6 +16,25 @@ function componentStackOf(err: Error): string {
     return typeof stack === 'string' ? stack.trim() : '';
 }
 
+/** The error as text a tester can read on the screen: the message and the top of the component tree (or of the JS stack). */
+export function errorSummary(error: unknown): string {
+    const err = error instanceof Error ? error : new Error(String(error));
+    const components = componentStackOf(err).split('\n').slice(0, 10).join('\n');
+    const head = components || (err.stack ?? '').split('\n').slice(0, 8).join('\n');
+    return `${err.message}\n\n${head}`.trim();
+}
+
+/** The full report (time, message, component tree and JS stack) to copy or send. */
+export function errorReportText(error: unknown): string {
+    const err = error instanceof Error ? error : new Error(String(error));
+    return `${new Date().toISOString()}\n${err.message}\n\nComponents:\n${componentStackOf(err)}\n\n${err.stack ?? ''}`;
+}
+
+/** Opens the share sheet with the full report: it has "Copy", and also sends it straight to Notes, Mail or a chat. */
+export function shareErrorReport(error: unknown): void {
+    void Share.share({ message: errorReportText(error) }).catch(() => {});
+}
+
 function showErrorDetails(err: Error): void {
     if (!SHOW_ERROR_DETAILS || alertVisible) return;
     alertVisible = true;
@@ -32,7 +51,7 @@ function showErrorDetails(err: Error): void {
                 text: 'Copy / Share',
                 onPress: () => {
                     close();
-                    void Share.share({ message: `${new Date().toISOString()}\n${err.message}\n\nComponents:\n${componentStackOf(err)}\n\n${err.stack ?? ''}` }).catch(() => {});
+                    shareErrorReport(err);
                 },
             },
             { text: 'OK', onPress: close },

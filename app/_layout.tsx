@@ -1,5 +1,5 @@
 import { FONT, FONT_ASSETS } from "@/lib/ui/fonts";
-import { LogBox, Text, TouchableOpacity, View } from "react-native";
+import { LogBox, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 import { DefaultTheme, ThemeProvider } from "expo-router/react-navigation";
 import { PAGE_BG } from "@/lib/ui/header";
@@ -28,7 +28,7 @@ import { onSessionExpired } from "@/lib/auth/session";
 import { VerificationProvider } from "@/context/VerificationContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { ConfigService } from "@/lib/config/ConfigService";
-import { installGlobalErrorHandler, recordFatalError } from "@/lib/errors/globalErrorHandler";
+import { errorSummary, installGlobalErrorHandler, recordFatalError, shareErrorReport } from "@/lib/errors/globalErrorHandler";
 import i18n from "@/lib/i18n";
 import { lockPortrait } from "@/lib/orientation";
 // Defines the background location task at startup, including headless relaunches.
@@ -147,14 +147,24 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
       <Text style={{ fontFamily: FONT.medium, fontSize: 20, color: "#0B1530", marginBottom: 8 }}>
         {i18n.t("crash.title")}
       </Text>
-      <Text style={{ fontFamily: FONT.regular, fontSize: 14, color: "#6B7490", textAlign: "center", marginBottom: 20 }}>
+      <Text style={{ fontFamily: FONT.regular, fontSize: 14, color: "#6B7490", textAlign: "center", marginBottom: 16 }}>
         {i18n.t("crash.message")}
       </Text>
+      {/* The problem itself, selectable (long-press to copy), so a tester can send exactly what failed. */}
+      <ScrollView style={{ maxHeight: 220, alignSelf: "stretch", backgroundColor: "#FFFFFF", borderRadius: 14, padding: 12, marginBottom: 16 }}>
+        <Text selectable style={{ fontFamily: FONT.regular, fontSize: 13, color: "#0B1530" }}>{errorSummary(error)}</Text>
+      </ScrollView>
       <TouchableOpacity
         onPress={retry}
-        style={{ backgroundColor: "#1E56E3", paddingHorizontal: 24, paddingVertical: 12, borderRadius: 14 }}
+        style={{ backgroundColor: "#1E56E3", paddingHorizontal: 24, paddingVertical: 12, borderRadius: 14, alignSelf: "stretch", alignItems: "center" }}
       >
         <Text style={{ fontFamily: FONT.medium, fontSize: 15, color: "#FFFFFF" }}>{i18n.t("crash.retry")}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => shareErrorReport(error)}
+        style={{ backgroundColor: "#E6EAF2", paddingHorizontal: 24, paddingVertical: 12, borderRadius: 14, alignSelf: "stretch", alignItems: "center", marginTop: 10 }}
+      >
+        <Text style={{ fontFamily: FONT.medium, fontSize: 15, color: "#4A5470" }}>{i18n.t("crash.copy")}</Text>
       </TouchableOpacity>
     </View>
   );

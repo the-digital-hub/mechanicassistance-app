@@ -2,7 +2,7 @@ import { FONT } from '@/lib/ui/fonts';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -373,13 +373,17 @@ export default function VideoCallScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeOver]);
 
-  const buildStream = (p: typeof localParticipant) => {
+  // One MediaStream per track: a new one on every render (the call clock re-renders every second) gets a new stream URL, so the
+  // video view re-attaches and the picture drops out for a moment.
+  const useVideoStream = (p: typeof localParticipant) => {
     const track = p?.tracks?.video?.persistentTrack;
-    const state = p?.tracks?.video?.state;
-    return track && state === 'playable' ? new MediaStream([track as unknown as never]) : null;
+    const playable = p?.tracks?.video?.state === 'playable';
+    const trackId = track?.id;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return useMemo(() => (track && playable ? new MediaStream([track as unknown as never]) : null), [trackId, playable]);
   };
-  const localStream = buildStream(localParticipant);
-  const remoteStream = buildStream(remoteParticipant);
+  const localStream = useVideoStream(localParticipant);
+  const remoteStream = useVideoStream(remoteParticipant);
 
   if (!urlStr || callState === 'error') {
     return (
@@ -573,9 +577,10 @@ export default function VideoCallScreen() {
               name={remoteParticipant.user_name || t(`${K}.participant`)}
               isCameraOff={remoteParticipant.tracks?.video?.state !== 'playable'}
               isLocal={false}
+              overlay
             />
           ) : (
-            <VideoTile stream={localStream} name={t(`${K}.you`)} isCameraOff={isCameraOff} isLocal backCamera={usingBackCamera} />
+            <VideoTile stream={localStream} name={t(`${K}.you`)} isCameraOff={isCameraOff} isLocal backCamera={usingBackCamera} overlay />
           )}
         </DraggablePip>
       </LinearGradient>

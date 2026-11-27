@@ -181,6 +181,15 @@ export class UserDAO implements IUserDAO {
         }
     }
 
+    /**
+     * Deletes the signed-in account (`DELETE /api/users/me`). The server anonymises the
+     * user and erases the rest in Auth, Billing, Notifications and Organizations.
+     * Throws ApiError: 409 ACCOUNT_DELETION_BLOCKED (something in progress) or 503 (nothing deleted).
+     */
+    async deleteAccount(): Promise<void> {
+        await apiClient.delete('/api/users/me');
+    }
+
     async clearSignupToken(): Promise<void> {
         await clearStoredSignupToken();
     }
