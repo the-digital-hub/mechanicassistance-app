@@ -3821,6 +3821,13 @@
       "suffix": ". No voy a publicar contenido ofensivo, abusivo o ilegal, y entiendo que las cuentas que lo hagan pueden ser eliminadas.",
       "accessibilityLabel": "Aceptar los Términos, la Política de privacidad y las reglas de contenido",
       "and": "y la"
+    },
+    "legal": {
+      "badge": "YA CASI",
+      "title": "Términos y Política de privacidad",
+      "subtitle": "Leelos hasta el final y aceptalos para empezar a usar la app.",
+      "accept": "Aceptar y continuar",
+      "skip": "Continuar por ahora"
     }
   },
   "assist": {

@@ -2,14 +2,15 @@ import Constants from 'expo-constants';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { LEGAL_URLS } from '@/lib/config/legal';
 import { legalDAO } from '@/lib/dao/LegalDAO';
-import { hasReachedEnd, type LegalPolicy, policiesForRole, policyBlocks } from '@/lib/legal/policies';
+import { useScrolledToEnd } from '@/hooks/useScrolledToEnd';
+import { type LegalPolicy, policiesForRole, policyBlocks } from '@/lib/legal/policies';
 import { useUser } from '@/context/UserContext';
 import { appAlert } from '@/lib/ui/appAlert';
 import { FLOATING_CTA, FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
@@ -31,12 +32,7 @@ export default function PrivacyScreen() {
     const [failed, setFailed] = useState(false);
     const [accepting, setAccepting] = useState(false);
     // The Accept button opens only once the whole text has been scrolled (or it fits on the screen).
-    const [reachedEnd, setReachedEnd] = useState(false);
-    const metrics = useRef({ layout: 0, content: 0, offset: 0 });
-    const checkEnd = () => {
-        const { layout, content, offset } = metrics.current;
-        if (hasReachedEnd(layout, content, offset)) setReachedEnd(true);
-    };
+    const { reachedEnd, reset: resetEnd, scrollProps } = useScrolledToEnd();
 
     const load = useCallback(async () => {
         setFailed(false);
@@ -50,7 +46,7 @@ export default function PrivacyScreen() {
             setPolicies(full);
             const ids = new Set(res.pending.map((p) => p.id));
             setPending(full.filter((p) => ids.has(p.id)));
-            setReachedEnd(false);
+            resetEnd();
         } catch {
             setFailed(true);
         }
@@ -86,10 +82,7 @@ export default function PrivacyScreen() {
             <ScrollView
                 className="flex-1 px-6 pt-6"
                 contentContainerStyle={{ paddingBottom: pending.length > 0 ? 130 : 40 }}
-                scrollEventThrottle={100}
-                onLayout={(e) => { metrics.current.layout = e.nativeEvent.layout.height; checkEnd(); }}
-                onContentSizeChange={(_w, h) => { metrics.current.content = h; checkEnd(); }}
-                onScroll={(e) => { metrics.current.offset = e.nativeEvent.contentOffset.y; checkEnd(); }}
+                {...scrollProps}
             >
                 <View style={{ marginTop: 11 }}>
                     <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>

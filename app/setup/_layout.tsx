@@ -60,6 +60,7 @@ export default function SetupLayout() {
       <Stack.Screen name="identity" options={{ title: setupTitle }} />
       <Stack.Screen name="vehicle-info" options={{ title: setupTitle }} />
       <Stack.Screen name="success" options={{ headerShown: false }} />
+      <Stack.Screen name="legal" options={{ headerShown: false }} />
     </Stack>
   );
 }

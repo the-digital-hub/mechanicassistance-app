@@ -454,3 +454,12 @@ Implementado según `plataforma/borrado-de-cuenta.md` del repo de análisis (bac
 - Texto de la pantalla (`deleteAccount.warning`): ya no dice «se borra todo»; dice que se eliminan los datos personales, se anonimiza la cuenta y se conserva lo que exige la ley o necesita la otra parte (pagos y ganancias, pedidos y citas con «Usuario eliminado», auditoría).
 
 **Pendiente:** (1) **Legal** tiene que validar ese texto y los plazos de retención antes de enviar a revisión; (2) probarlo con una cuenta de prueba de cada tipo (teléfono, Apple, Google) y con una cuenta con un pedido abierto (tiene que mostrar el bloqueo); (3) `GET /users/:id/public` ahora devuelve `deleted: true` con el nombre «Usuario eliminado»: la app puede mostrar su propio texto localizado (no se hizo); (4) las cuentas que entran por Apple o Google dejan una tarea `auth_erase` en `failed` en el servidor mientras Auth no tenga la cuenta de servicio de Firebase (es esperado).
+
+### Paso de aceptar las políticas en el alta (27-nov-2026)
+
+Reemplaza el registro silencioso de la aceptación. Después de crear la cuenta (o de agregar un rol a una cuenta existente), «Get started» lleva a una pantalla nueva, `app/setup/legal.tsx`, para el dueño y para el técnico:
+- Pide `GET /api/legal/policies` (y `/:id` si falta el texto), reduce a las versiones del rol elegido y muestra las **pendientes** completas (`components/legal/PolicyCard.tsx`).
+- El botón «Aceptar y continuar» se habilita recién al llegar al final del texto (`hooks/useScrolledToEnd.ts`); acepta cada una con `POST /api/legal/policies/:id/accept` (con la versión de la app); si una dejó de ser la vigente (`policy_superseded`), recarga y avisa.
+- Sin nada pendiente sigue solo al dashboard. Si el servidor no responde, ofrece reintentar, leer la política en la web o «Continuar por ahora» (queda como «Update» en el perfil).
+- La casilla del paso 1 del registro se mantiene; se quitó `lib/legal/acceptPending.ts` (ya no se acepta sin mostrar el texto).
+- Endpoints usados: `GET /policies`, `GET /policies/:id`, `POST /policies/:id/accept`. **No se usa `GET /api/legal/acceptances/me`** (el listado de políticas ya trae `accepted` y `acceptedAt`).

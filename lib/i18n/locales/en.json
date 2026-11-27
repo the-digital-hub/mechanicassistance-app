@@ -3820,6 +3820,13 @@
       "suffix": ". I will not post offensive, abusive or illegal content, and I understand that accounts that do may be removed.",
       "accessibilityLabel": "Accept the Terms, the Privacy Policy and the content rules",
       "and": "and"
+    },
+    "legal": {
+      "badge": "ALMOST DONE",
+      "title": "Terms and Privacy Policy",
+      "subtitle": "Read them to the end and accept to start using the app.",
+      "accept": "Accept and continue",
+      "skip": "Continue for now"
     }
   },
   "assist": {
