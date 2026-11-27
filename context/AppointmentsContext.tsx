@@ -393,6 +393,8 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
             );
         } catch (error) {
             console.error('Failed to cancel appointment', error);
+            // The caller has to know: a cancellation that did not go through must not look like one that did.
+            throw error;
         }
     };
 

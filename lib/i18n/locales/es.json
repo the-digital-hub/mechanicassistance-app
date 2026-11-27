@@ -240,7 +240,8 @@
       "count_other": "{{count}} pendientes",
       "verify": "Verificar",
       "missing": "Falta",
-      "pay": "Pagar"
+      "pay": "Pagar",
+      "update": "Actualizar"
     }
   },
   "assistanceCard": {
@@ -826,6 +827,8 @@
       "photoLimitMessage": "Solo se admiten {{max}} fotos por solicitud.",
       "cameraPermissionTitle": "Falta permiso de cámara",
       "cameraPermissionMessage": "Permití el acceso a la cámara para grabar o fotografiar el problema.",
+      "pickerErrorTitle": "No se pudo abrir",
+      "pickerErrorMessage": "No pudimos abrir la cámara o la galería. Probá de nuevo o elegí el archivo desde la galería.",
       "sourceTitle": "Agregar contenido",
       "sourceCamera": "Cámara",
       "sourceLibrary": "Elegir de la galería",
@@ -1373,6 +1376,22 @@
       "subtitle": "Seleccioná el motivo debajo. Esto nos ayuda a mejorar futuras asignaciones.",
       "infoMessage": "Las cancelaciones frecuentes pueden afectar tu tasa de aceptación y visibilidad en la cola de solicitudes.",
       "keepRequest": "Mantener solicitud",
+      "failedTitle": "No pudimos cancelar la solicitud",
+      "failed": "Tu solicitud sigue activa. Revisá tu conexión y probá de nuevo.",
+      "owner": {
+        "title": "¿Por qué cancelás?",
+        "subtitle": "Elegí el motivo. Nos ayuda a mejorar el servicio.",
+        "infoMessage": "Cancelar no tiene costo hasta que tu técnico sale hacia tu ubicación (más unos minutos de gracia). Después, el cobro puede pasar a revisión.",
+        "reasons": {
+          "solved": "El problema se resolvió",
+          "foundOtherHelp": "Conseguí ayuda en otro lado",
+          "takingTooLong": "Está tardando demasiado",
+          "priceTooHigh": "El precio es muy alto",
+          "wrongInfo": "Cargué algo mal (vehículo, lugar o problema)",
+          "changedMind": "Cambié de idea",
+          "other": "Otro"
+        }
+      },
       "reasons": {
         "noLongerAvailable": "Ya no está disponible",
         "tooFarAway": "Demasiado lejos",
@@ -3079,13 +3098,21 @@
   "privacy": {
     "badge": "PRIVACIDAD Y SEGURIDAD",
     "title": "Política de privacidad",
-    "subtitle": "Conocé cómo protegemos tus datos y tu privacidad. Última actualización: 14/08/2024",
-    "intro": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent pellentesque congue lorem, vel tincidunt tortor placerat a. Proin ac diam quam. Aenean in sagittis magna, ut feugiat diam. Fusce a scelerisque neque, sed accumsan metus.",
-    "termsHeading": "Términos y condiciones",
-    "termsBody": "Nunc auctor tortor in dolor luctus, quis euismod urna tincidunt. Aenean arcu metus, bibendum at rhoncus at, volutpat ut lacus. Morbi pellentesque malesuada eros semper ultrices. Vestibulum lobortis enim vel neque auctor, a ultrices ex placerat. Mauris ut lacinia justo, sed suscipit tortor. Nam egestas nulla posuere neque tincidunt porta.",
-    "clause1": "1. Ut lacinia justo sit amet lorem sodales accumsan. Proin malesuada eleifend fermentum. Donec condimentum, nunc at rhoncus faucibus, ex nisi laoreet",
-    "clause2": "2. Podemos usar tu dirección de email para enviarte promociones y novedades ocasionales. Podés darte de baja de estos emails en cualquier momento ajustando la configuración de tu cuenta.",
-    "accept": "Aceptar"
+    "subtitle": "Cómo cuidamos tus datos. Estas son las versiones vigentes de nuestros textos legales.",
+    "accept": "Aceptar",
+    "accepted": "Aceptada",
+    "version": "Versión {{version}}",
+    "published": "Publicada el {{date}}",
+    "acceptedOn": "La aceptaste el {{date}}",
+    "loadFailedTitle": "No pudimos cargar la política",
+    "loadFailed": "Revisá tu conexión y probá de nuevo.",
+    "retry": "Reintentar",
+    "readOnWebsite": "Leerla en nuestro sitio",
+    "empty": "Todavía no hay una política publicada.",
+    "acceptFailedTitle": "No pudimos guardar tu aceptación",
+    "acceptFailed": "Revisá tu conexión y probá de nuevo.",
+    "supersededTitle": "La política se actualizó",
+    "supersededMessage": "Hay una versión más nueva. Leela y aceptala de nuevo."
   },
   "help": {
     "badge": "AYUDA Y SOPORTE",
@@ -3368,9 +3395,9 @@
       "title": "¿Cuál es tu número?",
       "subtitle": "Te vamos a enviar un SMS para verificar tu número de teléfono.",
       "consentTitle": "Sobre los mensajes de texto",
-      "consentPrefix": "Al continuar, aceptás recibir un código de verificación por mensaje de MAssistance. Pueden aplicar cargos por mensajes y datos. Mirá los",
+      "consentPrefix": "Al continuar, aceptás recibir un código de verificación por mensaje de MAssistance. Pueden aplicar cargos por mensajes y datos. Mirá nuestra",
       "termsOfService": "Términos",
-      "consentAnd": "y la",
+      "consentAnd": "y los",
       "privacyPolicy": "Política de privacidad",
       "consentSuffix": ".",
       "continue": "Continuar",

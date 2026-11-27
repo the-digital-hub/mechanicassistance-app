@@ -443,7 +443,7 @@ export default function ProfileScreen() {
                 { key: 'personalInfo', icon: User, label: t('profile.menu.personalInfo'), route: '/personal-info' },
                 { key: 'savedAddresses', icon: MapPin, label: t(counts.addresses === 1 ? 'profile.menu.savedAddressesOne' : 'profile.menu.savedAddresses'), route: '/(tabs)/addresses' },
                 { key: 'membership', icon: Crown, label: t('profile.menu.membership'), route: '/membership', badge: pending.membership ? t('profile.pending.pay') : undefined },
-                { key: 'privacy', icon: Lock, label: t('profile.menu.privacy'), route: '/privacy' },
+                { key: 'privacy', icon: Lock, label: t('profile.menu.privacy'), route: '/privacy', badge: pending.privacy ? t('profile.pending.update') : undefined },
               ],
             },
             {
@@ -477,7 +477,7 @@ export default function ProfileScreen() {
                 { key: 'addresses', icon: MapPin, label: t(counts.addresses === 1 ? 'profile.menu.addressesOne' : 'profile.menu.addresses'), route: '/(tabs)/addresses' },
                 { key: 'vehicles', icon: Car, label: t(counts.vehicles === 1 ? 'profile.menu.vehiclesOne' : 'profile.menu.vehicles'), route: '/vehicles' },
                 { key: 'membership', icon: Crown, label: t('profile.menu.membership'), route: '/membership', badge: pending.membership ? t('profile.pending.pay') : undefined },
-                { key: 'privacy', icon: Lock, label: t('profile.menu.privacy'), route: '/privacy' },
+                { key: 'privacy', icon: Lock, label: t('profile.menu.privacy'), route: '/privacy', badge: pending.privacy ? t('profile.pending.update') : undefined },
               ],
             },
             { key: 'paymentCards', icon: Wallet, label: t('profile.menu.paymentCards'), route: '/payment-cards' },

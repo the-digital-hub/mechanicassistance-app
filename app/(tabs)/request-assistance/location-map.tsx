@@ -19,6 +19,11 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Keyboard, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { appAlert } from '@/lib/ui/appAlert';
 
+/** Whole-country view used when there is no position to centre on. */
+const FALLBACK_REGION: Region = { latitude: 39.8, longitude: -98.6, latitudeDelta: 30, longitudeDelta: 30 };
+/** The Android Geocoder can hang; the label is not worth waiting longer for. */
+const GEOCODE_TIMEOUT_MS = 5000;
+
 export default function LocationMapScreen() {
     const router = useRouter();
     const { t } = useTranslation();
@@ -75,17 +80,25 @@ export default function LocationMapScreen() {
         };
         setRegion(newRegion);
         setMarker(location.coords);
-
-        // Reverse geocode initial location
-        const addrs = await Location.reverseGeocodeAsync(location.coords);
-        if (addrs && addrs[0]) {
-            const a = addrs[0];
-            const address = `${a.streetNumber || ''} ${a.street || ''}, ${a.city || ''}, ${a.region || ''}`.trim().replace(/^, |, $/g, '').replace(/, ,/g, ',');
-            setLocationName(address || t('requestAssistance.locationMap.myCurrentLocation'));
-            setLocationZip(a.postalCode || '');
-        }
-
+        // Show the map as soon as there are coordinates: on Android the native
+        // Geocoder can hang or throw, and the spinner must not wait for it.
         setIsLoading(false);
+
+        // Reverse geocode initial location (best effort, bounded).
+        try {
+            const addrs = await Promise.race([
+                Location.reverseGeocodeAsync(location.coords),
+                new Promise<null>((resolve) => setTimeout(() => resolve(null), GEOCODE_TIMEOUT_MS)),
+            ]);
+            if (addrs && addrs[0]) {
+                const a = addrs[0];
+                const address = `${a.streetNumber || ''} ${a.street || ''}, ${a.city || ''}, ${a.region || ''}`.trim().replace(/^, |, $/g, '').replace(/, ,/g, ',');
+                setLocationName(address || t('requestAssistance.locationMap.myCurrentLocation'));
+                setLocationZip(a.postalCode || '');
+            }
+        } catch (e) {
+            console.log('Initial reverse geocode failed', e);
+        }
     };
 
     useEffect(() => {
@@ -111,22 +124,30 @@ export default function LocationMapScreen() {
                 return;
             }
 
-            let { status } = await Location.requestForegroundPermissionsAsync();
-            if (status !== 'granted') {
-                appAlert(t('requestAssistance.locationMap.permissionDenied'));
-                setIsLoading(false);
-                return;
-            }
+            try {
+                let { status } = await Location.requestForegroundPermissionsAsync();
+                if (status !== 'granted') {
+                    // Still open the map, so the address search or a pan can set the place.
+                    appAlert(t('requestAssistance.locationMap.permissionDenied'));
+                    setRegion(FALLBACK_REGION);
+                    setIsLoading(false);
+                    return;
+                }
 
-            const location = await getCurrentPositionOrNull();
-            if (!location) {
-                // No fix (GPS off or no signal): open the map over the country so the address search or a tap can still set the place.
-                appAlert(t('requestAssistance.locationMap.unavailable'));
-                setRegion({ latitude: 39.8, longitude: -98.6, latitudeDelta: 30, longitudeDelta: 30 });
+                const location = await getCurrentPositionOrNull();
+                if (!location) {
+                    // No fix (GPS off or no signal): open the map over the country so the address search or a tap can still set the place.
+                    appAlert(t('requestAssistance.locationMap.unavailable'));
+                    setRegion(FALLBACK_REGION);
+                    setIsLoading(false);
+                    return;
+                }
+                await updateRegionFromLocation(location);
+            } catch (e) {
+                console.log('Location setup failed', e);
+                setRegion((current) => current ?? FALLBACK_REGION);
                 setIsLoading(false);
-                return;
             }
-            updateRegionFromLocation(location);
         })();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -300,18 +321,20 @@ export default function LocationMapScreen() {
                                 resolveLocation({ latitude: r.latitude, longitude: r.longitude });
                             }}
                         >
-                            <Marker
-                                coordinate={marker!}
-                                draggable
-                                onDragEnd={(e) => {
-                                    const coords = e.nativeEvent.coordinate;
-                                    setMarker(coords);
-                                    resolveLocation(coords);
-                                    // Lock out the pan handler briefly so it doesn't
-                                    // snap the marker back to the map centre.
-                                    suppressRegionSync();
-                                }}
-                            />
+                            {marker && (
+                                <Marker
+                                    coordinate={marker}
+                                    draggable
+                                    onDragEnd={(e) => {
+                                        const coords = e.nativeEvent.coordinate;
+                                        setMarker(coords);
+                                        resolveLocation(coords);
+                                        // Lock out the pan handler briefly so it doesn't
+                                        // snap the marker back to the map centre.
+                                        suppressRegionSync();
+                                    }}
+                                />
+                            )}
                         </MapView>
                     </View>
                 )}

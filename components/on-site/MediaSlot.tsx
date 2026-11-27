@@ -155,21 +155,39 @@ export function MediaSlot({
 
     const mediaTypes: ImagePicker.MediaType[] = kind === 'video' ? ['videos'] : ['images'];
 
+    // Started from the source dialog's button: without a catch a rejection vanishes and the button seems dead.
+    const pickerFailed = (error: unknown) => {
+        console.warn('[MediaSlot] picker failed', error);
+        appAlert(t('appointments.onSite.common.error'));
+    };
+
     const fromCamera = async () => {
-        const perm = await ImagePicker.requestCameraPermissionsAsync();
-        if (!perm.granted) return;
-        const res = await ImagePicker.launchCameraAsync({ mediaTypes, quality: 0.5, videoMaxDuration: 120 });
-        if (!res.canceled) accept({ uri: res.assets[0].uri, name: res.assets[0].fileName ?? undefined, mimeType: res.assets[0].mimeType, isVideo: kind === 'video' });
+        try {
+            const perm = await ImagePicker.requestCameraPermissionsAsync();
+            if (!perm.granted) return;
+            const res = await ImagePicker.launchCameraAsync({ mediaTypes, quality: 0.5, videoMaxDuration: 120 });
+            if (!res.canceled) accept({ uri: res.assets[0].uri, name: res.assets[0].fileName ?? undefined, mimeType: res.assets[0].mimeType, isVideo: kind === 'video' });
+        } catch (error) {
+            pickerFailed(error);
+        }
     };
 
     const fromLibrary = async () => {
-        const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes, quality: 0.5 });
-        if (!res.canceled) accept({ uri: res.assets[0].uri, name: res.assets[0].fileName ?? undefined, mimeType: res.assets[0].mimeType, isVideo: kind === 'video' });
+        try {
+            const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes, quality: 0.5 });
+            if (!res.canceled) accept({ uri: res.assets[0].uri, name: res.assets[0].fileName ?? undefined, mimeType: res.assets[0].mimeType, isVideo: kind === 'video' });
+        } catch (error) {
+            pickerFailed(error);
+        }
     };
 
     const fromFiles = async () => {
-        const res = await DocumentPicker.getDocumentAsync({ copyToCacheDirectory: true });
-        if (!res.canceled) accept({ uri: res.assets[0].uri, name: res.assets[0].name, mimeType: res.assets[0].mimeType, isVideo: false });
+        try {
+            const res = await DocumentPicker.getDocumentAsync({ copyToCacheDirectory: true });
+            if (!res.canceled) accept({ uri: res.assets[0].uri, name: res.assets[0].name, mimeType: res.assets[0].mimeType, isVideo: false });
+        } catch (error) {
+            pickerFailed(error);
+        }
     };
 
     const pick = () => {

@@ -1,5 +1,6 @@
 import { useAppointments } from '@/context/AppointmentsContext';
 import { useSocket } from '@/context/SocketContext';
+import { useUser } from '@/context/UserContext';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { goBackOr } from '@/lib/navigation/goBackOr';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -8,8 +9,10 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { TYPE } from '@/lib/ui/type';
+import { appAlert } from '@/lib/ui/appAlert';
 
-const REASON_IDS = [
+/** The technician's reasons for dropping a job. */
+const TECHNICIAN_REASON_IDS = [
     'noLongerAvailable',
     'tooFarAway',
     'acceptedAnotherJob',
@@ -19,22 +22,47 @@ const REASON_IDS = [
     'other',
 ];
 
+/** The vehicle owner's reasons for cancelling their own request. */
+const OWNER_REASON_IDS = [
+    'solved',
+    'foundOtherHelp',
+    'takingTooLong',
+    'priceTooHigh',
+    'wrongInfo',
+    'changedMind',
+    'other',
+];
+
 export default function CancelReasonScreen() {
     const router = useRouter();
     const { t } = useTranslation();
     const { id } = useLocalSearchParams();
     const { cancelAppointment } = useAppointments();
     const { clearChatHistory } = useSocket();
+    const { user } = useUser();
+    // The same screen serves both sides, but the reasons, the wording and the consequence are not the same: the owner cancels a request they
+    // made (free until the technician is on the way, then the charge goes to review); the technician drops a job (their acceptance rate).
+    const isTechnician = user?.role === 'mechanic';
+    const scope = isTechnician ? 'appointments.cancelReason' : 'appointments.cancelReason.owner';
+    const REASON_IDS = isTechnician ? TECHNICIAN_REASON_IDS : OWNER_REASON_IDS;
     const [selectedReason, setSelectedReason] = useState<string | null>(null);
+    const [submitting, setSubmitting] = useState(false);
 
-    const REASONS = REASON_IDS.map((reasonId) => t(`appointments.cancelReason.reasons.${reasonId}`));
+    const REASONS = REASON_IDS.map((reasonId) => t(`${scope}.reasons.${reasonId}`));
 
     const handleDone = async () => {
-        if (selectedReason && id) {
-            const appointmentId = Array.isArray(id) ? id[0] : id;
+        if (!selectedReason || !id || submitting) return;
+        const appointmentId = Array.isArray(id) ? id[0] : id;
+        setSubmitting(true);
+        try {
             await cancelAppointment(appointmentId, selectedReason);
             clearChatHistory(appointmentId);
             router.navigate('/(tabs)/appointments');
+        } catch {
+            // Stay here: the request is still active, and the person has to know it (and can try again).
+            appAlert(t('appointments.cancelReason.failedTitle'), t('appointments.cancelReason.failed'), undefined, { tone: 'danger' });
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -54,12 +82,12 @@ export default function CancelReasonScreen() {
 
                     {/* Title */}
                     <Text className="font-outfit-bold mb-2" style={{ fontSize: 26, lineHeight: 31, letterSpacing: -0.7, color: '#0B1530' }}>
-                        {t('appointments.cancelReason.title')}
+                        {t(`${scope}.title`)}
                     </Text>
 
                     {/* Subtitle */}
                     <Text className="font-outfit-regular mb-6" style={{ ...TYPE.helper, color: '#6B7490' }}>
-                        {t('appointments.cancelReason.subtitle')}
+                        {t(`${scope}.subtitle`)}
                     </Text>
 
                     {/* Reasons List — one card, rows separated by thin dividers */}
@@ -92,7 +120,7 @@ export default function CancelReasonScreen() {
                         {/* Cancel Request Button */}
                         <TouchableOpacity
                             onPress={handleDone}
-                            disabled={!selectedReason}
+                            disabled={!selectedReason || submitting}
                             activeOpacity={0.8}
                         >
                             <LinearGradient
@@ -138,7 +166,7 @@ export default function CancelReasonScreen() {
                     <View className="flex-row items-start gap-2.5 mt-5 px-1">
                         <Info size={16} color="#8C96AE" style={{ marginTop: 2 }} />
                         <Text className="flex-1 font-outfit-regular" style={{ ...TYPE.helper, color: '#6B7490' }}>
-                            {t('appointments.cancelReason.infoMessage')}
+                            {t(`${scope}.infoMessage`)}
                         </Text>
                     </View>
                 </View>

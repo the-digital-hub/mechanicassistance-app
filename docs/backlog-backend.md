@@ -535,3 +535,15 @@ El técnico baja el PDF del estado de cuenta desde Earnings → Activity → fil
 - **AR:** si en Ganancias siguen filas «Request details unavailable», mandar un id de ejemplo y el usuario del técnico.
 
 **Siguen sin empezar:** AN (membresía, espera decisiones de producto), AU, P y E. **Sin respuesta todavía:** AW, AX, AY.
+
+---
+
+## Web del dueño del vehículo (25-nov-2026): pedidos W1 a W15
+
+Juan Pablo construye la web del dueño sobre este backend. Los pedidos (CORS y sesión en navegador, registro y Didit en web, notificaciones web, eventos de socket, eliminar cuenta, idempotencia al crear el pedido, disponibilidad estructurada, orden de vehículos, etc.) están en `docs/pendientes-alejandro-2026-11-25-web.md`. Bloquean el inicio: **W1 a W4**.
+
+---
+
+## AU · hecho (25-nov-2026, build 143)
+
+`/api/legal/policies` (lista con `accepted`, `pending`, `hasPending`), `/policies/:id` y `/policies/:id/accept`: la pantalla Perfil → Política de privacidad los usa y el menú dice «Actualizar» con una versión pendiente. Para verificar con la primera política publicada: texto completo visible, «Aceptar» registra y la fila deja de decir «Actualizar». Pendiente de definir: el texto que se acepta antes de crear la cuenta (el registro no tiene endpoint público).

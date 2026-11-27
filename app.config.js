@@ -67,7 +67,13 @@ module.exports = ({ config: baseConfig }) => {
 
   return {
     ...config,
-    plugins: [...(config.plugins ?? []), ['react-native-maps', { iosGoogleMapsApiKey }]],
+    // androidGoogleMapsApiKey must go here too: when it is missing, the
+    // react-native-maps plugin *removes* com.google.android.geo.API_KEY from the
+    // manifest, undoing android.config.googleMaps above.
+    plugins: [
+      ...(config.plugins ?? []),
+      ['react-native-maps', { iosGoogleMapsApiKey, androidGoogleMapsApiKey }],
+    ],
     extra: { ...(config.extra ?? {}), googlePlacesApiKey: iosGoogleMapsApiKey },
   };
 };
