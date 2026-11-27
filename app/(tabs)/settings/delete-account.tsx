@@ -1,5 +1,10 @@
 import { Button } from '@/components/ui/Button';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
+import { useUser } from '@/context/UserContext';
+import { ApiError } from '@/lib/api/types';
+import { userDAO } from '@/lib/dao/UserDAO';
+import { deleteFirebaseUser } from '@/lib/firebase/auth';
+import { appAlert } from '@/lib/ui/appAlert';
 import { useRouter } from 'expo-router';
 import { ChevronLeft, ChevronRight, UserX } from 'lucide-react-native';
 import { useState } from 'react';
@@ -10,12 +15,28 @@ import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 export default function DeleteAccountScreen() {
     const router = useRouter();
     const { t } = useTranslation();
+    const { logout } = useUser();
     const [showModal, setShowModal] = useState(false);
+    const [deleting, setDeleting] = useState(false);
 
-    const handleDelete = () => {
-        // API Call to delete account
-        console.log('Account deleted');
+    const handleDelete = async () => {
+        if (deleting) return;
         setShowModal(false);
+        setDeleting(true);
+        try {
+            await userDAO.deleteAccount();
+        } catch (error) {
+            // Nothing was deleted: keep the session so the person can keep using the account.
+            const blocked = error instanceof ApiError && error.statusCode === 409;
+            appAlert(
+                t('deleteAccount.errorTitle'),
+                blocked ? t('deleteAccount.blocked') : t('deleteAccount.error'),
+            );
+            setDeleting(false);
+            return;
+        }
+        await deleteFirebaseUser();
+        await logout();
         router.replace('/onboarding');
     };
 
@@ -53,6 +74,7 @@ export default function DeleteAccountScreen() {
             <View className="gap-3">
                 <TouchableOpacity
                     onPress={() => setShowModal(true)}
+                    disabled={deleting}
                     activeOpacity={0.8}
                 >
                     <LinearGradient
@@ -68,7 +90,7 @@ export default function DeleteAccountScreen() {
                             justifyContent: 'center',
                         }}
                     >
-                        <Text className="text-white font-outfit-bold text-lg text-center">{t('deleteAccount.title')}</Text>
+                        <Text className="text-white font-outfit-bold text-lg text-center">{deleting ? t('deleteAccount.deleting') : t('deleteAccount.title')}</Text>
                     </LinearGradient>
                 </TouchableOpacity>
                 <TouchableOpacity

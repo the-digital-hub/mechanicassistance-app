@@ -3223,12 +3223,16 @@
     "title": "Eliminar cuenta",
     "subtitle": "Eliminá permanentemente tu cuenta y todos los datos asociados",
     "sorry": "Lamentamos que te vayas.",
-    "warning": "Si eliminás tu cuenta, todos tus datos se eliminarán de forma permanente.",
+    "warning": "Si eliminás tu cuenta, tu perfil y tus datos personales se eliminarán de forma permanente. Los registros de pagos y de servicios realizados pueden conservarse porque la ley lo exige, sin tus datos personales.",
     "confirmQuestion": "¿Estás seguro de que querés continuar?",
     "back": "Volver",
     "confirmModalTitle": "¿Seguís seguro de que querés eliminar tu cuenta?",
     "yes": "Sí",
-    "no": "No"
+    "no": "No",
+    "errorTitle": "No pudimos eliminar tu cuenta",
+    "error": "No pudimos eliminar tu cuenta. Probá de nuevo.",
+    "blocked": "Tenés algo en curso (una asistencia abierta o un pago pendiente). Terminalo o cancelalo y probá de nuevo.",
+    "deleting": "Eliminando tu cuenta…"
   },
   "addresses": {
     "badge": "GUARDÁ TUS LUGARES FAVORITOS",

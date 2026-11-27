@@ -3,6 +3,7 @@ import {
     AppleAuthProvider,
     GoogleAuthProvider,
     createUserWithEmailAndPassword,
+    deleteUser,
     getAuth,
     getIdToken as firebaseGetIdToken,
     signInWithCredential,
@@ -181,6 +182,21 @@ export const registerWithEmail = async (email: string, password: string): Promis
 export const getIdToken = async (): Promise<string | null> => {
     const user = getAuth().currentUser;
     return user ? firebaseGetIdToken(user) : null;
+};
+
+/**
+ * Best effort after the server deleted the account: removes the Firebase user (Google/Apple
+ * link and email). It can fail when the sign-in is old (recent login required); the server
+ * has already erased everything it owns, so a failure here is ignored.
+ */
+export const deleteFirebaseUser = async (): Promise<void> => {
+    const user = getAuth().currentUser;
+    if (!user) return;
+    try {
+        await deleteUser(user);
+    } catch (e) {
+        console.warn('[firebase] could not delete the Firebase user:', e);
+    }
 };
 
 /** Signs the user out of Firebase (called on app logout). */

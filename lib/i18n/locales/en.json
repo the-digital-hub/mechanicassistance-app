@@ -3222,12 +3222,16 @@
     "title": "Delete Account",
     "subtitle": "Permanently remove your account and all associated data",
     "sorry": "We're sorry to see you go.",
-    "warning": "If you delete your account, all your data will be permanently removed.",
+    "warning": "If you delete your account, your profile and personal data will be permanently removed. Records of payments and completed services may be kept as the law requires, without your personal details.",
     "confirmQuestion": "Are you sure you want to continue?",
     "back": "Back",
     "confirmModalTitle": "Are you still sure you want to Delete your account?",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "errorTitle": "We couldn't delete your account",
+    "error": "We couldn't delete your account. Try again.",
+    "blocked": "You have something in progress (an open assistance or a pending payment). Finish or cancel it and try again.",
+    "deleting": "Deleting your account…"
   },
   "addresses": {
     "badge": "SAVE YOUR FAVORITE LOCATIONS",
