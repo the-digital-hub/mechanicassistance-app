@@ -463,3 +463,7 @@ Reemplaza el registro silencioso de la aceptación. Después de crear la cuenta 
 - Sin nada pendiente sigue solo al dashboard. Si el servidor no responde, ofrece reintentar, leer la política en la web o «Continuar por ahora» (queda como «Update» en el perfil).
 - La casilla del paso 1 del registro se mantiene; se quitó `lib/legal/acceptPending.ts` (ya no se acepta sin mostrar el texto).
 - Endpoints usados: `GET /policies`, `GET /policies/:id`, `POST /policies/:id/accept`. **No se usa `GET /api/legal/acceptances/me`** (el listado de políticas ya trae `accepted` y `acceptedAt`).
+
+### Aviso de política pendiente en los tips del dashboard (27-nov-2026)
+
+Si hay una versión nueva de una política (Términos, Privacidad…) para el rol en uso, el dashboard del dueño y del técnico muestra un tip **primero**: «Política actualizada — Actualizamos los Términos y la Política de privacidad. Leelos y aceptá la nueva versión.», que lleva a Perfil → Política de privacidad (`/privacy`). Mismo origen que el aviso «Update» del perfil: `hooks/useLegalPending.ts` (`GET /api/legal/policies` reducido al rol). «Ahora no» lo oculta unos días como cualquier otro tip; el aviso del perfil sigue.

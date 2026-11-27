@@ -460,6 +460,10 @@
         "membership": {
           "label": "Finish your plan",
           "text": "Complete the sign-up of your Assistance Pass plan in Membership."
+        },
+        "policy": {
+          "label": "Policy update",
+          "text": "We updated our Terms and Privacy Policy. Read them and accept the new version."
         }
       }
     },
@@ -562,6 +566,10 @@
           "membership": {
             "label": "Finish your plan",
             "text": "Complete the sign-up of your All-access plan in Membership."
+          },
+          "policy": {
+            "label": "Policy update",
+            "text": "We updated our Terms and Privacy Policy. Read them and accept the new version."
           }
         },
         "offlineLabel": "You're offline",

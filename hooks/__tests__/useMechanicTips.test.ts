@@ -4,6 +4,7 @@ jest.mock('@/lib/dao/CertificationsDAO', () => ({ certificationsDAO: { list: jes
 jest.mock('@/lib/dao/MechanicDocumentsDAO', () => ({ mechanicDocumentsDAO: { list: jest.fn() } }));
 jest.mock('@/lib/dao/PaymentMethodDAO', () => ({ paymentMethodDAO: { list: jest.fn() } }));
 jest.mock('expo-router', () => ({ useFocusEffect: jest.fn() }));
+jest.mock('@/lib/dao/LegalDAO', () => ({ legalDAO: { policies: jest.fn() } }));
 
 import { buildMechanicTips, buildOwnerTips, busiestWeekday, daysSince } from '../useMechanicTips';
 
@@ -129,5 +130,20 @@ describe('behaviour helpers', () => {
         expect(daysSince('2026-11-13T12:00:00Z', now)).toBe(10);
         expect(daysSince(undefined, now)).toBeNull();
         expect(daysSince('not a date', now)).toBeNull();
+    });
+});
+
+describe('a legal text with a new version to accept', () => {
+    it('comes first for a technician, and only while it is pending', () => {
+        expect(keys({ identityApproved: false, policyPending: true })).toEqual(['policy', 'identity']);
+        expect(keys({ policyPending: false })).toEqual([]);
+        const tip = buildMechanicTips({ ...complete, policyPending: true })[0];
+        expect(tip).toMatchObject({ key: 'policy', i18n: 'policy', route: '/privacy' });
+    });
+
+    it('comes first for an owner too', () => {
+        const owner = { hasCard: false, hasVehicle: true, hasAddress: true, hasPhoto: true, noRequestsYet: false };
+        expect(buildOwnerTips({ ...owner, policyPending: true }).map((t) => t.key)).toEqual(['policy', 'card']);
+        expect(buildOwnerTips({ ...owner, hasCard: true, policyPending: false })).toEqual([]);
     });
 });

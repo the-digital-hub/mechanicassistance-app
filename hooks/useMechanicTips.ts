@@ -1,9 +1,10 @@
 import type { LucideIcon } from 'lucide-react-native';
-import { CalendarClock, Camera, Car, Clock, CreditCard, Crown, FileText, MapPin, Medal, Radar, ScanSearch, Send, ShieldCheck, Star, Video, Wrench, Zap } from 'lucide-react-native';
+import { CalendarClock, Camera, Car, Clock, CreditCard, Crown, FileText, MapPin, Medal, Radar, ScanSearch, ScrollText, Send, ShieldCheck, Star, Video, Wrench, Zap } from 'lucide-react-native';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useVerification } from '@/context/VerificationContext';
+import { useLegalPending } from '@/hooks/useLegalPending';
 import { useMembershipDue } from '@/hooks/useMembershipDue';
 import { certificationsDAO } from '@/lib/dao/CertificationsDAO';
 import type { UserData } from '@/lib/dao/interfaces';
@@ -51,9 +52,13 @@ export function buildMechanicTips(input: {
     radiusMiles?: number | null;
     /** The plan's amount while its sign-up is not finished (unpaid); absent or null: nothing to finish. */
     membershipDue?: string | null;
+    /** A legal text (Terms, Privacy Policy…) has a new version to accept in this role. */
+    policyPending?: boolean;
 }): MechanicTip[] {
     const tips: MechanicTip[] = [];
-    // First: finishing the plan is what completes the sign-up.
+    // First of all: a legal text with a new version to accept (it leads to where it is read and accepted).
+    if (input.policyPending) tips.push({ key: 'policy', icon: ScrollText, i18n: 'policy', route: '/privacy' });
+    // Then: finishing the plan is what completes the sign-up.
     if (input.membershipDue) tips.push({ key: 'membership', icon: Crown, i18n: 'membership', route: '/membership', params: { amount: input.membershipDue } });
     if (!input.identityApproved) tips.push({ key: 'identity', icon: ShieldCheck, i18n: 'identity', route: '/verify-identity' });
     // (Payouts are not here: "Needs your attention" already raises that one as an alert.)
@@ -134,6 +139,7 @@ export function useMechanicTips(
     const { isApproved, hasLoaded } = useVerification();
     const { memory, dismiss, track } = useTipsMemory(user?.id);
     const membershipDue = useMembershipDue(user?.id, 'mechanic', enabled);
+    const policyPending = useLegalPending(user?.id, 'mechanic', enabled);
     const [documents, setDocuments] = useState<boolean | null>(null);
     const [certifications, setCertifications] = useState<boolean | null>(null);
     useFocusEffect(
@@ -164,8 +170,9 @@ export function useMechanicTips(
             busiestDay: busiestWeekday(finishedAt),
             radiusMiles: user.mechanicDetails?.serviceRadiusMiles ?? null,
             membershipDue,
+            policyPending,
         }).filter((t) => !isHidden(memory, t.key));
-    }, [enabled, user, hasLoaded, isApproved, documents, certifications, completedCount, appointments, openRequests, memory, membershipDue]);
+    }, [enabled, user, hasLoaded, isApproved, documents, certifications, completedCount, appointments, openRequests, memory, membershipDue, policyPending]);
     return { tips, dismiss, track };
 }
 
@@ -183,8 +190,11 @@ export function buildOwnerTips(input: {
     daysSinceLastRequest?: number | null;
     /** The plan's amount while its sign-up is not finished (unpaid); absent or null: nothing to finish. */
     membershipDue?: string | null;
+    /** A legal text (Terms, Privacy Policy…) has a new version to accept in this role. */
+    policyPending?: boolean;
 }): MechanicTip[] {
     const tips: MechanicTip[] = [];
+    if (input.policyPending) tips.push({ key: 'policy', icon: ScrollText, i18n: 'policy', route: '/privacy' });
     if (input.membershipDue) tips.push({ key: 'membership', icon: Crown, i18n: 'membership', route: '/membership', params: { amount: input.membershipDue } });
     if (input.hasCard === false) tips.push({ key: 'card', icon: CreditCard, i18n: 'card', route: '/payment-cards' });
     if (input.hasVehicle === false) tips.push({ key: 'vehicle', icon: Car, i18n: 'vehicle', route: '/(tabs)/vehicles' });
@@ -211,6 +221,7 @@ export function useOwnerTips(
     const { hasLoaded } = useVerification();
     const { memory, dismiss, track } = useTipsMemory(user?.id);
     const membershipDue = useMembershipDue(user?.id, 'user', enabled);
+    const policyPending = useLegalPending(user?.id, 'user', enabled);
     const [cards, setCards] = useState<boolean | null>(null);
     useFocusEffect(
         useCallback(() => {
@@ -231,7 +242,8 @@ export function useOwnerTips(
             noRequestsYet: appointments.length === 0,
             daysSinceLastRequest: daysSince(when[when.length - 1]),
             membershipDue,
+            policyPending,
         }).filter((t) => !isHidden(memory, t.key));
-    }, [enabled, user, hasLoaded, cards, vehicleCount, appointments, memory, membershipDue]);
+    }, [enabled, user, hasLoaded, cards, vehicleCount, appointments, memory, membershipDue, policyPending]);
     return { tips, dismiss, track };
 }

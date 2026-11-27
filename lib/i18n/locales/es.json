@@ -460,6 +460,10 @@
         "membership": {
           "label": "Terminá tu plan",
           "text": "Concluí el alta de tu plan Assistance Pass en Membresía."
+        },
+        "policy": {
+          "label": "Política actualizada",
+          "text": "Actualizamos los Términos y la Política de privacidad. Leelos y aceptá la nueva versión."
         }
       }
     },
@@ -562,6 +566,10 @@
           "membership": {
             "label": "Terminá tu plan",
             "text": "Concluí el alta de tu plan All-access en Membresía."
+          },
+          "policy": {
+            "label": "Política actualizada",
+            "text": "Actualizamos los Términos y la Política de privacidad. Leelos y aceptá la nueva versión."
           }
         },
         "offlineLabel": "Estás desconectado",

@@ -5,8 +5,7 @@ import { useVerification } from '@/context/VerificationContext';
 import { useMembershipDue } from '@/hooks/useMembershipDue';
 import type { UserData } from '@/lib/dao/interfaces';
 import { mechanicDocumentsDAO } from '@/lib/dao/MechanicDocumentsDAO';
-import { legalDAO } from '@/lib/dao/LegalDAO';
-import { policiesForRole } from '@/lib/legal/policies';
+import { useLegalPending } from '@/hooks/useLegalPending';
 
 /** What is still pending in the profile, by item (each is false while it is not known: nothing is claimed that is not sure). */
 export interface ProfilePending {
@@ -32,15 +31,7 @@ export function useProfilePending(user: UserData | null | undefined): ProfilePen
     const { isApproved, hasLoaded } = useVerification();
     const membershipDue = useMembershipDue(user?.id, user?.role === 'mechanic' ? 'mechanic' : user ? 'user' : undefined, !!user);
     const [hasDocuments, setHasDocuments] = useState<boolean | null>(null);
-    const [hasLegalPending, setHasLegalPending] = useState(false);
-    useFocusEffect(
-        useCallback(() => {
-            if (!user?.id) return undefined;
-            let active = true;
-            legalDAO.policies().then((p) => { if (active) setHasLegalPending(policiesForRole(p, role).hasPending); }).catch(() => undefined);
-            return () => { active = false; };
-        }, [user?.id, role]),
-    );
+    const hasLegalPending = useLegalPending(user?.id, role);
     useFocusEffect(
         useCallback(() => {
             if (!isTechnician) return undefined;
