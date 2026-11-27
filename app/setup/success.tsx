@@ -11,6 +11,7 @@ import { ActivityIndicator, Text, View } from "react-native";
 import { SETUP_BG, SetupFooter } from "@/components/setup/SetupKit";
 import { WelcomeSequence } from "@/components/setup/WelcomeSequence";
 import { TYPE } from "@/lib/ui/type";
+import { acceptPendingPolicies } from "@/lib/legal/acceptPending";
 
 /** Where the caller has to go once the signup token is no longer usable. */
 type ExpiredRecovery = "signIn" | "restart";
@@ -103,6 +104,8 @@ export default function SuccessScreen() {
         if (newUser) {
           await adoptSession(newUser);
           setIsLoggedIn(true);
+          // They ticked the Terms / Privacy Policy box in the wizard: record it on the server with the new session (never fails the sign-up).
+          void acceptPendingPolicies(newUser.role);
         } else {
           console.warn("⚠️ [success.tsx] Session could not be started");
         }

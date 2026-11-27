@@ -434,3 +434,13 @@ Regla para esa integración (Apple 3.1.1): mostrar el pago **solo si** `!MEMBERS
 **Fase 2: versión siguiente.** Integrar la API (`GET /me`, `POST /pay`, `PATCH /me`, `/promo-code`, `/cancel`), decidir cómo se cobra frente a Apple (In-App Purchase u otra vía permitida), seguir la lista de `plataforma/membresia-puesta-en-marcha.md` del repo de análisis (claves live de Stripe, pruebas de punta a punta, Legal sobre renovación automática y reembolsos) y recién entonces poner `MEMBERSHIP_FREE_AT_LAUNCH = false`. El pago solo se muestra si `!MEMBERSHIP_FREE_AT_LAUNCH && plan.chargingEnabled`. Después, actualizar la ficha (descripción y notas del revisor) y «Purchases» en privacidad.
 
 **Cupones fuera del cliente (26-nov-2026):** se borró la tabla de códigos de `lib/membership/plan.ts` (`MIAMI`, `MEKA`, `INSURANCE`): ahora `PROMO_CODES` está vacía y cualquier código da `invalid`. Los códigos viven en Billing (`POST /api/membership/promo-code`, creados y activados desde el Hub). Con el interruptor en `false` y sin integrar la API, el campo de código aparecería y rechazaría todo: por eso la integración de la fase 2 reemplaza esa tabla, `applyPromoCode` y el cupón guardado por las llamadas reales.
+
+### Políticas legales por rol y aceptación al registrarse (27-nov-2026)
+
+Según `servicios/users/README.md` del repo de análisis (commit `7926e19`, migración `0030_legal_policy_roles.sql`): `legal_policies.roles` dirige una versión a ciertos roles (vacío = todos); el servidor devuelve las vigentes **para todos los roles de la cuenta** (rol principal + `user_roles`; una cuenta `zero` solo recibe lo que aplica a todos); una política de otro rol responde `404`; los roles quedan fijos al publicar.
+
+En la app (`lib/legal/policies.ts`, `lib/legal/acceptPending.ts`):
+- Cada versión lee `roles` (si no viene, aplica a todos). Perfil → «Política de privacidad» y el aviso «Update» del perfil muestran solo lo del rol en uso; quien tiene los dos roles ve cada texto al cambiar de perfil.
+- Al crear la cuenta (`app/setup/success.tsx`, después de `startSessionFromSignup`), la app registra con `POST /api/legal/policies/:id/accept` las versiones pendientes del rol elegido, porque la persona ya marcó la casilla de Términos y Privacidad. Nunca frena el alta: si el servidor rechaza una versión (409 o 404), queda como «Update» en el perfil.
+- Supuesto a confirmar con Alejandro: que cada versión de `GET /api/legal/policies` traiga `roles` (el documento solo lo confirma para el Hub). Si no viniera, todo funciona como antes y quien tiene los dos roles vería las dos versiones juntas.
+- Lo que acepta la persona en la casilla son los textos de la web (`LEGAL_URLS`); los que se registran son los del Hub: tienen que ser el mismo texto.
