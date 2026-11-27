@@ -3216,14 +3216,34 @@
   "deleteAccount": {
     "badge": "ACCOUNT SETTINGS",
     "title": "Delete Account",
-    "subtitle": "Permanently remove your account and all associated data",
+    "subtitle": "Delete your account and your personal data",
     "sorry": "We're sorry to see you go.",
-    "warning": "If you delete your account, all your data will be permanently removed.",
+    "warning": "We delete your personal data and anonymize your account. Some records stay because the law requires them or the other person needs them: payment and earnings history, past requests and appointments (your name will show as “Deleted user”) and audit records. This cannot be undone.",
     "confirmQuestion": "Are you sure you want to continue?",
     "back": "Back",
     "confirmModalTitle": "Are you still sure you want to Delete your account?",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "deleting": "Deleting your account…",
+    "failedTitle": "We couldn't delete your account",
+    "failed": "We couldn't delete your account. Please try again.",
+    "unavailable": "We couldn't check your account right now, so nothing was deleted. Please try again in a few minutes.",
+    "reauthFailedTitle": "Confirm it's you",
+    "reauthFailed": "We couldn't confirm it's you, so nothing was deleted. Sign in again with the same account and try once more.",
+    "blockedTitle": "Your account can't be deleted yet",
+    "blockedIntro": "Take care of this first, then try again:",
+    "blocked": {
+      "open_request": "You have a request that is still open. Wait for it to finish or cancel it.",
+      "open_job": "You have a job that is still open as a technician.",
+      "open_driver_request": "A company asked for a service for you that is still open.",
+      "open_dispute": "You have a cancellation dispute that isn't resolved.",
+      "open_payment": "You have a payment on hold or pending.",
+      "debt": "You have an unpaid balance.",
+      "wallet_balance": "You still have money in your wallet. Use it or withdraw it first.",
+      "unpaid_earnings": "You have earnings that haven't been paid out yet.",
+      "open_adjustment": "You have a pending discount on your next payout.",
+      "sole_organization_admin": "You are the only administrator of a company. Transfer the administration first."
+    }
   },
   "addresses": {
     "badge": "SAVE YOUR FAVORITE LOCATIONS",

@@ -3217,14 +3217,34 @@
   "deleteAccount": {
     "badge": "CONFIGURACIÓN DE LA CUENTA",
     "title": "Eliminar cuenta",
-    "subtitle": "Eliminá permanentemente tu cuenta y todos los datos asociados",
+    "subtitle": "Eliminá tu cuenta y tus datos personales",
     "sorry": "Lamentamos que te vayas.",
-    "warning": "Si eliminás tu cuenta, todos tus datos se eliminarán de forma permanente.",
+    "warning": "Eliminamos tus datos personales y anonimizamos tu cuenta. Algunos registros se conservan porque la ley lo exige o porque la otra persona los necesita: el historial de pagos y ganancias, los pedidos y citas anteriores (tu nombre aparece como «Usuario eliminado») y los registros de auditoría. No se puede deshacer.",
     "confirmQuestion": "¿Estás seguro de que querés continuar?",
     "back": "Volver",
     "confirmModalTitle": "¿Seguís seguro de que querés eliminar tu cuenta?",
     "yes": "Sí",
-    "no": "No"
+    "no": "No",
+    "deleting": "Eliminando tu cuenta…",
+    "failedTitle": "No pudimos eliminar tu cuenta",
+    "failed": "No pudimos eliminar tu cuenta. Probá de nuevo.",
+    "unavailable": "Ahora no pudimos comprobar tu cuenta, así que no se borró nada. Probá de nuevo en unos minutos.",
+    "reauthFailedTitle": "Confirmá que sos vos",
+    "reauthFailed": "No pudimos confirmar que sos vos, así que no se borró nada. Volvé a iniciar sesión con la misma cuenta y probá otra vez.",
+    "blockedTitle": "Todavía no se puede eliminar tu cuenta",
+    "blockedIntro": "Primero resolvé esto y después probá de nuevo:",
+    "blocked": {
+      "open_request": "Tenés un pedido todavía abierto. Esperá a que termine o cancelalo.",
+      "open_job": "Tenés un trabajo todavía abierto como técnico.",
+      "open_driver_request": "Hay un servicio que una empresa pidió para vos y sigue abierto.",
+      "open_dispute": "Tenés una disputa de cancelación sin resolver.",
+      "open_payment": "Tenés un pago retenido o pendiente.",
+      "debt": "Tenés un saldo sin pagar.",
+      "wallet_balance": "Todavía tenés dinero en tu billetera. Usalo o retiralo primero.",
+      "unpaid_earnings": "Tenés ganancias que todavía no se liquidaron.",
+      "open_adjustment": "Tenés un descuento pendiente sobre tu próxima transferencia.",
+      "sole_organization_admin": "Sos el único administrador de una empresa. Transferí la administración primero."
+    }
   },
   "addresses": {
     "badge": "GUARDÁ TUS LUGARES FAVORITOS",

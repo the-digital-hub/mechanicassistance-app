@@ -181,6 +181,15 @@ export class UserDAO implements IUserDAO {
         }
     }
 
+    /**
+     * Deletes the signed-in account (`DELETE /api/users/me`, backend 26-nov): personal data is deleted and the account is anonymised, what
+     * the law or the other party needs stays. 409 `ACCOUNT_DELETION_BLOCKED` with the reasons when something open stops it, 503 when it
+     * could not be checked (nothing deleted). Does NOT clear local storage: the caller signs out afterwards.
+     */
+    async deleteAccount(): Promise<void> {
+        await apiClient.delete('/api/users/me');
+    }
+
     async clearSignupToken(): Promise<void> {
         await clearStoredSignupToken();
     }

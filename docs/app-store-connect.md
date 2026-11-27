@@ -444,3 +444,13 @@ En la app (`lib/legal/policies.ts`, `lib/legal/acceptPending.ts`):
 - Al crear la cuenta (`app/setup/success.tsx`, después de `startSessionFromSignup`), la app registra con `POST /api/legal/policies/:id/accept` las versiones pendientes del rol elegido, porque la persona ya marcó la casilla de Términos y Privacidad. Nunca frena el alta: si el servidor rechaza una versión (409 o 404), queda como «Update» en el perfil.
 - Supuesto a confirmar con Alejandro: que cada versión de `GET /api/legal/policies` traiga `roles` (el documento solo lo confirma para el Hub). Si no viniera, todo funciona como antes y quien tiene los dos roles vería las dos versiones juntas.
 - Lo que acepta la persona en la casilla son los textos de la web (`LEGAL_URLS`); los que se registran son los del Hub: tienen que ser el mismo texto.
+
+### Borrar cuenta en la app (27-nov-2026)
+
+Implementado según `plataforma/borrado-de-cuenta.md` del repo de análisis (backend `DELETE /api/users/me`, probado de punta a punta el 26-nov):
+- `UserDAO.deleteAccount()` (`lib/dao/UserDAO.ts`) y la pantalla `app/(tabs)/settings/delete-account.tsx`, con estado de carga y errores (ya no es el `console.log`).
+- Orden: (1) si la cuenta entró con **Apple o Google**, pide iniciar sesión de nuevo **antes** de llamar al servidor (`lib/firebase/accountDeletion.ts`); (2) `DELETE /api/users/me`: ante cualquier error **se frena ahí y la cuenta queda intacta**; (3) solo si salió bien: revoca el token de Apple (`revokeToken`), borra el usuario de Firebase (`deleteUser`), `logout()` y vuelve a `/onboarding`.
+- `409 ACCOUNT_DELETION_BLOCKED`: muestra un texto por cada motivo (diez, `deleteAccount.blocked.*`, `lib/account/deletion.ts`); `503`: «no se borró nada, probá en unos minutos».
+- Texto de la pantalla (`deleteAccount.warning`): ya no dice «se borra todo»; dice que se eliminan los datos personales, se anonimiza la cuenta y se conserva lo que exige la ley o necesita la otra parte (pagos y ganancias, pedidos y citas con «Usuario eliminado», auditoría).
+
+**Pendiente:** (1) **Legal** tiene que validar ese texto y los plazos de retención antes de enviar a revisión; (2) probarlo con una cuenta de prueba de cada tipo (teléfono, Apple, Google) y con una cuenta con un pedido abierto (tiene que mostrar el bloqueo); (3) `GET /users/:id/public` ahora devuelve `deleted: true` con el nombre «Usuario eliminado»: la app puede mostrar su propio texto localizado (no se hizo); (4) las cuentas que entran por Apple o Google dejan una tarea `auth_erase` en `failed` en el servidor mientras Auth no tenga la cuenta de servicio de Firebase (es esperado).

@@ -5,18 +5,55 @@ import { ChevronLeft, ChevronRight, UserX } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { useUser } from '@/context/UserContext';
+import { deletionBlocks, isDeletionUnavailable } from '@/lib/account/deletion';
+import { userDAO } from '@/lib/dao/UserDAO';
+import { deletionProvider, finishFirebaseDeletion, reauthenticate, type FreshSignIn } from '@/lib/firebase/accountDeletion';
+import { appAlert } from '@/lib/ui/appAlert';
 
 export default function DeleteAccountScreen() {
     const router = useRouter();
     const { t } = useTranslation();
+    const { logout } = useUser();
     const [showModal, setShowModal] = useState(false);
+    const [deleting, setDeleting] = useState(false);
 
-    const handleDelete = () => {
-        // API Call to delete account
-        console.log('Account deleted');
+    // Backend 26-nov (`DELETE /api/users/me`, plataforma/borrado-de-cuenta.md §5). Order matters: with Apple or Google, sign in again BEFORE the
+    // server is called; any error from the server stops here with the account intact; only after it worked the Apple token is revoked, the
+    // Firebase user deleted and the session closed.
+    const handleDelete = async () => {
         setShowModal(false);
-        router.replace('/onboarding');
+        if (deleting) return;
+        setDeleting(true);
+        try {
+            const provider = deletionProvider();
+            let fresh: FreshSignIn = {};
+            if (provider) {
+                try {
+                    fresh = await reauthenticate(provider);
+                } catch {
+                    appAlert(t('deleteAccount.reauthFailedTitle'), t('deleteAccount.reauthFailed'), undefined, { tone: 'info' });
+                    return;
+                }
+            }
+            await userDAO.deleteAccount();
+            if (provider) await finishFirebaseDeletion(fresh);
+            await logout();
+            router.replace('/onboarding');
+        } catch (error) {
+            const blocks = deletionBlocks(error);
+            if (blocks.length > 0) {
+                const lines = blocks.map((b) => `• ${t(`deleteAccount.blocked.${b.code}`, { defaultValue: b.message ?? b.code })}`);
+                appAlert(t('deleteAccount.blockedTitle'), `${t('deleteAccount.blockedIntro')}\n\n${lines.join('\n')}`, undefined, { tone: 'info' });
+            } else if (isDeletionUnavailable(error)) {
+                appAlert(t('deleteAccount.failedTitle'), t('deleteAccount.unavailable'), undefined, { tone: 'danger' });
+            } else {
+                appAlert(t('deleteAccount.failedTitle'), t('deleteAccount.failed'), undefined, { tone: 'danger' });
+            }
+        } finally {
+            setDeleting(false);
+        }
     };
 
     return (
@@ -54,6 +91,9 @@ export default function DeleteAccountScreen() {
                 <TouchableOpacity
                     onPress={() => setShowModal(true)}
                     activeOpacity={0.8}
+                    disabled={deleting}
+                    accessibilityState={{ busy: deleting, disabled: deleting }}
+                    testID="delete-account-button"
                 >
                     <LinearGradient
                         colors={['#2B66F8', '#081E72']}
@@ -68,7 +108,8 @@ export default function DeleteAccountScreen() {
                             justifyContent: 'center',
                         }}
                     >
-                        <Text className="text-white font-outfit-bold text-lg text-center">{t('deleteAccount.title')}</Text>
+                        {deleting ? <ActivityIndicator color="white" style={{ marginRight: 10 }} /> : null}
+                        <Text className="text-white font-outfit-bold text-lg text-center">{t(deleting ? 'deleteAccount.deleting' : 'deleteAccount.title')}</Text>
                     </LinearGradient>
                 </TouchableOpacity>
                 <TouchableOpacity
