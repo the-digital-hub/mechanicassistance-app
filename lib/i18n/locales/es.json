@@ -3108,7 +3108,8 @@
     "acceptFailedTitle": "No pudimos guardar tu aceptación",
     "acceptFailed": "Revisá tu conexión y probá de nuevo.",
     "supersededTitle": "La política se actualizó",
-    "supersededMessage": "Hay una versión más nueva. Leela y aceptala de nuevo."
+    "supersededMessage": "Hay una versión más nueva. Leela y aceptala de nuevo.",
+    "scrollToAccept": "Bajá hasta el final para aceptar"
   },
   "help": {
     "badge": "AYUDA Y SOPORTE",

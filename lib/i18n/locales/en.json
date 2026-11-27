@@ -3107,7 +3107,8 @@
     "acceptFailedTitle": "We couldn't save your acceptance",
     "acceptFailed": "Check your connection and try again.",
     "supersededTitle": "The policy was updated",
-    "supersededMessage": "There is a newer version. Please read it and accept again."
+    "supersededMessage": "There is a newer version. Please read it and accept again.",
+    "scrollToAccept": "Scroll to the end to accept"
   },
   "help": {
     "badge": "HELP & SUPPORT",

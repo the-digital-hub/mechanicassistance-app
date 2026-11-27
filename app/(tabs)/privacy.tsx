@@ -2,14 +2,14 @@ import Constants from 'expo-constants';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { LEGAL_URLS } from '@/lib/config/legal';
 import { legalDAO } from '@/lib/dao/LegalDAO';
-import { type LegalPolicy, policiesForRole, policyBlocks } from '@/lib/legal/policies';
+import { hasReachedEnd, type LegalPolicy, policiesForRole, policyBlocks } from '@/lib/legal/policies';
 import { useUser } from '@/context/UserContext';
 import { appAlert } from '@/lib/ui/appAlert';
 import { FLOATING_CTA, FLOATING_FOOTER } from '@/lib/ui/floatingFooter';
@@ -30,6 +30,13 @@ export default function PrivacyScreen() {
     const [pending, setPending] = useState<LegalPolicy[]>([]);
     const [failed, setFailed] = useState(false);
     const [accepting, setAccepting] = useState(false);
+    // The Accept button opens only once the whole text has been scrolled (or it fits on the screen).
+    const [reachedEnd, setReachedEnd] = useState(false);
+    const metrics = useRef({ layout: 0, content: 0, offset: 0 });
+    const checkEnd = () => {
+        const { layout, content, offset } = metrics.current;
+        if (hasReachedEnd(layout, content, offset)) setReachedEnd(true);
+    };
 
     const load = useCallback(async () => {
         setFailed(false);
@@ -43,6 +50,7 @@ export default function PrivacyScreen() {
             setPolicies(full);
             const ids = new Set(res.pending.map((p) => p.id));
             setPending(full.filter((p) => ids.has(p.id)));
+            setReachedEnd(false);
         } catch {
             setFailed(true);
         }
@@ -75,7 +83,14 @@ export default function PrivacyScreen() {
 
     return (
         <View className="flex-1" style={{ backgroundColor: '#F6F8FC' }}>
-            <ScrollView className="flex-1 px-6 pt-6" contentContainerStyle={{ paddingBottom: pending.length > 0 ? 130 : 40 }}>
+            <ScrollView
+                className="flex-1 px-6 pt-6"
+                contentContainerStyle={{ paddingBottom: pending.length > 0 ? 130 : 40 }}
+                scrollEventThrottle={100}
+                onLayout={(e) => { metrics.current.layout = e.nativeEvent.layout.height; checkEnd(); }}
+                onContentSizeChange={(_w, h) => { metrics.current.content = h; checkEnd(); }}
+                onScroll={(e) => { metrics.current.offset = e.nativeEvent.contentOffset.y; checkEnd(); }}
+            >
                 <View style={{ marginTop: 11 }}>
                     <View className="flex-row items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full" style={{ backgroundColor: '#E9F1FF', alignSelf: 'flex-start' }}>
                         <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0047AB' }} />
@@ -148,7 +163,10 @@ export default function PrivacyScreen() {
 
             {pending.length > 0 ? (
                 <View className="absolute bottom-0 w-full" style={FLOATING_FOOTER}>
-                    <TouchableOpacity onPress={() => void accept()} disabled={accepting} activeOpacity={0.8} style={FLOATING_CTA} accessibilityRole="button" testID="privacy-accept">
+                    {reachedEnd ? null : (
+                        <Text className="font-outfit-regular text-center mb-2" style={{ ...TYPE.helper, color: '#6B7490' }} testID="privacy-scroll-hint">{t('privacy.scrollToAccept')}</Text>
+                    )}
+                    <TouchableOpacity onPress={() => void accept()} disabled={accepting || !reachedEnd} activeOpacity={0.8} style={[FLOATING_CTA, { opacity: reachedEnd ? 1 : 0.45 }]} accessibilityRole="button" accessibilityState={{ disabled: accepting || !reachedEnd }} testID="privacy-accept">
                         <LinearGradient colors={['#2B66F8', '#081E72']} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }} style={{ borderRadius: 14, paddingVertical: 17, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
                             {accepting ? <ActivityIndicator color="white" /> : <Text className="text-white font-outfit-semibold text-lg text-center">{t('privacy.accept')}</Text>}
                         </LinearGradient>

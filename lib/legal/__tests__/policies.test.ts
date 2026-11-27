@@ -1,4 +1,4 @@
-import { appliesToRole, localizedText, normalizePolicies, policiesForRole, policyBlocks } from '../policies';
+import { appliesToRole, hasReachedEnd, localizedText, normalizePolicies, policiesForRole, policyBlocks } from '../policies';
 
 describe('localizedText', () => {
     it('takes plain text as it is and picks the shown language of a pair', () => {
@@ -93,5 +93,21 @@ describe('policies aimed at roles', () => {
         }, 'en');
         expect(policiesForRole(res, 'user').hasPending).toBe(false);
         expect(policiesForRole(res, 'mechanic').hasPending).toBe(true);
+    });
+});
+
+describe('hasReachedEnd', () => {
+    it('is false while there is text left to read', () => {
+        expect(hasReachedEnd(600, 2400, 0)).toBe(false);
+        expect(hasReachedEnd(600, 2400, 1700)).toBe(false);
+    });
+    it('is true at the bottom, with a little slack', () => {
+        expect(hasReachedEnd(600, 2400, 1800)).toBe(true);
+        expect(hasReachedEnd(600, 2400, 1780)).toBe(true);
+    });
+    it('is true when the text fits without scrolling, and false before the view is measured', () => {
+        expect(hasReachedEnd(800, 500, 0)).toBe(true);
+        expect(hasReachedEnd(0, 0, 0)).toBe(false);
+        expect(hasReachedEnd(800, 0, 0)).toBe(false);
     });
 });

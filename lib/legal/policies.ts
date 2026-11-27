@@ -83,6 +83,15 @@ export function policiesForRole(res: LegalPolicies, role?: string | null): Legal
     return { policies, pending, hasPending: pending.length > 0 };
 }
 
+/**
+ * Whether the person has seen the whole text: the bottom of the content is within `slack` points of the bottom of the view, or the content
+ * fits without scrolling. Accepting a policy is only possible once this is true.
+ */
+export function hasReachedEnd(layoutHeight: number, contentHeight: number, offsetY: number, slack = 24): boolean {
+    if (layoutHeight <= 0 || contentHeight <= 0) return false;
+    return contentHeight <= layoutHeight + slack || offsetY + layoutHeight >= contentHeight - slack;
+}
+
 /** The text of a policy split into blocks the screen draws: headings (# …), bullets (- …) and paragraphs. */
 export type PolicyBlock = { kind: 'heading' | 'bullet' | 'paragraph'; text: string };
 
